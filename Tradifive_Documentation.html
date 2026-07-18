@@ -1,0 +1,1919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tradifive — Complete Product Documentation</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --brand: #7c3aed;
+    --brand-light: #a78bfa;
+    --brand-dark: #5b21b6;
+    --text: #1a1a2e;
+    --text-secondary: #4a4a6a;
+    --text-muted: #7a7a9a;
+    --bg: #ffffff;
+    --bg-alt: #f8f7ff;
+    --bg-code: #f4f2ff;
+    --border: #e5e5f0;
+    --success: #10b981;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --info: #3b82f6;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  @page {
+    size: A4;
+    margin: 20mm 18mm 25mm 18mm;
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 10.5pt;
+    line-height: 1.7;
+    color: var(--text);
+    background: #f0f0f5;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .document {
+    max-width: 210mm;
+    margin: 0 auto;
+    background: var(--bg);
+    box-shadow: 0 4px 40px rgba(0,0,0,0.12);
+  }
+
+  @media print {
+    body { background: white; }
+    .document { box-shadow: none; max-width: 100%; }
+    .cover-page { page-break-after: always; }
+    .toc-page { page-break-after: always; }
+    .section { page-break-before: always; }
+    .no-print { display: none !important; }
+    table { page-break-inside: avoid; }
+    h2, h3 { page-break-after: avoid; }
+  }
+
+  /* ===== COVER PAGE ===== */
+  .cover-page {
+    min-height: 297mm;
+    background: linear-gradient(160deg, #0f0a1e 0%, #1a1040 30%, #2d1b69 60%, #4c1d95 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 60px 50px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cover-page::before {
+    content: '';
+    position: absolute;
+    top: -200px;
+    right: -200px;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(124,58,237,0.3) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+
+  .cover-page::after {
+    content: '';
+    position: absolute;
+    bottom: -100px;
+    left: -100px;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(99,102,241,0.2) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+
+  .cover-logo {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, var(--brand), #6366f1);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    font-weight: 900;
+    color: white;
+    margin-bottom: 40px;
+    position: relative;
+    z-index: 1;
+    box-shadow: 0 8px 32px rgba(124,58,237,0.4);
+  }
+
+  .cover-title {
+    font-size: 48pt;
+    font-weight: 900;
+    color: white;
+    letter-spacing: -1.5px;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+    line-height: 1.1;
+  }
+
+  .cover-subtitle {
+    font-size: 16pt;
+    font-weight: 300;
+    color: rgba(255,255,255,0.7);
+    margin-top: 16px;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .cover-divider {
+    width: 80px;
+    height: 3px;
+    background: linear-gradient(90deg, var(--brand-light), #6366f1);
+    margin: 40px auto;
+    border-radius: 2px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .cover-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    color: rgba(255,255,255,0.5);
+    font-size: 9.5pt;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+    margin-top: 20px;
+  }
+
+  .cover-meta strong {
+    color: rgba(255,255,255,0.7);
+  }
+
+  .cover-badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.15);
+    padding: 6px 18px;
+    border-radius: 20px;
+    color: rgba(255,255,255,0.8);
+    font-size: 8.5pt;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-top: 30px;
+    position: relative;
+    z-index: 1;
+    backdrop-filter: blur(10px);
+  }
+
+  .cover-footer {
+    position: absolute;
+    bottom: 40px;
+    left: 50px;
+    right: 50px;
+    display: flex;
+    justify-content: space-between;
+    color: rgba(255,255,255,0.35);
+    font-size: 8pt;
+    z-index: 1;
+  }
+
+  /* ===== TOC PAGE ===== */
+  .toc-page {
+    padding: 60px 50px;
+    min-height: 297mm;
+  }
+
+  .toc-title {
+    font-size: 24pt;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  .toc-subtitle {
+    font-size: 10pt;
+    color: var(--text-muted);
+    margin-bottom: 40px;
+  }
+
+  .toc-list {
+    list-style: none;
+    counter-reset: toc-counter;
+  }
+
+  .toc-item {
+    display: flex;
+    align-items: baseline;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    counter-increment: toc-counter;
+    transition: background 0.2s;
+  }
+
+  .toc-item:hover {
+    background: var(--bg-alt);
+  }
+
+  .toc-number {
+    font-size: 11pt;
+    font-weight: 700;
+    color: var(--brand);
+    width: 36px;
+    flex-shrink: 0;
+  }
+
+  .toc-label {
+    font-size: 10.5pt;
+    font-weight: 500;
+    color: var(--text);
+    flex: 1;
+  }
+
+  .toc-dots {
+    flex: 1;
+    border-bottom: 1px dotted var(--border);
+    margin: 0 12px;
+    min-width: 40px;
+  }
+
+  .toc-page-num {
+    font-size: 10pt;
+    color: var(--text-muted);
+    font-weight: 500;
+    flex-shrink: 0;
+  }
+
+  /* ===== CONTENT PAGES ===== */
+  .section {
+    padding: 50px 50px 60px;
+  }
+
+  .section-number {
+    font-size: 9pt;
+    font-weight: 700;
+    color: var(--brand);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 6px;
+  }
+
+  h1 {
+    font-size: 22pt;
+    font-weight: 800;
+    color: var(--text);
+    line-height: 1.2;
+    margin-bottom: 24px;
+    letter-spacing: -0.5px;
+  }
+
+  h2 {
+    font-size: 14pt;
+    font-weight: 700;
+    color: var(--text);
+    margin-top: 36px;
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--border);
+  }
+
+  h3 {
+    font-size: 11.5pt;
+    font-weight: 600;
+    color: var(--text);
+    margin-top: 24px;
+    margin-bottom: 10px;
+  }
+
+  h4 {
+    font-size: 10.5pt;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-top: 18px;
+    margin-bottom: 8px;
+  }
+
+  p {
+    margin-bottom: 12px;
+    color: var(--text-secondary);
+  }
+
+  strong { color: var(--text); }
+
+  .lead {
+    font-size: 12pt;
+    line-height: 1.8;
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+  }
+
+  blockquote {
+    border-left: 3px solid var(--brand);
+    background: var(--bg-alt);
+    padding: 14px 20px;
+    margin: 16px 0;
+    border-radius: 0 8px 8px 0;
+    font-style: italic;
+    color: var(--text-secondary);
+  }
+
+  /* ===== TABLES ===== */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0 20px;
+    font-size: 9.5pt;
+  }
+
+  thead th {
+    background: var(--bg-alt);
+    font-weight: 600;
+    text-align: left;
+    padding: 10px 14px;
+    color: var(--text);
+    border-bottom: 2px solid var(--brand);
+    font-size: 9pt;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  tbody td {
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-secondary);
+    vertical-align: top;
+  }
+
+  tbody tr:nth-child(even) {
+    background: var(--bg-alt);
+  }
+
+  tbody tr:hover {
+    background: #f0eeff;
+  }
+
+  /* ===== LISTS ===== */
+  ul, ol {
+    margin: 10px 0 16px 20px;
+    color: var(--text-secondary);
+  }
+
+  li {
+    margin-bottom: 5px;
+  }
+
+  .checklist {
+    list-style: none;
+    margin-left: 0;
+  }
+
+  .checklist li {
+    padding: 4px 0;
+    padding-left: 26px;
+    position: relative;
+  }
+
+  .checklist li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: var(--success);
+    font-weight: 700;
+    font-size: 12pt;
+  }
+
+  .checklist li.pending::before {
+    content: '○';
+    color: var(--text-muted);
+  }
+
+  /* ===== CODE ===== */
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--bg-code);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 9pt;
+    color: var(--brand-dark);
+  }
+
+  pre {
+    background: #1e1b2e;
+    color: #e4e0f0;
+    padding: 18px 22px;
+    border-radius: 10px;
+    overflow-x: auto;
+    margin: 14px 0 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9pt;
+    line-height: 1.6;
+  }
+
+  pre code {
+    background: none;
+    padding: 0;
+    color: inherit;
+  }
+
+  /* ===== CALLOUTS ===== */
+  .callout {
+    padding: 16px 20px;
+    border-radius: 10px;
+    margin: 16px 0;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+
+  .callout-icon {
+    font-size: 16pt;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .callout-content { flex: 1; }
+  .callout-content p { margin: 0; }
+
+  .callout-info {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+  }
+
+  .callout-success {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+  }
+
+  .callout-warning {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+  }
+
+  .callout-danger {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+  }
+
+  /* ===== FLOW DIAGRAMS ===== */
+  .flow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    margin: 14px 0 20px;
+    font-size: 9pt;
+  }
+
+  .flow-step {
+    background: var(--bg-alt);
+    border: 1px solid var(--border);
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-weight: 500;
+    color: var(--text);
+    white-space: nowrap;
+  }
+
+  .flow-arrow {
+    color: var(--brand);
+    font-weight: 700;
+    font-size: 14pt;
+  }
+
+  /* ===== BADGES ===== */
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 8pt;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .badge-complete { background: #dcfce7; color: #166534; }
+  .badge-progress { background: #fef9c3; color: #854d0e; }
+  .badge-planned { background: #e0e7ff; color: #3730a3; }
+  .badge-live { background: #dcfce7; color: #166534; }
+
+  /* ===== FEATURE CARDS ===== */
+  .feature-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin: 16px 0;
+  }
+
+  .feature-card {
+    background: var(--bg-alt);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+  }
+
+  .feature-card-icon {
+    font-size: 20pt;
+    margin-bottom: 8px;
+  }
+
+  .feature-card h4 {
+    margin: 0 0 6px;
+    font-size: 10.5pt;
+    color: var(--text);
+  }
+
+  .feature-card p {
+    font-size: 9pt;
+    margin: 0;
+    color: var(--text-muted);
+  }
+
+  /* ===== METRIC CARDS ===== */
+  .metrics-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin: 16px 0;
+  }
+
+  .metric-card {
+    background: var(--bg-alt);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    text-align: center;
+  }
+
+  .metric-value {
+    font-size: 18pt;
+    font-weight: 800;
+    color: var(--brand);
+  }
+
+  .metric-label {
+    font-size: 8pt;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 4px;
+  }
+
+  /* ===== TIMELINE ===== */
+  .timeline {
+    margin: 20px 0;
+    padding-left: 30px;
+    border-left: 2px solid var(--border);
+  }
+
+  .timeline-item {
+    position: relative;
+    padding-bottom: 24px;
+  }
+
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -35px;
+    top: 5px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--brand);
+    border: 2px solid white;
+    box-shadow: 0 0 0 2px var(--brand);
+  }
+
+  .timeline-item.done::before {
+    background: var(--success);
+    box-shadow: 0 0 0 2px var(--success);
+  }
+
+  .timeline-item.pending::before {
+    background: white;
+    border: 2px solid var(--text-muted);
+    box-shadow: 0 0 0 2px var(--text-muted);
+  }
+
+  .timeline-title {
+    font-weight: 600;
+    color: var(--text);
+    font-size: 11pt;
+  }
+
+  .timeline-desc {
+    color: var(--text-muted);
+    font-size: 9.5pt;
+    margin-top: 4px;
+  }
+
+  /* ===== SEPARATOR ===== */
+  .section-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+    margin: 30px 0;
+  }
+
+  /* ===== PRINT BUTTON ===== */
+  .print-bar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: linear-gradient(135deg, #1e1b2e 0%, #2d1b69 100%);
+    padding: 14px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .print-bar span {
+    color: rgba(255,255,255,0.8);
+    font-size: 10pt;
+    font-weight: 500;
+  }
+
+  .print-btn {
+    background: var(--brand);
+    color: white;
+    border: none;
+    padding: 10px 28px;
+    border-radius: 8px;
+    font-family: 'Inter', sans-serif;
+    font-size: 10pt;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .print-btn:hover {
+    background: var(--brand-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(124,58,237,0.4);
+  }
+
+  /* ===== NAV STRUCTURE ===== */
+  .nav-tree {
+    background: #1e1b2e;
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 14px 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9pt;
+    color: #c4b5fd;
+    line-height: 1.9;
+  }
+
+  .nav-tree .section-label {
+    color: #6b7280;
+    font-size: 8pt;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .nav-tree .nav-item {
+    color: #e4e0f0;
+  }
+
+  .nav-tree .nav-icon {
+    margin-right: 8px;
+  }
+
+  /* ===== ER DIAGRAM (TEXT) ===== */
+  .er-box {
+    background: var(--bg-alt);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin: 8px 0;
+  }
+
+  .er-title {
+    font-weight: 700;
+    color: var(--brand-dark);
+    font-size: 10.5pt;
+    margin-bottom: 6px;
+  }
+
+  .er-fields {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8.5pt;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  .er-fields .pk { color: var(--brand); font-weight: 600; }
+  .er-fields .fk { color: var(--info); }
+
+  .er-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin: 16px 0;
+  }
+
+  /* PAGE NUMBERS */
+  .page-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 20px;
+    margin-top: 40px;
+    border-top: 1px solid var(--border);
+    font-size: 8pt;
+    color: var(--text-muted);
+  }
+
+  /* USP BOXES */
+  .usp-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 16px 0;
+  }
+
+  .usp-item {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 12px 16px;
+    background: var(--bg-alt);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+
+  .usp-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: var(--brand);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 10pt;
+    flex-shrink: 0;
+  }
+
+  .usp-text h4 { margin: 0 0 2px; font-size: 9.5pt; }
+  .usp-text p { margin: 0; font-size: 8.5pt; }
+
+  /* PERSONA */
+  .persona-card {
+    background: var(--bg-alt);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin: 16px 0;
+  }
+
+  .persona-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 14px;
+  }
+
+  .persona-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--brand), #6366f1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20pt;
+    color: white;
+  }
+
+  .persona-name {
+    font-size: 13pt;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .persona-desc {
+    font-size: 9pt;
+    color: var(--text-muted);
+  }
+
+  /* TECH STACK */
+  .tech-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--bg-alt);
+    border: 1px solid var(--border);
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 9pt;
+    font-weight: 500;
+    margin: 3px;
+  }
+
+  .tech-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+
+  /* PRICING TABLE */
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin: 16px 0;
+  }
+
+  .pricing-card {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+  }
+
+  .pricing-card.featured {
+    border-color: var(--brand);
+    box-shadow: 0 0 0 1px var(--brand);
+    position: relative;
+  }
+
+  .pricing-card.featured::after {
+    content: 'POPULAR';
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--brand);
+    color: white;
+    font-size: 7pt;
+    font-weight: 700;
+    padding: 3px 12px;
+    border-radius: 10px;
+    letter-spacing: 1px;
+  }
+
+  .pricing-name {
+    font-size: 12pt;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .pricing-price {
+    font-size: 22pt;
+    font-weight: 800;
+    color: var(--brand);
+    margin: 8px 0;
+  }
+
+  .pricing-price span {
+    font-size: 10pt;
+    font-weight: 400;
+    color: var(--text-muted);
+  }
+
+  .pricing-features {
+    list-style: none;
+    text-align: left;
+    margin: 14px 0 0;
+    font-size: 8.5pt;
+    color: var(--text-secondary);
+  }
+
+  .pricing-features li {
+    padding: 4px 0;
+    padding-left: 18px;
+    position: relative;
+  }
+
+  .pricing-features li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: var(--success);
+    font-weight: 700;
+  }
+</style>
+</head>
+<body>
+
+<!-- PRINT BAR -->
+<div class="print-bar no-print">
+  <span>📄 Tradifive Documentation — Ready to export</span>
+  <button class="print-btn" onclick="window.print()">⬇ Save as PDF</button>
+</div>
+
+<div class="document">
+
+<!-- ===================== COVER PAGE ===================== -->
+<div class="cover-page">
+  <div class="cover-logo">T</div>
+  <div class="cover-title">Tradifive</div>
+  <div class="cover-subtitle">Complete Product Documentation</div>
+  <div class="cover-divider"></div>
+  <div class="cover-meta">
+    <span><strong>Version:</strong> 1.0.0</span>
+    <span><strong>Classification:</strong> Internal — Confidential</span>
+    <span><strong>Date:</strong> May 30, 2026</span>
+    <span><strong>Prepared by:</strong> Tradifive Product & Engineering Team</span>
+  </div>
+  <div class="cover-badge">Enterprise Product Documentation</div>
+  <div class="cover-footer">
+    <span>© 2026 Tradifive. All Rights Reserved.</span>
+    <span>tradifive.com</span>
+  </div>
+</div>
+
+<!-- ===================== TABLE OF CONTENTS ===================== -->
+<div class="toc-page">
+  <div class="toc-title">Table of Contents</div>
+  <div class="toc-subtitle">26 sections covering every aspect of the Tradifive platform</div>
+  <ul class="toc-list">
+    <li class="toc-item"><span class="toc-number">01</span><span class="toc-label">Platform Overview</span><span class="toc-dots"></span><span class="toc-page-num">3</span></li>
+    <li class="toc-item"><span class="toc-number">02</span><span class="toc-label">User Journeys & Personas</span><span class="toc-dots"></span><span class="toc-page-num">5</span></li>
+    <li class="toc-item"><span class="toc-number">03</span><span class="toc-label">Authentication & Onboarding</span><span class="toc-dots"></span><span class="toc-page-num">7</span></li>
+    <li class="toc-item"><span class="toc-number">04</span><span class="toc-label">Navigation & Information Architecture</span><span class="toc-dots"></span><span class="toc-page-num">9</span></li>
+    <li class="toc-item"><span class="toc-number">05</span><span class="toc-label">Home Feed & Pulse</span><span class="toc-dots"></span><span class="toc-page-num">12</span></li>
+    <li class="toc-item"><span class="toc-number">06</span><span class="toc-label">Dashboard & Analytics</span><span class="toc-dots"></span><span class="toc-page-num">14</span></li>
+    <li class="toc-item"><span class="toc-number">07</span><span class="toc-label">AI Coach (Tradifive AI)</span><span class="toc-dots"></span><span class="toc-page-num">16</span></li>
+    <li class="toc-item"><span class="toc-number">08</span><span class="toc-label">Risk Guard System</span><span class="toc-dots"></span><span class="toc-page-num">19</span></li>
+    <li class="toc-item"><span class="toc-number">09</span><span class="toc-label">Broker Connect & MT5 Integration</span><span class="toc-dots"></span><span class="toc-page-num">22</span></li>
+    <li class="toc-item"><span class="toc-number">10</span><span class="toc-label">Auto Trading & Expert Advisors</span><span class="toc-dots"></span><span class="toc-page-num">24</span></li>
+    <li class="toc-item"><span class="toc-number">11</span><span class="toc-label">Trading Journal & History</span><span class="toc-dots"></span><span class="toc-page-num">26</span></li>
+    <li class="toc-item"><span class="toc-number">12</span><span class="toc-label">Discover (Social Feed)</span><span class="toc-dots"></span><span class="toc-page-num">28</span></li>
+    <li class="toc-item"><span class="toc-number">13</span><span class="toc-label">Channel & Community</span><span class="toc-dots"></span><span class="toc-page-num">30</span></li>
+    <li class="toc-item"><span class="toc-number">14</span><span class="toc-label">Inbox & Direct Messaging</span><span class="toc-dots"></span><span class="toc-page-num">32</span></li>
+    <li class="toc-item"><span class="toc-number">15</span><span class="toc-label">Competitions & Challenges</span><span class="toc-dots"></span><span class="toc-page-num">34</span></li>
+    <li class="toc-item"><span class="toc-number">16</span><span class="toc-label">Rewards, XP & Gamification</span><span class="toc-dots"></span><span class="toc-page-num">37</span></li>
+    <li class="toc-item"><span class="toc-number">17</span><span class="toc-label">Subscriptions & Monetization</span><span class="toc-dots"></span><span class="toc-page-num">39</span></li>
+    <li class="toc-item"><span class="toc-number">18</span><span class="toc-label">Affiliate & Referral System</span><span class="toc-dots"></span><span class="toc-page-num">41</span></li>
+    <li class="toc-item"><span class="toc-number">19</span><span class="toc-label">Notifications System</span><span class="toc-dots"></span><span class="toc-page-num">42</span></li>
+    <li class="toc-item"><span class="toc-number">20</span><span class="toc-label">Admin Panel</span><span class="toc-dots"></span><span class="toc-page-num">44</span></li>
+    <li class="toc-item"><span class="toc-number">21</span><span class="toc-label">Profile & Settings</span><span class="toc-dots"></span><span class="toc-page-num">46</span></li>
+    <li class="toc-item"><span class="toc-number">22</span><span class="toc-label">UI/UX Design System</span><span class="toc-dots"></span><span class="toc-page-num">48</span></li>
+    <li class="toc-item"><span class="toc-number">23</span><span class="toc-label">Backend Architecture & Database</span><span class="toc-dots"></span><span class="toc-page-num">50</span></li>
+    <li class="toc-item"><span class="toc-number">24</span><span class="toc-label">Security & Compliance</span><span class="toc-dots"></span><span class="toc-page-num">54</span></li>
+    <li class="toc-item"><span class="toc-number">25</span><span class="toc-label">Launch Plan & Roadmap</span><span class="toc-dots"></span><span class="toc-page-num">56</span></li>
+    <li class="toc-item"><span class="toc-number">26</span><span class="toc-label">Business Model & Revenue</span><span class="toc-dots"></span><span class="toc-page-num">58</span></li>
+  </ul>
+</div>
+
+<!-- ===================== SECTION 1 ===================== -->
+<div class="section" id="s1">
+  <div class="section-number">Section 01</div>
+  <h1>Platform Overview</h1>
+
+  <h2>What is Tradifive?</h2>
+  <p class="lead"><strong>Tradifive</strong> is a next-generation, AI-powered trading ecosystem designed to transform how retail and professional traders operate, learn, and grow. It combines advanced analytics, real-time risk management, automated journaling, social trading, gamification, and AI coaching into a single unified platform.</p>
+  <p>Unlike traditional trading tools that focus solely on execution, Tradifive is built around the <em>trader</em> — their psychology, discipline, consistency, and long-term growth trajectory. The platform integrates directly with MetaTrader 5 (MT5) broker accounts to provide seamless data flow, automated trade tracking, and intelligent decision support.</p>
+
+  <h2>Vision & Mission</h2>
+  <blockquote>"To become the operating system for every serious trader — where discipline meets technology, and growth is measurable."</blockquote>
+  <p><strong>Mission:</strong> To empower traders with intelligent tools that enforce discipline, automate journaling, manage risk in real-time, and build a supportive community — all within a single, beautifully designed platform.</p>
+
+  <h2>Problems Tradifive Solves</h2>
+  <table>
+    <thead><tr><th>Problem</th><th>How Tradifive Solves It</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Lack of Discipline</strong></td><td>AI Coach monitors behavior patterns, RiskGuard enforces rules, daily missions build habits</td></tr>
+      <tr><td><strong>No Automated Journaling</strong></td><td>Trades are auto-synced from MT5 with emotion tagging, mood tracking, and AI-generated insights</td></tr>
+      <tr><td><strong>Risk Mismanagement</strong></td><td>RiskGuard provides real-time breach detection, broker connection mode, and customizable risk parameters</td></tr>
+      <tr><td><strong>Isolation in Trading</strong></td><td>Channels, DMs, social feed (Discover), and competitions create a vibrant community</td></tr>
+      <tr><td><strong>Expensive Education</strong></td><td>AI Coach provides personalized, context-aware coaching based on actual trading data</td></tr>
+      <tr><td><strong>Manual Trade Tracking</strong></td><td>Automatic sync from MT5 accounts with full trade history, P&L, and performance metrics</td></tr>
+      <tr><td><strong>No Gamification</strong></td><td>XP system, daily missions, achievements, streaks, and leaderboards make growth fun</td></tr>
+      <tr><td><strong>Scattered Tools</strong></td><td>One unified platform replaces TradingView + Myfxbook + Discord + Excel spreadsheets</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Target Audience</h2>
+  <table>
+    <thead><tr><th>Segment</th><th>Description</th><th>Key Needs</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Beginner Traders</strong></td><td>0-1 years experience</td><td>Education, AI coaching, risk protection</td></tr>
+      <tr><td><strong>Intermediate Traders</strong></td><td>1-3 years, developing consistency</td><td>Journal analytics, discipline tracking, community</td></tr>
+      <tr><td><strong>Advanced Traders</strong></td><td>3+ years, seeking edge optimization</td><td>Advanced analytics, auto-trading, competitions</td></tr>
+      <tr><td><strong>Broker Connection Traders</strong></td><td>Trading live broker accounts with strict rules</td><td>Broker connection risk mode, drawdown tracking, compliance</td></tr>
+      <tr><td><strong>Trading Communities</strong></td><td>Group admins and signal providers</td><td>Channels, member management, content sharing</td></tr>
+      <tr><td><strong>Trading Educators</strong></td><td>Coaches and mentors</td><td>AI tools, student tracking, community features</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Unique Selling Points</h2>
+  <div class="usp-grid">
+    <div class="usp-item"><div class="usp-num">1</div><div class="usp-text"><h4>AI-Powered Trading Coach</h4><p>Conversational AI trained on trading psychology, strategy, and your personal data</p></div></div>
+    <div class="usp-item"><div class="usp-num">2</div><div class="usp-text"><h4>Real-Time Risk Guard</h4><p>Live monitoring of risk parameters with automatic breach detection</p></div></div>
+    <div class="usp-item"><div class="usp-num">3</div><div class="usp-text"><h4>Automated Journal</h4><p>Zero-effort trade logging synced directly from MT5 accounts</p></div></div>
+    <div class="usp-item"><div class="usp-num">4</div><div class="usp-text"><h4>Broker Connection Mode</h4><p>Dedicated risk profiles matching MT5 Brokers, and other broker platforms</p></div></div>
+    <div class="usp-item"><div class="usp-num">5</div><div class="usp-text"><h4>Social Trading Network</h4><p>Discover feed, channels, DMs, and public profiles</p></div></div>
+    <div class="usp-item"><div class="usp-num">6</div><div class="usp-text"><h4>Gamified Growth</h4><p>XP, levels, daily missions, achievements, streaks, and competitions</p></div></div>
+    <div class="usp-item"><div class="usp-num">7</div><div class="usp-text"><h4>MT5 Direct Integration</h4><p>One-click broker connection via MetaAPI</p></div></div>
+    <div class="usp-item"><div class="usp-num">8</div><div class="usp-text"><h4>Competition System</h4><p>Trade competitions with leaderboards, prizes, and challenges</p></div></div>
+  </div>
+
+  <h2>Technology Stack</h2>
+  <table>
+    <thead><tr><th>Layer</th><th>Technology</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Frontend</strong></td><td>React 18 + TypeScript + Vite</td></tr>
+      <tr><td><strong>UI Framework</strong></td><td>TailwindCSS + shadcn/ui + Radix Primitives</td></tr>
+      <tr><td><strong>State Management</strong></td><td>TanStack React Query</td></tr>
+      <tr><td><strong>Routing</strong></td><td>React Router v6</td></tr>
+      <tr><td><strong>Backend</strong></td><td>Supabase (PostgreSQL + Auth + Storage + Realtime + Edge Functions)</td></tr>
+      <tr><td><strong>Broker API</strong></td><td>MetaAPI (MT5 integration)</td></tr>
+      <tr><td><strong>AI Engine</strong></td><td>OpenAI-compatible API for AI Coach</td></tr>
+      <tr><td><strong>Charts</strong></td><td>Recharts</td></tr>
+      <tr><td><strong>Database</strong></td><td>PostgreSQL 14.5 (via Supabase)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ===================== SECTION 2 ===================== -->
+<div class="section" id="s2">
+  <div class="section-number">Section 02</div>
+  <h1>User Journeys & Personas</h1>
+
+  <div class="persona-card">
+    <div class="persona-header">
+      <div class="persona-avatar">🧑</div>
+      <div>
+        <div class="persona-name">Arjun — The Beginner Trader</div>
+        <div class="persona-desc">Age: 22 · Experience: 3 months · Goal: Learn trading without blowing accounts</div>
+      </div>
+    </div>
+    <h4>User Journey:</h4>
+    <div class="flow">
+      <span class="flow-step">Landing Page</span><span class="flow-arrow">→</span>
+      <span class="flow-step">Sign Up</span><span class="flow-arrow">→</span>
+      <span class="flow-step">Verify Email</span><span class="flow-arrow">→</span>
+      <span class="flow-step">Onboarding</span><span class="flow-arrow">→</span>
+      <span class="flow-step">Home Feed</span><span class="flow-arrow">→</span>
+      <span class="flow-step">Connect MT5</span><span class="flow-arrow">→</span>
+      <span class="flow-step">Enable RiskGuard</span><span class="flow-arrow">→</span>
+      <span class="flow-step">AI Coach Session</span><span class="flow-arrow">→</span>
+      <span class="flow-step">First Trade</span><span class="flow-arrow">→</span>
+      <span class="flow-step">Journal Entry</span><span class="flow-arrow">→</span>
+      <span class="flow-step">Dashboard</span><span class="flow-arrow">→</span>
+      <span class="flow-step">Earn XP</span>
+    </div>
+  </div>
+
+  <div class="persona-card">
+    <div class="persona-header">
+      <div class="persona-avatar">👩</div>
+      <div>
+        <div class="persona-name">Priya — The Broker Connection Trader</div>
+        <div class="persona-desc">Age: 28 · Experience: 2 years · Goal: Maintain strict MT5 discipline without breaking rules</div>
+      </div>
+    </div>
+    <h4>User Journey:</h4>
+    <div class="flow">
+      <span class="flow-step">Login</span><span class="flow-arrow">→</span>
+      <span class="flow-step">Dashboard</span><span class="flow-arrow">→</span>
+      <span class="flow-step">Broker Connection Mode</span><span class="flow-arrow">→</span>
+      <span class="flow-step">Set MT5 Rules</span><span class="flow-arrow">→</span>
+      <span class="flow-step">Connect MT5</span><span class="flow-arrow">→</span>
+      <span class="flow-step">Monitor RiskGuard</span><span class="flow-arrow">→</span>
+      <span class="flow-step">Trade</span><span class="flow-arrow">→</span>
+      <span class="flow-step">Breach Logs</span><span class="flow-arrow">→</span>
+      <span class="flow-step">AI Review</span><span class="flow-arrow">→</span>
+      <span class="flow-step">Competition</span>
+    </div>
+  </div>
+
+  <div class="persona-card">
+    <div class="persona-header">
+      <div class="persona-avatar">👨</div>
+      <div>
+        <div class="persona-name">Vikram — The Community Leader</div>
+        <div class="persona-desc">Age: 35 · Experience: 5 years · Goal: Build and monetize a trading community</div>
+      </div>
+    </div>
+    <h4>User Journey:</h4>
+    <div class="flow">
+      <span class="flow-step">Login</span><span class="flow-arrow">→</span>
+      <span class="flow-step">Create Channel</span><span class="flow-arrow">→</span>
+      <span class="flow-step">Invite Members</span><span class="flow-arrow">→</span>
+      <span class="flow-step">Post Signals</span><span class="flow-arrow">→</span>
+      <span class="flow-step">Discover Feed</span><span class="flow-arrow">→</span>
+      <span class="flow-step">Grow Followers</span><span class="flow-arrow">→</span>
+      <span class="flow-step">Verification</span><span class="flow-arrow">→</span>
+      <span class="flow-step">Host Competition</span><span class="flow-arrow">→</span>
+      <span class="flow-step">Referrals</span>
+    </div>
+  </div>
+
+  <h2>User Lifecycle Stages</h2>
+  <div class="flow">
+    <span class="flow-step">Visitor</span><span class="flow-arrow">→</span>
+    <span class="flow-step">Registered</span><span class="flow-arrow">→</span>
+    <span class="flow-step">Onboarded</span><span class="flow-arrow">→</span>
+    <span class="flow-step">Active Trader</span><span class="flow-arrow">→</span>
+    <span class="flow-step">Engaged</span><span class="flow-arrow">→</span>
+    <span class="flow-step">Pro Subscriber</span><span class="flow-arrow">→</span>
+    <span class="flow-step">Power User</span><span class="flow-arrow">→</span>
+    <span class="flow-step">Advocate</span>
+  </div>
+</div>
+
+<!-- ===================== SECTION 3 ===================== -->
+<div class="section" id="s3">
+  <div class="section-number">Section 03</div>
+  <h1>Authentication & Onboarding</h1>
+
+  <h2>Authentication Flow</h2>
+  <p>Tradifive uses <strong>Supabase Auth</strong> for all authentication with email/password as the primary method, magic link support, and social OAuth planned.</p>
+
+  <h3>Auth Flow</h3>
+  <div class="flow">
+    <span class="flow-step">Enter Email + Password</span><span class="flow-arrow">→</span>
+    <span class="flow-step">Supabase Auth</span><span class="flow-arrow">→</span>
+    <span class="flow-step">Verification Email</span><span class="flow-arrow">→</span>
+    <span class="flow-step">User Clicks Link</span><span class="flow-arrow">→</span>
+    <span class="flow-step">JWT Session Created</span><span class="flow-arrow">→</span>
+    <span class="flow-step">Profile Row Created</span><span class="flow-arrow">→</span>
+    <span class="flow-step">Redirect to /home</span>
+  </div>
+
+  <h2>Route Protection System</h2>
+  <table>
+    <thead><tr><th>Guard</th><th>Purpose</th><th>Behavior</th></tr></thead>
+    <tbody>
+      <tr><td><strong>AuthGuard</strong></td><td>Checks active session</td><td>Redirects to /login if unauthenticated</td></tr>
+      <tr><td><strong>MaintenanceGuard</strong></td><td>Checks system_config</td><td>Shows maintenance overlay when active</td></tr>
+      <tr><td><strong>AdminRoute</strong></td><td>Checks admin_profiles</td><td>Redirects non-admins to user dashboard</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Onboarding Flow</h2>
+  <p>After first login, users see the <strong>Onboarding Modal</strong> with 4 steps:</p>
+  <table>
+    <thead><tr><th>Step</th><th>Content</th><th>Data Collected</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Step 1</strong></td><td>Welcome & Username</td><td>username, display_name</td></tr>
+      <tr><td><strong>Step 2</strong></td><td>Trading Profile</td><td>trading_style, preferred_market, risk_appetite</td></tr>
+      <tr><td><strong>Step 3</strong></td><td>Broker Connection</td><td>broker_name, server, account_number</td></tr>
+      <tr><td><strong>Step 4</strong></td><td>Get Started Checklist</td><td>Progress tracking on Home page</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Default Profile Values</h2>
+  <table>
+    <thead><tr><th>Field</th><th>Default Value</th></tr></thead>
+    <tbody>
+      <tr><td>plan_type</td><td>"free"</td></tr>
+      <tr><td>is_pro</td><td>false</td></tr>
+      <tr><td>is_verified</td><td>false</td></tr>
+      <tr><td>current_xp</td><td>0</td></tr>
+      <tr><td>xp_level</td><td>1</td></tr>
+      <tr><td>streak_days</td><td>0</td></tr>
+      <tr><td>role</td><td>"user"</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ===================== SECTION 4 ===================== -->
+<div class="section" id="s4">
+  <div class="section-number">Section 04</div>
+  <h1>Navigation & Information Architecture</h1>
+
+  <h2>Sidebar Navigation Structure</h2>
+  <div class="nav-tree">
+    <div class="section-label">MAIN NAVIGATION</div>
+    <div class="nav-item"><span class="nav-icon">🏠</span> Home</div>
+    <div class="nav-item"><span class="nav-icon">📊</span> Dashboard</div>
+    <div class="nav-item"><span class="nav-icon">🔍</span> Discover</div>
+    <div class="nav-item"><span class="nav-icon">📓</span> Journal</div>
+    <div class="nav-item"><span class="nav-icon">📜</span> History</div>
+    <div class="nav-item"><span class="nav-icon">🤖</span> AI Coach</div>
+    <div class="nav-item"><span class="nav-icon">🛡️</span> Risk Guard</div>
+    <div class="nav-item"><span class="nav-icon">💬</span> Channel / Community</div>
+    <br>
+    <div class="section-label">COMMUNICATION</div>
+    <div class="nav-item"><span class="nav-icon">📥</span> Inbox</div>
+    <div class="nav-item"><span class="nav-icon">🔔</span> Notifications</div>
+    <br>
+    <div class="section-label">ENGAGEMENT</div>
+    <div class="nav-item"><span class="nav-icon">🏆</span> Competitions</div>
+    <br>
+    <div class="section-label">FOOTER</div>
+    <div class="nav-item"><span class="nav-icon">⚙️</span> Settings</div>
+    <div class="nav-item"><span class="nav-icon">💬</span> Support</div>
+    <div class="nav-item"><span class="nav-icon">📝</span> Feedback</div>
+    <div class="nav-item"><span class="nav-icon">⬆️</span> Upgrade</div>
+    <div class="nav-item"><span class="nav-icon">🚪</span> Logout</div>
+  </div>
+
+  <h2>Complete Route Map — Public Pages</h2>
+  <table>
+    <thead><tr><th>Route</th><th>Page</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><code>/</code></td><td>Landing</td><td>Marketing landing page</td></tr>
+      <tr><td><code>/login</code></td><td>Login</td><td>Authentication</td></tr>
+      <tr><td><code>/forgot-password</code></td><td>ForgotPassword</td><td>Password reset</td></tr>
+      <tr><td><code>/reset-password</code></td><td>ResetPassword</td><td>New password form</td></tr>
+      <tr><td><code>/verify-email</code></td><td>VerifyEmail</td><td>Email verification</td></tr>
+      <tr><td><code>/download</code></td><td>DownloadApp</td><td>App download page</td></tr>
+      <tr><td><code>/features/discover</code></td><td>DiscoverPublic</td><td>Discover feature showcase</td></tr>
+      <tr><td><code>/features/channels</code></td><td>ChannelsPublic</td><td>Channels feature showcase</td></tr>
+      <tr><td><code>/features/risk-guard</code></td><td>RiskGuardPublic</td><td>RiskGuard showcase</td></tr>
+      <tr><td><code>/features/automated-journal</code></td><td>AutomatedJournalPublic</td><td>Journal showcase</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Complete Route Map — Authenticated Pages</h2>
+  <table>
+    <thead><tr><th>Route</th><th>Page</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><code>/home</code></td><td>Home</td><td>Home feed & pulse</td></tr>
+      <tr><td><code>/dashboard</code></td><td>Dashboard</td><td>Trading analytics</td></tr>
+      <tr><td><code>/discover</code></td><td>Discover</td><td>Social discovery feed</td></tr>
+      <tr><td><code>/journal</code></td><td>Journal</td><td>Trading journal</td></tr>
+      <tr><td><code>/risk-guard</code></td><td>RiskGuard</td><td>Risk management</td></tr>
+      <tr><td><code>/ai-coach</code></td><td>TradifiveAI</td><td>AI coaching interface</td></tr>
+      <tr><td><code>/channel</code></td><td>Channel</td><td>Community channels</td></tr>
+      <tr><td><code>/inbox</code></td><td>Inbox</td><td>Direct messaging</td></tr>
+      <tr><td><code>/notifications</code></td><td>Notifications</td><td>Notification center</td></tr>
+      <tr><td><code>/profile</code></td><td>Profile</td><td>User profile</td></tr>
+      <tr><td><code>/user/:username</code></td><td>UserProfilePublic</td><td>Public profiles</td></tr>
+      <tr><td><code>/settings</code></td><td>Settings</td><td>User settings</td></tr>
+      <tr><td><code>/rewards</code></td><td>Rewards</td><td>XP & achievements</td></tr>
+      <tr><td><code>/support</code></td><td>Support</td><td>Support tickets</td></tr>
+      <tr><td><code>/upgrade</code></td><td>Upgrade</td><td>Subscription plans</td></tr>
+      <tr><td><code>/competitions/dashboard</code></td><td>CompetitionsDashboard</td><td>Competitions hub</td></tr>
+      <tr><td><code>/competitions/leaderboard</code></td><td>CompetitionsLeaderboard</td><td>Leaderboard</td></tr>
+      <tr><td><code>/competitions/challenge/:id</code></td><td>ChallengeConsole</td><td>Challenge detail</td></tr>
+      <tr><td><code>/competitions/payouts</code></td><td>Payouts</td><td>Payout requests</td></tr>
+      <tr><td><code>/competitions/rewards</code></td><td>CompetitionsRewards</td><td>Competition prizes</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Admin Routes</h2>
+  <table>
+    <thead><tr><th>Route</th><th>Page</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><code>/admin</code></td><td>AdminOverview</td><td>System dashboard with KPIs</td></tr>
+      <tr><td><code>/admin/users</code></td><td>AdminUsers</td><td>User management</td></tr>
+      <tr><td><code>/admin/trading</code></td><td>AdminTrading</td><td>Trading oversight</td></tr>
+      <tr><td><code>/admin/finance</code></td><td>AdminFinance</td><td>Financial management</td></tr>
+      <tr><td><code>/admin/support</code></td><td>AdminSupport</td><td>Ticket management</td></tr>
+      <tr><td><code>/admin/logs</code></td><td>AdminLogs</td><td>Activity logs</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ===================== SECTIONS 5-8 ===================== -->
+<div class="section" id="s5">
+  <div class="section-number">Section 05</div>
+  <h1>Home Feed & Pulse</h1>
+  <p class="lead">The Home page serves as the primary landing experience after login. It functions as a personalized dashboard and activity pulse combining multiple data streams.</p>
+  <h2>Feed Components</h2>
+  <div class="feature-grid">
+    <div class="feature-card"><div class="feature-card-icon">🎯</div><h4>Hero Card</h4><p>Welcome message with user stats, XP level, and streak count</p></div>
+    <div class="feature-card"><div class="feature-card-icon">📋</div><h4>Get Started Checklist</h4><p>New user onboarding progress tracker</p></div>
+    <div class="feature-card"><div class="feature-card-icon">🎮</div><h4>Daily Missions</h4><p>Today's XP-earning tasks with progress bars</p></div>
+    <div class="feature-card"><div class="feature-card-icon">📈</div><h4>Market Watchlist</h4><p>Saved trading symbols with real-time prices</p></div>
+    <div class="feature-card"><div class="feature-card-icon">📅</div><h4>Economic Calendar</h4><p>High-impact events with currency, impact, and forecast</p></div>
+    <div class="feature-card"><div class="feature-card-icon">⚡</div><h4>Live Panel</h4><p>Real-time data feed and activity stream</p></div>
+  </div>
+</div>
+
+<div class="section" id="s6">
+  <div class="section-number">Section 06</div>
+  <h1>Dashboard & Analytics</h1>
+  <p class="lead">The analytical nerve center of Tradifive providing comprehensive trading performance metrics, charts, and insights.</p>
+  <h2>Key Metrics</h2>
+  <div class="metrics-row">
+    <div class="metric-card"><div class="metric-value">P&L</div><div class="metric-label">Total Profit/Loss</div></div>
+    <div class="metric-card"><div class="metric-value">%</div><div class="metric-label">Win Rate</div></div>
+    <div class="metric-card"><div class="metric-value">R:R</div><div class="metric-label">Average Risk:Reward</div></div>
+    <div class="metric-card"><div class="metric-value">🔥</div><div class="metric-label">Streak Days</div></div>
+  </div>
+  <h2>Dashboard Widgets</h2>
+  <table>
+    <thead><tr><th>Widget</th><th>Description</th><th>Technology</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Equity Chart</strong></td><td>Cumulative P&L line chart with timeframe filters (1W, 1M, 3M, 6M, 1Y, All)</td><td>Recharts</td></tr>
+      <tr><td><strong>Trading Calendar</strong></td><td>Monthly calendar heatmap, color-coded by daily P&L</td><td>Custom</td></tr>
+      <tr><td><strong>Heatmap</strong></td><td>Symbol performance heatmap showing most profitable instruments</td><td>Custom</td></tr>
+      <tr><td><strong>Trades Overview</strong></td><td>Summary statistics bar with today's activity</td><td>Custom</td></tr>
+    </tbody>
+  </table>
+  <h2>Filters</h2>
+  <p>Users can filter all dashboard data by: <strong>Date Range</strong>, <strong>Symbol</strong>, <strong>Trade Type</strong> (Buy/Sell), <strong>Source</strong> (Manual/Auto/MT5), and <strong>Status</strong> (Open/Closed/Pending).</p>
+</div>
+
+<div class="section" id="s7">
+  <div class="section-number">Section 07</div>
+  <h1>AI Coach (Tradifive AI)</h1>
+  <p class="lead">A conversational AI assistant specialized in trading psychology, strategy, risk management, and market analysis. The largest and most complex feature in the application (105KB).</p>
+
+  <h2>AI Coach Capabilities</h2>
+  <div class="feature-grid">
+    <div class="feature-card"><div class="feature-card-icon">🧠</div><h4>Trading Psychology</h4><p>Emotional management, revenge trading prevention, FOMO control</p></div>
+    <div class="feature-card"><div class="feature-card-icon">📊</div><h4>Strategy Review</h4><p>Analyze trading patterns, suggest improvements</p></div>
+    <div class="feature-card"><div class="feature-card-icon">🔍</div><h4>Trade Analysis</h4><p>Review specific trades with entry/exit reasoning</p></div>
+    <div class="feature-card"><div class="feature-card-icon">⚠️</div><h4>Risk Assessment</h4><p>Evaluate risk management practices</p></div>
+    <div class="feature-card"><div class="feature-card-icon">📚</div><h4>Market Education</h4><p>Explain concepts, patterns, indicators</p></div>
+    <div class="feature-card"><div class="feature-card-icon">🎯</div><h4>Goal Setting</h4><p>Help set and track trading objectives</p></div>
+  </div>
+
+  <h2>Context-Aware Coaching</h2>
+  <p>The AI receives the user's actual trading data to provide personalized coaching:</p>
+  <pre><code>{
+  "user_profile": { "trading_style", "experience_level", "risk_appetite" },
+  "recent_trades": [ /* last 50 trades with P&L, symbols, timing */ ],
+  "risk_config": { "max_daily_loss", "max_lot_size", "risk_per_trade" },
+  "performance": { "win_rate", "avg_rr", "streak_days", "total_trades" },
+  "recent_breaches": [ /* risk rule violations */ ]
+}</code></pre>
+
+  <h2>Session Management</h2>
+  <table>
+    <thead><tr><th>Feature</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Multi-session</strong></td><td>Create, rename, delete chat sessions</td></tr>
+      <tr><td><strong>Session types</strong></td><td>General, Psychology, Strategy, Review</td></tr>
+      <tr><td><strong>Markdown support</strong></td><td>Code blocks, tables, bold, lists in AI responses</td></tr>
+      <tr><td><strong>Typing indicator</strong></td><td>Shows when AI is generating response</td></tr>
+      <tr><td><strong>Context injection</strong></td><td>AI receives user's live trading data</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="section" id="s8">
+  <div class="section-number">Section 08</div>
+  <h1>Risk Guard System</h1>
+  <p class="lead">Real-time risk management engine that monitors trading activity against user-defined rules and alerts on violations.</p>
+
+  <h2>Risk Configuration Parameters</h2>
+  <table>
+    <thead><tr><th>Parameter</th><th>Description</th><th>Default</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Risk Per Trade</strong></td><td>Max risk per single trade (%)</td><td>2%</td></tr>
+      <tr><td><strong>Max Daily Loss</strong></td><td>Maximum daily loss allowed (%)</td><td>5%</td></tr>
+      <tr><td><strong>Max Drawdown</strong></td><td>Maximum total drawdown (%)</td><td>10%</td></tr>
+      <tr><td><strong>Max Lot Size</strong></td><td>Maximum lot size per trade</td><td>1.0</td></tr>
+      <tr><td><strong>Max Open Trades</strong></td><td>Maximum concurrent positions</td><td>5</td></tr>
+      <tr><td><strong>Max Correlation</strong></td><td>Max trades in correlated pairs</td><td>3</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Broker Connection Presets</h2>
+  <table>
+    <thead><tr><th>Broker Connection</th><th>Daily Loss</th><th>Max Drawdown</th></tr></thead>
+    <tbody>
+      <tr><td><strong>MT5 Brokers</strong></td><td>5%</td><td>10%</td></tr>
+      <tr><td><strong>MyForexFunds</strong></td><td>5%</td><td>12%</td></tr>
+      <tr><td><strong>The5ers</strong></td><td>4%</td><td>6%</td></tr>
+      <tr><td><strong>FundedNext</strong></td><td>5%</td><td>10%</td></tr>
+      <tr><td><strong>Custom</strong></td><td>User-set</td><td>User-set</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Breach Severity Levels</h2>
+  <table>
+    <thead><tr><th>Level</th><th>Threshold</th><th>Action</th></tr></thead>
+    <tbody>
+      <tr><td>⚠️ <strong>Warning</strong></td><td>80% of limit</td><td>Yellow alert, optional notification</td></tr>
+      <tr><td>🔴 <strong>Critical</strong></td><td>100% of limit</td><td>Red alert, mandatory notification</td></tr>
+      <tr><td>💀 <strong>Fatal</strong></td><td>>100% of limit</td><td>Account lock suggestion, breach log</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ===================== SECTIONS 9-14 ===================== -->
+<div class="section" id="s9">
+  <div class="section-number">Section 09 – 10</div>
+  <h1>Broker Connect & Auto Trading</h1>
+
+  <h2>MT5 Integration via MetaAPI</h2>
+  <div class="flow">
+    <span class="flow-step">Enter Broker Details</span><span class="flow-arrow">→</span>
+    <span class="flow-step">MetaAPI Provisions Account</span><span class="flow-arrow">→</span>
+    <span class="flow-step">Connect to MT5 Server</span><span class="flow-arrow">→</span>
+    <span class="flow-step">Account Verified</span><span class="flow-arrow">→</span>
+    <span class="flow-step">Stored in Database</span><span class="flow-arrow">→</span>
+    <span class="flow-step">Auto Trade Sync Begins</span>
+  </div>
+
+  <h2>MT5 Account Data Tracked</h2>
+  <table>
+    <thead><tr><th>Field</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><strong>account_number</strong></td><td>MT5 account number</td></tr>
+      <tr><td><strong>broker_name</strong></td><td>Broker name (e.g., ICMarkets)</td></tr>
+      <tr><td><strong>connection_status</strong></td><td>connected, disconnected, error</td></tr>
+      <tr><td><strong>balance / equity</strong></td><td>Account financials</td></tr>
+      <tr><td><strong>leverage</strong></td><td>Account leverage</td></tr>
+      <tr><td><strong>algo_status</strong></td><td>Auto-trading enabled flag</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Auto Trading (Expert Advisors)</h2>
+  <p>Tradifive supports automated trading through Expert Advisors (EAs) that run on connected MT5 accounts. Key pages include EA Setup wizard, Master EA management, My Robots dashboard, and Strategy configuration.</p>
+  <table>
+    <thead><tr><th>Feature</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Bot Management</strong></td><td>Name, trading pair, risk level, status per bot</td></tr>
+      <tr><td><strong>One-Click Activation</strong></td><td>Toggle algo_status on MT5 account</td></tr>
+      <tr><td><strong>Performance Tracking</strong></td><td>Bot P&L linked via trades.bot_id</td></tr>
+      <tr><td><strong>Mock Trading</strong></td><td>Paper trading simulation with virtual balance</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="section" id="s11">
+  <div class="section-number">Section 11 – 12</div>
+  <h1>Journal, History & Discover</h1>
+
+  <h2>Trading Journal</h2>
+  <p>The journal system provides auto-generated entries from MT5 sync plus manual entries with mood tracking, trade linking, and tag categorization.</p>
+  <table>
+    <thead><tr><th>Feature</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Auto-Generated Entries</strong></td><td>Created automatically when trades sync from MT5</td></tr>
+      <tr><td><strong>Mood Tracking</strong></td><td>confident, anxious, neutral, frustrated, calm</td></tr>
+      <tr><td><strong>Trade Linking</strong></td><td>Associate entries with specific trades</td></tr>
+      <tr><td><strong>Tag System</strong></td><td>Custom tags for filtering and search</td></tr>
+      <tr><td><strong>AI Insights</strong></td><td>AI Coach analyzes journal patterns</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Trade History (35+ fields per trade)</h2>
+  <p>Every trade record captures: symbol, type, lot size, entry/exit price, SL/TP, profit, pips, commission, swap, risk %, R:R ratio, discipline score, emotion, entry/exit reasoning, setup type, notes, screenshot, tags, source, status, and timestamps.</p>
+
+  <h2>Discover (Social Feed)</h2>
+  <p>Tradifive's social feed where traders share ideas, analysis, screenshots, and trade setups.</p>
+  <table>
+    <thead><tr><th>Feature</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Post Creation</strong></td><td>Rich text, multiple images (up to 4), symbol tagging, trade linking</td></tr>
+      <tr><td><strong>Feed Card</strong></td><td>Author info, content, media gallery, reaction bar</td></tr>
+      <tr><td><strong>Comments</strong></td><td>Nested threaded comments with likes</td></tr>
+      <tr><td><strong>Reactions</strong></td><td>Like, comment, bookmark, share</td></tr>
+      <tr><td><strong>Follow System</strong></td><td>Bidirectional follows with feed filtering</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="section" id="s13">
+  <div class="section-number">Section 13 – 14</div>
+  <h1>Community & Messaging</h1>
+
+  <h2>Channel System</h2>
+  <p>Real-time community messaging similar to Discord servers with channel types: public, private, and official.</p>
+  <table>
+    <thead><tr><th>Feature</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Real-Time Messaging</strong></td><td>Supabase Realtime subscriptions for live updates</td></tr>
+      <tr><td><strong>Image Sharing</strong></td><td>Upload and share images in chat</td></tr>
+      <tr><td><strong>Full-Screen Image Viewer</strong></td><td>Click to view images with close button</td></tr>
+      <tr><td><strong>Emoji Reactions</strong></td><td>React to messages with emojis</td></tr>
+      <tr><td><strong>Polls</strong></td><td>Create and vote on polls</td></tr>
+      <tr><td><strong>Member Roles</strong></td><td>member, moderator, admin, owner</td></tr>
+      <tr><td><strong>Channel Discovery</strong></td><td>Browse and join public channels</td></tr>
+      <tr><td><strong>Moderation</strong></td><td>Admin/moderator content management tools</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Direct Messaging (Inbox)</h2>
+  <table>
+    <thead><tr><th>Feature</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Conversation List</strong></td><td>Sorted by most recent, with unread badges</td></tr>
+      <tr><td><strong>Real-Time Messages</strong></td><td>Instant delivery via Supabase Realtime</td></tr>
+      <tr><td><strong>Read Receipts</strong></td><td>Shows when messages are read</td></tr>
+      <tr><td><strong>Media Sharing</strong></td><td>Send images and files</td></tr>
+      <tr><td><strong>Message Types</strong></td><td>text, image, trade, system</td></tr>
+      <tr><td><strong>Soft Delete</strong></td><td>Per-user message deletion visibility</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ===================== SECTIONS 15-18 ===================== -->
+<div class="section" id="s15">
+  <div class="section-number">Section 15</div>
+  <h1>Competitions & Challenges</h1>
+  <p class="lead">Structured trading challenges with real prizes, live leaderboards, and competitive scoring.</p>
+
+  <h2>Competition Pages</h2>
+  <table>
+    <thead><tr><th>Page</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Competitions Dashboard</strong></td><td>Browse active, upcoming, and past competitions</td></tr>
+      <tr><td><strong>Challenge Console</strong></td><td>Individual challenge interface with live metrics</td></tr>
+      <tr><td><strong>Leaderboard</strong></td><td>Global rankings with scores and trade counts</td></tr>
+      <tr><td><strong>Competition Rewards</strong></td><td>Prize distribution for winners</td></tr>
+      <tr><td><strong>Payouts</strong></td><td>Withdrawal requests for prize winnings</td></tr>
+      <tr><td><strong>Transactions</strong></td><td>Complete financial transaction history</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Competition Entry Tracking</h2>
+  <p>Each participant's entry tracks: starting balance, current ROI, current win rate, pip gain, trade count, rank, and disqualification status — all linked to their MT5 account.</p>
+
+  <h2>Payout Methods</h2>
+  <p>Supported: <strong>Bank Transfer</strong>, <strong>Cryptocurrency</strong>, <strong>UPI</strong>. Status flow: pending → processing → completed/rejected.</p>
+</div>
+
+<div class="section" id="s16">
+  <div class="section-number">Section 16</div>
+  <h1>Rewards, XP & Gamification</h1>
+
+  <h2>XP Earning Sources</h2>
+  <table>
+    <thead><tr><th>Action</th><th>XP Reward</th><th>Frequency</th></tr></thead>
+    <tbody>
+      <tr><td>Complete a trade</td><td>+10 XP</td><td>Per trade</td></tr>
+      <tr><td>Journal entry</td><td>+15 XP</td><td>Per entry</td></tr>
+      <tr><td>AI Coach session</td><td>+20 XP</td><td>Per session</td></tr>
+      <tr><td>Complete daily mission</td><td>+25-100 XP</td><td>Daily</td></tr>
+      <tr><td>Win competition</td><td>+500 XP</td><td>Per win</td></tr>
+      <tr><td>Refer a friend</td><td>+200 XP</td><td>Per referral</td></tr>
+      <tr><td>7-day streak</td><td>+100 XP</td><td>Weekly</td></tr>
+      <tr><td>Post in Discover</td><td>+5 XP</td><td>Per post</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Daily Missions</h2>
+  <p>Example missions that reset daily:</p>
+  <ul>
+    <li>🎯 "Take 3 trades today" — +50 XP</li>
+    <li>📝 "Write a journal entry" — +25 XP</li>
+    <li>🛡️ "Review your RiskGuard" — +20 XP</li>
+    <li>📱 "Post in Discover" — +15 XP</li>
+    <li>🤖 "Complete an AI Coach session" — +30 XP</li>
+  </ul>
+
+  <h2>Achievement Categories</h2>
+  <table>
+    <thead><tr><th>Category</th><th>Examples</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Trading Milestones</strong></td><td>First trade, 100 trades, 1000 trades</td></tr>
+      <tr><td><strong>Streak Masters</strong></td><td>7-day, 30-day, 100-day streaks</td></tr>
+      <tr><td><strong>Social Butterflies</strong></td><td>First post, first follower, 100 followers</td></tr>
+      <tr><td><strong>Risk Champions</strong></td><td>0 breaches in 30 days</td></tr>
+      <tr><td><strong>AI Learners</strong></td><td>10 AI Coach sessions</td></tr>
+      <tr><td><strong>Competition Winners</strong></td><td>Top 3 finishes</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="section" id="s17">
+  <div class="section-number">Section 17 – 18</div>
+  <h1>Subscriptions & Referrals</h1>
+
+  <h2>Plan Tiers</h2>
+  <div class="pricing-grid">
+    <div class="pricing-card">
+      <div class="pricing-name">Free</div>
+      <div class="pricing-price">$0<span>/mo</span></div>
+      <ul class="pricing-features">
+        <li>Basic dashboard metrics</li>
+        <li>5 AI Coach messages/day</li>
+        <li>Basic risk rules</li>
+        <li>Manual journal only</li>
+        <li>Join channels</li>
+        <li>1 MT5 account</li>
+      </ul>
+    </div>
+    <div class="pricing-card featured">
+      <div class="pricing-name">Pro</div>
+      <div class="pricing-price">$19.99<span>/mo</span></div>
+      <ul class="pricing-features">
+        <li>Full analytics + export</li>
+        <li>Unlimited AI Coach</li>
+        <li>Full RiskGuard + broker connection</li>
+        <li>Auto journal + AI insights</li>
+        <li>Create channels</li>
+        <li>Full competitions</li>
+        <li>3 MT5 accounts</li>
+        <li>Priority support</li>
+      </ul>
+    </div>
+    <div class="pricing-card">
+      <div class="pricing-name">Enterprise</div>
+      <div class="pricing-price">Custom</div>
+      <ul class="pricing-features">
+        <li>Custom dashboards</li>
+        <li>Priority + custom AI model</li>
+        <li>API access</li>
+        <li>Team journals</li>
+        <li>Private communities</li>
+        <li>Unlimited MT5 accounts</li>
+        <li>Dedicated manager</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>Referral Program</h2>
+  <table>
+    <thead><tr><th>Tier</th><th>Referrals Needed</th><th>Referrer Reward</th><th>Referred Reward</th></tr></thead>
+    <tbody>
+      <tr><td>🥉 Bronze</td><td>1-5</td><td>200 XP</td><td>100 XP</td></tr>
+      <tr><td>🥈 Silver</td><td>6-20</td><td>300 XP + 1 mo free</td><td>150 XP</td></tr>
+      <tr><td>🥇 Gold</td><td>21-50</td><td>500 XP + 3 mo free</td><td>200 XP</td></tr>
+      <tr><td>💎 Diamond</td><td>50+</td><td>1000 XP + lifetime discount</td><td>500 XP</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ===================== SECTIONS 19-21 ===================== -->
+<div class="section" id="s19">
+  <div class="section-number">Section 19 – 20</div>
+  <h1>Notifications & Admin Panel</h1>
+
+  <h2>Notification Types</h2>
+  <table>
+    <thead><tr><th>Type</th><th>Example</th><th>Priority</th></tr></thead>
+    <tbody>
+      <tr><td>trade_completed</td><td>"Your EURUSD buy closed at +45 pips"</td><td>Medium</td></tr>
+      <tr><td>risk_breach</td><td>"Daily loss limit reached (5.2%)"</td><td>🔴 High</td></tr>
+      <tr><td>ai_insight</td><td>"AI detected a pattern in your trading"</td><td>Low</td></tr>
+      <tr><td>social_follow</td><td>"@trader started following you"</td><td>Low</td></tr>
+      <tr><td>competition_start</td><td>"Trading Challenge starts in 1 hour"</td><td>🔴 High</td></tr>
+      <tr><td>achievement_unlock</td><td>"Achievement Unlocked: 100 Trades!"</td><td>Medium</td></tr>
+      <tr><td>system_alert</td><td>"Scheduled maintenance at 2 AM UTC"</td><td>🔴 Urgent</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Admin Panel</h2>
+  <table>
+    <thead><tr><th>Permission</th><th style="text-align:center">Super Admin</th><th style="text-align:center">Admin</th><th style="text-align:center">Moderator</th><th style="text-align:center">Support</th></tr></thead>
+    <tbody>
+      <tr><td>View all users</td><td style="text-align:center">✅</td><td style="text-align:center">✅</td><td style="text-align:center">✅</td><td style="text-align:center">✅</td></tr>
+      <tr><td>Edit user profiles</td><td style="text-align:center">✅</td><td style="text-align:center">✅</td><td style="text-align:center">❌</td><td style="text-align:center">❌</td></tr>
+      <tr><td>Ban/unban users</td><td style="text-align:center">✅</td><td style="text-align:center">✅</td><td style="text-align:center">❌</td><td style="text-align:center">❌</td></tr>
+      <tr><td>Manage competitions</td><td style="text-align:center">✅</td><td style="text-align:center">✅</td><td style="text-align:center">❌</td><td style="text-align:center">❌</td></tr>
+      <tr><td>Process payouts</td><td style="text-align:center">✅</td><td style="text-align:center">✅</td><td style="text-align:center">❌</td><td style="text-align:center">❌</td></tr>
+      <tr><td>Manage channels</td><td style="text-align:center">✅</td><td style="text-align:center">✅</td><td style="text-align:center">✅</td><td style="text-align:center">❌</td></tr>
+      <tr><td>Reply to tickets</td><td style="text-align:center">✅</td><td style="text-align:center">✅</td><td style="text-align:center">✅</td><td style="text-align:center">✅</td></tr>
+      <tr><td>System configuration</td><td style="text-align:center">✅</td><td style="text-align:center">❌</td><td style="text-align:center">❌</td><td style="text-align:center">❌</td></tr>
+    </tbody>
+  </table>
+
+  <h2>User Management Actions</h2>
+  <table>
+    <thead><tr><th>Action</th><th>Effect</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Verify</strong></td><td>Sets is_verified = true, adds verification badge</td></tr>
+      <tr><td><strong>Ban</strong></td><td>Sets is_banned = true, blocks all access</td></tr>
+      <tr><td><strong>Freeze</strong></td><td>Sets is_frozen = true, read-only mode</td></tr>
+      <tr><td><strong>Lock Today</strong></td><td>Temporarily prevents trading for the day</td></tr>
+      <tr><td><strong>Change Plan</strong></td><td>Updates subscription tier</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="section" id="s21">
+  <div class="section-number">Section 21</div>
+  <h1>Profile & Settings</h1>
+
+  <h2>Profile System (65+ fields)</h2>
+  <table>
+    <thead><tr><th>Category</th><th>Fields</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Identity</strong></td><td>username, display_name, full_name, email, phone, bio, avatar, banner, website, instagram</td></tr>
+      <tr><td><strong>Location</strong></td><td>country, city, state, address, zip_code</td></tr>
+      <tr><td><strong>Trading</strong></td><td>trading_style, preferred_market, risk_appetite, win_rate, roi_all_time, avg_rr, total_trades, streak_days</td></tr>
+      <tr><td><strong>Privacy</strong></td><td>show_portfolio, show_roi, show_streak, show_trades, show_winrate</td></tr>
+      <tr><td><strong>Gamification</strong></td><td>current_xp, xp_total, xp_level, streak_days</td></tr>
+      <tr><td><strong>Status</strong></td><td>is_verified, is_pro, is_banned, is_frozen, is_locked_for_today, role</td></tr>
+      <tr><td><strong>Subscription</strong></td><td>plan_type, subscription_status, next_billing_at</td></tr>
+      <tr><td><strong>Referral</strong></td><td>referral_code, referred_by</td></tr>
+      <tr><td><strong>Security</strong></td><td>two_factor_enabled, recovery_email, recovery_phone</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Settings Sections (10 tabs, 227KB page)</h2>
+  <table>
+    <thead><tr><th>#</th><th>Section</th><th>Content</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><strong>Account</strong></td><td>Username, display name, email, avatar, banner</td></tr>
+      <tr><td>2</td><td><strong>Personal Info</strong></td><td>Name, DOB, gender, phone, address</td></tr>
+      <tr><td>3</td><td><strong>Trading</strong></td><td>Style, market, risk appetite, objectives</td></tr>
+      <tr><td>4</td><td><strong>Privacy</strong></td><td>Profile visibility toggles</td></tr>
+      <tr><td>5</td><td><strong>Security</strong></td><td>Password, 2FA, recovery, sessions</td></tr>
+      <tr><td>6</td><td><strong>Notifications</strong></td><td>Email, push, in-app preferences</td></tr>
+      <tr><td>7</td><td><strong>Connected Accounts</strong></td><td>MT5 account management</td></tr>
+      <tr><td>8</td><td><strong>Subscription</strong></td><td>Plan details, billing history</td></tr>
+      <tr><td>9</td><td><strong>Data & Privacy</strong></td><td>Export data, delete account</td></tr>
+      <tr><td>10</td><td><strong>Appearance</strong></td><td>Theme, Terminal Mode, language</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ===================== SECTIONS 22-24 ===================== -->
+<div class="section" id="s22">
+  <div class="section-number">Section 22</div>
+  <h1>UI/UX Design System</h1>
+
+  <h2>Design Philosophy</h2>
+  <p>Premium dark-mode-first design language inspired by Discord (sidebar), Binance (trading dashboards), TradingView (analytics), Notion (clean spacing), and Stripe (documentation quality).</p>
+
+  <h2>Color System</h2>
+  <table>
+    <thead><tr><th>Token</th><th>Value</th><th>Usage</th></tr></thead>
+    <tbody>
+      <tr><td>background</td><td><span style="background:#0a0a0b;color:white;padding:2px 8px;border-radius:4px">#0a0a0b</span></td><td>Page backgrounds</td></tr>
+      <tr><td>card</td><td><span style="background:#111113;color:white;padding:2px 8px;border-radius:4px">#111113</span></td><td>Card surfaces</td></tr>
+      <tr><td>primary</td><td><span style="background:#8b5cf6;color:white;padding:2px 8px;border-radius:4px">#8b5cf6</span></td><td>Brand purple</td></tr>
+      <tr><td>foreground</td><td><span style="background:#fafafa;padding:2px 8px;border-radius:4px;border:1px solid #ddd">#fafafa</span></td><td>Primary text</td></tr>
+      <tr><td>success</td><td><span style="background:#22c55e;color:white;padding:2px 8px;border-radius:4px">#22c55e</span></td><td>Profits, success</td></tr>
+      <tr><td>destructive</td><td><span style="background:#ef4444;color:white;padding:2px 8px;border-radius:4px">#ef4444</span></td><td>Errors, losses</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Typography</h2>
+  <table>
+    <thead><tr><th>Element</th><th>Font</th><th>Weight</th><th>Size</th></tr></thead>
+    <tbody>
+      <tr><td>H1</td><td>Inter</td><td>Bold (700)</td><td>30px</td></tr>
+      <tr><td>H2</td><td>Inter</td><td>Semi-bold (600)</td><td>24px</td></tr>
+      <tr><td>Body</td><td>Inter</td><td>Regular (400)</td><td>14px</td></tr>
+      <tr><td>Code</td><td>JetBrains Mono</td><td>Regular (400)</td><td>13px</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Component Library (shadcn/ui + Custom)</h2>
+  <p>Core components: Button, Card, Dialog, Dropdown Menu, Input, Select, Tabs, Toast, Avatar, Badge, Sidebar, Sheet, Tooltip, Skeleton, Popover, Progress, ScrollArea, Separator.</p>
+  <p>Custom components: MasterButton, PurpleButton, PushableButton, StatusPill, NetworkNotifier, LogoutOverlay, TerminalModeController.</p>
+
+  <h2>Responsive Breakpoints</h2>
+  <table>
+    <thead><tr><th>Breakpoint</th><th>Target</th><th>Layout</th></tr></thead>
+    <tbody>
+      <tr><td>&lt; 640px</td><td>Mobile</td><td>Bottom nav, stacked layout</td></tr>
+      <tr><td>640-768px</td><td>Tablet</td><td>Collapsible sidebar</td></tr>
+      <tr><td>768-1024px</td><td>Small Desktop</td><td>Sidebar + content</td></tr>
+      <tr><td>&gt; 1024px</td><td>Desktop</td><td>Full sidebar + content + panels</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="section" id="s23">
+  <div class="section-number">Section 23</div>
+  <h1>Backend Architecture & Database</h1>
+
+  <h2>Architecture Overview</h2>
+  <div class="callout callout-info">
+    <span class="callout-icon">🏗️</span>
+    <div class="callout-content">
+      <p><strong>Client:</strong> React SPA (Vite) → <strong>Backend:</strong> Supabase (Auth + PostgREST + PostgreSQL + Storage + Realtime + Edge Functions) → <strong>External:</strong> MetaAPI (MT5) + OpenAI (AI Coach) + Stripe (Payments)</p>
+    </div>
+  </div>
+
+  <h2>Complete Database Schema — 35+ Tables</h2>
+  <div class="er-grid">
+    <div class="er-box"><div class="er-title">profiles</div><div class="er-fields"><span class="pk">id (PK)</span>, username, email, display_name, avatar_url, trading_style, win_rate, roi_all_time, xp_level, current_xp, plan_type, is_pro, is_verified, is_banned, streak_days, role <em>... 65+ columns</em></div></div>
+    <div class="er-box"><div class="er-title">trades</div><div class="er-fields"><span class="pk">id (PK)</span>, <span class="fk">user_id (FK→profiles)</span>, ticket, symbol, trade_type, lot_size, entry_price, exit_price, profit, pips, stop_loss, take_profit, discipline_score, emotion, source, status <em>... 30+ columns</em></div></div>
+    <div class="er-box"><div class="er-title">mt5_accounts</div><div class="er-fields"><span class="pk">id (PK)</span>, <span class="fk">user_id (FK→profiles)</span>, account_number, broker_name, broker_server, connection_status, balance, equity, leverage, algo_status</div></div>
+    <div class="er-box"><div class="er-title">ai_coach_sessions</div><div class="er-fields"><span class="pk">id (PK)</span>, <span class="fk">user_id (FK→profiles)</span>, title, session_type, context (JSON), message_count, last_message_at</div></div>
+    <div class="er-box"><div class="er-title">ai_coach_messages</div><div class="er-fields"><span class="pk">id (PK)</span>, <span class="fk">session_id (FK→sessions)</span>, <span class="fk">user_id (FK→profiles)</span>, role, content, metadata (JSON)</div></div>
+    <div class="er-box"><div class="er-title">channels</div><div class="er-fields"><span class="pk">id (PK)</span>, name, slug, description, channel_type, <span class="fk">created_by (FK→profiles)</span>, member_count, message_count, rules, tags[]</div></div>
+    <div class="er-box"><div class="er-title">channel_messages</div><div class="er-fields"><span class="pk">id (PK)</span>, <span class="fk">channel_id (FK→channels)</span>, <span class="fk">user_id (FK→profiles)</span>, content, created_at</div></div>
+    <div class="er-box"><div class="er-title">direct_messages</div><div class="er-fields"><span class="pk">id (PK)</span>, <span class="fk">sender_id</span>, <span class="fk">receiver_id</span>, content, message_type, media_url, is_read</div></div>
+    <div class="er-box"><div class="er-title">social_posts</div><div class="er-fields"><span class="pk">id (PK)</span>, <span class="fk">user_id (FK→profiles)</span>, content, media_urls[], post_type, symbol, like_count, comment_count, bookmark_count</div></div>
+    <div class="er-box"><div class="er-title">competitions</div><div class="er-fields"><span class="pk">id (PK)</span>, title, status, start_date, end_date, prize_pool, max_contestants</div></div>
+    <div class="er-box"><div class="er-title">user_risk_configs</div><div class="er-fields"><span class="pk">id (PK)</span>, <span class="fk">user_id (FK→profiles, 1:1)</span>, risk_per_trade_%, max_daily_loss_%, max_drawdown_%, max_lot_size, is_prop_firm_mode</div></div>
+    <div class="er-box"><div class="er-title">risk_breach_logs</div><div class="er-fields"><span class="pk">id (PK)</span>, <span class="fk">user_id</span>, <span class="fk">trade_id</span>, breach_type, severity, rule_value, actual_value, resolved</div></div>
+  </div>
+
+  <h3>Additional Tables</h3>
+  <p>channel_members, community_channels, dm_conversations, social_post_likes, social_post_comments, social_post_bookmarks, social_follows, user_follows, competition_entries, competition_leaderboard, daily_missions, user_mission_progress, user_achievements, user_xp_ledger, journal_entries, active_bots, notifications, admin_pings, admin_profiles, billing_history, payout_requests, transactions, referrals, support_tickets, ticket_replies, user_feedback, user_activity_logs, feed_watchlist, economic_calendar, system_config, system_settings, waitlist.</p>
+</div>
+
+<div class="section" id="s24">
+  <div class="section-number">Section 24</div>
+  <h1>Security & Compliance</h1>
+
+  <h2>Authentication Security</h2>
+  <table>
+    <thead><tr><th>Feature</th><th>Implementation</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Password Hashing</strong></td><td>bcrypt via Supabase Auth</td></tr>
+      <tr><td><strong>JWT Tokens</strong></td><td>Short-lived access tokens with refresh</td></tr>
+      <tr><td><strong>Email Verification</strong></td><td>Required before full access</td></tr>
+      <tr><td><strong>Two-Factor Auth</strong></td><td>TOTP-based 2FA</td></tr>
+      <tr><td><strong>Session Management</strong></td><td>Active session tracking with device info</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Row Level Security (RLS)</h2>
+  <p>All Supabase tables enforce RLS policies ensuring users can only SELECT, INSERT, UPDATE, and DELETE their own data. Admin profiles have elevated privileges to bypass user-level restrictions.</p>
+
+  <h2>Data Protection</h2>
+  <table>
+    <thead><tr><th>Measure</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Encryption at Rest</strong></td><td>PostgreSQL database encryption</td></tr>
+      <tr><td><strong>Encryption in Transit</strong></td><td>TLS 1.2+ for all connections</td></tr>
+      <tr><td><strong>API Key Security</strong></td><td>Anon key frontend, service role server-only</td></tr>
+      <tr><td><strong>SQL Injection</strong></td><td>PostgREST parameterized queries</td></tr>
+      <tr><td><strong>XSS Prevention</strong></td><td>React automatic escaping + CSP</td></tr>
+      <tr><td><strong>Activity Logging</strong></td><td>Full audit trail with IP addresses</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ===================== SECTIONS 25-26 ===================== -->
+<div class="section" id="s25">
+  <div class="section-number">Section 25</div>
+  <h1>Launch Plan & Roadmap</h1>
+
+  <h2>Phase Timeline</h2>
+  <div class="timeline">
+    <div class="timeline-item done">
+      <div class="timeline-title">Phase 1 — Foundation <span class="badge badge-complete">Complete</span></div>
+      <div class="timeline-desc">Authentication, profiles (65+ fields), dashboard, MT5 integration, manual trading, journal, RiskGuard, dark mode UI</div>
+    </div>
+    <div class="timeline-item done">
+      <div class="timeline-title">Phase 2 — Social & Community <span class="badge badge-complete">Complete</span></div>
+      <div class="timeline-desc">Discover feed, post creation with media, likes/comments/bookmarks, follow system, channels, DMs, notifications</div>
+    </div>
+    <div class="timeline-item done">
+      <div class="timeline-title">Phase 3 — Intelligence & Gamification <span class="badge badge-complete">Complete</span></div>
+      <div class="timeline-desc">AI Coach multi-session, XP/leveling, daily missions, achievements, streaks, competitions, leaderboards</div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-title">Phase 4 — Monetization & Scale <span class="badge badge-progress">In Progress</span></div>
+      <div class="timeline-desc">Stripe payments, channel monetization, premium AI models, in-app purchases</div>
+    </div>
+    <div class="timeline-item pending">
+      <div class="timeline-title">Phase 5 — Expansion <span class="badge badge-planned">Planned</span></div>
+      <div class="timeline-desc">Mobile app, desktop app, i18n, TradingView widget, copy trading, signal marketplace, education courses, API</div>
+    </div>
+  </div>
+</div>
+
+<div class="section" id="s26">
+  <div class="section-number">Section 26</div>
+  <h1>Business Model & Revenue</h1>
+
+  <h2>Revenue Streams</h2>
+  <table>
+    <thead><tr><th>Stream</th><th>Model</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td><strong>SaaS Subscriptions</strong></td><td>Free / $19.99 Pro / Custom Enterprise</td><td><span class="badge badge-live">Live</span></td></tr>
+      <tr><td><strong>Competition Entry Fees</strong></td><td>$5-50 per entry</td><td><span class="badge badge-live">Live</span></td></tr>
+      <tr><td><strong>Platform Commission</strong></td><td>10-15% of competition prizes</td><td><span class="badge badge-live">Live</span></td></tr>
+      <tr><td><strong>Channel Monetization</strong></td><td>70/30 creator/platform split</td><td><span class="badge badge-planned">Planned</span></td></tr>
+      <tr><td><strong>Signal Marketplace</strong></td><td>Variable + 20% commission</td><td><span class="badge badge-planned">Planned</span></td></tr>
+      <tr><td><strong>Education Courses</strong></td><td>$29-199 per course</td><td><span class="badge badge-planned">Planned</span></td></tr>
+      <tr><td><strong>Broker Connection Partnerships</strong></td><td>$50-200 per funded trader</td><td><span class="badge badge-planned">Planned</span></td></tr>
+    </tbody>
+  </table>
+
+  <h2>Key Business Metrics</h2>
+  <div class="metrics-row">
+    <div class="metric-card"><div class="metric-value">3:1+</div><div class="metric-label">LTV:CAC Ratio</div></div>
+    <div class="metric-card"><div class="metric-value">&lt;5%</div><div class="metric-label">Monthly Churn</div></div>
+    <div class="metric-card"><div class="metric-value">30%+</div><div class="metric-label">DAU/MAU Ratio</div></div>
+    <div class="metric-card"><div class="metric-value">50+</div><div class="metric-label">NPS Score Target</div></div>
+  </div>
+
+  <h2>Competitive Landscape</h2>
+  <table>
+    <thead><tr><th>Competitor</th><th>Their Strength</th><th>Tradifive Advantage</th></tr></thead>
+    <tbody>
+      <tr><td><strong>TradingView</strong></td><td>Charting, community</td><td>AI Coach, Risk Guard, gamification</td></tr>
+      <tr><td><strong>Myfxbook</strong></td><td>Trade analytics</td><td>Real-time risk, social features, AI</td></tr>
+      <tr><td><strong>Discord</strong></td><td>Community</td><td>Trading-specific tools, analytics</td></tr>
+      <tr><td><strong>MT5 Brokers</strong></td><td>Broker integrations</td><td>Multi-prop support, community, AI</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Growth Strategy</h2>
+  <ol>
+    <li><strong>Product-Led Growth</strong> — Free tier with viral features (referrals, public profiles)</li>
+    <li><strong>Content Marketing</strong> — Trading education blog, YouTube, social media</li>
+    <li><strong>Community Building</strong> — Official channels, competitions, ambassadors</li>
+    <li><strong>Influencer Partnerships</strong> — Trading YouTubers, Instagrammers</li>
+    <li><strong>Broker Connection Partnerships</strong> — Integrated challenges and tracking</li>
+    <li><strong>SEO</strong> — Feature pages ranked for trading tool queries</li>
+    <li><strong>Referral Program</strong> — XP rewards driving organic growth</li>
+  </ol>
+
+  <div class="section-divider"></div>
+
+  <div style="text-align:center; padding: 40px 0;">
+    <div style="font-size:28pt; margin-bottom:8px;">📘</div>
+    <div style="font-size:14pt; font-weight:700; color:var(--text);">End of Document</div>
+    <p style="color:var(--text-muted); font-size:9pt; margin-top:8px;">This document is the single source of truth for the Tradifive platform.<br>Next Review: June 30, 2026</p>
+    <p style="color:var(--text-muted); font-size:8pt; margin-top:20px;">© 2026 Tradifive. All Rights Reserved.</p>
+  </div>
+</div>
+
+</div><!-- /document -->
+</body>
+</html>

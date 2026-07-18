@@ -1,0 +1,197 @@
+                        >
+
+
+                           {/* LOCATION DETAILS GRID (3 COLUMN) - PLACED AT THE TOP */}
+                           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                              <input 
+                                 type="text" 
+                                 placeholder="Mumbai, MH"
+                                 value={profile.city} 
+                                 onChange={e => setProfile({...profile, city: e.target.value})} 
+                                 className="w-full px-4 py-3 rounded-[12px] bg-slate-50 dark:bg-[#121212] border border-slate-200/60 dark:border-transparent text-[13px] font-bold text-slate-800 dark:text-slate-200 outline-none focus:border-blue-500 transition-all shadow-sm"
+                              />
+                              <input 
+                                 type="text" 
+                                 placeholder="India"
+                                 value={profile.country} 
+                                 onChange={e => setProfile({...profile, country: e.target.value})} 
+                                 className="w-full px-4 py-3 rounded-[12px] bg-slate-50 dark:bg-[#121212] border border-slate-200/60 dark:border-transparent text-[13px] font-bold text-slate-800 dark:text-slate-200 outline-none focus:border-blue-500 transition-all shadow-sm"
+                              />
+                              <input 
+                                 type="text" 
+                                 placeholder="IN"
+                                 value={profile.countryEmoji} 
+                                 onChange={e => setProfile({...profile, countryEmoji: e.target.value})} 
+                                 className="w-full px-4 py-3 rounded-[12px] bg-slate-50 dark:bg-[#121212] border border-slate-200/60 dark:border-transparent text-[13px] font-bold text-slate-800 dark:text-slate-200 outline-none focus:border-blue-500 transition-all shadow-sm text-center uppercase"
+                              />
+                           </div>
+
+                           {/* IMAGERY UPLOADS */}
+                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              {/* Avatar Image Card */}
+                              <div className="space-y-1">
+                                 <span className="text-[10px] font-semibold text-slate-500 dark:text-[#949ba4] uppercase tracking-wide px-1">Avatar Image</span>
+                                 <div className="p-4 rounded-xl bg-white dark:bg-[#1E1E1E] border border-slate-200/60 dark:border-transparent flex items-center justify-between shadow-sm">
+                                    <div className="flex items-center gap-3">
+                                       <div className="w-12 h-12 rounded-full overflow-hidden bg-slate-200 dark:bg-[#111] shadow-inner shrink-0 border border-slate-100 dark:border-[#222]">
+                                          <img 
+                                             src={profile.avatarUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${profile.firstName || profile.name || 'T'}`} 
+                                             alt="Avatar" 
+                                             className="w-full h-full object-cover" 
+                                          />
+                                       </div>
+                                       <button 
+                                          type="button" 
+                                          onClick={() => avatarUploadRef.current?.click()}
+                                          className="px-4 py-2 bg-[#f2f3f5] hover:bg-slate-200 dark:bg-[#121212] dark:hover:bg-[#292929]/50 text-slate-800 dark:text-white text-[11px] font-extrabold rounded-xl transition-all shadow-sm border border-slate-200 dark:border-transparent"
+                                       >
+                                          Upload Avatar
+                                       </button>
+                                    </div>
+                                 </div>
+                              </div>
+
+                              {/* Cover Banner Card */}
+                              <div className="space-y-1">
+                                 <span className="text-[10px] font-semibold text-slate-500 dark:text-[#949ba4] uppercase tracking-wide px-1">Cover Banner</span>
+                                 <div className="p-4 rounded-xl bg-white dark:bg-[#1E1E1E] border border-slate-200/60 dark:border-transparent flex items-center justify-between shadow-sm">
+                                    <div className="flex items-center gap-3 w-full">
+                                       <div className="w-16 h-10 rounded-lg overflow-hidden bg-gradient-to-br from-indigo-500 to-purple-650 shrink-0 shadow-inner relative border border-slate-100 dark:border-[#222]">
+                                          {profile.bannerUrl && (
+                                             <img src={profile.bannerUrl} alt="Banner" className="w-full h-full object-cover" />
+                                          )}
+                                       </div>
+                                       <button 
+                                          type="button" 
+                                          onClick={() => bannerUploadRef.current?.click()}
+                                          className="px-4 py-2 bg-[#f2f3f5] hover:bg-slate-200 dark:bg-[#121212] dark:hover:bg-[#292929]/50 text-slate-800 dark:text-white text-[11px] font-extrabold rounded-xl transition-all shadow-sm border border-slate-200 dark:border-transparent"
+                                       >
+                                          Upload Cover
+                                       </button>
+                                    </div>
+                                 </div>
+                              </div>
+                           </div>
+
+                           <div className="h-[1px] bg-slate-200 dark:bg-white/5 my-4" />
+
+                           {/* SOCIAL PRIVACY */}
+                           <div className="space-y-4">
+                              <div className="flex items-center justify-between">
+                                 <span className="text-[11px] font-semibold text-slate-900 dark:text-white uppercase tracking-wider">
+                                    Social Privacy (Show to Other Users)
+                                 </span>
+                                 <span className="text-[10px] font-extrabold text-blue-500 hover:underline cursor-pointer">
+                                    Configure what stats other traders can view
+                                 </span>
+                              </div>
+
+                              {/* Account Type buttons row */}
+                              <div className="space-y-1.5">
+                                 <label className="text-[10px] font-semibold text-slate-500 dark:text-[#949ba4] uppercase tracking-wide block px-1">Account Type</label>
+                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                    {['personal', 'creator', 'business'].map(type => {
+                                       const isActive = privacySettings.account_type === type;
+                                       return (
+                                          <button
+                                             key={type}
+                                             type="button"
+                                             onClick={() => {
+                                                setPrivacySettings((prev: any) => ({
+                                                   ...prev,
+                                                   account_type: type,
+                                                   is_private: type !== 'personal' ? false : prev.is_private
+                                                }));
+                                             }}
+                                             className={`p-3.5 rounded-xl border-2 text-[11px] font-semibold uppercase tracking-wider transition-all flex flex-col items-center justify-center gap-1 shadow-sm ${
+                                                isActive
+                                                ? "bg-blue-500/10 border-blue-500 text-blue-600 dark:text-blue-400"
+                                                : "bg-white dark:bg-[#121212] border-slate-200 dark:border-transparent text-slate-550 dark:text-slate-400 hover:bg-[#f2f3f5] dark:hover:bg-[#292929]/50"
+                                             }`}
+                                          >
+                                             <span>{type}</span>
+                                             {type !== 'personal' && (
+                                                <span className="text-[8px] px-1.5 py-0.5 rounded bg-[#3b82f6] text-white font-extrabold tracking-widest scale-90 mt-1">PRO</span>
+                                             )}
+                                          </button>
+                                       );
+                                    })}
+                                 </div>
+                              </div>
+
+                              {/* Private Account Card */}
+                              <div className={`p-4 rounded-xl bg-white dark:bg-[#1E1E1E] border border-slate-200/60 dark:border-transparent flex items-center justify-between shadow-sm ${privacySettings.account_type !== 'personal' ? 'opacity-40 pointer-events-none' : ''}`}>
+                                 <div className="flex flex-col gap-0.5 max-w-[80%] pr-4">
+                                    <span className="text-[13px] font-bold text-slate-800 dark:text-white">Private Account</span>
+                                    <span className="text-[11px] text-slate-500 font-medium">Only approved followers can see your posts and trades</span>
+                                 </div>
+                                 <SettingsToggle checked={privacySettings.is_private} onChange={(v) => setPrivacySettings((prev: any) => ({ ...prev, is_private: v }))} disabled={privacySettings.account_type !== 'personal'} />
+                              </div>
+
+                              {/* Grid Switches */}
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                 {[
+                                    { key: "show_location", label: "Show Location", desc: "Allow other traders to see your city and country" },
+                                    { key: "show_winrate", label: "Show Win Rate", desc: "Show win rate metric in stats grid" },
+                                    { key: "show_roi", label: "Show ROI (All Time)", desc: "Show ROI percentage and PnL curve" },
+                                    { key: "show_streak", label: "Show Trading Streak", desc: "Display active trading streaks and streak dot indicators" }
+                                 ].map((item) => (
+                                    <div key={item.key} className="p-4 rounded-xl bg-white dark:bg-[#1E1E1E] border border-slate-200/60 dark:border-transparent flex items-center justify-between shadow-sm">
+                                       <div className="flex flex-col gap-0.5 max-w-[80%] pr-4">
+                                          <span className="text-[13px] font-bold text-slate-800 dark:text-white">{item.label}</span>
+                                          <span className="text-[11px] text-slate-505 font-medium">{item.desc}</span>
+                                       </div>
+                                       <SettingsToggle checked={privacySettings[item.key]} onChange={(v) => setPrivacySettings((prev: any) => ({ ...prev, [item.key]: v }))} />
+                                    </div>
+                                 ))}
+                              </div>
+
+                              {/* Ledger Switch */}
+                              <div className="p-4 rounded-xl bg-white dark:bg-[#1E1E1E] border border-slate-200/60 dark:border-transparent flex items-center justify-between shadow-sm">
+                                 <div className="flex flex-col gap-0.5 max-w-[80%] pr-4">
+                                    <span className="text-[13px] font-bold text-slate-800 dark:text-white">Show Trading Ledger (Trades)</span>
+                                    <span className="text-[11px] text-slate-500 font-medium">Allow other traders to view the Trades tab and Calendar heatmap</span>
+                                 </div>
+                                 <SettingsToggle checked={privacySettings.show_trades} onChange={(v) => setPrivacySettings((prev: any) => ({ ...prev, show_trades: v }))} />
+                              </div>
+
+                           </div>
+
+                           {/* ACTION BUTTONS */}
+                           <div className="flex justify-end gap-3 pt-2">
+                              <button 
+                                 type="button"
+                                 onClick={() => navigate(-1)}
+                                 className="px-8 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white border border-slate-300 dark:border-transparent rounded-full hover:bg-slate-100 dark:hover:bg-white/5 transition-all"
+                              >
+                                 Cancel
+                              </button>
+                              <button 
+                                 type="button"
+                                 onClick={handleUpdateProfile}
+                                 className="px-8 py-2.5 bg-[#3b82f6] hover:bg-blue-600 text-white text-[11px] font-semibold uppercase tracking-wider rounded-full shadow-lg shadow-blue-500/20 transition-all active:scale-98"
+                              >
+                                 Save Changes
+                              </button>
+                           </div>
+
+                           {/* Hidden inputs triggers */}
+                           <input type="file" ref={avatarUploadRef} accept="image/*" className="hidden" onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                 const reader = new FileReader();
+                                 reader.onloadend = () => setProfile(p => ({...p, avatarUrl: reader.result as string}));
+                                 reader.readAsDataURL(file);
+                              }
+                           }} />
+                           <input type="file" ref={bannerUploadRef} accept="image/*" className="hidden" onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                 const reader = new FileReader();
+                                 reader.onloadend = () => setProfile(p => ({...p, bannerUrl: reader.result as string}));
+                                 reader.readAsDataURL(file);
+                              }
+                           }} />
+
+                        </motion.div>
+                     )}

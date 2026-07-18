@@ -1,0 +1,46 @@
+activeTab === "trading" && (
+1661:                            <motion.div
+1662:                               key="trading"
+1663:                               initial={{ opacity: 0, y: 10 }}
+1664:                               animate={{ opacity: 1, y: 0 }}
+1665:                               exit={{ opacity: 0, y: -10 }}
+1666:                               transition={{ duration: 0.2 }}
+1667:                               className="space-y-8"
+1668:                            >
+1669:                               {/* HEADER AREA */}
+1670:                               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+1671:                                  <div>
+1672:                                     <h2 className="text-[20px] font-black text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+1673:                                        <TrendingUp size={22} className="text-blue-600" /> Broker & Integrations
+1674:                                     </h2>
+1675:                                     <p className="text-sm text-slate-500 mt-1">
+1676:                                        Connect your broker account to sync trades, positions, and more.
+1677:                                     </p>
+1678:                                  </div>
+1679:                                  <button
+1680:                                     onClick={() => {
+1681:                                        setSelectedBrokerToConnect("zerodha");
+
+<truncated 13822 bytes>
+xt-[11px] font-black uppercase text-slate-700 dark:text-slate-300 rounded-lg transition-all active:scale-95"
+1831:                                              >
+1832:                                                 Connect
+1833:                                              </button>
+1834:                                           </div>
+1835: 
+1836:                                           {/* Dhan */}
+1837:                                           <div className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-all">
+1838:                                              <div className="flex items-center gap-3">
+1839:                                                 <DhanIcon size={36} />
+1840:                                                 <div>
+1841:                                                    <span className="text-[13px] font-bold text-slate-900 dark:text-white block">Dhan</span>
+1842:                                                    <span className="text-[11px] text-slate-400 block mt-0.5">Modern trading, simplified</span>
+1843:                                                 </div>
+1844:                                              </div>
+1845:                                              <button
+1846:                                                 onClick={() => {
+1847:                                                    setSelectedBrokerToConnect("dhan");
+1848:                                                    setShowBrokerConnectModal(true);
+1849:                                                 }}
+1850:                                                 className="px-4 py-2 bg-slate-50 dark:bg-white/5 hover:bg-blue-600 hover:text-white text-[11px] font-black uppercase text-slate-700 dark:text-slate-300 rounded-lg transition-all active:scale-95"
+The above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.

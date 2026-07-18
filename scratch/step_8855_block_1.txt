@@ -1,0 +1,57 @@
+Created At: 2026-05-31T06:03:58Z
+Completed At: 2026-05-31T06:03:59Z
+File Path: `file:///c:/Users/nikil/Downloads/fialgo-connect-main/fialgo-connect-main/src/pages/Settings.tsx`
+Total Lines: 3105
+Total Bytes: 208072
+Showing lines 1040 to 1120
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+1040:                          <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center shrink-0 overflow-hidden relative group">
+1041:                             {profile.avatarUrl ? (
+1042:                                <img src={profile.avatarUrl} alt="avatar" className="w-full h-full object-cover" />
+1043:                             ) : (
+1044:                                <span className="text-[14px] font-black text-white uppercase tracking-tighter">
+1045:                                   {profile.name[0] || "U"}
+1046:                                </span>
+1047:                             )}
+1048:                             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+1049:                                <Pencil size={12} className="text-white" />
+1050:                             </div>
+1051:                          </div>
+1052:                          <div className="flex-1 min-w-0">
+1053:                             <p className="text-[13px] font-bold text-slate-900 dark:text-white truncate">{profile.firstName || profile.name}</p>
+1054:                             <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1">Edit Profiles <Pencil size={8} /></p>
+1055:                          </div>
+1056:                       </div>
+1057: 
+1058:                       <div className="relative w-full mb-6">
+1059:                          <Search size={14} 
+<truncated 3012 bytes>
+ors group relative"
+1094:                             >
+1095:                                <X size={16} className="group-hover:scale-110 transition-transform" />
+1096:                                <span className="absolute -bottom-6 text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 hidden md:block">ESC</span>
+1097:                             </button>
+1098:                          </div>
+1099:                       </div>
+1100: 
+1101:                       <div className="px-10 pb-20 pt-3">
+1102:                          <AnimatePresence mode="wait">
+1103: 
+1104:                          {activeTab === 'general' && (
+1105:                             <motion.div
+1106:                                key="general"
+1107:                                initial={{ opacity: 0, y: 10 }}
+1108:                                animate={{ opacity: 1, y: 0 }}
+1109:                                exit={{ opacity: 0, y: -10 }}
+1110:                                transition={{ duration: 0.2 }}
+1111:                                className="space-y-6"
+1112:                             >
+1113:                                <h2 className="text-[20px] font-bold text-slate-900 dark:text-white mb-6">My Account</h2>
+1114:                                
+1115:                                {/* DISCORD STYLE "MY ACCOUNT" CARD */}
+1116:                                <div className="rounded-[8px] bg-slate-100 dark:bg-[#252528] overflow-hidden mb-8 relative border border-slate-200 dark:border-transparent">
+1117:                                   {/* Banner */}
+1118:                                   <div className="h-[100px] bg-blue-600 dark:bg-blue-700 w-full relative" />
+1119:                                   
+1120:                                   {/* Avatar and Edit button row */}
+The above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.

@@ -1,0 +1,24 @@
+activeTab === "ai" && (
+1349:                            <motion.div
+1350:                               key="ai"
+1351:                               initial={{ opacity: 0, y: 10 }}
+1352:                               animate={{ opacity: 1, y: 0 }}
+1353:                               exit={{ opacity: 0, y: -10 }}
+1354:                               transition={{ duration: 0.2 }}
+1355:                               className="space-y-6"
+1356:                            >
+1357:                               <div className="p-8 rounded-[22px] border-2 border-white dark:border-[#1A1A1A] bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] dark:from-[#212123] dark:to-[#171719] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:shadow-[0_4px_7px_-5px_rgba(0,0,0,0.3),0_0_0_2px_#2B2B2F]">
+1358:                                  <h4 className="text-[11px] font-black text-slate-900 dark:text-white uppercase tracking-[0.2em] mb-8 flex items-center gap-2">
+1359:                                     <Bot size={14} className="text-blue-600" /> AI Coach Settings
+1360:                                  </h4>
+1361:                                  
+1362:                                  <div className="space-y-8">
+1363:                                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 dark:border-[#222] pb-6">
+1364:                                        <div>
+1365:                                           <p className="text-[14px] font-bold text-slate-900 dark:text-white">AI Coach Tone</p>
+1366:                                           <p className="text-[12px] font-medium text-slate-500 mt-1">How should the AI communicate with you during trading?</p>
+1367:                                        </div>
+1368:                                        <select value={aiTone} onChange={e => setAiTone(e.target.value)} className="w-full md:w-64 bg-slate-50 dark:bg-[#141414] border border-slate-200 dark:border-[#333] rounded-xl px-4 py-3 text-[13px] font-bold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 ring-blue-500/20">
+1369:                                           <option value="Encouraging">Encouraging & Supportive</option>
+1370:                                           <option value="Strict">Strict & Disciplined</option>
+The above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.

@@ -1,0 +1,72 @@
+{
+  "name": "tradifive-admin-app",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "main": "dist-electron/main.js",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "vite build",
+    "preview": "vite preview",
+    "dev:electron": "set ELECTRON=true&& vite",
+    "build:electron": "vite build --base=./ && set ELECTRON=true&& vite build && electron-builder"
+  },
+  "build": {
+    "productName": "Admin App - TradiFive",
+    "appId": "com.tradifive.admin",
+    "asar": true,
+    "directories": {
+      "output": "C:\\TradiFive-Admin-Build"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "nsis": {
+      "artifactName": "Admin_App_Windows_Installer.${ext}",
+      "oneClick": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "TradiFive Admin"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*",
+      "!node_modules/**/*"
+    ]
+  },
+  "dependencies": {
+    "@hookform/resolvers": "^3.10.0",
+    "@radix-ui/react-switch": "^1.3.3",
+    "@supabase/supabase-js": "^2.103.3",
+    "@tanstack/react-query": "^5.83.0",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.38.0",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.8",
+    "lucide-react": "^0.462.0",
+    "pg": "^8.22.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-hook-form": "^7.61.1",
+    "react-router-dom": "^6.30.1",
+    "recharts": "^3.8.1",
+    "sonner": "^1.7.4",
+    "tailwind-merge": "^2.6.0",
+    "xlsx": "^0.18.5",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.23",
+    "@types/react-dom": "^18.3.7",
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.21",
+    "electron": "^43.0.0",
+    "electron-builder": "^26.15.3",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.8.3",
+    "vite": "^5.4.19",
+    "vite-plugin-electron": "^1.1.0",
+    "vite-plugin-electron-renderer": "^1.0.0"
+  }
+}

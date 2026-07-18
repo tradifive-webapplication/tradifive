@@ -1,0 +1,10 @@
+Created At: 2026-05-23T07:34:52Z
+Completed At: 2026-05-23T07:34:54Z
+
+				The command failed with exit code: 1
+				Output:
+				
+mobile-app\app\profile.tsx:1395:          {/* Avatar & Stats Row (Instagram Style) */}
+
+
+

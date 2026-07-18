@@ -1,0 +1,44 @@
+Created At: 2026-05-24T18:06:26Z
+Completed At: 2026-05-24T18:06:26Z
+File Path: `file:///c:/Users/nikil/Downloads/fialgo-connect-main/fialgo-connect-main/src/pages/Settings.tsx`
+Total Lines: 1876
+Total Bytes: 119446
+Showing lines 800 to 1400
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+800:                         {activeTab === "Security" && (
+801:                            <motion.div
+802:                               key="security"
+803:                               initial={{ opacity: 0, y: 10 }}
+804:                               animate={{ opacity: 1, y: 0 }}
+805:                               exit={{ opacity: 0, y: -10 }}
+806:                               transition={{ duration: 0.2 }}
+807:                               className="space-y-6"
+808:                            >
+809:                               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+810:                                  {/* CARD 1: CORE CREDENTIALS */}
+811:                                  <div className="bg-white dark:bg-[#1A1A1A] dark:bg-[#1A1A1A] rounded-[24px] p-8 border border-slate-200 dark:border-[#333333] dark:border-[#333333] shadow-sm flex flex-col">
+812:                                     <h4 className="text-[11px] font-black text-slate-900 dark:text-slate-900 dark:text-white uppercase tracking-[0.2em] mb-8 flex items-center gap-2">
+813:                                        <Key size={14} className="text-blue-600" /> Core Credentials
+814:                                     </h4>
+815:                                     <div className="space-y-6 flex-1">
+816:                                        <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-[#141414] dark:bg-blue-500 rounded-2xl border border-slate-100 dark:border-[#333333] dark:border-[#333333]">
+817:                  
+<truncated 45282 bytes>
+                <div className="bg-white dark:bg-[#1A1A1A] rounded-[24px] p-6 border border-slate-200 dark:border-[#333333] shadow-sm relative overflow-hidden group">
+1315:                                     <div className="flex items-center justify-between mb-4">
+1316:                                        <div className="w-12 h-12 bg-slate-50 dark:bg-[#141414] rounded-2xl flex items-center justify-center border border-slate-100 dark:border-[#333333]">
+1317:                                           <Activity className="text-blue-600" size={24} />
+1318:                                        </div>
+1319:                                     </div>
+1320:                                     <h3 className="text-[18px] font-bold text-slate-900 dark:text-white">MetaTrader 5</h3>
+1321:                                     <p className="text-[13px] text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
+1322:                                        Connect your existing MT5 terminal to synchronize trades.
+1323:                                     </p>
+1324:                                     <div className="mt-6 flex items-center justify-between text-[11px] font-bold text-slate-400 uppercase tracking-widest pt-4 border-t border-slate-50 dark:border-[#222222] dark:border-[#333333]">
+1325:                                        <span>Status: {userSubscription !== 'none' ? (mt5Account?.connection_status || "Disconnected") : "Subscription Required"}</span>
+1326:                                        <button onClick={() => userSubscription !== 'none' ? setShowMt5Form(true) : navigate('/upgrade')} className="text-blue-600 hover:underline flex items-center gap-1">
+1327:                                           {userSubscription === 'none' && <Crown size={12} className="text-amber-500" />}
+1328:                                           {userSubscription
+<truncated 6972 bytes>
+
+NOTE: The output was truncated because it was too long. Use a more targeted query or a smaller range to get the information you need.

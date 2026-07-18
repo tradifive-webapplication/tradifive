@@ -1,0 +1,16 @@
+[
+  {
+    "titleMatch": "Discipline Sentinel",
+    "tooltip": "Restrict the maximum number of trades per day to prevent overtrading.",
+    "sub": "Lock max daily executions",
+    "color": "cyan-500",
+    "oldP": "Prevent revenge trading and lock"
+  },
+  {
+    "titleMatch": "Session Sentinel",
+    "tooltip": "Only allow trading during specified market sessions.",
+    "sub": "Restrict hourly trading windows",
+    "color": "sky-500",
+    "oldP": "Permit and restrict custom hourly"
+  }
+]

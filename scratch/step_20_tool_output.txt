@@ -1,0 +1,20 @@
+Created At: 2026-05-23T07:34:42Z
+Completed At: 2026-05-23T07:34:43Z
+
+				The command completed successfully.
+				Output:
+				
+src\pages\Landing.tsx:751:            Markets don't always teach discipline properly. YouTube tutorials help, but only 
+so far. We found ourselves stuck - trading alone, with no one to enforce our rules, and <span style={{ color: "#fff", 
+fontWeight: 700 }}>no way to stop our own impulses.</span>
+src\pages\Landing.tsx:1062:   SOCIAL PROOF
+src\pages\Landing.tsx:1082:function Social() {
+src\pages\Landing.tsx:1377:        <Social />
+src\pages\Settings.tsx:727:                              {/* CARD 2: CONTACT & SOCIAL */}
+src\pages\Settings.tsx:730:                                    <Smartphone size={14} className="text-blue-600" /> 
+Contact & Social
+src\pages\Support.tsx:653:                { id: 'Tradifive platforms', title: 'Tradifive platforms', desc: 'Tradifive 
+Web App, API connections, Algo configuration, Social trading, Strategy automation.', icon: LayoutGrid },
+
+
+

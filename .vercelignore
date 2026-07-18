@@ -1,0 +1,57 @@
+# Ignore all node_modules recursively
+**/node_modules
+node_modules
+admin-app/node_modules
+mobile-app/node_modules
+
+# Ignore nested repositories
+**/fialgo-connect-main
+fialgo-connect-main
+
+# Ignore local build outputs
+**/dist-electron
+**/release
+dist-electron
+release
+dist-ssr
+*.local
+
+# Ignore heavy binaries and archives anywhere in the project
+**/*.exe
+**/*.dmg
+**/*.zip
+**/*.rar
+**/*.tar.gz
+**/*.7z
+
+# Ignore backup and temp source files
+**/*_backup*
+**/temp_*
+**/temp.*
+**/candidate_*.json
+**/*.sql
+
+# Ignore logs and text reports
+**/*.log
+**/logs
+**/output.txt
+**/temp_matches.txt
+**/temp_main_menu.txt
+**/step47.txt
+**/borders.txt
+**/clean_styles.txt
+**/profile_all_views.txt
+**/profile_jsx_views.txt
+**/latest_appsidebar_json.txt
+**/old_appsidebar.txt
+**/debug_transcript.txt
+**/debug_sidebar.txt
+
+# Editor and metadata
+.vscode
+.idea
+.claude
+.github
+.gitignore
+.vercel
+README.md

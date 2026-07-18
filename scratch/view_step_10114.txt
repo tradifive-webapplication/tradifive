@@ -1,0 +1,1 @@
+I will inspect the end of `src/pages/Settings.tsx` around line 871 to understand why esbuild is complaining about a syntax error.

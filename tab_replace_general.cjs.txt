@@ -1,0 +1,118 @@
+{activeTab === 'general' && (
+                            <motion.div
+                               key="general"
+                               initial={{ opacity: 0, y: 10 }}
+                               animate={{ opacity: 1, y: 0 }}
+                               exit={{ opacity: 0, y: -10 }}
+                               transition={{ duration: 0.2 }}
+                               className="space-y-6"
+                            >
+                               <h2 className="text-[20px] font-bold text-slate-900 dark:text-white mb-6">Profile Information</h2>
+                               
+                               {/* CARD 1: Account Info */}
+                               <div className="p-6 rounded-2xl bg-white dark:bg-[#1C1C1E] shadow-sm">
+                                  <h4 className="text-[11px] font-black text-slate-900 dark:text-white uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+                                     Account Details
+                                  </h4>
+                                  
+                                  <div className="flex flex-col gap-5">
+                                     <div className="flex justify-between items-center">
+                                        <div>
+                                           <p className="text-[12px] font-bold text-slate-500 dark:text-[#b5bac1] uppercase tracking-wide">Display Name</p>
+                                           <p className="text-[16px] text-slate-900 dark:text-white font-medium mt-0.5">{profile.firstName} {profile.lastName}</p>
+                                        </div>
+                                        <button onClick={() => setIsEditModalOpen(true)} className="px-5 py-2 bg-slate-100 dark:bg-[#2C2C2E] text-slate-900 dark:text-white font-semibold text-[13px] rounded-xl hover:bg-slate-200 dark:hover:bg-[#3C3C3E] transition-colors shadow-sm">Edit</button>
+                                     </div>
+                                     
+                                     <div className="h-[1px] bg-slate-200 dark:bg-slate-800/50 w-full" />
+                                     
+                                     <div className="flex justify-between items-center">
+                                        <div>
+                                           <p className="text-[12px] font-bold text-slate-500 dark:text-[#b5bac1] uppercase tracking-wide">Username</p>
+                                           <p className="text-[16px] text-slate-900 dark:text-white font-medium mt-0.5">{profile.name}</p>
+                                        </div>
+                                        <button onClick={() => setIsEditModalOpen(true)} className="px-5 py-2 bg-slate-100 dark:bg-[#2C2C2E] text-slate-900 dark:text-white font-semibold text-[13px] rounded-xl hover:bg-slate-200 dark:hover:bg-[#3C3C3E] transition-colors shadow-sm">Edit</button>
+                                     </div>
+
+                                     <div className="h-[1px] bg-slate-200 dark:bg-slate-800/50 w-full" />
+
+                                     <div className="flex justify-between items-center">
+                                        <div>
+                                           <p className="text-[12px] font-bold text-slate-500 dark:text-[#b5bac1] uppercase tracking-wide">Email</p>
+                                           <div className="flex items-center gap-2 mt-0.5">
+                                              <p className="text-[16px] text-slate-900 dark:text-white font-medium">{profile.email}</p>
+                                              <span className="text-[10px] font-bold text-blue-600 bg-blue-100 dark:text-blue-400 dark:bg-blue-400/10 px-1.5 py-0.5 rounded-sm">Verified</span>
+                                           </div>
+                                        </div>
+                                        <button onClick={() => setIsEditModalOpen(true)} className="px-5 py-2 bg-slate-100 dark:bg-[#2C2C2E] text-slate-900 dark:text-white font-semibold text-[13px] rounded-xl hover:bg-slate-200 dark:hover:bg-[#3C3C3E] transition-colors shadow-sm">Edit</button>
+                                     </div>
+
+                                     <div className="h-[1px] bg-slate-200 dark:bg-slate-800/50 w-full" />
+
+                                     <div className="flex justify-between items-center">
+                                        <div>
+                                           <p className="text-[12px] font-bold text-slate-500 dark:text-[#b5bac1] uppercase tracking-wide">Phone Number</p>
+                                           <p className="text-[16px] text-slate-900 dark:text-white font-medium mt-0.5">You haven't added a phone number yet.</p>
+                                        </div>
+                                        <button onClick={() => setShowSmsModal(true)} className="px-5 py-2 bg-slate-100 dark:bg-[#2C2C2E] text-slate-900 dark:text-white font-semibold text-[13px] rounded-xl hover:bg-slate-200 dark:hover:bg-[#3C3C3E] transition-colors shadow-sm">Add</button>
+                                     </div>
+                                  </div>
+                               </div>
+
+                               {/* CARD 2: Additional Info */}
+                               <div className="p-6 rounded-2xl bg-white dark:bg-[#1C1C1E] shadow-sm mt-8">
+                                  <div className="flex justify-between items-center mb-6">
+                                     <h4 className="text-[11px] font-black text-slate-900 dark:text-white uppercase tracking-[0.2em] flex items-center gap-2">
+                                        Additional Information
+                                     </h4>
+                                     <button onClick={() => setIsEditModalOpen(true)} className="px-5 py-2 bg-slate-100 dark:bg-[#2C2C2E] text-slate-900 dark:text-white font-semibold text-[13px] rounded-xl hover:bg-slate-200 dark:hover:bg-[#3C3C3E] transition-colors shadow-sm">Edit Info</button>
+                                  </div>
+                                  
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                     <div>
+                                        <label className="text-[12px] font-bold text-slate-500 dark:text-[#b5bac1] uppercase tracking-wide block mb-2">Address</label>
+                                        <p className="text-[14px] text-slate-900 dark:text-white font-medium bg-slate-50 dark:bg-[#252528] p-3.5 rounded-xl border border-slate-200 dark:border-transparent">{profile.address || "Not specified"}</p>
+                                     </div>
+                                     <div>
+                                        <label className="text-[12px] font-bold text-slate-500 dark:text-[#b5bac1] uppercase tracking-wide block mb-2">City</label>
+                                        <p className="text-[14px] text-slate-900 dark:text-white font-medium bg-slate-50 dark:bg-[#252528] p-3.5 rounded-xl border border-slate-200 dark:border-transparent">{profile.city || "Not specified"}</p>
+                                     </div>
+                                     <div>
+                                        <label className="text-[12px] font-bold text-slate-500 dark:text-[#b5bac1] uppercase tracking-wide block mb-2">State</label>
+                                        <p className="text-[14px] text-slate-900 dark:text-white font-medium bg-slate-50 dark:bg-[#252528] p-3.5 rounded-xl border border-slate-200 dark:border-transparent">{profile.state || "Not specified"}</p>
+                                     </div>
+                                     <div>
+                                        <label className="text-[12px] font-bold text-slate-500 dark:text-[#b5bac1] uppercase tracking-wide block mb-2">Zip Code</label>
+                                        <p className="text-[14px] text-slate-900 dark:text-white font-medium bg-slate-50 dark:bg-[#252528] p-3.5 rounded-xl border border-slate-200 dark:border-transparent">{profile.zipCode || "Not specified"}</p>
+                                     </div>
+                                     <div>
+                                        <label className="text-[12px] font-bold text-slate-500 dark:text-[#b5bac1] uppercase tracking-wide block mb-2">Country</label>
+                                        <p className="text-[14px] text-slate-900 dark:text-white font-medium bg-slate-50 dark:bg-[#252528] p-3.5 rounded-xl border border-slate-200 dark:border-transparent">{profile.country || "Not specified"}</p>
+                                     </div>
+                                     <div>
+                                        <label className="text-[12px] font-bold text-slate-500 dark:text-[#b5bac1] uppercase tracking-wide block mb-2">Date of Birth</label>
+                                        <p className="text-[14px] text-slate-900 dark:text-white font-medium bg-slate-50 dark:bg-[#252528] p-3.5 rounded-xl border border-slate-200 dark:border-transparent">{profile.dob || "Not specified"}</p>
+                                     </div>
+                                     <div>
+                                        <label className="text-[12px] font-bold text-slate-500 dark:text-[#b5bac1] uppercase tracking-wide block mb-2">Gender</label>
+                                        <p className="text-[14px] text-slate-900 dark:text-white font-medium bg-slate-50 dark:bg-[#252528] p-3.5 rounded-xl border border-slate-200 dark:border-transparent">{profile.gender || "Not specified"}</p>
+                                     </div>
+                                  </div>
+                               </div>
+
+                               {/* CARD 3: Authentication */}
+                               <div className="p-6 rounded-2xl bg-white dark:bg-[#1C1C1E] shadow-sm mt-8">
+                                  <h4 className="text-[11px] font-black text-slate-900 dark:text-white uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+                                     Password & Authentication
+                                  </h4>
+                                  <div className="flex items-center gap-4">
+                                     <button onClick={() => toast.success("Password reset email sent")} className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-[13px] rounded-xl shadow-md transition-colors">Change Password</button>
+                                  </div>
+                               </div>
+
+                            </motion.div>
+                         )}`;
+
+const newContent = content.substring(0, startIndex) + replacement + content.substring(endIndex);
+fs.writeFileSync(file, newContent, 'utf8');
+console.log('Successfully replaced general tab block')

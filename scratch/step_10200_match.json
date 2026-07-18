@@ -1,0 +1,8 @@
+{
+  "step_index": 10200,
+  "source": "MODEL",
+  "type": "VIEW_FILE",
+  "status": "DONE",
+  "created_at": "2026-05-31T08:06:22Z",
+  "content": "Created At: 2026-05-31T08:06:22Z\nCompleted At: 2026-05-31T08:06:23Z\nFile Path: `file:///c:/Users/nikil/Downloads/fialgo-connect-main/fialgo-connect-main/scratch/parse_step_8855.cjs`\nTotal Lines: 20\nTotal Bytes: 930\nShowing lines 1 to 20\nThe following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.\n1: const fs = require('fs');\n2: const path = require('path');\n3: \n4: const stepData = JSON.parse(fs.readFileSync('scratch/step_8855_full.json', 'utf8'));\n5: console.log('Step 8855 source:', stepData.source);\n6: console.log('Step 8855 type:', stepData.type);\n7: console.log('Step 8855 content length:', stepData.content ? stepData.content.length : 0);\n8: \n9: if (stepData.content) {\n10:     const blocks = stepData.content.split('```');\n11:     console.log('Number of code blocks in step 8855 content:', blocks.length);\n12:     blocks.forEach((block, idx) => {\n13:         console.log(`Block ${idx + 1} preview:`, block.substring(0, 200).replace(/\\n/g, ' '));\n14:         if (block.includes('export default') || block.includes('activeTab') || block.includes('bg-blue-600')) {\n15:             fs.writeFileSync(`scratch/step_8855_block_${idx + 1}.txt`, block, 'utf8');\n16:             console.log(`  Saved block ${idx + 1} to scratch/step_8855_block_${idx + 1}.txt`);\n17:         }\n18:     });\n19: }\n20: \nThe above content shows the entire, complete file contents of the requested file.\n"
+}

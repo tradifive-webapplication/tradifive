@@ -1,0 +1,88 @@
+Created At: 2026-06-23T05:56:06Z
+Completed At: 2026-06-23T05:56:07Z
+File Path: `file:///c:/Users/nikil/Downloads/fialgo-connect-main/fialgo-connect-main/src/pages/Landing.tsx`
+Total Lines: 3359
+Total Bytes: 161757
+Showing lines 1 to 800
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+1: import React, { useState, useEffect, useRef } from "react";
+2: import { useNavigate } from "react-router-dom";
+3: import { PricingCards } from "@/components/PricingCards";
+4: import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
+5: import { CheckCircle2, Shield, TrendingUp, Users, ArrowRight, Activity, Cpu, Play, Layers, X, Zap, Trophy, Star, Globe, MessageSquare, Radio, MessageCircle, GraduationCap, Sparkles, BookText, Crown, ShieldCheck } from "lucide-react";
+6: import PremiumBackground from "../components/PremiumBackground";
+7: import { toast } from "sonner";
+8: import PublicNavbar from "../components/PublicNavbar";
+9: import PublicFooter from "../components/PublicFooter";
+10: import { Ic } from "../components/Ic";
+11: import Pattern from "../components/Pattern";
+12: import { supabase } from "@/integrations/supabase/client";
+13: import confetti from "canvas-confetti";
+14: import Spline from '@splinetool/react-spline';
+15: import { FlipText } from "@/components/ui/flip-text";
+16: import { AgentBentoGrid } from "@/components/ui/agent-bento-grid";
+17: 
+18: /* ═══════════════════════════════════
+19:    GLOBAL STYLES
+20: ═══════════════════════════════════ */
+21: const G = () => (
+22:   <style>{`
+23:     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+24: 
+25:     :root {
+26:       --bg:      #02040a;
+27:       --bg2:
+<truncated 24454 bytes>
+y: inline-flex;
+750:       animation: broker 35s linear infinite;
+751:     }
+752:     @keyframes broker { to { transform: translateX(-50%); } }
+753: 
+754:     .br-chip {
+755:       display: inline-flex;
+756:       align-items: center;
+757:       gap: 10px;
+758:       padding: 10px 22px;
+759:       border-radius: 100px;
+760:       border: 1px solid rgba(255,255,255,0.06);
+761:       background: rgba(255,255,255,0.02);
+762:       white-space: nowrap;
+763:       margin: 0 8px;
+764:       transition: background 0.3s, border-color 0.3s;
+765:     }
+766:     .br-chip:hover {
+767:       background: rgba(255,255,255,0.04);
+768:       border-color: rgba(255,255,255,0.1);
+769:     }
+770: 
+771:     /* FLOATING ANIMATIONS */
+772:     @keyframes float {
+773:       0%, 100% { transform: translateY(0); }
+774:       50% { transform: translateY(-10px); }
+775:     }
+776:     .fa { animation: float 4s ease-in-out infinite; }
+777:     .fb { animation: float 5s ease-in-out infinite 0.5s; }
+778:     .fc { animation: float 3.5s ease-in-out infinite 0.2s; }
+779: 
+780:     /* PULSE DOT */
+781:     @keyframes pulseDot {
+782:       0%, 100% { opacity: 1; transform: scale(1); }
+783:       50% { opacity: 0.4; transform: scale(1.4); }
+784:     }
+785:     .pulse-dot { animation: pulseDot 1.8s ease-in-out infinite; }
+786: 
+787:     /* GRID BG */
+788:     .grid-bg {
+789:       background-image:
+790:         linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+791:         linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+792:       background-size: 60px 60px;
+793:     }
+794: 
+795:     /* 3D CARD / HERO ANIMATIONS */
+796:     @keyframes floatCard {
+797:       0%, 100% { transform: translateY(0px) rotate(var(--rot, 0deg)); }
+798:       50% { transform: translateY(-12px) rotate(var(--rot, 0deg)); }
+799:     }
+800:     @keyframes shimmer {
+The above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.

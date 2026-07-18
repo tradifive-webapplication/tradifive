@@ -1,0 +1,99 @@
+const fs = require('fs');
+const file = 'src/pages/Settings.tsx';
+let content = fs.readFileSync(file, 'utf8');
+
+const startStr = "{activeTab === 'appearance' && (";
+const nextTabStr = '{activeTab === "notifications" && (';
+
+const startIndex = content.indexOf(startStr);
+if (startIndex === -1) throw new Error('Start string not found');
+
+const nextTabIndex = content.indexOf(nextTabStr, startIndex);
+if (nextTabIndex === -1) throw new Error('Next tab string not found');
+
+const endSearchStr = ')}';
+const beforeNextTab = content.substring(startIndex, nextTabIndex);
+const lastBraceIndex = beforeNextTab.lastIndexOf(endSearchStr);
+if (lastBraceIndex === -1) throw new Error('End brace not found');
+
+const endIndex = startIndex + lastBraceIndex + endSearchStr.length;
+
+const replacement = `{activeTab === 'appearance' && (
+                           <motion.div
+                              key="appearance"
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -10 }}
+                              transition={{ duration: 0.2 }}
+                              className="space-y-6"
+                           >
+                               <h2 className="text-[20px] font-bold text-slate-900 dark:text-white mb-6">Appearance Settings</h2>
+                               
+                               <div className="p-6 rounded-2xl bg-white dark:bg-[#1C1C1E] shadow-sm">
+                                  <h4 className="text-[11px] font-black text-slate-900 dark:text-white uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+                                     <Monitor size={14} className="text-blue-600" /> Interface Preferences
+                                  </h4>
+                                  
+                                  <div className="space-y-8">
+                                     {/* Theme */}
+                                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 dark:border-[#222] pb-6">
+                                        <div>
+                                           <p className="text-[14px] font-bold text-slate-900 dark:text-white">Color Theme</p>
+                                           <p className="text-[12px] font-medium text-slate-500 mt-1">Select your preferred lighting mode.</p>
+                                        </div>
+                                        <select value={theme} onChange={e => setTheme(e.target.value)} className="w-full md:w-48 bg-slate-50 dark:bg-[#141414] border border-slate-200 dark:border-[#333] rounded-xl px-4 py-3 text-[13px] font-bold text-slate-700 dark:text-slate-200 focus:outline-none">
+                                           <option value="light">Light Theme</option>
+                                           <option value="dark">Dark Theme</option>
+                                        </select>
+                                     </div>
+                                     
+                                     {/* Accent Color */}
+                                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 dark:border-[#222] pb-6">
+                                        <div>
+                                           <p className="text-[14px] font-bold text-slate-900 dark:text-white">Accent Highlights</p>
+                                           <p className="text-[12px] font-medium text-slate-500 mt-1 max-w-md">Choose the primary highlight color for active buttons.</p>
+                                        </div>
+                                        <select value={accentColor} onChange={e => setAccentColor(e.target.value)} className="w-full md:w-48 bg-slate-50 dark:bg-[#141414] border border-slate-200 dark:border-[#333] rounded-xl px-4 py-3 text-[13px] font-bold text-slate-700 dark:text-slate-200 focus:outline-none">
+                                           <option value="blue">Sapphire Blue</option>
+                                           <option value="green">Emerald Green</option>
+                                           <option value="purple">Royal Purple</option>
+                                           <option value="amber">Sunset Amber</option>
+                                           <option value="rose">Crimson Rose</option>
+                                        </select>
+                                     </div>
+
+                                     {/* Layout Density */}
+                                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 dark:border-[#222] pb-6">
+                                        <div>
+                                           <p className="text-[14px] font-bold text-slate-900 dark:text-white">Layout Density</p>
+                                           <p className="text-[12px] font-medium text-slate-500 mt-1 max-w-md">Control visual spacing and padding.</p>
+                                        </div>
+                                        <select value={layoutDensity} onChange={e => setLayoutDensity(e.target.value)} className="w-full md:w-48 bg-slate-50 dark:bg-[#141414] border border-slate-200 dark:border-[#333] rounded-xl px-4 py-3 text-[13px] font-bold text-slate-700 dark:text-slate-200 focus:outline-none">
+                                           <option value="comfortable">Comfortable</option>
+                                           <option value="compact">Compact</option>
+                                        </select>
+                                     </div>
+
+                                     {/* Developer Console */}
+                                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                        <div>
+                                           <p className="text-[14px] font-bold text-slate-900 dark:text-white">Developer Console</p>
+                                           <p className="text-[12px] font-medium text-slate-500 mt-1 max-w-md">Enable background system debugging and terminal reports.</p>
+                                        </div>
+                                        <div className="w-full md:w-48 flex md:justify-end">
+                                            <button 
+                                                onClick={() => setTerminalLogging(!terminalLogging)}
+                                                className={\`relative w-12 h-6 rounded-full transition-colors \${terminalLogging ? 'bg-blue-600' : 'bg-slate-300 dark:bg-slate-700'}\`}
+                                            >
+                                                <div className={\`absolute top-1/2 -translate-y-1/2 left-1 w-4 h-4 rounded-full bg-white transition-transform \${terminalLogging ? 'translate-x-6' : 'translate-x-0'}\`} />
+                                            </button>
+                                        </div>
+                                     </div>
+                                  </div>
+                               </div>
+                           </motion.div>
+                        )}`;
+
+const newContent = content.substring(0, startIndex) + replacement + content.substring(endIndex);
+fs.writeFileSync(file, newContent, 'utf8');
+console.log('Successfully replaced appearance tab block');

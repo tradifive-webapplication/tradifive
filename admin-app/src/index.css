@@ -1,0 +1,364 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 222 47% 4%;
+    /* #0D0D0D */
+    --sidebar: 0 0% 12%;
+    /* #1E1E1E */
+    --foreground: 0 0% 98%;
+    --radius: 0.5rem;
+  }
+}
+
+body {
+  @apply bg-[#121212] text-[#E5E5E5] antialiased overflow-hidden;
+  font-family: 'Inter', sans-serif;
+}
+
+/* Hide scrollbar but allow scrolling */
+@layer utilities {
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+
+/* Radar Notification Button */
+.radar-button {
+  width: 32px;
+  height: 32px;
+  background-color: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.radar-button:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.radar-button svg {
+  color: rgba(255, 255, 255, 0.4);
+  scale: 0.9;
+  transition: 0.2s;
+}
+
+.radar-button:hover svg {
+  color: white;
+}
+
+.radar-point {
+  position: absolute;
+  bottom: 5px;
+  left: 5px;
+  width: 5px;
+  height: 5px;
+  background-color: rgb(0, 255, 0);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 5px rgb(0, 255, 0);
+}
+
+.radar-point::before {
+  content: "";
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  background-color: rgb(0, 255, 0);
+  border-radius: 50%;
+  animation: radar-loop 1.2s infinite;
+}
+
+@keyframes radar-loop {
+  0% {
+    background-color: rgb(0, 255, 0);
+    width: 1px;
+    height: 1px;
+    opacity: 1;
+  }
+
+  100% {
+    background-color: rgba(0, 255, 0, 0);
+    width: 20px;
+    height: 20px;
+    opacity: 0;
+  }
+}
+
+/* Tactical Sliding Kill Switch */
+.tactical-switch {
+  position: relative;
+  width: 140px;
+  height: 36px;
+  box-sizing: border-box;
+  padding: 3px;
+  background: #0d0d0d;
+  border-radius: 6px;
+  box-shadow:
+    inset 0 1px 1px 1px rgba(0, 0, 0, 0.5),
+    0 1px 0 0 rgba(255, 255, 255, 0.1);
+}
+
+.tactical-switch input[type="checkbox"] {
+  position: absolute;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.tactical-switch input[type="checkbox"]+label {
+  position: relative;
+  display: block;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  background: #1b1c1c;
+  border-radius: 3px;
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+  transition: all 0.5s ease-in-out;
+}
+
+.tactical-switch input[type="checkbox"]+label:before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-left: 10px;
+  background: #fff;
+  border-radius: 50%;
+  vertical-align: middle;
+  box-shadow:
+    0 0 5px 2px rgba(165, 15, 15, 0.9),
+    0 0 3px 1px rgba(165, 15, 15, 0.9);
+  transition: all 0.5s ease-in-out;
+}
+
+.tactical-switch input[type="checkbox"]+label:after {
+  content: "";
+  display: inline-block;
+  width: 0;
+  height: 100%;
+  vertical-align: middle;
+}
+
+.tactical-switch input[type="checkbox"]+label i {
+  display: block;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 2px;
+  height: 16px;
+  margin-top: -8px;
+  margin-left: -1px;
+  border-radius: 2px;
+  background: #0d0d0d;
+  box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.3);
+}
+
+.tactical-switch input[type="checkbox"]+label i:before,
+.tactical-switch input[type="checkbox"]+label i:after {
+  content: "";
+  display: block;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 2px;
+  background: #0d0d0d;
+  box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.3);
+}
+
+.tactical-switch input[type="checkbox"]+label i:before {
+  left: -5px;
+}
+
+.tactical-switch input[type="checkbox"]+label i:after {
+  left: 5px;
+}
+
+.tactical-switch input[type="checkbox"]:checked+label {
+  left: 50%;
+}
+
+.tactical-switch input[type="checkbox"]:checked+label:before {
+  box-shadow:
+    0 0 8px 3px rgba(15, 165, 70, 0.9),
+    0 0 4px 1px rgba(15, 165, 70, 0.9);
+}
+
+@keyframes flicker {
+  0% {
+    opacity: 1;
+  }
+
+  80% {
+    opacity: 0.8;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+
+/* Sidebar Active Glider Effect (Exact Humanizer Match) */
+.sidebar-active-item {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.03) 50%, rgba(168, 85, 247, 0.15) 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  box-shadow: none !important;
+  border-radius: 10px !important;
+  position: relative;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.sidebar-active-item::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 15%;
+  bottom: 15%;
+  width: 4px;
+  background: #a855f7;
+  box-shadow: -2px 0 12px 1px rgba(168, 85, 247, 0.5);
+  border-radius: 4px 0 0 4px;
+}
+
+.sidebar-active-item svg {
+  color: white !important;
+  transition: all 0.3s;
+}
+
+.sidebar-active-item span {
+  color: white !important;
+  font-weight: 600 !important;
+  transition: all 0.3s;
+}
+
+/* Inactive Sidebar Item Hover */
+.sidebar-inactive-hover:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1E1E1E;
+  border-radius: 0;
+}
+
+::selection {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Institutional Workload Signal Nodes */
+.signal-container {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 4px 10px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+  height: 24px;
+}
+
+.signal-node {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.03);
+  box-shadow: hsla(0, 0%, 100%, .05) 0 1px 1px, inset hsla(0, 0%, 0%, .5) 0 0 0 1px;
+  transition: all 0.4s cubic-bezier(.8, 0, 1, 1);
+  position: relative;
+}
+
+/* Base Active Glow Logic */
+.signal-node.active {
+  box-shadow: 0 0 15px currentColor;
+}
+
+/* Specific Tier Colors */
+.signal-node.yellow.active {
+  background-image: radial-gradient(circle, #fef08a 0%, #facc15 15%, rgba(250, 204, 21, 0.3) 28%, transparent 70%);
+  color: rgba(250, 204, 21, 0.6);
+}
+
+.signal-node.amber.active {
+  background-image: radial-gradient(circle, #fbbf24 0%, #d97706 15%, rgba(217, 119, 6, 0.3) 28%, transparent 70%);
+  color: rgba(217, 119, 6, 0.6);
+}
+
+.signal-node.red.active {
+  background-image: radial-gradient(circle, #f87171 0%, #dc2626 15%, rgba(220, 38, 38, 0.3) 28%, transparent 70%);
+  color: rgba(220, 38, 38, 0.6);
+  animation: signal-pulse 1.5s infinite;
+}
+
+@keyframes signal-pulse {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Exclude elements that have their own explicit transitions */
+input,
+textarea,
+select,
+button,
+a,
+.sidebar-active-item,
+.signal-node,
+.tactical-switch *,
+.radar-button {
+  transition-property: all;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}

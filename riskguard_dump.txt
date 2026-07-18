@@ -1,0 +1,1683 @@
+import React, { useState, useEffect, useRef } from "react";
+import {
+   Discovery as IconlyDiscovery,
+   Activity as IconlyActivity,
+   ShieldDone as IconlyShieldDone,
+   Graph as IconlyGraph,
+   TimeSquare as IconlyTimeSquare
+} from "react-iconly";
+
+import { motion, AnimatePresence } from "framer-motion";
+import DashboardLayout from "@/components/DashboardLayout";
+import {
+   Shield,
+   Zap,
+   Power,
+   AlertTriangle,
+   Target,
+   ArrowUpRight,
+   TrendingDown,
+   ShieldCheck,
+   Link2,
+   Activity,
+   History,
+   Lock,
+   Clock,
+   Calendar,
+   ChevronDown,
+   Brain,
+   Timer,
+   Trophy,
+   Check,
+   AlertOctagon,
+   Star,
+   Sparkles,
+   ShieldAlert,
+   Settings,
+   Sliders,
+   Info,
+   X
+} from "lucide-react";
+import { toast } from "sonner";
+import { useDashboardData } from "@/hooks/useDashboardData";
+import { useTrading } from "@/contexts/TradingContext";
+import { usePlan } from "@/hooks/usePlan";
+import { useNavigate } from "react-router-dom";
+import { useRiskConfig } from "@/hooks/useRiskConfig";
+import { getGamificationState } from "@/utils/gamification";
+import { useMarket } from "@/contexts/MarketContext";
+import { supabase } from "@/lib/supabase";
+
+// --- HUD Status Indicators ---
+const StatusIndicators = ({ isActive = true }) => (
+   <div className="flex gap-2 items-center">
+      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Monitor</span>
+      <div className={`w-2 h-2 rounded-full ${isActive ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`} />
+   </div>
+);
+
+
+// --- Custom Neumorphic Toggle Switch (UIverse) ---
+// --- Custom Neumorphic Industrial Toggle Switch ---
+function Switch({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
+   const switchId = React.useId();
+   return (
+      <>
+         <style dangerouslySetInnerHTML={{
+            __html: `
+        /* DARK THEME SWITCH */
+        .custom-ind-switch {
+          position: relative;
+          width: 120px;
+          height: 32px;
+          box-sizing: border-box;
+          padding: 2.5px;
+          background: #0d0d0d;
+          border-radius: 6px;
+          box-shadow:
+            inset 0 1px 1px 1px rgba(0, 0, 0, 0.5),
+            0 1px 0 0 rgba(255, 255, 255, 0.1);
+          flex-shrink: 0;
+        }
+        .custom-ind-switch input[type="checkbox"] {
+          position: absolute;
+          z-index: 2;
+          width: 100%;
+          height: 100%;
+          opacity: 0;
+          cursor: pointer;
+        }
+        .custom-ind-switch label {
+          position: relative;
+          display: block;
+          left: 0;
+          width: 50%;
+          height: 100%;
+          background: #1b1c1c;
+          border-radius: 3.5px;
+          box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+          transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .custom-ind-switch input[type="checkbox"] + label:before {
+          content: "";
+          display: inline-block;
+          width: 5px;
+          height: 5px;
+          margin-left: 9px;
+          background: #4b5563;
+          border-radius: 50%;
+          vertical-align: middle;
+          box-shadow:
+            0 0 5px 2px rgba(0, 0, 0, 0.65),
+            0 0 3px 1px rgba(0, 0, 0, 0.45);
+          transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .custom-ind-switch input[type="checkbox"] + label:after {
+          content: "";
+          display: inline-block;
+          width: 0;
+          height: 100%;
+          vertical-align: middle;
+        }
+        .custom-ind-switch input[type="checkbox"] + label i {
+          display: block;
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          width: 2.5px;
+          height: 15px;
+          margin-top: -7.5px;
+          margin-left: -1.25px;
+          border-radius: 2px;
+          background: #0d0d0d;
+          box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.3);
+        }
+        .custom-ind-switch input[type="checkbox"] + label i:before,
+        .custom-ind-switch input[type="checkbox"] + label i:after {
+          content: "";
+          display: block;
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          border-radius: 2px;
+          background: #0d0d0d;
+          box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.3);
+        }
+        .custom-ind-switch input[type="checkbox"] + label i:before {
+          left: -5px;
+        }
+        .custom-ind-switch input[type="checkbox"] + label i:after {
+          left: 5px;
+        }
+        .custom-ind-switch input[type="checkbox"]:checked + label {
+          left: 50%;
+        }
+        .custom-ind-switch input[type="checkbox"]:checked + label:before {
+          background: #fff;
+          box-shadow:
+            0 0 5px 2px rgba(255, 255, 255, 0.95),
+            0 0 3px 1px rgba(255, 255, 255, 0.75);
+        }
+
+        /* LIGHT THEME SWITCH (Uiverse by ashif_6672) */
+        .custom-ui-switch {
+          font-size: 3px;
+          position: relative;
+          align-items: center;
+          justify-content: center;
+          width: 20em;
+          height: 10em;
+          background: linear-gradient(0deg, #ededed, #bdbdbd);
+          border-radius: 5em;
+          box-shadow:
+            0 0.05em 0.5em 0.01em #ffffff80,
+            0 0px 5em 0.5em #ffffff,
+            0 -0.25em 0.25em 0.125em #15182f44;
+          cursor: pointer;
+          flex-shrink: 0;
+        }
+
+        .custom-ui-switch *,
+        .custom-ui-switch *:before,
+        .custom-ui-switch *:after {
+          box-sizing: border-box;
+        }
+
+        .custom-ui-switch input[type="checkbox"] {
+          display: none;
+        }
+
+        .custom-ui-switch .rail {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 5em;
+          box-shadow:
+            -0.05em 0.26em 0.2em -0.05em #fff,
+            0.05em 0.125em 0.2em -0.125em #0004 inset;
+          pointer-events: none;
+        }
+
+        .custom-ui-switch .rail:before,
+        .custom-ui-switch .rail:after {
+          content: "";
+          position: absolute;
+          width: 5em;
+          height: 5em;
+          border-radius: 5em;
+        }
+
+        .custom-ui-switch .rail:before {
+          left: 2.5em;
+          background: linear-gradient(175deg, #00000077, #0001, #fff2), #2196f3;
+          box-shadow:
+            -0.05em 0.26em 0.2em -0.05em #fff8,
+            0.05em 0.125em 0.2em -0.125em #0008 inset;
+        }
+
+        .custom-ui-switch .rail:after {
+          right: 2.5em;
+          background: linear-gradient(180deg, #858585, #a8a8a8, #e3e3e3);
+          box-shadow:
+            0 0.25em 0.2em -0.033em #fff8,
+            -0.0625em 0.0625em 0.2em -0.125em #000 inset;
+        }
+
+        .custom-ui-switch .rail span {
+          width: calc(5em + 1px);
+          height: 0.5em;
+          z-index: 1;
+          background: linear-gradient(180deg, #0004, #fff0 0.175em),
+            linear-gradient(90deg, #2196f3 50%, #aaaaaa 50%);
+          background-size: 200% 100%;
+          background-position: 55% 50%;
+          box-shadow: 0 0.125em 0.075em -0.05em #fff8;
+          transition: all 0.5s ease 0s;
+        }
+
+        .custom-ui-switch input[type="checkbox"]:checked ~ .rail span {
+          background-position: 35% 50%;
+        }
+
+        .custom-ui-switch .slider {
+          position: absolute;
+          width: 9.375em;
+          height: 9.375em;
+          top: 0.25em;
+          left: 0.333em;
+          border-radius: 5em;
+          background: radial-gradient(circle at 55% 50%, #fff0 4.166em, #fff0 10em),
+            radial-gradient(circle at 60% 50%, #fff0 5.263em, #fff0 6.666em),
+            linear-gradient(180deg, #ededed, #bdbdbd);
+          box-shadow:
+            -0.1em 0.1em 0.166em 0 #fff2 inset,
+            0 0 0.5em 0.1em #6b6b6b,
+            0 0.5em 1em 0 #0006;
+          z-index: 1;
+          overflow: hidden;
+          transition: all 0.5s ease 0s;
+        }
+
+        .custom-ui-switch input[type="checkbox"]:checked ~ .slider {
+          left: calc(100% - 9.708em);
+          background: radial-gradient(
+              circle at 55% 50%,
+              #fff0 4.166em,
+              #2196f3 10em
+            ),
+            radial-gradient(circle at 60% 50%, #fff0 5.263em, #2196f3 6.666em),
+            linear-gradient(180deg, #ededed, #bdbdbd);
+        }
+
+        .custom-ui-switch .slider:before {
+          content: "";
+          position: absolute;
+          width: 10em;
+          height: 10em;
+          left: -0.25em;
+          top: -0.25em;
+          background: radial-gradient(circle at 47.5% 45%, #fff0 4.5em, #0003 5em);
+          filter: blur(1px);
+        }
+
+        .custom-ui-switch .slider:after {
+          content: "";
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          top: 0;
+          left: 0;
+          background: repeating-conic-gradient(
+              #fff 0.00095%,
+              #fff0 0.0005%,
+              #fff0 0.005%,
+              #fff0 0.0005%
+            ),
+            repeating-conic-gradient(
+              #fff 0.00001%,
+              #fff0 0.00009%,
+              #fff0 0.00075%,
+              #fff0 0.000025%
+            );
+          opacity: 0.25;
+          filter: blur(1px);
+          pointer-events: none;
+        }
+      `}} />
+
+         {/* Light Theme Switch */}
+         <label className="custom-ui-switch flex dark:hidden">
+            <input
+               type="checkbox"
+               checked={checked}
+               onChange={(e) => onChange(e.target.checked)}
+            />
+            <div className="rail">
+               <span />
+            </div>
+            <div className="slider" />
+         </label>
+
+         {/* Dark Theme Switch */}
+         <div className="custom-ind-switch hidden dark:inline-block select-none">
+            <input
+               id={switchId}
+               type="checkbox"
+               checked={checked}
+               onChange={(e) => onChange(e.target.checked)}
+            />
+            <label htmlFor={switchId}>
+               <i />
+            </label>
+         </div>
+      </>
+   );
+}
+
+
+// --- Gauge Monitor component ---
+const Gauge = ({ value, max }: { value: number, max: number }) => {
+   const percentage = Math.min(100, (value / max) * 100);
+   const needleAngle = -90 + (percentage * 1.8);
+
+   return (
+      <div className="flex flex-col items-center gap-2 select-none">
+         <div className="relative" style={{ width: 140, height: 70 }}>
+            <svg width="140" height="70" viewBox="0 0 140 70">
+               <defs>
+                  <linearGradient id="gaugeGradient" x1="0" y1="0" x2="1" y2="0">
+                     <stop offset="0%" stopColor="#10b981" />
+                     <stop offset="50%" stopColor="#f59e0b" />
+                     <stop offset="100%" stopColor="#ef4444" />
+                  </linearGradient>
+               </defs>
+               {/* Background Track */}
+               <path
+                  d="M 10 65 A 60 60 0 0 1 130 65"
+                  fill="none"
+                  className="stroke-slate-200 dark:stroke-slate-800/80"
+                  strokeWidth="8"
+                  strokeLinecap="round"
+               />
+               {/* Active Gradient Fill */}
+               <motion.path
+                  d="M 10 65 A 60 60 0 0 1 130 65"
+                  fill="none"
+                  stroke="url(#gaugeGradient)"
+                  strokeWidth="8"
+                  strokeLinecap="round"
+                  strokeDasharray="188"
+                  initial={{ strokeDashoffset: 188 }}
+                  animate={{ strokeDashoffset: 188 - (188 * percentage / 100) }}
+                  transition={{ duration: 1.2, ease: "easeOut" }}
+               />
+            </svg>
+
+            {/* Rotating Needle */}
+            <motion.div
+               className="absolute bottom-[2px] left-1/2 origin-bottom"
+               style={{ width: 2.5, height: 45, marginLeft: -1.25 }}
+               initial={{ rotate: -90 }}
+               animate={{ rotate: needleAngle }}
+               transition={{ type: "spring", stiffness: 45, damping: 13 }}
+            >
+               <div className="w-full h-full bg-slate-800 dark:bg-white rounded-full" />
+               <div className="absolute -top-[2px] left-1/2 -translate-x-1/2 w-[7px] h-[7px] bg-white rounded-full border border-slate-900 shadow-sm" />
+            </motion.div>
+
+            {/* Pivot dot */}
+            <div className="absolute bottom-[1px] left-1/2 -translate-x-1/2 w-[8px] h-[8px] bg-slate-900 dark:bg-white rounded-full border border-white dark:border-slate-800 shadow-sm z-10" />
+         </div>
+
+         {/* Aligned metrics numbers */}
+         <div className="flex items-center justify-between w-[130px] mt-0.5">
+            <span className="text-[10px] font-semibold text-slate-400 tabular-nums">0</span>
+            <span className="text-[14px] font-bold text-slate-800 dark:text-white tabular-nums">{value.toFixed(1)}</span>
+            <span className="text-[10px] font-semibold text-slate-400 tabular-nums">{max.toFixed(1)}</span>
+         </div>
+      </div>
+   );
+};
+
+export default function RiskGuard() {
+   const navigate = useNavigate();
+   const [user, setUser] = useState<any>(null);
+   const [authChecked, setAuthChecked] = useState(false);
+
+   useEffect(() => {
+      const checkUser = async () => {
+         const { data: { session } } = await supabase.auth.getSession();
+         if (!session?.user) {
+            navigate("/login");
+         } else {
+            setUser(session.user);
+            setAuthChecked(true);
+         }
+      };
+      checkUser();
+   }, [navigate]);
+
+   // A. Risk Framework States
+   const [maxLotActive, setMaxLotActive] = useState(false);
+   const [drawdownGuardActive, setDrawdownGuardActive] = useState(false);
+   const [maxDrawdown, setMaxDrawdown] = useState(15);
+   const [weeklyDrawdown, setWeeklyDrawdown] = useState(20);
+   const [monthlyDrawdown, setMonthlyDrawdown] = useState(25);
+   const [stopAfterLoss, setStopAfterLoss] = useState(false);
+
+   // B. AI Bot Engine States
+   const [autoTrading, setAutoTrading] = useState(() => {
+      try {
+         const saved = localStorage.getItem('fialgo_risk_config');
+         if (saved) {
+            const config = JSON.parse(saved);
+            return config.autoTrading === true;
+         }
+      } catch (e) { }
+      return false;
+   });
+   const [tradeFreq, setTradeFreq] = useState("Medium");
+   const [allowHedging, setAllowHedging] = useState(false);
+
+
+   // Sync autoTrading state change to fialgo_risk_config instantly for layout warning banner
+   useEffect(() => {
+      const saved = localStorage.getItem('fialgo_risk_config');
+      const config = saved ? JSON.parse(saved) : {};
+      if (config.autoTrading !== autoTrading) {
+         config.autoTrading = autoTrading;
+         localStorage.setItem('fialgo_risk_config', JSON.stringify(config));
+         window.dispatchEvent(new Event('fialgo_config_changed'));
+      }
+   }, [autoTrading]);
+
+   const { balance, isConnected, lastClosedTrade, recentTrades, tradesToday } = useDashboardData();
+
+   // C. Institutional Discipline States
+   const { isProOrElite } = usePlan();
+   const [disciplineActive, setDisciplineActive] = useState(false);
+   const { activeMarket } = useMarket();
+   const sym = activeMarket === 'indian' ? '₹' : '$';
+   const iso = activeMarket === 'indian' ? 'INR' : 'USD';
+
+   const [revengeGuard, setRevengeGuard] = useState(false);
+   const [tradeLimit, setTradeLimit] = useState(3);
+   const [waitPeriod, setWaitPeriod] = useState(5);
+   const [emotionalFreeze, setEmotionalFreeze] = useState(false);
+   const [xpBonus, setXpBonus] = useState(false);
+   const [cooldownActive, setCooldownActive] = useState(false);
+   const [cooldownSeconds, setCooldownSeconds] = useState(0);
+   const [lastDetectedTradeId, setLastDetectedTradeId] = useState<string | null>(null);
+
+   // Restore cooldown from localStorage on mount
+   useEffect(() => {
+      try {
+         const saved = localStorage.getItem('fialgo_cooldown');
+         if (saved) {
+            const cd = JSON.parse(saved);
+            if (cd.active && cd.endsAt > Date.now()) {
+               const remainingMs = cd.endsAt - Date.now();
+               setCooldownActive(true);
+               setCooldownSeconds(Math.ceil(remainingMs / 1000));
+            } else {
+               localStorage.removeItem('fialgo_cooldown');
+            }
+         }
+      } catch (e) { console.error(e); }
+   }, []);
+
+   // Cooldown Timer
+   useEffect(() => {
+      if (!cooldownActive || cooldownSeconds <= 0) {
+         if (cooldownActive && cooldownSeconds <= 0) {
+            setCooldownActive(false);
+            localStorage.removeItem('fialgo_cooldown');
+            window.dispatchEvent(new Event('fialgo_cooldown_changed'));
+         }
+         return;
+      }
+      const timer = setTimeout(() => setCooldownSeconds(s => s - 1), 1000);
+      return () => clearTimeout(timer);
+   }, [cooldownActive, cooldownSeconds]);
+
+   // Auto-detect losing trades and trigger cooldown
+   useEffect(() => {
+      if (!revengeGuard || !lastClosedTrade) return;
+      // Skip if cooldown is already active
+      if (cooldownActive) return;
+      // Only trigger for new trades we haven't processed
+      const tradeId = lastClosedTrade.id || lastClosedTrade.deal_id;
+      if (tradeId === lastDetectedTradeId) return;
+
+      const profit = lastClosedTrade.profit ?? 0;
+      if (profit < 0) {
+         setLastDetectedTradeId(tradeId);
+         const cooldownDurationSec = waitPeriod * 60;
+         setCooldownActive(true);
+         setCooldownSeconds(cooldownDurationSec);
+         // Persist to localStorage for cross-page sync
+         const cooldownData = {
+            active: true,
+            endsAt: Date.now() + (cooldownDurationSec * 1000),
+            waitPeriodMinutes: waitPeriod,
+            triggeredBy: `${lastClosedTrade.symbol || lastClosedTrade.pair || 'Trade'} ${sym}${profit.toFixed(2)}`
+         };
+         localStorage.setItem('fialgo_cooldown', JSON.stringify(cooldownData));
+         window.dispatchEvent(new Event('fialgo_cooldown_changed'));
+         toast.error(`Loss detected — Cooldown Shield activated for ${waitPeriod} minutes`, {
+            description: `${lastClosedTrade.symbol || lastClosedTrade.pair || 'Trade'} closed at ${sym}${profit.toFixed(2)}. Execution locked.`,
+            duration: 6000
+         });
+
+         // Trigger webhook to block trading
+         const webhookUrl = 'https://n8n-webhooks.fialgo.ai/webhook/tradifive-riskcop-trigger';
+         fetch(webhookUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+               userId: user?.id,
+               action: "LOCK_TRADING",
+               durationMinutes: waitPeriod,
+               triggeredBy: `${lastClosedTrade.symbol || lastClosedTrade.pair || 'Trade'} ${sym}${profit.toFixed(2)}`
+            })
+         }).catch(err => console.error("Webhook trigger failed:", err));
+      }
+   }, [lastClosedTrade, revengeGuard, cooldownActive, waitPeriod, lastDetectedTradeId]);
+
+   // D. Session Sentinel States
+   const [sessionActive, setSessionActive] = useState(false);
+   const [selectedSessions, setSelectedSessions] = useState(["NY", "London", "Morning", "Afternoon"]);
+   const [sessionTargetFreeze, setSessionTargetFreeze] = useState(false);
+   const [sessionTimes, setSessionTimes] = useState<Record<string, { start: string; end: string }>>({
+      London: { start: "13:30", end: "22:00" },
+      Sydney: { start: "03:30", end: "12:00" },
+      NY: { start: "17:30", end: "02:00" },
+      Asian: { start: "05:30", end: "14:30" },
+      PreMarket: { start: "09:00", end: "09:15" },
+      Morning: { start: "09:15", end: "12:00" },
+      Afternoon: { start: "12:00", end: "15:30" },
+      PostMarket: { start: "15:40", end: "16:00" }
+   });
+
+   // E. Capital & Risk States
+   const [maxLot, setMaxLot] = useState(2.0);
+   const currentLot = activeMarket === 'indian' ? 1 : 0.8;
+   const [targetCapital, setTargetCapital] = useState(2000);
+
+   const [startingCapital, setStartingCapital] = useState(() => {
+      try {
+         const saved = localStorage.getItem('fialgo_starting_capital');
+         if (saved) return parseFloat(saved);
+      } catch (e) { }
+      return 0;
+   });
+
+   useEffect(() => {
+      if (balance > 0 && startingCapital === 0) {
+         setStartingCapital(balance);
+         localStorage.setItem('fialgo_starting_capital', balance.toString());
+      }
+   }, [balance, startingCapital]);
+
+
+
+   const { userSubscription } = useTrading();
+   const { canAccess } = usePlan();
+
+   const currentProfit = Math.max(0, balance - (startingCapital || balance || 0));
+   const progressPercent = targetCapital > 0 ? Math.min(100, (currentProfit / targetCapital) * 100) : 0;
+   const xpValue = Math.floor(targetCapital / 8);
+   const {
+      config: dbConfig,
+      saveConfig
+   } = useRiskConfig(user?.id);
+
+   // Sync database profile config
+   useEffect(() => {
+      if (dbConfig) {
+         if (dbConfig.max_lot_size !== null) setMaxLot(dbConfig.max_lot_size);
+         if (dbConfig.target_capital !== null) setTargetCapital(dbConfig.target_capital);
+         if (dbConfig.max_daily_loss_percent !== null) setMaxDrawdown(dbConfig.max_daily_loss_percent);
+         if (dbConfig.max_open_trades !== null) setTradeLimit(dbConfig.max_open_trades);
+      }
+   }, [dbConfig]);
+
+   // --- Load Persisted Settings ---
+   useEffect(() => {
+      const saved = localStorage.getItem('fialgo_risk_config');
+      if (saved) {
+         const config = JSON.parse(saved);
+         if (config.maxDrawdown) setMaxDrawdown(config.maxDrawdown);
+         if (config.weeklyDrawdown !== undefined) setWeeklyDrawdown(config.weeklyDrawdown);
+         if (config.monthlyDrawdown !== undefined) setMonthlyDrawdown(config.monthlyDrawdown);
+         if (config.stopAfterLoss !== undefined) setStopAfterLoss(config.stopAfterLoss);
+         if (config.autoTrading !== undefined) setAutoTrading(config.autoTrading);
+         if (config.tradeFreq) setTradeFreq(config.tradeFreq);
+         if (config.allowHedging !== undefined) setAllowHedging(config.allowHedging);
+         if (config.revengeGuard !== undefined) setRevengeGuard(config.revengeGuard);
+         if (config.tradeLimit) setTradeLimit(config.tradeLimit);
+         if (config.waitPeriod) setWaitPeriod(config.waitPeriod);
+         if (config.selectedSessions) setSelectedSessions(config.selectedSessions);
+         if (config.sessionTimes) setSessionTimes(config.sessionTimes);
+         if (config.maxLot) setMaxLot(config.maxLot);
+         if (config.targetCapital) setTargetCapital(config.targetCapital);
+      }
+   }, []);
+
+   const handleSave = async () => {
+      // 1. Sync core configs to Supabase Postgres table
+      if (user?.id) {
+         await saveConfig({
+            max_lot_size: maxLotActive ? maxLot : 0,
+            target_capital: targetCapital,
+            max_daily_loss_percent: drawdownGuardActive ? maxDrawdown : 0,
+            max_open_trades: disciplineActive ? tradeLimit : 0
+         }).catch(console.error);
+      }
+
+      // 2. Persist interactive settings in localStorage
+      const config = {
+         maxLotActive,
+         drawdownGuardActive,
+         disciplineActive,
+         sessionActive,
+         maxDrawdown,
+         weeklyDrawdown,
+         monthlyDrawdown,
+         stopAfterLoss,
+         autoTrading,
+         tradeFreq,
+         allowHedging,
+         revengeGuard,
+         tradeLimit,
+         waitPeriod,
+         selectedSessions,
+         sessionTimes,
+         maxLot,
+         targetCapital
+      };
+      localStorage.setItem('fialgo_risk_config', JSON.stringify(config));
+
+      toast.success("Risk Guard Settings Synchronized", {
+         description: "All automated safety brackets are now live on MT5 Bridge #28120136.",
+         icon: <ShieldCheck className="text-emerald-500" />
+      });
+   };
+
+   // E. Autosave Effect (Debounced to 800ms to avoid DB write-spamming during slider dragging)
+   const isMounted = useRef(false);
+   useEffect(() => {
+      if (!isMounted.current) {
+         isMounted.current = true;
+         return;
+      }
+
+      const timer = setTimeout(() => {
+         const config = {
+            maxLotActive,
+            drawdownGuardActive,
+            disciplineActive,
+            sessionActive,
+            maxDrawdown,
+            weeklyDrawdown,
+            monthlyDrawdown,
+            stopAfterLoss,
+            autoTrading,
+            tradeFreq,
+            allowHedging,
+            revengeGuard,
+            tradeLimit,
+            waitPeriod,
+            selectedSessions,
+            sessionTimes,
+            maxLot,
+            targetCapital
+         };
+         localStorage.setItem('fialgo_risk_config', JSON.stringify(config));
+
+         if (user?.id) {
+            saveConfig({
+               max_lot_size: maxLotActive ? maxLot : 0,
+               target_capital: targetCapital,
+               max_daily_loss_percent: drawdownGuardActive ? maxDrawdown : 0,
+               max_open_trades: disciplineActive ? tradeLimit : 0
+            }).catch(console.error);
+         }
+      }, 800);
+
+      return () => clearTimeout(timer);
+   }, [
+      maxLotActive,
+      drawdownGuardActive,
+      disciplineActive,
+      sessionActive,
+      maxDrawdown,
+      weeklyDrawdown,
+      monthlyDrawdown,
+      stopAfterLoss,
+      autoTrading,
+      tradeFreq,
+      allowHedging,
+      revengeGuard,
+      tradeLimit,
+      waitPeriod,
+      selectedSessions,
+      sessionTimes,
+      maxLot,
+      targetCapital,
+      user?.id
+   ]);
+
+   function RiskGuardSkeleton() {
+      return (
+         <div className="p-6 md:p-8 max-w-[1300px] mx-auto w-full space-y-10 select-none animate-pulse">
+            {/* Header */}
+            <div className="flex flex-col gap-3">
+               <div className="h-8 w-44 bg-slate-200 dark:bg-slate-800/80 rounded-md" />
+               <div className="h-4.5 w-96 bg-slate-200 dark:bg-slate-800/80 rounded-md" />
+            </div>
+
+            {/* Mission Control HUD */}
+            <div className="p-6 rounded-[22px] border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-sm dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:rounded-[20px] dark:shadow-none">
+               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                  {[1, 2, 3].map((i) => (
+                     <div key={i} className="space-y-4">
+                        <div className="h-4.5 w-32 bg-slate-200 dark:bg-slate-800/80 rounded" />
+                        <div className="h-8 w-48 bg-slate-200 dark:bg-slate-800/80 rounded-md" />
+                        <div className="h-3 w-36 bg-slate-200 dark:bg-slate-800/80 rounded" />
+                     </div>
+                  ))}
+               </div>
+            </div>
+
+            {/* Settings Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
+               {[1, 2].map((i) => (
+                  <div key={i} className="p-6 rounded-[22px] border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-sm dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:rounded-[20px] dark:shadow-none space-y-6">
+                     <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                           <div className="w-8 h-8 rounded-lg bg-slate-200 dark:bg-slate-800/80" />
+                           <div className="space-y-1.5">
+                              <div className="h-3.5 w-28 bg-slate-200 dark:bg-slate-800/80 rounded" />
+                              <div className="h-2.5 w-20 bg-slate-200 dark:bg-slate-800/80 rounded" />
+                           </div>
+                        </div>
+                        <div className="w-12 h-6 rounded-full bg-slate-200 dark:bg-slate-800/80" />
+                     </div>
+                     <div className="space-y-4">
+                        <div className="h-10 w-full bg-slate-200 dark:bg-slate-800/80 rounded-xl" />
+                        <div className="h-10 w-full bg-slate-200 dark:bg-slate-800/80 rounded-xl" />
+                     </div>
+                  </div>
+               ))}
+            </div>
+         </div>
+      );
+   }
+
+   if (!authChecked) {
+      return (
+         <DashboardLayout>
+            <RiskGuardSkeleton />
+         </DashboardLayout>
+      );
+   }
+
+   const sessionButtons = activeMarket === 'indian' ? [
+      { id: "PreMarket", label: "Pre-Market" },
+      { id: "Morning", label: "Morning" },
+      { id: "Afternoon", label: "Afternoon" },
+      { id: "PostMarket", label: "Post-Market" }
+   ] : [
+      { id: "London", label: "London" },
+      { id: "Sydney", label: "Sydney" },
+      { id: "NY", label: "New York" },
+      { id: "Asian", label: "Asian" }
+   ];
+
+   const toggleSession = (id: string) => {
+      setSelectedSessions(prev =>
+         prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id]
+      );
+   };
+
+   return (
+      <DashboardLayout>
+         <div className="max-w-none mx-auto w-full font-sans pb-32 space-y-8 select-none">
+
+            {/* Demo Mode Banner */}
+            {!isConnected && (
+               <motion.div
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.35 }}
+                  className="bg-gradient-to-b from-[#FFFBEB] to-[#FFFDF5] border-2 border-white rounded-[22px] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.08),0_0_0_2px_#FDE68A] dark:bg-none dark:bg-[#1E1912] dark:border-[1px] dark:border-amber-500/30 dark:shadow-[inset_0_1px_1px_rgba(251,191,36,0.05)]"
+                  style={{ padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}
+               >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                     <div style={{
+                        width: 36, height: 36, borderRadius: 10, flexShrink: 0,
+                        background: 'rgba(251,191,36,0.15)',
+                        border: '1px solid rgba(251,191,36,0.3)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                     }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                           <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+                        </svg>
+                     </div>
+                     <div>
+                        <p className="text-[13px] font-semibold text-amber-800 dark:text-amber-300" style={{ margin: 0, lineHeight: 1.3 }}>
+                           You're viewing demo data
+                        </p>
+                        <p className="text-[12px] text-amber-700/70 dark:text-slate-300" style={{ margin: 0, lineHeight: 1.4 }}>
+                           Connect your real broker account to see live trades, P&amp;L and risk metrics.
+                        </p>
+                     </div>
+                  </div>
+                  <button
+                     onClick={() => navigate('/settings?tab=trading')}
+                     className="text-[13px] font-semibold text-white flex items-center gap-2 transition-all hover:scale-[1.03] active:scale-[0.98]"
+                     style={{
+                        background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                        border: 'none', borderRadius: 12, padding: '9px 18px',
+                        cursor: 'pointer', flexShrink: 0,
+                        boxShadow: '0 2px 10px rgba(245,158,11,0.3)',
+                     }}
+                  >
+                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                     </svg>
+                     Connect Real Account
+                  </button>
+               </motion.div>
+            )}
+
+            {/* HEADER - Clean, Title-Case, consistent typography weights */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-2">
+               <div>
+                  <h1 className="text-[25px] font-semibold text-slate-800 dark:text-white tracking-tight leading-none">Risk Guard</h1>
+                  <p className="text-[12px] text-slate-400 dark:text-slate-400 mt-2 font-medium">Configure automated capital protection and institutional discipline brackets.</p>
+               </div>
+
+               {/* Controls in Header: Master Kill Switch & Save Settings */}
+               <div className="flex flex-wrap items-center gap-4">
+                  {/* Master Kill Switch Card - Neutral styling, dynamic ON/OFF status */}
+                  <div className="px-4 py-2 rounded-xl border border-slate-200 dark:border-zinc-800/80 bg-[#F4F4F4]/50 dark:bg-[#1A1A1C]/50 text-slate-700 dark:text-slate-300 flex items-center gap-3 select-none">
+                     <div className="flex items-center gap-2">
+                        <Power size={14} className={autoTrading ? "text-emerald-500 animate-pulse" : "text-rose-500"} />
+                        <span className="text-[11px] font-bold uppercase tracking-wider">
+                           Live Operations: {autoTrading ? 'ON' : 'OFF'}
+                        </span>
+                     </div>
+                     <div className="h-4 w-px bg-slate-200 dark:bg-slate-800" />
+                     <Switch
+                        checked={autoTrading}
+                        onChange={(val) => {
+                           if (val === true) {
+                              sessionStorage.setItem('fialgo_trigger_flash', 'true');
+                           }
+                           setAutoTrading(val);
+                        }}
+                     />
+                  </div>
+               </div>
+            </div>
+
+
+
+            {/* PROTOCOL ARCHITECTURE TARGET CAPITAL TRACKER */}
+            <div
+               className="p-6 rounded-[22px] border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] relative overflow-hidden isolate dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:rounded-[20px] dark:shadow-none"
+               style={{
+                  willChange: 'transform',
+                  backfaceVisibility: 'hidden',
+                  WebkitBackfaceVisibility: 'hidden'
+               }}
+            >
+               <div className="flex flex-col gap-4">
+                  {/* Tracker Header details */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                     <div>
+                        <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-widest block mb-1">Protocol Architecture</span>
+                        <h2 className="text-[18px] font-semibold text-slate-800 dark:text-white leading-tight">Level 12 Architect</h2>
+                        <div className="flex items-center gap-2 mt-1.5">
+                           <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
+                           <p className="text-[12px] text-slate-500 font-medium">
+                              Starting Capital: {isConnected ? `${sym}${(startingCapital || balance).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${iso}` : `${sym}18,250.57 ${iso}`}
+                           </p>
+                        </div>
+                     </div>
+                     <div className="flex items-center gap-3 self-start sm:self-center">
+                        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-100/50 dark:border-indigo-900/10">
+                           <Trophy size={13} className="text-indigo-600 dark:text-indigo-400" />
+                           <span className="text-[12px] font-bold text-indigo-600 dark:text-indigo-400 tabular-nums">{xpValue} XP</span>
+                        </div>
+                        <div className="text-right shrink-0">
+                           <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Target Capital</span>
+                           <p className="text-[14px] font-bold text-slate-800 dark:text-white leading-none tracking-tight">{sym}{targetCapital.toLocaleString()} {iso}</p>
+                        </div>
+                     </div>
+                  </div>
+
+                  {/* Horizontal Progress Bar */}
+                  <div className="space-y-2.5 pt-1">
+                     <style dangerouslySetInnerHTML={{
+                        __html: `
+                        @keyframes move-stripe {
+                           0% { background-position: 0 0; }
+                           100% { background-position: 24px 0; }
+                        }
+                     `}} />
+                     <div className="w-full h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden border border-slate-200/50 dark:border-slate-850 relative">
+                        <motion.div
+                           initial={{ width: 0 }}
+                           animate={{ width: `${progressPercent}%` }}
+                           transition={{ duration: 0.7 }}
+                           className="h-full bg-indigo-600 rounded-full relative"
+                           style={{
+                              backgroundImage: 'linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent)',
+                              backgroundSize: '24px 24px',
+                              animation: 'move-stripe 1.5s linear infinite'
+                           }}
+                        />
+                     </div>
+
+                     {/* Multiplier stars in the middle */}
+                     <div className="flex justify-between px-1">
+                        {[0, 0.25, 0.5, 0.75, 1].map((multiplier, i) => (
+                           <div key={i} className="flex flex-col items-center gap-1">
+                              <Star size={9} className={i === 0 ? "text-amber-500 fill-amber-500" : "text-slate-300 dark:text-slate-400"} />
+                              <span className="text-[9px] font-semibold text-slate-800 dark:text-white tabular-nums">
+                                 {sym}{(multiplier * targetCapital).toLocaleString()}
+                              </span>
+                           </div>
+                        ))}
+                     </div>
+                  </div>
+               </div>
+            </div>
+
+            {/* CORE RISK SETTINGS COMMAND GRID - Arranged in two flex columns to prevent bottom stretching space */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start pt-2">
+
+               {/* COLUMN 1: CAPITAL PROTECTION BRACKETS */}
+               <div className="flex flex-col gap-8">
+
+                  {/* BOX 1: TARGET CAPITAL GUARD */}
+                  <motion.div
+                     initial={{ opacity: 0, y: 10 }}
+                     animate={{ opacity: 1, y: 0 }}
+                     transition={{ delay: 0.05 }}
+                     className="p-6 rounded-[22px] border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#D0D0D5] transition-all dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:rounded-[20px] dark:shadow-none dark:hover:shadow-none flex flex-col justify-start space-y-6 relative overflow-hidden isolate"
+                     style={{
+                        willChange: 'transform',
+                        backfaceVisibility: 'hidden',
+                        WebkitBackfaceVisibility: 'hidden'
+                     }}
+                  >
+                     <div className="relative z-20 flex items-center justify-between pb-3">
+                        <div className="flex items-center gap-2.5">
+                           <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-slate-200 flex items-center justify-center shrink-0">
+                              <IconlyDiscovery set="curved" primaryColor="currentColor" size={17} stroke="bold" strokeWidth={2} />
+                           </div>
+                           <div>
+                              <h3 className="text-[13px] font-semibold text-slate-800 dark:text-white leading-tight">Target Capital Guard</h3>
+                              <p className="text-[10px] text-slate-400 font-medium">Configure target goals and parameters</p>
+                           </div>
+                        </div>
+                     </div>
+
+                     <div className="space-y-5">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                           {/* Starting Capital (Auto-fetched) */}
+                           <div className="space-y-1.5">
+                              <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Starting Capital</label>
+                              <div className="p-3 rounded-[22px] border-2 border-white bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] flex items-center justify-between h-[48px] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:rounded-[20px] dark:shadow-none">
+                                 <span className="text-[13px] font-bold text-indigo-600 dark:text-indigo-400 pl-1 truncate">
+                                    {sym}{(startingCapital || balance || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                 </span>
+                                 <span className="text-[8px] text-indigo-500 font-bold bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100/50 dark:border-indigo-900/30 px-2 py-0.5 rounded-full uppercase tracking-wider shrink-0 select-none">Fetched</span>
+                              </div>
+                           </div>
+
+                           {/* Target Capital (Editable) */}
+                           <div className="space-y-1.5">
+                              <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Target Capital</label>
+                              <div className="p-3 rounded-[22px] border-2 border-white bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] flex items-center justify-between h-[48px] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:rounded-[20px] dark:shadow-none">
+                                 <span className="text-[12px] font-bold text-slate-400 pl-1">{sym}</span>
+                                 <input
+                                    type="number" value={targetCapital} onChange={e => setTargetCapital(Math.max(100, +e.target.value))}
+                                    className="w-[75%] bg-transparent text-[14px] font-bold text-slate-800 dark:text-white outline-none border-none text-right pr-1"
+                                 />
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+
+                  </motion.div>
+
+                  {/* BOX 2: MAX LOT GUARD */}
+                  <motion.div
+                     initial={{ opacity: 0, y: 10 }}
+                     animate={{ opacity: 1, y: 0 }}
+                     transition={{ delay: 0.08 }}
+                     className="p-6 rounded-[22px] border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#D0D0D5] transition-all dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:rounded-[20px] dark:shadow-none dark:hover:shadow-none flex flex-col justify-start space-y-6 relative overflow-hidden isolate"
+                     style={{
+                        willChange: 'transform',
+                        backfaceVisibility: 'hidden',
+                        WebkitBackfaceVisibility: 'hidden'
+                     }}
+                  >
+                     <div className="relative z-20 flex items-center justify-between pb-3">
+                        <div className="flex items-center gap-2.5">
+                           <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-slate-200 flex items-center justify-center shrink-0">
+                              <IconlyShieldDone set="curved" primaryColor="currentColor" size={17} stroke="bold" strokeWidth={2} />
+                           </div>
+                           <div>
+                              <h3 className="text-[13px] font-semibold text-slate-800 dark:text-white leading-tight">Max Lot Guard</h3>
+                              <p className="text-[10px] text-slate-400 font-medium">Enforce maximum order volume thresholds</p>
+                           </div>
+                        </div>
+                        <Switch checked={maxLotActive} onChange={setMaxLotActive} />
+                     </div>
+
+                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-center">
+                        <div className="space-y-4">
+                           {/* Max Lot Setting */}
+                           <div className="space-y-1.5">
+                              <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Max Lot Size Limit</label>
+                              <div className="p-3 rounded-[22px] border-2 border-white bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] flex items-center justify-between h-[48px] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:rounded-[20px] dark:shadow-none">
+                                 <input
+                                    type="number" step={activeMarket === 'indian' ? "1" : "0.1"} value={maxLot} onChange={e => setMaxLot(Math.max(activeMarket === 'indian' ? 1 : 0.1, +e.target.value))}
+                                    className="w-[70%] bg-transparent text-[14px] font-bold text-slate-800 dark:text-white outline-none border-none pl-1"
+                                 />
+                                 <span className="text-[9.5px] text-slate-400 font-bold pr-1">Lots</span>
+                              </div>
+                           </div>
+
+                           {/* Status details */}
+                           <div className="space-y-1">
+                              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Exposure Architecture</span>
+                              <p className="text-[12px] font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                                 <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
+                                 Current: {currentLot.toFixed(2)} / {maxLot.toFixed(2)} Lots
+                              </p>
+                           </div>
+                        </div>
+
+                        {/* Gauge monitor */}
+                        <div className="flex justify-center pr-2">
+                           <Gauge value={currentLot} max={maxLot} />
+                        </div>
+                     </div>
+
+                     {/* Blur screen overlay if active */}
+                     <AnimatePresence>
+                        {maxLotActive && (
+                           <motion.div
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                              transition={{ duration: 0.25 }}
+                              className="absolute top-[50px] left-0 right-0 bottom-0 z-10 bg-white/35 dark:bg-black/40 backdrop-blur-[8px] flex items-center justify-center rounded-b-[22px] border-l border-r border-b border-t border-slate-200/20 dark:border-white/5"
+                              style={{
+                                 transform: 'translate3d(0,0,0)',
+                                 WebkitTransform: 'translate3d(0,0,0)',
+                                 willChange: 'transform, opacity',
+                                 backdropFilter: 'blur(8px)',
+                                 WebkitBackdropFilter: 'blur(8px)'
+                              }}
+                           >
+                              <div className="text-center px-4 flex flex-col items-center gap-2 select-none">
+                                 <Lock size={14} className="text-indigo-500/80 animate-pulse" />
+                                 <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-500/90 dark:text-slate-400/90 leading-none">
+                                    Protocol Guard Active
+                                 </p>
+                                 <p className="text-[9.5px] font-medium text-slate-400 dark:text-slate-400 max-w-[85%] leading-relaxed">
+                                    Configuration is locked to prevent trade disruption while running.
+                                 </p>
+                              </div>
+                           </motion.div>
+                        )}
+                     </AnimatePresence>
+                  </motion.div>
+
+                  {/* BOX 3: DRAWDOWN GUARD */}
+                  <motion.div
+                     initial={{ opacity: 0, y: 10 }}
+                     animate={{ opacity: 1, y: 0 }}
+                     transition={{ delay: 0.1 }}
+                     className="p-6 rounded-[22px] border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#D0D0D5] transition-all dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:rounded-[20px] dark:shadow-none dark:hover:shadow-none flex flex-col justify-start space-y-6 relative overflow-hidden isolate"
+                     style={{
+                        willChange: 'transform',
+                        backfaceVisibility: 'hidden',
+                        WebkitBackfaceVisibility: 'hidden'
+                     }}
+                  >
+                     <div className="relative z-20 flex items-center justify-between pb-3">
+                        <div className="flex items-center gap-2.5">
+                           <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-slate-200 flex items-center justify-center shrink-0">
+                              <IconlyGraph set="curved" primaryColor="currentColor" size={17} stroke="bold" strokeWidth={2} />
+                           </div>
+                           <div>
+                              <h3 className="text-[13px] font-semibold text-slate-800 dark:text-white leading-tight">Drawdown Guard</h3>
+                              <p className="text-[10px] text-slate-400 font-medium">Protect equity with automated session limits</p>
+                           </div>
+                        </div>
+                        <Switch checked={drawdownGuardActive} onChange={setDrawdownGuardActive} />
+                     </div>
+
+                     <div className="space-y-5">
+                        {/* Daily Drawdown Slider */}
+                        <div className="space-y-2.5">
+                           <div className="flex items-center justify-between">
+                              <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Max Daily Drawdown</label>
+                              <div className="flex items-center gap-1.5">
+                                 <span className="text-[12px] font-bold text-slate-800 dark:text-white">{maxDrawdown}%</span>
+                                 <span className="text-[11px] font-semibold text-slate-400 dark:text-slate-400">=</span>
+                                 <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mt-1">
+                                    {sym}{((maxDrawdown / 100) * (balance || 0)).toLocaleString([], { maximumFractionDigits: 0 })} {iso}
+                                 </p>
+                              </div>
+                           </div>
+                           <input
+                              type="range" min={3} max={30} value={maxDrawdown}
+                              onChange={e => setMaxDrawdown(+e.target.value)}
+                              className="w-full h-1 rounded-full appearance-none cursor-pointer focus:outline-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-indigo-500 [&::-webkit-slider-thumb]:appearance-none [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-indigo-500 [&::-moz-range-thumb]:border-none"
+                              style={{
+                                 background: `linear-gradient(to right, #6366f1 0%, #6366f1 ${((maxDrawdown - 3) / (30 - 3)) * 100}%, rgba(99, 102, 241, 0.15) ${((maxDrawdown - 3) / (30 - 3)) * 100}%, rgba(99, 102, 241, 0.15) 100%)`
+                              }}
+                           />
+                        </div>
+
+                        {/* Weekly Drawdown Slider */}
+                        <div className="space-y-2.5">
+                           <div className="flex items-center justify-between">
+                              <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Max Weekly Drawdown</label>
+                              <div className="flex items-center gap-1.5">
+                                 <span className="text-[12px] font-bold text-slate-800 dark:text-white">{weeklyDrawdown}%</span>
+                                 <span className="text-[11px] font-semibold text-slate-400 dark:text-slate-400">=</span>
+                                 <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mt-1">
+                                    {sym}{((weeklyDrawdown / 100) * (balance || 0)).toLocaleString([], { maximumFractionDigits: 0 })} {iso}
+                                 </p>
+                              </div>
+                           </div>
+                           <input
+                              type="range" min={5} max={50} value={weeklyDrawdown}
+                              onChange={e => setWeeklyDrawdown(+e.target.value)}
+                              className="w-full h-1 rounded-full appearance-none cursor-pointer focus:outline-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-indigo-500 [&::-webkit-slider-thumb]:appearance-none [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-indigo-500 [&::-moz-range-thumb]:border-none"
+                              style={{
+                                 background: `linear-gradient(to right, #6366f1 0%, #6366f1 ${((weeklyDrawdown - 5) / (50 - 5)) * 100}%, rgba(99, 102, 241, 0.15) ${((weeklyDrawdown - 5) / (50 - 5)) * 100}%, rgba(99, 102, 241, 0.15) 100%)`
+                              }}
+                           />
+                        </div>
+
+                        {/* Monthly Drawdown Slider */}
+                        <div className="space-y-2.5">
+                           <div className="flex items-center justify-between">
+                              <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Max Monthly Drawdown</label>
+                              <div className="flex items-center gap-1.5">
+                                 <span className="text-[12px] font-bold text-slate-800 dark:text-white">{monthlyDrawdown}%</span>
+                                 <span className="text-[11px] font-semibold text-slate-400 dark:text-slate-400">=</span>
+                                 <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mt-1">
+                                    {sym}{((monthlyDrawdown / 100) * (balance || 0)).toLocaleString([], { maximumFractionDigits: 0 })} {iso}
+                                 </p>
+                              </div>
+                           </div>
+                           <input
+                              type="range" min={5} max={50} value={monthlyDrawdown}
+                              onChange={e => setMonthlyDrawdown(+e.target.value)}
+                              className="w-full h-1 rounded-full appearance-none cursor-pointer focus:outline-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-indigo-500 [&::-webkit-slider-thumb]:appearance-none [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-indigo-500 [&::-moz-range-thumb]:border-none"
+                              style={{
+                                 background: `linear-gradient(to right, #6366f1 0%, #6366f1 ${((monthlyDrawdown - 5) / (50 - 5)) * 100}%, rgba(99, 102, 241, 0.15) ${((monthlyDrawdown - 5) / (50 - 5)) * 100}%, rgba(99, 102, 241, 0.15) 100%)`
+                              }}
+                           />
+                        </div>
+
+                        {/* Protective Note */}
+                        <div className="p-3 bg-indigo-50/20 dark:bg-indigo-950/10 border border-indigo-100/50 dark:border-indigo-900/10 rounded-xl">
+                           <p className="text-[10.5px] font-medium text-slate-500 dark:text-slate-400 leading-relaxed">
+                              Liquidation and halts occur immediately when equity drawdowns exceed Daily ({maxDrawdown}%), Weekly ({weeklyDrawdown}%), or Monthly ({monthlyDrawdown}%) risk limits.
+                           </p>
+                        </div>
+                     </div>
+
+                     {/* Blur screen overlay if active */}
+                     <AnimatePresence>
+                        {drawdownGuardActive && (
+                           <motion.div
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                              transition={{ duration: 0.25 }}
+                              className="absolute top-[50px] left-0 right-0 bottom-0 z-10 bg-white/35 dark:bg-black/40 backdrop-blur-[8px] flex items-center justify-center rounded-b-[22px] border-l border-r border-b border-t border-slate-200/20 dark:border-white/5"
+                              style={{
+                                 transform: 'translate3d(0,0,0)',
+                                 WebkitTransform: 'translate3d(0,0,0)',
+                                 willChange: 'transform, opacity',
+                                 backdropFilter: 'blur(8px)',
+                                 WebkitBackdropFilter: 'blur(8px)'
+                              }}
+                           >
+                              <div className="text-center px-4 flex flex-col items-center gap-2 select-none">
+                                 <Lock size={14} className="text-indigo-500/80 animate-pulse" />
+                                 <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-500/90 dark:text-slate-400/90 leading-none">
+                                    Protocol Guard Active
+                                 </p>
+                                 <p className="text-[9.5px] font-medium text-slate-400 dark:text-slate-400 max-w-[85%] leading-relaxed">
+                                    Configuration is locked to prevent trade disruption while running.
+                                 </p>
+                              </div>
+                           </motion.div>
+                        )}
+                     </AnimatePresence>
+                  </motion.div>
+
+               </div>
+
+               {/* COLUMN 2: EXECUTION & DISCIPLINE BRACKETS */}
+               <div className="flex flex-col gap-8">
+
+                  {/* BOX 4: DISCIPLINE SENTINEL */}
+                  <motion.div
+                     initial={{ opacity: 0, y: 10 }}
+                     animate={{ opacity: 1, y: 0 }}
+                     transition={{ delay: 0.12 }}
+                     className="p-6 rounded-[22px] border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#D0D0D5] transition-all dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:rounded-[20px] dark:shadow-none dark:hover:shadow-none flex flex-col justify-start space-y-6 relative overflow-hidden isolate"
+                     style={{
+                        willChange: 'transform',
+                        backfaceVisibility: 'hidden',
+                        WebkitBackfaceVisibility: 'hidden'
+                     }}
+                  >
+                     <div className="relative z-20 flex items-center justify-between pb-3">
+                        <div className="flex items-center gap-2.5">
+                           <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-slate-200 flex items-center justify-center shrink-0">
+                              <IconlyActivity set="curved" primaryColor="currentColor" size={17} stroke="bold" strokeWidth={2} />
+                           </div>
+                           <div>
+                              <h3 className="text-[13px] font-semibold text-slate-800 dark:text-white leading-tight">Discipline Sentinel</h3>
+                              <p className="text-[10px] text-slate-400 font-medium">Prevent revenge trading and lock limits</p>
+                           </div>
+                        </div>
+                        <Switch checked={disciplineActive} onChange={setDisciplineActive} />
+                     </div>
+
+                     <div className="space-y-4">
+                        {/* Daily Trade Limit Stepper */}
+                        <div className="p-3.5 flex flex-col gap-3 rounded-[22px] bg-[#F4F4F4]/50 dark:bg-[#1A1A1C]/50 border border-transparent shadow-sm">
+                           <div className="flex items-center justify-between">
+                              <div>
+                                 <p className="text-[12.5px] font-semibold text-slate-700 dark:text-slate-200 leading-none">Daily Execution Limit</p>
+                                 <p className="text-[10.5px] text-slate-400 font-medium mt-1">Locks orders when slot budget is exhausted</p>
+                              </div>
+                              <div className="flex items-center gap-2 bg-white dark:bg-[#141414] p-1 rounded-lg border border-slate-200/50 dark:border-[#2a2a2a] shadow-sm shrink-0">
+                                 <button
+                                    onClick={() => {
+                                       setTradeLimit(prev => Math.max(1, prev - 1));
+                                    }}
+                                    className="w-7 h-7 flex items-center justify-center rounded-md bg-slate-50 dark:bg-[#202020] text-slate-700 dark:text-slate-300 font-bold hover:bg-slate-200 transition-colors active:scale-95"
+                                 >
+                                    -
+                                 </button>
+                                 <span className="w-7 text-center text-[13px] font-bold text-slate-800 dark:text-white tabular-nums">
+                                    {(!isProOrElite && tradeLimit > 5) ? 5 : tradeLimit}
+                                 </span>
+                                 <button
+                                    onClick={() => {
+                                       if (!isProOrElite && tradeLimit >= 5) {
+                                          toast.error(
+                                             <div className="flex flex-col gap-1">
+                                                <div className="flex items-center gap-2">
+                                                   <Crown size={16} className="text-amber-500" />
+                                                   <span className="font-bold text-slate-900 dark:text-white">Pro Feature</span>
+                                                </div>
+                                                <span className="text-slate-600 dark:text-slate-300">Upgrade to Pro to increase daily execution limits.</span>
+                                             </div>
+                                          );
+                                          return;
+                                       }
+                                       setTradeLimit(prev => Math.min(10, prev + 1));
+                                    }}
+                                    className="w-7 h-7 flex items-center justify-center rounded-md bg-slate-900 dark:bg-zinc-700 text-white font-bold hover:bg-slate-800 dark:hover:bg-zinc-650 transition-colors active:scale-95"
+                                 >
+                                    +
+                                 </button>
+                              </div>
+                           </div>
+
+                           {/* Active trading slots */}
+                           <div className="flex items-center justify-between gap-3 pt-3 border-t border-slate-200/30 dark:border-slate-800/50">
+                              <div className="flex gap-2 flex-wrap items-center min-w-0 py-1 px-1">
+                                 {new Array((!isProOrElite && tradeLimit > 5) ? 5 : tradeLimit).fill(0).map((_, i) => {
+                                    const taken = Math.min(tradesToday ?? 0, (!isProOrElite && tradeLimit > 5) ? 5 : tradeLimit);
+                                    const isFilled = i < taken;
+                                    return (
+                                       <div
+                                          key={i}
+                                          title={isFilled ? `Trade ${i + 1} — taken` : `Trade ${i + 1} — available`}
+                                          className="w-[26px] h-[26px] p-[5px] bg-[#e0e0e0] dark:bg-[#2A2A2E] rounded-full flex justify-center items-center shrink-0 shadow-[inset_-1px_-2px_7px_#ffffff,inset_1px_2px_4px_#b0b0b0] dark:shadow-none"
+                                       >
+                                          <div className={`w-full h-full rounded-full transition-all duration-300 ${isFilled
+                                             ? 'bg-blue-500 dark:bg-[#00E5FF] border-[2px] border-transparent scale-110 outline outline-[3px] outline-[#f2f3f4] dark:outline-[#1A1A1C]'
+                                             : 'bg-transparent'
+                                             }`} />
+                                       </div>
+                                    );
+                                 })}
+                              </div>
+                              <div className="text-right shrink-0">
+                                 <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Budget Usage</span>
+                                 <p className="text-[14px] font-bold text-slate-800 dark:text-white leading-none tracking-tight">
+                                    {Math.min(tradesToday ?? 0, (!isProOrElite && tradeLimit > 5) ? 5 : tradeLimit)}/{(!isProOrElite && tradeLimit > 5) ? 5 : tradeLimit}
+                                 </p>
+                              </div>
+                           </div>
+                        </div>
+
+                        {/* Cooldown Shield Setting */}
+                        <div className="p-3.5 space-y-3.5 rounded-[22px] bg-[#F4F4F4]/50 dark:bg-[#1A1A1C]/50 border border-transparent shadow-sm">
+                           <div className="flex items-center justify-between">
+                              <div>
+                                 <div className="flex items-center gap-2">
+                                    <p className="text-[12px] font-semibold text-slate-700 dark:text-slate-200 leading-none">Loss Cooldown Shield</p>
+                                    {!isProOrElite && (
+                                       <div className="bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 text-[9px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1 uppercase tracking-wider">
+                                          <Lock size={10} />
+                                          Pro
+                                       </div>
+                                    )}
+                                 </div>
+                                 <p className="text-[10.5px] text-slate-400 font-medium mt-1">Locks execution after any losing trade</p>
+                              </div>
+                              <div onClick={(e) => {
+                                 if (!isProOrElite) {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    toast.error(
+                                       <div className="flex flex-col gap-1">
+                                          <div className="flex items-center gap-2">
+                                             <Crown size={16} className="text-amber-500" />
+                                             <span className="font-bold text-slate-900 dark:text-white">Pro Feature</span>
+                                          </div>
+                                          <span className="text-slate-600 dark:text-slate-300">Upgrade to Pro to unlock the Loss Cooldown Shield.</span>
+                                       </div>
+                                    );
+                                 }
+                              }} className="relative">
+                                 {!isProOrElite && (
+                                    <div className="absolute inset-0 z-10 cursor-pointer" />
+                                 )}
+                                 <Switch checked={!isProOrElite ? false : revengeGuard} onChange={setRevengeGuard} disabled={!isProOrElite} />
+                              </div>
+                           </div>
+
+                           {(revengeGuard && isProOrElite) && (
+                              <div className="space-y-3 pt-2 border-t border-slate-100 dark:border-slate-800">
+                                 <div className="flex items-center justify-between">
+                                    <span className="text-[10.5px] font-semibold text-slate-400 uppercase tracking-widest">Cooldown duration</span>
+                                    <span className="text-[12px] font-semibold text-slate-700 dark:text-white">{waitPeriod} Minutes</span>
+                                 </div>
+                                 <input
+                                    type="range" min={5} max={120} step={5} value={waitPeriod}
+                                    onChange={e => setWaitPeriod(+e.target.value)}
+                                    className="w-full h-1.5 rounded-lg appearance-none cursor-pointer focus:outline-none accent-indigo-600 dark:accent-indigo-500"
+                                    style={{
+                                       background: `linear-gradient(to right, #4f46e5 0%, #4f46e5 ${((waitPeriod - 5) / (120 - 5)) * 100}%, rgba(79, 70, 229, 0.15) ${((waitPeriod - 5) / (120 - 5)) * 100}%, rgba(79, 70, 229, 0.15) 100%)`
+                                    }}
+                                 />
+
+                                 {/* Live trade monitoring status row */}
+                                 <div className={`flex items-center justify-between p-2.5 rounded-xl border ${cooldownActive
+                                    ? 'bg-rose-50/50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-950/30'
+                                    : 'bg-emerald-50/30 dark:bg-emerald-950/10 border-emerald-200/50 dark:border-emerald-900/20'
+                                    }`}>
+                                    <div className="flex items-center gap-2">
+                                       <span className={`w-2 h-2 rounded-full shrink-0 ${cooldownActive
+                                          ? "bg-rose-500 animate-pulse shadow-[0_0_6px_rgba(239,68,68,0.5)]"
+                                          : "bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.4)]"
+                                          }`} />
+                                       <div className="flex flex-col">
+                                          <span className={`text-[10px] font-bold uppercase tracking-wider leading-none ${cooldownActive ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400"
+                                             }`}>
+                                             {cooldownActive ? "LOCKED" : "STANDING BY"}
+                                          </span>
+                                          <span className="text-[9px] font-medium text-slate-400 dark:text-slate-400 mt-0.5">
+                                             {cooldownActive ? "Revenge shield active" : "Monitoring trades..."}
+                                          </span>
+                                       </div>
+                                    </div>
+                                    {cooldownActive && (
+                                       <div className="flex items-center gap-1.5 bg-rose-100 dark:bg-rose-950/40 px-2.5 py-1 rounded-lg">
+                                          <Timer size={11} className="text-rose-500" />
+                                          <span className="text-[13px] font-bold text-rose-600 dark:text-rose-400 tabular-nums">
+                                             {String(Math.floor(cooldownSeconds / 60)).padStart(2, '0')}:{String(cooldownSeconds % 60).padStart(2, '0')}
+                                          </span>
+                                       </div>
+                                    )}
+                                 </div>
+                              </div>
+                           )}
+                        </div>
+                     </div>
+
+                     {/* Blur screen overlay if active */}
+                     <AnimatePresence>
+                        {disciplineActive && (
+                           <motion.div
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                              transition={{ duration: 0.25 }}
+                              className="absolute top-[50px] left-0 right-0 bottom-0 z-10 bg-white/35 dark:bg-black/40 backdrop-blur-[8px] flex items-center justify-center rounded-b-[22px] border border-slate-200/20 dark:border-white/5"
+                              style={{
+                                 transform: 'translate3d(0,0,0)',
+                                 WebkitTransform: 'translate3d(0,0,0)',
+                                 willChange: 'transform, opacity',
+                                 backdropFilter: 'blur(8px)',
+                                 WebkitBackdropFilter: 'blur(8px)'
+                              }}
+                           >
+                              <div className="text-center px-4 flex flex-col items-center gap-2 select-none">
+                                 <Lock size={14} className="text-indigo-500/80 animate-pulse" />
+                                 <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-500/90 dark:text-slate-400/90 leading-none">
+                                    Sentinel Guard Active
+                                 </p>
+                                 <p className="text-[9.5px] font-medium text-slate-400 dark:text-slate-400 max-w-[85%] leading-relaxed">
+                                    Configuration is locked to prevent trade disruption while running.
+                                 </p>
+                              </div>
+                           </motion.div>
+                        )}
+                     </AnimatePresence>
+                  </motion.div>
+
+                  {/* BOX 5: SESSION SENTINEL */}
+                  <motion.div
+                     initial={{ opacity: 0, y: 10 }}
+                     animate={{ opacity: 1, y: 0 }}
+                     transition={{ delay: 0.15 }}
+                     className="p-6 rounded-[22px] border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#D0D0D5] transition-all dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:rounded-[20px] dark:shadow-none dark:hover:shadow-none flex flex-col justify-start space-y-6 relative overflow-hidden isolate"
+                     style={{
+                        willChange: 'transform',
+                        backfaceVisibility: 'hidden',
+                        WebkitBackfaceVisibility: 'hidden'
+                     }}
+                  >
+                     <div className="relative z-20 flex items-center justify-between pb-3">
+                        <div className="flex items-center gap-2.5">
+                           <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-slate-200 flex items-center justify-center shrink-0">
+                              <IconlyTimeSquare set="curved" primaryColor="currentColor" size={17} stroke="bold" strokeWidth={2} />
+                           </div>
+                           <div>
+                              <h3 className="text-[13px] font-semibold text-slate-800 dark:text-white leading-tight">Session Sentinel</h3>
+                              <p className="text-[10px] text-slate-400 font-medium">Permit and restrict custom hourly trading windows</p>
+                           </div>
+                        </div>
+                        <Switch checked={sessionActive} onChange={setSessionActive} />
+                     </div>
+
+                     <div className="space-y-4">
+                        <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Session Permits</label>
+                        <div className="grid grid-cols-2 gap-3.5">
+                           {sessionButtons.map(session => {
+                              const isSelected = selectedSessions.includes(session.id);
+                              return (
+                                 <div
+                                    key={session.id}
+                                    className={`p-3.5 rounded-[16px] border flex flex-col gap-2.5 transition-all ${isSelected
+                                       ? 'bg-emerald-50/50 dark:bg-gradient-to-b dark:bg-none dark:bg-[#1E1E1E] border-emerald-200 dark:border-emerald-500/20 shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_1px_rgba(16,185,129,0.3)] dark:shadow-none'
+                                       : 'bg-slate-50 dark:bg-[#1A1A1C] border-slate-200 dark:border-[#2A2A2C] hover:bg-slate-100 dark:hover:bg-[#1E1E20]'
+                                       }`}
+                                 >
+                                    <button
+                                       onClick={() => toggleSession(session.id)}
+                                       className="w-full flex items-center justify-between group"
+                                    >
+                                       <span className={`text-[13px] font-bold ${isSelected ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-300 group-hover:text-slate-800 dark:group-hover:text-slate-200'}`}>
+                                          {session.label}
+                                       </span>
+                                       <span className={`w-[5px] h-[5px] rounded-full ${isSelected ? 'bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.6)]' : 'bg-slate-300 dark:bg-[#3A3F50]'}`} />
+                                    </button>
+
+                                    {isSelected && (
+                                       <motion.div
+                                          initial={{ opacity: 0, height: 0 }}
+                                          animate={{ opacity: 1, height: "auto" }}
+                                          className="flex items-center gap-2 pt-1"
+                                       >
+                                          <div className="flex-1 flex items-center justify-between bg-white dark:bg-[#0D0D0E] border border-slate-200 dark:border-[#252528] rounded-md px-2 py-1.5 focus-within:border-emerald-400 dark:focus-within:border-emerald-500/50 transition-colors">
+                                             <input
+                                                type="time"
+                                                value={sessionTimes[session.id]?.start || ""}
+                                                onChange={e => setSessionTimes(prev => ({ ...prev, [session.id]: { ...prev[session.id], start: e.target.value } }))}
+                                                className="w-[90%] bg-transparent text-[12px] font-bold text-slate-700 dark:text-slate-200 outline-none tabular-nums"
+                                             />
+                                             <Clock size={11} className="text-slate-400 dark:text-slate-400 shrink-0" />
+                                          </div>
+                                          <span className="text-[10px] text-slate-400 dark:text-slate-400 font-bold px-1">to</span>
+                                          <div className="flex-1 flex items-center justify-between bg-white dark:bg-[#0D0D0E] border border-slate-200 dark:border-[#252528] rounded-md px-2 py-1.5 focus-within:border-emerald-400 dark:focus-within:border-emerald-500/50 transition-colors">
+                                             <input
+                                                type="time"
+                                                value={sessionTimes[session.id]?.end || ""}
+                                                onChange={e => setSessionTimes(prev => ({ ...prev, [session.id]: { ...prev[session.id], end: e.target.value } }))}
+                                                className="w-[90%] bg-transparent text-[12px] font-bold text-slate-700 dark:text-slate-200 outline-none tabular-nums"
+                                             />
+                                             <Clock size={11} className="text-slate-400 dark:text-slate-400 shrink-0" />
+                                          </div>
+                                       </motion.div>
+                                    )}
+                                 </div>
+                              );
+                           })}
+                        </div>
+
+                     </div>
+
+                     {/* Lock Screen overlay if offline - placed at bottom as sibling, so it doesn't affect flow layout */}
+                     <AnimatePresence>
+                        {sessionActive && (
+                           <motion.div
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                              transition={{ duration: 0.25 }}
+                              className="absolute top-[50px] left-0 right-0 bottom-0 z-10 bg-white/35 dark:bg-black/40 backdrop-blur-[8px] flex items-center justify-center rounded-b-[22px] border-l border-r border-b border-t border-slate-200/20 dark:border-white/5"
+                              style={{
+                                 transform: 'translate3d(0,0,0)',
+                                 WebkitTransform: 'translate3d(0,0,0)',
+                                 willChange: 'transform, opacity',
+                                 backdropFilter: 'blur(8px)',
+                                 WebkitBackdropFilter: 'blur(8px)'
+                              }}
+                           >
+                              <div className="text-center px-4 flex flex-col items-center gap-2 select-none">
+                                 <Lock size={14} className="text-indigo-500/80 animate-pulse" />
+                                 <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-500/90 dark:text-slate-400/90 leading-none">
+                                    Session Guard Live
+                                 </p>
+                                 <p className="text-[9.5px] font-medium text-slate-400 dark:text-slate-400 max-w-[85%] leading-relaxed">
+                                    Trading windows and hourly restrictions are locked during active sessions.
+                                 </p>
+                              </div>
+                           </motion.div>
+                        )}
+                     </AnimatePresence>
+                  </motion.div>
+
+               </div>
+
+            </div>
+         </div>
+      </DashboardLayout>
+   );
+}
+                              <div className="w-8 h-8 rounded-lg bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-500 flex items-center justify-center shrink-0 border border-rose-100 dark:border-rose-900/50">
+                                 <MonitorOff size={16} strokeWidth={2.5} />
+                              </div>
+                              <div>
+                                 <div className="flex items-center gap-1.5">
+                                    <h3 className="text-[13px] font-semibold text-slate-800 dark:text-white leading-tight">Terminal Hard Stop</h3>
+                                    <TooltipProvider delayDuration={100}>
+                                       <Tooltip>
+                                          <TooltipTrigger asChild>
+                                             <button type="button" className="text-slate-400 hover:text-rose-500 transition-colors">
+                                                <Info size={13} strokeWidth={2.5} />
+                                             </button>
+                                          </TooltipTrigger>
+                                          <TooltipContent side="top" className="max-w-[200px] p-2 bg-white dark:bg-[#1A1A1C] border border-slate-200 dark:border-[#252528] shadow-xl">
+                                             <p className="text-[10px] font-medium text-slate-600 dark:text-slate-300">Triggers a full-screen lockdown when daily limits are breached.</p>
+                                          </TooltipContent>
+                                       </Tooltip>
+                                    </TooltipProvider>
+                                 </div>
+                                 <p className="text-[10px] text-slate-400 font-medium mt-0.5">Force lock on limit breach</p>
+                              </div>
+                           </div >
+                        </div >
+
+   <div className="space-y-4">
+      <div className="p-3.5 flex flex-col gap-3 rounded-[16px] bg-[#F4F4F4]/50 dark:bg-[#1A1A1C]/50 border border-transparent shadow-sm">
+         <div className="flex items-center justify-between">
+            <div>
+               <p className="text-[11px] font-bold text-slate-700 dark:text-slate-200">Force Action Lockout</p>
+               <p className="text-[10px] text-slate-400 font-medium mt-1">Simulate a max-loss breach</p>
+            </div>
+            <button
+               onClick={() => setHardStopActive(true)}
+               className="px-4 py-2 rounded-xl bg-rose-500/10 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400 text-[11px] font-bold hover:bg-rose-500 hover:text-white transition-all shadow-sm"
+            >
+               Trigger Demo Lock
+            </button>
+         </div>
+      </div>
+   </div>
+                     </div >
+                  )}
+
+               </div >
+
+            </div >
+
+   {/* HARD STOP OVERLAY */ }
+   <AnimatePresence>
+{
+   hardStopActive && (
+      <motion.div
+         initial={{ opacity: 0, scale: 0.95 }}
+         animate={{ opacity: 1, scale: 1 }}
+         exit={{ opacity: 0, scale: 0.95 }}
+         transition={{ duration: 0.4, ease: "easeOut" }}
+         className="fixed inset-0 z-[99999] bg-[#0A0A0A]/95 backdrop-blur-xl flex flex-col items-center justify-center text-center px-6 overflow-hidden"
+      >
+         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-rose-950/40 via-transparent to-transparent pointer-events-none" />
+
+         <motion.div
+            animate={{ scale: [1, 1.05, 1] }}
+            transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+            className="relative"
+         >
+            <div className="absolute inset-0 bg-rose-500 blur-[80px] opacity-20 rounded-full" />
+            <AlertTriangle className="w-28 h-28 text-rose-500 mb-8 relative z-10" />
+         </motion.div>
+
+         <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter mb-4">
+            HARD STOP <span className="text-rose-500">ENGAGED</span>
+         </h1>
+
+         <p className="text-xl md:text-2xl font-medium text-slate-300 max-w-2xl mx-auto leading-relaxed">
+            You have breached your daily drawdown limit. All open positions have been aggressively squared off.
+         </p>
+
+         <div className="mt-10 flex flex-col items-center gap-4">
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm">
+               <p className="text-slate-400 text-sm font-semibold uppercase tracking-widest mb-2">Terminal Lockout Ends In</p>
+               <div className="flex items-center justify-center gap-3 text-4xl font-black text-white tabular-nums">
+                  <span>04</span><span className="text-rose-500/50">:</span>
+                  <span>12</span><span className="text-rose-500/50">:</span>
+                  <span>59</span>
+               </div>
+               <p className="text-slate-500 text-xs mt-3">Access restores at 15:30 IST</p>
+            </div>
+         </div>
+
+         {/* Hidden bypass for demo/testing purposes */}
+         <button
+            onDoubleClick={() => setHardStopActive(false)}
+            className="absolute bottom-8 opacity-0 hover:opacity-20 text-[10px] text-white tracking-widest uppercase font-bold transition-opacity"
+         >
+            [Double click to bypass demo]
+         </button>
+      </motion.div>
+   )
+}
+         </AnimatePresence >
+      </DashboardLayout >
+   );
+}
