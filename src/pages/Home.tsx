@@ -1257,26 +1257,25 @@ export default function Home() {
                                 {/* Feeds Section */}
                                 <div className="space-y-6">
                                     <div className="flex flex-col gap-4">
-                                        <div className="flex items-center justify-between gap-4">
-                                            <h2 className="text-[22px] font-bold text-slate-900 dark:text-white tracking-tight leading-none shrink-0 mt-1">Feeds</h2>
+                                        <div className="flex items-center justify-between gap-4 mb-2">
+                                            <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight shrink-0">Feeds</h2>
 
                                             <div className="flex items-center overflow-x-auto no-scrollbar">
-                                                <div className="flex items-center bg-slate-100 dark:bg-white/5 p-1 rounded-full shadow-inner border border-slate-200/50 dark:border-white/5 shrink-0">
+                                                <div className="flex items-center bg-slate-100 dark:bg-[#1A1A1C] p-1 rounded-xl shrink-0">
                                                     {[
-                                                        { id: 'for_you', label: 'For You', icon: <IconlyStar size={14} set={feedMarketFilter === 'for_you' ? "bold" : "curved"} primaryColor="currentColor" className={feedMarketFilter === 'for_you' ? "text-indigo-500 dark:text-indigo-400" : ""} /> },
-                                                        { id: 'forex', label: 'Global', icon: <IconlyDiscovery size={14} set={feedMarketFilter === 'forex' ? "bold" : "curved"} primaryColor="currentColor" className={feedMarketFilter === 'forex' ? "text-blue-500 dark:text-blue-400" : ""} /> },
-                                                        { id: 'indian', label: 'Indian', icon: <IconlyWallet size={14} set={feedMarketFilter === 'indian' ? "bold" : "curved"} primaryColor="currentColor" className={feedMarketFilter === 'indian' ? "text-orange-500 dark:text-orange-400" : ""} /> },
-                                                        { id: 'psychology', label: 'Psychology', icon: <IconlyActivity size={14} set={feedMarketFilter === 'psychology' ? "bold" : "curved"} primaryColor="currentColor" className={feedMarketFilter === 'psychology' ? "text-pink-500 dark:text-pink-400" : ""} /> }
+                                                        { id: 'for_you', label: 'For You' },
+                                                        { id: 'forex', label: 'Global' },
+                                                        { id: 'indian', label: 'Indian' },
+                                                        { id: 'psychology', label: 'Psychology' }
                                                     ].map(tab => (
                                                         <button
                                                             key={tab.id}
                                                             onClick={() => setFeedMarketFilter(tab.id as any)}
-                                                            className={`px-4 py-1.5 text-[13px] font-semibold rounded-full transition-all duration-300 ease-out flex items-center gap-1.5 whitespace-nowrap ${feedMarketFilter === tab.id
-                                                                ? "bg-white dark:bg-[#2C2C2E] text-slate-900 dark:text-white shadow-[0_2px_8px_rgba(0,0,0,0.08)] dark:shadow-none scale-100"
-                                                                : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 scale-95"
+                                                            className={`px-4 py-1.5 text-[13px] rounded-lg transition-all duration-200 ease-out whitespace-nowrap ${feedMarketFilter === tab.id
+                                                                ? "bg-white dark:bg-[#2C2C2E] text-slate-900 dark:text-white shadow-[0_1px_3px_rgba(0,0,0,0.1)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.3)] font-semibold"
+                                                                : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 font-medium"
                                                                 }`}
                                                         >
-                                                            {tab.icon}
                                                             {tab.label}
                                                         </button>
                                                     ))}
