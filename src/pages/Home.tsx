@@ -9,8 +9,6 @@ import { supabase } from "@/lib/supabase";
 import { useHomeData, FeedPost } from "@/hooks/useHomeData";
 import { useMarket } from "@/contexts/MarketContext";
 import CreatePostModal from "@/components/CreatePostModal";
-import CreateStoryModal from "@/components/CreateStoryModal";
-import StoryViewer, { StoryGroup } from "@/components/StoryViewer";
 import FeedCard from "@/components/FeedCard";
 import { Star as IconlyStar, Discovery as IconlyDiscovery, Wallet as IconlyWallet, Activity as IconlyActivity, Graph as IconlyGraph, AddUser as IconlyAddUser, ShieldDone as IconlyShieldDone, Calendar as IconlyCalendar } from "react-iconly";
 import { ENABLE_MOCK_DATA, mockProfiles } from "@/lib/mockData";
@@ -97,22 +95,7 @@ function HomeSkeleton() {
 
                 {/* --- COLUMN 2: MIDDLE MAIN CONTENT (col-span-6) --- */}
                 <div className="lg:col-span-6 lg:col-start-4 h-full overflow-y-auto amazing-scrollbar space-y-8 px-4 pt-5 pb-6">
-                    {/* Stories Skeleton */}
-                    <div className="space-y-4">
-                        <div className="h-6 w-20 bg-slate-200 dark:bg-slate-800/80 rounded-md" />
-                        <div className="flex items-center gap-5 overflow-x-auto pb-2 scrollbar-hide">
-                            <div className="shrink-0 flex flex-col items-center gap-2">
-                                <div className="w-[68px] h-[68px] rounded-full bg-slate-200 dark:bg-slate-800/80" />
-                                <div className="h-2.5 w-12 bg-slate-200 dark:bg-slate-800/80 rounded" />
-                            </div>
-                            {[1, 2, 3, 4, 5].map((i) => (
-                                <div key={i} className="shrink-0 flex flex-col items-center gap-2">
-                                    <div className="w-[68px] h-[68px] rounded-full bg-slate-200 dark:bg-slate-800/80" />
-                                    <div className="h-2.5 w-12 bg-slate-200 dark:bg-slate-800/80 rounded" />
-                                </div>
-                            ))}
-                        </div>
-                    </div>
+
 
                     {/* Feeds Skeleton */}
                     <div className="space-y-6">
@@ -472,7 +455,7 @@ export default function Home() {
     const { activeMarket } = useMarket();
 
     // Supabase Live Data Fetching
-    const { feeds, stories, watchlist, calendar, followers, suggestions, winningStreaks, topDisciplined, loading, refetch, removePost } = useHomeData(user?.id ?? "");
+    const { feeds, watchlist, calendar, followers, suggestions, winningStreaks, topDisciplined, loading, refetch, removePost } = useHomeData(user?.id ?? "");
 
     // Placeholder names to exclude from suggestions
     const PLACEHOLDER_NAMES = useMemo(() => ['new trader', 'guest trader', 'demo trader', 'trader', 'guest'], []);
@@ -504,57 +487,7 @@ export default function Home() {
         );
     }, [topDisciplined]);
 
-    // Group stories by user_id
-    const storyGroups = useMemo(() => {
-        const groups: Record<string, StoryGroup> = {};
-        stories.forEach(story => {
-            const uid = story.user_id || "unknown";
 
-            // Determine name and avatar with fallback for current user
-            let name = story.profiles?.full_name || story.profiles?.username;
-            let avatar = story.profiles?.avatar_url;
-
-            if (uid === user?.id && (!name || name === "Unknown")) {
-                try {
-                    name = localStorage.getItem("tradifive_cached_display_name") || "Trader";
-                } catch (e) {
-                    name = "Trader";
-                }
-            }
-            if (uid === user?.id && !avatar) {
-                try {
-                    avatar = localStorage.getItem("tradifive_cached_avatar_url") || "/default-avatar.svg";
-                } catch (e) {
-                    avatar = "/default-avatar.svg";
-                }
-            }
-
-            if (!name) name = "Unknown";
-            if (!avatar) avatar = "/default-avatar.svg";
-
-            if (!groups[uid]) {
-                groups[uid] = {
-                    userId: uid,
-                    user: {
-                        name,
-                        avatar
-                    },
-                    stories: []
-                };
-            }
-            groups[uid].stories.push({
-                id: story.id,
-                mediaUrl: story.media_url || "",
-                mediaType: story.media_type || "image",
-                content: story.content || "",
-                createdAt: story.created_at || new Date().toISOString()
-            });
-        });
-        return Object.values(groups);
-    }, [stories, user?.id]);
-
-    const [isCreateStoryOpen, setIsCreateStoryOpen] = useState(false);
-    const [storyViewerGroupIndex, setStoryViewerGroupIndex] = useState<number | null>(null);
 
     const [isCreatePostModalOpen, setIsCreatePostModalOpen] = useState(false);
     const [editPost, setEditPost] = useState<FeedPost | null>(null);
@@ -793,66 +726,7 @@ export default function Home() {
         ));
     }, [feeds, feedSort, feedMarketFilter, likedPosts, likesOffsets, followedUsers, user?.id, toggleFollowUser, handleLikePost, handleDeletePost, handleVote]);
 
-    const storiesRender = useMemo(() => {
-        const myStoryGroup = storyGroups.find(g => g.userId === user?.id);
-        const otherStoryGroups = storyGroups.filter(g => g.userId !== user?.id);
 
-        return (
-            <>
-                {myStoryGroup ? (
-                    <div className="shrink-0 flex flex-col items-center gap-2 group relative">
-                        <button
-                            onClick={() => setStoryViewerGroupIndex(storyGroups.findIndex(g => g.userId === user?.id))}
-                            className="flex items-center justify-center w-[68px] h-[68px] rounded-full p-[2px] bg-gradient-to-tr from-blue-600 to-cyan-400 group-hover:scale-[1.03] transition-transform shadow-md"
-                        >
-                            <div className="flex items-center justify-center w-full h-full rounded-full border-[2.5px] border-white dark:border-[#121214] overflow-hidden bg-white dark:bg-[#121214]">
-                                <img
-                                    src={myStoryGroup.user.avatar || "/default-avatar.svg"}
-                                    className="w-full h-full object-cover"
-                                    onError={(e) => { e.currentTarget.src = "/default-avatar.svg"; }}
-                                />
-                            </div>
-                        </button>
-                        <button
-                            onClick={(e) => { e.stopPropagation(); setIsCreateStoryOpen(true); }}
-                            className="absolute bottom-6 right-0 w-5 h-5 bg-blue-500 rounded-full border-2 border-white dark:border-[#121214] flex items-center justify-center text-white hover:scale-110 transition-transform shadow-sm z-10"
-                        >
-                            <Plus size={12} strokeWidth={4} />
-                        </button>
-                        <span className="text-[12px] font-bold text-slate-700 dark:text-slate-300 mt-1 max-w-[70px] truncate">Your story</span>
-                    </div>
-                ) : (
-                    <button
-                        onClick={() => setIsCreateStoryOpen(true)}
-                        className="shrink-0 flex flex-col items-center gap-2 group"
-                    >
-                        <div className="relative w-[68px] h-[68px] rounded-full border-2 border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-[#1A1A1D] flex items-center justify-center text-slate-500 dark:text-slate-400 group-hover:border-blue-500 group-hover:text-blue-500 group-hover:bg-blue-50 dark:group-hover:bg-blue-500/10 transition-all shadow-sm overflow-hidden group-hover:scale-105">
-                            <Plus size={24} strokeWidth={2.5} />
-                        </div>
-                        <span className="text-[12px] font-bold text-slate-700 dark:text-slate-300 mt-1">Add story</span>
-                    </button>
-                )}
-
-                {otherStoryGroups.map((group) => {
-                    const actualIndex = storyGroups.findIndex(g => g.userId === group.userId);
-                    return (
-                        <button
-                            key={group.userId}
-                            onClick={() => setStoryViewerGroupIndex(actualIndex)}
-                            className="shrink-0 flex flex-col items-center gap-2 group"
-                        >
-                            <div className="flex items-center justify-center w-[68px] h-[68px] rounded-full p-[2px] bg-gradient-to-tr from-blue-600 to-cyan-400 group-hover:scale-[1.03] transition-transform shadow-md">
-                                <div className="flex items-center justify-center w-full h-full rounded-full border-[2.5px] border-white dark:border-[#121214] overflow-hidden bg-white dark:bg-[#121214]">
-                                    <img src={group.user.avatar} className="w-full h-full object-cover" onError={(e) => { e.currentTarget.src = "/default-avatar.svg"; }} />
-                                </div>
-                            </div>
-                            <span className="text-[12px] font-bold text-slate-700 dark:text-slate-300 mt-1 max-w-[70px] truncate">{group.user.name.split(' ')[0]}</span>
-                        </button>
-                    )
-                })}
-            </>
-        );
-    }, [storyGroups, user?.id]);
 
     const calendarRender = useMemo(() => {
         const filteredCalendar = calendar.filter(news => {
@@ -1378,23 +1252,15 @@ export default function Home() {
                                 )}
                             </AnimatePresence>
                             <div className="flex-1 overflow-y-auto amazing-scrollbar space-y-8 px-4 pt-5 pb-6" onScroll={handleScroll} ref={middleColumnRef}>
-                                {/* Stories Section */}
-                                <div className="space-y-4">
-                                    <div className="flex items-center justify-between">
-                                        <h2 className="text-[22px] font-bold text-slate-900 dark:text-white tracking-tight">Stories</h2>
-                                    </div>
-                                    <div className="flex items-center gap-5 overflow-x-auto px-2 pt-2 pb-4 -mx-2 -mt-2 scrollbar-hide select-none">
-                                        {storiesRender}
-                                    </div>
-                                </div>
+
 
                                 {/* Feeds Section */}
                                 <div className="space-y-6">
                                     <div className="flex flex-col gap-4">
-                                        <div className="flex items-center justify-between">
-                                            <h2 className="text-[22px] font-bold text-slate-900 dark:text-white tracking-tight">Feeds</h2>
+                                        <div className="flex items-center justify-between gap-4">
+                                            <h2 className="text-[22px] font-bold text-slate-900 dark:text-white tracking-tight leading-none shrink-0 mt-1">Feeds</h2>
 
-                                            <div className="flex items-center overflow-x-auto no-scrollbar pb-1">
+                                            <div className="flex items-center overflow-x-auto no-scrollbar">
                                                 <div className="flex items-center bg-slate-100 dark:bg-white/5 p-1 rounded-full shadow-inner border border-slate-200/50 dark:border-white/5 shrink-0">
                                                     {[
                                                         { id: 'for_you', label: 'For You', icon: <IconlyStar size={14} set={feedMarketFilter === 'for_you' ? "bold" : "curved"} primaryColor="currentColor" className={feedMarketFilter === 'for_you' ? "text-indigo-500 dark:text-indigo-400" : ""} /> },
@@ -1582,21 +1448,7 @@ export default function Home() {
                     initialMediaType={editPost?.media_type as any}
                 />
 
-                <CreateStoryModal
-                    isOpen={isCreateStoryOpen}
-                    onClose={() => setIsCreateStoryOpen(false)}
-                    userId={user?.id || ""}
-                    onSuccess={refetch}
-                />
 
-                <StoryViewer
-                    isOpen={storyViewerGroupIndex !== null}
-                    onClose={() => setStoryViewerGroupIndex(null)}
-                    storyGroups={storyGroups}
-                    initialGroupIndex={storyViewerGroupIndex ?? 0}
-                    currentUserId={user?.id || ""}
-                    onDeleteSuccess={refetch}
-                />
             </DashboardLayout>
         </>
     );

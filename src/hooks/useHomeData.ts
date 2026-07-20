@@ -43,10 +43,7 @@ export function useHomeData(userId: string) {
     const cached = getCache('home_cache_feeds', []);
     return cached;
   });
-  const [stories, setStories] = useState<FeedPost[]>(() => {
-    const cached = getCache('home_cache_stories', []);
-    return cached;
-  });
+
   const [watchlist, setWatchlist] = useState<WatchItem[]>(() => getCache('home_cache_watchlist', []));
   const [calendar, setCalendar] = useState<CalendarEvent[]>(() => getCache('home_cache_calendar', []));
   const [followers, setFollowers] = useState<{ count: number; avatars: string[] }>(() => getCache('home_cache_followers', { count: 0, avatars: [] }));
@@ -79,7 +76,6 @@ export function useHomeData(userId: string) {
         { data: discData, error: discErr }
       ] = await Promise.all([
         supabase.from('social_posts').select('*, profiles(full_name, username, avatar_url)').neq('post_type', 'story').order('created_at', { ascending: false }).limit(50),
-        supabase.from('social_posts').select('*, profiles(full_name, username, avatar_url)').eq('post_type', 'story').gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()).order('created_at', { ascending: true }).limit(20),
         supabase.from('feed_watchlist').select('*').eq('user_id', userId).order('sort_order', { ascending: true }).limit(20),
         supabase.from('economic_calendar').select('*').order('event_time', { ascending: true }).limit(20),
         supabase.from('social_follows').select('follower_id, profiles!social_follows_follower_id_fkey(avatar_url)', { count: 'exact' }).eq('following_id', userId).limit(5),
@@ -126,9 +122,7 @@ export function useHomeData(userId: string) {
       // removed unsafe localPosts parse
 
       const dbSignaturesFeeds = new Set(feedData?.map((f: any) => `${f.user_id}-${f.content}-${f.media_url}`) || []);
-      const dbSignaturesStories = new Set(storyData?.map((s: any) => `${s.user_id}-${s.content}-${s.media_url}`) || []);
       const dbIdsFeeds = new Set(feedData?.map((f: any) => String(f.id)) || []);
-      const dbIdsStories = new Set(storyData?.map((s: any) => String(s.id)) || []);
       // 3. Local Storage Posts (Immediate UI feedback)
       const localPostsStr = localStorage.getItem('fialgo_local_posts') || '[]';
       let unresolvedLocalPosts = [];
@@ -147,12 +141,10 @@ export function useHomeData(userId: string) {
             p.profiles.avatar_url = '/nikil_avatar.jpg';
           }
           const sig = `${p.user_id}-${p.content}-${p.media_url}`;
-          if (p.post_type === 'story') return !dbSignaturesStories.has(sig) && !dbIdsStories.has(String(p.id));
           return !dbSignaturesFeeds.has(sig) && !dbIdsFeeds.has(String(p.id));
         });
       } catch (e) { }
 
-      const localStories = unresolvedLocalPosts.filter((p: any) => p.post_type === 'story');
       const localFeeds = unresolvedLocalPosts.filter((p: any) => p.post_type !== 'story');
 
       const activeMockFeeds = ENABLE_MOCK_DATA ? mockFeeds : [];
@@ -167,12 +159,6 @@ export function useHomeData(userId: string) {
 
       setFeeds(combinedFeeds);
       localStorage.setItem('home_cache_feeds', JSON.stringify(combinedFeeds));
-
-      const activeMockStories = ENABLE_MOCK_DATA ? mockStories : [];
-
-      const combinedStories = [...activeMockStories, ...localStories, ...((storyData as any) ?? [])];
-      setStories(combinedStories);
-      localStorage.setItem('home_cache_stories', JSON.stringify(combinedStories));
 
       // 1. Filter Watchlist by activeMarket
       let finalWatch = [];
@@ -551,14 +537,10 @@ export function useHomeData(userId: string) {
     const newFeeds = feeds.filter(f => String(f.id) !== String(postId));
     setFeeds(newFeeds);
     localStorage.setItem('home_cache_feeds', JSON.stringify(newFeeds));
-    const newStories = stories.filter(s => String(s.id) !== String(postId));
-    setStories(newStories);
-    localStorage.setItem('home_cache_stories', JSON.stringify(newStories));
   };
 
   return {
     feeds,
-    stories,
     watchlist: watchlistWithPrices,
     calendar,
     followers,
