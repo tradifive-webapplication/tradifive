@@ -1299,35 +1299,39 @@ export default function Home() {
 
                                 {/* Requests Section */}
                                 {showRequests && (
-                                    <div className="p-5 rounded-[28px] bg-white dark:bg-[#1C1C1E] border border-slate-100/50 dark:border-white/5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300">
-                                        <h3 className="text-[16px] font-bold text-slate-900 dark:text-white tracking-tight flex items-center justify-between mb-5">
-                                            <span>Requests</span>
-                                            <span className="bg-rose-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{ENABLE_MOCK_DATA ? '3' : '0'}</span>
-                                        </h3>
-                                        <div className="space-y-4">
+                                    <div className="p-5 rounded-3xl bg-white dark:bg-[#1A1A1C] border border-slate-200/50 dark:border-[#222] shadow-sm">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <h3 className="text-[16px] font-bold text-slate-900 dark:text-white tracking-tight">Follow Requests</h3>
+                                            <span className="bg-rose-500 text-white text-[11px] font-bold px-2 py-0.5 rounded-full shadow-sm">
+                                                {ENABLE_MOCK_DATA ? '3' : '0'}
+                                            </span>
+                                        </div>
+                                        <div className="flex flex-col gap-1">
                                             {ENABLE_MOCK_DATA ? (
                                                 mockProfiles.slice(5, 8).map((profile, idx) => (
-                                                    <div key={idx} className="flex items-center justify-between gap-3 bg-slate-50/50 dark:bg-white/[0.02] p-2.5 rounded-2xl border border-slate-100/50 dark:border-white/[0.02]">
+                                                    <div key={idx} className="group flex items-center justify-between gap-3 p-2 -mx-2 hover:bg-slate-50 dark:hover:bg-white/[0.04] rounded-2xl transition-all cursor-pointer">
                                                         <div className="flex items-center gap-3">
-                                                            <img src={profile.avatar_url || '/default-avatar.svg'} className="w-10 h-10 rounded-xl bg-slate-200 object-cover" />
-                                                            <div>
-                                                                <p className="text-[13px] font-bold text-slate-900 dark:text-white leading-tight">{profile.full_name}</p>
-                                                                <p className="text-[11px] font-medium text-slate-500">@{profile.username}</p>
+                                                            <div className="relative shrink-0">
+                                                                <img src={profile.avatar_url || '/default-avatar.svg'} className="w-[42px] h-[42px] rounded-full bg-slate-200 dark:bg-slate-800 object-cover shadow-sm ring-2 ring-transparent group-hover:ring-white dark:group-hover:ring-[#2C2C2E] transition-all" />
+                                                            </div>
+                                                            <div className="flex flex-col justify-center overflow-hidden">
+                                                                <p className="text-[14px] font-bold text-slate-900 dark:text-white leading-tight truncate">{profile.full_name}</p>
+                                                                <p className="text-[12px] font-medium text-slate-500 dark:text-slate-400 mt-0.5 truncate">@{profile.username}</p>
                                                             </div>
                                                         </div>
-                                                        <div className="flex items-center gap-2">
-                                                            <button className="w-8 h-8 flex items-center justify-center rounded-xl bg-blue-500 hover:bg-blue-600 text-white transition-colors">
-                                                                <Check className="w-4 h-4" />
+                                                        <div className="flex items-center gap-1.5 shrink-0">
+                                                            <button className="w-[34px] h-[34px] flex items-center justify-center rounded-full bg-blue-500 hover:bg-blue-600 text-white shadow-sm hover:shadow transition-all active:scale-95" title="Accept">
+                                                                <Check className="w-4 h-4 stroke-[2.5]" />
                                                             </button>
-                                                            <button className="w-8 h-8 flex items-center justify-center rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 transition-colors">
-                                                                <X className="w-4 h-4" />
+                                                            <button className="w-[34px] h-[34px] flex items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-[#2C2C2E] dark:hover:bg-[#3C3C3E] text-slate-600 dark:text-slate-300 transition-all active:scale-95" title="Decline">
+                                                                <X className="w-4 h-4 stroke-[2.5]" />
                                                             </button>
                                                         </div>
                                                     </div>
                                                 ))
                                             ) : (
-                                                <div className="text-center py-4">
-                                                    <p className="text-[12px] font-medium text-slate-400 dark:text-slate-400">No pending requests</p>
+                                                <div className="text-center py-6">
+                                                    <p className="text-[13px] font-medium text-slate-400">No pending requests</p>
                                                 </div>
                                             )}
                                         </div>
