@@ -1261,7 +1261,7 @@ export default function Home() {
                                             <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight shrink-0">Feeds</h2>
 
                                             <div className="flex items-center overflow-x-auto no-scrollbar">
-                                                <div className="flex items-center bg-slate-100 dark:bg-[#1A1A1C] p-1 rounded-xl shrink-0">
+                                                <div className="flex items-center bg-slate-100/80 dark:bg-[#1A1A1C] p-1 rounded-full shrink-0">
                                                     {[
                                                         { id: 'for_you', label: 'For You' },
                                                         { id: 'forex', label: 'Global' },
@@ -1271,9 +1271,9 @@ export default function Home() {
                                                         <button
                                                             key={tab.id}
                                                             onClick={() => setFeedMarketFilter(tab.id as any)}
-                                                            className={`px-4 py-1.5 text-[13px] rounded-lg transition-all duration-200 ease-out whitespace-nowrap ${feedMarketFilter === tab.id
-                                                                ? "bg-white dark:bg-[#2C2C2E] text-slate-900 dark:text-white shadow-[0_1px_3px_rgba(0,0,0,0.1)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.3)] font-semibold"
-                                                                : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 font-medium"
+                                                            className={`px-4 py-1.5 text-[13px] rounded-full transition-all duration-200 ease-out whitespace-nowrap font-medium ${feedMarketFilter === tab.id
+                                                                ? "bg-white dark:bg-[#2C2C2E] text-slate-900 dark:text-white shadow-[0_1px_3px_rgba(0,0,0,0.1)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.3)]"
+                                                                : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
                                                                 }`}
                                                         >
                                                             {tab.label}
