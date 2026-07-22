@@ -169,6 +169,30 @@ export default function TermsOfServicePublic() {
           Under no circumstances shall Tradifive Connect, its developers, directors, employees, or agents be liable to you or any third party for any direct, indirect, consequential, exemplary, incidental, special, or punitive damages, including lost profit, lost revenue, loss of data, or other damages arising from your use of the site, even if we have been advised of the possibility of such damages.
         </p>
       </div>
+      {/* Section 6 */}
+      <div className="border-t border-zinc-800/60 pt-8 mt-10 space-y-4">
+        <span className="font-mono text-[10px] text-indigo-400 block tracking-widest uppercase">Section 06</span>
+        <h2 className="text-xl md:text-2xl font-black text-white tracking-tight">Regulatory Compliance & Disclaimers (India)</h2>
+
+        <div className="bg-white/[0.01] border-l-2 border-indigo-500/30 pl-4 py-2.5 my-4 text-[13px] text-zinc-400 leading-relaxed italic">
+          <strong>Summary:</strong> Tradifive is a Technology Service Provider. We are not registered with SEBI or the RBI. Users are solely responsible for their own regulatory compliance.
+        </div>
+
+        <ul className="space-y-3 pl-1 text-[13.5px] text-zinc-400">
+          <li className="flex items-start gap-2.5">
+            <span className="text-indigo-400 mt-1 select-none font-mono font-black">—</span>
+            <span><strong>SEBI Disclaimer:</strong> Tradifive is an educational and analytics technology platform. We are NOT registered with the Securities and Exchange Board of India (SEBI) as an Investment Advisor (RIA) or Research Analyst (RA). Any information or trades shared by users in the community channels are their personal opinions and do not constitute financial advice from Tradifive.</span>
+          </li>
+          <li className="flex items-start gap-2.5">
+            <span className="text-indigo-400 mt-1 select-none font-mono font-black">—</span>
+            <span><strong>FEMA & RBI Compliance:</strong> Tradifive provides software analytics (AI Journal & Risk Guard) and does not execute trades or hold user funds. Users are solely responsible for ensuring that their connected broker accounts and trading activities comply with their local jurisdiction's laws, including the Foreign Exchange Management Act (FEMA) and Reserve Bank of India (RBI) guidelines.</span>
+          </li>
+          <li className="flex items-start gap-2.5">
+            <span className="text-indigo-400 mt-1 select-none font-mono font-black">—</span>
+            <span><strong>Technology Provider Limitations:</strong> Tradifive acts exclusively as a Technology Service Provider (TSP). While our Risk Guard aims to assist in risk management, we do not guarantee uptime or execution speed. Tradifive is not liable for any financial losses incurred due to broker API latency, internet outages, or software failures.</span>
+          </li>
+        </ul>
+      </div>
     </LegalLayout>
   );
 }

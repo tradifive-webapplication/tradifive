@@ -19,7 +19,7 @@ export default function AdminFinance() {
     totalRevenue: 0,
     activeSubscriptions: 0,
     failedPayments: 0,
-    mrr: 0
+    metaApiCost: 0
   });
 
   const [transactions, setTransactions] = useState<any[]>([]);
@@ -60,11 +60,15 @@ export default function AdminFinance() {
         // Fetch active subscriptions count from profiles
         const { count: activeSubs } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).not('subscription_status', 'is', null);
         
+        // Fetch MetaApi Costs
+        const { data: ledgerData } = await supabase.from('financial_ledger').select('amount').eq('category', 'metaapi_cost');
+        const metaApiCost = (ledgerData || []).reduce((sum, t) => sum + Number(t.amount), 0);
+        
         setStats({
           totalRevenue: totalRev,
           activeSubscriptions: activeSubs || 0,
           failedPayments: failedCount,
-          mrr: totalRev // Simplification for MRR based on available data
+          metaApiCost: metaApiCost
         });
       }
     };
@@ -120,11 +124,15 @@ export default function AdminFinance() {
             </div>
         </div>
 
-        <div className="bg-slate-900/30 border border-slate-800 p-8 rounded-[2rem] relative overflow-hidden group">
-            <p className="text-slate-500 text-[10px] font-bold uppercase tracking-[0.2em] mb-3">Target MRR</p>
-            <h3 className="text-3xl font-bold text-white mb-3">₹1.24L</h3>
-            <div className="h-1.5 w-full bg-slate-800/50 rounded-full mt-6 overflow-hidden">
-                <div className="h-full bg-blue-600 w-[65%] rounded-full shadow-[0_0_10px_rgba(37,99,235,0.3)]" />
+        <div className="bg-slate-900/30 border border-slate-800 p-8 rounded-[2rem] relative overflow-hidden group hover:border-amber-500/20 transition-all">
+            <div className="absolute -top-4 -right-4 p-8 opacity-5">
+                <DollarSign size={100} className="text-amber-500" />
+            </div>
+            <p className="text-slate-500 text-[10px] font-bold uppercase tracking-[0.2em] mb-3">MetaApi Costs</p>
+            <h3 className="text-3xl font-bold text-white mb-3">${stats.metaApiCost.toFixed(2)}</h3>
+            <div className="flex items-center gap-1.5 text-xs font-bold text-amber-500">
+                <ArrowDownRight size={14} />
+                Platform API Expense
             </div>
         </div>
       </div>

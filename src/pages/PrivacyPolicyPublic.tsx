@@ -136,14 +136,14 @@ export default function PrivacyPolicyPublic() {
       {/* Section 5 */}
       <div className="border-t border-zinc-800/60 pt-8 mt-10 space-y-4">
         <span className="font-mono text-[10px] text-indigo-400 block tracking-widest uppercase">Section 05</span>
-        <h2 className="text-xl md:text-2xl font-black text-white tracking-tight">Your Rights & Erasure</h2>
+        <h2 className="text-xl md:text-2xl font-black text-white tracking-tight">Your Rights & Erasure (DPDP Act Compliance)</h2>
 
         <div className="bg-white/[0.01] border-l-2 border-indigo-500/30 pl-4 py-2.5 my-4 text-[13px] text-zinc-400 leading-relaxed italic">
           <strong>Summary:</strong> You have the right to request deletion. You can erase your account and clean all cached statistics directly from your dashboard.
         </div>
 
         <p className="text-sm text-zinc-400">
-          Under GDPR, CCPA, and regional frameworks, you hold the right to retrieve or purge your personal data. By accessing your Settings panel inside the user application, you can initiate a complete profile wipe. Upon request, all trading records, ledger integrations, and dashboard data will be expunged from primary server vaults within thirty (30) days.
+          Under the Digital Personal Data Protection Act 2023 (India), GDPR, CCPA, and other regional frameworks, you hold the right to retrieve or purge your personal data. By accessing your Settings panel inside the user application, you can initiate a complete profile wipe. Upon request, all trading records, ledger integrations, and dashboard data will be expunged from primary server vaults within thirty (30) days.
         </p>
       </div>
     </LegalLayout>

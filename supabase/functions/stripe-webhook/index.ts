@@ -76,6 +76,34 @@ serve(async (req) => {
           .eq('id', userId)
 
         if (error) throw error;
+
+        // Log the revenue and MetaApi allocated cost if amount matches 1,299
+        if (session.amount_total === 129900 || session.amount_total === 1299) {
+          const { error: ledgerError } = await supabaseAdmin
+            .from('financial_ledger')
+            .insert([
+              {
+                user_id: userId,
+                transaction_type: 'revenue',
+                category: 'subscription',
+                amount: 1299.00,
+                currency: 'INR',
+                description: 'Subscription revenue',
+                stripe_session_id: session.id
+              },
+              {
+                user_id: userId,
+                transaction_type: 'expense',
+                category: 'metaapi_cost',
+                amount: 2.00,
+                currency: 'USD',
+                description: 'MetaApi allocated cost',
+                stripe_session_id: session.id
+              }
+            ]);
+            
+          if (ledgerError) console.error("Ledger insertion error:", ledgerError);
+        }
       }
     }
 
