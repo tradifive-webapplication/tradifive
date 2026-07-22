@@ -1,0 +1,40 @@
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
+      <ImageViewerModal
+        visible={!!activeViewerPostId}
+        onClose={() => setActiveViewerPostId(null)}
+        posts={feedSubTab === 'new' ? feedPostsToRender : FOLLOWING_POSTS}
+        initialPostId={activeViewerPostId}
+        onLike={handleLikePost}
+        onComment={handleCommentPost}
+        onShare={handleSharePost}
+        isCommentOpen={!!activeCommentPost}
+      />
+
+      {/* Comments Bottom Sheet Drawer Modal */}
+      <Modal
+        visible={!!activeCommentPost}
+        transparent={true}
+        animationType="none"
+        onRequestClose={() => {
+          Animated.spring(translateY, {
+            toValue: SNAP_POINTS.CLOSE,
+            useNativeDriver: true,
+            tension: 65,
+            friction: 11
+          }).start(() => {
+            setActiveCommentPost(null);
+            setReplyingToComment(null);
+            setCommentInput('');
+          });
+        }}
+      >
+        <View style={{ flex: 1 }}>
+          {/* Backdrop mask (tap to close) */}
+          <TouchableWithoutFeedback
+            onPress={() => {
+              Animated.spring(translateY, {
+                toValue: SNAP_POINTS.CLOSE,
+                useNativeDriver: true,

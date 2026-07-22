@@ -1,0 +1,26 @@
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root, body, div, span, p, a, h1, h2, h3, h4, h5, h6, input, button, textarea {
+    font-family: 'Geist', system-ui, -apple-system, sans-serif !important;
+    font-variant-numeric: tabular-nums !important;
+  }
+}
+
+html, body, #root {
+  height: 100% !important;
+  width: 100% !important;
+  overflow: hidden !important;
+  overscroll-behavior: none !important;
+  -webkit-overflow-scrolling: auto !important;
+  touch-action: none; 
+}
+
+/* Allow native touch actions inside scroll views but stop pull-to-refresh */
+div[dir="auto"] {
+  touch-action: pan-y;
+}

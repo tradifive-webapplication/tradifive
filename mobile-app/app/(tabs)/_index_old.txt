@@ -1,0 +1,21 @@
+The USER performed the following action:
+Show the contents of file c:\Users\nikil\Downloads\fialgo-connect-main\fialgo-connect-main\mobile-app\app\(tabs)\index.tsx from lines 44 to 68
+File Path: `file:///c:/Users/nikil/Downloads/fialgo-connect-main/fialgo-connect-main/mobile-app/app/%28tabs%29/index.tsx`
+Total Lines: 350
+Total Bytes: 18542
+Showing lines 44 to 68
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+44:     </View>
+45:   );
+46: }
+47: 
+48: export default function DashboardScreen() {
+49:   const insets = useSafeAreaInsets();
+50:   const router = useRouter();
+51:   const [activeSegment, setActiveSegment] = useState('Overview');
+52: 
+53:   return (
+54:     <View style={{ flex: 1, backgroundColor: '#f8fafc' }}>
+55:       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+56:       
+<truncated 528 bytes>
