@@ -471,32 +471,24 @@ export default function AccountTab({
                            Delete Account
                         </Button>
                      </AlertDialogTrigger>
-                     <AlertDialogPrimitive.Portal>
-                        <AlertDialogPrimitive.Backdrop className="fixed inset-0 z-50 bg-black/35 backdrop-blur-[6px] transition-all duration-[220ms] ease-[cubic-bezier(0.16,1,0.3,1)] data-[ending-style]:opacity-0 data-[starting-style]:opacity-0" />
-                        <AlertDialogPrimitive.Viewport className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                           <AlertDialogPrimitive.Popup className="w-full max-w-[540px] rounded-[20px] bg-white dark:bg-[#0A0A0A] border border-[#E5E7EB] dark:border-white/10 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)] p-[32px] transition-[transform,opacity] duration-[220ms] ease-[cubic-bezier(0.16,1,0.3,1)] data-[starting-style]:scale-[0.96] data-[ending-style]:scale-[0.96] data-[starting-style]:opacity-0 data-[ending-style]:opacity-0 outline-none flex flex-col">
-                              <AlertDialogPrimitive.Title className="text-[34px] font-bold font-sans text-[#111827] dark:text-white leading-[1.2] mb-4 text-left">
-                                 Are you absolutely sure?
-                              </AlertDialogPrimitive.Title>
-                              <AlertDialogPrimitive.Description className="text-[16px] font-normal text-[#6B7280] dark:text-slate-400 leading-[1.6] text-left">
-                                 This action cannot be undone. This will permanently delete your account
-                                 and remove your data from our servers.
-                              </AlertDialogPrimitive.Description>
-                              
-                              <div className="mt-10 flex flex-col-reverse sm:flex-row justify-end gap-3">
-                                 <AlertDialogPrimitive.Close render={<button className="bg-transparent hover:bg-slate-100 dark:hover:bg-white/10 text-[#6B7280] dark:text-slate-300 rounded-[12px] h-[44px] px-[24px] font-medium transition-colors border-none shadow-none text-[15px]" />}>
-                                    Cancel
-                                 </AlertDialogPrimitive.Close>
-                                 <AlertDialogPrimitive.Close 
-                                    onClick={() => toast.error('Account deletion not fully implemented yet.')}
-                                    render={<button className="bg-[#EF4444] hover:bg-[#DC2626] text-white rounded-[12px] h-[44px] px-[24px] font-medium transition-colors border-none shadow-none text-[15px]" />}
-                                 >
-                                    Delete Account
-                                 </AlertDialogPrimitive.Close>
-                              </div>
-                           </AlertDialogPrimitive.Popup>
-                        </AlertDialogPrimitive.Viewport>
-                     </AlertDialogPrimitive.Portal>
+                     <AlertDialogPopup>
+                        <AlertDialogHeader>
+                           <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                           <AlertDialogDescription>
+                              This action cannot be undone. This will permanently delete your account
+                              and remove your data from our servers.
+                           </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                           <AlertDialogClose render={<Button variant="ghost" className="m-0" />}>Cancel</AlertDialogClose>
+                           <AlertDialogClose 
+                              onClick={() => toast.error('Account deletion not fully implemented yet.')}
+                              render={<Button variant="destructive" className="m-0" />}
+                           >
+                              Delete Account
+                           </AlertDialogClose>
+                        </AlertDialogFooter>
+                     </AlertDialogPopup>
                   </AlertDialog>
                </div>
             </div>
