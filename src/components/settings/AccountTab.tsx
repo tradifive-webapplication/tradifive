@@ -480,10 +480,10 @@ export default function AccountTab({
                            </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter className="bg-slate-50 dark:bg-slate-900 border-t border-black/5 dark:border-white/10 px-6 py-3">
-                           <AlertDialogClose render={<Button variant="ghost" className="m-0 h-9 px-4 rounded-[10px] text-[14px] font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-800" />}>Cancel</AlertDialogClose>
+                           <AlertDialogClose render={<Button variant="ghost" className="m-0 h-8 px-3 rounded-[8px] text-[13px] font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-800" />}>Cancel</AlertDialogClose>
                            <AlertDialogClose 
                               onClick={() => toast.error('Account deletion not fully implemented yet.')}
-                              render={<Button variant="destructive" className="m-0 h-9 px-4 rounded-[10px] bg-[#f53a3a] hover:bg-[#df2c2c] text-white font-medium shadow-[0_2px_8px_-2px_rgba(245,58,58,0.4),inset_0_1px_1px_rgba(255,255,255,0.3)] border border-[#d62828] text-[14px]" />}
+                              render={<Button variant="destructive" className="m-0 h-8 px-3 rounded-[8px] bg-[#f53a3a] hover:bg-[#df2c2c] text-white font-medium shadow-[0_2px_8px_-2px_rgba(245,58,58,0.4),inset_0_1px_1px_rgba(255,255,255,0.3)] border border-[#d62828] text-[13px]" />}
                            >
                               Delete Account
                            </AlertDialogClose>
