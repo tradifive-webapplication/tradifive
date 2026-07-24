@@ -1284,7 +1284,16 @@ export default function RiskGuard() {
                      <div>
 
                         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-8">
-                           <RiskGuardCard icon={ShieldCheck} title="Discipline Sentinel" description="Loss cooldown & daily execution limit" value={disciplineActive ? "Active" : "Disabled"} active={disciplineActive} onToggle={setDisciplineActive} />
+                           <RiskGuardCard icon={ShieldCheck} title="Discipline Sentinel" description="Loss cooldown & daily execution limit" value={disciplineActive ? "Active" : "Disabled"} active={disciplineActive} onToggle={setDisciplineActive}>
+                              <div>
+                                 <label className="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block">Daily Execution Limit</label>
+                                 <div className="flex items-center gap-3">
+                                    <button onClick={() => setTradeLimit(prev => Math.max(1, prev - 1))} className="w-8 h-8 flex items-center justify-center rounded-full bg-white dark:bg-[#202020] border border-slate-200/60 shadow-sm text-slate-700 dark:text-slate-300 font-bold hover:bg-slate-50 transition-colors active:scale-95">-</button>
+                                    <span className="flex-1 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-[13px] font-bold text-slate-800 dark:text-white text-center">{(!isProOrElite && tradeLimit > 5) ? 5 : tradeLimit}</span>
+                                    <button onClick={() => { if (!isProOrElite && tradeLimit >= 5) { toast.error(<div className="flex flex-col gap-1"><div className="flex items-center gap-2"><Crown size={16} className="text-amber-500" /><span className="font-bold text-slate-900 dark:text-white">Pro Feature</span></div><span className="text-slate-600 dark:text-slate-300">Upgrade to Pro to increase daily execution limits.</span></div>); return; } setTradeLimit(prev => Math.min(10, prev + 1)); }} className="w-8 h-8 flex items-center justify-center rounded-full bg-[#0F172A] dark:bg-indigo-500 text-white font-bold hover:bg-slate-800 transition-colors active:scale-95">+</button>
+                                 </div>
+                              </div>
+                           </RiskGuardCard>
 
                            {/* Loss Cooldown Shield — standalone card */}
                            <RiskGuardCard icon={ShieldOff} title="Loss Cooldown Shield" description="Locks execution after any losing trade" value={!isProOrElite ? "Pro" : revengeGuard ? "Active" : "Disabled"} active={!isProOrElite ? false : revengeGuard} onToggle={(val) => {
@@ -1302,52 +1311,35 @@ export default function RiskGuard() {
                               }
                               setRevengeGuard(val);
                            }}>
-                              {(revengeGuard && isProOrElite) && (
-                                 <div className="space-y-3">
-                                    <div className="flex items-center justify-between">
-                                       <span className="text-[10.5px] font-semibold text-slate-400 uppercase tracking-widest">Cooldown Duration</span>
-                                       <span className="text-[12px] font-semibold text-slate-700 dark:text-white">{waitPeriod} Minutes</span>
-                                    </div>
+                              <div>
+                                 <label className="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block">Cooldown Duration</label>
+                                 <div className="flex items-center gap-2 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2">
                                     <input
                                        type="range" min={5} max={120} step={5} value={waitPeriod}
                                        onChange={e => setWaitPeriod(+e.target.value)}
-                                       className="w-full h-1.5 rounded-lg appearance-none cursor-pointer focus:outline-none accent-indigo-600 dark:accent-indigo-500"
-                                       style={{
-                                          background: `linear-gradient(to right, #4f46e5 0%, #4f46e5 ${((waitPeriod - 5) / (120 - 5)) * 100}%, rgba(79, 70, 229, 0.15) ${((waitPeriod - 5) / (120 - 5)) * 100}%, rgba(79, 70, 229, 0.15) 100%)`
-                                       }}
+                                       className="flex-1 h-1.5 rounded-lg appearance-none cursor-pointer accent-indigo-600 dark:accent-indigo-500"
+                                       style={{ background: `linear-gradient(to right, #4f46e5 0%, #4f46e5 ${((waitPeriod - 5) / (120 - 5)) * 100}%, rgba(79,70,229,0.15) ${((waitPeriod - 5) / (120 - 5)) * 100}%, rgba(79,70,229,0.15) 100%)` }}
                                     />
-                                    <div className={`flex items-center justify-between p-2.5 rounded-xl border ${cooldownActive
-                                       ? 'bg-rose-50/50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-950/30'
-                                       : 'bg-emerald-50/30 dark:bg-emerald-950/10 border-emerald-200/50 dark:border-emerald-900/20'
-                                    }`}>
-                                       <div className="flex items-center gap-2">
-                                          <span className={`w-2 h-2 rounded-full shrink-0 ${cooldownActive
-                                             ? "bg-rose-500 animate-pulse shadow-[0_0_6px_rgba(239,68,68,0.5)]"
-                                             : "bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.4)]"
-                                          }`} />
-                                          <div className="flex flex-col">
-                                             <span className={`text-[10px] font-bold uppercase tracking-wider leading-none ${cooldownActive ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400"}`}>
-                                                {cooldownActive ? "LOCKED" : "STANDING BY"}
-                                             </span>
-                                             <span className="text-[9px] font-medium text-slate-400 mt-0.5">
-                                                {cooldownActive ? "Revenge shield active" : "Monitoring trades..."}
-                                             </span>
-                                          </div>
-                                       </div>
-                                       {cooldownActive && (
-                                          <div className="flex items-center gap-1.5 bg-rose-100 dark:bg-rose-950/40 px-2.5 py-1 rounded-lg">
-                                             <Timer size={11} className="text-rose-500" />
-                                             <span className="text-[13px] font-bold text-rose-600 dark:text-rose-400 tabular-nums">
-                                                {String(Math.floor(cooldownSeconds / 60)).padStart(2, '0')}:{String(cooldownSeconds % 60).padStart(2, '0')}
-                                             </span>
-                                          </div>
-                                       )}
-                                    </div>
+                                    <span className="text-[12px] font-bold text-slate-700 dark:text-white shrink-0 tabular-nums w-16 text-right">{waitPeriod} min</span>
                                  </div>
-                              )}
+                              </div>
                            </RiskGuardCard>
 
-                           <RiskGuardCard icon={Clock} title="Session Sentinel" description="Custom hourly trading windows" value={sessionActive ? "Active" : "Disabled"} active={sessionActive} onToggle={setSessionActive} />
+                           <RiskGuardCard icon={Clock} title="Session Sentinel" description="Custom hourly trading windows" value={sessionActive ? "Active" : "Disabled"} active={sessionActive} onToggle={setSessionActive}>
+                              <div>
+                                 <label className="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block">Active Sessions</label>
+                                 <div className="flex flex-wrap gap-1.5">
+                                    {sessionButtons.map(session => {
+                                       const isSelected = selectedSessions.includes(session.id);
+                                       return (
+                                          <button key={session.id} onClick={() => toggleSession(session.id)} className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all border ${
+                                             isSelected ? 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-500/20' : 'bg-slate-50 text-slate-500 border-slate-200 dark:bg-white/5 dark:text-slate-400 dark:border-white/10 hover:bg-slate-100'
+                                          }`}>{session.label}</button>
+                                       );
+                                    })}
+                                 </div>
+                              </div>
+                           </RiskGuardCard>
 
                            <RiskGuardCard icon={Trophy} title="Consecutive Win Lock" description="Lock trading after wins" value={`${consecutiveWins} Wins`} active={stopAfterWin} onToggle={setStopAfterWin}>
                               <div>
