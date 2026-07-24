@@ -617,3 +617,155 @@
     display: none !important;
   }
 }
+
+/* ═══════════════════════════════════
+   CUSTOM UI SWITCH
+═══════════════════════════════════ */
+.custom-ui-switch,
+.custom-ui-switch *,
+.custom-ui-switch *:before,
+.custom-ui-switch *:after {
+  box-sizing: border-box;
+}
+
+.custom-ui-switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20vmin;
+  height: 10vmin;
+  background: linear-gradient(0deg, #ededed, #bdbdbd);
+  border-radius: 5vmin;
+  box-shadow:
+    0 0.05vmin 0.5vmin 0.01vmin #ffffff80,
+    0 0px 5vmin 0.5vmin #ffffff,
+    0 -0.25vmin 0.25vmin 0.125vmin #15182f44;
+  cursor: pointer;
+}
+
+.custom-ui-switch input[type="checkbox"] {
+  display: none;
+}
+
+.custom-ui-switch .rail {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5vmin;
+  box-shadow:
+    -0.05vmin 0.26vmin 0.2vmin -0.05vmin #fff,
+    0.05vmin 0.125vmin 0.2vmin -0.125vmin #0004 inset;
+  pointer-events: none;
+}
+
+.custom-ui-switch .rail:before,
+.custom-ui-switch .rail:after {
+  content: "";
+  position: absolute;
+  width: 5vmin;
+  height: 5vmin;
+  border-radius: 5vmin;
+}
+
+.custom-ui-switch .rail:before {
+  left: 2.5vmin;
+  background: linear-gradient(175deg, #00000077, #0001, #fff2), #2196f3;
+  box-shadow:
+    -0.05vmin 0.26vmin 0.2vmin -0.05vmin #fff8,
+    0.05vmin 0.125vmin 0.2vmin -0.125vmin #0008 inset;
+}
+
+.custom-ui-switch .rail:after {
+  right: 2.5vmin;
+  background: linear-gradient(180deg, #858585, #a8a8a8, #e3e3e3);
+  box-shadow:
+    0 0.25vmin 0.2vmin -0.033vmin #fff8,
+    -0.0625vmin 0.0625vmin 0.2vmin -0.125vmin #000 inset;
+}
+
+.custom-ui-switch .rail span {
+  width: calc(5vmin + 1px);
+  height: 0.5vmin;
+  z-index: 1;
+  background: linear-gradient(180deg, #0004, #fff0 0.175vmin),
+    linear-gradient(90deg, #2196f3 50%, #aaaaaa 50%);
+  background-size: 200% 100%;
+  background-position: 55% 50%;
+  box-shadow: 0 0.125vmin 0.075vmin -0.05vmin #fff8;
+  transition: all 0.5s ease 0s;
+}
+
+.custom-ui-switch input[type="checkbox"]:checked ~ .rail span {
+  background-position: 35% 50%;
+}
+
+.custom-ui-switch .slider {
+  position: absolute;
+  width: 9.375vmin;
+  height: 9.375vmin;
+  top: 0.25vmin;
+  left: 0.333vmin;
+  border-radius: 5vmin;
+  background: radial-gradient(circle at 55% 50%, #fff0 4.166vmin, #fff0 10vmin),
+    radial-gradient(circle at 60% 50%, #fff0 5.263vmin, #fff0 6.666vmin),
+    linear-gradient(180deg, #ededed, #bdbdbd);
+  box-shadow:
+    -0.1vmin 0.1vmin 0.166vmin 0 #fff2 inset,
+    0 0 0.5vmin 0.1vmin #6b6b6b,
+    0 0.5vmin 1vmin 0 #0006;
+  z-index: 1;
+  overflow: hidden;
+  transition: all 0.5s ease 0s;
+}
+
+.custom-ui-switch input[type="checkbox"]:checked ~ .slider {
+  left: calc(100% - 9.708vmin);
+  background: radial-gradient(
+      circle at 55% 50%,
+      #fff0 4.166vmin,
+      #2196f3 10vmin
+    ),
+    radial-gradient(circle at 60% 50%, #fff0 5.263vmin, #2196f3 6.666vmin),
+    linear-gradient(180deg, #ededed, #bdbdbd);
+}
+
+.custom-ui-switch .slider:before {
+  content: "";
+  position: absolute;
+  width: 10vmin;
+  height: 10vmin;
+  left: -0.25vmin;
+  top: -0.25vmin;
+  background: radial-gradient(circle at 47.5% 45%, #fff0 4.5vmin, #0003 5vmin);
+  filter: blur(1px);
+}
+
+.custom-ui-switch .slider:after {
+  content: "";
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  background: repeating-conic-gradient(
+      #fff 0.00095%,
+      #fff0 0.0005%,
+      #fff0 0.005%,
+      #fff0 0.0005%
+    ),
+    repeating-conic-gradient(
+      #fff 0.00001%,
+      #fff0 0.00009%,
+      #fff0 0.00075%,
+      #fff0 0.000025%
+    );
+  opacity: 0.25;
+  filter: blur(1px);
+  pointer-events: none;
+}
