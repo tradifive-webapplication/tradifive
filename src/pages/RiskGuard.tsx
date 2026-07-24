@@ -990,60 +990,6 @@ export default function RiskGuard() {
                <div className="flex-1 w-full min-w-0 space-y-8">
 
 
-                  {/* ── KILL SWITCH ── */}
-                  <div
-                     onClick={() => {
-                        if (!killSwitchActive) {
-                           if (window.confirm('⚠️ KILL SWITCH: This will immediately close ALL open positions and halt all trading. Are you sure?')) {
-                              setKillSwitchActive(true);
-                              toast.error(
-                                 <div className="flex flex-col gap-1">
-                                    <span className="font-bold text-white text-[13px]">🔴 KILL SWITCH ACTIVATED</span>
-                                    <span className="text-red-100 text-[11px]">All positions closing. Trading halted immediately.</span>
-                                 </div>,
-                                 { style: { background: '#dc2626' }, duration: 6000 }
-                              );
-                           }
-                        } else {
-                           setKillSwitchActive(false);
-                           toast.success('Kill switch deactivated. Trading resumed.');
-                        }
-                     }}
-                     className={`w-full cursor-pointer rounded-[18px] px-5 py-4 flex items-center justify-between gap-4 transition-all duration-300 select-none ${
-                        killSwitchActive
-                           ? 'bg-red-600 shadow-[0_0_0_3px_rgba(220,38,38,0.3),0_8px_30px_rgba(220,38,38,0.35)]'
-                           : 'bg-[#0F172A] dark:bg-[#0f0f12] shadow-[0_4px_20px_rgba(0,0,0,0.2)] hover:shadow-[0_6px_28px_rgba(0,0,0,0.3)]'
-                     }`}
-                  >
-                     <div className="flex items-center gap-4">
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                           killSwitchActive ? 'bg-white/20' : 'bg-red-500/15'
-                        }`}>
-                           <Power size={20} className={killSwitchActive ? 'text-white' : 'text-red-400'} strokeWidth={2.5} />
-                        </div>
-                        <div>
-                           <p className="text-[14px] font-bold text-white leading-tight">Kill Switch</p>
-                           <p className={`text-[11.5px] font-medium mt-0.5 ${killSwitchActive ? 'text-red-100' : 'text-slate-400'}`}>
-                              {killSwitchActive ? '🔴 ACTIVE — All positions closed, trading halted' : 'One click stops everything — closes all positions immediately'}
-                           </p>
-                        </div>
-                     </div>
-                     <div className="flex items-center gap-3 shrink-0">
-                        {killSwitchActive && (
-                           <span className="text-[10px] font-bold bg-white/20 text-white px-3 py-1 rounded-full uppercase tracking-widest animate-pulse">
-                              HALTED
-                           </span>
-                        )}
-                        <div className={`w-14 h-7 rounded-full flex items-center transition-all duration-300 px-0.5 ${
-                           killSwitchActive ? 'bg-white/30 justify-end' : 'bg-white/10 justify-start'
-                        }`}>
-                           <div className={`w-6 h-6 rounded-full shadow-lg transition-all duration-300 ${
-                              killSwitchActive ? 'bg-white' : 'bg-slate-600'
-                           }`} />
-                        </div>
-                     </div>
-                  </div>
-
                   {/* PROTOCOL ARCHITECTURE TARGET CAPITAL TRACKER */}
                   <div
                      className="p-4 rounded-[22px] border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] relative overflow-hidden isolate dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:rounded-[20px] dark:shadow-none"
@@ -1524,8 +1470,62 @@ export default function RiskGuard() {
                   )}
                </div>
 
-               {/* Right Column: 3 Widgets */}
+               {/* Right Column: Widgets */}
                <div className="w-full xl:w-[320px] shrink-0 space-y-6 xl:sticky xl:top-6 self-start xl:-mt-[72px]">
+
+                  {/* ── KILL SWITCH ── */}
+                  <div
+                     onClick={() => {
+                        if (!killSwitchActive) {
+                           if (window.confirm('⚠️ KILL SWITCH: This will immediately close ALL open positions and halt all trading. Are you sure?')) {
+                              setKillSwitchActive(true);
+                              toast.error(
+                                 <div className="flex flex-col gap-1">
+                                    <span className="font-bold text-white text-[13px]">🔴 KILL SWITCH ACTIVATED</span>
+                                    <span className="text-red-100 text-[11px]">All positions closing. Trading halted immediately.</span>
+                                 </div>,
+                                 { style: { background: '#dc2626' }, duration: 6000 }
+                              );
+                           }
+                        } else {
+                           setKillSwitchActive(false);
+                           toast.success('Kill switch deactivated. Trading resumed.');
+                        }
+                     }}
+                     className={`w-full cursor-pointer rounded-[24px] p-5 flex flex-col gap-4 transition-all duration-300 select-none ${
+                        killSwitchActive
+                           ? 'bg-red-600 shadow-[0_0_0_3px_rgba(220,38,38,0.3),0_8px_30px_rgba(220,38,38,0.35)]'
+                           : 'bg-[#0F172A] dark:bg-[#1A1A1C] shadow-[0_4px_20px_rgba(0,0,0,0.2)] hover:shadow-[0_6px_28px_rgba(0,0,0,0.3)]'
+                     }`}
+                  >
+                     <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                           <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                              killSwitchActive ? 'bg-white/20' : 'bg-red-500/15'
+                           }`}>
+                              <Power size={20} className={killSwitchActive ? 'text-white' : 'text-red-400'} strokeWidth={2.5} />
+                           </div>
+                           <p className="text-[15px] font-bold text-white leading-tight">Kill Switch</p>
+                        </div>
+                        <div className="flex items-center gap-3 shrink-0">
+                           {killSwitchActive && (
+                              <span className="text-[10px] font-bold bg-white/20 text-white px-2 py-1 rounded-md uppercase tracking-widest animate-pulse">
+                                 HALTED
+                              </span>
+                           )}
+                           <div className={`w-12 h-6 rounded-full flex items-center transition-all duration-300 px-0.5 ${
+                              killSwitchActive ? 'bg-white/30 justify-end' : 'bg-white/10 justify-start'
+                           }`}>
+                              <div className={`w-5 h-5 rounded-full shadow-lg transition-all duration-300 ${
+                                 killSwitchActive ? 'bg-white' : 'bg-slate-500'
+                              }`} />
+                           </div>
+                        </div>
+                     </div>
+                     <p className={`text-[12px] font-medium leading-relaxed ${killSwitchActive ? 'text-red-100' : 'text-slate-400'}`}>
+                        {killSwitchActive ? '🔴 ACTIVE — All positions closed, trading halted' : 'One click stops everything — closes all positions immediately'}
+                     </p>
+                  </div>
 
                   {/* 1. Risk Score Card */}
                   <div className="bg-white dark:bg-[#1A1A1C] border border-slate-200 dark:border-zinc-800/80 rounded-[24px] p-6 shadow-sm flex flex-col items-center">
