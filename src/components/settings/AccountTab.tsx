@@ -213,9 +213,9 @@ export default function AccountTab({
                      <h3 className="text-xl font-bold text-slate-900 dark:text-white">{displayName}</h3>
                      <p className="text-sm font-medium text-slate-500 dark:text-[#949ba4]">@{username}</p>
                   </div>
-                  <Button onClick={onEditProfile}>
+                  <button onClick={onEditProfile} className="px-4 py-2 bg-[#3b82f6] hover:bg-blue-600 text-white text-[13px] font-semibold rounded-md shadow-sm transition-colors">
                      Edit User Profile
-                  </Button>
+                  </button>
                </div>
 
                <div className="h-[1px] bg-slate-200/60 dark:bg-[#333333]" />
@@ -235,9 +235,9 @@ export default function AccountTab({
                         )}
                      </div>
                   </div>
-                  <Button variant="outline" size="sm" onClick={onEditProfile}>
+                  <button onClick={onEditProfile} className="px-3 py-1.5 bg-white dark:bg-[#202022] hover:bg-slate-50 dark:hover:bg-[#2c2c2f] border border-slate-200 dark:border-[#333333] text-slate-800 dark:text-white text-[13px] font-semibold rounded transition-colors shadow-sm">
                      Edit
-                  </Button>
+                  </button>
                </div>
 
                <div className="h-[1px] bg-slate-200/60 dark:bg-[#333333]" />
@@ -257,9 +257,9 @@ export default function AccountTab({
                         )}
                      </div>
                   </div>
-                  <Button variant="outline" size="sm" onClick={onEditPhone}>
+                  <button onClick={onEditPhone} className="px-3 py-1.5 bg-white dark:bg-[#202022] hover:bg-slate-50 dark:hover:bg-[#2c2c2f] border border-slate-200 dark:border-[#333333] text-slate-800 dark:text-white text-[13px] font-semibold rounded transition-colors shadow-sm">
                      Edit
-                  </Button>
+                  </button>
                </div>
             </div>
          </section>
@@ -441,12 +441,12 @@ export default function AccountTab({
                   </p>
                </div>
                <div className="flex gap-4 mt-2">
-                  <Button>
+                  <button className="px-5 py-2.5 bg-[#3b82f6] hover:bg-blue-600 text-white text-[14px] font-semibold rounded-md shadow-sm transition-colors">
                      Enable Family Center
-                  </Button>
-                  <Button variant="outline">
+                  </button>
+                  <button className="px-5 py-2.5 bg-white dark:bg-[#1e1e21] hover:bg-slate-100 dark:hover:bg-[#2b2b2b] border border-slate-200 dark:border-[#333333] text-slate-800 dark:text-white text-[14px] font-semibold rounded-md transition-colors shadow-sm">
                      Learn More
-                  </Button>
+                  </button>
                </div>
             </div>
          </section>

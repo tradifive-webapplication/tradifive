@@ -4,7 +4,6 @@ import { Camera, ExternalLink, Check, ChevronDown, CheckCircle2, Circle, ArrowRi
 import { Country, State, City } from 'country-state-city';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
@@ -222,11 +221,11 @@ export default function ProfileTab({
                               autoFocus
                               className="px-2 py-1.5 text-[12px] rounded bg-white dark:bg-[#1E1E1E] border border-slate-200 dark:border-white/5 outline-none w-24"
                            />
-                           <Button size="sm" onClick={handleAddTag}>Add</Button>
+                           <button onClick={handleAddTag} className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 transition-colors shadow-sm active:scale-[0.98] text-white rounded-full text-[12px] font-bold">Add</button>
                         </div>
                      ) : (
                         tags.length < 3 && (
-                           <Button variant="secondary" size="sm" onClick={() => setIsAddingTag(true)}>+ Add Tag</Button>
+                           <button onClick={() => setIsAddingTag(true)} className="px-4 py-1.5 rounded-full bg-slate-200 dark:bg-[#2B2B2B] hover:bg-slate-300 dark:hover:bg-[#3B3B3B] text-slate-700 dark:text-slate-300 text-[12px] font-bold transition-all shadow-sm active:scale-[0.98] flex items-center gap-1">+ Add Tag</button>
                         )
                      )}
                   </div>
