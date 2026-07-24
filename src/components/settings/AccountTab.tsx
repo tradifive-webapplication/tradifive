@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import defaultAvatar from '@/assets/default-avatar.svg';
 import { Button } from '@/components/ui/button';
-import { AlertDialog, AlertDialogTrigger, AlertDialogPrimitive } from '@/components/ui/alert-dialog';
+import { AlertDialog, AlertDialogClose, AlertDialogPopup, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 export default function AccountTab({
    profile,
