@@ -986,51 +986,63 @@ export default function RiskGuard() {
 
                {/* ── KILL SWITCH (Header Position) ── */}
                <div className="flex-1 flex justify-end">
-                  <div className={`rounded-[24px] p-4 flex items-center gap-4 border transition-all duration-300 w-fit pr-5 ${
+                  <div className={`p-4 rounded-[24px] border transition-all duration-300 relative group w-full max-w-[340px] hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:hover:shadow-[0_8px_30px_rgba(255,255,255,0.02)] ${
                      killSwitchActive 
-                        ? 'bg-red-50 dark:bg-red-500/10 border-red-200 dark:border-red-500/20 shadow-sm' 
-                        : 'bg-white dark:bg-[#1A1A1C] border-slate-200 dark:border-zinc-800/80 shadow-sm hover:shadow-md'
+                        ? 'bg-red-50/50 dark:bg-red-500/10 border-red-200 dark:border-red-500/30 shadow-[0_8px_30px_rgb(239,68,68,0.1)] dark:shadow-none' 
+                        : 'bg-slate-50/50 dark:bg-[#0f0f12] border-slate-200/60 dark:border-white/5 shadow-sm hover:bg-slate-50 dark:hover:bg-[#151518]'
                   }`}>
-                     <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
-                        killSwitchActive ? 'bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400' : 'bg-slate-50 dark:bg-zinc-800 text-slate-400 dark:text-slate-500'
-                     }`}>
-                        <Power size={18} strokeWidth={2.5} />
+                     <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                           <div className={`w-12 h-12 rounded-[16px] flex items-center justify-center transition-all duration-300 ${
+                              killSwitchActive 
+                                 ? 'bg-red-500 text-white shadow-sm' 
+                                 : 'bg-white dark:bg-[#1A1A1C] text-slate-400 border border-slate-100 dark:border-white/5 shadow-sm group-hover:text-slate-500'
+                           }`}>
+                              <Power size={20} strokeWidth={2.5} className="transition-transform duration-300 group-hover:rotate-[-5deg]" />
+                           </div>
+                           <div>
+                              <h3 className={`text-[15px] font-bold transition-colors ${
+                                 killSwitchActive ? 'text-red-600 dark:text-red-400' : 'text-slate-800 dark:text-white'
+                              }`}>Kill Switch</h3>
+                              <p className="text-[12px] font-medium text-slate-400 dark:text-slate-500 mt-0.5">One click stops everything</p>
+                           </div>
+                        </div>
+
+                        <div className="flex flex-col items-end gap-1.5 pl-4">
+                           <span className={`text-[11px] font-bold transition-colors ${
+                              killSwitchActive ? 'text-red-500' : 'text-slate-400'
+                           }`}>
+                              {killSwitchActive ? "Active" : "Disabled"}
+                           </span>
+                           <button 
+                              onClick={() => {
+                                 if (!killSwitchActive) {
+                                    if (window.confirm('⚠️ KILL SWITCH: This will immediately close ALL open positions and halt all trading. Are you sure?')) {
+                                       setKillSwitchActive(true);
+                                       toast.error(
+                                          <div className="flex flex-col gap-1">
+                                             <span className="font-bold text-white text-[13px]">🔴 KILL SWITCH ACTIVATED</span>
+                                             <span className="text-red-100 text-[11px]">All positions closing. Trading halted immediately.</span>
+                                          </div>,
+                                          { style: { background: '#dc2626' }, duration: 6000 }
+                                       );
+                                    }
+                                 } else {
+                                    setKillSwitchActive(false);
+                                    toast.success('Kill switch deactivated. Trading resumed.');
+                                 }
+                              }}
+                              className={`w-11 h-6 rounded-full flex items-center transition-colors duration-300 px-0.5 shrink-0 ${
+                                 killSwitchActive ? 'bg-red-500 justify-end' : 'bg-slate-200 dark:bg-zinc-700 justify-start'
+                              }`}
+                           >
+                              <div className="w-5 h-5 bg-white rounded-full shadow-sm" />
+                           </button>
+                        </div>
                      </div>
-                     <div className="flex flex-col mr-4">
-                        <h3 className={`text-[13px] font-bold ${killSwitchActive ? 'text-red-600 dark:text-red-400' : 'text-slate-800 dark:text-white'}`}>Kill Switch</h3>
-                        <p className="text-[10px] font-medium text-slate-400 dark:text-slate-500 leading-tight mt-0.5">One click stops everything</p>
-                     </div>
-                     <button 
-                        onClick={() => {
-                           if (!killSwitchActive) {
-                              if (window.confirm('⚠️ KILL SWITCH: This will immediately close ALL open positions and halt all trading. Are you sure?')) {
-                                 setKillSwitchActive(true);
-                                 toast.error(
-                                    <div className="flex flex-col gap-1">
-                                       <span className="font-bold text-white text-[13px]">🔴 KILL SWITCH ACTIVATED</span>
-                                       <span className="text-red-100 text-[11px]">All positions closing. Trading halted immediately.</span>
-                                    </div>,
-                                    { style: { background: '#dc2626' }, duration: 6000 }
-                                 );
-                              }
-                           } else {
-                              setKillSwitchActive(false);
-                              toast.success('Kill switch deactivated. Trading resumed.');
-                           }
-                        }}
-                        className={`w-11 h-6 rounded-full flex items-center transition-all duration-300 px-0.5 shrink-0 ${
-                           killSwitchActive ? 'bg-red-500 justify-end' : 'bg-slate-200 dark:bg-zinc-700 justify-start'
-                        }`}
-                     >
-                        <div className="w-5 h-5 bg-white rounded-full shadow-sm" />
-                     </button>
                   </div>
                </div>
-
-               <div className="flex-1 hidden md:block"></div>
             </div>
-
-
 
             <div className="flex flex-col xl:flex-row gap-6 items-start">
                <div className="flex-1 w-full min-w-0 space-y-8">
