@@ -472,18 +472,18 @@ export default function AccountTab({
                         </Button>
                      </AlertDialogTrigger>
                      <AlertDialogPopup>
-                        <AlertDialogHeader>
-                           <AlertDialogTitle className="font-sans text-[1.15rem] text-slate-900 dark:text-white tracking-tight">Are you absolutely sure?</AlertDialogTitle>
-                           <AlertDialogDescription className="text-[0.95rem] text-slate-500 dark:text-slate-400 mt-1">
+                        <AlertDialogHeader className="px-6 pt-5 pb-3">
+                           <AlertDialogTitle className="font-sans text-[1.1rem] text-slate-900 dark:text-white tracking-tight">Are you absolutely sure?</AlertDialogTitle>
+                           <AlertDialogDescription className="text-[0.92rem] text-slate-500 dark:text-slate-400 mt-1 leading-snug">
                               This action cannot be undone. This will permanently delete your account
                               and remove your data from our servers.
                            </AlertDialogDescription>
                         </AlertDialogHeader>
-                        <AlertDialogFooter className="bg-slate-50 dark:bg-slate-900 border-t border-black/5 dark:border-white/10">
-                           <AlertDialogClose render={<Button variant="ghost" className="m-0 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-800" />}>Cancel</AlertDialogClose>
+                        <AlertDialogFooter className="bg-slate-50 dark:bg-slate-900 border-t border-black/5 dark:border-white/10 px-6 py-3">
+                           <AlertDialogClose render={<Button variant="ghost" className="m-0 h-9 px-4 rounded-[10px] text-[14px] font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-800" />}>Cancel</AlertDialogClose>
                            <AlertDialogClose 
                               onClick={() => toast.error('Account deletion not fully implemented yet.')}
-                              render={<Button variant="destructive" className="m-0 rounded-[12px] bg-[#f53a3a] hover:bg-[#df2c2c] text-white font-semibold shadow-[0_2px_8px_-2px_rgba(245,58,58,0.4),inset_0_1px_1px_rgba(255,255,255,0.3)] border border-[#d62828] text-[15px]" />}
+                              render={<Button variant="destructive" className="m-0 h-9 px-4 rounded-[10px] bg-[#f53a3a] hover:bg-[#df2c2c] text-white font-medium shadow-[0_2px_8px_-2px_rgba(245,58,58,0.4),inset_0_1px_1px_rgba(255,255,255,0.3)] border border-[#d62828] text-[14px]" />}
                            >
                               Delete Account
                            </AlertDialogClose>
