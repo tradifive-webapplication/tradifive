@@ -131,7 +131,7 @@ export default function AccountTab({
       return (
          <div className="space-y-6 pb-24 font-sans animate-pulse">
             <section>
-               <div className="bg-white dark:bg-[#111112] p-6 rounded-2xl border border-black/5 dark:border-white/10 space-y-6 overflow-hidden">
+               <div className="bg-white dark:bg-[#111112] p-6 rounded-2xl border border-slate-200 dark:border-[#333333] space-y-6 overflow-hidden">
                   <div className="h-4 w-24 bg-slate-200 dark:bg-[#333] rounded mb-2"></div>
 
                   <div className="h-28 bg-slate-200 dark:bg-[#202020] relative rounded-xl border border-slate-200 dark:border-transparent">
@@ -171,7 +171,7 @@ export default function AccountTab({
             </section>
 
             <section>
-               <div className="bg-white dark:bg-[#111112] p-6 rounded-2xl border border-black/5 dark:border-white/10 space-y-6 overflow-hidden">
+               <div className="bg-white dark:bg-[#111112] p-6 rounded-2xl border border-slate-200 dark:border-[#333333] space-y-6 overflow-hidden">
                   <div className="h-4 w-32 bg-slate-200 dark:bg-[#333] rounded"></div>
                   <div className="flex justify-between items-center">
                      <div className="space-y-2">
@@ -191,7 +191,7 @@ export default function AccountTab({
 
          {/* SECTION 1: MY ACCOUNT */}
          <section id="account-info">
-            <div className="bg-white dark:bg-[#111112] p-6 rounded-2xl border border-black/5 dark:border-white/10 space-y-6 overflow-hidden">
+            <div className="bg-white dark:bg-[#111112] p-6 rounded-2xl border border-slate-200 dark:border-[#333333] space-y-6 overflow-hidden">
                <h2 className="text-xs font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-widest mb-2">My Account</h2>
 
                {/* Banner with Avatar */}
@@ -266,7 +266,7 @@ export default function AccountTab({
 
          {/* SECTION 2: PASSWORD & SECURITY */}
          <section id="password-security">
-            <div className="bg-white dark:bg-[#111112] p-6 rounded-2xl border border-black/5 dark:border-white/10 space-y-6 overflow-hidden">
+            <div className="bg-white dark:bg-[#111112] p-6 rounded-2xl border border-slate-200 dark:border-[#333333] space-y-6 overflow-hidden">
                <h2 className="text-xs font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-widest">Password & Security</h2>
 
                {/* Change Password Card Row */}
@@ -347,7 +347,7 @@ export default function AccountTab({
          {/* SECTION 3: ACCOUNT STANDING */}
          <section id="account-standing">
             <div className={`p-6 md:p-8 rounded-2xl border shadow-sm flex flex-col items-center justify-center text-center space-y-4 py-10 transition-colors
-               ${(!standing || standing === 'GOOD') ? 'bg-white dark:bg-[#111112] border-black/5 dark:border-white/10 overflow-hidden' : ''}
+               ${(!standing || standing === 'GOOD') ? 'bg-white dark:bg-[#111112] border-slate-200 dark:border-[#333333] overflow-hidden' : ''}
                ${standing === 'WARNING' ? 'bg-yellow-50 dark:bg-yellow-950/10 border-yellow-200 dark:border-yellow-900/30' : ''}
                ${standing === 'RESTRICTED' ? 'bg-orange-50 dark:bg-orange-950/10 border-orange-200 dark:border-orange-900/30' : ''}
                ${standing === 'BANNED' ? 'bg-red-50 dark:bg-red-950/10 border-red-200 dark:border-red-900/30' : ''}
@@ -429,7 +429,7 @@ export default function AccountTab({
 
          {/* SECTION 4: FAMILY CENTER */}
          <section id="family-center">
-            <div className="bg-white dark:bg-[#111112] p-6 md:p-8 rounded-2xl border border-black/5 dark:border-white/10 overflow-hidden flex flex-col items-center justify-center text-center space-y-6">
+            <div className="bg-white dark:bg-[#111112] p-6 md:p-8 rounded-2xl border border-slate-200 dark:border-[#333333] overflow-hidden flex flex-col items-center justify-center text-center space-y-6">
                <h2 className="text-xs font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-widest self-start mb-2">Family Center</h2>
                <div className="w-20 h-20 rounded-full bg-blue-500/10 flex items-center justify-center mt-2">
                   <Users size={40} className="text-[#3b82f6]" />
