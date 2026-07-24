@@ -473,17 +473,17 @@ export default function AccountTab({
                      </AlertDialogTrigger>
                      <AlertDialogPopup>
                         <AlertDialogHeader>
-                           <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                           <AlertDialogDescription>
+                           <AlertDialogTitle className="font-sans text-[1.15rem] text-slate-900 dark:text-white tracking-tight">Are you absolutely sure?</AlertDialogTitle>
+                           <AlertDialogDescription className="text-[0.95rem] text-slate-500 dark:text-slate-400 mt-1">
                               This action cannot be undone. This will permanently delete your account
                               and remove your data from our servers.
                            </AlertDialogDescription>
                         </AlertDialogHeader>
-                        <AlertDialogFooter>
-                           <AlertDialogClose render={<Button variant="ghost" className="m-0" />}>Cancel</AlertDialogClose>
+                        <AlertDialogFooter className="bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800">
+                           <AlertDialogClose render={<Button variant="ghost" className="m-0 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-800" />}>Cancel</AlertDialogClose>
                            <AlertDialogClose 
                               onClick={() => toast.error('Account deletion not fully implemented yet.')}
-                              render={<Button variant="destructive" className="m-0" />}
+                              render={<Button variant="destructive" className="m-0 rounded-lg bg-[#ef4444] hover:bg-[#dc2626] text-white shadow-sm" />}
                            >
                               Delete Account
                            </AlertDialogClose>
