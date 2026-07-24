@@ -1284,82 +1284,7 @@ export default function RiskGuard() {
                      <div>
 
                         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-8">
-                           <RiskGuardCard icon={ShieldCheck} title="Discipline Sentinel" description="Loss cooldown & daily execution limit" value={disciplineActive ? "Active" : "Disabled"} active={disciplineActive} onToggle={setDisciplineActive}>
-                              <div className="space-y-4">
-                                 {/* Daily Trade Limit Stepper */}
-                                 <div className="p-3.5 flex flex-col gap-3 rounded-[22px] bg-[#F4F4F4]/50 dark:bg-[#1A1A1C]/50 border border-transparent shadow-sm">
-                                    <div className="flex items-center justify-between">
-                                       <div>
-                                          <p className="text-[12.5px] font-semibold text-slate-700 dark:text-slate-200 leading-none">Daily Execution Limit</p>
-                                          <p className="text-[10.5px] text-slate-400 font-medium mt-1">Locks orders when slot budget is exhausted</p>
-                                       </div>
-                                       <div className="flex items-center gap-4 shrink-0">
-                                          <button
-                                             onClick={() => {
-                                                setTradeLimit(prev => Math.max(1, prev - 1));
-                                             }}
-                                             className="w-8 h-8 flex items-center justify-center rounded-full bg-white dark:bg-[#202020] border border-slate-200/60 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] text-slate-700 dark:text-slate-300 font-bold hover:bg-slate-50 transition-colors active:scale-95"
-                                          >
-                                             -
-                                          </button>
-                                          <span className="w-6 text-center text-[15px] font-bold text-slate-800 dark:text-white tabular-nums">
-                                             {(!isProOrElite && tradeLimit > 5) ? 5 : tradeLimit}
-                                          </span>
-                                          <button
-                                             onClick={() => {
-                                                if (!isProOrElite && tradeLimit >= 5) {
-                                                   toast.error(
-                                                      <div className="flex flex-col gap-1">
-                                                         <div className="flex items-center gap-2">
-                                                            <Crown size={16} className="text-amber-500" />
-                                                            <span className="font-bold text-slate-900 dark:text-white">Pro Feature</span>
-                                                         </div>
-                                                         <span className="text-slate-600 dark:text-slate-300">Upgrade to Pro to increase daily execution limits.</span>
-                                                      </div>
-                                                   );
-                                                   return;
-                                                }
-                                                setTradeLimit(prev => Math.min(10, prev + 1));
-                                             }}
-                                             className="w-8 h-8 flex items-center justify-center rounded-full bg-[#0F172A] dark:bg-indigo-500 text-white font-bold hover:bg-slate-800 transition-colors active:scale-95"
-                                          >
-                                             +
-                                          </button>
-                                       </div>
-                                    </div>
-
-                                    {/* Active trading slots */}
-                                    <div className="flex items-center justify-between gap-3 pt-3 border-t border-slate-200/30 dark:border-slate-800/50">
-                                       <div className="flex gap-2 flex-wrap items-center min-w-0 py-1 px-1">
-                                          {new Array((!isProOrElite && tradeLimit > 5) ? 5 : tradeLimit).fill(0).map((_, i) => {
-                                             const taken = Math.min(tradesToday ?? 0, (!isProOrElite && tradeLimit > 5) ? 5 : tradeLimit);
-                                             const isFilled = i < taken;
-                                             return (
-                                                <div
-                                                   key={i}
-                                                   title={isFilled ? `Trade ${i + 1} — taken` : `Trade ${i + 1} — available`}
-                                                   className="w-[26px] h-[26px] p-[5px] bg-[#e0e0e0] dark:bg-[#2A2A2E] rounded-full flex justify-center items-center shrink-0 shadow-[inset_-1px_-2px_7px_#ffffff,inset_1px_2px_4px_#b0b0b0] dark:shadow-none"
-                                                >
-                                                   <div className={`w-full h-full rounded-full transition-all duration-300 ${isFilled
-                                                      ? 'bg-blue-500 dark:bg-[#00E5FF] border-[2px] border-transparent scale-110 outline outline-[3px] outline-[#f2f3f4] dark:outline-[#1A1A1C]'
-                                                      : 'bg-transparent'
-                                                      }`} />
-                                                </div>
-                                             );
-                                          })}
-                                       </div>
-                                       <div className="text-right shrink-0">
-                                          <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Budget Usage</span>
-                                          <p className="text-[14px] font-bold text-slate-800 dark:text-white leading-none tracking-tight">
-                                             {Math.min(tradesToday ?? 0, (!isProOrElite && tradeLimit > 5) ? 5 : tradeLimit)}/{(!isProOrElite && tradeLimit > 5) ? 5 : tradeLimit}
-                                          </p>
-                                       </div>
-                                    </div>
-                                 </div>
-                              </div>
-
-
-                           </RiskGuardCard>
+                           <RiskGuardCard icon={ShieldCheck} title="Discipline Sentinel" description="Loss cooldown & daily execution limit" value={disciplineActive ? "Active" : "Disabled"} active={disciplineActive} onToggle={setDisciplineActive} />
 
                            {/* Loss Cooldown Shield — standalone card */}
                            <RiskGuardCard icon={ShieldOff} title="Loss Cooldown Shield" description="Locks execution after any losing trade" value={!isProOrElite ? "Pro" : revengeGuard ? "Active" : "Disabled"} active={!isProOrElite ? false : revengeGuard} onToggle={(val) => {
@@ -1422,55 +1347,7 @@ export default function RiskGuard() {
                               )}
                            </RiskGuardCard>
 
-                           <RiskGuardCard icon={Clock} title="Session Sentinel" description="Custom hourly trading windows" value={sessionActive ? "Active" : "Disabled"} active={sessionActive} onToggle={setSessionActive}>
-                              <div className="space-y-2">
-                                 {sessionButtons.map(session => {
-                                    const isSelected = selectedSessions.includes(session.id);
-                                    return (
-                                       <div
-                                          key={session.id}
-                                          className={`flex items-center justify-between px-3 py-2 rounded-xl border transition-all ${isSelected
-                                             ? 'bg-emerald-50/50 dark:bg-emerald-950/10 border-emerald-200 dark:border-emerald-500/20'
-                                             : 'bg-slate-50 dark:bg-[#1A1A1C] border-slate-200 dark:border-[#2A2A2C] hover:bg-slate-100 dark:hover:bg-[#1E1E20]'
-                                          }`}
-                                       >
-                                          <button
-                                             onClick={() => toggleSession(session.id)}
-                                             className="flex items-center gap-2 flex-1 min-w-0"
-                                          >
-                                             <span className={`w-[6px] h-[6px] rounded-full shrink-0 ${isSelected ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-[#3A3F50]'}`} />
-                                             <span className={`text-[12px] font-bold truncate ${isSelected ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-300'}`}>
-                                                {session.label}
-                                             </span>
-                                          </button>
-                                          {isSelected && (
-                                             <div className="flex items-center gap-1.5 shrink-0 ml-2">
-                                                <div className="flex items-center gap-1 bg-white dark:bg-[#0D0D0E] border border-slate-200 dark:border-[#252528] rounded-md px-1.5 py-1">
-                                                   <input
-                                                      type="time"
-                                                      value={sessionTimes[session.id]?.start || ""}
-                                                      onChange={e => setSessionTimes(prev => ({ ...prev, [session.id]: { ...prev[session.id], start: e.target.value } }))}
-                                                      className="w-[64px] bg-transparent text-[11px] font-bold text-slate-700 dark:text-slate-200 outline-none tabular-nums"
-                                                   />
-                                                   <Clock size={9} className="text-slate-400 shrink-0" />
-                                                </div>
-                                                <span className="text-[9px] text-slate-400 font-bold">to</span>
-                                                <div className="flex items-center gap-1 bg-white dark:bg-[#0D0D0E] border border-slate-200 dark:border-[#252528] rounded-md px-1.5 py-1">
-                                                   <input
-                                                      type="time"
-                                                      value={sessionTimes[session.id]?.end || ""}
-                                                      onChange={e => setSessionTimes(prev => ({ ...prev, [session.id]: { ...prev[session.id], end: e.target.value } }))}
-                                                      className="w-[64px] bg-transparent text-[11px] font-bold text-slate-700 dark:text-slate-200 outline-none tabular-nums"
-                                                   />
-                                                   <Clock size={9} className="text-slate-400 shrink-0" />
-                                                </div>
-                                             </div>
-                                          )}
-                                       </div>
-                                    );
-                                 })}
-                              </div>
-                           </RiskGuardCard>
+                           <RiskGuardCard icon={Clock} title="Session Sentinel" description="Custom hourly trading windows" value={sessionActive ? "Active" : "Disabled"} active={sessionActive} onToggle={setSessionActive} />
 
                            <RiskGuardCard icon={Trophy} title="Consecutive Win Lock" description="Lock trading after wins" value={`${consecutiveWins} Wins`} active={stopAfterWin} onToggle={setStopAfterWin}>
                               <div>
