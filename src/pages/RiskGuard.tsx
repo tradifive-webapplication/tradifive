@@ -978,10 +978,6 @@ export default function RiskGuard() {
 
             {/* HEADER - Clean, Title-Case, consistent typography weights */}
             <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 pb-4">
-               <div>
-                  <h1 className="text-[25px] font-semibold text-slate-800 dark:text-white tracking-tight leading-none">Risk Guard</h1>
-                  <p className="text-[12px] text-slate-400 dark:text-slate-400 mt-2 font-medium">Configure automated capital protection and institutional discipline brackets.</p>
-               </div>
                
                {/* ── KILL SWITCH (Header Position) ── */}
                <div
@@ -1035,6 +1031,11 @@ export default function RiskGuard() {
                         }`} />
                      </div>
                   </div>
+               </div>
+
+               <div className="md:text-right">
+                  <h1 className="text-[25px] font-semibold text-slate-800 dark:text-white tracking-tight leading-none">Risk Guard</h1>
+                  <p className="text-[12px] text-slate-400 dark:text-slate-400 mt-2 font-medium">Configure automated capital protection and institutional discipline brackets.</p>
                </div>
             </div>
 
