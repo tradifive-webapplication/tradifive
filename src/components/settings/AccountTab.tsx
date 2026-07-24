@@ -471,21 +471,24 @@ export default function AccountTab({
                            Delete Account
                         </Button>
                      </AlertDialogTrigger>
-                     <AlertDialogContent className="!p-0 overflow-hidden sm:rounded-[16px] border border-slate-200/60 dark:border-[#333] shadow-xl max-w-[440px] bg-white dark:bg-[#1c1c1e]">
-                        <div className="p-6 pt-7 pb-6">
+                     <AlertDialogContent className="!p-0 overflow-hidden sm:rounded-[24px] border border-black/5 dark:border-white/10 shadow-[0_8px_40px_rgba(0,0,0,0.12)] dark:shadow-[0_16px_60px_rgba(0,0,0,0.5)] max-w-[420px] bg-white/95 dark:bg-[#111113]/95 backdrop-blur-2xl">
+                        <div className="p-8 pt-9 pb-7">
                            <AlertDialogHeader>
-                              <AlertDialogTitle className="text-[20px] font-bold text-slate-900 dark:text-white">Are you absolutely sure?</AlertDialogTitle>
-                              <AlertDialogDescription className="text-slate-500 dark:text-[#949ba4] text-[14px] mt-2 leading-relaxed">
+                              <AlertDialogTitle className="text-[22px] font-semibold text-slate-900 dark:text-zinc-100 tracking-tight">Are you absolutely sure?</AlertDialogTitle>
+                              <AlertDialogDescription className="text-slate-500 dark:text-zinc-400 text-[15px] mt-2.5 leading-relaxed font-medium">
                                  This action cannot be undone. This will permanently delete your account and remove your data from our servers.
                               </AlertDialogDescription>
                            </AlertDialogHeader>
                         </div>
-                        <div className="bg-[#f9fafb] dark:bg-[#121212] border-t border-slate-100 dark:border-[#222]">
-                           <AlertDialogFooter className="px-6 py-4 flex flex-row items-center justify-end gap-3 sm:space-x-0">
-                              <AlertDialogCancel className="border-none bg-transparent hover:bg-slate-200/50 dark:hover:bg-[#2c2c2f] text-slate-700 dark:text-slate-300 shadow-none font-semibold m-0 transition-colors">
+                        <div className="bg-slate-50/50 dark:bg-white/[0.02] border-t border-black/5 dark:border-white/5">
+                           <AlertDialogFooter className="px-8 py-5 flex flex-row items-center justify-end gap-3 sm:space-x-0">
+                              <AlertDialogCancel className="border-none bg-transparent hover:bg-black/5 dark:hover:bg-white/10 text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-100 shadow-none font-medium m-0 transition-all rounded-xl px-5 py-2.5">
                                  Cancel
                               </AlertDialogCancel>
-                              <AlertDialogAction className="bg-[#ff3b30] hover:bg-[#e6352b] text-white font-semibold rounded-[10px] px-5 py-2 h-auto shadow-sm m-0 transition-colors" onClick={() => toast.error('Account deletion not fully implemented yet.')}>
+                              <AlertDialogAction 
+                                 className="bg-[#ef4444] hover:bg-[#dc2626] text-white font-medium rounded-xl px-5 py-2.5 h-auto shadow-[0_1px_2px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.2)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.2)] m-0 transition-all ring-1 ring-inset ring-black/10 dark:ring-transparent" 
+                                 onClick={() => toast.error('Account deletion not fully implemented yet.')}
+                              >
                                  Delete Account
                               </AlertDialogAction>
                            </AlertDialogFooter>
