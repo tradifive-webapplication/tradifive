@@ -123,7 +123,7 @@ export default function ProfileTab({
           {/* Left Column - Controls */}
           {isInitialLoading ? (
               <div className="flex-1 space-y-6 animate-pulse">
-                  <div className="bg-white dark:bg-[#111112] p-6 rounded-2xl border border-slate-200 dark:border-[#333333] overflow-hidden">
+                  <div style={{background:'#FFFFFF',border:'1px solid #E5E7EB',borderRadius:'20px',boxShadow:'0 10px 30px rgba(15,23,42,0.08),0 2px 8px rgba(15,23,42,0.04)'}} className="dark:bg-[#111112] dark:border-[#333333] p-6 overflow-hidden">
                       <div className="h-6 w-48 bg-slate-200 dark:bg-[#333] rounded mb-6"></div>
                       <div className="h-40 rounded-xl bg-slate-200 dark:bg-[#202020] mb-16 relative">
                           <div className="absolute -bottom-10 left-6">
@@ -135,7 +135,7 @@ export default function ProfileTab({
                           <div className="h-24 w-full bg-slate-200 dark:bg-[#333] rounded-xl"></div>
                       </div>
                   </div>
-                  <div className="bg-white dark:bg-[#111112] p-6 rounded-2xl border border-slate-200 dark:border-[#333333] overflow-hidden space-y-4">
+                  <div style={{background:'#FFFFFF',border:'1px solid #E5E7EB',borderRadius:'20px',boxShadow:'0 10px 30px rgba(15,23,42,0.08),0 2px 8px rgba(15,23,42,0.04)'}} className="dark:bg-[#111112] dark:border-[#333333] p-6 overflow-hidden space-y-4">
                       <div className="h-6 w-32 bg-slate-200 dark:bg-[#333] rounded"></div>
                       <div className="grid grid-cols-2 gap-4">
                           <div className="h-10 w-full bg-slate-200 dark:bg-[#333] rounded-xl"></div>
@@ -146,7 +146,7 @@ export default function ProfileTab({
           ) : (
              <div className="flex-1 space-y-6">
                 {/* Profile Appearance */}
-                <div className="bg-white dark:bg-[#111112] p-6 rounded-2xl border border-slate-200 dark:border-[#333333] overflow-hidden">
+                <div style={{background:'#FFFFFF',border:'1px solid #E5E7EB',borderRadius:'20px',boxShadow:'0 10px 30px rgba(15,23,42,0.08),0 2px 8px rgba(15,23,42,0.04)'}} className="dark:bg-[#111112] dark:border-[#333333] p-6 overflow-hidden">
                <div className="flex justify-between items-center mb-6">
                   <div>
                      <h2 className="text-lg font-bold text-slate-900 dark:text-white">Profile Appearance</h2>
@@ -306,7 +306,7 @@ export default function ProfileTab({
          {/* Right Column - Previews */}
          <div className="w-full xl:w-[350px] shrink-0 space-y-6">
             {/* Live Preview Card */}
-            <div className="bg-white dark:bg-[#111112] rounded-2xl border border-slate-200 dark:border-[#333333] overflow-hidden">
+            <div style={{background:'#FFFFFF',border:'1px solid #E5E7EB',borderRadius:'20px',boxShadow:'0 10px 30px rgba(15,23,42,0.08),0 2px 8px rgba(15,23,42,0.04)'}} className="dark:bg-[#111112] dark:border-[#333333] overflow-hidden">
                <div className="p-4 text-[11px] text-slate-500 dark:text-[#949ba4] font-medium border-b border-slate-100 dark:border-[#2a2a2a]">
                   This is how others will see your profile.
                </div>
@@ -411,7 +411,7 @@ export default function ProfileTab({
             </div>
 
             {/* Profile Summary Card */}
-            <div className="bg-white dark:bg-[#111112] p-6 rounded-2xl border border-slate-200 dark:border-[#333333] overflow-hidden">
+            <div style={{background:'#FFFFFF',border:'1px solid #E5E7EB',borderRadius:'20px',boxShadow:'0 10px 30px rgba(15,23,42,0.08),0 2px 8px rgba(15,23,42,0.04)'}} className="dark:bg-[#111112] dark:border-[#333333] p-6 overflow-hidden">
                <h3 className="text-[11px] font-extrabold text-slate-500 dark:text-[#949ba4] uppercase tracking-wider mb-6">Profile Summary</h3>
                
                <div className="flex items-center gap-4 mb-6">
