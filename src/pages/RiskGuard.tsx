@@ -977,11 +977,66 @@ export default function RiskGuard() {
             )}
 
             {/* HEADER - Clean, Title-Case, consistent typography weights */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-4">
-               <div>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-4 w-full">
+
+               <div className="flex-1">
                   <h1 className="text-[25px] font-semibold text-slate-800 dark:text-white tracking-tight leading-none">Risk Guard</h1>
                   <p className="text-[12px] text-slate-400 dark:text-slate-400 mt-2 font-medium">Configure automated capital protection and institutional discipline brackets.</p>
                </div>
+
+               {/* ── KILL SWITCH (Header Position) ── */}
+               <div className="flex-1 flex justify-center">
+                  <div
+                     onClick={() => {
+                        if (!killSwitchActive) {
+                           if (window.confirm('⚠️ KILL SWITCH: This will immediately close ALL open positions and halt all trading. Are you sure?')) {
+                              setKillSwitchActive(true);
+                              toast.error(
+                                 <div className="flex flex-col gap-1">
+                                    <span className="font-bold text-white text-[13px]">🔴 KILL SWITCH ACTIVATED</span>
+                                    <span className="text-red-100 text-[11px]">All positions closing. Trading halted immediately.</span>
+                                 </div>,
+                                 { style: { background: '#dc2626' }, duration: 6000 }
+                              );
+                           }
+                        } else {
+                           setKillSwitchActive(false);
+                           toast.success('Kill switch deactivated. Trading resumed.');
+                        }
+                     }}
+                     className={`cursor-pointer rounded-2xl px-5 py-3 flex items-center gap-5 transition-all duration-300 select-none ${killSwitchActive
+                           ? 'bg-red-600 shadow-[0_0_0_3px_rgba(220,38,38,0.3),0_8px_30px_rgba(220,38,38,0.35)]'
+                           : 'bg-[#0F172A] dark:bg-[#1A1A1C] shadow-[0_4px_20px_rgba(0,0,0,0.15)] hover:shadow-[0_6px_24px_rgba(0,0,0,0.2)] border border-transparent dark:border-white/5'
+                        }`}
+                  >
+                     <div className="flex items-center gap-3.5">
+                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${killSwitchActive ? 'bg-white/20' : 'bg-red-500/15'
+                           }`}>
+                           <Power size={18} className={killSwitchActive ? 'text-white' : 'text-red-400'} strokeWidth={2.5} />
+                        </div>
+                        <div className="flex flex-col">
+                           <p className="text-[14px] font-bold text-white leading-none mb-1">Kill Switch</p>
+                           <p className={`text-[11px] font-medium leading-none ${killSwitchActive ? 'text-red-100' : 'text-slate-400'}`}>
+                              {killSwitchActive ? 'All positions closed' : 'One click stops everything'}
+                           </p>
+                        </div>
+                     </div>
+                     <div className="flex items-center gap-3 border-l border-white/10 pl-5 ml-1">
+                        {killSwitchActive && (
+                           <span className="text-[9px] font-bold bg-white/20 text-white px-2 py-1 rounded uppercase tracking-widest animate-pulse">
+                              HALTED
+                           </span>
+                        )}
+                        <div className={`w-12 h-6 rounded-full flex items-center transition-all duration-300 px-0.5 ${killSwitchActive ? 'bg-white/30 justify-end' : 'bg-white/10 justify-start'
+                           }`}>
+                           <div className={`w-5 h-5 rounded-full shadow-md transition-all duration-300 ${killSwitchActive ? 'bg-white' : 'bg-slate-500'
+                              }`} />
+                        </div>
+                     </div>
+                  </div>
+               </div>
+
+               <div className="flex-1 hidden md:block"></div>
             </div>
 
 
@@ -1464,52 +1519,6 @@ export default function RiskGuard() {
                               </div>
 
                            </RiskGuardCard>
-
-                           <RiskGuardCard icon={Power} title="Kill Switch" description="Closes all positions immediately" value={killSwitchActive ? "Active" : "Disabled"} active={killSwitchActive} onToggle={(checked) => {
-                              if (checked) {
-                                 if (window.confirm('⚠️ KILL SWITCH: This will immediately close ALL open positions and halt all trading. Are you sure?')) {
-                                    setKillSwitchActive(true);
-                                    toast.error(
-                                       <div className="flex flex-col gap-1">
-                                          <span className="font-bold text-white text-[13px]">🔴 KILL SWITCH ACTIVATED</span>
-                                          <span className="text-red-100 text-[11px]">All positions closing. Trading halted immediately.</span>
-                                       </div>,
-                                       { style: { background: '#dc2626' }, duration: 6000 }
-                                    );
-                                 }
-                              } else {
-                                 setKillSwitchActive(false);
-                                 toast.success('Kill switch deactivated. Trading resumed.');
-                              }
-                           }}>
-                              <div className="space-y-4">
-                                 <div className="p-3.5 flex flex-col gap-3 rounded-[16px] bg-[#F4F4F4]/50 dark:bg-[#1A1A1C]/50 border border-transparent shadow-sm">
-                                    <div className="flex items-center justify-between">
-                                       <div>
-                                          <p className="text-[11px] font-bold text-slate-700 dark:text-slate-200">Force Global Stop</p>
-                                          <p className="text-[10px] text-slate-400 font-medium mt-1">Immediately close all open trades</p>
-                                       </div>
-                                       <button
-                                          onClick={() => {
-                                             if (window.confirm('⚠️ KILL SWITCH: This will immediately close ALL open positions and halt all trading. Are you sure?')) {
-                                                setKillSwitchActive(true);
-                                                toast.error(
-                                                   <div className="flex flex-col gap-1">
-                                                      <span className="font-bold text-white text-[13px]">🔴 KILL SWITCH ACTIVATED</span>
-                                                      <span className="text-red-100 text-[11px]">All positions closing. Trading halted immediately.</span>
-                                                   </div>,
-                                                   { style: { background: '#dc2626' }, duration: 6000 }
-                                                );
-                                             }
-                                          }}
-                                          className="px-4 py-2 rounded-xl bg-red-500/10 dark:bg-red-500/20 text-red-600 dark:text-red-400 text-[11px] font-bold hover:bg-red-500 hover:text-white transition-all shadow-sm"
-                                       >
-                                          Trigger Kill
-                                       </button>
-                                    </div>
-                                 </div>
-                              </div>
-                           </RiskGuardCard>
                         </div>
                      </div>
                   )}
@@ -1610,6 +1619,53 @@ export default function RiskGuard() {
                         </div>
                      </div>
                   </div>
+
+                  {/* 4. Kill Switch */}
+                  <RiskGuardCard icon={Power} title="Kill Switch" description="Closes all positions immediately" value={killSwitchActive ? "Active" : "Disabled"} active={killSwitchActive} onToggle={(checked) => {
+                     if (checked) {
+                        if (window.confirm('⚠️ KILL SWITCH: This will immediately close ALL open positions and halt all trading. Are you sure?')) {
+                           setKillSwitchActive(true);
+                           toast.error(
+                              <div className="flex flex-col gap-1">
+                                 <span className="font-bold text-white text-[13px]">🔴 KILL SWITCH ACTIVATED</span>
+                                 <span className="text-red-100 text-[11px]">All positions closing. Trading halted immediately.</span>
+                              </div>,
+                              { style: { background: '#dc2626' }, duration: 6000 }
+                           );
+                        }
+                     } else {
+                        setKillSwitchActive(false);
+                        toast.success('Kill switch deactivated. Trading resumed.');
+                     }
+                  }}>
+                     <div className="space-y-4">
+                        <div className="p-3.5 flex flex-col gap-3 rounded-[16px] bg-[#F4F4F4]/50 dark:bg-[#1A1A1C]/50 border border-transparent shadow-sm">
+                           <div className="flex items-center justify-between">
+                              <div>
+                                 <p className="text-[11px] font-bold text-slate-700 dark:text-slate-200">Force Global Stop</p>
+                                 <p className="text-[10px] text-slate-400 font-medium mt-1">Immediately close all open trades</p>
+                              </div>
+                              <button
+                                 onClick={() => {
+                                    if (window.confirm('⚠️ KILL SWITCH: This will immediately close ALL open positions and halt all trading. Are you sure?')) {
+                                       setKillSwitchActive(true);
+                                       toast.error(
+                                          <div className="flex flex-col gap-1">
+                                             <span className="font-bold text-white text-[13px]">🔴 KILL SWITCH ACTIVATED</span>
+                                             <span className="text-red-100 text-[11px]">All positions closing. Trading halted immediately.</span>
+                                          </div>,
+                                          { style: { background: '#dc2626' }, duration: 6000 }
+                                       );
+                                    }
+                                 }}
+                                 className="px-4 py-2 rounded-xl bg-red-500/10 dark:bg-red-500/20 text-red-600 dark:text-red-400 text-[11px] font-bold hover:bg-red-500 hover:text-white transition-all shadow-sm"
+                              >
+                                 Trigger Kill
+                              </button>
+                           </div>
+                        </div>
+                     </div>
+                  </RiskGuardCard>
                </div>
             </div>
 
