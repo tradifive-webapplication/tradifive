@@ -4,23 +4,60 @@ import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
 
+/**
+ * Button styles matching the 3D "Save" button design:
+ * - Normal:  dark rounded rect, bottom shadow gives depth/elevation
+ * - Hover:   slightly lighter bg, shadow stays
+ * - Active:  shadow drops away + translates down (pressed-in feel)
+ */
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[8px] font-medium transition-all active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  [
+    "inline-flex items-center justify-center gap-2 whitespace-nowrap",
+    "rounded-[14px] font-semibold text-white select-none cursor-pointer",
+    "transition-all duration-100 ease-out",
+    // Active / pressed state: shadow gone, button shifts down
+    "active:shadow-none active:translate-y-[3px]",
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
+    "disabled:pointer-events-none disabled:opacity-40",
+    "[&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  ].join(" "),
   {
     variants: {
       variant: {
-        default: "bg-[#3b82f6] hover:bg-[#2563eb] text-white shadow-[0_2px_8px_-2px_rgba(59,130,246,0.4),inset_0_1px_1px_rgba(255,255,255,0.3)] border border-[#2563eb]",
-        destructive: "bg-[#f53a3a] hover:bg-[#df2c2c] text-white shadow-[0_2px_8px_-2px_rgba(245,58,58,0.4),inset_0_1px_1px_rgba(255,255,255,0.3)] border border-[#d62828]",
-        outline: "border border-slate-200 dark:border-[#333333] bg-white dark:bg-[#1a1a1c] hover:bg-slate-50 dark:hover:bg-[#232325] shadow-[0_2px_4px_-1px_rgba(0,0,0,0.05),inset_0_1px_1px_rgba(255,255,255,0.05)] text-slate-800 dark:text-white",
-        secondary: "bg-slate-100 dark:bg-[#2B2B2B] text-slate-900 dark:text-slate-100 hover:bg-slate-200 dark:hover:bg-[#3B3B3B] shadow-[0_1px_2px_rgba(0,0,0,0.05)] border border-slate-200/50 dark:border-[#333333]",
-        ghost: "hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300",
-        link: "text-blue-600 dark:text-blue-400 underline-offset-4 hover:underline",
+        // Dark charcoal — matches the screenshots exactly
+        default:
+          "bg-[#232323] hover:bg-[#2e2e2e] " +
+          "shadow-[0_5px_0_0_#111111,0_8px_20px_rgba(0,0,0,0.45)] " +
+          "hover:shadow-[0_5px_0_0_#111111,0_8px_16px_rgba(0,0,0,0.35)]",
+
+        // Red / destructive
+        destructive:
+          "bg-[#c0392b] hover:bg-[#d44132] " +
+          "shadow-[0_5px_0_0_#7b241c,0_8px_20px_rgba(192,57,43,0.45)] " +
+          "hover:shadow-[0_5px_0_0_#7b241c,0_6px_16px_rgba(192,57,43,0.35)]",
+
+        // Outline / neutral dark
+        outline:
+          "bg-[#2a2a2a] hover:bg-[#343434] border border-[#3f3f3f] " +
+          "shadow-[0_5px_0_0_#111111,0_8px_20px_rgba(0,0,0,0.40)] " +
+          "hover:shadow-[0_5px_0_0_#111111,0_6px_16px_rgba(0,0,0,0.30)]",
+
+        // Secondary / lighter gray
+        secondary:
+          "bg-[#3d3d3d] hover:bg-[#484848] " +
+          "shadow-[0_5px_0_0_#1c1c1c,0_8px_20px_rgba(0,0,0,0.35)] " +
+          "hover:shadow-[0_5px_0_0_#1c1c1c,0_6px_14px_rgba(0,0,0,0.25)]",
+
+        ghost:
+          "bg-transparent hover:bg-white/10 text-slate-400 hover:text-white shadow-none active:translate-y-0",
+
+        link: "bg-transparent text-blue-400 underline-offset-4 hover:underline shadow-none active:translate-y-0",
       },
       size: {
-        default: "h-8 px-3 text-[13px]",
-        sm: "h-7 px-2 text-[12px]",
-        lg: "h-9 px-4 text-[13px]",
-        icon: "h-8 w-8",
+        default: "h-9 px-5 text-[13.5px]",
+        sm: "h-8 px-4 text-[12.5px]",
+        lg: "h-10 px-7 text-[14px]",
+        icon: "h-9 w-9",
       },
     },
     defaultVariants: {
@@ -39,11 +76,15 @@ export interface ButtonProps
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
     const Comp = asChild ? Slot : "button";
-    return <Comp className={cn(buttonVariants({ variant, size, className }))} ref={ref} {...props} />;
+    return (
+      <Comp
+        className={cn(buttonVariants({ variant, size, className }))}
+        ref={ref}
+        {...props}
+      />
+    );
   },
 );
 Button.displayName = "Button";
 
 export { Button, buttonVariants };
-
-
