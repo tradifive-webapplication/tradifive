@@ -21,6 +21,7 @@
     "build:mobile": "cd mobile-app && npx expo export -p web && xcopy /E /I /Y dist ..\\public\\mobile"
   },
   "dependencies": {
+    "@base-ui/react": "^1.6.0",
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",

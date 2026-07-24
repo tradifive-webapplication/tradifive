@@ -381,7 +381,7 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
         <div className={`flex-1 ${isFullScreen ? 'pl-0 pr-0 pt-0 pb-0' : `px-0 md:px-5 ${impersonatingUser ? 'pt-0 md:pt-3' : 'pt-0 md:pt-5'} pb-16 md:pb-5`} ${noScroll ? 'overflow-hidden h-full flex flex-col' : 'overflow-y-auto scrollbar-hide'}`}>
           <main
             className={`${noScroll ? 'flex-1 h-full flex flex-col overflow-hidden' : 'min-h-full'
-              } ${isFullScreen ? 'rounded-none border-l border-slate-200 dark:border-white/5' : 'rounded-none md:rounded-[2.5rem] border-0 md:border md:border-slate-100 dark:md:border-white/5 shadow-none md:shadow-[0_8px_30_rgb(0,0,0,0.04)]'} bg-white dark:bg-[#121212] overflow-hidden font-sans`}
+              } ${isFullScreen ? 'rounded-none border-l border-slate-200 dark:border-white/5' : 'rounded-none md:rounded-[2.5rem] border-0 md:border md:border-slate-100 dark:md:border-white/5 shadow-none md:shadow-[0_8px_30_rgb(0,0,0,0.04)]'} bg-white dark:bg-[#121212] font-sans`}
           >
             {/* Header (Moved Inside to Scroll) */}
             <header className="h-[70px] flex items-center justify-between px-4 sm:px-10 border-b border-slate-100 dark:border-white/5 shrink-0">
