@@ -5,15 +5,15 @@ import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import defaultAvatar from '@/assets/default-avatar.svg';
 import { Button } from '@/components/ui/button';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { AlertDialog, AlertDialogClose, AlertDialogPopup, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
-export default function AccountTab({ 
+export default function AccountTab({
    profile,
    isInitialLoading,
-   setActiveSubTab, 
+   setActiveSubTab,
    onEditProfile,
-   onEditPhone 
-}: { 
+   onEditPhone
+}: {
    profile?: any,
    isInitialLoading?: boolean,
    setActiveSubTab: (id: string) => void,
@@ -61,7 +61,7 @@ export default function AccountTab({
    const displayName = profile?.display_name || profile?.name || `${profile?.firstName || ''} ${profile?.lastName || ''}`.trim() || 'TradiFive User';
    const username = profile?.username || 'not_set';
    const email = profile?.email || '';
-   
+
    const [isPasswordLoading, setIsPasswordLoading] = useState(false);
    const [authAppEnabled, setAuthAppEnabled] = useState(false);
    const [securityKeyEnabled, setSecurityKeyEnabled] = useState(false);
@@ -103,10 +103,10 @@ export default function AccountTab({
          const container = e.target as HTMLElement;
          const sections = ['account-info', 'password-security', 'account-standing', 'family-center'];
          let currentActive = sections[0];
-         
+
          // Check if scrolled to the bottom
          const isAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 10;
-         
+
          if (isAtBottom) {
             currentActive = sections[sections.length - 1];
          } else {
@@ -117,7 +117,7 @@ export default function AccountTab({
                }
             }
          }
-         
+
          setActiveSubTab(currentActive);
       };
       const scrollContainer = document.getElementById('settings-scroll-container');
@@ -133,7 +133,7 @@ export default function AccountTab({
             <section>
                <div className="bg-slate-50 dark:bg-[#151515] p-6 rounded-2xl border border-slate-200 dark:border-[#333333] shadow-sm space-y-6">
                   <div className="h-4 w-24 bg-slate-200 dark:bg-[#333] rounded mb-2"></div>
-                  
+
                   <div className="h-28 bg-slate-200 dark:bg-[#202020] relative rounded-xl border border-slate-200 dark:border-transparent">
                      <div className="absolute -bottom-10 left-6">
                         <div className="w-24 h-24 rounded-full border-[6px] border-white dark:border-[#151515] bg-slate-300 dark:bg-[#333]"></div>
@@ -149,7 +149,7 @@ export default function AccountTab({
                   </div>
 
                   <div className="h-[1px] bg-slate-200/60 dark:bg-[#333333]" />
-                  
+
                   <div className="flex justify-between items-center">
                      <div className="space-y-2">
                         <div className="h-3 w-16 bg-slate-200 dark:bg-[#333] rounded"></div>
@@ -157,9 +157,9 @@ export default function AccountTab({
                      </div>
                      <div className="h-8 w-16 bg-slate-200 dark:bg-[#333] rounded"></div>
                   </div>
-                  
+
                   <div className="h-[1px] bg-slate-200/60 dark:bg-[#333333]" />
-                  
+
                   <div className="flex justify-between items-center">
                      <div className="space-y-2">
                         <div className="h-3 w-20 bg-slate-200 dark:bg-[#333] rounded"></div>
@@ -169,7 +169,7 @@ export default function AccountTab({
                   </div>
                </div>
             </section>
-            
+
             <section>
                <div className="bg-slate-50 dark:bg-[#151515] p-6 rounded-2xl border border-slate-200 dark:border-[#333333] shadow-sm space-y-6">
                   <div className="h-4 w-32 bg-slate-200 dark:bg-[#333] rounded"></div>
@@ -188,12 +188,12 @@ export default function AccountTab({
 
    return (
       <div className="space-y-6 pb-24 font-sans">
-         
+
          {/* SECTION 1: MY ACCOUNT */}
          <section id="account-info">
             <div className="bg-slate-50 dark:bg-[#151515] p-6 rounded-2xl border border-slate-200 dark:border-[#333333] shadow-sm space-y-6">
                <h2 className="text-xs font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-widest mb-2">My Account</h2>
-               
+
                {/* Banner with Avatar */}
                <div className="h-28 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 relative rounded-xl border border-slate-200 dark:border-transparent">
                   {/* Avatar */}
@@ -229,9 +229,9 @@ export default function AccountTab({
                            {email ? (revealEmail ? email : maskEmail(email)) : 'Not provided'}
                         </p>
                         {email && (
-                            <button onClick={() => setRevealEmail(!revealEmail)} className="text-[13px] text-blue-500 hover:underline">
-                               {revealEmail ? "Hide" : "Reveal"}
-                            </button>
+                           <button onClick={() => setRevealEmail(!revealEmail)} className="text-[13px] text-blue-500 hover:underline">
+                              {revealEmail ? "Hide" : "Reveal"}
+                           </button>
                         )}
                      </div>
                   </div>
@@ -251,9 +251,9 @@ export default function AccountTab({
                            {phoneNumber ? (revealPhone ? phoneNumber : maskPhone(phoneNumber)) : 'Not provided'}
                         </p>
                         {phoneNumber && (
-                            <button onClick={() => setRevealPhone(!revealPhone)} className="text-[13px] text-blue-500 hover:underline">
-                               {revealPhone ? "Hide" : "Reveal"}
-                            </button>
+                           <button onClick={() => setRevealPhone(!revealPhone)} className="text-[13px] text-blue-500 hover:underline">
+                              {revealPhone ? "Hide" : "Reveal"}
+                           </button>
                         )}
                      </div>
                   </div>
@@ -268,14 +268,14 @@ export default function AccountTab({
          <section id="password-security">
             <div className="bg-slate-50 dark:bg-[#151515] p-6 rounded-2xl border border-slate-200 dark:border-[#333333] shadow-sm space-y-6">
                <h2 className="text-xs font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-widest">Password & Security</h2>
-               
+
                {/* Change Password Card Row */}
                <div className="flex justify-between items-center gap-4">
                   <div>
                      <h3 className="text-[15px] font-bold text-slate-900 dark:text-white">Change Password</h3>
                      <p className="text-[13px] text-slate-500 dark:text-[#949ba4] mt-1">Update your password to keep your account secure.</p>
                   </div>
-                  <button 
+                  <button
                      onClick={handlePasswordReset}
                      disabled={isPasswordLoading}
                      className="px-4 py-2 bg-[#3b82f6] hover:bg-blue-600 disabled:opacity-50 text-white text-[13px] font-semibold rounded-md shadow-sm transition-colors shrink-0"
@@ -307,7 +307,7 @@ export default function AccountTab({
                               <p className="text-[12px] text-slate-500 dark:text-[#949ba4]">Use an app like Google Authenticator or Authy.</p>
                            </div>
                         </div>
-                        <button 
+                        <button
                            onClick={() => {
                               if (!authAppEnabled) toast.success("Authenticator App configured and enabled!");
                               else toast.info("Authenticator App disabled.");
@@ -318,7 +318,7 @@ export default function AccountTab({
                            {authAppEnabled ? 'Disable' : 'Enable'}
                         </button>
                      </div>
-                     
+
                      <div className="flex justify-between items-center p-4 rounded-xl bg-white dark:bg-[#121212] border border-slate-200/50 dark:border-[#333333] shadow-sm">
                         <div className="flex items-center gap-4">
                            <div className="w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center text-purple-500">
@@ -329,7 +329,7 @@ export default function AccountTab({
                               <p className="text-[12px] text-slate-500 dark:text-[#949ba4]">Use a hardware security key (like YubiKey) for maximum security.</p>
                            </div>
                         </div>
-                        <button 
+                        <button
                            onClick={() => {
                               if (!securityKeyEnabled) toast.success("Security Key successfully registered!");
                               else toast.info("Security Key removed.");
@@ -354,7 +354,7 @@ export default function AccountTab({
                ${standing === 'BANNED' ? 'bg-red-50 dark:bg-red-950/10 border-red-200 dark:border-red-900/30' : ''}
             `}>
                <h2 className="text-xs font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-widest self-start mb-2">Account Standing</h2>
-               
+
                {(!standing || standing === 'GOOD') && (
                   <>
                      <div className="w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center mt-2">
@@ -379,8 +379,8 @@ export default function AccountTab({
                         <p className="text-[13px] text-yellow-700/80 dark:text-yellow-500/80 max-w-md mx-auto leading-relaxed font-medium">
                            {standingMessage || "Your account has received a warning for violating community guidelines. Further violations may result in restrictions."}
                         </p>
-                        <button 
-                           onClick={handleDismissStanding} 
+                        <button
+                           onClick={handleDismissStanding}
                            disabled={isDismissing}
                            className="mt-4 px-5 py-2 bg-yellow-600 dark:bg-yellow-500 hover:bg-yellow-700 text-white font-bold text-xs rounded transition-all shadow-sm"
                         >
@@ -400,8 +400,8 @@ export default function AccountTab({
                         <p className="text-[13px] text-orange-700/80 dark:text-orange-500/80 max-w-md mx-auto leading-relaxed font-medium">
                            {standingMessage || "Certain features on your account have been restricted. Please check your email or contact support for more information."}
                         </p>
-                        <button 
-                           onClick={handleDismissStanding} 
+                        <button
+                           onClick={handleDismissStanding}
                            disabled={isDismissing}
                            className="mt-4 px-5 py-2 bg-orange-600 dark:bg-orange-500 hover:bg-orange-700 text-white font-bold text-xs rounded transition-all shadow-sm"
                         >
@@ -464,36 +464,26 @@ export default function AccountTab({
                         Permanently remove your account and all associated data. This action cannot be undone.
                      </p>
                   </div>
-                  
+
                   <AlertDialog>
                      <AlertDialogTrigger asChild>
                         <Button variant="destructive" className="bg-red-500 hover:bg-red-600 text-white text-[13px] font-semibold shrink-0">
                            Delete Account
                         </Button>
                      </AlertDialogTrigger>
-                     <AlertDialogContent className="!p-0 overflow-hidden sm:rounded-[24px] border border-black/5 dark:border-white/10 shadow-[0_8px_40px_rgba(0,0,0,0.12)] dark:shadow-[0_16px_60px_rgba(0,0,0,0.5)] max-w-[420px] bg-white/95 dark:bg-[#111113]/95 backdrop-blur-2xl">
-                        <div className="p-8 pt-9 pb-7">
-                           <AlertDialogHeader>
-                              <AlertDialogTitle className="text-[22px] font-semibold text-slate-900 dark:text-zinc-100 tracking-tight">Are you absolutely sure?</AlertDialogTitle>
-                              <AlertDialogDescription className="text-slate-500 dark:text-zinc-400 text-[15px] mt-2.5 leading-relaxed font-medium">
-                                 This action cannot be undone. This will permanently delete your account and remove your data from our servers.
-                              </AlertDialogDescription>
-                           </AlertDialogHeader>
-                        </div>
-                        <div className="bg-slate-50/50 dark:bg-white/[0.02] border-t border-black/5 dark:border-white/5">
-                           <AlertDialogFooter className="px-8 py-5 flex flex-row items-center justify-end gap-3 sm:space-x-0">
-                              <AlertDialogCancel className="border-none bg-transparent hover:bg-black/5 dark:hover:bg-white/10 text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-100 shadow-none font-medium m-0 transition-all rounded-xl px-5 py-2.5">
-                                 Cancel
-                              </AlertDialogCancel>
-                              <AlertDialogAction 
-                                 className="bg-[#ef4444] hover:bg-[#dc2626] text-white font-medium rounded-xl px-5 py-2.5 h-auto shadow-[0_1px_2px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.2)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.2)] m-0 transition-all ring-1 ring-inset ring-black/10 dark:ring-transparent" 
-                                 onClick={() => toast.error('Account deletion not fully implemented yet.')}
-                              >
-                                 Delete Account
-                              </AlertDialogAction>
-                           </AlertDialogFooter>
-                        </div>
-                     </AlertDialogContent>
+                     <AlertDialogPopup>
+                        <AlertDialogHeader>
+                           <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                           <AlertDialogDescription>
+                              This action cannot be undone. This will permanently delete your account
+                              and remove your data from our servers.
+                           </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                           <AlertDialogClose render={<Button variant="ghost" />}>Cancel</AlertDialogClose>
+                           <AlertDialogClose render={<Button variant="destructive" onClick={() => toast.error('Account deletion not fully implemented yet.')} />}>Delete Account</AlertDialogClose>
+                        </AlertDialogFooter>
+                     </AlertDialogPopup>
                   </AlertDialog>
                </div>
             </div>

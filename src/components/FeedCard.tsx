@@ -14,9 +14,8 @@ import { UserHoverCard } from "@/components/UserHoverCard";
 import { Heart as IconlyHeart, Upload as IconlySend, Bookmark as IconlyBookmark } from "react-iconly";
 import {
   AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
+  AlertDialogClose,
+  AlertDialogPopup,
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
@@ -954,25 +953,25 @@ function FeedCard({
 
             {/* Delete Confirmation Modal */}
             <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
-                <AlertDialogContent className="bg-white dark:bg-[#121212] border-slate-200 dark:border-white/5">
+                <AlertDialogPopup className="bg-white dark:bg-[#121212] border-slate-200 dark:border-white/5 p-6 rounded-2xl shadow-xl max-w-sm">
                     <AlertDialogHeader>
-                        <AlertDialogTitle className="text-slate-900 dark:text-white">Delete Post</AlertDialogTitle>
+                        <AlertDialogTitle className="text-slate-900 dark:text-white font-bold text-xl mb-2">Delete Post</AlertDialogTitle>
                         <AlertDialogDescription className="text-slate-500 dark:text-slate-400">
                             Are you sure you want to delete this post? This action cannot be undone.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel className="bg-slate-100 dark:bg-[#1E1E1E] hover:bg-slate-200 dark:hover:bg-[#222] text-slate-800 dark:text-slate-200 border-none">Cancel</AlertDialogCancel>
-                        <AlertDialogAction 
+                    <AlertDialogFooter className="mt-6 flex justify-end gap-3">
+                        <AlertDialogClose render={<button className="bg-slate-100 dark:bg-[#1E1E1E] hover:bg-slate-200 dark:hover:bg-[#222] text-slate-800 dark:text-slate-200 border-none px-4 py-2 rounded-lg font-medium transition-colors" />}>Cancel</AlertDialogClose>
+                        <AlertDialogClose 
                             onClick={() => {
                                 if (onDelete) onDelete(feed.id);
                             }}
-                            className="bg-rose-500 hover:bg-rose-600 text-white border-none"
+                            render={<button className="bg-rose-500 hover:bg-rose-600 text-white border-none px-4 py-2 rounded-lg font-medium transition-colors" />}
                         >
                             Yes, Delete
-                        </AlertDialogAction>
+                        </AlertDialogClose>
                     </AlertDialogFooter>
-                </AlertDialogContent>
+                </AlertDialogPopup>
             </AlertDialog>
         </div>
     );
