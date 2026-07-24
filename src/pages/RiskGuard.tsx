@@ -443,6 +443,7 @@ export default function RiskGuard() {
    const [guardianPin, setGuardianPin] = useState("");
    const [showPin, setShowPin] = useState(false);
    const [hardStopActive, setHardStopActive] = useState(false);
+   const [killSwitchActive, setKillSwitchActive] = useState(false);
 
    // --- Active Tab State ---
    const [activeTab, setActiveTab] = useState<'trading_control' | 'risk_management' | 'behaviour'>('trading_control');
