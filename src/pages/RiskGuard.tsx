@@ -985,54 +985,45 @@ export default function RiskGuard() {
                </div>
 
                {/* ── KILL SWITCH (Header Position) ── */}
-               <div className="flex-1 flex justify-center">
-                  <div
-                     onClick={() => {
-                        if (!killSwitchActive) {
-                           if (window.confirm('⚠️ KILL SWITCH: This will immediately close ALL open positions and halt all trading. Are you sure?')) {
-                              setKillSwitchActive(true);
-                              toast.error(
-                                 <div className="flex flex-col gap-1">
-                                    <span className="font-bold text-white text-[13px]">🔴 KILL SWITCH ACTIVATED</span>
-                                    <span className="text-red-100 text-[11px]">All positions closing. Trading halted immediately.</span>
-                                 </div>,
-                                 { style: { background: '#dc2626' }, duration: 6000 }
-                              );
+               <div className="flex-1 flex justify-end">
+                  <div className={`rounded-[24px] p-4 flex items-center gap-4 border transition-all duration-300 w-fit pr-5 ${
+                     killSwitchActive 
+                        ? 'bg-red-50 dark:bg-red-500/10 border-red-200 dark:border-red-500/20 shadow-sm' 
+                        : 'bg-white dark:bg-[#1A1A1C] border-slate-200 dark:border-zinc-800/80 shadow-sm hover:shadow-md'
+                  }`}>
+                     <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
+                        killSwitchActive ? 'bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400' : 'bg-slate-50 dark:bg-zinc-800 text-slate-400 dark:text-slate-500'
+                     }`}>
+                        <Power size={18} strokeWidth={2.5} />
+                     </div>
+                     <div className="flex flex-col mr-4">
+                        <h3 className={`text-[13px] font-bold ${killSwitchActive ? 'text-red-600 dark:text-red-400' : 'text-slate-800 dark:text-white'}`}>Kill Switch</h3>
+                        <p className="text-[10px] font-medium text-slate-400 dark:text-slate-500 leading-tight mt-0.5">One click stops everything</p>
+                     </div>
+                     <button 
+                        onClick={() => {
+                           if (!killSwitchActive) {
+                              if (window.confirm('⚠️ KILL SWITCH: This will immediately close ALL open positions and halt all trading. Are you sure?')) {
+                                 setKillSwitchActive(true);
+                                 toast.error(
+                                    <div className="flex flex-col gap-1">
+                                       <span className="font-bold text-white text-[13px]">🔴 KILL SWITCH ACTIVATED</span>
+                                       <span className="text-red-100 text-[11px]">All positions closing. Trading halted immediately.</span>
+                                    </div>,
+                                    { style: { background: '#dc2626' }, duration: 6000 }
+                                 );
+                              }
+                           } else {
+                              setKillSwitchActive(false);
+                              toast.success('Kill switch deactivated. Trading resumed.');
                            }
-                        } else {
-                           setKillSwitchActive(false);
-                           toast.success('Kill switch deactivated. Trading resumed.');
-                        }
-                     }}
-                     className={`cursor-pointer rounded-2xl px-5 py-3 flex items-center gap-5 transition-all duration-300 select-none ${killSwitchActive
-                        ? 'bg-red-600 shadow-[0_0_0_3px_rgba(220,38,38,0.3),0_8px_30px_rgba(220,38,38,0.35)]'
-                        : 'bg-[#0F172A] dark:bg-[#1A1A1C] shadow-[0_4px_20px_rgba(0,0,0,0.15)] hover:shadow-[0_6px_24px_rgba(0,0,0,0.2)] border border-transparent dark:border-white/5'
+                        }}
+                        className={`w-11 h-6 rounded-full flex items-center transition-all duration-300 px-0.5 shrink-0 ${
+                           killSwitchActive ? 'bg-red-500 justify-end' : 'bg-slate-200 dark:bg-zinc-700 justify-start'
                         }`}
-                  >
-                     <div className="flex items-center gap-3.5">
-                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${killSwitchActive ? 'bg-white/20' : 'bg-red-500/15'
-                           }`}>
-                           <Power size={18} className={killSwitchActive ? 'text-white' : 'text-red-400'} strokeWidth={2.5} />
-                        </div>
-                        <div className="flex flex-col">
-                           <p className="text-[14px] font-bold text-white leading-none mb-1">Kill Switch</p>
-                           <p className={`text-[11px] font-medium leading-none ${killSwitchActive ? 'text-red-100' : 'text-slate-400'}`}>
-                              {killSwitchActive ? 'All positions closed' : 'One click stops everything'}
-                           </p>
-                        </div>
-                     </div>
-                     <div className="flex items-center gap-3 border-l border-white/10 pl-5 ml-1">
-                        {killSwitchActive && (
-                           <span className="text-[9px] font-bold bg-white/20 text-white px-2 py-1 rounded uppercase tracking-widest animate-pulse">
-                              HALTED
-                           </span>
-                        )}
-                        <div className={`w-12 h-6 rounded-full flex items-center transition-all duration-300 px-0.5 ${killSwitchActive ? 'bg-white/30 justify-end' : 'bg-white/10 justify-start'
-                           }`}>
-                           <div className={`w-5 h-5 rounded-full shadow-md transition-all duration-300 ${killSwitchActive ? 'bg-white' : 'bg-slate-500'
-                              }`} />
-                        </div>
-                     </div>
+                     >
+                        <div className="w-5 h-5 bg-white rounded-full shadow-sm" />
+                     </button>
                   </div>
                </div>
 
