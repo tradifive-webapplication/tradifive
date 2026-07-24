@@ -1355,155 +1355,59 @@ export default function RiskGuard() {
                                        </div>
                                     </div>
                                  </div>
-
-                                 {/* Cooldown Shield Setting */}
-                                 <div className="p-3.5 space-y-3.5 rounded-[22px] bg-[#F4F4F4]/50 dark:bg-[#1A1A1C]/50 border border-transparent shadow-sm">
-                                    <div className="flex items-center justify-between">
-                                       <div>
-                                          <div className="flex items-center gap-2">
-                                             <p className="text-[12px] font-semibold text-slate-700 dark:text-slate-200 leading-none">Loss Cooldown Shield</p>
-                                             {!isProOrElite && (
-                                                <div className="bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 text-[9px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1 uppercase tracking-wider">
-                                                   <Lock size={10} />
-                                                   Pro
-                                                </div>
-                                             )}
-                                          </div>
-                                          <p className="text-[10.5px] text-slate-400 font-medium mt-1">Locks execution after any losing trade</p>
-                                       </div>
-                                       <div onClick={(e) => {
-                                          if (!isProOrElite) {
-                                             e.preventDefault();
-                                             e.stopPropagation();
-                                             toast.error(
-                                                <div className="flex flex-col gap-1">
-                                                   <div className="flex items-center gap-2">
-                                                      <Crown size={16} className="text-amber-500" />
-                                                      <span className="font-bold text-slate-900 dark:text-white">Pro Feature</span>
-                                                   </div>
-                                                   <span className="text-slate-600 dark:text-slate-300">Upgrade to Pro to unlock the Loss Cooldown Shield.</span>
-                                                </div>
-                                             );
-                                          }
-                                       }} className="relative">
-                                          {!isProOrElite && (
-                                             <div className="absolute inset-0 z-10 cursor-pointer" />
-                                          )}
-                                          <Switch checked={!isProOrElite ? false : revengeGuard} onChange={setRevengeGuard} disabled={!isProOrElite} />
-                                       </div>
-                                    </div>
-
-                                    {(revengeGuard && isProOrElite) && (
-                                       <div className="space-y-3 pt-2 border-t border-slate-100 dark:border-slate-800">
-                                          <div className="flex items-center justify-between">
-                                             <span className="text-[10.5px] font-semibold text-slate-400 uppercase tracking-widest">Cooldown duration</span>
-                                             <span className="text-[12px] font-semibold text-slate-700 dark:text-white">{waitPeriod} Minutes</span>
-                                          </div>
-                                          <input
-                                             type="range" min={5} max={120} step={5} value={waitPeriod}
-                                             onChange={e => setWaitPeriod(+e.target.value)}
-                                             className="w-full h-1.5 rounded-lg appearance-none cursor-pointer focus:outline-none accent-indigo-600 dark:accent-indigo-500"
-                                             style={{
-                                                background: `linear-gradient(to right, #4f46e5 0%, #4f46e5 ${((waitPeriod - 5) / (120 - 5)) * 100}%, rgba(79, 70, 229, 0.15) ${((waitPeriod - 5) / (120 - 5)) * 100}%, rgba(79, 70, 229, 0.15) 100%)`
-                                             }}
-                                          />
-
-                                          {/* Live trade monitoring status row */}
-                                          <div className={`flex items-center justify-between p-2.5 rounded-xl border ${cooldownActive
-                                             ? 'bg-rose-50/50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-950/30'
-                                             : 'bg-emerald-50/30 dark:bg-emerald-950/10 border-emerald-200/50 dark:border-emerald-900/20'
-                                             }`}>
-                                             <div className="flex items-center gap-2">
-                                                <span className={`w-2 h-2 rounded-full shrink-0 ${cooldownActive
-                                                   ? "bg-rose-500 animate-pulse shadow-[0_0_6px_rgba(239,68,68,0.5)]"
-                                                   : "bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.4)]"
-                                                   }`} />
-                                                <div className="flex flex-col">
-                                                   <span className={`text-[10px] font-bold uppercase tracking-wider leading-none ${cooldownActive ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400"
-                                                      }`}>
-                                                      {cooldownActive ? "LOCKED" : "STANDING BY"}
-                                                   </span>
-                                                   <span className="text-[9px] font-medium text-slate-400 dark:text-slate-400 mt-0.5">
-                                                      {cooldownActive ? "Revenge shield active" : "Monitoring trades..."}
-                                                   </span>
-                                                </div>
-                                             </div>
-                                             {cooldownActive && (
-                                                <div className="flex items-center gap-1.5 bg-rose-100 dark:bg-rose-950/40 px-2.5 py-1 rounded-lg">
-                                                   <Timer size={11} className="text-rose-500" />
-                                                   <span className="text-[13px] font-bold text-rose-600 dark:text-rose-400 tabular-nums">
-                                                      {String(Math.floor(cooldownSeconds / 60)).padStart(2, '0')}:{String(cooldownSeconds % 60).padStart(2, '0')}
-                                                   </span>
-                                                </div>
-                                             )}
-                                          </div>
-                                       </div>
-                                    )}
-                                 </div>
                               </div>
 
 
                            </RiskGuardCard>
 
                            <RiskGuardCard icon={Clock} title="Session Sentinel" description="Custom hourly trading windows" value={sessionActive ? "Active" : "Disabled"} active={sessionActive} onToggle={setSessionActive}>
-                              <div className="space-y-4">
-                                 <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Session Permits</label>
-                                 <div className="grid grid-cols-2 gap-3.5">
-                                    {sessionButtons.map(session => {
-                                       const isSelected = selectedSessions.includes(session.id);
-                                       return (
-                                          <div
-                                             key={session.id}
-                                             className={`p-3.5 rounded-[16px] border flex flex-col gap-2.5 transition-all ${isSelected
-                                                ? 'bg-emerald-50/50 dark:bg-gradient-to-b dark:bg-none dark:bg-[#1E1E1E] border-emerald-200 dark:border-emerald-500/20 shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_1px_rgba(16,185,129,0.3)] dark:shadow-none'
-                                                : 'bg-slate-50 dark:bg-[#1A1A1C] border-slate-200 dark:border-[#2A2A2C] hover:bg-slate-100 dark:hover:bg-[#1E1E20]'
-                                                }`}
+                              <div className="space-y-2">
+                                 {sessionButtons.map(session => {
+                                    const isSelected = selectedSessions.includes(session.id);
+                                    return (
+                                       <div
+                                          key={session.id}
+                                          className={`flex items-center justify-between px-3 py-2 rounded-xl border transition-all ${isSelected
+                                             ? 'bg-emerald-50/50 dark:bg-emerald-950/10 border-emerald-200 dark:border-emerald-500/20'
+                                             : 'bg-slate-50 dark:bg-[#1A1A1C] border-slate-200 dark:border-[#2A2A2C] hover:bg-slate-100 dark:hover:bg-[#1E1E20]'
+                                          }`}
+                                       >
+                                          <button
+                                             onClick={() => toggleSession(session.id)}
+                                             className="flex items-center gap-2 flex-1 min-w-0"
                                           >
-                                             <button
-                                                onClick={() => toggleSession(session.id)}
-                                                className="w-full flex items-center justify-between group"
-                                             >
-                                                <span className={`text-[13px] font-bold ${isSelected ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-300 group-hover:text-slate-800 dark:group-hover:text-slate-200'}`}>
-                                                   {session.label}
-                                                </span>
-                                                <span className={`w-[5px] h-[5px] rounded-full ${isSelected ? 'bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.6)]' : 'bg-slate-300 dark:bg-[#3A3F50]'}`} />
-                                             </button>
-
-                                             {isSelected && (
-                                                <motion.div
-                                                   initial={{ opacity: 0, height: 0 }}
-                                                   animate={{ opacity: 1, height: "auto" }}
-                                                   className="flex items-center gap-2 pt-1"
-                                                >
-                                                   <div className="flex-1 flex items-center justify-between bg-white dark:bg-[#0D0D0E] border border-slate-200 dark:border-[#252528] rounded-md px-2 py-1.5 focus-within:border-emerald-400 dark:focus-within:border-emerald-500/50 transition-colors">
-                                                      <input
-                                                         type="time"
-                                                         value={sessionTimes[session.id]?.start || ""}
-                                                         onChange={e => setSessionTimes(prev => ({ ...prev, [session.id]: { ...prev[session.id], start: e.target.value } }))}
-                                                         className="w-[90%] bg-transparent text-[12px] font-bold text-slate-700 dark:text-slate-200 outline-none tabular-nums"
-                                                      />
-                                                      <Clock size={11} className="text-slate-400 dark:text-slate-400 shrink-0" />
-                                                   </div>
-                                                   <span className="text-[10px] text-slate-400 dark:text-slate-400 font-bold px-1">to</span>
-                                                   <div className="flex-1 flex items-center justify-between bg-white dark:bg-[#0D0D0E] border border-slate-200 dark:border-[#252528] rounded-md px-2 py-1.5 focus-within:border-emerald-400 dark:focus-within:border-emerald-500/50 transition-colors">
-                                                      <input
-                                                         type="time"
-                                                         value={sessionTimes[session.id]?.end || ""}
-                                                         onChange={e => setSessionTimes(prev => ({ ...prev, [session.id]: { ...prev[session.id], end: e.target.value } }))}
-                                                         className="w-[90%] bg-transparent text-[12px] font-bold text-slate-700 dark:text-slate-200 outline-none tabular-nums"
-                                                      />
-                                                      <Clock size={11} className="text-slate-400 dark:text-slate-400 shrink-0" />
-                                                   </div>
-                                                </motion.div>
-                                             )}
-                                          </div>
-                                       );
-                                    })}
-                                 </div>
-
+                                             <span className={`w-[6px] h-[6px] rounded-full shrink-0 ${isSelected ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-[#3A3F50]'}`} />
+                                             <span className={`text-[12px] font-bold truncate ${isSelected ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-300'}`}>
+                                                {session.label}
+                                             </span>
+                                          </button>
+                                          {isSelected && (
+                                             <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                                                <div className="flex items-center gap-1 bg-white dark:bg-[#0D0D0E] border border-slate-200 dark:border-[#252528] rounded-md px-1.5 py-1">
+                                                   <input
+                                                      type="time"
+                                                      value={sessionTimes[session.id]?.start || ""}
+                                                      onChange={e => setSessionTimes(prev => ({ ...prev, [session.id]: { ...prev[session.id], start: e.target.value } }))}
+                                                      className="w-[64px] bg-transparent text-[11px] font-bold text-slate-700 dark:text-slate-200 outline-none tabular-nums"
+                                                   />
+                                                   <Clock size={9} className="text-slate-400 shrink-0" />
+                                                </div>
+                                                <span className="text-[9px] text-slate-400 font-bold">to</span>
+                                                <div className="flex items-center gap-1 bg-white dark:bg-[#0D0D0E] border border-slate-200 dark:border-[#252528] rounded-md px-1.5 py-1">
+                                                   <input
+                                                      type="time"
+                                                      value={sessionTimes[session.id]?.end || ""}
+                                                      onChange={e => setSessionTimes(prev => ({ ...prev, [session.id]: { ...prev[session.id], end: e.target.value } }))}
+                                                      className="w-[64px] bg-transparent text-[11px] font-bold text-slate-700 dark:text-slate-200 outline-none tabular-nums"
+                                                   />
+                                                   <Clock size={9} className="text-slate-400 shrink-0" />
+                                                </div>
+                                             </div>
+                                          )}
+                                       </div>
+                                    );
+                                 })}
                               </div>
-
-
                            </RiskGuardCard>
 
                            <RiskGuardCard icon={Trophy} title="Consecutive Win Lock" description="Lock trading after wins" value={`${consecutiveWins} Wins`} active={stopAfterWin} onToggle={setStopAfterWin}>
