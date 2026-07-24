@@ -4,6 +4,8 @@ import { Key, Smartphone, ShieldCheck, CheckCircle2, Users, AlertTriangle, Shiel
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import defaultAvatar from '@/assets/default-avatar.svg';
+import { Button } from '@/components/ui/button';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 export default function AccountTab({ 
    profile,
@@ -445,6 +447,51 @@ export default function AccountTab({
                   <button className="px-5 py-2.5 bg-white dark:bg-[#1e1e21] hover:bg-slate-100 dark:hover:bg-[#2b2b2b] border border-slate-200 dark:border-[#333333] text-slate-800 dark:text-white text-[14px] font-semibold rounded-md transition-colors shadow-sm">
                      Learn More
                   </button>
+               </div>
+            </div>
+         </section>
+
+         {/* SECTION 5: DANGER ZONE */}
+         <section id="danger-zone">
+            <div className="bg-slate-50 dark:bg-[#151515] p-6 md:p-8 rounded-2xl border border-red-200 dark:border-red-900/30 shadow-sm flex flex-col space-y-6">
+               <h2 className="text-xs font-bold text-red-600 dark:text-red-400 uppercase tracking-widest self-start mb-2">
+                  Danger Zone
+               </h2>
+               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                  <div>
+                     <h3 className="text-[15px] font-bold text-red-800 dark:text-red-400 mb-1">Delete Account</h3>
+                     <p className="text-[13px] text-red-700/80 dark:text-red-500/80 max-w-md leading-relaxed">
+                        Permanently remove your account and all associated data. This action cannot be undone.
+                     </p>
+                  </div>
+                  
+                  <AlertDialog>
+                     <AlertDialogTrigger asChild>
+                        <Button variant="destructive" className="bg-red-500 hover:bg-red-600 text-white text-[13px] font-semibold shrink-0">
+                           Delete Account
+                        </Button>
+                     </AlertDialogTrigger>
+                     <AlertDialogContent className="!p-0 overflow-hidden sm:rounded-[16px] border border-slate-200/60 dark:border-[#333] shadow-xl max-w-[440px] bg-white dark:bg-[#1c1c1e]">
+                        <div className="p-6 pt-7 pb-6">
+                           <AlertDialogHeader>
+                              <AlertDialogTitle className="text-[20px] font-bold text-slate-900 dark:text-white">Are you absolutely sure?</AlertDialogTitle>
+                              <AlertDialogDescription className="text-slate-500 dark:text-[#949ba4] text-[14px] mt-2 leading-relaxed">
+                                 This action cannot be undone. This will permanently delete your account and remove your data from our servers.
+                              </AlertDialogDescription>
+                           </AlertDialogHeader>
+                        </div>
+                        <div className="bg-[#f9fafb] dark:bg-[#121212] border-t border-slate-100 dark:border-[#222]">
+                           <AlertDialogFooter className="px-6 py-4 flex flex-row items-center justify-end gap-3 sm:space-x-0">
+                              <AlertDialogCancel className="border-none bg-transparent hover:bg-slate-200/50 dark:hover:bg-[#2c2c2f] text-slate-700 dark:text-slate-300 shadow-none font-semibold m-0 transition-colors">
+                                 Cancel
+                              </AlertDialogCancel>
+                              <AlertDialogAction className="bg-[#ff3b30] hover:bg-[#e6352b] text-white font-semibold rounded-[10px] px-5 py-2 h-auto shadow-sm m-0 transition-colors" onClick={() => toast.error('Account deletion not fully implemented yet.')}>
+                                 Delete Account
+                              </AlertDialogAction>
+                           </AlertDialogFooter>
+                        </div>
+                     </AlertDialogContent>
+                  </AlertDialog>
                </div>
             </div>
          </section>
