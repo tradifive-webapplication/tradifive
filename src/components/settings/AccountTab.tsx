@@ -479,7 +479,7 @@ export default function AccountTab({
                               and remove your data from our servers.
                            </AlertDialogDescription>
                         </AlertDialogHeader>
-                        <AlertDialogFooter className="bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800">
+                        <AlertDialogFooter className="bg-slate-50 dark:bg-slate-900 border-t border-black/5 dark:border-white/10">
                            <AlertDialogClose render={<Button variant="ghost" className="m-0 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-800" />}>Cancel</AlertDialogClose>
                            <AlertDialogClose 
                               onClick={() => toast.error('Account deletion not fully implemented yet.')}
