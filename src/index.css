@@ -633,14 +633,14 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 60px;
-  height: 30px;
+  width: 56px;
+  height: 28px;
   background: linear-gradient(0deg, #ededed, #bdbdbd);
-  border-radius: 15px;
+  border-radius: 14px;
   box-shadow:
-    0 0.15px 1.5px 0.03px #ffffff80,
-    0 0px 15px 1.5px #ffffff,
-    0 -0.75px 0.75px 0.375px #15182f44;
+    0 0.14px 1.4px 0.028px #ffffff80,
+    0 0px 14px 1.4px #ffffff,
+    0 -0.7px 0.7px 0.35px #15182f44;
   cursor: pointer;
 }
 
@@ -657,10 +657,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 15px;
+  border-radius: 14px;
   box-shadow:
-    -0.15px 0.78px 0.6px -0.15px #fff,
-    0.15px 0.375px 0.6px -0.375px #0004 inset;
+    -0.14px 0.728px 0.56px -0.14px #fff,
+    0.14px 0.35px 0.56px -0.35px #0004 inset;
   pointer-events: none;
 }
 
@@ -668,36 +668,36 @@
 .custom-ui-switch .rail:after {
   content: "";
   position: absolute;
-  width: 15px;
-  height: 15px;
-  border-radius: 15px;
+  width: 14px;
+  height: 14px;
+  border-radius: 14px;
 }
 
 .custom-ui-switch .rail:before {
-  left: 7.5px;
+  left: 7px;
   background: linear-gradient(175deg, #00000077, #0001, #fff2), #2196f3;
   box-shadow:
-    -0.15px 0.78px 0.6px -0.15px #fff8,
-    0.15px 0.375px 0.6px -0.375px #0008 inset;
+    -0.14px 0.728px 0.56px -0.14px #fff8,
+    0.14px 0.35px 0.56px -0.35px #0008 inset;
 }
 
 .custom-ui-switch .rail:after {
-  right: 7.5px;
+  right: 7px;
   background: linear-gradient(180deg, #858585, #a8a8a8, #e3e3e3);
   box-shadow:
-    0 0.75px 0.6px -0.099px #fff8,
-    -0.1875px 0.1875px 0.6px -0.375px #000 inset;
+    0 0.7px 0.56px -0.09px #fff8,
+    -0.175px 0.175px 0.56px -0.35px #000 inset;
 }
 
 .custom-ui-switch .rail span {
-  width: calc(15px + 1px);
-  height: 1.5px;
+  width: calc(14px + 1px);
+  height: 1.4px;
   z-index: 1;
-  background: linear-gradient(180deg, #0004, #fff0 0.525px),
+  background: linear-gradient(180deg, #0004, #fff0 0.49px),
     linear-gradient(90deg, #2196f3 50%, #aaaaaa 50%);
   background-size: 200% 100%;
   background-position: 55% 50%;
-  box-shadow: 0 0.375px 0.225px -0.15px #fff8;
+  box-shadow: 0 0.35px 0.21px -0.14px #fff8;
   transition: all 0.5s ease 0s;
 }
 
@@ -707,42 +707,43 @@
 
 .custom-ui-switch .slider {
   position: absolute;
-  width: 28.125px;
-  height: 28.125px;
-  top: 0.75px;
-  left: 0.999px;
-  border-radius: 15px;
-  background: radial-gradient(circle at 55% 50%, #fff0 12.498px, #fff0 30px),
-    radial-gradient(circle at 60% 50%, #fff0 15.789px, #fff0 19.998px),
+  width: 26.25px;
+  height: 26.25px;
+  top: 0.875px;
+  left: 0.875px;
+  border-radius: 14px;
+  background: radial-gradient(circle at 55% 50%, #fff0 11.665px, #fff0 28px),
+    radial-gradient(circle at 60% 50%, #fff0 14.737px, #fff0 18.665px),
     linear-gradient(180deg, #ededed, #bdbdbd);
   box-shadow:
-    -0.3px 0.3px 0.498px 0 #fff2 inset,
-    0 0 1.5px 0.3px #6b6b6b,
-    0 1.5px 3px 0 #0006;
+    -0.28px 0.28px 0.464px 0 #fff2 inset,
+    0 0 1.4px 0.28px #6b6b6b,
+    0 1.4px 2.8px 0 #0006;
   z-index: 1;
   overflow: hidden;
   transition: all 0.5s ease 0s;
 }
 
 .custom-ui-switch input[type="checkbox"]:checked ~ .slider {
-  left: calc(100% - 29.124px);
+  left: calc(100% - 27.125px);
   background: radial-gradient(
       circle at 55% 50%,
-      #fff0 12.498px,
-      #2196f3 30px
+      #fff0 11.665px,
+      #2196f3 28px
     ),
-    radial-gradient(circle at 60% 50%, #fff0 15.789px, #2196f3 19.998px),
+    radial-gradient(circle at 60% 50%, #fff0 14.737px, #2196f3 18.665px),
     linear-gradient(180deg, #ededed, #bdbdbd);
 }
 
 .custom-ui-switch .slider:before {
   content: "";
   position: absolute;
-  width: 30px;
-  height: 30px;
-  left: -0.75px;
-  top: -0.75px;
-  background: radial-gradient(circle at 47.5% 45%, #fff0 13.5px, #0003 15px);
+  width: 28px;
+  height: 28px;
+  left: -0.7px;
+  top: -0.7px;
+  background: radial-gradient(circle at 47.5% 45%, #fff0 12.6px, #0003 14px);
   filter: blur(1px);
 }
+
 
