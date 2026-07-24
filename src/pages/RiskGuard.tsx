@@ -985,7 +985,7 @@ export default function RiskGuard() {
                </div>
 
                {/* ── KILL SWITCH (Header Position) ── */}
-               <div className="flex-1 flex justify-end">
+               <div className="flex-1 flex justify-start md:pl-8">
                   <div className={`p-4 rounded-[24px] border transition-all duration-300 relative group w-full max-w-[340px] hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:hover:shadow-[0_8px_30px_rgba(255,255,255,0.02)] ${
                      killSwitchActive 
                         ? 'bg-red-50/50 dark:bg-red-500/10 border-red-200 dark:border-red-500/30 shadow-[0_8px_30px_rgb(239,68,68,0.1)] dark:shadow-none' 
@@ -1042,6 +1042,8 @@ export default function RiskGuard() {
                      </div>
                   </div>
                </div>
+
+               <div className="flex-1 hidden md:block"></div>
             </div>
 
             <div className="flex flex-col xl:flex-row gap-6 items-start">
