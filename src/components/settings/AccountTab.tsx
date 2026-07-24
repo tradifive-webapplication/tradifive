@@ -483,7 +483,7 @@ export default function AccountTab({
                            <AlertDialogClose render={<Button variant="ghost" className="m-0 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-800" />}>Cancel</AlertDialogClose>
                            <AlertDialogClose 
                               onClick={() => toast.error('Account deletion not fully implemented yet.')}
-                              render={<Button variant="destructive" className="m-0 rounded-lg bg-[#ef4444] hover:bg-[#dc2626] text-white shadow-sm" />}
+                              render={<Button variant="destructive" className="m-0 rounded-[12px] bg-[#f53a3a] hover:bg-[#df2c2c] text-white font-semibold shadow-[0_2px_8px_-2px_rgba(245,58,58,0.4),inset_0_1px_1px_rgba(255,255,255,0.3)] border border-[#d62828] text-[15px]" />}
                            >
                               Delete Account
                            </AlertDialogClose>
