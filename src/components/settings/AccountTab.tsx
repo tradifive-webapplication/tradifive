@@ -399,13 +399,14 @@ export default function AccountTab({
                         <p className="text-[13px] text-orange-700/80 dark:text-orange-500/80 max-w-md mx-auto leading-relaxed font-medium">
                            {standingMessage || "Certain features on your account have been restricted. Please check your email or contact support for more information."}
                         </p>
-                        <button
+                        <Button
                            onClick={handleDismissStanding}
                            disabled={isDismissing}
-                           className="mt-4 px-5 py-2 bg-orange-600 dark:bg-orange-500 hover:bg-orange-700 text-white font-bold text-xs rounded transition-all shadow-sm"
+                           variant="outline"
+                           className="mt-4"
                         >
                            {isDismissing ? "Processing..." : "Got It"}
-                        </button>
+                        </Button>
                      </div>
                   </>
                )}
@@ -440,12 +441,12 @@ export default function AccountTab({
                   </p>
                </div>
                <div className="flex gap-4 mt-2">
-                  <button className="px-5 py-2.5 bg-[#3b82f6] hover:bg-blue-600 text-white text-[14px] font-semibold rounded-md shadow-sm transition-colors">
+                  <Button>
                      Enable Family Center
-                  </button>
-                  <button className="px-5 py-2.5 bg-white dark:bg-[#1e1e21] hover:bg-slate-100 dark:hover:bg-[#2b2b2b] border border-slate-200 dark:border-[#333333] text-slate-800 dark:text-white text-[14px] font-semibold rounded-md transition-colors shadow-sm">
+                  </Button>
+                  <Button variant="outline">
                      Learn More
-                  </button>
+                  </Button>
                </div>
             </div>
          </section>
