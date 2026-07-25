@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { 
+import {
   Wallet, TrendingUp, ShieldAlert, Target, Shield, ArrowRight,
   Sparkles, Clock, CheckCircle2, ChevronRight, Activity, AlertCircle,
   ShieldCheck, BarChart3, ExternalLink
@@ -16,22 +16,22 @@ import PerformanceChart from "@/components/charts/PerformanceChart";
 // Custom small icons mimicking the image
 const WalletIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400">
-    <path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/><path d="M4 6v12c0 1.1.9 2 2 2h14v-4"/><path d="M18 12a2 2 0 0 0-2 2c0 1.1.9 2 2 2h4v-4h-4z"/>
+    <path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4" /><path d="M4 6v12c0 1.1.9 2 2 2h14v-4" /><path d="M18 12a2 2 0 0 0-2 2c0 1.1.9 2 2 2h4v-4h-4z" />
   </svg>
 );
 const TrendUpIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400">
-    <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>
+    <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" /><polyline points="16 7 22 7 22 13" />
   </svg>
 );
 const ShieldIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400">
-    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
   </svg>
 );
 const TargetIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400">
-    <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
+    <circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="2" />
   </svg>
 );
 
@@ -47,9 +47,9 @@ const GlassCard = ({ children, className = "", noPadding = false }: { children: 
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  let { 
-    equity, balance, todayProfit, totalProfit, winRate, tradesToday, 
-    riskConfig, recentTrades, avgDisciplineScore, isConnected, 
+  let {
+    equity, balance, todayProfit, totalProfit, winRate, tradesToday,
+    riskConfig, recentTrades, avgDisciplineScore, isConnected,
     profitFactor, openRiskPct, accountMetrics
   } = useDashboardData();
 
@@ -96,7 +96,7 @@ const Dashboard = () => {
     if (target.getTime() < Date.now()) {
       target.setDate(target.getDate() + 1);
     }
-    
+
     const interval = setInterval(() => {
       const now = Date.now();
       const diff = target.getTime() - now;
@@ -121,9 +121,9 @@ const Dashboard = () => {
     const drawdownLimitDollar = (riskConfig?.is_prop_firm_mode && riskConfig?.prop_firm_daily_loss)
       ? riskConfig.prop_firm_daily_loss
       : (isLimitConfigured ? balance * (maxLossPercent / 100) : 0);
-    
+
     const drawdownPercentage = balance > 0 ? (currentDrawdownDollar / balance) * 100 : 0;
-    
+
     const maxExecutions = riskConfig?.max_open_trades || 5;
     const isEngaged = currentDrawdownDollar >= drawdownLimitDollar || tradesToday >= maxExecutions;
 
@@ -138,7 +138,7 @@ const Dashboard = () => {
       isLimitConfigured
     };
   }, [balance, equity, riskConfig, tradesToday, openRiskPct]);
-  
+
   const openPositions = useMemo(() => {
     return recentTrades?.filter((t: any) => !t.closed_at && !t.is_pending) || [];
   }, [recentTrades]);
@@ -146,7 +146,7 @@ const Dashboard = () => {
   // Fallbacks
   const pnlTodayStr = todayProfit === 0 ? `$0.00` : (todayProfit > 0 ? `+$${todayProfit.toFixed(2)}` : `-$${Math.abs(todayProfit).toFixed(2)}`);
   const pnlNetStr = totalProfit === 0 ? `$0.00` : (totalProfit > 0 ? `+$${totalProfit.toFixed(2)}` : `-$${Math.abs(totalProfit).toFixed(2)}`);
-  
+
   // AI Coach Insights Logic
   const getCoachInsight = () => {
     if (!isConnected || recentTrades.length < 3) {
@@ -161,38 +161,10 @@ const Dashboard = () => {
     return "You're trading within plan. Upcoming US CPI data could inject volatility—ensure stops are placed.";
   };
 
-  // Streak & Recent Logic
-  const recentClosedTrades = useMemo(() => {
-    return [...recentTrades]
-      .filter((t: any) => t.closed_at)
-      .sort((a: any, b: any) => new Date(b.closed_at).getTime() - new Date(a.closed_at).getTime())
-      .slice(0, 3);
-  }, [recentTrades]);
-
-  const { currentStreak, streakType } = useMemo(() => {
-    let currentStreak = 0;
-    let streakType: 'win' | 'loss' | null = null;
-    const closed = [...recentTrades].filter(t => t.closed_at).sort((a, b) => new Date(b.closed_at).getTime() - new Date(a.closed_at).getTime());
-    
-    for (const trade of closed) {
-      if (trade.profit === 0) continue;
-      const isWin = trade.profit > 0;
-      if (streakType === null) {
-        streakType = isWin ? 'win' : 'loss';
-        currentStreak = 1;
-      } else if ((isWin && streakType === 'win') || (!isWin && streakType === 'loss')) {
-        currentStreak++;
-      } else {
-        break;
-      }
-    }
-    return { currentStreak, streakType: streakType || 'none' };
-  }, [recentTrades]);
-
   return (
     <DashboardLayout breadcrumbs={[{ label: 'Dashboard' }]}>
       <div className="max-w-[1600px] mx-auto px-4 md:px-8 pb-12 space-y-5 min-h-screen font-sans">
-        
+
         {/* Demo Mode Banner (Matched exactly to Journal) */}
         {!isConnected && activeMarket !== 'indian' && (
           <motion.div
@@ -210,7 +182,7 @@ const Dashboard = () => {
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                  <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
                 </svg>
               </div>
               <div>
@@ -233,8 +205,8 @@ const Dashboard = () => {
               }}
             >
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
               </svg>
               Connect Real Account
             </button>
@@ -255,7 +227,7 @@ const Dashboard = () => {
               </div>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-3 mt-4 md:mt-0">
             <div className="px-4 py-2 bg-white rounded-full border border-slate-200 flex items-center gap-2 shadow-sm">
               <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-emerald-500' : 'bg-slate-300'}`}></div>
@@ -272,20 +244,20 @@ const Dashboard = () => {
 
         {/* Top 4 Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          
+
           {/* Card 1: Equity */}
           <GlassCard className="relative group cursor-pointer hover:border-white hover:shadow-[0_4px_12px_-4px_rgba(0,0,0,0.15),0_0_0_2px_#E2E8F0] !p-4">
             <div className="flex items-center gap-2 mb-3">
               <WalletIcon />
-              <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Account Equity</span>
+              <span className="text-[10px] font-bold text-slate-500 tracking-widest uppercase">Account Equity</span>
             </div>
             <div className="flex justify-between items-end">
               <div>
-                <h3 className="text-[28px] font-medium text-slate-900 tracking-tight leading-none mb-1" style={{ fontFamily: "'Inter', sans-serif" }}>
-                  ${equity > 0 ? equity.toLocaleString('en-US', {minimumFractionDigits: 2}) : "0.00"}
+                <h3 className="text-[26px] font-black text-slate-900 tracking-tight leading-none mb-1">
+                  ${equity > 0 ? equity.toLocaleString('en-US', { minimumFractionDigits: 2 }) : "0.00"}
                 </h3>
                 <p className="text-sm text-slate-500 font-medium">
-                  Balance ${balance > 0 ? balance.toLocaleString('en-US', {minimumFractionDigits: 2}) : "0.00"}
+                  Balance ${balance > 0 ? balance.toLocaleString('en-US', { minimumFractionDigits: 2 }) : "0.00"}
                 </p>
               </div>
               <ChevronRight size={20} className="text-slate-400 mb-1 group-hover:text-slate-600 transition-colors" />
@@ -296,11 +268,11 @@ const Dashboard = () => {
           <GlassCard className="relative group cursor-pointer hover:border-white hover:shadow-[0_4px_12px_-4px_rgba(0,0,0,0.15),0_0_0_2px_#E2E8F0] !p-4">
             <div className="flex items-center gap-2 mb-3">
               <TrendUpIcon />
-              <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Today's P&L</span>
+              <span className="text-[10px] font-bold text-slate-500 tracking-widest uppercase">Today's P&L</span>
             </div>
             <div className="flex justify-between items-end">
               <div>
-                <h3 className={`text-[28px] font-medium tracking-tight leading-none mb-1 ${todayProfit === 0 ? 'text-slate-900' : (todayProfit > 0 ? 'text-emerald-500' : 'text-rose-500')}`} style={{ fontFamily: "'Inter', sans-serif" }}>
+                <h3 className={`text-[26px] font-black tracking-tight leading-none mb-1 ${todayProfit === 0 ? 'text-slate-900' : (todayProfit > 0 ? 'text-emerald-500' : 'text-rose-500')}`}>
                   {pnlTodayStr}
                 </h3>
                 <p className={`text-sm font-medium ${todayProfit === 0 ? 'text-slate-500' : (todayProfit > 0 ? 'text-emerald-500' : 'text-rose-500')}`}>
@@ -316,13 +288,13 @@ const Dashboard = () => {
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <ShieldIcon />
-                <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Open Risk</span>
+                <span className="text-[10px] font-bold text-slate-500 tracking-widest uppercase">Open Risk</span>
               </div>
               <div className="flex justify-between items-end">
                 <div>
                   {riskData.openRiskPct === null ? (
                     <>
-                      <h3 className="text-[28px] font-medium text-slate-900 tracking-tight leading-none mb-1" style={{ fontFamily: "'Inter', sans-serif" }}>
+                      <h3 className="text-[26px] font-black text-slate-900 tracking-tight leading-none mb-1">
                         —
                       </h3>
                       <p className="text-sm text-slate-500 font-medium">
@@ -331,7 +303,7 @@ const Dashboard = () => {
                     </>
                   ) : (
                     <>
-                      <h3 className="text-[28px] font-medium text-slate-900 tracking-tight leading-none mb-1" style={{ fontFamily: "'Inter', sans-serif" }}>
+                      <h3 className="text-[26px] font-black text-slate-900 tracking-tight leading-none mb-1">
                         {riskData.openRiskPct}%
                       </h3>
                       <p className="text-sm text-slate-500 font-medium">
@@ -352,12 +324,12 @@ const Dashboard = () => {
           <GlassCard className="relative group cursor-pointer hover:border-white hover:shadow-[0_4px_12px_-4px_rgba(0,0,0,0.15),0_0_0_2px_#E2E8F0] !p-4">
             <div className="flex items-center gap-2 mb-3">
               <TargetIcon />
-              <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Discipline Score</span>
+              <span className="text-[10px] font-bold text-slate-500 tracking-widest uppercase">Discipline Score</span>
             </div>
             <div className="flex justify-between items-end">
               <div>
                 <div className="flex items-end gap-2 mb-1">
-                  <h3 className="text-[28px] font-medium text-slate-900 tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
+                  <h3 className="text-[26px] font-black text-slate-900 tracking-tight leading-none">
                     {avgDisciplineScore !== null ? avgDisciplineScore : "—"}
                   </h3>
                   {avgDisciplineScore !== null && <span className="text-lg font-bold text-slate-400 mb-0.5">/ 100</span>}
@@ -380,10 +352,10 @@ const Dashboard = () => {
 
         {/* Middle Section */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          
+
           {/* Left Column (Span 2) */}
           <div className="lg:col-span-2 space-y-5">
-            
+
             {/* Portfolio Performance */}
             <GlassCard noPadding className="p-6">
               <div className="flex justify-between items-center mb-6">
@@ -403,11 +375,11 @@ const Dashboard = () => {
                   </Link>
                 </div>
               </div>
-              
+
               {recentTrades && recentTrades.length > 0 ? (
                 <>
                   <div className="h-[200px] w-full -ml-4">
-                     <PerformanceChart trades={recentTrades || []} isDark={false} />
+                    <PerformanceChart trades={recentTrades || []} isDark={false} />
                   </div>
 
                   <div className="grid grid-cols-3 border-t border-slate-100 mt-4 pt-4">
@@ -448,7 +420,7 @@ const Dashboard = () => {
             {/* Open Positions */}
             <GlassCard noPadding className="p-6">
               <h2 className="text-[15px] font-bold text-slate-900 mb-4">Open Positions</h2>
-              
+
               {openPositions.length > 0 ? (
                 <div className="w-full overflow-x-auto">
                   <table className="w-full text-sm text-left">
@@ -479,15 +451,15 @@ const Dashboard = () => {
                             {pos.profit >= 0 ? `+$${pos.profit.toFixed(2)}` : `-$${Math.abs(pos.profit).toFixed(2)}`}
                           </td>
                           <td className="py-3 text-right">
-                             {riskData.isLimitConfigured ? (
-                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-100 uppercase">
-                                 <ShieldCheck size={10} /> Protected
-                               </span>
-                             ) : (
-                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-500 border border-slate-200 uppercase">
-                                 Unprotected
-                               </span>
-                             )}
+                            {riskData.isLimitConfigured ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-100 uppercase">
+                                <ShieldCheck size={10} /> Protected
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-500 border border-slate-200 uppercase">
+                                Unprotected
+                              </span>
+                            )}
                           </td>
                         </tr>
                       ))}
@@ -507,49 +479,9 @@ const Dashboard = () => {
 
           </div>
 
-          {/* Recent Executions */}
-          <GlassCard noPadding className="p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-[15px] font-bold text-slate-900">Recent Executions</h2>
-              <Link to="/journal" className="text-xs font-bold text-blue-600 flex items-center gap-1 hover:text-blue-700 transition-colors">
-                View all <ExternalLink size={12} strokeWidth={2.5} />
-              </Link>
-            </div>
-            
-            {recentClosedTrades.length > 0 ? (
-              <div className="space-y-3">
-                {recentClosedTrades.map((trade: any, idx: number) => (
-                  <div key={idx} className="flex justify-between items-center p-3 rounded-xl border border-slate-100 bg-slate-50/50 hover:bg-slate-50 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-xs ${trade.type?.includes('buy') ? 'bg-blue-100 text-blue-600' : 'bg-orange-100 text-orange-600'}`}>
-                        {trade.type?.includes('buy') ? 'B' : 'S'}
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-bold text-slate-900">{trade.symbol}</h4>
-                        <p className="text-xs text-slate-500 font-medium">{trade.volume?.toFixed(2) || '0.10'} Lots</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className={`text-sm font-black tracking-tight ${trade.profit >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
-                        {trade.profit >= 0 ? `+$${trade.profit.toFixed(2)}` : `-$${Math.abs(trade.profit).toFixed(2)}`}
-                      </p>
-                      <p className="text-[10px] font-bold text-slate-400">CLOSED</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center text-center py-6">
-                <p className="text-xs text-slate-500">No closed trades yet.</p>
-              </div>
-            )}
-          </GlassCard>
-
-        </div>
-
           {/* Right Column (Span 1) */}
           <div className="space-y-5">
-            
+
             {/* Risk Guard Status */}
             <GlassCard noPadding className="overflow-hidden">
               <div className="p-5 border-b border-slate-100 flex justify-between items-center">
@@ -559,7 +491,7 @@ const Dashboard = () => {
                 </Link>
               </div>
               <div className="p-5 space-y-5">
-                
+
                 {/* Rule 1 */}
                 <div>
                   <div className="flex justify-between items-center mb-2">
@@ -584,9 +516,9 @@ const Dashboard = () => {
                       <BarChart3 size={16} className="text-slate-400" /> Trades taken
                     </div>
                     {riskConfig?.max_open_trades ? (
-                       <span className="text-sm font-bold text-slate-900">{riskData.tradesTaken} <span className="text-slate-400 font-medium">/ {riskData.maxTrades}</span></span>
+                      <span className="text-sm font-bold text-slate-900">{riskData.tradesTaken} <span className="text-slate-400 font-medium">/ {riskData.maxTrades}</span></span>
                     ) : (
-                       <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Not configured</span>
+                      <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Not configured</span>
                     )}
                   </div>
                   <div className="w-full h-1 bg-slate-100 rounded-full overflow-hidden flex">
@@ -639,7 +571,7 @@ const Dashboard = () => {
             <GlassCard noPadding className="p-5">
               <div className="flex items-center gap-2 mb-3">
                 <Sparkles size={16} className="text-purple-500" />
-                <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">AI Coach — Next Action</span>
+                <span className="text-[10px] font-bold text-slate-500 tracking-widest uppercase">AI Coach — Next Action</span>
               </div>
               <p className="text-sm font-bold text-slate-900 leading-snug mb-4 pr-4">
                 {getCoachInsight()}
@@ -651,49 +583,10 @@ const Dashboard = () => {
               </div>
             </GlassCard>
 
-            {/* Current Streak */}
-            <GlassCard noPadding className="p-5">
-              <div className="flex justify-between items-center mb-3">
-                <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Current Streak</span>
-                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${streakType === 'win' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : (streakType === 'loss' ? 'bg-rose-50 text-rose-600 border border-rose-100' : 'bg-slate-100 text-slate-500')}`}>
-                  {streakType === 'win' ? 'Winning' : (streakType === 'loss' ? 'Losing' : 'Flat')}
-                </span>
-              </div>
-              <div className="flex items-end gap-2">
-                <h3 className="text-[28px] font-medium text-slate-900 tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
-                  {currentStreak}
-                </h3>
-                <span className="text-sm font-bold text-slate-400 mb-1">Trades</span>
-              </div>
-            </GlassCard>
-
-            {/* Market Sessions */}
-            <GlassCard noPadding className="p-5">
-               <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider block mb-4">Market Sessions</span>
-               <div className="grid grid-cols-2 gap-4">
-                 <div className="flex items-center gap-2">
-                   <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
-                   <span className="text-sm font-bold text-slate-900">New York</span>
-                 </div>
-                 <div className="flex items-center gap-2">
-                   <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
-                   <span className="text-sm font-bold text-slate-900">London</span>
-                 </div>
-                 <div className="flex items-center gap-2">
-                   <div className="w-1.5 h-1.5 rounded-full bg-slate-300"></div>
-                   <span className="text-sm font-bold text-slate-400">Tokyo</span>
-                 </div>
-                 <div className="flex items-center gap-2">
-                   <div className="w-1.5 h-1.5 rounded-full bg-slate-300"></div>
-                   <span className="text-sm font-bold text-slate-400">Sydney</span>
-                 </div>
-               </div>
-            </GlassCard>
-
             {/* Upcoming Event */}
             <GlassCard noPadding className="p-5 flex justify-between items-center">
               <div>
-                <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Upcoming Event</span>
+                <span className="text-[10px] font-bold text-slate-500 tracking-widest uppercase block mb-1">Upcoming Event</span>
                 <h3 className="text-sm font-bold text-slate-900">US CPI</h3>
                 <p className="text-xs text-slate-500 font-medium">Today • 6:00 PM</p>
               </div>
