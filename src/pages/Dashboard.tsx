@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import { 
   Wallet, TrendingUp, ShieldAlert, Target, Shield, ArrowRight,
   Sparkles, Clock, CheckCircle2, ChevronRight, Activity, AlertCircle,
@@ -33,6 +34,16 @@ const TargetIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400">
     <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
   </svg>
+);
+
+const GlassCard = ({ children, className = "", noPadding = false }: { children: React.ReactNode, className?: string, noPadding?: boolean }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    className={`bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] border-2 border-white rounded-[22px] ${noPadding ? '' : 'p-5'} shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] transition-all dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:rounded-[20px] dark:shadow-none ${className}`}
+  >
+    {children}
+  </motion.div>
 );
 
 const Dashboard = () => {
@@ -139,7 +150,7 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           
           {/* Card 1: Equity */}
-          <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] relative group cursor-pointer hover:border-slate-300 transition-colors">
+          <GlassCard className="relative group cursor-pointer hover:border-white hover:shadow-[0_4px_12px_-4px_rgba(0,0,0,0.15),0_0_0_2px_#E2E8F0]">
             <div className="flex items-center gap-2 mb-4">
               <WalletIcon />
               <span className="text-[10px] font-bold text-slate-500 tracking-widest uppercase">Account Equity</span>
@@ -155,10 +166,10 @@ const Dashboard = () => {
               </div>
               <ChevronRight size={20} className="text-slate-400 mb-1 group-hover:text-slate-600 transition-colors" />
             </div>
-          </div>
+          </GlassCard>
 
           {/* Card 2: Today's P&L */}
-          <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] relative group cursor-pointer hover:border-slate-300 transition-colors">
+          <GlassCard className="relative group cursor-pointer hover:border-white hover:shadow-[0_4px_12px_-4px_rgba(0,0,0,0.15),0_0_0_2px_#E2E8F0]">
             <div className="flex items-center gap-2 mb-4">
               <TrendUpIcon />
               <span className="text-[10px] font-bold text-slate-500 tracking-widest uppercase">Today's P&L</span>
@@ -174,10 +185,10 @@ const Dashboard = () => {
               </div>
               <ChevronRight size={20} className="text-slate-400 mb-1 group-hover:text-slate-600 transition-colors" />
             </div>
-          </div>
+          </GlassCard>
 
           {/* Card 3: Open Risk */}
-          <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] relative group cursor-pointer hover:border-slate-300 transition-colors flex flex-col justify-between">
+          <GlassCard className="relative group cursor-pointer hover:border-white hover:shadow-[0_4px_12px_-4px_rgba(0,0,0,0.15),0_0_0_2px_#E2E8F0] flex flex-col justify-between">
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <ShieldIcon />
@@ -198,10 +209,10 @@ const Dashboard = () => {
             <div className="w-full h-1.5 bg-slate-100 rounded-full mt-3 overflow-hidden">
               <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${(Number(riskData.openRiskPct) / Number(riskData.maxOpenRiskPct)) * 100}%` }}></div>
             </div>
-          </div>
+          </GlassCard>
 
           {/* Card 4: Discipline Score */}
-          <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] relative group cursor-pointer hover:border-slate-300 transition-colors">
+          <GlassCard className="relative group cursor-pointer hover:border-white hover:shadow-[0_4px_12px_-4px_rgba(0,0,0,0.15),0_0_0_2px_#E2E8F0]">
             <div className="flex items-center gap-2 mb-4">
               <TargetIcon />
               <span className="text-[10px] font-bold text-slate-500 tracking-widest uppercase">Discipline Score</span>
@@ -220,7 +231,7 @@ const Dashboard = () => {
               </div>
               <ChevronRight size={20} className="text-slate-400 mb-1 group-hover:text-slate-600 transition-colors" />
             </div>
-          </div>
+          </GlassCard>
 
         </div>
 
@@ -231,7 +242,7 @@ const Dashboard = () => {
           <div className="lg:col-span-2 space-y-6">
             
             {/* Portfolio Performance */}
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] p-6">
+            <GlassCard noPadding className="p-6">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-[15px] font-bold text-slate-900">Portfolio Performance</h2>
                 <div className="flex items-center gap-2 text-xs font-bold text-slate-400">
@@ -267,10 +278,10 @@ const Dashboard = () => {
                   </p>
                 </div>
               </div>
-            </div>
+            </GlassCard>
 
             {/* Open Positions */}
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] p-6">
+            <GlassCard noPadding className="p-6">
               <h2 className="text-[15px] font-bold text-slate-900 mb-4">Open Positions</h2>
               
               <div className="w-full overflow-x-auto">
@@ -335,7 +346,7 @@ const Dashboard = () => {
               <button className="mt-4 text-[13px] font-bold text-blue-600 flex items-center gap-1 hover:text-blue-700 transition-colors">
                 View all positions <ChevronRight size={14} strokeWidth={3} />
               </button>
-            </div>
+            </GlassCard>
 
           </div>
 
@@ -343,7 +354,7 @@ const Dashboard = () => {
           <div className="space-y-6">
             
             {/* Live Risk Control */}
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]">
+            <GlassCard noPadding className="overflow-hidden">
               <div className="p-5 border-b border-slate-100 flex justify-between items-center">
                 <h2 className="text-[15px] font-bold text-slate-900">Live Risk Control</h2>
                 <span className="px-2.5 py-0.5 rounded border border-emerald-100 bg-emerald-50 text-[10px] font-bold text-emerald-600 tracking-wider uppercase">Protected</span>
@@ -398,13 +409,13 @@ const Dashboard = () => {
                 </div>
 
               </div>
-              <div className="p-4 border-t border-slate-100 bg-slate-50/50 rounded-b-2xl flex items-center gap-2 text-xs font-medium text-slate-500">
+              <div className="p-4 border-t border-slate-100 bg-[#F8F9FC]/80 flex items-center gap-2 text-xs font-medium text-slate-500">
                 <CheckCircle2 size={14} className="text-emerald-500" /> All rules are being enforced
               </div>
-            </div>
+            </GlassCard>
 
             {/* AI Coach */}
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] p-5">
+            <GlassCard noPadding className="p-5">
               <div className="flex items-center gap-2 mb-3">
                 <Sparkles size={16} className="text-purple-500" />
                 <span className="text-[10px] font-bold text-slate-500 tracking-widest uppercase">AI Coach — Next Action</span>
@@ -417,10 +428,10 @@ const Dashboard = () => {
                   View analysis <ChevronRight size={14} strokeWidth={3} />
                 </button>
               </div>
-            </div>
+            </GlassCard>
 
             {/* Upcoming Event */}
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] p-5 flex justify-between items-center">
+            <GlassCard noPadding className="p-5 flex justify-between items-center">
               <div>
                 <span className="text-[10px] font-bold text-slate-500 tracking-widest uppercase block mb-1">Upcoming Event</span>
                 <h3 className="text-sm font-bold text-slate-900">US CPI</h3>
@@ -433,13 +444,13 @@ const Dashboard = () => {
                   <span className="text-sm font-bold">48 min</span>
                 </div>
               </div>
-            </div>
+            </GlassCard>
 
           </div>
         </div>
 
         {/* Bottom Full Width - Trading Plan */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] p-6 flex flex-col md:flex-row items-center justify-between gap-6">
+        <GlassCard noPadding className="p-6 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center">
               <Target size={20} className="text-slate-400" />
@@ -471,7 +482,7 @@ const Dashboard = () => {
               <CheckCircle2 size={16} /> Plan Active
             </div>
           </div>
-        </div>
+        </GlassCard>
 
       </div>
     </DashboardLayout>
