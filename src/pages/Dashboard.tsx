@@ -40,7 +40,7 @@ const GlassCard = ({ children, className = "", noPadding = false }: { children: 
   <motion.div
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
-    className={`bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] border-2 border-white rounded-[22px] ${noPadding ? '' : 'p-5'} shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] transition-all dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:rounded-[20px] dark:shadow-none ${className}`}
+    className={`bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] border-2 border-white rounded-[22px] ${noPadding ? '' : 'p-4'} shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] transition-all dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:rounded-[20px] dark:shadow-none ${className}`}
   >
     {children}
   </motion.div>
@@ -117,7 +117,7 @@ const Dashboard = () => {
   
   return (
     <DashboardLayout breadcrumbs={[{ label: 'Dashboard' }]}>
-      <div className="max-w-[1600px] mx-auto px-4 md:px-8 pb-12 space-y-6 bg-[#FAFAFA] min-h-screen font-sans">
+      <div className="max-w-[1600px] mx-auto px-4 md:px-8 pb-12 space-y-5 min-h-screen font-sans">
         
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end pt-4 pb-2">
@@ -150,14 +150,14 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           
           {/* Card 1: Equity */}
-          <GlassCard className="relative group cursor-pointer hover:border-white hover:shadow-[0_4px_12px_-4px_rgba(0,0,0,0.15),0_0_0_2px_#E2E8F0]">
-            <div className="flex items-center gap-2 mb-4">
+          <GlassCard className="relative group cursor-pointer hover:border-white hover:shadow-[0_4px_12px_-4px_rgba(0,0,0,0.15),0_0_0_2px_#E2E8F0] !p-4">
+            <div className="flex items-center gap-2 mb-3">
               <WalletIcon />
               <span className="text-[10px] font-bold text-slate-500 tracking-widest uppercase">Account Equity</span>
             </div>
             <div className="flex justify-between items-end">
               <div>
-                <h3 className="text-3xl font-black text-slate-900 tracking-tight leading-none mb-2">
+                <h3 className="text-[26px] font-black text-slate-900 tracking-tight leading-none mb-1">
                   ${equity > 0 ? equity.toLocaleString('en-US', {minimumFractionDigits: 2}) : "25,420.60"}
                 </h3>
                 <p className="text-sm text-slate-500 font-medium">
@@ -169,14 +169,14 @@ const Dashboard = () => {
           </GlassCard>
 
           {/* Card 2: Today's P&L */}
-          <GlassCard className="relative group cursor-pointer hover:border-white hover:shadow-[0_4px_12px_-4px_rgba(0,0,0,0.15),0_0_0_2px_#E2E8F0]">
-            <div className="flex items-center gap-2 mb-4">
+          <GlassCard className="relative group cursor-pointer hover:border-white hover:shadow-[0_4px_12px_-4px_rgba(0,0,0,0.15),0_0_0_2px_#E2E8F0] !p-4">
+            <div className="flex items-center gap-2 mb-3">
               <TrendUpIcon />
               <span className="text-[10px] font-bold text-slate-500 tracking-widest uppercase">Today's P&L</span>
             </div>
             <div className="flex justify-between items-end">
               <div>
-                <h3 className={`text-3xl font-black tracking-tight leading-none mb-2 ${todayProfit >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                <h3 className={`text-[26px] font-black tracking-tight leading-none mb-1 ${todayProfit >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
                   {pnlTodayStr}
                 </h3>
                 <p className={`text-sm font-medium ${todayProfit >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
@@ -188,39 +188,39 @@ const Dashboard = () => {
           </GlassCard>
 
           {/* Card 3: Open Risk */}
-          <GlassCard className="relative group cursor-pointer hover:border-white hover:shadow-[0_4px_12px_-4px_rgba(0,0,0,0.15),0_0_0_2px_#E2E8F0] flex flex-col justify-between">
+          <GlassCard className="relative group cursor-pointer hover:border-white hover:shadow-[0_4px_12px_-4px_rgba(0,0,0,0.15),0_0_0_2px_#E2E8F0] flex flex-col justify-between !p-4">
             <div>
-              <div className="flex items-center gap-2 mb-4">
+              <div className="flex items-center gap-2 mb-3">
                 <ShieldIcon />
                 <span className="text-[10px] font-bold text-slate-500 tracking-widest uppercase">Open Risk</span>
               </div>
               <div className="flex justify-between items-end">
                 <div>
-                  <h3 className="text-3xl font-black text-slate-900 tracking-tight leading-none mb-2">
+                  <h3 className="text-[26px] font-black text-slate-900 tracking-tight leading-none mb-1">
                     {riskData.openRiskPct}%
                   </h3>
                   <p className="text-sm text-slate-500 font-medium">
                     of {riskData.maxOpenRiskPct}% allowed
                   </p>
                 </div>
-                <ChevronRight size={20} className="text-slate-400 mb-6 group-hover:text-slate-600 transition-colors" />
+                <ChevronRight size={20} className="text-slate-400 mb-5 group-hover:text-slate-600 transition-colors" />
               </div>
             </div>
-            <div className="w-full h-1.5 bg-slate-100 rounded-full mt-3 overflow-hidden">
+            <div className="w-full h-1.5 bg-slate-100 rounded-full mt-2 overflow-hidden">
               <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${(Number(riskData.openRiskPct) / Number(riskData.maxOpenRiskPct)) * 100}%` }}></div>
             </div>
           </GlassCard>
 
           {/* Card 4: Discipline Score */}
-          <GlassCard className="relative group cursor-pointer hover:border-white hover:shadow-[0_4px_12px_-4px_rgba(0,0,0,0.15),0_0_0_2px_#E2E8F0]">
-            <div className="flex items-center gap-2 mb-4">
+          <GlassCard className="relative group cursor-pointer hover:border-white hover:shadow-[0_4px_12px_-4px_rgba(0,0,0,0.15),0_0_0_2px_#E2E8F0] !p-4">
+            <div className="flex items-center gap-2 mb-3">
               <TargetIcon />
               <span className="text-[10px] font-bold text-slate-500 tracking-widest uppercase">Discipline Score</span>
             </div>
             <div className="flex justify-between items-end">
               <div>
-                <div className="flex items-end gap-2 mb-2">
-                  <h3 className="text-3xl font-black text-slate-900 tracking-tight leading-none">
+                <div className="flex items-end gap-2 mb-1">
+                  <h3 className="text-[26px] font-black text-slate-900 tracking-tight leading-none">
                     {dispScore}
                   </h3>
                   <span className="text-lg font-bold text-slate-400 mb-0.5">/ 100</span>
@@ -239,7 +239,7 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
           {/* Left Column (Span 2) */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-5">
             
             {/* Portfolio Performance */}
             <GlassCard noPadding className="p-6">
@@ -351,7 +351,7 @@ const Dashboard = () => {
           </div>
 
           {/* Right Column (Span 1) */}
-          <div className="space-y-6">
+          <div className="space-y-5">
             
             {/* Live Risk Control */}
             <GlassCard noPadding className="overflow-hidden">
@@ -450,7 +450,7 @@ const Dashboard = () => {
         </div>
 
         {/* Bottom Full Width - Trading Plan */}
-        <GlassCard noPadding className="p-6 flex flex-col md:flex-row items-center justify-between gap-6">
+        <GlassCard noPadding className="p-4 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center">
               <Target size={20} className="text-slate-400" />
