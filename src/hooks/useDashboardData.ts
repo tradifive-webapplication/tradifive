@@ -13,6 +13,8 @@ export function useDashboardData() {
   const [drawdown, setDrawdown] = useState(0);
   const [recentTrades, setRecentTrades] = useState<any[]>([]);
   const [lastClosedTrade, setLastClosedTrade] = useState<any>(null);
+  const [profitFactor, setProfitFactor] = useState<number | null>(null);
+  const [openRiskPct, setOpenRiskPct] = useState<number | null>(null);
   const [isAlgoRunning, setIsAlgoRunning] = useState(false);
   const [balance, setBalance] = useState(0);
   const [equity, setEquity] = useState(0);
@@ -214,6 +216,42 @@ export function useDashboardData() {
             ? Math.round(scoredTrades.reduce((acc, t) => acc + (t.discipline_score || 0), 0) / scoredTrades.length)
             : null;
           setAvgDisciplineScore(avgScore);
+
+          // Profit Factor Calculation
+          const grossProfit = uniqueTrades.filter(t => t.profit > 0).reduce((acc, t) => acc + t.profit, 0);
+          const grossLoss = Math.abs(uniqueTrades.filter(t => t.profit < 0).reduce((acc, t) => acc + t.profit, 0));
+          if (grossProfit === 0 && grossLoss === 0) {
+            setProfitFactor(null);
+          } else {
+            const pf = grossLoss > 0 ? (grossProfit / grossLoss) : (grossProfit > 0 ? 99.9 : 0);
+            setProfitFactor(Number(pf.toFixed(2)));
+          }
+
+          // Open Risk Calculation (Mocking missing data with null if impossible to compute)
+          const openPositions = uniqueTrades.filter(t => !t.closed_at && !t.is_pending);
+          if (openPositions.length === 0) {
+            setOpenRiskPct(0);
+          } else {
+            // Attempt to calculate risk. If stop losses are missing, we can't accurately assess it
+            let hasValidSl = true;
+            let totalRiskSum = 0;
+            openPositions.forEach(t => {
+              if (!t.sl || !t.open_price) {
+                hasValidSl = false;
+              } else {
+                // Highly simplified mock calc: assuming forex pip values / account balance
+                // In production, this needs exact contract sizes.
+                const riskDiff = Math.abs(t.open_price - t.sl);
+                totalRiskSum += (riskDiff / t.open_price) * 100; // rough proxy
+              }
+            });
+            if (hasValidSl) {
+               setOpenRiskPct(Number(totalRiskSum.toFixed(2)));
+            } else {
+               setOpenRiskPct(null);
+            }
+          }
+
         } else {
           setRecentTrades([]);
           setLastClosedTrade(null);
@@ -222,6 +260,8 @@ export function useDashboardData() {
           setTodayProfit(0);
           setTradesToday(0);
           setAvgDisciplineScore(null);
+          setProfitFactor(null);
+          setOpenRiskPct(0);
         }
 
 
@@ -365,6 +405,8 @@ export function useDashboardData() {
     dailyXpEarned: dailyXpEarned,
     riskConfig,
     breachLogs: breachLogs,
-    lastClosedTrade
+    lastClosedTrade,
+    profitFactor,
+    openRiskPct
   };
 }

@@ -1,14 +1,13 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
   Wallet, TrendingUp, ShieldAlert, Target, Shield, ArrowRight,
   Sparkles, Clock, CheckCircle2, ChevronRight, Activity, AlertCircle,
-  ShieldCheck, BarChart3
+  ShieldCheck, BarChart3, ExternalLink
 } from "lucide-react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { useDashboardData } from "@/hooks/useDashboardData";
-import { useTrading } from "@/contexts/TradingContext";
 import { useMarket } from "@/contexts/MarketContext";
 import { supabase } from "@/lib/supabase";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -50,12 +49,13 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { 
     equity, balance, todayProfit, totalProfit, winRate, tradesToday, 
-    riskConfig, recentTrades, breachLogs, avgDisciplineScore, dailyXpEarned, loading 
+    riskConfig, recentTrades, avgDisciplineScore, isConnected, 
+    profitFactor, openRiskPct, accountMetrics
   } = useDashboardData();
-  const { isConnected, accountMetrics } = useTrading();
   const { activeMarket } = useMarket();
 
   const [userName, setUserName] = useState<string | null>(null);
+  const [eventTimer, setEventTimer] = useState("Loading...");
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -69,12 +69,34 @@ const Dashboard = () => {
         setUserName(name.charAt(0).toUpperCase() + name.slice(1).toLowerCase());
       }
     });
+
+    // Dynamic Countdown Timer Logic for Upcoming Event (Targeting 6:00 PM local time today)
+    const target = new Date();
+    target.setHours(18, 0, 0, 0);
+    if (target.getTime() < Date.now()) {
+      target.setDate(target.getDate() + 1);
+    }
+    
+    const interval = setInterval(() => {
+      const now = Date.now();
+      const diff = target.getTime() - now;
+      if (diff < 0) {
+        setEventTimer("Started");
+      } else {
+        const h = Math.floor(diff / (1000 * 60 * 60));
+        const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const s = Math.floor((diff % (1000 * 60)) / 1000);
+        if (h > 0) setEventTimer(`${h}h ${m}m`);
+        else setEventTimer(`${m}m ${s}s`);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
   }, []);
 
-  // Use the same risk logic as the old dashboard for accuracy
   const riskData = useMemo(() => {
     const currentDrawdownDollar = Math.max(0, balance - equity);
-    const maxLossPercent = riskConfig?.max_daily_loss_percent !== undefined ? riskConfig.max_daily_loss_percent : 3.0;
+    const maxLossPercent = riskConfig?.max_daily_loss_percent !== undefined ? riskConfig.max_daily_loss_percent : 0;
     const isLimitConfigured = maxLossPercent > 0 || (riskConfig?.is_prop_firm_mode && riskConfig?.prop_firm_daily_loss > 0);
     const drawdownLimitDollar = (riskConfig?.is_prop_firm_mode && riskConfig?.prop_firm_daily_loss)
       ? riskConfig.prop_firm_daily_loss
@@ -85,40 +107,92 @@ const Dashboard = () => {
     const maxExecutions = riskConfig?.max_open_trades || 5;
     const isEngaged = currentDrawdownDollar >= drawdownLimitDollar || tradesToday >= maxExecutions;
 
-    // Open Risk estimation (mock if no real data for open positions risk)
-    const openPositions = recentTrades?.filter((t: any) => !t.closed_at && !t.is_pending) || [];
-    let openRiskPct = 0;
-    if (openPositions.length > 0) {
-       openRiskPct = 1.2; // Mocking specific value from image, normally calculated from SL
-    }
-
     return {
       drawdownPct: drawdownPercentage.toFixed(1),
       maxLossPct: maxLossPercent.toFixed(1),
       tradesTaken: tradesToday,
       maxTrades: maxExecutions,
-      openRiskPct: openRiskPct.toFixed(1),
-      maxOpenRiskPct: (2.0).toFixed(1), // Mock allowed
+      openRiskPct: openRiskPct !== null ? openRiskPct.toFixed(1) : null,
+      maxOpenRiskPct: (2.0).toFixed(1), // Mock allowed fallback, could use riskConfig.max_open_risk if available
       revengeGuardActive: isEngaged,
       isLimitConfigured
     };
-  }, [balance, equity, riskConfig, tradesToday, recentTrades]);
-
-  const profitFactor = 1.82; // Mocked for UI match
+  }, [balance, equity, riskConfig, tradesToday, openRiskPct]);
   
   const openPositions = useMemo(() => {
-    return recentTrades?.filter((t: any) => !t.closed_at && !t.is_pending).slice(0, 5) || [];
+    return recentTrades?.filter((t: any) => !t.closed_at && !t.is_pending) || [];
   }, [recentTrades]);
 
-  // Fallbacks if no data
-  const dispScore = avgDisciplineScore || 86;
-  const pnlTodayStr = todayProfit >= 0 ? `+$${todayProfit.toFixed(2)}` : `-$${Math.abs(todayProfit).toFixed(2)}`;
-  const pnlNetStr = totalProfit >= 0 ? `+$${totalProfit.toFixed(2)}` : `-$${Math.abs(totalProfit).toFixed(2)}`;
+  // Fallbacks
+  const pnlTodayStr = todayProfit === 0 ? `$0.00` : (todayProfit > 0 ? `+$${todayProfit.toFixed(2)}` : `-$${Math.abs(todayProfit).toFixed(2)}`);
+  const pnlNetStr = totalProfit === 0 ? `$0.00` : (totalProfit > 0 ? `+$${totalProfit.toFixed(2)}` : `-$${Math.abs(totalProfit).toFixed(2)}`);
   
+  // AI Coach Insights Logic
+  const getCoachInsight = () => {
+    if (!isConnected || recentTrades.length < 3) {
+      return "Connect your account and complete a few trades to receive personalised coaching.";
+    }
+    if (Number(riskData.drawdownPct) > Number(riskData.maxLossPct) * 0.8) {
+      return `Warning: You have used ${riskData.drawdownPct}% of your ${riskData.maxLossPct}% daily limit. Consider pausing.`;
+    }
+    if (winRate < 40 && tradesToday > 0) {
+      return "Your win rate is trending low today. Step back and review your setup criteria.";
+    }
+    return "You're trading within plan. Upcoming US CPI data could inject volatility—ensure stops are placed.";
+  };
+
   return (
     <DashboardLayout breadcrumbs={[{ label: 'Dashboard' }]}>
       <div className="max-w-[1600px] mx-auto px-4 md:px-8 pb-12 space-y-5 min-h-screen font-sans">
         
+        {/* Demo Mode Banner (Matched exactly to Journal) */}
+        {!isConnected && activeMarket !== 'indian' && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35 }}
+            className="bg-gradient-to-b from-[#FFFBEB] to-[#FFFDF5] border-2 border-white rounded-[22px] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.08),0_0_0_2px_#FDE68A] dark:bg-none dark:bg-[#1E1912] dark:border-[1px] dark:border-amber-500/30 dark:shadow-[inset_0_1px_1px_rgba(251,191,36,0.05)] mt-4"
+            style={{ padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{
+                width: 36, height: 36, borderRadius: 10, flexShrink: 0,
+                background: 'rgba(251,191,36,0.15)',
+                border: '1px solid rgba(251,191,36,0.3)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+              </div>
+              <div>
+                <p className="text-[13px] font-semibold text-amber-800 dark:text-amber-300" style={{ margin: 0, lineHeight: 1.3 }}>
+                  You're viewing demo data
+                </p>
+                <p className="text-[12px] text-amber-700/70 dark:text-slate-300" style={{ margin: 0, lineHeight: 1.4 }}>
+                  Connect your real broker account to see live trades, P&amp;L and risk metrics.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => navigate('/settings?tab=trading')}
+              className="text-[13px] font-semibold text-white flex items-center gap-2 transition-all hover:scale-[1.03] active:scale-[0.98]"
+              style={{
+                background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                border: 'none', borderRadius: 12, padding: '9px 18px',
+                cursor: 'pointer', flexShrink: 0,
+                boxShadow: '0 2px 10px rgba(245,158,11,0.3)',
+              }}
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+              </svg>
+              Connect Real Account
+            </button>
+          </motion.div>
+        )}
+
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end pt-4 pb-2">
           <div>
@@ -136,10 +210,12 @@ const Dashboard = () => {
           
           <div className="flex items-center gap-3 mt-4 md:mt-0">
             <div className="px-4 py-2 bg-white rounded-full border border-slate-200 flex items-center gap-2 shadow-sm">
-              <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
-              <span className="text-sm font-bold text-slate-700">MT5 Connected • Live</span>
+              <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-emerald-500' : 'bg-slate-300'}`}></div>
+              <span className="text-sm font-bold text-slate-700">
+                {isConnected && accountMetrics ? `${accountMetrics.broker} • Live` : 'Not Connected'}
+              </span>
             </div>
-            <button className="px-4 py-2 bg-white rounded-full border border-rose-200 text-rose-500 flex items-center gap-2 hover:bg-rose-50 transition-colors shadow-sm">
+            <button className="px-4 py-2 bg-white rounded-full border border-rose-200 text-rose-500 flex items-center gap-2 hover:bg-rose-50 transition-colors shadow-sm disabled:opacity-50" disabled={!isConnected}>
               <ShieldAlert size={16} strokeWidth={2.5} />
               <span className="text-sm font-bold">Emergency Stop</span>
             </button>
@@ -158,10 +234,10 @@ const Dashboard = () => {
             <div className="flex justify-between items-end">
               <div>
                 <h3 className="text-[26px] font-black text-slate-900 tracking-tight leading-none mb-1">
-                  ${equity > 0 ? equity.toLocaleString('en-US', {minimumFractionDigits: 2}) : "25,420.60"}
+                  ${equity > 0 ? equity.toLocaleString('en-US', {minimumFractionDigits: 2}) : "0.00"}
                 </h3>
                 <p className="text-sm text-slate-500 font-medium">
-                  Balance ${balance > 0 ? balance.toLocaleString('en-US', {minimumFractionDigits: 2}) : "25,112.20"}
+                  Balance ${balance > 0 ? balance.toLocaleString('en-US', {minimumFractionDigits: 2}) : "0.00"}
                 </p>
               </div>
               <ChevronRight size={20} className="text-slate-400 mb-1 group-hover:text-slate-600 transition-colors" />
@@ -176,11 +252,11 @@ const Dashboard = () => {
             </div>
             <div className="flex justify-between items-end">
               <div>
-                <h3 className={`text-[26px] font-black tracking-tight leading-none mb-1 ${todayProfit >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                <h3 className={`text-[26px] font-black tracking-tight leading-none mb-1 ${todayProfit === 0 ? 'text-slate-900' : (todayProfit > 0 ? 'text-emerald-500' : 'text-rose-500')}`}>
                   {pnlTodayStr}
                 </h3>
-                <p className={`text-sm font-medium ${todayProfit >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
-                  {todayProfit >= 0 ? '+1.31%' : '-0.5%'} today
+                <p className={`text-sm font-medium ${todayProfit === 0 ? 'text-slate-500' : (todayProfit > 0 ? 'text-emerald-500' : 'text-rose-500')}`}>
+                  {balance > 0 ? `${todayProfit > 0 ? '+' : ''}${((todayProfit / balance) * 100).toFixed(2)}%` : '0.00%'} today
                 </p>
               </div>
               <ChevronRight size={20} className="text-slate-400 mb-1 group-hover:text-slate-600 transition-colors" />
@@ -196,18 +272,31 @@ const Dashboard = () => {
               </div>
               <div className="flex justify-between items-end">
                 <div>
-                  <h3 className="text-[26px] font-black text-slate-900 tracking-tight leading-none mb-1">
-                    {riskData.openRiskPct}%
-                  </h3>
-                  <p className="text-sm text-slate-500 font-medium">
-                    of {riskData.maxOpenRiskPct}% allowed
-                  </p>
+                  {riskData.openRiskPct === null ? (
+                    <>
+                      <h3 className="text-[26px] font-black text-slate-900 tracking-tight leading-none mb-1">
+                        —
+                      </h3>
+                      <p className="text-sm text-slate-500 font-medium">
+                        Not enough data
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <h3 className="text-[26px] font-black text-slate-900 tracking-tight leading-none mb-1">
+                        {riskData.openRiskPct}%
+                      </h3>
+                      <p className="text-sm text-slate-500 font-medium">
+                        of {riskData.maxOpenRiskPct}% allowed
+                      </p>
+                    </>
+                  )}
                 </div>
                 <ChevronRight size={20} className="text-slate-400 mb-5 group-hover:text-slate-600 transition-colors" />
               </div>
             </div>
             <div className="w-full h-1.5 bg-slate-100 rounded-full mt-2 overflow-hidden">
-              <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${(Number(riskData.openRiskPct) / Number(riskData.maxOpenRiskPct)) * 100}%` }}></div>
+              <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${riskData.openRiskPct !== null ? (Number(riskData.openRiskPct) / Number(riskData.maxOpenRiskPct)) * 100 : 0}%` }}></div>
             </div>
           </GlassCard>
 
@@ -221,13 +310,19 @@ const Dashboard = () => {
               <div>
                 <div className="flex items-end gap-2 mb-1">
                   <h3 className="text-[26px] font-black text-slate-900 tracking-tight leading-none">
-                    {dispScore}
+                    {avgDisciplineScore !== null ? avgDisciplineScore : "—"}
                   </h3>
-                  <span className="text-lg font-bold text-slate-400 mb-0.5">/ 100</span>
+                  {avgDisciplineScore !== null && <span className="text-lg font-bold text-slate-400 mb-0.5">/ 100</span>}
                 </div>
-                <div className="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-emerald-50 text-emerald-600 border border-emerald-100">
-                  Excellent
-                </div>
+                {avgDisciplineScore !== null ? (
+                  <div className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-bold border ${avgDisciplineScore >= 80 ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : (avgDisciplineScore >= 50 ? 'bg-amber-50 text-amber-600 border-amber-100' : 'bg-rose-50 text-rose-600 border-rose-100')}`}>
+                    {avgDisciplineScore >= 80 ? 'Excellent' : (avgDisciplineScore >= 50 ? 'Average' : 'Poor')}
+                  </div>
+                ) : (
+                  <div className="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-slate-100 text-slate-500 border border-slate-200">
+                    Not enough data
+                  </div>
+                )}
               </div>
               <ChevronRight size={20} className="text-slate-400 mb-1 group-hover:text-slate-600 transition-colors" />
             </div>
@@ -245,107 +340,121 @@ const Dashboard = () => {
             <GlassCard noPadding className="p-6">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-[15px] font-bold text-slate-900">Portfolio Performance</h2>
-                <div className="flex items-center gap-2 text-xs font-bold text-slate-400">
-                  <button className="hover:text-slate-900 transition-colors">1D</button>
-                  <button className="hover:text-slate-900 transition-colors">1W</button>
-                  <button className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full border border-blue-100">1M</button>
-                  <button className="hover:text-slate-900 transition-colors">3M</button>
-                  <button className="hover:text-slate-900 transition-colors">ALL</button>
+                <div className="flex items-center gap-3">
+                  {recentTrades && recentTrades.length > 0 && (
+                    <div className="hidden md:flex items-center gap-2 text-xs font-bold text-slate-400 mr-2">
+                      <button className="hover:text-slate-900 transition-colors">1D</button>
+                      <button className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full border border-blue-100">1W</button>
+                      <button className="hover:text-slate-900 transition-colors">1M</button>
+                      <button className="hover:text-slate-900 transition-colors">3M</button>
+                      <button className="hover:text-slate-900 transition-colors">ALL</button>
+                    </div>
+                  )}
+                  <Link to="/journal" className="text-xs font-bold text-blue-600 flex items-center gap-1 hover:text-blue-700 transition-colors">
+                    Open Journal <ExternalLink size={12} strokeWidth={2.5} />
+                  </Link>
                 </div>
               </div>
               
-              <div className="h-[220px] w-full -ml-4">
-                 <PerformanceChart trades={recentTrades || []} isDark={false} />
-              </div>
+              {recentTrades && recentTrades.length > 0 ? (
+                <>
+                  <div className="h-[200px] w-full -ml-4">
+                     <PerformanceChart trades={recentTrades || []} isDark={false} />
+                  </div>
 
-              <div className="grid grid-cols-3 border-t border-slate-100 mt-4 pt-4">
-                <div>
-                  <p className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-1">Net P&L</p>
-                  <p className={`text-lg font-black tracking-tight ${totalProfit >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
-                    {pnlNetStr}
+                  <div className="grid grid-cols-3 border-t border-slate-100 mt-4 pt-4">
+                    <div>
+                      <p className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-1">Net P&L</p>
+                      <p className={`text-lg font-black tracking-tight ${totalProfit === 0 ? 'text-slate-900' : (totalProfit > 0 ? 'text-emerald-500' : 'text-rose-500')}`}>
+                        {pnlNetStr}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-1">Win Rate</p>
+                      <p className="text-lg font-black tracking-tight text-slate-900">
+                        {winRate}%
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-1">Profit Factor</p>
+                      <p className="text-lg font-black tracking-tight text-slate-900">
+                        {profitFactor !== null ? profitFactor : '—'}
+                      </p>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="h-[250px] flex flex-col items-center justify-center text-center px-4 py-8 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+                  <Activity size={32} className="text-slate-300 mb-3" />
+                  <h3 className="text-sm font-bold text-slate-700 mb-1">No trading data yet</h3>
+                  <p className="text-xs text-slate-500 max-w-[250px] mb-4">
+                    Connect an account or import trades to view performance.
                   </p>
+                  <Link to="/journal" className="px-4 py-2 bg-white text-blue-600 font-bold text-xs rounded-full border border-blue-100 hover:bg-blue-50 transition-colors">
+                    Open Journal
+                  </Link>
                 </div>
-                <div>
-                  <p className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-1">Win Rate</p>
-                  <p className="text-lg font-black tracking-tight text-slate-900">
-                    {winRate}%
-                  </p>
-                </div>
-                <div>
-                  <p className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-1">Profit Factor</p>
-                  <p className="text-lg font-black tracking-tight text-slate-900">
-                    {profitFactor}
-                  </p>
-                </div>
-              </div>
+              )}
             </GlassCard>
 
             {/* Open Positions */}
             <GlassCard noPadding className="p-6">
               <h2 className="text-[15px] font-bold text-slate-900 mb-4">Open Positions</h2>
               
-              <div className="w-full overflow-x-auto">
-                <table className="w-full text-sm text-left">
-                  <thead>
-                    <tr className="text-[11px] font-bold text-slate-400 tracking-wider border-b border-slate-100">
-                      <th className="pb-3 font-medium">Symbol</th>
-                      <th className="pb-3 font-medium">Side</th>
-                      <th className="pb-3 font-medium">Size</th>
-                      <th className="pb-3 font-medium">Entry</th>
-                      <th className="pb-3 font-medium">Current</th>
-                      <th className="pb-3 font-medium">P&L</th>
-                      <th className="pb-3 font-medium">Risk</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {openPositions.length > 0 ? openPositions.map((pos: any, idx: number) => (
-                      <tr key={idx} className="border-b border-slate-50 last:border-0">
-                        <td className="py-3 font-bold text-slate-900">{pos.symbol}</td>
-                        <td className="py-3">
-                          <span className={`px-2.5 py-0.5 rounded text-[10px] font-bold uppercase ${pos.type?.includes('buy') ? 'bg-blue-50 text-blue-600 border border-blue-100' : 'bg-orange-50 text-orange-600 border border-orange-100'}`}>
-                            {pos.type?.includes('buy') ? 'BUY' : 'SELL'}
-                          </span>
-                        </td>
-                        <td className="py-3 font-medium text-slate-700">{pos.volume?.toFixed(2) || '0.10'}</td>
-                        <td className="py-3 font-medium text-slate-700">{pos.entry || pos.open_price}</td>
-                        <td className="py-3 font-medium text-slate-700">{pos.exit || pos.current_price || pos.open_price}</td>
-                        <td className={`py-3 font-bold ${pos.profit >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
-                          {pos.profit >= 0 ? `+$${pos.profit.toFixed(2)}` : `-$${Math.abs(pos.profit).toFixed(2)}`}
-                        </td>
-                        <td className="py-3 font-medium text-slate-500">0.5%</td>
+              {openPositions.length > 0 ? (
+                <div className="w-full overflow-x-auto">
+                  <table className="w-full text-sm text-left">
+                    <thead>
+                      <tr className="text-[11px] font-bold text-slate-400 tracking-wider border-b border-slate-100">
+                        <th className="pb-3 font-medium">Symbol</th>
+                        <th className="pb-3 font-medium">Side</th>
+                        <th className="pb-3 font-medium">Size</th>
+                        <th className="pb-3 font-medium">Entry</th>
+                        <th className="pb-3 font-medium">Current</th>
+                        <th className="pb-3 font-medium">P&L</th>
+                        <th className="pb-3 font-medium text-right">Status</th>
                       </tr>
-                    )) : (
-                      <tr className="border-b border-slate-50">
-                        <td className="py-3 font-bold text-slate-900">XAUUSD</td>
-                        <td className="py-3">
-                          <span className="px-2.5 py-0.5 rounded text-[10px] font-bold uppercase bg-blue-50 text-blue-600 border border-blue-100">BUY</span>
-                        </td>
-                        <td className="py-3 font-medium text-slate-700">0.20</td>
-                        <td className="py-3 font-medium text-slate-700">2364.50</td>
-                        <td className="py-3 font-medium text-slate-700">2371.80</td>
-                        <td className="py-3 font-bold text-emerald-500">+$146.00</td>
-                        <td className="py-3 font-medium text-slate-500">0.6%</td>
-                      </tr>
-                    )}
-                    {openPositions.length === 0 && (
-                      <tr className="border-b border-slate-50">
-                        <td className="py-3 font-bold text-slate-900">EURUSD</td>
-                        <td className="py-3">
-                          <span className="px-2.5 py-0.5 rounded text-[10px] font-bold uppercase bg-orange-50 text-orange-600 border border-orange-100">SELL</span>
-                        </td>
-                        <td className="py-3 font-medium text-slate-700">0.10</td>
-                        <td className="py-3 font-medium text-slate-700">1.0864</td>
-                        <td className="py-3 font-medium text-slate-700">1.0849</td>
-                        <td className="py-3 font-bold text-emerald-500">+$15.00</td>
-                        <td className="py-3 font-medium text-slate-500">0.4%</td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-              <button className="mt-4 text-[13px] font-bold text-blue-600 flex items-center gap-1 hover:text-blue-700 transition-colors">
-                View all positions <ChevronRight size={14} strokeWidth={3} />
-              </button>
+                    </thead>
+                    <tbody>
+                      {openPositions.map((pos: any, idx: number) => (
+                        <tr key={idx} className="border-b border-slate-50 last:border-0">
+                          <td className="py-3 font-bold text-slate-900">{pos.symbol}</td>
+                          <td className="py-3">
+                            <span className={`px-2.5 py-0.5 rounded text-[10px] font-bold uppercase ${pos.type?.includes('buy') ? 'bg-blue-50 text-blue-600 border border-blue-100' : 'bg-orange-50 text-orange-600 border border-orange-100'}`}>
+                              {pos.type?.includes('buy') ? 'BUY' : 'SELL'}
+                            </span>
+                          </td>
+                          <td className="py-3 font-medium text-slate-700">{pos.volume?.toFixed(2) || '0.10'}</td>
+                          <td className="py-3 font-medium text-slate-700">{pos.entry || pos.open_price}</td>
+                          <td className="py-3 font-medium text-slate-700">{pos.exit || pos.current_price || pos.open_price}</td>
+                          <td className={`py-3 font-bold ${pos.profit >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                            {pos.profit >= 0 ? `+$${pos.profit.toFixed(2)}` : `-$${Math.abs(pos.profit).toFixed(2)}`}
+                          </td>
+                          <td className="py-3 text-right">
+                             {riskData.isLimitConfigured ? (
+                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-100 uppercase">
+                                 <ShieldCheck size={10} /> Protected
+                               </span>
+                             ) : (
+                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-500 border border-slate-200 uppercase">
+                                 Unprotected
+                               </span>
+                             )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center text-center px-4 py-8 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+                  <Shield size={32} className="text-slate-300 mb-3" />
+                  <h3 className="text-sm font-bold text-slate-700 mb-1">No open positions</h3>
+                  <p className="text-xs text-slate-500">
+                    Your active positions will appear here.
+                  </p>
+                </div>
+              )}
             </GlassCard>
 
           </div>
@@ -353,11 +462,13 @@ const Dashboard = () => {
           {/* Right Column (Span 1) */}
           <div className="space-y-5">
             
-            {/* Live Risk Control */}
+            {/* Risk Guard Status */}
             <GlassCard noPadding className="overflow-hidden">
               <div className="p-5 border-b border-slate-100 flex justify-between items-center">
-                <h2 className="text-[15px] font-bold text-slate-900">Live Risk Control</h2>
-                <span className="px-2.5 py-0.5 rounded border border-emerald-100 bg-emerald-50 text-[10px] font-bold text-emerald-600 tracking-wider uppercase">Protected</span>
+                <h2 className="text-[15px] font-bold text-slate-900">Risk Guard Status</h2>
+                <Link to="/risk-guard" className="text-xs font-bold text-blue-600 flex items-center gap-1 hover:text-blue-700 transition-colors">
+                  Open Risk Guard <ExternalLink size={12} strokeWidth={2.5} />
+                </Link>
               </div>
               <div className="p-5 space-y-5">
                 
@@ -367,10 +478,14 @@ const Dashboard = () => {
                     <div className="flex items-center gap-2 text-sm font-medium text-slate-600">
                       <ShieldCheck size={16} className="text-slate-400" /> Daily loss used
                     </div>
-                    <span className="text-sm font-bold text-slate-900">{riskData.drawdownPct}% <span className="text-slate-400 font-medium">/ {riskData.maxLossPct}%</span></span>
+                    {riskData.isLimitConfigured ? (
+                      <span className="text-sm font-bold text-slate-900">{riskData.drawdownPct}% <span className="text-slate-400 font-medium">/ {riskData.maxLossPct}%</span></span>
+                    ) : (
+                      <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Not configured</span>
+                    )}
                   </div>
                   <div className="w-full h-1 bg-slate-100 rounded-full overflow-hidden flex">
-                    <div className="h-full bg-emerald-500" style={{ width: `${Math.min(100, (Number(riskData.drawdownPct) / Number(riskData.maxLossPct)) * 100)}%` }}></div>
+                    <div className="h-full bg-emerald-500" style={{ width: riskData.isLimitConfigured ? `${Math.min(100, (Number(riskData.drawdownPct) / Number(riskData.maxLossPct)) * 100)}%` : '0%' }}></div>
                   </div>
                 </div>
 
@@ -380,10 +495,14 @@ const Dashboard = () => {
                     <div className="flex items-center gap-2 text-sm font-medium text-slate-600">
                       <BarChart3 size={16} className="text-slate-400" /> Trades taken
                     </div>
-                    <span className="text-sm font-bold text-slate-900">{riskData.tradesTaken} <span className="text-slate-400 font-medium">/ {riskData.maxTrades}</span></span>
+                    {riskConfig?.max_open_trades ? (
+                       <span className="text-sm font-bold text-slate-900">{riskData.tradesTaken} <span className="text-slate-400 font-medium">/ {riskData.maxTrades}</span></span>
+                    ) : (
+                       <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Not configured</span>
+                    )}
                   </div>
                   <div className="w-full h-1 bg-slate-100 rounded-full overflow-hidden flex">
-                    <div className="h-full bg-blue-500" style={{ width: `${Math.min(100, (riskData.tradesTaken / riskData.maxTrades) * 100)}%` }}></div>
+                    <div className="h-full bg-blue-500" style={{ width: riskConfig?.max_open_trades ? `${Math.min(100, (riskData.tradesTaken / riskData.maxTrades) * 100)}%` : '0%' }}></div>
                   </div>
                 </div>
 
@@ -393,10 +512,14 @@ const Dashboard = () => {
                     <div className="flex items-center gap-2 text-sm font-medium text-slate-600">
                       <Target size={16} className="text-slate-400" /> Open risk
                     </div>
-                    <span className="text-sm font-bold text-slate-900">{riskData.openRiskPct}% <span className="text-slate-400 font-medium">/ {riskData.maxOpenRiskPct}%</span></span>
+                    {riskData.openRiskPct !== null ? (
+                      <span className="text-sm font-bold text-slate-900">{riskData.openRiskPct}% <span className="text-slate-400 font-medium">/ {riskData.maxOpenRiskPct}%</span></span>
+                    ) : (
+                      <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Not configured</span>
+                    )}
                   </div>
                   <div className="w-full h-1 bg-slate-100 rounded-full overflow-hidden flex">
-                    <div className="h-full bg-emerald-500" style={{ width: `${(Number(riskData.openRiskPct) / Number(riskData.maxOpenRiskPct)) * 100}%` }}></div>
+                    <div className="h-full bg-emerald-500" style={{ width: riskData.openRiskPct !== null ? `${(Number(riskData.openRiskPct) / Number(riskData.maxOpenRiskPct)) * 100}%` : '0%' }}></div>
                   </div>
                 </div>
 
@@ -405,12 +528,22 @@ const Dashboard = () => {
                   <div className="flex items-center gap-2 text-sm font-medium text-slate-600">
                     <ShieldAlert size={16} className="text-slate-400" /> Revenge Guard
                   </div>
-                  <span className="text-sm font-bold text-emerald-500">Active</span>
+                  <span className={`text-sm font-bold ${riskData.revengeGuardActive ? 'text-rose-500' : 'text-emerald-500'}`}>
+                    {riskData.revengeGuardActive ? 'Triggered' : 'Active'}
+                  </span>
                 </div>
 
               </div>
-              <div className="p-4 border-t border-slate-100 bg-[#F8F9FC]/80 flex items-center gap-2 text-xs font-medium text-slate-500">
-                <CheckCircle2 size={14} className="text-emerald-500" /> All rules are being enforced
+              <div className={`p-4 border-t border-slate-100 rounded-b-[20px] flex items-center gap-2 text-xs font-medium ${riskData.isLimitConfigured ? 'bg-[#F8F9FC]/80 text-emerald-600' : 'bg-slate-50 text-slate-500'}`}>
+                {riskData.isLimitConfigured ? (
+                  <>
+                    <CheckCircle2 size={14} className="text-emerald-500" /> All rules are being enforced
+                  </>
+                ) : (
+                  <>
+                    <AlertCircle size={14} /> Protection limits are not fully configured
+                  </>
+                )}
               </div>
             </GlassCard>
 
@@ -421,12 +554,12 @@ const Dashboard = () => {
                 <span className="text-[10px] font-bold text-slate-500 tracking-widest uppercase">AI Coach — Next Action</span>
               </div>
               <p className="text-sm font-bold text-slate-900 leading-snug mb-4 pr-4">
-                You're within plan. CPI is in 48 min—avoid adding new USD exposure.
+                {getCoachInsight()}
               </p>
               <div className="flex justify-end">
-                <button className="text-[13px] font-bold text-blue-600 flex items-center gap-1 hover:text-blue-700 transition-colors">
+                <Link to="/tradifive-ai-public" className="text-[13px] font-bold text-blue-600 flex items-center gap-1 hover:text-blue-700 transition-colors">
                   View analysis <ChevronRight size={14} strokeWidth={3} />
-                </button>
+                </Link>
               </div>
             </GlassCard>
 
@@ -441,48 +574,13 @@ const Dashboard = () => {
                 <span className="px-2 py-0.5 rounded border border-rose-100 bg-rose-50 text-[10px] font-bold text-rose-600 tracking-widest uppercase">High Impact</span>
                 <div className="flex items-center gap-1 text-rose-500">
                   <Clock size={14} strokeWidth={2.5} />
-                  <span className="text-sm font-bold">48 min</span>
+                  <span className="text-sm font-bold">{eventTimer}</span>
                 </div>
               </div>
             </GlassCard>
 
           </div>
         </div>
-
-        {/* Bottom Full Width - Trading Plan */}
-        <GlassCard noPadding className="p-4 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center">
-              <Target size={20} className="text-slate-400" />
-            </div>
-            <span className="text-xs font-bold text-slate-500 tracking-widest uppercase">Today's Trading Plan</span>
-          </div>
-
-          <div className="flex flex-1 justify-around items-center px-8 border-l border-r border-slate-100">
-            <div>
-              <p className="text-xs text-slate-500 font-medium mb-1">Max trades</p>
-              <p className="text-lg font-black text-slate-900">{riskData.maxTrades}</p>
-            </div>
-            <div>
-              <p className="text-xs text-slate-500 font-medium mb-1">Risk per trade</p>
-              <p className="text-lg font-black text-slate-900">1.0%</p>
-            </div>
-            <div>
-              <p className="text-xs text-slate-500 font-medium mb-1">Daily loss limit</p>
-              <p className="text-lg font-black text-slate-900">{riskData.maxLossPct}%</p>
-            </div>
-            <div>
-              <p className="text-xs text-slate-500 font-medium mb-1">Minimum R:R</p>
-              <p className="text-lg font-black text-slate-900">1:2</p>
-            </div>
-          </div>
-
-          <div>
-            <div className="px-4 py-2 rounded-full border border-emerald-200 text-emerald-600 flex items-center gap-2 font-bold text-sm bg-emerald-50">
-              <CheckCircle2 size={16} /> Plan Active
-            </div>
-          </div>
-        </GlassCard>
 
       </div>
     </DashboardLayout>
