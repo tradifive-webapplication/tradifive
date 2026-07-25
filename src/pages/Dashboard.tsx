@@ -305,7 +305,7 @@ const Dashboard = () => {
 
               {recentTrades && recentTrades.length > 0 ? (
                 <>
-                  <div className="h-[180px] w-full overflow-hidden rounded-lg">
+                  <div className="h-[180px] w-full rounded-lg">
                     <PerformanceChart trades={recentTrades || []} isDark={false} />
                   </div>
                   <div className="grid grid-cols-3 border-t border-slate-100 dark:border-white/5 mt-4 pt-4">
