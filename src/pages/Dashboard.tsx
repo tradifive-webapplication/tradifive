@@ -161,6 +161,34 @@ const Dashboard = () => {
     return "You're trading within plan. Upcoming US CPI data could inject volatility—ensure stops are placed.";
   };
 
+  // Streak & Recent Logic
+  const recentClosedTrades = useMemo(() => {
+    return [...recentTrades]
+      .filter((t: any) => t.closed_at)
+      .sort((a: any, b: any) => new Date(b.closed_at).getTime() - new Date(a.closed_at).getTime())
+      .slice(0, 3);
+  }, [recentTrades]);
+
+  const { currentStreak, streakType } = useMemo(() => {
+    let currentStreak = 0;
+    let streakType: 'win' | 'loss' | null = null;
+    const closed = [...recentTrades].filter(t => t.closed_at).sort((a, b) => new Date(b.closed_at).getTime() - new Date(a.closed_at).getTime());
+    
+    for (const trade of closed) {
+      if (trade.profit === 0) continue;
+      const isWin = trade.profit > 0;
+      if (streakType === null) {
+        streakType = isWin ? 'win' : 'loss';
+        currentStreak = 1;
+      } else if ((isWin && streakType === 'win') || (!isWin && streakType === 'loss')) {
+        currentStreak++;
+      } else {
+        break;
+      }
+    }
+    return { currentStreak, streakType: streakType || 'none' };
+  }, [recentTrades]);
+
   return (
     <DashboardLayout breadcrumbs={[{ label: 'Dashboard' }]}>
       <div className="max-w-[1600px] mx-auto px-4 md:px-8 pb-12 space-y-5 min-h-screen font-sans">
@@ -249,11 +277,11 @@ const Dashboard = () => {
           <GlassCard className="relative group cursor-pointer hover:border-white hover:shadow-[0_4px_12px_-4px_rgba(0,0,0,0.15),0_0_0_2px_#E2E8F0] !p-4">
             <div className="flex items-center gap-2 mb-3">
               <WalletIcon />
-              <span className="text-[10px] font-bold text-slate-500 tracking-widest uppercase">Account Equity</span>
+              <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Account Equity</span>
             </div>
             <div className="flex justify-between items-end">
               <div>
-                <h3 className="text-[26px] font-black text-slate-900 tracking-tight leading-none mb-1">
+                <h3 className="text-[28px] font-medium text-slate-900 tracking-tight leading-none mb-1" style={{ fontFamily: "'Inter', sans-serif" }}>
                   ${equity > 0 ? equity.toLocaleString('en-US', {minimumFractionDigits: 2}) : "0.00"}
                 </h3>
                 <p className="text-sm text-slate-500 font-medium">
@@ -268,11 +296,11 @@ const Dashboard = () => {
           <GlassCard className="relative group cursor-pointer hover:border-white hover:shadow-[0_4px_12px_-4px_rgba(0,0,0,0.15),0_0_0_2px_#E2E8F0] !p-4">
             <div className="flex items-center gap-2 mb-3">
               <TrendUpIcon />
-              <span className="text-[10px] font-bold text-slate-500 tracking-widest uppercase">Today's P&L</span>
+              <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Today's P&L</span>
             </div>
             <div className="flex justify-between items-end">
               <div>
-                <h3 className={`text-[26px] font-black tracking-tight leading-none mb-1 ${todayProfit === 0 ? 'text-slate-900' : (todayProfit > 0 ? 'text-emerald-500' : 'text-rose-500')}`}>
+                <h3 className={`text-[28px] font-medium tracking-tight leading-none mb-1 ${todayProfit === 0 ? 'text-slate-900' : (todayProfit > 0 ? 'text-emerald-500' : 'text-rose-500')}`} style={{ fontFamily: "'Inter', sans-serif" }}>
                   {pnlTodayStr}
                 </h3>
                 <p className={`text-sm font-medium ${todayProfit === 0 ? 'text-slate-500' : (todayProfit > 0 ? 'text-emerald-500' : 'text-rose-500')}`}>
@@ -288,13 +316,13 @@ const Dashboard = () => {
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <ShieldIcon />
-                <span className="text-[10px] font-bold text-slate-500 tracking-widest uppercase">Open Risk</span>
+                <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Open Risk</span>
               </div>
               <div className="flex justify-between items-end">
                 <div>
                   {riskData.openRiskPct === null ? (
                     <>
-                      <h3 className="text-[26px] font-black text-slate-900 tracking-tight leading-none mb-1">
+                      <h3 className="text-[28px] font-medium text-slate-900 tracking-tight leading-none mb-1" style={{ fontFamily: "'Inter', sans-serif" }}>
                         —
                       </h3>
                       <p className="text-sm text-slate-500 font-medium">
@@ -303,7 +331,7 @@ const Dashboard = () => {
                     </>
                   ) : (
                     <>
-                      <h3 className="text-[26px] font-black text-slate-900 tracking-tight leading-none mb-1">
+                      <h3 className="text-[28px] font-medium text-slate-900 tracking-tight leading-none mb-1" style={{ fontFamily: "'Inter', sans-serif" }}>
                         {riskData.openRiskPct}%
                       </h3>
                       <p className="text-sm text-slate-500 font-medium">
@@ -324,12 +352,12 @@ const Dashboard = () => {
           <GlassCard className="relative group cursor-pointer hover:border-white hover:shadow-[0_4px_12px_-4px_rgba(0,0,0,0.15),0_0_0_2px_#E2E8F0] !p-4">
             <div className="flex items-center gap-2 mb-3">
               <TargetIcon />
-              <span className="text-[10px] font-bold text-slate-500 tracking-widest uppercase">Discipline Score</span>
+              <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Discipline Score</span>
             </div>
             <div className="flex justify-between items-end">
               <div>
                 <div className="flex items-end gap-2 mb-1">
-                  <h3 className="text-[26px] font-black text-slate-900 tracking-tight leading-none">
+                  <h3 className="text-[28px] font-medium text-slate-900 tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
                     {avgDisciplineScore !== null ? avgDisciplineScore : "—"}
                   </h3>
                   {avgDisciplineScore !== null && <span className="text-lg font-bold text-slate-400 mb-0.5">/ 100</span>}
@@ -479,6 +507,46 @@ const Dashboard = () => {
 
           </div>
 
+          {/* Recent Executions */}
+          <GlassCard noPadding className="p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-[15px] font-bold text-slate-900">Recent Executions</h2>
+              <Link to="/journal" className="text-xs font-bold text-blue-600 flex items-center gap-1 hover:text-blue-700 transition-colors">
+                View all <ExternalLink size={12} strokeWidth={2.5} />
+              </Link>
+            </div>
+            
+            {recentClosedTrades.length > 0 ? (
+              <div className="space-y-3">
+                {recentClosedTrades.map((trade: any, idx: number) => (
+                  <div key={idx} className="flex justify-between items-center p-3 rounded-xl border border-slate-100 bg-slate-50/50 hover:bg-slate-50 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-xs ${trade.type?.includes('buy') ? 'bg-blue-100 text-blue-600' : 'bg-orange-100 text-orange-600'}`}>
+                        {trade.type?.includes('buy') ? 'B' : 'S'}
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-bold text-slate-900">{trade.symbol}</h4>
+                        <p className="text-xs text-slate-500 font-medium">{trade.volume?.toFixed(2) || '0.10'} Lots</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className={`text-sm font-black tracking-tight ${trade.profit >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                        {trade.profit >= 0 ? `+$${trade.profit.toFixed(2)}` : `-$${Math.abs(trade.profit).toFixed(2)}`}
+                      </p>
+                      <p className="text-[10px] font-bold text-slate-400">CLOSED</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center text-center py-6">
+                <p className="text-xs text-slate-500">No closed trades yet.</p>
+              </div>
+            )}
+          </GlassCard>
+
+        </div>
+
           {/* Right Column (Span 1) */}
           <div className="space-y-5">
             
@@ -571,7 +639,7 @@ const Dashboard = () => {
             <GlassCard noPadding className="p-5">
               <div className="flex items-center gap-2 mb-3">
                 <Sparkles size={16} className="text-purple-500" />
-                <span className="text-[10px] font-bold text-slate-500 tracking-widest uppercase">AI Coach — Next Action</span>
+                <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">AI Coach — Next Action</span>
               </div>
               <p className="text-sm font-bold text-slate-900 leading-snug mb-4 pr-4">
                 {getCoachInsight()}
@@ -583,10 +651,49 @@ const Dashboard = () => {
               </div>
             </GlassCard>
 
+            {/* Current Streak */}
+            <GlassCard noPadding className="p-5">
+              <div className="flex justify-between items-center mb-3">
+                <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Current Streak</span>
+                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${streakType === 'win' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : (streakType === 'loss' ? 'bg-rose-50 text-rose-600 border border-rose-100' : 'bg-slate-100 text-slate-500')}`}>
+                  {streakType === 'win' ? 'Winning' : (streakType === 'loss' ? 'Losing' : 'Flat')}
+                </span>
+              </div>
+              <div className="flex items-end gap-2">
+                <h3 className="text-[28px] font-medium text-slate-900 tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
+                  {currentStreak}
+                </h3>
+                <span className="text-sm font-bold text-slate-400 mb-1">Trades</span>
+              </div>
+            </GlassCard>
+
+            {/* Market Sessions */}
+            <GlassCard noPadding className="p-5">
+               <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider block mb-4">Market Sessions</span>
+               <div className="grid grid-cols-2 gap-4">
+                 <div className="flex items-center gap-2">
+                   <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+                   <span className="text-sm font-bold text-slate-900">New York</span>
+                 </div>
+                 <div className="flex items-center gap-2">
+                   <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+                   <span className="text-sm font-bold text-slate-900">London</span>
+                 </div>
+                 <div className="flex items-center gap-2">
+                   <div className="w-1.5 h-1.5 rounded-full bg-slate-300"></div>
+                   <span className="text-sm font-bold text-slate-400">Tokyo</span>
+                 </div>
+                 <div className="flex items-center gap-2">
+                   <div className="w-1.5 h-1.5 rounded-full bg-slate-300"></div>
+                   <span className="text-sm font-bold text-slate-400">Sydney</span>
+                 </div>
+               </div>
+            </GlassCard>
+
             {/* Upcoming Event */}
             <GlassCard noPadding className="p-5 flex justify-between items-center">
               <div>
-                <span className="text-[10px] font-bold text-slate-500 tracking-widest uppercase block mb-1">Upcoming Event</span>
+                <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Upcoming Event</span>
                 <h3 className="text-sm font-bold text-slate-900">US CPI</h3>
                 <p className="text-xs text-slate-500 font-medium">Today • 6:00 PM</p>
               </div>
