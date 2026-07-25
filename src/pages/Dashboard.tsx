@@ -2,7 +2,8 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
   Wallet, TrendingUp, ShieldAlert, Target, Shield, ArrowRight,
-  Sparkles, Clock, CheckCircle2, ChevronRight, Activity, AlertCircle
+  Sparkles, Clock, CheckCircle2, ChevronRight, Activity, AlertCircle,
+  ShieldCheck, BarChart3
 } from "lucide-react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { useDashboardData } from "@/hooks/useDashboardData";
