@@ -305,10 +305,10 @@ const Dashboard = () => {
 
               {recentTrades && recentTrades.length > 0 ? (
                 <>
-                  <div className="h-[180px] w-full -ml-4">
+                  <div className="h-[180px] w-full overflow-hidden rounded-lg">
                     <PerformanceChart trades={recentTrades || []} isDark={false} />
                   </div>
-                  <div className="grid grid-cols-3 border-t border-slate-100 dark:border-white/5 mt-3 pt-3">
+                  <div className="grid grid-cols-3 border-t border-slate-100 dark:border-white/5 mt-4 pt-4">
                     <div>
                       <p className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-0.5">Net P&L</p>
                       <p className={`text-base font-extrabold tracking-tight ${totalProfit === 0 ? 'text-slate-900 dark:text-white' : (totalProfit > 0 ? 'text-emerald-500' : 'text-rose-500')}`}>
