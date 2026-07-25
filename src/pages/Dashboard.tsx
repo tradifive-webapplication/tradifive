@@ -385,29 +385,7 @@ const Dashboard = () => {
               )}
             </GlassCard>
 
-            {/* Quick Actions */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {[
-                { label: 'Journal', icon: BookOpen, path: '/journal', color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-950/30' },
-                { label: 'Risk Guard', icon: ShieldCheck, path: '/risk-guard', color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-950/30' },
-                { label: 'AI Coach', icon: Brain, path: '/ai-coach', color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-50 dark:bg-purple-950/30' },
-                { label: 'Competitions', icon: Trophy, path: '/competitions/dashboard', color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-950/30' },
-              ].map((action) => (
-                <Link
-                  key={action.label}
-                  to={action.path}
-                  className="flex items-center gap-3 p-3.5 bg-white dark:bg-[#1E1E1E] rounded-[16px] border border-slate-200 dark:border-white/5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all group"
-                >
-                  <div className={`w-9 h-9 rounded-xl ${action.bg} flex items-center justify-center`}>
-                    <action.icon size={18} className={action.color} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <span className="text-[13px] font-bold text-slate-900 dark:text-white">{action.label}</span>
-                  </div>
-                  <ChevronRight size={14} className="text-slate-300 dark:text-slate-600 group-hover:text-slate-500 transition-colors" />
-                </Link>
-              ))}
-            </div>
+
           </div>
 
           {/* ── Right Column (span 1) ────────────────────────────────── */}
@@ -514,25 +492,7 @@ const Dashboard = () => {
               </div>
             </GlassCard>
 
-            {/* Active Competition */}
-            <GlassCard noPadding className="p-4">
-              <div className="flex justify-between items-center mb-3">
-                <h2 className="text-[15px] font-bold text-slate-900 dark:text-white">Competition</h2>
-                <Link to="/competitions/dashboard" className="text-xs font-bold text-blue-600 dark:text-blue-400 flex items-center gap-1 hover:text-blue-700 transition-colors">
-                  Browse <ExternalLink size={11} strokeWidth={2.5} />
-                </Link>
-              </div>
-              <div className="flex items-center gap-3 p-3 rounded-xl border border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-sm">
-                  <Trophy size={18} className="text-white" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[13px] font-bold text-slate-900 dark:text-white truncate">Monthly Trading Challenge</p>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Compete for cash prizes & rewards</p>
-                </div>
-                <ChevronRight size={14} className="text-slate-300 dark:text-slate-600 shrink-0" />
-              </div>
-            </GlassCard>
+
 
             {/* AI Coach Insight */}
             <GlassCard noPadding className="p-4">
