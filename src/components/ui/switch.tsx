@@ -10,14 +10,14 @@ interface SwitchProps extends Omit<React.HTMLAttributes<HTMLInputElement>, 'onCh
 
 const Switch = React.forwardRef<HTMLInputElement, SwitchProps>(
   ({ className, checked, onCheckedChange, onChange, disabled, ...props }, ref) => (
-    <label 
+    <label
       className={cn("custom-ui-switch shrink-0", className)}
       style={{ fontSize: "2.8px" }}
     >
-      <input 
-        type="checkbox" 
+      <input
+        type="checkbox"
         ref={ref}
-        checked={checked} 
+        checked={checked}
         onChange={(e) => {
           if (typeof onChange === "function") {
             onChange(e.target.checked);

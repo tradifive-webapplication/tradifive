@@ -21,56 +21,17 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
-const MOCK_VIEWS_DATA = [
-  { date: '1', views: 400 },
-  { date: '5', views: 600 },
-  { date: '10', views: 550 },
-  { date: '15', views: 900 },
-  { date: '20', views: 800 },
-  { date: '25', views: 1200 },
-  { date: '30', views: 1450 },
-];
+const MOCK_VIEWS_DATA: any[] = [];
 
-const MOCK_FOLLOWERS_DATA = [
-  { date: '1', followers: 10 },
-  { date: '5', followers: 25 },
-  { date: '10', followers: 45 },
-  { date: '15', followers: 48 },
-  { date: '20', followers: 80 },
-  { date: '25', followers: 115 },
-  { date: '30', followers: 156 },
-];
+const MOCK_FOLLOWERS_DATA: any[] = [];
 
-const MOCK_REVENUE_DATA = [
-  { date: '1', revenue: 15 },
-  { date: '5', revenue: 20 },
-  { date: '10', revenue: 45 },
-  { date: '15', revenue: 30 },
-  { date: '20', revenue: 80 },
-  { date: '25', revenue: 120 },
-  { date: '30', revenue: 145 },
-];
+const MOCK_REVENUE_DATA: any[] = [];
 
-const MOCK_POSTS = [
-  { id: 1, title: 'EURUSD Daily Setup - Breakout imminent?', views: 1240, likes: 342, tips: 15 },
-  { id: 2, title: 'Why I stopped trading breakouts', views: 980, likes: 210, tips: 5 },
-  { id: 3, title: 'My strict Risk Management Rules', views: 850, likes: 450, tips: 25 },
-  { id: 4, title: 'Live Session: NFP Trading Strategy', views: 2100, likes: 890, tips: 120 },
-  { id: 5, title: 'Gold (XAUUSD) Weekly Outlook', views: 1550, likes: 420, tips: 45 },
-];
+const MOCK_POSTS: any[] = [];
 
-const MOCK_SALES_DATA = [
-  { id: 1, item: "Advanced Price Action Course", buyer: "Alex T.", amount: 149, time: "2h ago" },
-  { id: 2, item: "1-on-1 Mentorship Session", buyer: "Sarah M.", amount: 250, time: "4h ago" },
-  { id: 3, item: "Premium Indicator Pack", buyer: "James L.", amount: 49, time: "5h ago" },
-  { id: 4, item: "Trading Journal Template", buyer: "Mike R.", amount: 19, time: "1d ago" },
-];
+const MOCK_SALES_DATA: any[] = [];
 
-const MOCK_SUBSCRIBER_TIERS = [
-  { name: 'Basic Tier ($10/mo)', count: 120, revenue: 1200, color: 'bg-blue-500' },
-  { name: 'Pro Tier ($30/mo)', count: 45, revenue: 1350, color: 'bg-purple-500' },
-  { name: 'Elite Tier ($100/mo)', count: 12, revenue: 1200, color: 'bg-emerald-500' },
-];
+const MOCK_SUBSCRIBER_TIERS: any[] = [];
 
 const CREATE_HUB_ITEMS = [
   { icon: GraduationCap, label: 'Mentorship Hub', desc: 'Guide & track your student community', color: 'blue', href: '/creator/mentorship' },

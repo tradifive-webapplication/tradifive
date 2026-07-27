@@ -352,7 +352,7 @@ export function Card2() {
             <div key={i} className="flex-1 h-[76px] relative select-none">
               {/* Background Hatched Scale Card */}
               <div
-                className="absolute inset-0 rounded-xl border border-white/10 bg-white/5 text-white/20"
+                className="absolute inset-0 rounded-xl border border-white/10 bg-[#080808]/5 text-white/20"
                 style={{
                   backgroundImage: "repeating-linear-gradient(45deg, transparent, transparent 6px, currentColor 6px, currentColor 7px)",
                 }}
@@ -360,7 +360,7 @@ export function Card2() {
 
               {/* Foreground Card sliding up and right on hover or cycle activation (0.5rem offset) */}
               <motion.div
-                className="absolute inset-0 w-full h-full rounded-xl bg-white/5  border border-white/10 shadow-[inset_0_0_0_1px_rgba(255,255,255,1)] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.01)] p-3 hover:bg-white/5 transition-colors duration-300 backdrop-blur-[2px] flex items-center justify-between gap-3 cursor-pointer"
+                className="absolute inset-0 w-full h-full rounded-xl bg-[#080808]/5  border border-white/10 shadow-[inset_0_0_0_1px_rgba(255,255,255,1)] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.01)] p-3 hover:bg-[#080808]/5 transition-colors duration-300 backdrop-blur-[2px] flex items-center justify-between gap-3 cursor-pointer"
                 animate={{
                   x: isActive ? "0.5rem" : "0rem",
                   y: isActive ? "-0.5rem" : "0rem",
@@ -432,7 +432,7 @@ export function Card2() {
         {bars.map((h, i) => (
           <div
             key={i}
-            className="flex-1 h-full rounded-xl  border border-white/10 relative overflow-hidden bg-white/5 text-white/20"
+            className="flex-1 h-full rounded-xl  border border-white/10 relative overflow-hidden bg-[#080808]/5 text-white/20"
             style={{
               backgroundImage: "repeating-linear-gradient(45deg, transparent, transparent 6px, currentColor 6px, currentColor 7px)",
             }}
@@ -479,7 +479,7 @@ const STATUS_ICONS: Record<string, { icon: any; color: string; bg: string; gradi
   done: { icon: Check, color: "text-lime-500", bg: "bg-lime-500/15", gradient: "bg-gradient-to-b from-lime-400 to-lime-600", border: "border-lime-600" },
   running: { icon: CircleNotch, color: "text-blue-400", bg: "bg-blue-400/15", gradient: "bg-gradient-to-b from-blue-400 to-blue-600", border: "border-blue-600" },
   waiting: { icon: Clock, color: "text-amber-400", bg: "bg-amber-400/15", gradient: "bg-gradient-to-b from-amber-400 to-amber-600", border: "border-amber-600" },
-  idle: { icon: Minus, color: "text-white/60/60", bg: "bg-white/5", gradient: "bg-gradient-to-b from-zinc-400 to-zinc-600", border: "border-zinc-600" },
+  idle: { icon: Minus, color: "text-white/60/60", bg: "bg-[#080808]/5", gradient: "bg-gradient-to-b from-zinc-400 to-zinc-600", border: "border-zinc-600" },
 };
 
 export function Card3() {
@@ -544,7 +544,7 @@ export function Card3() {
           >
             <div className={`w-full rounded-2xl border border-white/10 flex items-center gap-2.5 ${isActive
               ? "px-3 py-2.5 bg-[#000] border-white/10"
-              : "px-2.5 py-1.5 bg-white/5 border-white/10"
+              : "px-2.5 py-1.5 bg-[#080808]/5 border-white/10"
               }`}>
 
               {/* Icon badge — full on active, compact on behind */}
@@ -671,7 +671,7 @@ export function Card4() {
                 </span>
 
                 {/* Cyberpunk Bar track */}
-                <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden relative backdrop-blur-sm shadow-inner">
+                <div className="flex-1 h-1.5 bg-[#080808]/5 rounded-full overflow-hidden relative backdrop-blur-sm shadow-inner">
                   <motion.div
                     className={`absolute left-0 top-0 bottom-0 rounded-full overflow-hidden bg-gradient-to-r ${c.bar}`}
                     initial={{ width: "0%" }}
@@ -726,7 +726,7 @@ export function Card4() {
       </div>
 
       {/* Thin divider */}
-      <div className="w-px bg-white/10 self-stretch shrink-0" />
+      <div className="w-px bg-[#080808]/10 self-stretch shrink-0" />
 
       {/* ── Right panel: Retrieval log ── */}
       <div className="w-[172px] shrink-0 flex flex-col gap-0">
@@ -738,7 +738,7 @@ export function Card4() {
             return (
               <motion.div
                 key={`${q.ns}-${q.q}-${qi}`}
-                className="rounded-xl border border-white/10 bg-white/5  px-2.5 py-2"
+                className="rounded-xl border border-white/10 bg-[#080808]/5  px-2.5 py-2"
                 initial={{ opacity: 0, y: -8 }}
                 animate={{
                   opacity: qi === 0 ? 1 : qi === 1 ? 0.8 : qi === 2 ? 0.5 : 0.25,
@@ -803,7 +803,7 @@ export function Card5() {
                 <span className="text-[10px] font-mono font-medium text-white tracking-tight">{t.name}</span>
                 <span className="text-[8px] font-mono text-white/60 tabular-nums">{t.latency}</span>
               </div>
-              <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden shadow-inner relative">
+              <div className="w-full h-1.5 bg-[#080808]/5 rounded-full overflow-hidden shadow-inner relative">
                 <motion.div
                   className={`absolute left-0 top-0 bottom-0 rounded-full ${t.color}`}
                   initial={{ width: "0%" }}

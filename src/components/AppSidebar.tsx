@@ -4,7 +4,7 @@ import {
   Plus, Users, LayoutGrid, Shield, Gift, Compass, BookText, Brain, ShieldCheck, Target, Award, Mail, Crown, PlusCircle, X, GraduationCap, ShoppingBag, Video, Hash, Globe, TrendingUp, Home as LucideHome, UserPlus
 } from "lucide-react";
 import { Home, Category, Discovery, Document, Star, ShieldDone, TwoUsers, Scan, TicketStar, Discount, Work, Bag, Video as IconlyVideo, Message, Notification, Logout, Wallet, Setting, User as IconlyUser, Graph } from "react-iconly";
-import { ENABLE_MOCK_DATA } from "@/lib/mockData";
+
 import "./UiverseProButton.css";
 import { useLocation, useNavigate } from "react-router-dom";
 import fialgoLogo from "@/assets/tradifive-logo.png";
@@ -100,7 +100,7 @@ const mainMenu = [
   { path: "/risk-guard", icon: WrappedIconly(ShieldDone), label: "Risk Guard" },
   { path: "/ai-coach", icon: WrappedSparkles, label: "AI Coach" },
   { path: "/discover", icon: WrappedIconly(Discovery), label: "Discover" },
-  { path: "/channel", icon: WrappedIconly(TwoUsers), label: "Channel / Community", badge: ENABLE_MOCK_DATA ? "3" : undefined },
+  { path: "/channel", icon: WrappedIconly(TwoUsers), label: "Channel / Community", badge: undefined },
 ];
 
 const engagementMenu = [
@@ -118,7 +118,7 @@ const creatorHubMenu = [
 
 const communityMenu = [
   { path: "/discover", icon: WrappedIconly(Discovery), label: "Discover" },
-  { path: "/channel", icon: WrappedIconly(TwoUsers), label: "Channel / Community", badge: ENABLE_MOCK_DATA ? "3" : undefined },
+  { path: "/channel", icon: WrappedIconly(TwoUsers), label: "Channel / Community", badge: undefined },
 ];
 
 interface AppSidebarProps {
@@ -538,8 +538,8 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
   };
 
   const communicationMenu = [
-    { path: "/inbox", icon: WrappedIconly(Message), label: "Inbox", badge: ENABLE_MOCK_DATA ? "5" : (unreadDMs > 0 ? String(unreadDMs) : undefined) },
-    { path: "/notifications", icon: WrappedIconly(Notification), label: "Notifications", badge: ENABLE_MOCK_DATA ? "12" : (unreadNotifications > 0 ? (unreadNotifications > 15 ? "15+" : String(unreadNotifications)) : undefined) },
+    { path: "/inbox", icon: WrappedIconly(Message), label: "Inbox", badge: (unreadDMs > 0 ? String(unreadDMs) : undefined) },
+    { path: "/notifications", icon: WrappedIconly(Notification), label: "Notifications", badge: (unreadNotifications > 0 ? (unreadNotifications > 15 ? "15+" : String(unreadNotifications)) : undefined) },
   ];
 
   const renderMenuItem = (item: any) => {

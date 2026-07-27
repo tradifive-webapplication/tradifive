@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Database } from '@/integrations/supabase/types';
-import { ENABLE_MOCK_DATA, mockProfiles, mockChannels } from '@/lib/mockData';
+
 
 export type ProfileShort = Database['public']['Tables']['profiles']['Row'];
 export type ChannelItem = Database['public']['Tables']['channels']['Row'];
@@ -20,15 +20,6 @@ export function useDiscoverData(userId: string, searchQuery: string) {
     setLoading(true);
     setLoading(true);
     
-    if (ENABLE_MOCK_DATA) {
-        setMentors(mockProfiles.slice(0, 4) as any);
-        setChannels(mockChannels as any);
-        // Make sure traders have some mocked win_rate
-        setTraders(mockProfiles.slice(4, 8).map(p => ({...p, win_rate: 85 + Math.random() * 10})) as any);
-        setPeople(mockProfiles.slice(8, 20) as any);
-        setLoading(false);
-        return;
-    }
 
     try {
       // 1. Mentors (is_pro = true)
@@ -99,13 +90,6 @@ export function useDiscoverData(userId: string, searchQuery: string) {
     const triggerSearch = async () => {
       setSearching(true);
 
-      if (ENABLE_MOCK_DATA) {
-          const lowerQ = searchQuery.toLowerCase();
-          const results = mockProfiles.filter(p => p.full_name?.toLowerCase().includes(lowerQ) || p.username?.toLowerCase().includes(lowerQ));
-          setSearchResults(results as any);
-          setSearching(false);
-          return;
-      }
 
       try {
         const { data, error } = await supabase

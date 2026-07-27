@@ -1,4 +1,3 @@
-
 # Git Commit Workflow
 After every completed feature, bug fix, UI improvement, or meaningful code change:
 1. Create a clear Git commit with a professional commit message following Conventional Commits (e.g., feat:, fix:, ui:, refactor:, docs:).
@@ -7,3 +6,5 @@ After every completed feature, bug fix, UI improvement, or meaningful code chang
 4. Keep the repository synchronized with GitHub so the contribution graph accurately reflects daily work.
 5. Do not change the repository visibility. Keep it private.
 6. If a push fails, notify the user with the reason instead of skipping it.
+
+**CRITICAL RULE: Always push to GitHub automatically after any changes, even if the user doesn't explicitly ask for it. It is the agent's responsibility.**

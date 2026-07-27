@@ -131,7 +131,7 @@ export default function AccountTab({
       return (
          <div className="space-y-6 pb-24 font-sans animate-pulse">
             <section>
-               <div style={{background:'#FFFFFF',border:'1px solid #E5E7EB',borderRadius:'20px',boxShadow:'0 10px 30px rgba(15,23,42,0.08),0 2px 8px rgba(15,23,42,0.04)'}} className="dark:bg-[#111112] dark:border-[#333333] p-6 space-y-6 overflow-hidden">
+               <div className="bg-white dark:bg-[#111112] border border-slate-200 dark:border-white/5 rounded-[32px] shadow-sm p-6 space-y-6 overflow-hidden">
                   <div className="h-4 w-24 bg-slate-200 dark:bg-[#333] rounded mb-2"></div>
 
                   <div className="h-28 bg-slate-200 dark:bg-[#202020] relative rounded-xl border border-slate-200 dark:border-transparent">
@@ -171,7 +171,7 @@ export default function AccountTab({
             </section>
 
             <section>
-               <div style={{background:'#FFFFFF',border:'1px solid #E5E7EB',borderRadius:'20px',boxShadow:'0 10px 30px rgba(15,23,42,0.08),0 2px 8px rgba(15,23,42,0.04)'}} className="dark:bg-[#111112] dark:border-[#333333] p-6 space-y-6 overflow-hidden">
+               <div className="bg-white dark:bg-[#111112] border border-slate-200 dark:border-white/5 rounded-[32px] shadow-sm p-6 space-y-6 overflow-hidden">
                   <div className="h-4 w-32 bg-slate-200 dark:bg-[#333] rounded"></div>
                   <div className="flex justify-between items-center">
                      <div className="space-y-2">
@@ -191,7 +191,7 @@ export default function AccountTab({
 
          {/* SECTION 1: MY ACCOUNT */}
          <section id="account-info">
-            <div style={{background:'#FFFFFF',border:'1px solid #E5E7EB',borderRadius:'20px',boxShadow:'0 10px 30px rgba(15,23,42,0.08),0 2px 8px rgba(15,23,42,0.04)'}} className="dark:bg-[#111112] dark:border-[#333333] p-6 space-y-6 overflow-hidden">
+            <div className="bg-white dark:bg-[#111112] border border-slate-200 dark:border-white/5 rounded-[32px] shadow-sm p-6 space-y-6 overflow-hidden">
                <h2 className="text-xs font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-widest mb-2">My Account</h2>
 
                {/* Banner with Avatar */}
@@ -266,7 +266,7 @@ export default function AccountTab({
 
          {/* SECTION 2: PASSWORD & SECURITY */}
          <section id="password-security">
-            <div style={{background:'#FFFFFF',border:'1px solid #E5E7EB',borderRadius:'20px',boxShadow:'0 10px 30px rgba(15,23,42,0.08),0 2px 8px rgba(15,23,42,0.04)'}} className="dark:bg-[#111112] dark:border-[#333333] p-6 space-y-6 overflow-hidden">
+            <div className="bg-white dark:bg-[#111112] border border-slate-200 dark:border-white/5 rounded-[32px] shadow-sm p-6 space-y-6 overflow-hidden">
                <h2 className="text-xs font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-widest">Password & Security</h2>
 
                {/* Change Password Card Row */}
@@ -429,7 +429,7 @@ export default function AccountTab({
 
          {/* SECTION 4: FAMILY CENTER */}
          <section id="family-center">
-            <div style={{background:'#FFFFFF',border:'1px solid #E5E7EB',borderRadius:'20px',boxShadow:'0 10px 30px rgba(15,23,42,0.08),0 2px 8px rgba(15,23,42,0.04)'}} className="dark:bg-[#111112] dark:border-[#333333] p-6 md:p-8 overflow-hidden flex flex-col items-center justify-center text-center space-y-6">
+            <div className="bg-white dark:bg-[#111112] border border-slate-200 dark:border-white/5 rounded-[32px] shadow-sm p-6 md:p-8 overflow-hidden flex flex-col items-center justify-center text-center space-y-6">
                <h2 className="text-xs font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-widest self-start mb-2">Family Center</h2>
                <div className="w-20 h-20 rounded-full bg-blue-500/10 flex items-center justify-center mt-2">
                   <Users size={40} className="text-[#3b82f6]" />
@@ -453,7 +453,7 @@ export default function AccountTab({
 
          {/* SECTION 5: DANGER ZONE */}
          <section id="danger-zone">
-            <div style={{border:'1px solid rgba(239,68,68,0.2)',borderRadius:'20px',boxShadow:'0 10px 30px rgba(15,23,42,0.08),0 2px 8px rgba(15,23,42,0.04)'}} className="bg-white dark:bg-[#111112] p-6 md:p-8 overflow-hidden flex flex-col space-y-6">
+            <div style={{ border: '1px solid rgba(239,68,68,0.2)', borderRadius: '20px', boxShadow: '0 10px 30px rgba(15,23,42,0.08),0 2px 8px rgba(15,23,42,0.04)' }} className="bg-white dark:bg-[#111112] p-6 md:p-8 overflow-hidden flex flex-col space-y-6">
                <h2 className="text-xs font-bold text-red-600 dark:text-red-400 uppercase tracking-widest self-start mb-2">
                   Danger Zone
                </h2>
@@ -481,7 +481,7 @@ export default function AccountTab({
                         </AlertDialogHeader>
                         <AlertDialogFooter className="bg-slate-50 dark:bg-slate-900 border-t border-black/5 dark:border-white/10 px-6 py-3">
                            <AlertDialogClose render={<Button variant="ghost" className="m-0 h-8 px-3 rounded-[8px] text-[13px] font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-800" />}>Cancel</AlertDialogClose>
-                           <AlertDialogClose 
+                           <AlertDialogClose
                               onClick={() => toast.error('Account deletion not fully implemented yet.')}
                               render={<Button variant="destructive" className="m-0 h-8 px-3 rounded-[8px] bg-[#f53a3a] hover:bg-[#df2c2c] text-white font-medium shadow-[0_2px_8px_-2px_rgba(245,58,58,0.4),inset_0_1px_1px_rgba(255,255,255,0.3)] border border-[#d62828] text-[13px]" />}
                            >

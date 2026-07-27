@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Database } from '@/integrations/supabase/types';
 import { useMarket } from '@/contexts/MarketContext';
-import { ENABLE_MOCK_DATA, mockFeeds, mockStories, mockProfiles } from '@/lib/mockData';
+
 
 export type FeedPost = Database['public']['Tables']['social_posts']['Row'] & {
   profiles: {
@@ -30,14 +30,20 @@ export function useHomeData(userId: string) {
     try { const val = localStorage.getItem(key); return val ? JSON.parse(val) : fallback; } catch (e) { return fallback; }
   };
 
-  // One-time cleanup: remove old local posts that used blob:// URLs (dead after page reload)
-  try {
-    const localPosts = JSON.parse(localStorage.getItem('fialgo_local_posts') || '[]');
-    const cleaned = localPosts.filter((p: any) => !p.media_url || !String(p.media_url).startsWith('blob:'));
-    if (cleaned.length !== localPosts.length) {
-      localStorage.setItem('fialgo_local_posts', JSON.stringify(cleaned));
-    }
-  } catch (_) {}
+  // One-time cleanup: aggressively clear ALL old mock data caches
+  useEffect(() => {
+    try {
+      localStorage.removeItem('home_cache_feeds');
+      localStorage.removeItem('home_cache_suggestions');
+      localStorage.removeItem('home_cache_winningStreaks');
+      localStorage.removeItem('home_cache_topDisciplined');
+      const localPosts = JSON.parse(localStorage.getItem('fialgo_local_posts') || '[]');
+      const cleaned = localPosts.filter((p: any) => !p.media_url || !String(p.media_url).startsWith('blob:') && !String(p.id).startsWith('demo-'));
+      if (cleaned.length !== localPosts.length) {
+        localStorage.setItem('fialgo_local_posts', JSON.stringify(cleaned));
+      }
+    } catch (_) {}
+  }, []);
 
   const [feeds, setFeeds] = useState<FeedPost[]>(() => {
     const cached = getCache('home_cache_feeds', []);
@@ -67,7 +73,6 @@ export function useHomeData(userId: string) {
     try {
       const [
         { data: feedData, error: feedErr },
-        { data: storyData, error: storyErr },
         { data: watchData, error: watchErr },
         { data: calData, error: calErr },
         { data: followData, error: followErr, count: followCount },
@@ -89,35 +94,19 @@ export function useHomeData(userId: string) {
         avatars: followData?.map((f: any) => f.profiles?.avatar_url).filter(Boolean) || []
       };
 
-      if (ENABLE_MOCK_DATA) {
-        newFollowers = {
-          count: 1420,
-          avatars: mockProfiles.slice(0, 3).map(p => p.avatar_url).filter(Boolean) as string[]
-        };
-      }
+
 
       setFollowers(newFollowers);
       localStorage.setItem('home_cache_followers', JSON.stringify(newFollowers));
 
-      // Fallback mocks for Indian demo
-      let finalSug = (sugData && sugData.length > 0) ? sugData : [];
-      let finalStreak = (streakData && streakData.length > 0) ? streakData : [];
-      let finalDisc = (discData && discData.length > 0) ? discData : [];
+      setSuggestions((sugData as ProfileShort[]) || []);
+      localStorage.setItem('home_cache_suggestions', JSON.stringify(sugData || []));
 
-      if (ENABLE_MOCK_DATA) {
-        finalSug = mockProfiles.slice(0, 5);
-        finalStreak = [...mockProfiles].sort((a, b) => b.streak_days - a.streak_days).slice(0, 5);
-        finalDisc = [...mockProfiles].sort((a, b) => b.win_rate - a.win_rate).slice(0, 5);
-      }
+      setWinningStreaks((streakData as ProfileShort[]) || []);
+      localStorage.setItem('home_cache_winningStreaks', JSON.stringify(streakData || []));
 
-      setSuggestions(finalSug as ProfileShort[]);
-      localStorage.setItem('home_cache_suggestions', JSON.stringify(finalSug));
-
-      setWinningStreaks(finalStreak as ProfileShort[]);
-      localStorage.setItem('home_cache_winningStreaks', JSON.stringify(finalStreak));
-
-      setTopDisciplined(finalDisc as ProfileShort[]);
-      localStorage.setItem('home_cache_topDisciplined', JSON.stringify(finalDisc));
+      setTopDisciplined((discData as ProfileShort[]) || []);
+      localStorage.setItem('home_cache_topDisciplined', JSON.stringify(discData || []));
 
       // removed unsafe localPosts parse
 
@@ -147,9 +136,7 @@ export function useHomeData(userId: string) {
 
       const localFeeds = unresolvedLocalPosts.filter((p: any) => p.post_type !== 'story');
 
-      const activeMockFeeds = ENABLE_MOCK_DATA ? mockFeeds : [];
-
-      const combinedFeeds = [...activeMockFeeds, ...localFeeds, ...((feedData as any) ?? [])];
+      const combinedFeeds = [...localFeeds, ...((feedData as any) ?? [])];
 
       combinedFeeds.sort((a: any, b: any) => {
         const timeA = a && a.created_at ? new Date(a.created_at).getTime() : 0;
@@ -173,34 +160,7 @@ export function useHomeData(userId: string) {
       const seedKey = `has_seeded_watchlist_${userId}_${activeMarket}`;
       const hasSeeded = localStorage.getItem(seedKey) === 'true';
 
-      if (finalWatch.length > 0 && !hasSeeded) {
-        localStorage.setItem(seedKey, 'true');
-      } else if (finalWatch.length === 0 && !hasSeeded) {
-        localStorage.setItem(seedKey, 'true');
-        const defaultWatch = activeMarket === 'indian' ? [
-          { symbol: 'NIFTY50', symbol_type: 'index', is_pinned: true, sort_order: 1, user_id: userId },
-          { symbol: 'BANKNIFTY', symbol_type: 'index', is_pinned: true, sort_order: 2, user_id: userId },
-          { symbol: 'RELIANCE', symbol_type: 'equity', is_pinned: false, sort_order: 3, user_id: userId },
-          { symbol: 'HDFCBANK', symbol_type: 'equity', is_pinned: false, sort_order: 4, user_id: userId },
-          { symbol: 'TCS', symbol_type: 'equity', is_pinned: false, sort_order: 5, user_id: userId }
-        ] : [
-          { symbol: 'BTC/USDT', symbol_type: 'crypto', is_pinned: true, sort_order: 1, user_id: userId },
-          { symbol: 'ETH/USDT', symbol_type: 'crypto', is_pinned: true, sort_order: 2, user_id: userId },
-          { symbol: 'EUR/USD', symbol_type: 'forex', is_pinned: false, sort_order: 3, user_id: userId },
-          { symbol: 'GBP/USD', symbol_type: 'forex', is_pinned: false, sort_order: 4, user_id: userId },
-          { symbol: 'USD/JPY', symbol_type: 'forex', is_pinned: false, sort_order: 5, user_id: userId }
-        ];
-        try {
-          const { data: insertedWatch } = await supabase.from('feed_watchlist').insert(defaultWatch).select('*');
-          if (insertedWatch && insertedWatch.length > 0) {
-            finalWatch = insertedWatch;
-          } else {
-            finalWatch = defaultWatch.map((item, idx) => ({ ...item, id: `mock-w-${idx}`, created_at: null }));
-          }
-        } catch (e) {
-          finalWatch = defaultWatch.map((item, idx) => ({ ...item, id: `mock-w-${idx}`, created_at: null }));
-        }
-      }
+
 
       setWatchlist(finalWatch);
       localStorage.setItem('home_cache_watchlist', JSON.stringify(finalWatch));
@@ -246,44 +206,7 @@ export function useHomeData(userId: string) {
         }
       }
 
-      // Seed Default Calendar if empty in the database and live fetch failed
-      if (finalCal.length === 0 || activeMarket === 'indian') {
-        const today = new Date();
-        const setTime = (hours: number, minutes: number) => {
-          const d = new Date(today);
-          d.setHours(hours, minutes, 0, 0);
-          return d.toISOString();
-        };
 
-        const defaultCal = activeMarket === 'indian' ? [
-          { event_time: setTime(10, 0), event_title: 'RBI Monetary Policy Meeting', currency: 'INR', impact: 'high', forecast: '6.50%', previous: '6.50%', actual: null, source: 'RBI' },
-          { event_time: setTime(12, 0), event_title: 'India Industrial Production', currency: 'INR', impact: 'medium', forecast: '4.5%', previous: '3.8%', actual: '4.2%', source: 'MOSPI' },
-          { event_time: setTime(17, 30), event_title: 'India CPI Inflation YoY', currency: 'INR', impact: 'high', forecast: '5.1%', previous: '5.09%', actual: null, source: 'MOSPI' },
-          { event_time: setTime(14, 0), event_title: 'India Foreign Exchange Reserves', currency: 'INR', impact: 'low', forecast: null, previous: '$642B', actual: null, source: 'RBI' },
-        ] : [
-          { event_time: setTime(8, 30), event_title: 'US ISM Manufacturing PMI', currency: 'USD', impact: 'high', forecast: '51.2', previous: '49.8', actual: '51.5', source: 'ISM' },
-          { event_time: setTime(14, 0), event_title: 'Fed Interest Rate Decision', currency: 'USD', impact: 'high', forecast: '5.25%', previous: '5.25%', actual: null, source: 'FOMC' },
-          { event_time: setTime(14, 30), event_title: 'ECB Press Conference', currency: 'EUR', impact: 'high', forecast: null, previous: null, actual: null, source: 'ECB' },
-          { event_time: setTime(7, 0), event_title: 'UK CPI YoY', currency: 'GBP', impact: 'medium', forecast: '2.1%', previous: '2.3%', actual: '2.0%', source: 'ONS' },
-          { event_time: setTime(8, 30), event_title: 'CAD Unemployment Rate', currency: 'CAD', impact: 'medium', forecast: '6.1%', previous: '6.2%', actual: null, source: 'StatCan' }
-        ];
-
-        // Only insert to DB if forex and it was empty. If indian, we just mock for now.
-        if (activeMarket !== 'indian' && finalCal.length === 0) {
-          try {
-            const { data: insertedCal } = await supabase.from('economic_calendar').insert(defaultCal).select('*');
-            if (insertedCal && insertedCal.length > 0) {
-              finalCal = insertedCal;
-            } else {
-              finalCal = defaultCal.map((item, idx) => ({ ...item, id: `mock-cal-${idx}`, created_at: null }));
-            }
-          } catch (e) {
-            finalCal = defaultCal.map((item, idx) => ({ ...item, id: `mock-cal-${idx}`, created_at: null }));
-          }
-        } else {
-          finalCal = defaultCal.map((item, idx) => ({ ...item, id: `mock-cal-${idx}`, created_at: null }));
-        }
-      }
       setCalendar(finalCal);
       localStorage.setItem('home_cache_calendar', JSON.stringify(finalCal));
 
@@ -467,58 +390,13 @@ export function useHomeData(userId: string) {
       };
 
       fetchForex();
-      interval = setInterval(fetchForex, 1000);
-    }
-
-    // 3. Realistic Mock for Indian Stocks (To bypass CORS from browser)
-    const indianWatchlist = watchlist.filter(item => item.symbol_type === 'index' || item.symbol_type === 'equity');
-    let indInterval: any;
-
-    if (indianWatchlist.length > 0) {
-      // Realistic base prices
-      const basePrices: Record<string, number> = {
-        'NIFTY50': 24056,
-        'BANKNIFTY': 58177,
-        'RELIANCE': 1318,
-        'HDFCBANK': 796,
-        'TCS': 2094
-      };
-
-      const fetchIndianStocks = () => {
-        if (!isMounted) return;
-        const indData: Record<string, any> = {};
-        const isWeekend = new Date().getUTCDay() === 0 || new Date().getUTCDay() === 6;
-
-        indianWatchlist.forEach(item => {
-          const base = basePrices[item.symbol] || 1000;
-          const absoluteTick = base * 0.0001; // 0.01% tick
-          const tickFluctuation = isWeekend ? 0 : (Math.random() - 0.5) * absoluteTick;
-          const livePriceVal = base + tickFluctuation;
-
-          const hash = item.symbol.charCodeAt(0) + item.symbol.charCodeAt(1);
-          const baseChange = ((hash % 100) - 50) / 250; // Random deterministic base change -0.2 to +0.2%
-          const fluctuation = isWeekend ? 0 : (Math.random() - 0.5) * 0.04;
-          const finalChange = baseChange + fluctuation;
-
-          indData[item.symbol] = {
-            price: livePriceVal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-            change: (finalChange >= 0 ? '+' : '') + finalChange.toFixed(2) + '%',
-            is_positive: finalChange >= 0
-          };
-        });
-
-        setLivePrices(prev => ({ ...prev, ...indData }));
-      };
-
-      fetchIndianStocks();
-      indInterval = setInterval(fetchIndianStocks, 1000); // 1s tick updates
+      interval = setInterval(fetchForex, 60000);
     }
 
     return () => {
       isMounted = false;
       if (ws) ws.close();
       if (interval) clearInterval(interval);
-      if (indInterval) clearInterval(indInterval);
     };
   }, [watchlist]);
 

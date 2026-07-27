@@ -1669,16 +1669,16 @@ export default function Settings() {
                                  <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1] mb-8">Manage your connected trading accounts and third-party integrations.</p>
 
                                  {/* Connected Brokers Box */}
-                                 <div className={isConnectingBroker || selectedBrokerToConnect ? "w-full" : "p-6 rounded-2xl border border-slate-200/60 dark:border-[#2a2a2a] bg-slate-50 dark:bg-[#151515]"}>
+                                 <div className={isConnectingBroker || selectedBrokerToConnect ? "w-full" : "bg-white dark:bg-[#111112] border border-slate-200 dark:border-white/5 rounded-[32px] shadow-sm w-full overflow-hidden p-6 md:p-8"}>
                                     {!(isConnectingBroker || selectedBrokerToConnect) && (
-                                       <h3 className="text-[16px] font-bold text-slate-900 dark:text-white mb-6">Connected Brokers</h3>
+                                       <h3 className="text-xl md:text-2xl font-extrabold text-slate-900 dark:text-white mb-6 tracking-tight">Connected Brokers</h3>
                                     )}
                                     
                                     {isConnectingBroker || selectedBrokerToConnect ? (
-                                       <div className="bg-slate-50 dark:bg-[#151515] border border-slate-200/60 dark:border-[#2a2a2a] rounded-2xl w-full overflow-hidden p-6">
-                                          <div className="flex justify-between items-center mb-6 border-b border-slate-200/60 dark:border-white/5 pb-4">
-                                             <h3 className="text-xl font-bold text-slate-900 dark:text-white capitalize font-sans">
-                                                {!selectedBrokerToConnect ? 'Select a Broker' : `Connect ${selectedBrokerToConnect}`}
+                                       <div className="bg-white dark:bg-[#111112] border border-slate-200 dark:border-white/5 rounded-[32px] shadow-sm w-full overflow-hidden p-6 md:p-8">
+                                          <div className="flex justify-between items-center mb-8 border-b border-slate-100 dark:border-white/5 pb-5">
+                                             <h3 className="text-xl md:text-2xl font-extrabold text-slate-900 dark:text-white capitalize tracking-tight">
+                                                {!selectedBrokerToConnect ? 'Select A Broker' : `Connect ${selectedBrokerToConnect}`}
                                              </h3>
                                              <button type="button" onClick={() => {
                                                 if (selectedBrokerToConnect) {
@@ -1686,16 +1686,20 @@ export default function Settings() {
                                                 } else {
                                                    setIsConnectingBroker(false);
                                                 }
-                                             }} className="px-4 py-2 flex items-center justify-center rounded-lg bg-slate-100 dark:bg-[#2c2c2f] text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors text-xs font-bold uppercase tracking-wider">
+                                             }} className="px-5 py-2.5 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-[#222225] text-slate-600 hover:text-slate-900 dark:text-[#B5BAC1] dark:hover:text-white dark:hover:bg-[#2A2A2F] transition-all text-xs font-black uppercase tracking-wider active:scale-95">
                                                 Back
                                              </button>
                                           </div>
                                           
                                           {!selectedBrokerToConnect ? (
-                                             <div className="space-y-6">
-                                                <p className="text-sm text-slate-500 dark:text-[#949ba4] font-sans">Select your trading platform or broker to sync your live accounts and start tracking your performance.</p>
+                                             <div className="space-y-8">
+                                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                                  <p className="text-[14px] text-slate-500 dark:text-[#949ba4] font-medium leading-relaxed max-w-xl">
+                                                     Select your trading platform or broker to sync your live accounts and start tracking your performance.
+                                                  </p>
+                                                </div>
                                                 
-                                                <div className="flex flex-wrap gap-4">
+                                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-5">
                                                    {['mt5', 'mt4', 'icmarkets', 'vantage', 'exness', 'xm', 'zerodha', 'dhan', 'upstox'].filter(broker => {
                                                       const isGlobal = ['mt5', 'mt4', 'icmarkets', 'vantage', 'exness', 'xm'].includes(broker);
                                                       return activeMarket === 'indian' ? !isGlobal : isGlobal;
@@ -1703,16 +1707,19 @@ export default function Settings() {
                                                       <button
                                                          key={broker}
                                                          onClick={() => setSelectedBrokerToConnect(broker)}
-                                                         className="flex flex-col items-center justify-center w-[130px] h-[130px] p-4 bg-white dark:bg-[#121212] hover:bg-slate-50 dark:hover:bg-[#1a1a1a] border border-slate-200 dark:border-white/5 rounded-2xl transition-colors group shadow-sm hover:shadow-md"
+                                                         className="group relative flex flex-col items-center justify-center p-4 md:p-5 bg-gradient-to-b from-[#FFFFFF] to-[#F8F9FA] dark:from-[#1C1C1E] dark:to-[#121214] hover:from-white hover:to-white dark:hover:from-[#242428] dark:hover:to-[#18181A] border border-slate-200 dark:border-white/5 hover:border-indigo-500/40 dark:hover:border-indigo-500/50 rounded-[20px] transition-all duration-300 shadow-sm hover:shadow-[0_10px_40px_-10px_rgba(99,102,241,0.2)] dark:hover:shadow-[0_10px_40px_-10px_rgba(99,102,241,0.15)] active:scale-95 overflow-hidden"
                                                       >
-                                                         <div className="w-12 h-12 flex items-center justify-center bg-slate-50 dark:bg-[#1e1f22] border border-slate-100 dark:border-[#444] rounded-xl shadow-sm mb-3 group-hover:scale-110 transition-transform">
+                                                         {/* Background Glow on Hover */}
+                                                         <div className="absolute inset-0 bg-indigo-500/0 group-hover:bg-indigo-500/5 transition-colors duration-300" />
+                                                         
+                                                         <div className="relative w-12 h-12 md:w-14 md:h-14 flex items-center justify-center bg-white dark:bg-black/40 border border-slate-100 dark:border-white/10 rounded-[14px] shadow-[inset_0_2px_10px_rgba(0,0,0,0.02)] dark:shadow-[inset_0_2px_10px_rgba(255,255,255,0.02)] mb-3 group-hover:scale-110 transition-transform duration-300 z-10">
                                                             {broker === 'mt5' || broker === 'mt4' ? (
-                                                               <img src="/Mt5 logo.png" alt="MT" className="w-8 h-8 object-contain" />
+                                                               <img src="/Mt5 logo.png" alt="MT" className="w-8 h-8 md:w-9 md:h-9 object-contain drop-shadow-md" />
                                                             ) : (
-                                                               <BrokerIcon name={broker} size={32} />
+                                                               <BrokerIcon name={broker} size={36} />
                                                             )}
                                                          </div>
-                                                         <span className="text-[13px] font-bold text-slate-700 dark:text-slate-300 capitalize text-center">
+                                                         <span className="relative z-10 text-[12px] md:text-[13px] font-extrabold text-slate-800 dark:text-[#E2E8F0] capitalize text-center tracking-tight group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                                                             {broker === 'mt5' ? 'MetaTrader 5' : broker === 'mt4' ? 'MetaTrader 4' : broker === 'icmarkets' ? 'IC Markets' : broker}
                                                          </span>
                                                       </button>
@@ -1720,21 +1727,21 @@ export default function Settings() {
                                                 </div>
 
                                                 {activeMarket !== 'indian' && (
-                                                <div className="mt-8 bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-950/20 dark:to-purple-950/20 border border-indigo-100 dark:border-indigo-900/30 rounded-2xl p-5 relative overflow-hidden">
-                                                   <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 dark:bg-indigo-500/5 rounded-full blur-2xl -mr-10 -mt-10"></div>
-                                                   <div className="relative z-10 flex flex-col sm:flex-row sm:items-center gap-4">
-                                                      <div className="w-12 h-12 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center shrink-0">
-                                                         <Sparkles size={24} className="text-indigo-600 dark:text-indigo-400" />
+                                                <div className="mt-10 bg-gradient-to-r from-[#EEF2FF] to-[#F8FAFC] dark:from-[#16161D] dark:to-[#111113] border border-indigo-100 dark:border-[#2A2A35] rounded-[24px] p-6 md:p-8 relative overflow-hidden group hover:border-indigo-500/30 transition-colors">
+                                                   <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 dark:bg-indigo-500/10 rounded-full blur-3xl -mr-20 -mt-20 group-hover:bg-indigo-500/20 transition-colors duration-500"></div>
+                                                   <div className="relative z-10 flex flex-col sm:flex-row sm:items-center gap-5 md:gap-6">
+                                                      <div className="w-14 h-14 md:w-16 md:h-16 rounded-[18px] bg-indigo-500 dark:bg-indigo-500/20 shadow-[0_4px_20px_rgba(99,102,241,0.4)] dark:shadow-none border border-indigo-400 dark:border-indigo-500/30 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                                                         <Sparkles size={28} className="text-white dark:text-indigo-400" />
                                                       </div>
-                                                      <div>
-                                                         <h4 className="text-[15px] font-bold text-slate-900 dark:text-white mb-1">Don't have an account?</h4>
-                                                         <p className="text-[13px] text-slate-600 dark:text-slate-400 mb-3 leading-relaxed">
-                                                            Sign up with our partners like <span className="font-semibold text-indigo-600 dark:text-indigo-400">Vantage</span>, <span className="font-semibold text-indigo-600 dark:text-indigo-400">Exness</span>, or <span className="font-semibold text-indigo-600 dark:text-indigo-400">XM</span> to instantly get <span className="font-bold text-amber-500">+500 XP</span> and exclusive platform benefits!
+                                                      <div className="flex-1">
+                                                         <h4 className="text-[17px] md:text-[18px] font-extrabold text-slate-900 dark:text-white mb-2 tracking-tight">Don't have an account?</h4>
+                                                         <p className="text-[13.5px] text-slate-600 dark:text-[#949BA4] mb-5 sm:mb-0 leading-relaxed max-w-xl">
+                                                            Sign up with our partners like <span className="font-bold text-indigo-600 dark:text-indigo-400">Vantage</span>, <span className="font-bold text-indigo-600 dark:text-indigo-400">Exness</span>, or <span className="font-bold text-indigo-600 dark:text-indigo-400">XM</span> to instantly get <span className="font-black text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded uppercase text-[11px] tracking-wider ml-1">+500 XP</span> and exclusive platform benefits!
                                                          </p>
-                                                         <button className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-[12px] font-bold rounded-lg shadow-sm transition-colors w-full sm:w-auto">
-                                                            View Partner Offers
-                                                         </button>
                                                       </div>
+                                                      <button className="px-6 py-3 md:py-3.5 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 text-[13px] md:text-[14px] font-bold rounded-[14px] shadow-lg hover:shadow-xl transition-all active:scale-95 shrink-0 whitespace-nowrap">
+                                                         View Partner Offers
+                                                      </button>
                                                    </div>
                                                 </div>
                                                 )}
@@ -1803,31 +1810,31 @@ export default function Settings() {
                                        </div>
                                     ) : connectedBroker ? (
                                        <>
-                                       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 rounded-xl bg-white dark:bg-[#121212] border border-slate-200 dark:border-white/5 shadow-sm mb-4">
+                                       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 md:p-6 rounded-[24px] bg-gradient-to-r from-[#FFFFFF] to-[#F8F9FA] dark:from-[#1C1C1E] dark:to-[#121214] border border-slate-200 dark:border-white/5 shadow-sm hover:shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] transition-shadow mb-4">
                                           <div className="flex items-center gap-4">
-                                             <div className="w-12 h-12 flex items-center justify-center bg-slate-50 dark:bg-[#1e1f22] border border-slate-100 dark:border-[#2b2d31] rounded-xl shrink-0 shadow-sm">
+                                             <div className="w-14 h-14 flex items-center justify-center bg-white dark:bg-black/40 border border-slate-100 dark:border-white/10 rounded-[14px] shadow-[inset_0_2px_10px_rgba(0,0,0,0.02)] dark:shadow-[inset_0_2px_10px_rgba(255,255,255,0.02)] shrink-0">
                                                 {connectedBroker === 'mt5' || connectedBroker === 'mt4' ? (
-                                                   <img src="/Mt5 logo.png" alt="MT" className="w-8 h-8 object-contain" />
+                                                   <img src="/Mt5 logo.png" alt="MT" className="w-9 h-9 object-contain drop-shadow-md" />
                                                 ) : (
-                                                   <BrokerIcon name={connectedBroker} size={32} />
+                                                   <BrokerIcon name={connectedBroker} size={36} />
                                                 )}
                                              </div>
                                              <div>
-                                                <div className="flex items-center gap-2">
-                                                   <h4 className="text-[15px] font-bold text-slate-900 dark:text-white capitalize">
+                                                <div className="flex items-center gap-3">
+                                                   <h4 className="text-[15px] md:text-[16px] font-extrabold text-slate-900 dark:text-white capitalize tracking-tight">
                                                       {connectedBroker === 'mt5' ? 'MetaTrader 5' : connectedBroker === 'mt4' ? 'MetaTrader 4' : connectedBroker}
                                                    </h4>
-                                                   <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold uppercase tracking-wide">
+                                                   <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-widest">
                                                       Active Sync
                                                    </span>
                                                 </div>
-                                                <p className="text-[13px] text-slate-500 dark:text-[#949ba4] mt-0.5 font-medium">
+                                                <p className="text-[13px] text-slate-500 dark:text-[#949ba4] mt-1 font-medium">
                                                    {brokerClientId ? `Client ID • ${brokerClientId}` : 'Live Account • 892314902'}
                                                 </p>
                                              </div>
                                           </div>
                                           
-                                          <div className="flex items-center gap-2 w-full md:w-auto mt-2 md:mt-0">
+                                          <div className="flex items-center gap-3 w-full md:w-auto mt-2 md:mt-0">
                                              <button 
                                                 onClick={() => {
                                                    if (connectedBroker === 'dhan') {
@@ -1838,13 +1845,13 @@ export default function Settings() {
                                                       toast.info("Manage settings for this broker in their developer console.");
                                                    }
                                                 }}
-                                                className="flex-1 md:flex-none px-4 py-2 bg-slate-100 dark:bg-[#202022] hover:bg-slate-200 dark:hover:bg-[#2c2c2f] border border-slate-200 dark:border-transparent text-slate-800 dark:text-white text-[13px] font-semibold rounded-lg transition-colors shadow-sm"
+                                                className="flex-1 md:flex-none px-5 py-2.5 bg-slate-100 dark:bg-[#242428] hover:bg-slate-200 dark:hover:bg-[#2A2A2F] border border-slate-200 dark:border-transparent text-slate-800 dark:text-white text-[13px] font-bold rounded-[12px] transition-all active:scale-95 shadow-sm"
                                              >
                                                 Manage
                                              </button>
                                              <button 
                                                 onClick={handleDisconnectBroker}
-                                                className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 text-[13px] font-semibold rounded-lg transition-colors"
+                                                className="px-5 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 text-[13px] font-bold rounded-[12px] transition-all active:scale-95"
                                              >
                                                 Disconnect
                                              </button>
@@ -1852,26 +1859,26 @@ export default function Settings() {
                                        </div>
                                        <button 
                                           onClick={() => setIsConnectingBroker(true)}
-                                          className="w-full py-4 border-2 border-dashed border-slate-200 dark:border-[#333333] rounded-xl flex flex-col items-center justify-center text-slate-500 dark:text-[#949ba4] hover:bg-slate-50 dark:hover:bg-[#1a1a1a] hover:border-slate-300 dark:hover:border-[#444] hover:text-slate-700 dark:hover:text-white transition-all group"
+                                          className="w-full py-6 border-2 border-dashed border-slate-200 dark:border-white/10 rounded-[24px] flex flex-col items-center justify-center text-slate-500 dark:text-[#949ba4] hover:bg-slate-50 dark:hover:bg-white/[0.02] hover:border-indigo-300/50 dark:hover:border-indigo-500/30 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all group"
                                        >
-                                          <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-[#222] flex items-center justify-center mb-2 group-hover:scale-110 transition-transform text-slate-400 dark:text-slate-400 group-hover:text-slate-600 dark:group-hover:text-white">
-                                             <Plus size={20} />
+                                          <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center mb-3 group-hover:scale-110 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-500/20 transition-all text-slate-400 dark:text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
+                                             <Plus size={22} />
                                           </div>
-                                          <span className="text-[14px] font-bold">Connect Another Broker</span>
+                                          <span className="text-[14px] font-extrabold tracking-tight">Connect Another Broker</span>
                                        </button>
                                        </>
                                     ) : (
-                                       <div className="flex flex-col items-center justify-center py-12 px-4 border-2 border-dashed border-slate-200 dark:border-[#333333] rounded-2xl bg-white/50 dark:bg-[#121212]/50 text-slate-500 dark:text-slate-400">
-                                          <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-[#1E1E1E] flex items-center justify-center mb-4 text-slate-400 dark:text-slate-400">
-                                             <Link2 size={24} />
+                                       <div className="flex flex-col items-center justify-center py-16 px-6 border-2 border-dashed border-slate-200 dark:border-white/10 rounded-[28px] bg-white/50 dark:bg-[#111112]/50 text-slate-500 dark:text-slate-400">
+                                          <div className="w-16 h-16 rounded-[20px] bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center mb-5 text-indigo-500 dark:text-indigo-400 shadow-[inset_0_2px_10px_rgba(0,0,0,0.02)]">
+                                             <Link2 size={28} />
                                           </div>
-                                          <p className="text-[15px] font-bold text-slate-900 dark:text-white mb-2">No brokers connected yet</p>
-                                          <p className="text-[13px] mb-6 max-w-sm text-center">Sync your trading accounts to automatically track your performance and populate your journal.</p>
+                                          <p className="text-[18px] font-extrabold text-slate-900 dark:text-white mb-2 tracking-tight">No brokers connected yet</p>
+                                          <p className="text-[14px] mb-8 max-w-md text-center text-slate-500 dark:text-[#949BA4] leading-relaxed">Sync your trading accounts to automatically track your performance and populate your journal.</p>
                                           <button 
                                              onClick={() => setIsConnectingBroker(true)}
-                                             className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-[13px] font-bold transition-all shadow-md shadow-indigo-500/20 hover:shadow-indigo-500/40 flex items-center gap-2"
+                                             className="px-8 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-[14px] text-[14px] font-bold transition-all shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40 active:scale-95 flex items-center gap-2"
                                           >
-                                             <Plus size={16} />
+                                             <Plus size={18} />
                                              Connect Broker
                                           </button>
                                        </div>

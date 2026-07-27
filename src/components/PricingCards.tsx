@@ -80,22 +80,22 @@ export function PricingCards({ selectedPlan, onSelectPlan, onUpgradeClick, isSta
   const getPriceDisplay = (basePrice: number) => {
     if (billingInterval === 'monthly') {
       return {
-        monthly: basePrice.toLocaleString('en-IN'),
+        monthly: basePrice.toLocaleString('en-US'),
         subtitle: 'billed monthly'
       };
     } else {
       const discountedMonthly = Math.round(basePrice * (1 - annualDiscountPercent / 100));
       const annualTotal = discountedMonthly * 12;
       return {
-        monthly: discountedMonthly.toLocaleString('en-IN'),
-        subtitle: `Billed annually at ₹${annualTotal.toLocaleString('en-IN')}`
+        monthly: discountedMonthly.toLocaleString('en-US'),
+        subtitle: `Billed annually at $${annualTotal.toLocaleString('en-US')}`
       };
     }
   };
 
-  const standardPrice = getPriceDisplay(1299);
-  const proPrice = getPriceDisplay(2499);
-  const elitePrice = getPriceDisplay(4999);
+  const standardPrice = getPriceDisplay(15);
+  const proPrice = getPriceDisplay(29);
+  const elitePrice = getPriceDisplay(59);
   const [starterExpanded, setStarterExpanded] = useState(false);
   const [proExpanded, setProExpanded] = useState(false);
   const [eliteExpanded, setEliteExpanded] = useState(false);
@@ -207,7 +207,7 @@ export function PricingCards({ selectedPlan, onSelectPlan, onUpgradeClick, isSta
           <h3 className="text-[16px] font-bold text-slate-800 dark:text-white mb-2 relative z-10">Standard</h3>
           <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1] mb-6 min-h-[36px]">For beginners learning discipline & journaling</p>
           <div className={`flex items-baseline gap-1 ${billingInterval === 'monthly' ? 'mb-6' : 'mb-1'}`}>
-            <span className="text-[32px] font-extrabold text-slate-900 dark:text-white" style={{ fontFamily: "'Open Sans', sans-serif" }}>₹{standardPrice.monthly}</span>
+            <span className="text-[32px] font-extrabold text-slate-900 dark:text-white" style={{ fontFamily: "'Open Sans', sans-serif" }}>${standardPrice.monthly}</span>
             <span className="text-[12px] font-medium text-slate-500">/ month</span>
           </div>
           {billingInterval === 'annually' && (
@@ -245,7 +245,7 @@ export function PricingCards({ selectedPlan, onSelectPlan, onUpgradeClick, isSta
           </h3>
           <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1] mb-6 min-h-[36px]">Designed to make traders consistent, not lucky.</p>
           <div className={`flex items-baseline gap-1 ${billingInterval === 'monthly' ? 'mb-6' : 'mb-1'}`}>
-            <span className="text-[32px] font-extrabold text-slate-900 dark:text-white" style={{ fontFamily: "'Open Sans', sans-serif" }}>₹{proPrice.monthly}</span>
+            <span className="text-[32px] font-extrabold text-slate-900 dark:text-white" style={{ fontFamily: "'Open Sans', sans-serif" }}>${proPrice.monthly}</span>
             <span className="text-[12px] font-medium text-slate-500">/ month</span>
           </div>
           {billingInterval === 'annually' && (
@@ -284,7 +284,7 @@ export function PricingCards({ selectedPlan, onSelectPlan, onUpgradeClick, isSta
             <h3 className="text-[16px] font-bold text-slate-800 dark:text-white mb-2 relative z-10">Elite</h3>
             <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1] mb-6 min-h-[36px] relative z-10">For serious traders, mentors & automation users</p>
             <div className={`flex items-baseline gap-1 ${billingInterval === 'monthly' ? 'mb-6' : 'mb-1'}`}>
-              <span className="text-[32px] font-extrabold text-slate-900 dark:text-white" style={{ fontFamily: "'Open Sans', sans-serif" }}>₹{elitePrice.monthly}</span>
+              <span className="text-[32px] font-extrabold text-slate-900 dark:text-white" style={{ fontFamily: "'Open Sans', sans-serif" }}>${elitePrice.monthly}</span>
               <span className="text-[12px] font-medium text-slate-500">/ month</span>
             </div>
             {billingInterval === 'annually' && (
@@ -344,7 +344,7 @@ export function PricingCards({ selectedPlan, onSelectPlan, onUpgradeClick, isSta
               <div>
                 <h4 className="text-white font-bold text-[15px]">{selectedPlan === 'elite' ? 'Elite' : 'Pro'}</h4>
                 <div className="flex items-baseline gap-1 mt-1">
-                  <span className="text-white font-extrabold text-[24px]">₹{selectedPlan === 'elite' ? elitePrice.monthly : proPrice.monthly}</span>
+                  <span className="text-white font-extrabold text-[24px]">${selectedPlan === 'elite' ? elitePrice.monthly : proPrice.monthly}</span>
                   <span className="text-zinc-400 font-medium text-[12px]">/ month</span>
                 </div>
                 <div className="text-zinc-500 text-[12px] font-medium mt-1">

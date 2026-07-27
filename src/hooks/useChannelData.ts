@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Database } from '@/integrations/supabase/types';
-import { ENABLE_MOCK_DATA, mockChannels, mockProfiles } from '@/lib/mockData';
+
 
 export type ChannelType = Database['public']['Tables']['channels']['Row'];
 export type MessageType = Database['public']['Tables']['channel_messages']['Row'] & {
@@ -48,10 +48,7 @@ export function useChannelData(userId: string, activeChannelId: string) {
   const fetchChannels = async () => {
     if (!userId) return;
 
-    if (ENABLE_MOCK_DATA) {
-        setChannels(mockChannels as any);
-        return;
-    }
+
 
     const { data, error } = await supabase
       .from('channels')
@@ -79,42 +76,7 @@ export function useChannelData(userId: string, activeChannelId: string) {
     const fetchMessages = async () => {
       setLoading(true);
 
-      if (ENABLE_MOCK_DATA) {
-          const chatTexts = [
-              "BankNifty looks solid here, support is holding well at 45,500 levels.",
-              "I'm booking 50% profit right here and trailing the rest. Market is too volatile right now.",
-              "Did you guys check the open interest on the 19000 PE? Massive writing going on.",
-              "Waiting for a pullback to the VWAP before taking a fresh long entry.",
-              "Reliance is dragging the index down today. Avoid aggressive longs.",
-              "Just hit my daily target! Done for the day. See you guys tomorrow.",
-              "Keep an eye on midcaps. They are breaking out of a multi-week consolidation.",
-              "What's your view on the upcoming Fed meeting? Will it impact our markets significantly?",
-              "Options premiums are crushed today. Not a good day for option buyers.",
-              "My algorithmic setup just fired a buy signal on HDFC Bank. Let's see how it plays out.",
-              "Anyone holding overnight positions? The global cues look a bit weak.",
-              "Stop loss hit. That was a bad trade. Analyzing what went wrong.",
-              "The momentum is clearly with the bulls today. Look for buy-on-dips opportunities.",
-              "Crude oil prices are surging again. This might put pressure on FMCG stocks.",
-              "Just shared my chart analysis for Nifty in the premium group."
-          ];
-          
-          // Generate 25 fake messages for this channel
-          const fakeMessages = Array.from({ length: 25 }).map((_, i) => {
-              const p = mockProfiles[i % mockProfiles.length];
-              return {
-                  id: `msg-${i}`,
-                  channel_id: activeChannelId,
-                  user_id: p.id,
-                  content: chatTexts[i % chatTexts.length],
-                  created_at: new Date(Date.now() - (25 - i) * 60000).toISOString(),
-                  profiles: p
-              };
-          });
-          setMessages(fakeMessages as any);
-          setIsMember(true);
-          setLoading(false);
-          return;
-      }
+
 
       const { data, error } = await supabase
         .from('channel_messages')

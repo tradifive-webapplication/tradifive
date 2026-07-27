@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { Search as IconlySearch, Lock as IconlyLock, AddUser as IconlyAddUser, Discovery as IconlyDiscovery, CloseSquare as IconlyCloseSquare, TicketStar as IconlyTicketStar } from "react-iconly";
 import { supabase } from "@/lib/supabase";
 import { useDiscoverData } from "@/hooks/useDiscoverData";
-import { ENABLE_MOCK_DATA, mockMarketplaceProducts } from "@/lib/mockData";
+
 import { motion, AnimatePresence } from "framer-motion";
 import LeaderboardPanel from "@/components/LeaderboardPanel";
 import { FollowButton } from "@/components/ui/FollowButton";
@@ -81,22 +81,7 @@ export default function Discover() {
 
         const fetchStoreData = async (userId: string) => {
             try {
-                if (ENABLE_MOCK_DATA) {
-                    setStoreListings(mockMarketplaceProducts.map(p => ({
-                        id: p.id,
-                        name: p.title,
-                        category: p.type,
-                        description: p.description,
-                        price: p.price,
-                        currency: '₹',
-                        imageUrl: p.thumbnail_url,
-                        creatorId: 'mock-creator-id',
-                        creatorName: p.creator.display_name,
-                        creatorUsername: p.creator.username
-                    })));
-                    setPurchasedItems(['p1']); // Mock one purchased item
-                    return;
-                }
+
 
                 const { data: products } = await supabase.from('creator_products').select('*, creator:creator_id(display_name, full_name, username)').eq('status', 'active');
                 if (products) {

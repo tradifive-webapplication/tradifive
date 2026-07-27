@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase';
 import { createNotification } from '@/lib/notifications';
 import { Database } from '@/integrations/supabase/types';
 import { usePresence } from '@/contexts/PresenceContext';
-import { ENABLE_MOCK_DATA, mockConversations } from '@/lib/mockData';
+
 
 export type DbConversation = Database['public']['Tables']['dm_conversations']['Row'] & {
   user1: Database['public']['Tables']['profiles']['Row'] | null;
@@ -48,11 +48,7 @@ export function useInboxData(userId: string | undefined, activeConvId: string | 
   const fetchConversations = useCallback(async () => {
     if (!userId) return;
     try {
-      if (ENABLE_MOCK_DATA) {
-        setConversations(mockConversations as Conversation[]);
-        setLoading(false);
-        return;
-      }
+
 
       const { data, error } = await supabase
         .from('dm_conversations')
@@ -150,21 +146,7 @@ export function useInboxData(userId: string | undefined, activeConvId: string | 
     const fetchMessages = async () => {
       setMessagesLoading(true);
 
-      if (ENABLE_MOCK_DATA) {
-        const mockMsg: DbMessage = {
-          id: 'm1',
-          conversation_id: activeConvId,
-          sender_id: activeConvId, // partner
-          receiver_id: userId, // me
-          content: 'Sure, I will check the charts and get back to you! 📈',
-          created_at: new Date().toISOString(),
-          is_read: true,
-          message_type: 'text'
-        } as DbMessage;
-        setMessages([mockMsg]);
-        setMessagesLoading(false);
-        return;
-      }
+
 
 
 

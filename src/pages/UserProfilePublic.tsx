@@ -20,13 +20,7 @@ import { CommentModal } from "@/components/CommentModal";
 const PLACEHOLDER_NAMES = ["new trader", "guest trader", "demo trader", "trader", "guest"];
 
 // --- MOCK FALLBACK TRADES ---
-const MOCK_TRADES_FALLBACK = [
-  { id: "t1", ticket: "8472910", symbol: "XAUUSD", profit: 1420.50, trade_type: 0, lot_size: 2.0, closed_at: new Date(Date.now() - 3600000 * 4).toISOString(), created_at: new Date(Date.now() - 3600000 * 5).toISOString() },
-  { id: "t2", ticket: "8472911", symbol: "EURUSD", profit: -340.00, trade_type: 1, lot_size: 1.5, closed_at: new Date(Date.now() - 3600000 * 12).toISOString(), created_at: new Date(Date.now() - 3600000 * 13).toISOString() },
-  { id: "t3", ticket: "8472912", symbol: "GBPUSD", profit: 890.20, trade_type: 0, lot_size: 1.0, closed_at: new Date(Date.now() - 3600000 * 24).toISOString(), created_at: new Date(Date.now() - 3600000 * 25).toISOString() },
-  { id: "t4", ticket: "8472913", symbol: "XAUUSD", profit: 2450.00, trade_type: 0, lot_size: 3.0, closed_at: new Date(Date.now() - 3600000 * 48).toISOString(), created_at: new Date(Date.now() - 3600000 * 50).toISOString() },
-  { id: "t5", ticket: "8472914", symbol: "USDCAD", profit: -120.00, trade_type: 1, lot_size: 1.0, closed_at: new Date(Date.now() - 3600000 * 72).toISOString(), created_at: new Date(Date.now() - 3600000 * 73).toISOString() }
-];
+
 
 function PollBlock({
   post,

@@ -21,9 +21,9 @@ export function RiskGuardCard({
   children?: React.ReactNode;
 }) {
   return (
-    <div className={`p-4 sm:p-5 rounded-[22px] transition-all flex flex-col justify-start relative overflow-hidden isolate ${active
-        ? "border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:shadow-[0_4px_12px_-4px_rgba(16,185,129,0.15)]"
-        : "border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:shadow-none"
+    <div className={`p-3 sm:p-4 rounded-[22px] transition-all flex flex-col justify-start relative overflow-hidden isolate ${active
+      ? "border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:shadow-[0_4px_12px_-4px_rgba(16,185,129,0.15)]"
+      : "border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:shadow-none"
       }`}>
 
       {/* Header row — always visible & interactive */}
@@ -57,33 +57,11 @@ export function RiskGuardCard({
 
       {/* Children content area */}
       {children && (
-        <div className="relative pt-4 mt-3 border-t border-slate-100 dark:border-white/5">
-          {/* Actual content — blurred when active */}
-          <div className={`transition-all duration-300 ${active ? "blur-[3px] select-none pointer-events-none opacity-60" : ""}`}>
+        <div className="relative pt-3 mt-2 border-t border-slate-100 dark:border-white/5">
+          {/* Actual content */}
+          <div className="transition-all duration-300">
             {children}
           </div>
-
-          {/* Lock overlay — shown only when active */}
-          <AnimatePresence>
-            {active && (
-              <motion.div
-                key="lock-overlay"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 z-10"
-              >
-                <Lock size={18} className="text-slate-400 dark:text-slate-500 mb-0.5" strokeWidth={1.8} />
-                <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500">
-                  Protocol Guard Active
-                </p>
-                <p className="text-[10px] text-slate-400 dark:text-slate-500 text-center leading-snug max-w-[200px]">
-                  Configuration is locked to prevent trade disruption while running.
-                </p>
-              </motion.div>
-            )}
-          </AnimatePresence>
         </div>
       )}
     </div>

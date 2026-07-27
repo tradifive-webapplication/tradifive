@@ -16,26 +16,14 @@ import { useCompetitionsData } from "@/hooks/useCompetitionsData";
 import { supabase } from "@/lib/supabase";
 import { useEffect } from "react";
 
-// Mock Data for the Leaderboard
-const MOCK_LEADERBOARD = [
-  { id: 1, rank: 1, trader: "SkyWalker_FX", country: "🇺🇸", equity: "$300,000", return: 54.2, winRate: 68, maxDD: 4.2 },
-  { id: 2, rank: 2, trader: "Nakamoto_Trade", country: "🇯🇵", equity: "$300,000", return: 48.9, winRate: 72, maxDD: 3.1 },
-  { id: 3, rank: 3, trader: "AlphaPrime", country: "🇩🇪", equity: "$200,000", return: 42.5, winRate: 65, maxDD: 5.4 },
-  { id: 4, rank: 4, trader: "BullishBane", country: "🇬🇧", equity: "$100,000", return: 38.4, winRate: 61, maxDD: 6.2 },
-  { id: 5, rank: 5, trader: "ZenScalper", country: "🇨🇦", equity: "$300,000", return: 35.1, winRate: 75, maxDD: 2.8 },
-  { id: 6, rank: 6, trader: "QuantWhale", country: "🇦🇺", equity: "$200,000", return: 31.2, winRate: 59, maxDD: 7.5 },
-  { id: 7, rank: 7, trader: "GhostTrader", country: "🇫🇷", equity: "$100,000", return: 28.9, winRate: 64, maxDD: 4.9 },
-  { id: 8, rank: 8, trader: "TrendMaster", country: "🇸🇬", equity: "$100,000", return: 26.4, winRate: 67, maxDD: 3.8 },
-  { id: 9, rank: 9, trader: "LiquidLogic", country: "🇳🇱", equity: "$300,000", return: 24.1, winRate: 70, maxDD: 3.2 },
-  { id: 10, rank: 10, trader: "MarginGod", country: "🇧🇷", equity: "$200,000", return: 22.5, winRate: 62, maxDD: 5.8 },
-];
+
 
 export default function CompetitionsLeaderboard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("Monthly");
 
   const { getLeaderboard, competitions } = useCompetitionsData();
-  const [leaderboard, setLeaderboard] = useState<any[]>(MOCK_LEADERBOARD);
+  const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [userProfile, setUserProfile] = useState<any>(null);
 
@@ -53,11 +41,7 @@ export default function CompetitionsLeaderboard() {
     const compId = activeComp?.id || "september-2025";
 
     getLeaderboard(compId).then(data => {
-      if (data && data.length > 0) {
-        setLeaderboard(data);
-      } else {
-        setLeaderboard(MOCK_LEADERBOARD);
-      }
+      setLeaderboard(data && data.length > 0 ? data : []);
       setLoading(false);
     });
   }, [competitions]);

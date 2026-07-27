@@ -20,51 +20,17 @@ import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 
 
-// ─── Mock Data ────────────────────────────────────────────────────────────────
+const MOCK_STUDENTS: any[] = [];
 
-const MOCK_STUDENTS = [
-  { id: 1, name: 'Marcus Webb', username: 'marcuswebb', avatar: 'MW', tier: 'Advanced', progress: 87, streak: 14, lastActive: '2h ago', joinDate: 'Jan 2025', pairs: 'EURUSD, GBPUSD', winRate: 68 },
-  { id: 2, name: 'Aisha Patel', username: 'aishap', avatar: 'AP', tier: 'Intermediate', progress: 54, streak: 6, lastActive: '5h ago', joinDate: 'Feb 2025', pairs: 'XAUUSD', winRate: 55 },
-  { id: 3, name: 'Diego Santos', username: 'diegos', avatar: 'DS', tier: 'Beginner', progress: 23, streak: 2, lastActive: '1d ago', joinDate: 'Apr 2025', pairs: 'USDJPY', winRate: 42 },
-  { id: 4, name: 'Lena Müller', username: 'lenam', avatar: 'LM', tier: 'Advanced', progress: 91, streak: 21, lastActive: '1h ago', joinDate: 'Dec 2024', pairs: 'NAS100, SPX500', winRate: 72 },
-  { id: 5, name: 'Jamal King', username: 'jamalking', avatar: 'JK', tier: 'Intermediate', progress: 61, streak: 9, lastActive: '3h ago', joinDate: 'Mar 2025', pairs: 'BTC/USD', winRate: 59 },
-  { id: 6, name: 'Sofia Chen', username: 'sofiac', avatar: 'SC', tier: 'Beginner', progress: 18, streak: 1, lastActive: '2d ago', joinDate: 'May 2025', pairs: 'EURUSD', winRate: 38 },
-];
+const MOCK_LESSONS: any[] = [];
 
-const MOCK_LESSONS = [
-  { id: 1, title: 'Mastering Risk-to-Reward Ratios', desc: 'Learn how to size positions correctly and protect your capital on every trade.', modules: 5, enrolled: 34, completed: 29, status: 'Live', tag: 'Risk' },
-  { id: 2, title: 'Reading Market Structure', desc: 'Identify Higher Highs, Lower Lows, and key supply/demand zones across all timeframes.', modules: 8, enrolled: 28, completed: 18, status: 'Live', tag: 'Strategy' },
-  { id: 3, title: 'The Psychology of Losing Trades', desc: 'Building mental resilience after drawdowns and how to detach from outcomes.', modules: 4, enrolled: 22, completed: 15, status: 'Live', tag: 'Mindset' },
-  { id: 4, title: 'Advanced ICT Concepts', desc: 'Order blocks, liquidity sweeps, and fair value gaps for precision entries.', modules: 12, enrolled: 0, completed: 0, status: 'Draft', tag: 'Strategy' },
-  { id: 5, title: 'Building a Trading Journal', desc: 'Systematic journaling techniques to identify your edge and eliminate mistakes.', modules: 3, enrolled: 19, completed: 19, status: 'Archived', tag: 'Mindset' },
-];
+const MOCK_POSTS: any[] = [];
 
-const MOCK_POSTS = [
-  { id: 1, title: 'Weekly Market Update — Watch DXY', body: 'Dollar index approaching a major confluence zone around 104.50. Expect volatility across pairs. Stay patient, reduce size this week, and avoid forcing entries on US session opens.', tag: 'Market Update', pinned: true, likes: 42, reads: 118, time: '2h ago' },
-  { id: 2, title: 'Mindset Reminder: Quality Over Quantity', body: 'I see many of you overtrading. Remember — your job is NOT to be in a trade. Your job is to wait for YOUR setup. One clean A+ trade per week beats ten mediocre setups every time.', tag: 'Mindset', pinned: true, likes: 87, reads: 203, time: '1d ago' },
-  { id: 3, title: 'Strategy Update: Session Filter Added', body: 'Going forward, we only take setups during London open (07:00–09:00 GMT) and NY open (13:30–15:30 GMT). Avoid Asian session noise unless you are trading JPY or AUD pairs.', tag: 'Strategy', pinned: false, likes: 31, reads: 89, time: '3d ago' },
-];
+const SENTIMENT_DATA: any[] = [];
 
-const SENTIMENT_DATA = [
-  { label: 'Bullish 🚀', pct: 52, color: 'bg-emerald-500' },
-  { label: 'Neutral 😐', pct: 28, color: 'bg-slate-400' },
-  { label: 'Bearish 🐻', pct: 20, color: 'bg-rose-500' },
-];
+const COMMUNITY_STATS: any[] = [];
 
-const COMMUNITY_STATS = [
-  { label: 'Avg Win Rate', value: '58.4%', delta: '+2.1%', up: true },
-  { label: 'Avg R:R Ratio', value: '1.8x', delta: '+0.3x', up: true },
-  { label: 'Top Pair', value: 'EURUSD', delta: '34% of trades', up: null },
-  { label: 'Avg Daily Trades', value: '2.3', delta: '-0.4 vs last wk', up: false },
-];
-
-const COHORT_LEADERS = [
-  { rank: 1, label: 'Trader #4', tier: 'Advanced', score: 920 },
-  { rank: 2, label: 'Trader #1', tier: 'Advanced', score: 875 },
-  { rank: 3, label: 'Trader #5', tier: 'Intermediate', score: 741 },
-  { rank: 4, label: 'Trader #2', tier: 'Intermediate', score: 618 },
-  { rank: 5, label: 'Trader #3', tier: 'Beginner', score: 390 },
-];
+const COHORT_LEADERS: any[] = [];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 

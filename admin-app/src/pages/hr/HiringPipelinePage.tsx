@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Download, Plus, Search, Filter, Briefcase, Mail, Phone, Calendar, ArrowRight, UserCheck, Loader2 } from "lucide-react";
-import { type CandidateStage } from "../../lib/mockData";
+export type CandidateStage = 'applied' | 'interview' | 'offer' | 'hired' | 'rejected';
 import { supabase } from "../../lib/supabase";
 import { exportToExcel } from "../../lib/exportUtils";
 import AddCandidateModal from "./AddCandidateModal";

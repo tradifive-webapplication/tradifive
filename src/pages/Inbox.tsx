@@ -51,36 +51,7 @@ export default function InboxPage() {
   const [authChecked, setAuthChecked] = useState(false);
   const { canAccess } = usePlan();
   
-  // Mock performance data for charts
-  const mockPerformanceData = [
-    { name: "Mon", value: 400 },
-    { name: "Tue", value: 300 },
-    { name: "Wed", value: 550 },
-    { name: "Thu", value: 480 },
-    { name: "Fri", value: 700 }
-  ];
-  
-  const mockMessageData = [
-    { name: "Mon", sent: 12, received: 15 },
-    { name: "Tue", sent: 8, received: 10 },
-    { name: "Wed", sent: 25, received: 30 },
-    { name: "Thu", sent: 15, received: 14 },
-    { name: "Fri", sent: 30, received: 35 }
-  ];
-
-  const mockWinRateData = [
-    { name: "Win", value: 68 },
-    { name: "Loss", value: 32 }
-  ];
-  
   const COLORS = ['#10b981', '#ef4444', '#f59e0b', '#3b82f6'];
-
-  const mockRiskData = [
-    { name: "Week 1", risk: 2.1 },
-    { name: "Week 2", risk: 1.8 },
-    { name: "Week 3", risk: 2.5 },
-    { name: "Week 4", risk: 1.5 }
-  ];
 
   useEffect(() => {
     const checkUser = async () => {

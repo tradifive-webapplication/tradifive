@@ -1,16 +1,21 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Dimensions, Platform, StatusBar, Image, Switch, Animated, DeviceEventEmitter } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Dimensions, Platform, StatusBar, Image, Switch, Animated, DeviceEventEmitter, Alert, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getHeaderStyle, HeaderStyle } from '../utils/headerStore';
 import { useRouter } from 'expo-router';
 import UpgradeGate from '../components/UpgradeGate';
-import { Eye, Shield, Zap, Power, Brain, Timer, Trophy, Target, ShieldAlert, Bell, Settings, TrendingDown, Info, Clock, Check } from 'lucide-react-native';
-import Svg, { Circle, Path, Defs, LinearGradient, Stop, G, Line } from 'react-native-svg';
+import { 
+  Eye, Shield, Zap, Power, Brain, Timer, Trophy, Target, ShieldAlert, Bell, Settings, 
+  TrendingDown, Info, Clock, Check, Layers, AlertTriangle, Crosshair, CheckSquare, 
+  StopCircle, Star, Sparkles, Lock, ShieldCheck, Activity, HeartPulse, Moon, Volume2, ShieldOff,
+  ChevronDown, TrendingUp, Sunrise, Minus, Plus, Calendar, Wallet, Key, MonitorOff
+} from 'lucide-react-native';
+import Svg, { Circle, Path, Line } from 'react-native-svg';
 import * as Haptics from 'expo-haptics';
 import { useStore } from '../store';
 import { supabase } from '../utils/supabase';
-
 import { useAppTheme } from '../../hooks/useAppTheme';
+
 const { width, height } = Dimensions.get('window');
 const h = (s: Haptics.ImpactFeedbackStyle = Haptics.ImpactFeedbackStyle.Light) => {
   if (Platform.OS !== 'web') {
@@ -18,40 +23,20 @@ const h = (s: Haptics.ImpactFeedbackStyle = Haptics.ImpactFeedbackStyle.Light) =
   }
 };
 
-// Toggle Switch Component
-function CustomToggle({ value, onValueChange }: { value: boolean; onValueChange: (v: boolean) => void }) {
+function CustomToggle({ value, onValueChange, activeColor = '#3b82f6', scale = 0.9 }: { value: boolean; onValueChange: (v: boolean) => void; activeColor?: string; scale?: number }) {
   const { isDark } = useAppTheme();
   return (
     <Switch
       value={value}
       onValueChange={(v) => { h(); onValueChange(v); }}
-      trackColor={{ false: isDark ? '#3f3f46' : '#e2e8f0', true: '#3b82f6' }}
+      trackColor={{ false: isDark ? '#3f3f46' : '#e2e8f0', true: activeColor }}
       thumbColor="#fff"
       ios_backgroundColor={isDark ? '#3f3f46' : '#e2e8f0'}
-      style={{ transform: [{ scaleX: 0.9 }, { scaleY: 0.9 }] }}
+      style={{ transform: [{ scaleX: scale }, { scaleY: scale }] }}
     />
   );
 }
 
-// Custom Slider Component
-function CustomSlider({ label, valuePct, valueText }: { label: string, valuePct: number, valueText: string }) {
-  const { isDark } = useAppTheme();
-  return (
-    <View style={{ marginBottom: 24 }}>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
-        <Text style={{ fontSize: 10, fontFamily: 'Inter_700Bold', color: '#64748b', letterSpacing: 1, textTransform: 'uppercase' }}>{label}</Text>
-        <Text style={{ fontSize: 12, fontFamily: 'Inter_700Bold', color: isDark ? '#e8e8e8' : '#0f172a' }}>{valueText}</Text>
-      </View>
-      <View style={{ height: 16, justifyContent: 'center' }}>
-        <View style={{ height: 4, backgroundColor: isDark ? '#2a2a2e' : '#e2e8f0', borderRadius: 2, width: '100%', position: 'absolute' }} />
-        <View style={{ height: 4, backgroundColor: '#6366f1', borderRadius: 2, width: `${valuePct}%`, position: 'absolute' }} />
-        <View style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: '#6366f1', left: `${valuePct}%`, marginLeft: -7, position: 'absolute' }} />
-      </View>
-    </View>
-  );
-}
-
-// Half-Circle Gauge Component (Max Lot Guard)
 function HalfGauge({ value, max }: { value: number; max: number }) {
   const { isDark } = useAppTheme();
   const pct = Math.min(1, value / max);
@@ -82,11 +67,42 @@ function HalfGauge({ value, max }: { value: number; max: number }) {
   );
 }
 
+function CustomSlider({ label, valuePct, valueText, color = '#6366f1' }: { label: string, valuePct: number, valueText: string, color?: string }) {
+  const { isDark } = useAppTheme();
+  return (
+    <View style={{ marginBottom: 24 }}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+        <Text style={{ fontSize: 10, fontFamily: 'Inter_700Bold', color: '#64748b', letterSpacing: 1, textTransform: 'uppercase' }}>{label}</Text>
+        <Text style={{ fontSize: 12, fontFamily: 'Inter_700Bold', color: isDark ? '#e8e8e8' : '#0f172a' }}>{valueText}</Text>
+      </View>
+      <View style={{ height: 16, justifyContent: 'center' }}>
+        <View style={{ height: 4, backgroundColor: isDark ? '#2a2a2e' : '#e2e8f0', borderRadius: 2, width: '100%', position: 'absolute' }} />
+        <View style={{ height: 4, backgroundColor: color, borderRadius: 2, width: `${Math.min(100, Math.max(0, valuePct))}%`, position: 'absolute' }} />
+        <View style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: color, left: `${Math.min(100, Math.max(0, valuePct))}%`, marginLeft: -7, position: 'absolute' }} />
+      </View>
+    </View>
+  );
+}
+
+function DropdownButton({ value, onPress }: { value: string, onPress: () => void }) {
+  const { isDark } = useAppTheme();
+  return (
+    <TouchableOpacity onPress={() => { h(); onPress(); }} style={{ backgroundColor: isDark ? '#141414' : '#f8fafc', borderWidth: 1, borderColor: isDark ? '#222' : '#e2e8f0', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+      <Text style={{ fontSize: 13, fontFamily: 'Inter_700Bold', color: isDark ? '#fff' : '#0f172a' }}>{value}</Text>
+      <Text style={{ color: '#64748b', fontSize: 12, marginLeft: 8 }}>▼</Text>
+    </TouchableOpacity>
+  );
+}
+
 export default function RiskGuardScreen() {
   const { isDark, theme } = useAppTheme();
   const insets = useSafeAreaInsets();
   const [headerStyle, setHeaderStyleState] = useState<HeaderStyle>(getHeaderStyle());
   const router = useRouter();
+  const currentUser = useStore(state => state.currentUser);
+  const mt5Account = useStore(state => state.mt5Account);
+
+  const scrollY = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     const listener = DeviceEventEmitter.addListener('headerStyleChanged', (style: HeaderStyle) => {
@@ -95,506 +111,566 @@ export default function RiskGuardScreen() {
     return () => listener.remove();
   }, []);
 
-  const scrollY = useRef(new Animated.Value(0)).current;
-  const headerHeight = insets.top + 64;
+  // Kill Switch
+  const [killSwitchActive, setKillSwitchActive] = useState(false);
+  const [activeTab, setActiveTab] = useState<'trading_control' | 'risk_management' | 'behaviour'>('trading_control');
+  const [targetCapital, setTargetCapital] = useState(2000);
+  const currentCapital = mt5Account?.balance || 500;
+  const progressPercent = Math.min(100, Math.max(0, (currentCapital / targetCapital) * 100));
 
-  const clampedScroll = Animated.diffClamp(
-    scrollY.interpolate({ inputRange: [0, 1], outputRange: [0, 1], extrapolateLeft: 'clamp' }),
-    0, headerHeight
-  );
+  // --- TRADING CONTROL STATES ---
+  const [maxLotActive, setMaxLotActive] = useState(true);
+  const [maxLot, setMaxLot] = useState(1.5);
+  const [noAveragingDown, setNoAveragingDown] = useState(false);
+  const [martingaleDetection, setMartingaleDetection] = useState(false);
+  const [martingaleMultiplier, setMartingaleMultiplier] = useState(1.5);
+  const [oneInstrumentMode, setOneInstrumentMode] = useState(false);
+  const [allowedTicker, setAllowedTicker] = useState("XAUUSD");
+  const [oneStrategyRule, setOneStrategyRule] = useState(false);
+  const [strategyName, setStrategyName] = useState("Breakout Pro");
 
-  const headerTranslateY = clampedScroll.interpolate({
-    inputRange: [0, headerHeight], outputRange: [0, -headerHeight], extrapolate: 'clamp',
-  });
+  // --- RISK MANAGEMENT STATES ---
+  const [drawdownGuardActive, setDrawdownGuardActive] = useState(true);
+  const [maxDrawdown, setMaxDrawdown] = useState(17);
+  const [weeklyDrawdown, setWeeklyDrawdown] = useState(20);
+  const [monthlyDrawdown, setMonthlyDrawdown] = useState(25);
+  const [dailyProfitTargetActive, setDailyProfitTargetActive] = useState(false);
+  const [dailyProfitTarget, setDailyProfitTarget] = useState(500);
+  const [stopLossRequired, setStopLossRequired] = useState(false);
+  const [stopLossAction, setStopLossAction] = useState("auto");
+  const [stopLossMethod, setStopLossMethod] = useState("pips");
+  const [defaultStopLoss, setDefaultStopLoss] = useState(15);
+  const [minRiskRewardActive, setMinRiskRewardActive] = useState(false);
+  const [minRiskReward, setMinRiskReward] = useState(2.0);
+  const [weekendLock, setWeekendLock] = useState(false);
+  const [weekendCloseTime, setWeekendCloseTime] = useState("20:00");
+  const [equityHardStopActive, setEquityHardStopActive] = useState(false);
+  const [equityHardStop, setEquityHardStop] = useState(5000);
 
-  const headerOpacity = scrollY.interpolate({
-    inputRange: [140, 180], outputRange: [0, 1], extrapolate: 'clamp',
-  });
-
-  const smartHeaderVisibilityY = scrollY.interpolate({
-    inputRange: [0, 139, 140], outputRange: [-500, -500, 0], extrapolate: 'clamp',
-  });
-
-  useEffect(() => {
-    const listener = scrollY.addListener(({ value }) => { DeviceEventEmitter.emit('scrollUpdate', value); });
-    return () => scrollY.removeListener(listener);
-  }, []);
-
-  const currentUser = useStore(state => state.currentUser);
-  const mt5Account = useStore(state => state.mt5Account);
-  const toggleAlgoStatus = useStore(state => state.toggleAlgoStatus);
-
-  // Toggle States
-  const [liveOps, setLiveOps] = useState(mt5Account?.algo_status || false);
-  const [maxLotGuard, setMaxLotGuard] = useState(true);
-  const [drawdownGuard, setDrawdownGuard] = useState(true);
+  // --- BEHAVIOUR & DISCIPLINE STATES ---
   const [disciplineSentinel, setDisciplineSentinel] = useState(true);
-  const [lossCooldown, setLossCooldown] = useState(true);
-  const [sessionSentinel, setSessionSentinel] = useState(true);
-
-  // Values
-  const [maxLotSize, setMaxLotSize] = useState(1.5);
-  const [maxDailyLossPercent, setMaxDailyLossPercent] = useState(17);
-  const [maxWeeklyLossPercent, setMaxWeeklyLossPercent] = useState(20);
-  const [maxMonthlyLossPercent, setMaxMonthlyLossPercent] = useState(25);
-  const [targetCapital, setTargetCapital] = useState(624);
   const [dailyTrades, setDailyTrades] = useState(3);
+  const [stopAfterWin, setStopAfterWin] = useState(false);
+  const [consecutiveWins, setConsecutiveWins] = useState(3);
+  const [emotionalTradingDetector, setEmotionalTradingDetector] = useState(false);
+  const [emotionSensitivity, setEmotionSensitivity] = useState(80);
+  const [lossCooldown, setLossCooldown] = useState(true);
+  const [waitPeriod, setWaitPeriod] = useState(5);
+  const [sessionSentinel, setSessionSentinel] = useState(true);
   const [sessions, setSessions] = useState(['London', 'New York']);
-  const [cooldownDuration, setCooldownDuration] = useState(30);
-
-  // Load configuration from user_risk_configs on mount
-  useEffect(() => {
-    if (!currentUser?.id) return;
-    setLiveOps(mt5Account?.algo_status || false);
-
-    const fetchRiskConfig = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('user_risk_configs')
-          .select('*')
-          .eq('user_id', currentUser.id)
-          .maybeSingle();
-
-        if (error) throw error;
-
-        if (data) {
-          setMaxLotGuard(data.max_lot_size !== null && data.max_lot_size > 0);
-          setMaxLotSize(data.max_lot_size || 1.5);
-          setDrawdownGuard(data.max_daily_loss_percent !== null && data.max_daily_loss_percent > 0);
-          setMaxDailyLossPercent(data.max_daily_loss_percent || 17);
-          setMaxWeeklyLossPercent(data.max_overall_drawdown_percent || 20);
-          setTargetCapital(data.target_capital || 624);
-          setDisciplineSentinel(data.max_open_trades !== null && data.max_open_trades > 0);
-          setDailyTrades(data.max_open_trades || 3);
-        } else {
-          // If no config exists, insert a default one
-          const defaultConfig = {
-            user_id: currentUser.id,
-            max_lot_size: 1.5,
-            max_daily_loss_percent: 17,
-            max_overall_drawdown_percent: 20,
-            max_open_trades: 3,
-            target_capital: 624,
-            alert_on_warning: true,
-            alert_on_breach: true
-          };
-          await supabase.from('user_risk_configs').insert([defaultConfig]);
-        }
-      } catch (err) {
-        console.error('Error fetching user_risk_configs:', err);
-      }
-    };
-
-    fetchRiskConfig();
-  }, [currentUser, mt5Account]);
-
-  // Save updates helper
-  const saveRiskConfig = async (updates: any) => {
-    if (!currentUser?.id) return;
-    try {
-      const { error } = await supabase
-        .from('user_risk_configs')
-        .update(updates)
-        .eq('user_id', currentUser.id);
-      if (error) throw error;
-    } catch (err) {
-      console.error('Error updating user_risk_configs:', err);
-    }
-  };
-
-  const handleToggleLiveOps = async (v: boolean) => {
-    setLiveOps(v);
-    try {
-      await toggleAlgoStatus(v);
-    } catch (err) {
-      console.error('Error toggling live ops status:', err);
-    }
-  };
-
-  const handleToggleMaxLotGuard = (v: boolean) => {
-    setMaxLotGuard(v);
-    saveRiskConfig({ max_lot_size: v ? maxLotSize : null });
-  };
-
-  const handleToggleDrawdownGuard = (v: boolean) => {
-    setDrawdownGuard(v);
-    saveRiskConfig({
-      max_daily_loss_percent: v ? maxDailyLossPercent : null,
-      max_overall_drawdown_percent: v ? maxWeeklyLossPercent : null
-    });
-  };
-
-  const handleToggleDisciplineSentinel = (v: boolean) => {
-    setDisciplineSentinel(v);
-    saveRiskConfig({ max_open_trades: v ? dailyTrades : null });
-  };
+  const [sleepProtection, setSleepProtection] = useState(false);
+  const [sleepTimeStart, setSleepTimeStart] = useState("23:00");
+  const [noTradingAfterTimeActive, setNoTradingAfterTimeActive] = useState(false);
+  const [noTradingAfterTime, setNoTradingAfterTime] = useState("15:00");
+  const [newsFilter, setNewsFilter] = useState(false);
+  const [preTradeChecklist, setPreTradeChecklist] = useState(false);
+  const [psychologyCheck, setPsychologyCheck] = useState(false);
+  const [aiVoiceWarning, setAiVoiceWarning] = useState(false);
 
   const toggleSession = (s: string) => {
     h();
     setSessions(prev => prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s]);
   };
 
-  // Dynamic card style based on theme
-  const cardStyle = {
-    backgroundColor: isDark ? '#111111' : '#fafafa',
-    borderRadius: 24,
-    padding: 24,
-    borderWidth: 2,
-    borderColor: isDark ? '#222222' : '#ffffff',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: isDark ? 0.3 : 0.04,
-    shadowRadius: 12,
-    elevation: 2,
+  const handleKillSwitch = (v: boolean) => {
+    if (v) {
+      Alert.alert(
+        "🔴 KILL SWITCH",
+        "This will immediately close ALL open positions and halt all trading. Are you sure?",
+        [
+          { text: "Cancel", style: "cancel" },
+          { text: "ACTIVATE", style: "destructive", onPress: () => setKillSwitchActive(true) }
+        ]
+      );
+    } else {
+      setKillSwitchActive(false);
+    }
   };
 
-  const iconBoxStyle = {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: isDark ? '#1a1a1e' : '#f8fafc',
-    alignItems: 'center' as const,
-    justifyContent: 'center' as const,
-    borderWidth: 1,
-    borderColor: isDark ? '#222222' : '#f1f5f9',
-  };
+  const headerHeight = insets.top + 64;
+  const clampedScroll = Animated.diffClamp(scrollY.interpolate({ inputRange: [0, 1], outputRange: [0, 1], extrapolateLeft: 'clamp' }), 0, headerHeight);
+  const headerTranslateY = clampedScroll.interpolate({ inputRange: [0, headerHeight], outputRange: [0, -headerHeight], extrapolate: 'clamp' });
+  const headerOpacity = scrollY.interpolate({ inputRange: [140, 180], outputRange: [0, 1], extrapolate: 'clamp' });
 
-  const inputWrapperStyle = {
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-    justifyContent: 'space-between' as const,
-    borderWidth: 1,
-    borderColor: isDark ? '#222222' : '#f1f5f9',
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    backgroundColor: isDark ? '#1a1a1e' : '#f8fafc',
-  };
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: 'transparent',
+    },
+    card: {
+      flex: 1,
+      backgroundColor: isDark ? theme.background : '#f8fafc',
+      zIndex: 10,
+    },
+    metricCard: {
+      backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF',
+      borderRadius: 24,
+      padding: 16,
+      borderWidth: 2,
+      borderColor: isDark ? '#2C2C2E' : '#F1F5F9',
+      marginBottom: 12,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: 0.04,
+      shadowRadius: 12,
+      elevation: 2,
+    },
+    activeMetricCard: {
+      borderColor: isDark ? '#064e3b' : '#a7f3d0',
+      shadowColor: '#10b981',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: isDark ? 0.2 : 0.4,
+      shadowRadius: 12,
+      elevation: 6,
+    },
+    iconBoxStyle: {
+      width: 44,
+      height: 44,
+      borderRadius: 14,
+      backgroundColor: isDark ? '#2C2C2E' : '#F8FAFC',
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 1,
+      borderColor: isDark ? '#3C3C3E' : '#F1F5F9',
+    },
+    inputWrapperStyle: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      borderWidth: 1,
+      borderColor: isDark ? '#2C2C2E' : '#F1F5F9',
+      borderRadius: 12,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      backgroundColor: isDark ? '#2C2C2E' : '#F8FAFC',
+      marginTop: 6
+    }
+  });
+
+  const renderCardHeader = (Icon: any, title: string, description: string, active: boolean, onToggle: (v: boolean) => void) => (
+    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, paddingRight: 16 }}>
+        <View style={styles.iconBoxStyle}><Icon size={18} color="#64748b" /></View>
+        <View style={{ flexShrink: 1, marginLeft: 12 }}>
+          <Text style={{ fontSize: 15, fontFamily: 'Inter_700Bold', color: isDark ? '#e8e8e8' : '#0f172a' }}>{title}</Text>
+          <Text style={{ fontSize: 11, fontFamily: 'Inter_500Medium', color: '#64748b', marginTop: 2 }}>{description}</Text>
+        </View>
+      </View>
+      <View style={{ flexShrink: 0 }}>
+        <CustomToggle value={active} onValueChange={onToggle} />
+      </View>
+    </View>
+  );
 
   return (
-    <View style={{ flex: 1, backgroundColor: isDark ? '#0a0a0a' : '#f8fafc' }}>
+    <View style={styles.container}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
-
-      {/* ── TOP GLOW ── */}
-      <Image
-        source={require('../../assets/images/top-glow.png')}
-        style={{ position: 'absolute', top: 0, left: 0, right: 0, width: '100%', height: 150, opacity: headerStyle === 'simple' ? 0 : 0.8 }}
-        resizeMode="stretch"
-      />
+      
+      {/* ── SMART-REVEAL HEADER ── */}
+      {headerStyle !== 'simple' && (
+        <Animated.View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: headerHeight, backgroundColor: '#000', zIndex: 2000, paddingTop: insets.top, opacity: headerOpacity, transform: [{ translateY: headerTranslateY }], borderBottomLeftRadius: 40, borderBottomRightRadius: 40, overflow: 'hidden' }}>
+          <Image source={require('../../assets/images/top-glow.png')} style={{ position: 'absolute', top: 0, left: 0, right: 0, width: '100%', height: 80, opacity: 0.8 }} resizeMode="stretch" />
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, height: 60 }}>
+            <Text style={{ fontSize: 24, fontFamily: 'Inter_700Bold', color: '#fff', letterSpacing: -0.5 }}>Risk Guard</Text>
+            {/* Kill Switch Mini */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: killSwitchActive ? (isDark ? '#450a0a' : '#fef2f2') : (isDark ? '#1a1a1e' : '#ffffff'), borderRadius: 20, paddingLeft: 12, paddingRight: 6, paddingVertical: 2, borderWidth: 1, borderColor: killSwitchActive ? '#ef4444' : (isDark ? '#333' : '#e2e8f0'), shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 }}>
+              <Power size={14} color={killSwitchActive ? '#ef4444' : (isDark ? '#fff' : '#0f172a')} />
+              <Text style={{ fontSize: 13, fontFamily: 'Inter_700Bold', color: killSwitchActive ? '#ef4444' : (isDark ? '#fff' : '#0f172a'), marginRight: 0 }}>Kill Switch</Text>
+              <View style={{ marginRight: -4, marginLeft: -2 }}>
+                <CustomToggle value={killSwitchActive} onValueChange={handleKillSwitch} activeColor="#ef4444" scale={0.85} />
+              </View>
+            </View>
+          </View>
+        </Animated.View>
+      )}
 
       {/* ── STATIC HEADER ── */}
-      <Animated.View style={{ height: headerStyle === 'simple' ? insets.top + 56 : insets.top + 92, backgroundColor: headerStyle === 'simple' ? (isDark ? '#111111' : '#ffffff') : 'transparent', borderBottomWidth: headerStyle === 'simple' ? 1 : 0, borderBottomColor: isDark ? '#1e2a3a' : '#e2e8f0', position: 'relative', zIndex: 1, transform: headerStyle === 'simple' ? [] : [{ scale: scrollY.interpolate({ inputRange: [0, 80], outputRange: [1, 0.85], extrapolate: 'clamp' }) }, { translateY: scrollY.interpolate({ inputRange: [0, 80], outputRange: [0, -60], extrapolate: 'clamp' }) }] }}>
+      <Animated.View style={{ height: headerStyle === 'simple' ? insets.top + 56 : insets.top + 92, backgroundColor: headerStyle === 'simple' ? (isDark ? theme.background : '#ffffff') : 'transparent', borderBottomWidth: headerStyle === 'simple' ? 1 : 0, borderBottomColor: isDark ? '#1e2a3a' : '#e2e8f0', position: 'relative', transform: headerStyle === 'simple' ? [] : [{ scale: scrollY.interpolate({ inputRange: [0, 80], outputRange: [1, 0.85], extrapolate: 'clamp' }) }, { translateY: scrollY.interpolate({ inputRange: [0, 80], outputRange: [0, -60], extrapolate: 'clamp' }) }] }}>
         <Animated.View style={{ position: 'absolute', bottom: headerStyle === 'simple' ? 12 : 38, left: 0, right: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, opacity: headerStyle === 'simple' ? 1 : scrollY.interpolate({ inputRange: [0, 140], outputRange: [1, 0], extrapolate: 'clamp' }) }}>
-          <Text style={{ color: headerStyle === 'simple' ? (isDark ? '#ffffff' : '#000000') : '#fff', fontSize: 24, fontFamily: 'Inter_700Bold', letterSpacing: -0.5 }}>Risk Guard</Text>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <TouchableOpacity onPress={() => { h(); router.push('/notifications' as any); }} style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center' }}>
-              <Bell size={22} color={headerStyle === 'simple' ? (isDark ? '#ffffff' : '#000000') : 'white'} />
-            </TouchableOpacity>
-            <TouchableOpacity style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center' }}>
-              <Settings size={22} color={headerStyle === 'simple' ? (isDark ? '#ffffff' : '#000000') : 'white'} />
-            </TouchableOpacity>
+          <Text style={{ color: headerStyle === 'simple' ? (isDark ? theme.text : '#000000') : '#fff', fontSize: 24, fontFamily: 'Inter_700Bold', letterSpacing: -0.5 }}>Risk Guard</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: killSwitchActive ? (isDark ? '#450a0a' : '#fef2f2') : (isDark ? '#1a1a1e' : '#ffffff'), borderRadius: 20, paddingLeft: 12, paddingRight: 6, paddingVertical: 2, borderWidth: 1, borderColor: killSwitchActive ? '#ef4444' : (isDark ? '#333' : '#e2e8f0'), shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 }}>
+            <Power size={14} color={killSwitchActive ? '#ef4444' : (isDark ? '#fff' : '#0f172a')} />
+            <Text style={{ fontSize: 13, fontFamily: 'Inter_700Bold', color: killSwitchActive ? '#ef4444' : (isDark ? '#fff' : '#0f172a'), marginRight: 0 }}>Kill Switch</Text>
+            <View style={{ marginRight: -4, marginLeft: -2 }}>
+              <CustomToggle value={killSwitchActive} onValueChange={handleKillSwitch} activeColor="#ef4444" scale={0.85} />
+            </View>
           </View>
         </Animated.View>
       </Animated.View>
 
-      {/* ── MAIN SCROLL SURFACE ── */}
-      <Animated.View style={{
-        flex: 1,
-        backgroundColor: isDark ? '#0a0a0a' : '#f8fafc',
-        overflow: 'hidden',
-        zIndex: 5,
-        marginTop: headerStyle === 'simple' ? 0 : scrollY.interpolate({ inputRange: [0, 150], outputRange: [-34, -184], extrapolate: 'clamp' }),
-        borderTopLeftRadius: headerStyle === 'simple' ? 0 : 40,
-        borderTopRightRadius: headerStyle === 'simple' ? 0 : 40,
-      }}>
-        <Animated.ScrollView
-          showsVerticalScrollIndicator={false}
-          onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: false })}
-          scrollEventThrottle={16}
-          contentContainerStyle={{ paddingBottom: 140, paddingTop: 24 }}
-        >
+      {/* ── WHITE CONTENT CARD OVERLAY ── */}
+      <Animated.View style={[styles.card, { marginTop: headerStyle === 'simple' ? 0 : scrollY.interpolate({ inputRange: [0, 150], outputRange: [-34, -184], extrapolate: 'clamp' }), borderTopLeftRadius: headerStyle === 'simple' ? 0 : 40, borderTopRightRadius: headerStyle === 'simple' ? 0 : 40 }]}>
+        <Animated.ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 140, paddingTop: 16, paddingHorizontal: 20 }} onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: false })} scrollEventThrottle={16}>
           <Animated.View style={{ transform: headerStyle === 'simple' ? [] : [{ translateY: scrollY.interpolate({ inputRange: [0, 150], outputRange: [0, 150], extrapolate: 'clamp' }) }] }}>
-            <View style={{ padding: 16, gap: 20, paddingTop: headerStyle === 'simple' ? 16 : 0 }}>
-
-            {/* ── LIVE OPERATIONS ── */}
-            <View style={{ marginBottom: 4, marginTop: -8 }}>
-              <TouchableOpacity
-                activeOpacity={0.8}
-                onPress={() => { h(); handleToggleLiveOps(!liveOps); }}
-                style={{
-                  flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-                  backgroundColor: liveOps
-                    ? (isDark ? '#042f1a' : '#f0fdf4')
-                    : (isDark ? '#2d0a10' : '#fff1f2'),
-                  paddingHorizontal: 16, paddingVertical: 14,
-                  borderRadius: 20,
-                  borderWidth: 1,
-                  borderColor: liveOps
-                    ? (isDark ? '#065f46' : '#bbf7d0')
-                    : (isDark ? '#881337' : '#fecdd3'),
-                  width: '100%'
-                }}
-              >
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                  <View style={{
-                    width: 36, height: 36, borderRadius: 18,
-                    backgroundColor: liveOps ? (isDark ? '#064e3b' : '#dcfce7') : (isDark ? '#4c0519' : '#ffe4e6'),
-                    alignItems: 'center', justifyContent: 'center'
-                  }}>
-                    <Power size={18} color={liveOps ? "#10b981" : "#e11d48"} />
-                  </View>
-                  <View>
-                    <Text style={{ fontSize: 13, fontFamily: 'Inter_700Bold', color: liveOps ? '#10b981' : '#e11d48', textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                      LIVE OPERATIONS
-                    </Text>
-                    <Text style={{ fontSize: 11, fontFamily: 'Inter_500Medium', color: liveOps ? (isDark ? '#34d399' : '#15803d') : (isDark ? '#fb7185' : '#9f1239'), marginTop: 2 }}>
-                      {liveOps ? 'System is actively trading' : 'All trading is halted'}
-                    </Text>
-                  </View>
-                </View>
-                <CustomToggle value={liveOps} onValueChange={handleToggleLiveOps} />
-              </TouchableOpacity>
-            </View>
-
-            {/* ── PROTOCOL ARCHITECTURE CARD ── */}
-            <View style={cardStyle}>
+            
+            {/* PROTOCOL ARCHITECTURE */}
+            <View style={styles.metricCard}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <View>
-                  <Text style={{ fontSize: 10, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>PROTOCOL ARCHITECTURE</Text>
-                  <Text style={{ fontSize: 22, fontFamily: 'Inter_700Bold', color: isDark ? '#e8e8e8' : '#0f172a', letterSpacing: -0.5 }}>Level {currentUser?.xp_level || 1} Architect</Text>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8 }}>
-                    <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#3b82f6' }} />
-                    <Text style={{ fontSize: 11, fontFamily: 'Inter_700Bold', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5 }}>STARTING CAPITAL: ${(mt5Account?.balance || 500).toLocaleString(undefined, { minimumFractionDigits: 2 })} USD</Text>
-                  </View>
+                  <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>PROTOCOL ARCHITECTURE</Text>
+                  <Text style={{ fontSize: 18, fontFamily: 'Inter_700Bold', color: isDark ? '#e8e8e8' : '#0f172a', letterSpacing: -0.5 }}>Level {currentUser?.xp_level || 1} Architect</Text>
                 </View>
-                <View style={{ alignItems: 'flex-end' }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: isDark ? '#1e1b4b' : '#f5f3ff', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 16, marginBottom: 8 }}>
-                    <Trophy size={14} color="#6366f1" />
-                    <Text style={{ fontSize: 12, fontFamily: 'Inter_700Bold', color: '#6366f1' }}>{currentUser?.xp_total || 0} XP</Text>
-                  </View>
-                  <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1 }}>TARGET CAPITAL</Text>
-                  <Text style={{ fontSize: 18, fontFamily: 'Inter_900Black', color: isDark ? '#e8e8e8' : '#0f172a' }}>${targetCapital} USD</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: isDark ? '#1e1b4b' : '#f5f3ff', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12 }}>
+                  <Trophy size={12} color="#6366f1" />
+                  <Text style={{ fontSize: 11, fontFamily: 'Inter_700Bold', color: '#6366f1' }}>{currentUser?.xp_total || 0} XP</Text>
                 </View>
               </View>
-
-              {/* Progress Bar Area */}
-              <View style={{ marginTop: 30, paddingHorizontal: 10 }}>
-                <View style={{ height: 8, backgroundColor: isDark ? '#1c1c1c' : '#f1f5f9', borderRadius: 4, width: '100%', position: 'absolute', top: 0, left: 10 }} />
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: -4 }}>
-                  {[0, Math.round(targetCapital*0.25), Math.round(targetCapital*0.5), Math.round(targetCapital*0.75), targetCapital].map((val, idx) => (
-                    <View key={idx} style={{ alignItems: 'center' }}>
-                      <View style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: idx === 0 ? '#f59e0b' : (isDark ? '#2a2a2e' : '#fff'), borderWidth: 2, borderColor: idx === 0 ? '#f59e0b' : (isDark ? '#333338' : '#e2e8f0'), zIndex: 2 }} />
-                      <Text style={{ fontSize: 10, fontFamily: 'Inter_600SemiBold', color: '#94a3b8', marginTop: 10 }}>${val}</Text>
-                    </View>
-                  ))}
-                </View>
-              </View>
-            </View>
-
-            {/* ── TARGET CAPITAL GUARD ── */}
-            <View style={cardStyle}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, paddingRight: 16 }}>
-                  <View style={iconBoxStyle}><Target size={20} color="#64748b" /></View>
-                  <View style={{ flexShrink: 1, marginLeft: 12 }}>
-                    <Text style={{ fontSize: 16, fontFamily: 'Inter_700Bold', color: isDark ? '#e8e8e8' : '#0f172a' }}>Target Capital Guard</Text>
-                    <Text style={{ fontSize: 12, fontFamily: 'Inter_500Medium', color: '#64748b', marginTop: 2 }}>Configure target goals and parameters</Text>
-                  </View>
-                </View>
-              </View>
-              <View style={{ flexDirection: 'row', gap: 16 }}>
-                <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: 10, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>STARTING CAPITAL</Text>
-                  <View style={inputWrapperStyle}>
-                    <Text style={{ fontSize: 16, fontFamily: 'Inter_700Bold', color: isDark ? '#e8e8e8' : '#0f172a' }}>${(mt5Account?.balance || 500).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
-                    <View style={{ backgroundColor: isDark ? '#1e1b4b' : '#f5f3ff', paddingHorizontal: 6, paddingVertical: 4, borderRadius: 6 }}>
-                      <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#6366f1', textTransform: 'uppercase' }}>FETCHED</Text>
-                    </View>
-                  </View>
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: 10, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>TARGET CAPITAL</Text>
-                  <View style={inputWrapperStyle}>
-                    <Text style={{ fontSize: 16, fontFamily: 'Inter_700Bold', color: isDark ? '#e8e8e8' : '#0f172a' }}>$</Text>
-                    <Text style={{ fontSize: 16, fontFamily: 'Inter_700Bold', color: isDark ? '#e8e8e8' : '#0f172a', flex: 1, textAlign: 'right' }}>{targetCapital}</Text>
-                  </View>
-                </View>
-              </View>
-            </View>
-
-            {/* ── MAX LOT GUARD ── */}
-            <View style={cardStyle}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, paddingRight: 16 }}>
-                  <View style={iconBoxStyle}><ShieldAlert size={20} color="#64748b" /></View>
-                  <View style={{ flexShrink: 1, marginLeft: 12 }}>
-                    <Text style={{ fontSize: 16, fontFamily: 'Inter_700Bold', color: isDark ? '#e8e8e8' : '#0f172a' }}>Max Lot Guard</Text>
-                    <Text style={{ fontSize: 12, fontFamily: 'Inter_500Medium', color: '#64748b', marginTop: 2 }}>Enforce maximum order volume thresholds</Text>
-                  </View>
-                </View>
-                <View style={{ flexShrink: 0 }}>
-                  <CustomToggle value={maxLotGuard} onValueChange={handleToggleMaxLotGuard} />
-                </View>
-              </View>
-              <View style={{ flexDirection: 'row', alignItems: 'center', opacity: maxLotGuard ? 1 : 0.5 }}>
-                <View style={{ flex: 1, paddingRight: 10 }}>
-                  <Text style={{ fontSize: 10, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>MAX LOT SIZE LIMIT</Text>
-                  <View style={inputWrapperStyle}>
-                    <Text style={{ fontSize: 16, fontFamily: 'Inter_700Bold', color: isDark ? '#e8e8e8' : '#0f172a' }}>{maxLotSize.toFixed(1)}</Text>
-                    <Text style={{ fontSize: 10, fontFamily: 'Inter_600SemiBold', color: '#94a3b8' }}>Lots</Text>
-                  </View>
-                  <Text style={{ fontSize: 10, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginTop: 24, marginBottom: 8 }}>EXPOSURE ARCHITECTURE</Text>
+              <View style={{ marginTop: 16 }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                     <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#3b82f6' }} />
-                    <Text style={{ fontSize: 12, fontFamily: 'Inter_700Bold', color: isDark ? '#e8e8e8' : '#0f172a' }}>Current: 0.00 / {maxLotSize.toFixed(2)}</Text>
+                    <Text style={{ fontSize: 11, fontFamily: 'Inter_600SemiBold', color: '#64748b' }}>Start: ${currentCapital}</Text>
+                  </View>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#10b981' }} />
+                    <Text style={{ fontSize: 11, fontFamily: 'Inter_600SemiBold', color: '#64748b' }}>Target: ${targetCapital}</Text>
                   </View>
                 </View>
-                <View style={{ flex: 1 }}>
-                  <HalfGauge value={0.0} max={maxLotSize} />
+                <View style={{ height: 8, backgroundColor: isDark ? '#1c1c1c' : '#f1f5f9', borderRadius: 4, width: '100%', overflow: 'hidden' }}>
+                  <View style={{ height: '100%', width: `${progressPercent}%`, backgroundColor: '#6366f1', borderRadius: 4 }} />
                 </View>
               </View>
             </View>
 
-            <UpgradeGate
-              feature="risk_guard_advanced"
-              title="Advanced Risk Controls"
-              description="Upgrade to Pro or Elite to access Drawdown Guards, Discipline Sentinels, and Session Permits."
-            >
-              {/* ── DRAWDOWN GUARD ── */}
-              <View style={cardStyle}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, paddingRight: 16 }}>
-                    <View style={iconBoxStyle}><TrendingDown size={20} color="#64748b" /></View>
-                    <View style={{ flexShrink: 1, marginLeft: 12 }}>
-                      <Text style={{ fontSize: 16, fontFamily: 'Inter_700Bold', color: isDark ? '#e8e8e8' : '#0f172a' }}>Drawdown Guard</Text>
-                      <Text style={{ fontSize: 12, fontFamily: 'Inter_500Medium', color: '#64748b', marginTop: 2 }}>Protect equity with automated session limits</Text>
-                    </View>
-                  </View>
-                  <View style={{ flexShrink: 0 }}>
-                    <CustomToggle value={drawdownGuard} onValueChange={setDrawdownGuard} />
-                  </View>
-                </View>
-                <View style={{ opacity: drawdownGuard ? 1 : 0.5 }}>
-                  <CustomSlider label="MAX DAILY DRAWDOWN" valuePct={maxDailyLossPercent} valueText={`${maxDailyLossPercent}% = $${((mt5Account?.balance || 500) * (maxDailyLossPercent / 100)).toFixed(0)} USD`} />
-                  <CustomSlider label="MAX WEEKLY DRAWDOWN" valuePct={maxWeeklyLossPercent} valueText={`${maxWeeklyLossPercent}% = $${((mt5Account?.balance || 500) * (maxWeeklyLossPercent / 100)).toFixed(0)} USD`} />
-                  <CustomSlider label="MAX MONTHLY DRAWDOWN" valuePct={maxMonthlyLossPercent} valueText={`${maxMonthlyLossPercent}% = $${((mt5Account?.balance || 500) * (maxMonthlyLossPercent / 100)).toFixed(0)} USD`} />
-                  <View style={{ borderTopWidth: 1, borderTopColor: isDark ? '#222222' : '#f1f5f9', paddingTop: 16, marginTop: 8 }}>
-                    <Text style={{ fontSize: 11, fontFamily: 'Inter_500Medium', color: '#64748b', lineHeight: 18 }}>
-                      Liquidation and halts occur immediately when equity drawdowns exceed Daily (17%), Weekly (20%), or Monthly (25%) risk limits.
-                    </Text>
-                  </View>
-                </View>
-              </View>
+            {/* TABS */}
+            <View style={{ flexDirection: 'row', backgroundColor: isDark ? '#1c1c1c' : '#f1f5f9', borderRadius: 30, padding: 4, marginBottom: 24, width: '100%', alignItems: 'center', justifyContent: 'space-between' }}>
+              {[
+                { id: 'trading_control', label: 'Control' },
+                { id: 'risk_management', label: 'Risk Mgt' },
+                { id: 'behaviour', label: 'Behaviour' }
+              ].map((tab) => (
+                <TouchableOpacity 
+                  key={tab.id}
+                  onPress={() => { h(); setActiveTab(tab.id as typeof activeTab); }} 
+                  style={{ flex: 1, paddingVertical: 10, paddingHorizontal: 10, alignItems: 'center', justifyContent: 'center', borderRadius: 26, backgroundColor: activeTab === tab.id ? (isDark ? '#333' : '#fff') : 'transparent', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: activeTab === tab.id ? 0.1 : 0, shadowRadius: 2, elevation: activeTab === tab.id ? 1 : 0 }}
+                >
+                  <Text adjustsFontSizeToFit numberOfLines={1} style={{ fontSize: 13, fontFamily: activeTab === tab.id ? 'Inter_700Bold' : 'Inter_600SemiBold', color: activeTab === tab.id ? (isDark ? '#fff' : '#0f172a') : '#64748b' }}>{tab.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
 
-              {/* ── DISCIPLINE SENTINEL ── */}
-              <View style={cardStyle}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, paddingRight: 16 }}>
-                    <View style={iconBoxStyle}><Info size={20} color="#64748b" /></View>
-                    <View style={{ flexShrink: 1, marginLeft: 12 }}>
-                      <Text style={{ fontSize: 16, fontFamily: 'Inter_700Bold', color: isDark ? '#e8e8e8' : '#0f172a' }}>Discipline Sentinel</Text>
-                      <Text style={{ fontSize: 12, fontFamily: 'Inter_500Medium', color: '#64748b', marginTop: 2 }}>Prevent revenge trading and lock limits</Text>
-                    </View>
-                  </View>
-                  <View style={{ flexShrink: 0 }}>
-                    <CustomToggle value={disciplineSentinel} onValueChange={handleToggleDisciplineSentinel} />
-                  </View>
-                </View>
-
-                <View style={{ opacity: disciplineSentinel ? 1 : 0.5, marginBottom: 30 }}>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <View style={{ flex: 1 }}>
-                      <Text style={{ fontSize: 14, fontFamily: 'Inter_700Bold', color: isDark ? '#e8e8e8' : '#0f172a' }}>Daily Execution Limit</Text>
-                      <Text style={{ fontSize: 11, fontFamily: 'Inter_500Medium', color: '#64748b', marginTop: 2 }}>Locks orders when slot budget is exhausted</Text>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 16 }}>
-                        <View style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: '#3b82f6' }} />
-                        <View style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: isDark ? '#2a2a2e' : '#e2e8f0' }} />
-                        <View style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: isDark ? '#2a2a2e' : '#e2e8f0' }} />
+            {/* 1. TRADING CONTROL */}
+            {activeTab === 'trading_control' && (
+              <View>
+                <View style={[styles.metricCard, maxLotActive && styles.activeMetricCard]}>
+                  {renderCardHeader(Layers, "Max Lot Size", "Hard cap on lot size per trade", maxLotActive, setMaxLotActive)}
+                  <View style={{ opacity: maxLotActive ? 1 : 0.5 }}>
+                    <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>MAX LOT SIZE LIMIT</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <TouchableOpacity onPress={() => setMaxLot(Math.max(0.01, maxLot - 0.1))} style={styles.plusMinusBtn}>
+                        <Minus size={16} color={isDark ? '#fff' : '#000'} />
+                      </TouchableOpacity>
+                      <View style={[styles.inputWrapperStyle, { width: 140, justifyContent: 'space-between', paddingHorizontal: 16 }]}>
+                        <Text style={{ fontSize: 16, fontFamily: 'Inter_700Bold', color: isDark ? '#fff' : '#0f172a' }}>{maxLot.toFixed(2)}</Text>
+                        <Text style={{ fontSize: 11, fontFamily: 'Inter_600SemiBold', color: '#64748b' }}>Lots</Text>
                       </View>
-                    </View>
-                    <View style={{ alignItems: 'flex-end' }}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16, backgroundColor: isDark ? '#1a1a1e' : '#f8fafc', paddingHorizontal: 6, paddingVertical: 6, borderRadius: 12, borderWidth: 1, borderColor: isDark ? '#222222' : '#f1f5f9' }}>
-                        <TouchableOpacity onPress={() => { h(); const newVal = Math.max(1, dailyTrades - 1); setDailyTrades(newVal); saveRiskConfig({ max_open_trades: newVal }); }} style={{ width: 28, height: 28, alignItems: 'center', justifyContent: 'center' }}>
-                          <Text style={{ fontSize: 18, fontFamily: 'Inter_700Bold', color: '#64748b' }}>-</Text>
-                        </TouchableOpacity>
-                        <Text style={{ fontSize: 16, fontFamily: 'Inter_900Black', color: isDark ? '#e8e8e8' : '#0f172a' }}>{dailyTrades}</Text>
-                        <TouchableOpacity onPress={() => { h(); const newVal = Math.min(10, dailyTrades + 1); setDailyTrades(newVal); saveRiskConfig({ max_open_trades: newVal }); }} style={{ width: 28, height: 28, backgroundColor: isDark ? '#3b82f6' : '#0f172a', borderRadius: 8, alignItems: 'center', justifyContent: 'center' }}>
-                          <Text style={{ fontSize: 16, fontFamily: 'Inter_700Bold', color: '#fff' }}>+</Text>
-                        </TouchableOpacity>
-                      </View>
-                      <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 16 }}>BUDGET USAGE</Text>
-                      <Text style={{ fontSize: 16, fontFamily: 'Inter_900Black', color: isDark ? '#e8e8e8' : '#0f172a', marginTop: 2 }}>1/3</Text>
+                      <TouchableOpacity onPress={() => setMaxLot(Math.min(10.0, maxLot + 0.1))} style={styles.plusMinusBtn}>
+                        <Plus size={16} color={isDark ? '#fff' : '#000'} />
+                      </TouchableOpacity>
                     </View>
                   </View>
                 </View>
 
-                <View style={{ borderTopWidth: 1, borderTopColor: isDark ? '#222222' : '#f1f5f9', paddingTop: 24, opacity: disciplineSentinel ? 1 : 0.5 }}>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                    <View style={{ flexShrink: 1, paddingRight: 16 }}>
-                      <Text style={{ fontSize: 14, fontFamily: 'Inter_700Bold', color: isDark ? '#e8e8e8' : '#0f172a' }}>Loss Cooldown Shield</Text>
-                      <Text style={{ fontSize: 11, fontFamily: 'Inter_500Medium', color: '#64748b', marginTop: 2 }}>Locks execution after any losing trade</Text>
-                    </View>
-                    <View style={{ flexShrink: 0 }}>
-                      <CustomToggle value={lossCooldown} onValueChange={setLossCooldown} />
-                    </View>
-                  </View>
-                  <CustomSlider label="COOLDOWN DURATION" valuePct={30} valueText="30 Minutes" />
-
-                  <View style={{
-                    backgroundColor: isDark ? '#042f1a' : '#f0fdf4',
-                    borderWidth: 1,
-                    borderColor: isDark ? '#065f46' : '#bbf7d0',
-                    borderRadius: 12, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 12
-                  }}>
-                    <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: '#22c55e' }} />
+                <View style={[styles.metricCard, noAveragingDown && styles.activeMetricCard]}>
+                  {renderCardHeader(TrendingDown, "No Averaging Down", "Prevent adding to losing positions", noAveragingDown, setNoAveragingDown)}
+                  <View style={{ opacity: noAveragingDown ? 1 : 0.5, gap: 12 }}>
                     <View>
-                      <Text style={{ fontSize: 11, fontFamily: 'Inter_700Bold', color: '#10b981', textTransform: 'uppercase', letterSpacing: 0.5 }}>STANDING BY</Text>
-                      <Text style={{ fontSize: 11, fontFamily: 'Inter_500Medium', color: isDark ? '#34d399' : '#15803d', marginTop: 2 }}>Monitoring trades...</Text>
+                      <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>MODE</Text>
+                      <DropdownButton value="Strict Block" onPress={() => {}} />
+                    </View>
+                    <View>
+                      <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>SCOPE</Text>
+                      <DropdownButton value="Same Symbol + Direction" onPress={() => {}} />
                     </View>
                   </View>
                 </View>
-              </View>
 
-              {/* ── SESSION SENTINEL ── */}
-              <View style={cardStyle}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, paddingRight: 16 }}>
-                    <View style={iconBoxStyle}><Clock size={20} color="#64748b" /></View>
-                    <View style={{ flexShrink: 1, marginLeft: 12 }}>
-                      <Text style={{ fontSize: 16, fontFamily: 'Inter_700Bold', color: isDark ? '#e8e8e8' : '#0f172a' }}>Session Sentinel</Text>
-                      <Text style={{ fontSize: 12, fontFamily: 'Inter_500Medium', color: '#64748b', marginTop: 2 }}>Permit and restrict custom hourly trading windows</Text>
+                <View style={[styles.metricCard, martingaleDetection && styles.activeMetricCard]}>
+                  {renderCardHeader(AlertTriangle, "Martingale Protection", "Block increasing lot sizes after a loss", martingaleDetection, setMartingaleDetection)}
+                  <View style={{ opacity: martingaleDetection ? 1 : 0.5 }}>
+                    <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>TRIGGER MULTIPLIER</Text>
+                    <View style={[styles.inputWrapperStyle, { justifyContent: 'center' }]}>
+                      <Text style={{ fontSize: 15, fontFamily: 'Inter_700Bold', color: isDark ? '#fff' : '#0f172a' }}>{martingaleMultiplier.toFixed(1)}×</Text>
                     </View>
                   </View>
-                  <View style={{ flexShrink: 0 }}>
-                    <CustomToggle value={sessionSentinel} onValueChange={setSessionSentinel} />
+                </View>
+
+                <View style={[styles.metricCard, oneInstrumentMode && styles.activeMetricCard]}>
+                  {renderCardHeader(Crosshair, "One Instrument Mode", "Limit trading to a single ticker", oneInstrumentMode, setOneInstrumentMode)}
+                  <View style={{ opacity: oneInstrumentMode ? 1 : 0.5 }}>
+                    <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>ALLOWED INSTRUMENT</Text>
+                    <DropdownButton value={allowedTicker} onPress={() => {}} />
                   </View>
                 </View>
-                <View style={{ opacity: sessionSentinel ? 1 : 0.5 }}>
-                  <Text style={{ fontSize: 10, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 16 }}>SESSION PERMITS</Text>
-                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: 12 }}>
-                    {['London', 'Sydney', 'New York', 'Asian'].map(city => {
-                      const isActive = sessions.includes(city);
-                      return (
-                        <TouchableOpacity
-                          key={city}
-                          onPress={() => toggleSession(city)}
-                          style={{
-                            width: '48%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-                            borderWidth: 1,
-                            borderColor: isActive ? (isDark ? '#065f46' : '#bbf7d0') : (isDark ? '#222222' : '#e2e8f0'),
-                            borderRadius: 16, paddingHorizontal: 16, paddingVertical: 16,
-                            backgroundColor: isActive ? (isDark ? '#042f1a' : '#f0fdf4') : (isDark ? '#111111' : '#fff')
-                          }}>
-                          <Text style={{ fontSize: 13, fontFamily: 'Inter_700Bold', color: isDark ? '#e8e8e8' : '#0f172a' }}>{city}</Text>
-                          <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: isActive ? '#10b981' : (isDark ? '#333338' : '#e2e8f0') }} />
-                        </TouchableOpacity>
-                      );
-                    })}
+
+                <View style={[styles.metricCard, oneStrategyRule && styles.activeMetricCard]}>
+                  {renderCardHeader(CheckSquare, "Allowed Strategy Only", "Allow trades only from the selected strategy", oneStrategyRule, setOneStrategyRule)}
+                  <View style={{ opacity: oneStrategyRule ? 1 : 0.5 }}>
+                    <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>ALLOWED STRATEGY</Text>
+                    <DropdownButton value={strategyName} onPress={() => {}} />
                   </View>
                 </View>
               </View>
-            </UpgradeGate>
-          </View>
+            )}
+
+            {/* 2. RISK MANAGEMENT */}
+            {activeTab === 'risk_management' && (
+              <View>
+                <View style={[styles.metricCard, drawdownGuardActive && styles.activeMetricCard]}>
+                  {renderCardHeader(ShieldAlert, "Drawdown Guard", "Max daily drawdown limits", drawdownGuardActive, setDrawdownGuardActive)}
+                  <View style={{ opacity: drawdownGuardActive ? 1 : 0.5 }}>
+                    <CustomSlider label="MAX DAILY DRAWDOWN" valuePct={maxDrawdown} valueText={`${maxDrawdown.toFixed(1)}%`} />
+                    <CustomSlider label="MAX WEEKLY DRAWDOWN" valuePct={weeklyDrawdown} valueText={`${weeklyDrawdown.toFixed(1)}%`} />
+                    <CustomSlider label="MAX MONTHLY DRAWDOWN" valuePct={monthlyDrawdown} valueText={`${monthlyDrawdown.toFixed(1)}%`} />
+                  </View>
+                </View>
+
+                <View style={[styles.metricCard, dailyProfitTargetActive && styles.activeMetricCard]}>
+                  {renderCardHeader(Target, "Daily Profit Target", "Lock terminal after profit", dailyProfitTargetActive, setDailyProfitTargetActive)}
+                  <View style={{ opacity: dailyProfitTargetActive ? 1 : 0.5, gap: 12 }}>
+                    <View>
+                      <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>TARGET AMOUNT</Text>
+                      <View style={styles.inputWrapperStyle}>
+                        <Text style={{ fontSize: 13, fontFamily: 'Inter_700Bold', color: '#64748b' }}>$</Text>
+                        <Text style={{ fontSize: 15, fontFamily: 'Inter_700Bold', color: isDark ? '#fff' : '#0f172a' }}>{dailyProfitTarget}</Text>
+                        <Text style={{ fontSize: 11, fontFamily: 'Inter_600SemiBold', color: '#64748b' }}>USD</Text>
+                      </View>
+                    </View>
+                    <View>
+                      <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>CALCULATION</Text>
+                      <DropdownButton value="Closed P&L" onPress={() => {}} />
+                    </View>
+                  </View>
+                </View>
+
+                <View style={[styles.metricCard, stopLossRequired && styles.activeMetricCard]}>
+                  {renderCardHeader(StopCircle, "Stop Loss Required", "Require SL on every execution", stopLossRequired, setStopLossRequired)}
+                  <View style={{ opacity: stopLossRequired ? 1 : 0.5, gap: 12 }}>
+                    <View>
+                      <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>ACTION</Text>
+                      <DropdownButton value={stopLossAction === 'auto' ? "Auto add SL" : "Block trades without SL"} onPress={() => setStopLossAction(stopLossAction === 'auto' ? 'block' : 'auto')} />
+                    </View>
+                    {stopLossAction === 'auto' && (
+                      <View style={{ flexDirection: 'row', gap: 8 }}>
+                        <View style={{ flex: 1 }}>
+                          <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>METHOD</Text>
+                          <DropdownButton value={stopLossMethod === 'pips' ? "Pips" : "Percent"} onPress={() => setStopLossMethod(stopLossMethod === 'pips' ? 'percent' : 'pips')} />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>VALUE</Text>
+                          <View style={[styles.inputWrapperStyle, { marginTop: 0, paddingVertical: 8 }]}>
+                            <Text style={{ fontSize: 13, fontFamily: 'Inter_700Bold', color: isDark ? '#fff' : '#0f172a' }}>{defaultStopLoss}</Text>
+                          </View>
+                        </View>
+                      </View>
+                    )}
+                  </View>
+                </View>
+
+                <View style={[styles.metricCard, minRiskRewardActive && styles.activeMetricCard]}>
+                  {renderCardHeader(TrendingUp, "Min Risk/Reward", "Require a minimum reward-to-risk ratio", minRiskRewardActive, setMinRiskRewardActive)}
+                  <View style={{ opacity: minRiskRewardActive ? 1 : 0.5 }}>
+                    <CustomSlider label="MINIMUM TARGET R:R" valuePct={minRiskReward * 20} valueText={`1:${minRiskReward.toFixed(1)}`} />
+                  </View>
+                </View>
+
+                <View style={[styles.metricCard, weekendLock && styles.activeMetricCard]}>
+                  {renderCardHeader(Calendar, "Weekend Lock", "Auto flatten before Friday close", weekendLock, setWeekendLock)}
+                  <View style={{ opacity: weekendLock ? 1 : 0.5, gap: 12 }}>
+                    <View style={{ flexDirection: 'row', gap: 8 }}>
+                      <View style={{ flex: 1 }}>
+                        <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>CLOSE TIME</Text>
+                        <View style={[styles.inputWrapperStyle, { marginTop: 0, paddingVertical: 8 }]}>
+                          <Text style={{ fontSize: 13, fontFamily: 'Inter_700Bold', color: isDark ? '#fff' : '#0f172a' }}>{weekendCloseTime}</Text>
+                        </View>
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>ACTION</Text>
+                        <DropdownButton value="Close & Block" onPress={() => {}} />
+                      </View>
+                    </View>
+                  </View>
+                </View>
+
+                <View style={[styles.metricCard, equityHardStopActive && styles.activeMetricCard]}>
+                  {renderCardHeader(Wallet, "Account Protection", "Minimum equity level", equityHardStopActive, setEquityHardStopActive)}
+                  <View style={{ opacity: equityHardStopActive ? 1 : 0.5 }}>
+                    <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>MINIMUM EQUITY LEVEL</Text>
+                    <View style={[styles.inputWrapperStyle, { justifyContent: 'flex-start' }]}>
+                      <Text style={{ fontSize: 13, fontFamily: 'Inter_700Bold', color: '#64748b', marginRight: 4 }}>$</Text>
+                      <Text style={{ fontSize: 15, fontFamily: 'Inter_700Bold', color: isDark ? '#fff' : '#0f172a' }}>{equityHardStop}</Text>
+                      <View style={{ flex: 1 }} />
+                      <Text style={{ fontSize: 11, fontFamily: 'Inter_600SemiBold', color: '#64748b' }}>USD</Text>
+                    </View>
+                  </View>
+                </View>
+              </View>
+            )}
+
+            {/* 3. BEHAVIOUR & DISCIPLINE */}
+            {activeTab === 'behaviour' && (
+              <View>
+                <View style={[styles.metricCard, disciplineSentinel && styles.activeMetricCard]}>
+                  {renderCardHeader(Activity, "Daily Trade Limit", "Limits maximum executions per day", disciplineSentinel, setDisciplineSentinel)}
+                  <View style={{ opacity: disciplineSentinel ? 1 : 0.5 }}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <View style={{ flex: 1 }}>
+                        <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>DAILY EXECUTION LIMIT</Text>
+                      </View>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: isDark ? '#1a1a1e' : '#f8fafc', padding: 6, borderRadius: 12, borderWidth: 1, borderColor: isDark ? '#222' : '#f1f5f9' }}>
+                        <TouchableOpacity onPress={() => { h(); setDailyTrades(Math.max(1, dailyTrades - 1)); }} style={{ width: 28, height: 28, alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: '#64748b', fontSize: 18, fontFamily: 'Inter_700Bold' }}>-</Text></TouchableOpacity>
+                        <Text style={{ fontSize: 15, fontFamily: 'Inter_900Black', color: isDark ? '#fff' : '#0f172a' }}>{dailyTrades}</Text>
+                        <TouchableOpacity onPress={() => { h(); setDailyTrades(Math.min(20, dailyTrades + 1)); }} style={{ width: 28, height: 28, backgroundColor: '#3b82f6', borderRadius: 8, alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: '#fff', fontSize: 18, fontFamily: 'Inter_700Bold' }}>+</Text></TouchableOpacity>
+                      </View>
+                    </View>
+                  </View>
+                </View>
+
+                <View style={[styles.metricCard, lossCooldown && styles.activeMetricCard]}>
+                  {renderCardHeader(ShieldOff, "Loss Cooldown", "Locks execution after losing trades", lossCooldown, setLossCooldown)}
+                  <View style={{ opacity: lossCooldown ? 1 : 0.5, gap: 12 }}>
+                    <CustomSlider label="DURATION (MINUTES)" valuePct={(waitPeriod/120)*100} valueText={`${waitPeriod}M`} />
+                    <View>
+                      <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>TRIGGER</Text>
+                      <DropdownButton value="After every losing trade" onPress={() => {}} />
+                    </View>
+                  </View>
+                </View>
+
+                <View style={[styles.metricCard, sessionSentinel && styles.activeMetricCard]}>
+                  {renderCardHeader(Clock, "Session Sentinel", "Custom hourly trading windows", sessionSentinel, setSessionSentinel)}
+                  <View style={{ opacity: sessionSentinel ? 1 : 0.5 }}>
+                    <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>ACTIVE SESSIONS</Text>
+                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                      {['London', 'Sydney', 'New York', 'Asian'].map(city => {
+                        const isActive = sessions.includes(city);
+                        return (
+                          <TouchableOpacity
+                            key={city}
+                            onPress={() => toggleSession(city)}
+                            style={{
+                              flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+                              borderWidth: 1, borderColor: isActive ? (isDark ? '#3730a3' : '#c7d2fe') : (isDark ? '#222' : '#e2e8f0'),
+                              borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8,
+                              backgroundColor: isActive ? (isDark ? '#312e81' : '#eef2ff') : (isDark ? '#141414' : '#fff')
+                            }}>
+                            <Text style={{ fontSize: 12, fontFamily: 'Inter_700Bold', color: isActive ? (isDark ? '#a5b4fc' : '#4f46e5') : (isDark ? '#94a3b8' : '#64748b') }}>{city}</Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                  </View>
+                </View>
+
+                <View style={[styles.metricCard, stopAfterWin && styles.activeMetricCard]}>
+                  {renderCardHeader(Trophy, "Win Streak Cooldown", "Lock trading after wins", stopAfterWin, setStopAfterWin)}
+                  <View style={{ opacity: stopAfterWin ? 1 : 0.5, gap: 12 }}>
+                    <View style={{ flexDirection: 'row', gap: 8 }}>
+                      <View style={{ flex: 1 }}>
+                        <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>MAX WINS</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: isDark ? '#1a1a1e' : '#f8fafc', padding: 4, borderRadius: 10, borderWidth: 1, borderColor: isDark ? '#222' : '#f1f5f9' }}>
+                          <TouchableOpacity onPress={() => { h(); setConsecutiveWins(Math.max(1, consecutiveWins - 1)); }} style={{ flex: 1, height: 26, alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: '#64748b', fontSize: 16, fontFamily: 'Inter_700Bold' }}>-</Text></TouchableOpacity>
+                          <Text style={{ fontSize: 13, fontFamily: 'Inter_900Black', color: isDark ? '#fff' : '#0f172a' }}>{consecutiveWins}</Text>
+                          <TouchableOpacity onPress={() => { h(); setConsecutiveWins(consecutiveWins + 1); }} style={{ flex: 1, height: 26, backgroundColor: '#3b82f6', borderRadius: 6, alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: '#fff', fontSize: 16, fontFamily: 'Inter_700Bold' }}>+</Text></TouchableOpacity>
+                        </View>
+                      </View>
+                      <View style={{ flex: 1.5 }}>
+                        <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>ACTION</Text>
+                        <DropdownButton value="Pause trading" onPress={() => {}} />
+                      </View>
+                    </View>
+                  </View>
+                </View>
+
+                <View style={[styles.metricCard, noTradingAfterTimeActive && styles.activeMetricCard]}>
+                  {renderCardHeader(Sunrise, "No Trading After Time", "Daily cutoff time", noTradingAfterTimeActive, setNoTradingAfterTimeActive)}
+                  <View style={{ opacity: noTradingAfterTimeActive ? 1 : 0.5, gap: 12 }}>
+                    <View style={{ flexDirection: 'row', gap: 8 }}>
+                      <View style={{ flex: 1 }}>
+                        <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>CUTOFF TIME</Text>
+                        <View style={[styles.inputWrapperStyle, { marginTop: 0, paddingVertical: 8 }]}>
+                          <Text style={{ fontSize: 13, fontFamily: 'Inter_700Bold', color: isDark ? '#fff' : '#0f172a' }}>{noTradingAfterTime}</Text>
+                        </View>
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>ACTION</Text>
+                        <DropdownButton value="Block new trades" onPress={() => {}} />
+                      </View>
+                    </View>
+                  </View>
+                </View>
+
+                <View style={[styles.metricCard, emotionalTradingDetector && styles.activeMetricCard]}>
+                  {renderCardHeader(HeartPulse, "Behavioural Risk Detector", "AI pacing detection", emotionalTradingDetector, setEmotionalTradingDetector)}
+                  <View style={{ opacity: emotionalTradingDetector ? 1 : 0.5 }}>
+                    <CustomSlider label="SENSITIVITY" valuePct={emotionSensitivity} valueText={`${emotionSensitivity}%`} />
+                  </View>
+                </View>
+                
+                <View style={[styles.metricCard, newsFilter && styles.activeMetricCard]}>
+                  {renderCardHeader(AlertTriangle, "News Filter", "Block around high-impact news", newsFilter, setNewsFilter)}
+                  <View style={{ opacity: newsFilter ? 1 : 0.5, gap: 12 }}>
+                    <View>
+                      <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>IMPACT LEVEL</Text>
+                      <DropdownButton value="High Only" onPress={() => {}} />
+                    </View>
+                    <View style={{ flexDirection: 'row', gap: 8 }}>
+                      <View style={{ flex: 1 }}>
+                        <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>BLOCK BFR.</Text>
+                        <View style={[styles.inputWrapperStyle, { marginTop: 0, paddingVertical: 8 }]}>
+                          <Text style={{ fontSize: 13, fontFamily: 'Inter_700Bold', color: isDark ? '#fff' : '#0f172a' }}>30</Text>
+                          <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8' }}>MIN</Text>
+                        </View>
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>RESUME AFT.</Text>
+                        <View style={[styles.inputWrapperStyle, { marginTop: 0, paddingVertical: 8 }]}>
+                          <Text style={{ fontSize: 13, fontFamily: 'Inter_700Bold', color: isDark ? '#fff' : '#0f172a' }}>15</Text>
+                          <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8' }}>MIN</Text>
+                        </View>
+                      </View>
+                    </View>
+                  </View>
+                </View>
+
+                <View style={[styles.metricCard, sleepProtection && styles.activeMetricCard]}>
+                  {renderCardHeader(Moon, "Sleep Protection", "Disable midnight trading", sleepProtection, setSleepProtection)}
+                  <View style={{ opacity: sleepProtection ? 1 : 0.5 }}>
+                    <View style={{ flexDirection: 'row', gap: 8 }}>
+                      <View style={{ flex: 1 }}>
+                        <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>LOCKOUT START</Text>
+                        <View style={[styles.inputWrapperStyle, { marginTop: 0, paddingVertical: 8 }]}>
+                          <Text style={{ fontSize: 13, fontFamily: 'Inter_700Bold', color: isDark ? '#fff' : '#0f172a' }}>{sleepTimeStart}</Text>
+                        </View>
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>LOCKOUT END</Text>
+                        <View style={[styles.inputWrapperStyle, { marginTop: 0, paddingVertical: 8 }]}>
+                          <Text style={{ fontSize: 13, fontFamily: 'Inter_700Bold', color: isDark ? '#fff' : '#0f172a' }}>06:00</Text>
+                        </View>
+                      </View>
+                    </View>
+                  </View>
+                </View>
+
+                <View style={[styles.metricCard, preTradeChecklist && styles.activeMetricCard]}>
+                  {renderCardHeader(CheckSquare, "Pre-Trade Checklist", "Mandatory popup checklist", preTradeChecklist, setPreTradeChecklist)}
+                  <View style={{ opacity: preTradeChecklist ? 1 : 0.5 }}>
+                    <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>CHECKLIST PRESET</Text>
+                    <DropdownButton value="Standard Checklist" onPress={() => {}} />
+                  </View>
+                </View>
+
+                <View style={[styles.metricCard, psychologyCheck && styles.activeMetricCard]}>
+                  {renderCardHeader(Brain, "AI Psychology Check", "Quick emotion assessment before NY Open", psychologyCheck, setPsychologyCheck)}
+                </View>
+
+                <View style={[styles.metricCard, aiVoiceWarning && styles.activeMetricCard]}>
+                  {renderCardHeader(Volume2, "AI Voice Warning", "Verbal warnings during drawdown spikes", aiVoiceWarning, setAiVoiceWarning)}
+                </View>
+              </View>
+            )}
+
           </Animated.View>
         </Animated.ScrollView>
       </Animated.View>

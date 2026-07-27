@@ -9,6 +9,7 @@ import {
 
 import { motion, AnimatePresence } from "framer-motion";
 import DashboardLayout from "@/components/DashboardLayout";
+import { RiskScoreCard } from "@/components/RiskScoreCard";
 import {
    Shield,
    Zap,
@@ -56,6 +57,7 @@ import {
    Wallet,
    ShieldOff
 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
    Tooltip,
    TooltipContent,
@@ -73,6 +75,7 @@ import { getGamificationState } from "@/utils/gamification";
 import { useMarket } from "@/contexts/MarketContext";
 import { RiskGuardCard } from "@/components/RiskGuardCard";
 import { supabase } from "@/lib/supabase";
+import { Switch } from "@/components/ui/switch";
 
 // --- HUD Status Indicators ---
 const StatusIndicators = ({ isActive = true }) => (
@@ -83,290 +86,7 @@ const StatusIndicators = ({ isActive = true }) => (
 );
 
 
-// --- Custom Neumorphic Toggle Switch (UIverse) ---
-// --- Custom Neumorphic Industrial Toggle Switch ---
-function Switch({ checked, onChange, disabled }: { checked: boolean; onChange: (v: boolean) => void, disabled?: boolean }) {
-   const switchId = React.useId();
-   return (
-      <>
-         <style dangerouslySetInnerHTML={{
-            __html: `
-        /* DARK THEME SWITCH */
-        .custom-ind-switch {
-          position: relative;
-          width: 120px;
-          height: 32px;
-          box-sizing: border-box;
-          padding: 2.5px;
-          background: #0d0d0d;
-          border-radius: 6px;
-          box-shadow:
-            inset 0 1px 1px 1px rgba(0, 0, 0, 0.5),
-            0 1px 0 0 rgba(255, 255, 255, 0.1);
-          flex-shrink: 0;
-        }
-        .custom-ind-switch input[type="checkbox"] {
-          position: absolute;
-          z-index: 2;
-          width: 100%;
-          height: 100%;
-          opacity: 0;
-          cursor: pointer;
-        }
-        .custom-ind-switch label {
-          position: relative;
-          display: block;
-          left: 0;
-          width: 50%;
-          height: 100%;
-          background: #1b1c1c;
-          border-radius: 3.5px;
-          box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
-          transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .custom-ind-switch input[type="checkbox"] + label:before {
-          content: "";
-          display: inline-block;
-          width: 5px;
-          height: 5px;
-          margin-left: 9px;
-          background: #4b5563;
-          border-radius: 50%;
-          vertical-align: middle;
-          box-shadow:
-            0 0 5px 2px rgba(0, 0, 0, 0.65),
-            0 0 3px 1px rgba(0, 0, 0, 0.45);
-          transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .custom-ind-switch input[type="checkbox"] + label:after {
-          content: "";
-          display: inline-block;
-          width: 0;
-          height: 100%;
-          vertical-align: middle;
-        }
-        .custom-ind-switch input[type="checkbox"] + label i {
-          display: block;
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          width: 2.5px;
-          height: 15px;
-          margin-top: -7.5px;
-          margin-left: -1.25px;
-          border-radius: 2px;
-          background: #0d0d0d;
-          box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.3);
-        }
-        .custom-ind-switch input[type="checkbox"] + label i:before,
-        .custom-ind-switch input[type="checkbox"] + label i:after {
-          content: "";
-          display: block;
-          position: absolute;
-          width: 100%;
-          height: 100%;
-          border-radius: 2px;
-          background: #0d0d0d;
-          box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.3);
-        }
-        .custom-ind-switch input[type="checkbox"] + label i:before {
-          left: -5px;
-        }
-        .custom-ind-switch input[type="checkbox"] + label i:after {
-          left: 5px;
-        }
-        .custom-ind-switch input[type="checkbox"]:checked + label {
-          left: 50%;
-        }
-        .custom-ind-switch input[type="checkbox"]:checked + label:before {
-          background: #fff;
-          box-shadow:
-            0 0 5px 2px rgba(255, 255, 255, 0.95),
-            0 0 3px 1px rgba(255, 255, 255, 0.75);
-        }
 
-        /* LIGHT THEME SWITCH (Uiverse by ashif_6672) */
-        .custom-ui-switch {
-          font-size: 3px;
-          position: relative;
-          align-items: center;
-          justify-content: center;
-          width: 20em;
-          height: 10em;
-          background: linear-gradient(0deg, #ededed, #bdbdbd);
-          border-radius: 5em;
-          box-shadow:
-            0 0.05em 0.5em 0.01em #ffffff80,
-            0 0px 5em 0.5em #ffffff,
-            0 -0.25em 0.25em 0.125em #15182f44;
-          cursor: pointer;
-          flex-shrink: 0;
-        }
-
-        .custom-ui-switch *,
-        .custom-ui-switch *:before,
-        .custom-ui-switch *:after {
-          box-sizing: border-box;
-        }
-
-        .custom-ui-switch input[type="checkbox"] {
-          display: none;
-        }
-
-        .custom-ui-switch .rail {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: 5em;
-          box-shadow:
-            -0.05em 0.26em 0.2em -0.05em #fff,
-            0.05em 0.125em 0.2em -0.125em #0004 inset;
-          pointer-events: none;
-        }
-
-        .custom-ui-switch .rail:before,
-        .custom-ui-switch .rail:after {
-          content: "";
-          position: absolute;
-          width: 5em;
-          height: 5em;
-          border-radius: 5em;
-        }
-
-        .custom-ui-switch .rail:before {
-          left: 2.5em;
-          background: linear-gradient(175deg, #00000077, #0001, #fff2), #2196f3;
-          box-shadow:
-            -0.05em 0.26em 0.2em -0.05em #fff8,
-            0.05em 0.125em 0.2em -0.125em #0008 inset;
-        }
-
-        .custom-ui-switch .rail:after {
-          right: 2.5em;
-          background: linear-gradient(180deg, #858585, #a8a8a8, #e3e3e3);
-          box-shadow:
-            0 0.25em 0.2em -0.033em #fff8,
-            -0.0625em 0.0625em 0.2em -0.125em #000 inset;
-        }
-
-        .custom-ui-switch .rail span {
-          width: calc(5em + 1px);
-          height: 0.5em;
-          z-index: 1;
-          background: linear-gradient(180deg, #0004, #fff0 0.175em),
-            linear-gradient(90deg, #2196f3 50%, #aaaaaa 50%);
-          background-size: 200% 100%;
-          background-position: 55% 50%;
-          box-shadow: 0 0.125em 0.075em -0.05em #fff8;
-          transition: all 0.5s ease 0s;
-        }
-
-        .custom-ui-switch input[type="checkbox"]:checked ~ .rail span {
-          background-position: 35% 50%;
-        }
-
-        .custom-ui-switch .slider {
-          position: absolute;
-          width: 9.375em;
-          height: 9.375em;
-          top: 0.25em;
-          left: 0.333em;
-          border-radius: 5em;
-          background: radial-gradient(circle at 55% 50%, #fff0 4.166em, #fff0 10em),
-            radial-gradient(circle at 60% 50%, #fff0 5.263em, #fff0 6.666em),
-            linear-gradient(180deg, #ededed, #bdbdbd);
-          box-shadow:
-            -0.1em 0.1em 0.166em 0 #fff2 inset,
-            0 0 0.5em 0.1em #6b6b6b,
-            0 0.5em 1em 0 #0006;
-          z-index: 1;
-          overflow: hidden;
-          transition: all 0.5s ease 0s;
-        }
-
-        .custom-ui-switch input[type="checkbox"]:checked ~ .slider {
-          left: calc(100% - 9.708em);
-          background: radial-gradient(
-              circle at 55% 50%,
-              #fff0 4.166em,
-              #2196f3 10em
-            ),
-            radial-gradient(circle at 60% 50%, #fff0 5.263em, #2196f3 6.666em),
-            linear-gradient(180deg, #ededed, #bdbdbd);
-        }
-
-        .custom-ui-switch .slider:before {
-          content: "";
-          position: absolute;
-          width: 10em;
-          height: 10em;
-          left: -0.25em;
-          top: -0.25em;
-          background: radial-gradient(circle at 47.5% 45%, #fff0 4.5em, #0003 5em);
-          filter: blur(1px);
-        }
-
-        .custom-ui-switch .slider:after {
-          content: "";
-          position: absolute;
-          width: 100%;
-          height: 100%;
-          top: 0;
-          left: 0;
-          background: repeating-conic-gradient(
-              #fff 0.00095%,
-              #fff0 0.0005%,
-              #fff0 0.005%,
-              #fff0 0.0005%
-            ),
-            repeating-conic-gradient(
-              #fff 0.00001%,
-              #fff0 0.00009%,
-              #fff0 0.00075%,
-              #fff0 0.000025%
-            );
-          opacity: 0.25;
-          filter: blur(1px);
-          pointer-events: none;
-        }
-      `}} />
-
-         {/* Light Theme Switch */}
-         <label className="custom-ui-switch flex dark:hidden">
-            <input
-               type="checkbox"
-               checked={checked}
-               onChange={(e) => onChange(e.target.checked)}
-            />
-            <div className="rail">
-               <span />
-            </div>
-            <div className="slider" />
-         </label>
-
-         {/* Dark Theme Switch */}
-         <div className={`custom-ind-switch hidden dark:inline-block select-none ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}>
-            <input
-               type="checkbox"
-               id={switchId}
-               checked={checked}
-               onChange={(e) => {
-                  if (!disabled) onChange(e.target.checked);
-               }}
-               disabled={disabled}
-            />
-            <label htmlFor={switchId}>
-               <i />
-            </label>
-         </div>
-      </>
-   );
-}
 
 
 // --- Gauge Monitor component ---
@@ -375,9 +95,9 @@ const Gauge = ({ value, max }: { value: number, max: number }) => {
    const needleAngle = -90 + (percentage * 1.8);
 
    return (
-      <div className="flex flex-col items-center gap-2 select-none">
-         <div className="relative" style={{ width: 140, height: 70 }}>
-            <svg width="140" height="70" viewBox="0 0 140 70">
+      <div className="flex flex-col items-center select-none">
+         <div className="relative" style={{ width: 80, height: 40 }}>
+            <svg width="80" height="40" viewBox="0 0 140 70">
                <defs>
                   <linearGradient id="gaugeGradient" x1="0" y1="0" x2="1" y2="0">
                      <stop offset="0%" stopColor="#10b981" />
@@ -409,25 +129,25 @@ const Gauge = ({ value, max }: { value: number, max: number }) => {
 
             {/* Rotating Needle */}
             <motion.div
-               className="absolute bottom-[2px] left-1/2 origin-bottom"
-               style={{ width: 2.5, height: 45, marginLeft: -1.25 }}
+               className="absolute bottom-[1px] left-1/2 origin-bottom"
+               style={{ width: 2, height: 26, marginLeft: -1 }}
                initial={{ rotate: -90 }}
                animate={{ rotate: needleAngle }}
                transition={{ type: "spring", stiffness: 45, damping: 13 }}
             >
                <div className="w-full h-full bg-slate-800 dark:bg-white rounded-full" />
-               <div className="absolute -top-[2px] left-1/2 -translate-x-1/2 w-[7px] h-[7px] bg-white rounded-full border border-slate-900 shadow-sm" />
+               <div className="absolute -top-[1.5px] left-1/2 -translate-x-1/2 w-[5px] h-[5px] bg-white rounded-full border border-slate-900 shadow-sm" />
             </motion.div>
 
             {/* Pivot dot */}
-            <div className="absolute bottom-[1px] left-1/2 -translate-x-1/2 w-[8px] h-[8px] bg-slate-900 dark:bg-white rounded-full border border-white dark:border-slate-800 shadow-sm z-10" />
+            <div className="absolute bottom-[0px] left-1/2 -translate-x-1/2 w-[6px] h-[6px] bg-slate-900 dark:bg-white rounded-full border border-white dark:border-slate-800 shadow-sm z-10" />
          </div>
 
          {/* Aligned metrics numbers */}
-         <div className="flex items-center justify-between w-[130px] mt-0.5">
-            <span className="text-[10px] font-semibold text-slate-400 tabular-nums">0</span>
-            <span className="text-[14px] font-bold text-slate-800 dark:text-white tabular-nums">{value.toFixed(1)}</span>
-            <span className="text-[10px] font-semibold text-slate-400 tabular-nums">{max.toFixed(1)}</span>
+         <div className="flex items-center justify-between w-[75px]">
+            <span className="text-[9px] font-semibold text-slate-400 tabular-nums">0</span>
+            <span className="text-[11px] font-bold text-slate-800 dark:text-white tabular-nums">{value.toFixed(1)}</span>
+            <span className="text-[9px] font-semibold text-slate-400 tabular-nums">{max.toFixed(1)}</span>
          </div>
       </div>
    );
@@ -472,12 +192,12 @@ export default function RiskGuard() {
    // A. Risk Framework States
    const [maxLotActive, setMaxLotActive] = useState(false);
    const [drawdownGuardActive, setDrawdownGuardActive] = useState(false);
-   const [maxDrawdown, setMaxDrawdown] = useState(15);
+   const [maxDrawdown, setMaxDrawdown] = useState(5);
    const [weeklyDrawdown, setWeeklyDrawdown] = useState(20);
    const [monthlyDrawdown, setMonthlyDrawdown] = useState(25);
    const [stopAfterLoss, setStopAfterLoss] = useState(false);
    const [avgDownDistance, setAvgDownDistance] = useState(10);
-   const [martingaleMultiplier, setMartingaleMultiplier] = useState(2.0);
+   const [martingaleMultiplier, setMartingaleMultiplier] = useState(1.5);
    const [allowedTicker, setAllowedTicker] = useState("XAUUSD");
    const [strategyName, setStrategyName] = useState("Breakout Pro");
    const [defaultStopLoss, setDefaultStopLoss] = useState(15);
@@ -517,7 +237,7 @@ export default function RiskGuard() {
       }
    }, [autoTrading]);
 
-   const { balance, isConnected, lastClosedTrade, recentTrades, tradesToday, todayProfit, accountMetrics, avgDisciplineScore } = useDashboardData();
+   const { balance, equity, isConnected, lastClosedTrade, recentTrades, tradesToday, todayProfit, accountMetrics, avgDisciplineScore, lastImportTime } = useDashboardData();
 
    // C. Institutional Discipline States
    const { isProOrElite } = usePlan();
@@ -626,7 +346,7 @@ export default function RiskGuard() {
    });
 
    // E. Capital & Risk States
-   const [maxLot, setMaxLot] = useState(2.0);
+   const [maxLot, setMaxLot] = useState(0.10);
    const currentLot = activeMarket === 'indian' ? 1 : 0.8;
    const [targetCapital, setTargetCapital] = useState(2000);
 
@@ -656,9 +376,13 @@ export default function RiskGuard() {
    const [oneStrategyRule, setOneStrategyRule] = useState(false);
 
    const [stopLossRequired, setStopLossRequired] = useState(false);
-   const [minRiskReward, setMinRiskReward] = useState(2);
+   const [stopLossAction, setStopLossAction] = useState('block');
+   const [stopLossMethod, setStopLossMethod] = useState('pips');
+   const [minRiskReward, setMinRiskReward] = useState(2.4);
+   const [minRiskRewardActive, setMinRiskRewardActive] = useState(false);
    const [weekendLock, setWeekendLock] = useState(false);
    const [equityHardStop, setEquityHardStop] = useState(1000);
+   const [equityHardStopActive, setEquityHardStopActive] = useState(false);
    const [dailyProfitTarget, setDailyProfitTarget] = useState(500);
    const [dailyProfitTargetActive, setDailyProfitTargetActive] = useState(false);
 
@@ -679,7 +403,23 @@ export default function RiskGuard() {
 
    const currentProfit = Math.max(0, balance - (startingCapital || balance || 0));
    const progressPercent = targetCapital > 0 ? Math.min(100, (currentProfit / targetCapital) * 100) : 0;
-   const xpValue = Math.floor(targetCapital / 8);
+
+   const [gamificationState, setGamificationState] = useState(getGamificationState());
+
+   useEffect(() => {
+      const handleUpdate = () => setGamificationState(getGamificationState());
+      window.addEventListener("tradifive_xp_update", handleUpdate);
+      return () => window.removeEventListener("tradifive_xp_update", handleUpdate);
+   }, []);
+
+   const getTitleForLevel = (level: number) => {
+      if (level < 5) return "Initiate";
+      if (level < 10) return "Apprentice";
+      if (level < 20) return "Architect";
+      if (level < 30) return "Master";
+      if (level < 50) return "Grandmaster";
+      return "Legend";
+   };
    const {
       config: dbConfig,
       saveConfig
@@ -976,99 +716,84 @@ export default function RiskGuard() {
                </motion.div>
             )}
 
-            {/* HEADER - Clean, Title-Case, consistent typography weights */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-4 w-full">
+            <div className="flex flex-col xl:flex-row gap-6 items-start">
+               <div className="flex-1 w-full min-w-0 space-y-4">
 
-               <div className="flex-1">
-                  <h1 className="text-[25px] font-semibold text-slate-800 dark:text-white tracking-tight leading-none">Risk Guard</h1>
-                  <p className="text-[12px] text-slate-400 dark:text-slate-400 mt-2 font-medium">Configure automated capital protection and institutional discipline brackets.</p>
-               </div>
+                  {/* HEADER - Clean, Title-Case, consistent typography weights */}
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-2 w-full">
+                     <div className="flex-1">
+                        <h1 className="text-[25px] font-semibold text-slate-800 dark:text-white tracking-tight leading-none">Risk Guard</h1>
+                        <p className="text-[12px] text-slate-400 dark:text-slate-400 mt-2 font-medium">Configure automated capital protection and institutional discipline brackets.</p>
+                     </div>
 
-               {/* ── KILL SWITCH (Header Position) ── */}
-               <div className="flex-1 flex justify-start md:pl-8">
-                  <div className={`p-4 rounded-[24px] border transition-all duration-300 relative group w-full max-w-[340px] hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:hover:shadow-[0_8px_30px_rgba(255,255,255,0.02)] ${
-                     killSwitchActive 
-                        ? 'bg-red-50/50 dark:bg-red-500/10 border-red-200 dark:border-red-500/30 shadow-[0_8px_30px_rgb(239,68,68,0.1)] dark:shadow-none' 
-                        : 'bg-slate-50/50 dark:bg-[#0f0f12] border-slate-200/60 dark:border-white/5 shadow-sm hover:bg-slate-50 dark:hover:bg-[#151518]'
-                  }`}>
-                     <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                           <div className={`w-12 h-12 rounded-[16px] flex items-center justify-center transition-all duration-300 ${
-                              killSwitchActive 
-                                 ? 'bg-red-500 text-white shadow-sm' 
-                                 : 'bg-white dark:bg-[#1A1A1C] text-slate-400 border border-slate-100 dark:border-white/5 shadow-sm group-hover:text-slate-500'
+                     {/* ── KILL SWITCH (Header Position) ── */}
+                     <div className="flex-none flex justify-end">
+                        <div className={`px-4 py-2 rounded-[22px] border-2 relative group w-full sm:w-auto transition-all duration-300 ${killSwitchActive
+                           ? 'border-red-200 bg-red-50/50 shadow-[0_8px_30px_rgb(239,68,68,0.1)] dark:bg-red-500/10 dark:border-[1px] dark:border-red-500/30 dark:shadow-none dark:rounded-[22px]'
+                           : 'border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:rounded-[22px] dark:shadow-none'
                            }`}>
-                              <Power size={20} strokeWidth={2.5} className="transition-transform duration-300 group-hover:rotate-[-5deg]" />
-                           </div>
-                           <div>
-                              <h3 className={`text-[15px] font-bold transition-colors ${
-                                 killSwitchActive ? 'text-red-600 dark:text-red-400' : 'text-slate-800 dark:text-white'
-                              }`}>Kill Switch</h3>
-                              <p className="text-[12px] font-medium text-slate-400 dark:text-slate-500 mt-0.5">One click stops everything</p>
-                           </div>
-                        </div>
+                           <div className="flex items-center justify-between gap-6">
+                              <div className="flex items-center gap-2">
+                                 <div className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-300 ${killSwitchActive
+                                    ? 'bg-red-500 text-white shadow-sm'
+                                    : 'bg-white dark:bg-[#1A1A1C] text-slate-400 border border-slate-100 dark:border-white/5 shadow-sm'
+                                    }`}>
+                                    <Power size={14} strokeWidth={2.5} className="transition-transform duration-300" />
+                                 </div>
+                                 <div className="pr-1">
+                                    <h3 className={`text-[13px] font-bold transition-colors leading-tight ${killSwitchActive ? 'text-red-600 dark:text-red-400' : 'text-slate-800 dark:text-white'
+                                       }`}>Kill Switch</h3>
+                                    <p className="text-[10px] font-medium text-slate-400 dark:text-slate-500 mt-0.5">One click stops everything</p>
+                                 </div>
+                              </div>
 
-                        <div className="flex flex-col items-end gap-1.5 pl-4">
-                           <span className={`text-[11px] font-bold transition-colors ${
-                              killSwitchActive ? 'text-red-500' : 'text-slate-400'
-                           }`}>
-                              {killSwitchActive ? "Active" : "Disabled"}
-                           </span>
-                           <button 
-                              onClick={() => {
-                                 if (!killSwitchActive) {
-                                    if (window.confirm('⚠️ KILL SWITCH: This will immediately close ALL open positions and halt all trading. Are you sure?')) {
-                                       setKillSwitchActive(true);
-                                       toast.error(
-                                          <div className="flex flex-col gap-1">
-                                             <span className="font-bold text-white text-[13px]">🔴 KILL SWITCH ACTIVATED</span>
-                                             <span className="text-red-100 text-[11px]">All positions closing. Trading halted immediately.</span>
-                                          </div>,
-                                          { style: { background: '#dc2626' }, duration: 6000 }
-                                       );
-                                    }
-                                 } else {
-                                    setKillSwitchActive(false);
-                                    toast.success('Kill switch deactivated. Trading resumed.');
-                                 }
-                              }}
-                              className={`w-11 h-6 rounded-full flex items-center transition-colors duration-300 px-0.5 shrink-0 ${
-                                 killSwitchActive ? 'bg-red-500 justify-end' : 'bg-slate-200 dark:bg-zinc-700 justify-start'
-                              }`}
-                           >
-                              <div className="w-5 h-5 bg-white rounded-full shadow-sm" />
-                           </button>
+                              <div className="flex items-center">
+                                 <Switch
+                                    checked={killSwitchActive}
+                                    onChange={(val) => {
+                                       if (val) {
+                                          if (window.confirm('⚠️ KILL SWITCH: This will immediately close ALL open positions and halt all trading. Are you sure?')) {
+                                             setKillSwitchActive(true);
+                                             toast.error(
+                                                <div className="flex flex-col gap-1">
+                                                   <span className="font-bold text-white text-[13px]">🔴 KILL SWITCH ACTIVATED</span>
+                                                   <span className="text-red-100 text-[11px]">All positions closing. Trading halted immediately.</span>
+                                                </div>,
+                                                { style: { background: '#dc2626' }, duration: 6000 }
+                                             );
+                                          }
+                                       } else {
+                                          setKillSwitchActive(false);
+                                          toast.success('Kill switch deactivated. Trading resumed.');
+                                       }
+                                    }}
+                                 />
+                              </div>
+                           </div>
                         </div>
                      </div>
                   </div>
-               </div>
-
-               <div className="flex-1 hidden md:block"></div>
-            </div>
-
-            <div className="flex flex-col xl:flex-row gap-6 items-start">
-               <div className="flex-1 w-full min-w-0 space-y-8">
 
                   {/* PROTOCOL ARCHITECTURE TARGET CAPITAL TRACKER */}
                   <div
-                     className="p-6 rounded-[22px] border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] relative overflow-hidden isolate dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:rounded-[20px] dark:shadow-none"
+                     className="px-5 py-4 rounded-[22px] border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] relative overflow-hidden isolate dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:rounded-[22px] dark:shadow-none"
                      style={{
                         willChange: 'transform',
                         backfaceVisibility: 'hidden',
                         WebkitBackfaceVisibility: 'hidden'
                      }}
                   >
-                     <div className="flex flex-col gap-6">
+                     <div className="flex flex-col gap-4">
                         {/* Tracker Header details */}
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                            <div>
                               <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-widest block mb-1">Protocol Architecture</span>
-                              <h2 className="text-[18px] font-semibold text-slate-800 dark:text-white leading-tight">Level 12 Architect</h2>
+                              <h2 className="text-[18px] font-semibold text-slate-800 dark:text-white leading-tight">Level {gamificationState.level} {getTitleForLevel(gamificationState.level)}</h2>
                            </div>
                            <div className="flex items-center gap-2 self-start sm:self-center">
-                              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-100/50 dark:border-indigo-900/10">
+                              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-100/50 dark:border-indigo-900/10">
                                  <Trophy size={13} className="text-indigo-600 dark:text-indigo-400" />
-                                 <span className="text-[12px] font-bold text-indigo-600 dark:text-indigo-400 tabular-nums">{xpValue} XP</span>
+                                 <span className="text-[12px] font-bold text-indigo-600 dark:text-indigo-400 tabular-nums">{gamificationState.xp.toLocaleString()} XP</span>
                               </div>
                               <Popover>
                                  <PopoverTrigger asChild>
@@ -1082,12 +807,14 @@ export default function RiskGuard() {
                                           <span className="text-slate-500 font-medium">Starting Balance</span>
                                           <span className="font-semibold text-emerald-500">{sym}{(startingCapital || balance).toLocaleString()}</span>
                                        </div>
-                                       <div className="space-y-1.5 pt-3 border-t border-slate-100 dark:border-white/5">
-                                          <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider px-1">Target Balance</label>
+                                       <div className="pt-3 border-t border-slate-100 dark:border-white/5">
+                                          <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider px-1 mb-1 block">Target Balance</label>
                                           <div className="relative">
                                              <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 font-medium text-[12px]">{sym}</span>
                                              <input
                                                 type="number"
+                                                autoFocus
+                                                onFocus={(e) => e.target.select()}
                                                 value={targetCapital}
                                                 onChange={(e) => {
                                                    const val = Number(e.target.value);
@@ -1104,13 +831,13 @@ export default function RiskGuard() {
                         </div>
 
                         {/* Horizontal Progress Bar Section */}
-                        <div className="space-y-3 pt-1">
+                        <div className="space-y-2">
                            {/* Starting & Target Capital Labels */}
                            <div className="flex justify-between items-end px-1">
                               <div className="flex items-center gap-2 mb-1">
                                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
                                  <p className="text-[12px] text-slate-500 font-medium">
-                                    Starting Capital: <span className="font-semibold text-slate-800 dark:text-white">{isConnected ? `${sym}${(startingCapital || balance).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${iso}` : `${sym}18,250.57 ${iso}`}</span>
+                                    Starting Capital: <span className="font-semibold text-slate-800 dark:text-white">{sym}{(startingCapital || balance || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {iso}</span>
                                  </p>
                               </div>
                               <div className="flex items-center gap-2 mb-1 shrink-0">
@@ -1127,7 +854,7 @@ export default function RiskGuard() {
                            100% { background-position: 24px 0; }
                         }
                      `}} />
-                           <div className="w-full h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden border border-slate-200/50 dark:border-slate-850 relative">
+                           <div className="w-full h-2.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden border border-slate-200/50 dark:border-slate-850 relative">
                               <motion.div
                                  initial={{ width: 0 }}
                                  animate={{ width: `${progressPercent}%` }}
@@ -1181,97 +908,128 @@ export default function RiskGuard() {
                   {/* 1. TRADING CONTROL */}
                   {activeTab === 'trading_control' && (
                      <div>
-
                         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-8">
                            <RiskGuardCard icon={Layers} title="Max Lot Size" description="Hard cap on lot size per trade" value={`${maxLot} Lots`} active={maxLotActive} onToggle={setMaxLotActive}>
-                              <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
-                                 <div className="flex-1 max-w-[240px]">
-                                    <label className="text-[9px] font-bold text-slate-400 uppercase mb-2 block tracking-widest">MAX LOT SIZE LIMIT</label>
+                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                 <div className="flex-1 max-w-[200px]">
+                                    <label className="text-[9px] font-bold text-slate-400 uppercase mb-1.5 block tracking-widest">MAX LOT SIZE LIMIT</label>
                                     <div className="relative flex items-center w-full">
-                                       <input type="number" value={maxLot} onChange={e => setMaxLot(Number(e.target.value))} className="w-full bg-slate-50 dark:bg-[#141414] border border-slate-200/60 dark:border-white/10 rounded-full pl-4 pr-12 py-2 text-[14px] font-bold text-slate-800 dark:text-white outline-none focus:border-indigo-500/30 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] transition-all" />
+                                       <input type="number" step="0.01" min="0.01" value={maxLot} onChange={e => setMaxLot(Number(e.target.value))} className="w-full bg-slate-50 dark:bg-[#141414] border border-slate-200/60 dark:border-white/10 rounded-full pl-4 pr-12 py-1.5 text-[14px] font-bold text-slate-800 dark:text-white outline-none focus:border-indigo-500/30 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] transition-all" />
                                        <span className="absolute right-4 text-[11px] font-bold text-slate-400">Lots</span>
                                     </div>
                                  </div>
-
-                                 <div className="flex flex-col sm:flex-row sm:items-end gap-3 shrink-0">
-                                    <div>
-                                       <label className="text-[9px] font-bold text-slate-400 uppercase mb-1.5 block tracking-widest sm:text-left">EXPOSURE ARCHITECTURE</label>
-                                       <div className="flex items-center gap-1.5 justify-start">
-                                          <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                                          <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Current: 0.80 / 0.00 Lots</span>
-                                       </div>
+                                 <div className="flex-1 flex flex-col justify-end pt-4 max-w-[150px]">
+                                    <div className="relative flex items-center w-full">
+                                       <input 
+                                          type="range" 
+                                          min="0.01" 
+                                          max="10.00" 
+                                          step="0.01" 
+                                          value={maxLot} 
+                                          onChange={e => setMaxLot(Number(e.target.value))} 
+                                          className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                                       />
                                     </div>
-
-                                    {/* SVG Gauge */}
-                                    <div className="w-16 h-[32px] relative flex flex-col items-center justify-end -mb-1 ml-4 sm:ml-0">
-                                       <svg viewBox="0 0 100 50" className="w-full overflow-visible drop-shadow-sm">
-                                          {/* Multi-colored track */}
-                                          <path d="M 5 50 A 45 45 0 0 1 30 10" fill="none" stroke="#10b981" strokeWidth="10" strokeLinecap="round" />
-                                          <path d="M 30 10 A 45 45 0 0 1 70 10" fill="none" stroke="#f59e0b" strokeWidth="10" />
-                                          <path d="M 70 10 A 45 45 0 0 1 95 50" fill="none" stroke="#ef4444" strokeWidth="10" strokeLinecap="round" />
-
-                                          {/* Needle */}
-                                          <g transform="rotate(-30 50 50)">
-                                             <line x1="50" y1="50" x2="50" y2="12" stroke="currentColor" strokeWidth="2.5" className="text-slate-700 dark:text-white" strokeLinecap="round" />
-                                             <circle cx="50" cy="50" r="4" fill="currentColor" className="text-slate-700 dark:text-white" />
-                                          </g>
-                                       </svg>
-
-                                       {/* Labels */}
-                                       <div className="absolute -bottom-4 left-0 right-0 flex justify-between text-[8px] font-bold text-slate-400 px-0.5">
-                                          <span>0</span>
-                                          <span>0.0</span>
-                                       </div>
-                                       <div className="absolute -bottom-3 text-[9px] font-bold text-slate-800 dark:text-white">0.8</div>
+                                    <div className="flex justify-between items-center mt-1.5">
+                                       <span className="text-[9px] font-bold text-slate-400">0.01</span>
+                                       <span className="text-[9px] font-bold text-slate-400">10.00</span>
                                     </div>
                                  </div>
                               </div>
                            </RiskGuardCard>
 
-                           <RiskGuardCard icon={Layers} title="Max Open Positions" description="Limit concurrent open trades" value={`${maxOpenPositions}`} active={maxOpenPositions > 0} onToggle={() => { }}>
-                              <div>
-                                 <label className="text-[9px] font-bold text-slate-400 uppercase mb-2 block tracking-widest">MAX ACTIVE POSITIONS</label>
-                                 <div className="relative flex items-center w-full">
-                                    <input type="number" value={maxOpenPositions} onChange={e => setMaxOpenPositions(Number(e.target.value))} className="w-full bg-slate-50 dark:bg-[#141414] border border-slate-200/60 dark:border-white/10 rounded-full px-4 py-2 text-[14px] font-bold text-slate-800 dark:text-white outline-none focus:border-indigo-500/30 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] transition-all" />
+                           <RiskGuardCard icon={TrendingDown} title="No Averaging Down" description="Prevent adding to losing positions" value={noAveragingDown ? "Active" : "Disabled"} active={noAveragingDown} onToggle={setNoAveragingDown}>
+                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                 <div className="flex-1">
+                                    <label className="text-[9px] font-bold text-slate-400 uppercase mb-1.5 block tracking-widest">MODE</label>
+                                    <Select defaultValue="strict">
+                                       <SelectTrigger className="w-full bg-slate-50 dark:bg-[#141414] border border-slate-200/60 dark:border-white/10 rounded-lg px-3 py-1.5 h-auto text-[13px] font-bold text-slate-800 dark:text-white shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] focus:ring-1 focus:ring-indigo-500/30">
+                                          <SelectValue />
+                                       </SelectTrigger>
+                                       <SelectContent>
+                                          <SelectItem value="strict">Strict Block</SelectItem>
+                                          <SelectItem value="warning">Warning Only</SelectItem>
+                                       </SelectContent>
+                                    </Select>
+                                 </div>
+                                 <div className="flex-1">
+                                    <label className="text-[9px] font-bold text-slate-400 uppercase mb-1.5 block tracking-widest">SCOPE</label>
+                                    <Select defaultValue="symbol_dir">
+                                       <SelectTrigger className="w-full bg-slate-50 dark:bg-[#141414] border border-slate-200/60 dark:border-white/10 rounded-lg px-3 py-1.5 h-auto text-[13px] font-bold text-slate-800 dark:text-white shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] focus:ring-1 focus:ring-indigo-500/30">
+                                          <SelectValue />
+                                       </SelectTrigger>
+                                       <SelectContent>
+                                          <SelectItem value="symbol_dir">Same Symbol + Direction</SelectItem>
+                                          <SelectItem value="symbol_only">Same Symbol</SelectItem>
+                                          <SelectItem value="all">Global Account</SelectItem>
+                                       </SelectContent>
+                                    </Select>
                                  </div>
                               </div>
                            </RiskGuardCard>
 
-                           <RiskGuardCard icon={TrendingDown} title="No Averaging Down" description="Prevent adding to losing trades" value={noAveragingDown ? "Active" : "Disabled"} active={noAveragingDown} onToggle={setNoAveragingDown}>
-                              <div>
-                                 <label className="text-[9px] font-bold text-slate-400 uppercase mb-2 block tracking-widest">MINIMUM ENTRY DISTANCE</label>
-                                 <div className="relative flex items-center w-full">
-                                    <input type="number" value={avgDownDistance} onChange={e => setAvgDownDistance(Number(e.target.value))} className="w-full bg-slate-50 dark:bg-[#141414] border border-slate-200/60 dark:border-white/10 rounded-full pl-4 pr-12 py-2 text-[14px] font-bold text-slate-800 dark:text-white outline-none focus:border-indigo-500/30 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] transition-all" />
-                                    <span className="absolute right-4 text-[11px] font-bold text-slate-400">Pips</span>
+                           <RiskGuardCard icon={AlertTriangle} title="Martingale Protection" description="Block increasing lot sizes after a loss" value={martingaleDetection ? "Active" : "Disabled"} active={martingaleDetection} onToggle={setMartingaleDetection}>
+                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                 <div className="flex-1 max-w-[200px]">
+                                    <label className="text-[9px] font-bold text-slate-400 uppercase mb-1.5 block tracking-widest">TRIGGER MULTIPLIER</label>
+                                    <div className="relative flex items-center w-full">
+                                       <div className="w-full bg-slate-50 dark:bg-[#141414] border border-slate-200/60 dark:border-white/10 rounded-full py-1.5 text-[14px] font-bold text-slate-800 dark:text-white shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] text-center">
+                                          {martingaleMultiplier.toFixed(1)}×
+                                       </div>
+                                    </div>
                                  </div>
-                              </div>
-                           </RiskGuardCard>
-
-                           <RiskGuardCard icon={AlertTriangle} title="Martingale Detection" description="Block increasing lot sizes after a loss" value={martingaleDetection ? "Active" : "Disabled"} active={martingaleDetection} onToggle={setMartingaleDetection}>
-                              <div>
-                                 <label className="text-[9px] font-bold text-slate-400 uppercase mb-2 block tracking-widest">MAX LOT MULTIPLIER</label>
-                                 <div className="relative flex items-center w-full">
-                                    <input type="number" step={0.1} value={martingaleMultiplier} onChange={e => setMartingaleMultiplier(Number(e.target.value))} className="w-full bg-slate-50 dark:bg-[#141414] border border-slate-200/60 dark:border-white/10 rounded-full pl-4 pr-12 py-2 text-[14px] font-bold text-slate-800 dark:text-white outline-none focus:border-indigo-500/30 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] transition-all" />
-                                    <span className="absolute right-4 text-[11px] font-bold text-slate-400">Ratio</span>
+                                 <div className="flex-1 flex flex-col justify-end pt-4 max-w-[150px]">
+                                    <div className="relative flex items-center w-full">
+                                       <input 
+                                          type="range" 
+                                          min="1.1" 
+                                          max="5.0" 
+                                          step="0.1" 
+                                          value={martingaleMultiplier} 
+                                          onChange={e => setMartingaleMultiplier(Number(e.target.value))} 
+                                          className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                                       />
+                                    </div>
+                                    <div className="flex justify-between items-center mt-1.5">
+                                       <span className="text-[9px] font-bold text-slate-400">1.1×</span>
+                                       <span className="text-[9px] font-bold text-slate-400">5.0×</span>
+                                    </div>
                                  </div>
                               </div>
                            </RiskGuardCard>
 
                            <RiskGuardCard icon={Crosshair} title="One Instrument Mode" description="Limit trading to a single ticker" value={oneInstrumentMode ? "Active" : "Disabled"} active={oneInstrumentMode} onToggle={setOneInstrumentMode}>
-                              <div>
-                                 <label className="text-[9px] font-bold text-slate-400 uppercase mb-2 block tracking-widest">PERMITTED TICKER</label>
-                                 <div className="relative flex items-center w-full">
-                                    <input type="text" value={allowedTicker} onChange={e => setAllowedTicker(e.target.value)} className="w-full bg-slate-50 dark:bg-[#141414] border border-slate-200/60 dark:border-white/10 rounded-full px-4 py-2 text-[14px] font-bold text-slate-800 dark:text-white outline-none focus:border-indigo-500/30 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] transition-all uppercase" />
-                                 </div>
+                              <div className="flex flex-col w-full">
+                                 <label className="text-[9px] font-bold text-slate-400 uppercase mb-1.5 block tracking-widest">ALLOWED INSTRUMENT</label>
+                                 <Select value={allowedTicker} onValueChange={setAllowedTicker}>
+                                    <SelectTrigger className="w-full bg-slate-50 dark:bg-[#141414] border border-slate-200/60 dark:border-white/10 rounded-lg px-3 py-1.5 h-auto text-[13px] font-bold text-slate-800 dark:text-white shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] focus:ring-1 focus:ring-indigo-500/30">
+                                       <SelectValue placeholder="Select an instrument..." />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                       <SelectItem value="XAUUSD">XAUUSD — Gold</SelectItem>
+                                       <SelectItem value="EURUSD">EURUSD — Euro / US Dollar</SelectItem>
+                                       <SelectItem value="GBPUSD">GBPUSD — British Pound / US Dollar</SelectItem>
+                                       <SelectItem value="US30">US30 — Wall Street 30</SelectItem>
+                                       <SelectItem value="NAS100">NAS100 — US Tech 100</SelectItem>
+                                    </SelectContent>
+                                 </Select>
                               </div>
                            </RiskGuardCard>
 
-                           <RiskGuardCard icon={CheckSquare} title="One Strategy Rule" description="Force specific execution pattern" value={oneStrategyRule ? "Active" : "Disabled"} active={oneStrategyRule} onToggle={setOneStrategyRule}>
-                              <div>
-                                 <label className="text-[9px] font-bold text-slate-400 uppercase mb-2 block tracking-widest">ALLOWED STRATEGY</label>
-                                 <div className="relative flex items-center w-full">
-                                    <input type="text" value={strategyName} onChange={e => setStrategyName(e.target.value)} className="w-full bg-slate-50 dark:bg-[#141414] border border-slate-200/60 dark:border-white/10 rounded-full px-4 py-2 text-[14px] font-bold text-slate-800 dark:text-white outline-none focus:border-indigo-500/30 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] transition-all" />
-                                 </div>
+                           <RiskGuardCard icon={CheckSquare} title="Allowed Strategy Only" description="Allow trades only from the selected strategy" value={oneStrategyRule ? "Active" : "Disabled"} active={oneStrategyRule} onToggle={setOneStrategyRule}>
+                              <div className="flex flex-col w-full">
+                                 <label className="text-[9px] font-bold text-slate-400 uppercase mb-1.5 block tracking-widest">ALLOWED STRATEGY</label>
+                                 <Select value={strategyName} onValueChange={setStrategyName}>
+                                    <SelectTrigger className="w-full bg-slate-50 dark:bg-[#141414] border border-slate-200/60 dark:border-white/10 rounded-lg px-3 py-1.5 h-auto text-[13px] font-bold text-slate-800 dark:text-white shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] focus:ring-1 focus:ring-indigo-500/30 truncate text-left">
+                                       <SelectValue placeholder="Select a strategy..." />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                       <SelectItem value="Breakout Pro">Breakout Pro — Magic No. 1024</SelectItem>
+                                       <SelectItem value="Trend Follower">Trend Follower — Magic No. 2048</SelectItem>
+                                       <SelectItem value="Mean Reversion">Mean Reversion — Magic No. 4096</SelectItem>
+                                       <SelectItem value="News Scalper">News Scalper — Magic No. 8192</SelectItem>
+                                    </SelectContent>
+                                 </Select>
                               </div>
                            </RiskGuardCard>
                         </div>
@@ -1283,56 +1041,203 @@ export default function RiskGuard() {
                      <div>
 
                         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-8">
-                           <RiskGuardCard icon={ShieldAlert} title="Drawdown Guard" description="Max daily drawdown limits" value={`${maxDrawdown}%`} active={drawdownGuardActive} onToggle={setDrawdownGuardActive}>
-
+                           <RiskGuardCard icon={ShieldAlert} title="Drawdown Guard" description="Max daily drawdown limits" value={`${maxDrawdown.toFixed(1)}%`} active={drawdownGuardActive} onToggle={setDrawdownGuardActive}>
+                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                 <div className="flex-[0.8] max-w-[100px]">
+                                    <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block tracking-widest">LIMIT</label>
+                                    <div className="flex items-center w-full h-[32px] bg-slate-50 dark:bg-[#141414] border border-slate-200/60 dark:border-white/10 rounded-lg shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] focus-within:border-indigo-500/30 focus-within:ring-1 focus-within:ring-indigo-500/30 overflow-hidden">
+                                       <input type="number" min="0.5" max="20.0" step={0.5} value={maxDrawdown} onChange={e => setMaxDrawdown(Number(e.target.value))} className="w-full bg-transparent outline-none py-1 pl-3 pr-1 text-[13px] font-bold text-slate-800 dark:text-white text-center" />
+                                       <div className="pr-3 text-[13px] font-bold text-slate-500 select-none">%</div>
+                                    </div>
+                                 </div>
+                                 <div className="flex-1 flex flex-col justify-end pt-3 max-w-[100px]">
+                                    <div className="relative flex items-center w-full">
+                                       <input type="range" min="0.5" max="20.0" step="0.5" value={maxDrawdown} onChange={e => setMaxDrawdown(Number(e.target.value))} className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500" />
+                                    </div>
+                                 </div>
+                                 <div className="flex-[1.5]">
+                                    <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block tracking-widest">BASIS</label>
+                                    <Select defaultValue="balance">
+                                       <SelectTrigger className="w-full bg-slate-50 dark:bg-[#141414] border border-slate-200/60 dark:border-white/10 rounded-lg px-3 h-[32px] text-[13px] font-bold text-slate-800 dark:text-white shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] focus:ring-1 focus:ring-indigo-500/30">
+                                          <SelectValue />
+                                       </SelectTrigger>
+                                       <SelectContent>
+                                          <SelectItem value="balance">Start-of-day balance</SelectItem>
+                                          <SelectItem value="equity">Start-of-day equity</SelectItem>
+                                       </SelectContent>
+                                    </Select>
+                                 </div>
+                              </div>
                            </RiskGuardCard>
 
-                           <RiskGuardCard icon={Target} title="Daily Profit Target" description="Lock terminal after profit" value={`${sym}${dailyProfitTarget}`} active={dailyProfitTargetActive} onToggle={setDailyProfitTargetActive}>
-                              <div>
-                                 <label className="text-[9px] font-bold text-slate-400 uppercase mb-2 block tracking-widest">TARGET AMOUNT</label>
-                                 <div className="relative flex items-center w-full">
-                                    <input type="number" value={dailyProfitTarget} onChange={e => setDailyProfitTarget(Number(e.target.value))} className="w-full bg-slate-50 dark:bg-[#141414] border border-slate-200/60 dark:border-white/10 rounded-full pl-4 pr-12 py-2 text-[14px] font-bold text-slate-800 dark:text-white outline-none focus:border-indigo-500/30 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] transition-all" />
-                                    <span className="absolute right-4 text-[11px] font-bold text-slate-400">USD</span>
+                           <RiskGuardCard icon={Target} title="Daily Profit Target" description="Lock terminal after profit" value={dailyProfitTargetActive ? `${sym}${dailyProfitTarget}` : "Disabled"} active={dailyProfitTargetActive} onToggle={setDailyProfitTargetActive}>
+                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                 <div className="flex-1">
+                                    <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block tracking-widest">TARGET AMOUNT</label>
+                                    <div className="relative flex items-center w-full">
+                                       <span className="absolute left-3 text-[13px] font-bold text-slate-400">{sym}</span>
+                                       <input type="number" value={dailyProfitTarget} onChange={e => setDailyProfitTarget(Number(e.target.value))} className="w-full bg-slate-50 dark:bg-[#141414] border border-slate-200/60 dark:border-white/10 rounded-lg pl-7 pr-12 h-[32px] text-[13px] font-bold text-slate-800 dark:text-white outline-none focus:border-indigo-500/30 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] transition-all" />
+                                       <span className="absolute right-3 text-[11px] font-bold text-slate-400 uppercase">{iso}</span>
+                                    </div>
+                                 </div>
+                                 <div className="flex-1">
+                                    <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block tracking-widest">CALCULATION</label>
+                                    <Select defaultValue="closed">
+                                       <SelectTrigger className="w-full bg-slate-50 dark:bg-[#141414] border border-slate-200/60 dark:border-white/10 rounded-lg px-3 h-[32px] text-[13px] font-bold text-slate-800 dark:text-white shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] focus:ring-1 focus:ring-indigo-500/30">
+                                          <SelectValue />
+                                       </SelectTrigger>
+                                       <SelectContent>
+                                          <SelectItem value="closed">Closed P&L</SelectItem>
+                                          <SelectItem value="equity">Equity Profit</SelectItem>
+                                       </SelectContent>
+                                    </Select>
                                  </div>
                               </div>
                            </RiskGuardCard>
 
                            <RiskGuardCard icon={StopCircle} title="Stop Loss Required" description="Require SL on every execution" value={stopLossRequired ? "Active" : "Disabled"} active={stopLossRequired} onToggle={setStopLossRequired}>
-                              <div>
-                                 <label className="text-[9px] font-bold text-slate-400 uppercase mb-2 block tracking-widest">DEFAULT SL DISTANCE</label>
-                                 <div className="relative flex items-center w-full">
-                                    <input type="number" value={defaultStopLoss} onChange={e => setDefaultStopLoss(Number(e.target.value))} className="w-full bg-slate-50 dark:bg-[#141414] border border-slate-200/60 dark:border-white/10 rounded-full pl-4 pr-12 py-2 text-[14px] font-bold text-slate-800 dark:text-white outline-none focus:border-indigo-500/30 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] transition-all" />
-                                    <span className="absolute right-4 text-[11px] font-bold text-slate-400">Pips</span>
+                              <div className="flex flex-col sm:flex-row gap-2.5">
+                                 <div className={stopLossAction === 'auto' ? "flex-[1.2]" : "w-full"}>
+                                    <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block tracking-widest">ACTION</label>
+                                    <Select value={stopLossAction} onValueChange={setStopLossAction}>
+                                       <SelectTrigger className="w-full bg-slate-50 dark:bg-[#141414] border border-slate-200/60 dark:border-white/10 rounded-lg px-3 h-[32px] text-[13px] font-bold text-slate-800 dark:text-white shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] focus:ring-1 focus:ring-indigo-500/30">
+                                          <SelectValue />
+                                       </SelectTrigger>
+                                       <SelectContent>
+                                          <SelectItem value="block">Block trades without SL</SelectItem>
+                                          <SelectItem value="auto">Auto add SL</SelectItem>
+                                       </SelectContent>
+                                    </Select>
+                                 </div>
+                                 {stopLossAction === 'auto' && (
+                                    <>
+                                       <div className="flex-[1.2]">
+                                          <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block tracking-widest">METHOD</label>
+                                          <Select value={stopLossMethod} onValueChange={setStopLossMethod}>
+                                             <SelectTrigger className="w-full bg-slate-50 dark:bg-[#141414] border border-slate-200/60 dark:border-white/10 rounded-lg px-3 h-[32px] text-[13px] font-bold text-slate-800 dark:text-white shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] focus:ring-1 focus:ring-indigo-500/30">
+                                                <SelectValue />
+                                             </SelectTrigger>
+                                             <SelectContent>
+                                                <SelectItem value="pips">Pips</SelectItem>
+                                                <SelectItem value="percent">Percent (%)</SelectItem>
+                                                <SelectItem value="atr">ATR</SelectItem>
+                                             </SelectContent>
+                                          </Select>
+                                       </div>
+                                       <div className="flex-[0.8]">
+                                          <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block tracking-widest">VALUE</label>
+                                          <div className="relative flex items-center w-full">
+                                             <input type="number" value={defaultStopLoss} onChange={e => setDefaultStopLoss(Number(e.target.value))} className="w-full bg-slate-50 dark:bg-[#141414] border border-slate-200/60 dark:border-white/10 rounded-lg px-3 h-[32px] text-[13px] font-bold text-slate-800 dark:text-white outline-none focus:border-indigo-500/30 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] transition-all" />
+                                          </div>
+                                       </div>
+                                    </>
+                                 )}
+                              </div>
+                           </RiskGuardCard>
+
+
+                           <RiskGuardCard icon={TrendingUp} title="Min Risk/Reward" description="Require a minimum reward-to-risk ratio for every trade" value={`1:${minRiskReward}`} active={minRiskRewardActive} onToggle={setMinRiskRewardActive} intent="trading">
+                              <div className="flex flex-col gap-2">
+                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                    <div className="flex-[0.8] max-w-[120px]">
+                                       <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block tracking-widest">MINIMUM TARGET R:R</label>
+                                       <div className="flex items-center w-full h-[32px] bg-slate-50 dark:bg-[#141414] border border-slate-200/60 dark:border-white/10 rounded-lg shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] focus-within:border-indigo-500/30 focus-within:ring-1 focus-within:ring-indigo-500/30 transition-all overflow-hidden">
+                                          <div className="pl-3 pr-1 text-[13px] font-bold text-slate-500 select-none">1:</div>
+                                          <input type="number" min="1.0" max="5.0" step={0.1} value={minRiskReward} onChange={e => setMinRiskReward(Number(e.target.value))} className="w-full bg-transparent outline-none py-1 pr-3 text-[13px] font-bold text-slate-800 dark:text-white" />
+                                       </div>
+                                    </div>
+                                    <div className="flex-1 flex flex-col justify-end pt-3 max-w-[120px]">
+                                       <div className="relative flex items-center w-full">
+                                          <input type="range" min="1.0" max="5.0" step="0.1" value={minRiskReward} onChange={e => setMinRiskReward(Number(e.target.value))} className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500" />
+                                       </div>
+                                    </div>
                                  </div>
                               </div>
                            </RiskGuardCard>
 
-                           <RiskGuardCard icon={TrendingUp} title="Min Risk/Reward" description="Mandate minimum R:R ratio" value={`1:${minRiskReward}`} active={minRiskReward > 0} onToggle={() => { }}>
-                              <div>
-                                 <label className="text-[9px] font-bold text-slate-400 uppercase mb-2 block tracking-widest">MINIMUM TARGET R:R</label>
-                                 <div className="relative flex items-center w-full">
-                                    <input type="number" step={0.1} value={minRiskReward} onChange={e => setMinRiskReward(Number(e.target.value))} className="w-full bg-slate-50 dark:bg-[#141414] border border-slate-200/60 dark:border-white/10 rounded-full pl-4 pr-12 py-2 text-[14px] font-bold text-slate-800 dark:text-white outline-none focus:border-indigo-500/30 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] transition-all" />
-                                    <span className="absolute right-4 text-[11px] font-bold text-slate-400">Ratio</span>
+                           <RiskGuardCard icon={Calendar} title="Weekend Lock" description="Auto flatten before Friday close" value={weekendLock ? "Active" : "Disabled"} active={weekendLock} onToggle={setWeekendLock} intent="warning">
+                              <div className="flex flex-col sm:flex-row gap-3">
+                                 <div className="flex-[0.8]">
+                                    <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block tracking-widest">FRIDAY CLOSE TIME</label>
+                                    <Popover>
+                                       <PopoverTrigger asChild>
+                                          <button className="flex items-center justify-between w-full h-[32px] bg-slate-50 dark:bg-[#141414] border border-slate-200/60 dark:border-white/10 rounded-lg shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] focus-within:border-indigo-500/30 focus-within:ring-1 focus-within:ring-indigo-500/30 overflow-hidden pl-3 pr-2.5 outline-none transition-all">
+                                             <span className="text-[13px] font-bold text-slate-800 dark:text-white">{weekendCloseTime}</span>
+                                             <div className="flex items-center gap-1.5 text-[9px] font-bold text-slate-400 uppercase select-none whitespace-nowrap">
+                                                <Clock size={12} className="text-slate-400" />
+                                                Broker Time
+                                             </div>
+                                          </button>
+                                       </PopoverTrigger>
+                                       <PopoverContent className="w-[150px] p-0 border-slate-200 dark:border-white/10 rounded-md overflow-hidden shadow-xl" align="start">
+                                          <div className="flex bg-white dark:bg-[#1A1A1A] p-1.5 gap-1.5 border-b border-slate-100 dark:border-white/5">
+                                             <div className="flex-1 bg-[#106efb] text-white font-bold text-center py-1.5 rounded-sm text-[13px] shadow-sm border border-slate-900 dark:border-black">
+                                                {weekendCloseTime.split(':')[0]}
+                                             </div>
+                                             <div className="flex-1 bg-[#106efb] text-white font-bold text-center py-1.5 rounded-sm text-[13px] shadow-sm border border-slate-900 dark:border-black">
+                                                {weekendCloseTime.split(':')[1]}
+                                             </div>
+                                          </div>
+                                          <div className="flex h-[200px] bg-white dark:bg-[#1A1A1A]">
+                                             <div className="flex-1 overflow-y-auto border-r border-slate-100 dark:border-white/5 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:bg-slate-200 dark:[&::-webkit-scrollbar-thumb]:bg-white/10 [&::-webkit-scrollbar-track]:bg-transparent">
+                                                {Array.from({ length: 24 }).map((_, i) => {
+                                                   const h = i.toString().padStart(2, '0');
+                                                   const currentH = weekendCloseTime.split(':')[0];
+                                                   return (
+                                                      <button 
+                                                         key={`h-${h}`}
+                                                         onClick={() => setWeekendCloseTime(`${h}:${weekendCloseTime.split(':')[1]}`)}
+                                                         className={`w-full text-center py-2.5 text-[13px] transition-colors outline-none ${h === currentH ? 'bg-slate-100 dark:bg-white/10 font-bold text-[#106efb] dark:text-[#3b82f6]' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5'}`}
+                                                      >
+                                                         {h}
+                                                      </button>
+                                                   )
+                                                })}
+                                             </div>
+                                             <div className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:bg-slate-200 dark:[&::-webkit-scrollbar-thumb]:bg-white/10 [&::-webkit-scrollbar-track]:bg-transparent">
+                                                {Array.from({ length: 60 }).map((_, i) => {
+                                                   const m = i.toString().padStart(2, '0');
+                                                   const currentM = weekendCloseTime.split(':')[1];
+                                                   return (
+                                                      <button 
+                                                         key={`m-${m}`}
+                                                         onClick={() => setWeekendCloseTime(`${weekendCloseTime.split(':')[0]}:${m}`)}
+                                                         className={`w-full text-center py-2.5 text-[13px] transition-colors outline-none ${m === currentM ? 'bg-slate-100 dark:bg-white/10 font-bold text-[#106efb] dark:text-[#3b82f6]' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5'}`}
+                                                      >
+                                                         {m}
+                                                      </button>
+                                                   )
+                                                })}
+                                             </div>
+                                          </div>
+                                       </PopoverContent>
+                                    </Popover>
+                                 </div>
+                                 <div className="flex-1">
+                                    <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block tracking-widest">ACTION</label>
+                                    <Select defaultValue="both">
+                                       <SelectTrigger className="w-full bg-slate-50 dark:bg-[#141414] border border-slate-200/60 dark:border-white/10 rounded-lg px-3 h-[32px] text-[13px] font-bold text-slate-800 dark:text-white shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] focus:ring-1 focus:ring-indigo-500/30">
+                                          <SelectValue />
+                                       </SelectTrigger>
+                                       <SelectContent>
+                                          <SelectItem value="both">Close positions & block trades</SelectItem>
+                                          <SelectItem value="close">Close positions only</SelectItem>
+                                          <SelectItem value="block">Block new trades only</SelectItem>
+                                       </SelectContent>
+                                    </Select>
                                  </div>
                               </div>
                            </RiskGuardCard>
 
-                           <RiskGuardCard icon={Calendar} title="Weekend Lock" description="Auto flatten before Friday close" value={weekendLock ? "Active" : "Disabled"} active={weekendLock} onToggle={setWeekendLock}>
-                              <div>
-                                 <label className="text-[9px] font-bold text-slate-400 uppercase mb-2 block tracking-widest">FRIDAY CLOSE TIME</label>
-                                 <div className="relative flex items-center w-full">
-                                    <input type="time" value={weekendCloseTime} onChange={e => setWeekendCloseTime(e.target.value)} className="w-full bg-slate-50 dark:bg-[#141414] border border-slate-200/60 dark:border-white/10 rounded-full pl-4 pr-4 py-2 text-[14px] font-bold text-slate-800 dark:text-white outline-none focus:border-indigo-500/30 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] transition-all" />
-
-                                 </div>
-                              </div>
-                           </RiskGuardCard>
-
-                           <RiskGuardCard icon={Wallet} title="Account Protection" description="Equity hard stop level" value={`${sym}${equityHardStop}`} active={equityHardStop > 0} onToggle={() => { }}>
-                              <div>
-                                 <label className="text-[9px] font-bold text-slate-400 uppercase mb-2 block tracking-widest">EQUITY HARD STOP</label>
-                                 <div className="relative flex items-center w-full">
-                                    <input type="number" value={equityHardStop} onChange={e => setEquityHardStop(Number(e.target.value))} className="w-full bg-slate-50 dark:bg-[#141414] border border-slate-200/60 dark:border-white/10 rounded-full pl-4 pr-12 py-2 text-[14px] font-bold text-slate-800 dark:text-white outline-none focus:border-indigo-500/30 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] transition-all" />
-                                    <span className="absolute right-4 text-[11px] font-bold text-slate-400">USD</span>
+                           <RiskGuardCard icon={Wallet} title="Account Protection" description="Minimum equity level" value={`${sym}${equityHardStop}`} active={equityHardStopActive} onToggle={setEquityHardStopActive} intent="emergency">
+                              <div className="flex flex-col gap-2">
+                                 <div>
+                                    <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block tracking-widest">MINIMUM EQUITY LEVEL</label>
+                                    <div className="relative flex items-center w-full max-w-[200px]">
+                                       <span className="absolute left-3 text-[13px] font-bold text-slate-400">{sym}</span>
+                                       <input type="number" value={equityHardStop} onChange={e => setEquityHardStop(Number(e.target.value))} className="w-full bg-slate-50 dark:bg-[#141414] border border-slate-200/60 dark:border-white/10 rounded-lg pl-7 pr-12 h-[32px] text-[13px] font-bold text-slate-800 dark:text-white outline-none focus:border-indigo-500/30 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] transition-all" />
+                                       <span className="absolute right-3 text-[11px] font-bold text-slate-400 uppercase">{iso}</span>
+                                    </div>
                                  </div>
                               </div>
                            </RiskGuardCard>
@@ -1345,19 +1250,19 @@ export default function RiskGuard() {
                      <div>
 
                         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-8">
-                           <RiskGuardCard icon={ShieldCheck} title="Discipline Sentinel" description="Loss cooldown & daily execution limit" value={disciplineActive ? "Active" : "Disabled"} active={disciplineActive} onToggle={setDisciplineActive}>
+                           <RiskGuardCard icon={ShieldCheck} title="Daily Trade Limit" description="Limits the maximum number of executions per day" value={disciplineActive ? "Active" : "Disabled"} active={disciplineActive} onToggle={setDisciplineActive}>
                               <div>
-                                 <label className="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block">Daily Execution Limit</label>
-                                 <div className="flex items-center gap-3">
+                                 <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block tracking-widest">Daily Execution Limit</label>
+                                 <div className="flex items-center gap-3 w-[160px]">
                                     <button onClick={() => setTradeLimit(prev => Math.max(1, prev - 1))} className="w-8 h-8 flex items-center justify-center rounded-full bg-white dark:bg-[#202020] border border-slate-200/60 shadow-sm text-slate-700 dark:text-slate-300 font-bold hover:bg-slate-50 transition-colors active:scale-95">-</button>
-                                    <span className="flex-1 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-[13px] font-bold text-slate-800 dark:text-white text-center">{(!isProOrElite && tradeLimit > 5) ? 5 : tradeLimit}</span>
-                                    <button onClick={() => { if (!isProOrElite && tradeLimit >= 5) { toast.error(<div className="flex flex-col gap-1"><div className="flex items-center gap-2"><Crown size={16} className="text-amber-500" /><span className="font-bold text-slate-900 dark:text-white">Pro Feature</span></div><span className="text-slate-600 dark:text-slate-300">Upgrade to Pro to increase daily execution limits.</span></div>); return; } setTradeLimit(prev => Math.min(10, prev + 1)); }} className="w-8 h-8 flex items-center justify-center rounded-full bg-[#0F172A] dark:bg-indigo-500 text-white font-bold hover:bg-slate-800 transition-colors active:scale-95">+</button>
+                                    <span className="flex-1 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg px-3 h-[32px] flex items-center justify-center text-[13px] font-bold text-slate-800 dark:text-white text-center shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]">{(!isProOrElite && tradeLimit > 5) ? 5 : tradeLimit}</span>
+                                    <button onClick={() => { if (!isProOrElite && tradeLimit >= 5) { toast.error(<div className="flex flex-col gap-1"><div className="flex items-center gap-2"><Crown size={16} className="text-amber-500" /><span className="font-bold text-slate-900 dark:text-white">Pro Feature</span></div><span className="text-slate-600 dark:text-slate-300">Upgrade to Pro to increase daily execution limits.</span></div>); return; } setTradeLimit(prev => Math.min(20, prev + 1)); }} className="w-8 h-8 flex items-center justify-center rounded-full bg-[#0F172A] dark:bg-indigo-500 text-white font-bold hover:bg-slate-800 transition-colors active:scale-95">+</button>
                                  </div>
                               </div>
                            </RiskGuardCard>
 
                            {/* Loss Cooldown Shield — standalone card */}
-                           <RiskGuardCard icon={ShieldOff} title="Loss Cooldown Shield" description="Locks execution after any losing trade" value={!isProOrElite ? "Pro" : revengeGuard ? "Active" : "Disabled"} active={!isProOrElite ? false : revengeGuard} onToggle={(val) => {
+                           <RiskGuardCard icon={ShieldOff} title="Loss Cooldown" description="Locks execution after losing trades" value={!isProOrElite ? "Pro" : revengeGuard ? "Active" : "Disabled"} active={!isProOrElite ? false : revengeGuard} onToggle={(val) => {
                               if (!isProOrElite) {
                                  toast.error(
                                     <div className="flex flex-col gap-1">
@@ -1365,164 +1270,404 @@ export default function RiskGuard() {
                                           <Crown size={16} className="text-amber-500" />
                                           <span className="font-bold text-slate-900 dark:text-white">Pro Feature</span>
                                        </div>
-                                       <span className="text-slate-600 dark:text-slate-300">Upgrade to Pro to unlock the Loss Cooldown Shield.</span>
+                                       <span className="text-slate-600 dark:text-slate-300">Upgrade to Pro to unlock the Loss Cooldown.</span>
                                     </div>
                                  );
                                  return;
                               }
                               setRevengeGuard(val);
                            }}>
-                              <div>
-                                 <label className="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block">Cooldown Duration</label>
-                                 <div className="flex items-center gap-2 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2">
-                                    <input
-                                       type="range" min={5} max={120} step={5} value={waitPeriod}
-                                       onChange={e => setWaitPeriod(+e.target.value)}
-                                       className="flex-1 h-1.5 rounded-lg appearance-none cursor-pointer accent-indigo-600 dark:accent-indigo-500"
-                                       style={{ background: `linear-gradient(to right, #4f46e5 0%, #4f46e5 ${((waitPeriod - 5) / (120 - 5)) * 100}%, rgba(79,70,229,0.15) ${((waitPeriod - 5) / (120 - 5)) * 100}%, rgba(79,70,229,0.15) 100%)` }}
-                                    />
-                                    <span className="text-[12px] font-bold text-slate-700 dark:text-white shrink-0 tabular-nums w-16 text-right">{waitPeriod} min</span>
+                              <div className="flex flex-col sm:flex-row gap-3">
+                                 <div className="flex-1">
+                                    <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block tracking-widest">DURATION</label>
+                                    <div className="flex items-center gap-2 bg-slate-50 dark:bg-[#141414] border border-slate-200/60 dark:border-white/10 rounded-lg px-3 h-[32px] shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]">
+                                       <span className="text-[9px] font-bold text-slate-400">5M</span>
+                                       <input
+                                          type="range" min={5} max={120} step={5} value={waitPeriod}
+                                          onChange={e => setWaitPeriod(+e.target.value)}
+                                          className="flex-1 h-1.5 rounded-lg appearance-none cursor-pointer accent-indigo-600 dark:accent-indigo-500"
+                                          style={{ background: `linear-gradient(to right, #4f46e5 0%, #4f46e5 ${((waitPeriod - 5) / (120 - 5)) * 100}%, rgba(79,70,229,0.15) ${((waitPeriod - 5) / (120 - 5)) * 100}%, rgba(79,70,229,0.15) 100%)` }}
+                                       />
+                                       <span className="text-[9px] font-bold text-slate-400">120M</span>
+                                    </div>
+                                 </div>
+                                 <div className="flex-[1.2]">
+                                    <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block tracking-widest">TRIGGER</label>
+                                    <Select defaultValue="every">
+                                       <SelectTrigger className="w-full bg-slate-50 dark:bg-[#141414] border border-slate-200/60 dark:border-white/10 rounded-lg px-3 h-[32px] text-[13px] font-bold text-slate-800 dark:text-white shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] focus:ring-1 focus:ring-indigo-500/30">
+                                          <SelectValue />
+                                       </SelectTrigger>
+                                       <SelectContent>
+                                          <SelectItem value="every">After every losing trade</SelectItem>
+                                          <SelectItem value="consecutive">After consecutive losses</SelectItem>
+                                       </SelectContent>
+                                    </Select>
                                  </div>
                               </div>
                            </RiskGuardCard>
 
                            <RiskGuardCard icon={Clock} title="Session Sentinel" description="Custom hourly trading windows" value={sessionActive ? "Active" : "Disabled"} active={sessionActive} onToggle={setSessionActive}>
                               <div>
-                                 <label className="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block">Active Sessions</label>
+                                 <div className="flex items-center justify-between mb-1">
+                                    <label className="text-[9px] font-bold text-slate-400 uppercase block tracking-widest">ACTIVE SESSIONS</label>
+                                    <div className="flex items-center gap-1 text-[9px] font-bold text-slate-400 uppercase select-none">
+                                       <Clock size={10} />
+                                       Broker Time
+                                    </div>
+                                 </div>
                                  <div className="flex flex-wrap gap-1.5">
                                     {sessionButtons.map(session => {
                                        const isSelected = selectedSessions.includes(session.id);
                                        return (
-                                          <button key={session.id} onClick={() => toggleSession(session.id)} className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all border ${isSelected ? 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-500/20' : 'bg-slate-50 text-slate-500 border-slate-200 dark:bg-white/5 dark:text-slate-400 dark:border-white/10 hover:bg-slate-100'
+                                          <button key={session.id} onClick={() => toggleSession(session.id)} className={`px-2.5 h-[26px] flex items-center justify-center rounded-md text-[11px] font-bold transition-all border ${isSelected ? 'bg-indigo-50 text-indigo-600 border-indigo-200 dark:bg-indigo-500/10 dark:text-indigo-400 dark:border-indigo-500/20 shadow-[0_2px_10px_-4px_rgba(99,102,241,0.2)]' : 'bg-slate-50 text-slate-500 border-slate-200 dark:bg-white/5 dark:text-slate-400 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/10'
                                              }`}>{session.label}</button>
                                        );
                                     })}
-                                 </div>
-                              </div>
-                           </RiskGuardCard>
-
-                           <RiskGuardCard icon={Trophy} title="Consecutive Win Lock" description="Lock trading after wins" value={`${consecutiveWins} Wins`} active={stopAfterWin} onToggle={setStopAfterWin}>
-                              <div>
-                                 <label className="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block">Max Consecutive Wins</label>
-                                 <input type="number" value={consecutiveWins} onChange={e => setConsecutiveWins(Number(e.target.value))} className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-[13px] font-bold text-slate-800 dark:text-white outline-none" />
-                              </div>
-                           </RiskGuardCard>
-
-                           <RiskGuardCard icon={Sunrise} title="No Trading After Time" description="Daily cutoff time" value={noTradingAfterTime} active={noTradingAfterTimeActive} onToggle={setNoTradingAfterTimeActive}>
-                              <div>
-                                 <label className="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block">Cutoff Time</label>
-                                 <input type="time" value={noTradingAfterTime} onChange={e => setNoTradingAfterTime(e.target.value)} className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-[13px] font-bold text-slate-800 dark:text-white outline-none" />
-                              </div>
-                           </RiskGuardCard>
-
-                           <RiskGuardCard icon={HeartPulse} title="Emotional Detector" description="AI pacing detection" value={emotionalTradingDetector ? "Active" : "Disabled"} active={emotionalTradingDetector} onToggle={setEmotionalTradingDetector}>
-                              <div>
-                                 <label className="text-[9px] font-bold text-slate-400 uppercase mb-2 block tracking-widest">SENSITIVITY SCORE</label>
-                                 <div className="relative flex items-center w-full">
-                                    <input type="number" value={emotionSensitivity} onChange={e => setEmotionSensitivity(Number(e.target.value))} className="w-full bg-slate-50 dark:bg-[#141414] border border-slate-200/60 dark:border-white/10 rounded-full pl-4 pr-12 py-2 text-[14px] font-bold text-slate-800 dark:text-white outline-none focus:border-indigo-500/30 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] transition-all" />
-                                    <span className="absolute right-4 text-[11px] font-bold text-slate-400">%</span>
-                                 </div>
-                              </div>
-                           </RiskGuardCard>
-                           <RiskGuardCard icon={AlertTriangle} title="News Filter" description="Block around high-impact news" value={newsFilter ? "Active" : "Disabled"} active={newsFilter} onToggle={setNewsFilter}>
-                              <div>
-                                 <label className="text-[9px] font-bold text-slate-400 uppercase mb-2 block tracking-widest">IMPACT LEVEL</label>
-                                 <div className="relative flex items-center w-full">
-                                    <input type="text" value={newsImpactLevel} onChange={e => setNewsImpactLevel(e.target.value)} className="w-full bg-slate-50 dark:bg-[#141414] border border-slate-200/60 dark:border-white/10 rounded-full pl-4 pr-4 py-2 text-[14px] font-bold text-slate-800 dark:text-white outline-none focus:border-indigo-500/30 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] transition-all" />
-
-                                 </div>
-                              </div>
-                           </RiskGuardCard>
-                           <RiskGuardCard icon={Moon} title="Sleep Protection" description="Disable midnight trading" value={sleepProtection ? "Active" : "Disabled"} active={sleepProtection} onToggle={setSleepProtection}>
-                              <div>
-                                 <label className="text-[9px] font-bold text-slate-400 uppercase mb-2 block tracking-widest">LOCKOUT START TIME</label>
-                                 <div className="relative flex items-center w-full">
-                                    <input type="time" value={sleepTimeStart} onChange={e => setSleepTimeStart(e.target.value)} className="w-full bg-slate-50 dark:bg-[#141414] border border-slate-200/60 dark:border-white/10 rounded-full pl-4 pr-4 py-2 text-[14px] font-bold text-slate-800 dark:text-white outline-none focus:border-indigo-500/30 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] transition-all" />
-
-                                 </div>
-                              </div>
-                           </RiskGuardCard>
-                           <RiskGuardCard icon={CheckSquare} title="Pre-Trade Checklist" description="Mandatory popup checklist" value={preTradeChecklist ? "Active" : "Disabled"} active={preTradeChecklist} onToggle={setPreTradeChecklist}>
-                              <div>
-                                 <label className="text-[9px] font-bold text-slate-400 uppercase mb-2 block tracking-widest">REQUIRED CHECKS</label>
-                                 <div className="relative flex items-center w-full">
-                                    <input type="number" value={checklistItems} onChange={e => setChecklistItems(Number(e.target.value))} className="w-full bg-slate-50 dark:bg-[#141414] border border-slate-200/60 dark:border-white/10 rounded-full pl-4 pr-4 py-2 text-[14px] font-bold text-slate-800 dark:text-white outline-none focus:border-indigo-500/30 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] transition-all" />
-
-                                 </div>
-                              </div>
-                           </RiskGuardCard>
-                           <RiskGuardCard icon={Brain} title="Psychology Check" description="Mandatory mood-slider" value={psychologyCheck ? "Active" : "Disabled"} active={psychologyCheck} onToggle={setPsychologyCheck}>
-                              <div>
-                                 <label className="text-[9px] font-bold text-slate-400 uppercase mb-2 block tracking-widest">CHECK FREQUENCY</label>
-                                 <div className="relative flex items-center w-full">
-                                    <input type="text" value={psychologyInterval} onChange={e => setPsychologyInterval(e.target.value)} className="w-full bg-slate-50 dark:bg-[#141414] border border-slate-200/60 dark:border-white/10 rounded-full pl-4 pr-4 py-2 text-[14px] font-bold text-slate-800 dark:text-white outline-none focus:border-indigo-500/30 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] transition-all" />
-
-                                 </div>
-                              </div>
-                           </RiskGuardCard>
-                           <RiskGuardCard icon={Sparkles} title="AI Weekly Review" description="AI review of your trades" value={aiWeeklyReview ? "Active" : "Disabled"} active={aiWeeklyReview} onToggle={setAiWeeklyReview}>
-                              <div>
-                                 <label className="text-[9px] font-bold text-slate-400 uppercase mb-2 block tracking-widest">REVIEW DAY</label>
-                                 <div className="relative flex items-center w-full">
-                                    <input type="text" value={reviewDay} onChange={e => setReviewDay(e.target.value)} className="w-full bg-slate-50 dark:bg-[#141414] border border-slate-200/60 dark:border-white/10 rounded-full pl-4 pr-4 py-2 text-[14px] font-bold text-slate-800 dark:text-white outline-none focus:border-indigo-500/30 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] transition-all" />
-
-                                 </div>
-                              </div>
-                           </RiskGuardCard>
-                           <RiskGuardCard icon={Volume2} title="AI Voice Warning" description="Audible alerts for limits" value={aiVoiceWarning ? "Active" : "Disabled"} active={aiVoiceWarning} onToggle={setAiVoiceWarning}>
-                              <div>
-                                 <label className="text-[9px] font-bold text-slate-400 uppercase mb-2 block tracking-widest">ALERT VOLUME</label>
-                                 <div className="relative flex items-center w-full">
-                                    <input type="number" value={voiceVolume} onChange={e => setVoiceVolume(Number(e.target.value))} className="w-full bg-slate-50 dark:bg-[#141414] border border-slate-200/60 dark:border-white/10 rounded-full pl-4 pr-12 py-2 text-[14px] font-bold text-slate-800 dark:text-white outline-none focus:border-indigo-500/30 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] transition-all" />
-                                    <span className="absolute right-4 text-[11px] font-bold text-slate-400">%</span>
-                                 </div>
-                              </div>
-                           </RiskGuardCard>
-
-                           <RiskGuardCard icon={Key} title="Guardian PIN" description="Require PIN to override limits" value={pinActive ? "Active" : "Disabled"} active={pinActive} onToggle={setPinActive}>
-                              <div className="space-y-1.5">
-                                 <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Set 4-Digit PIN</label>
-                                 <div className="relative">
-                                    <input
-                                       type={showPin ? "text" : "password"}
-                                       value={guardianPin}
-                                       onChange={e => {
-                                          const val = e.target.value.replace(/\D/g, '').slice(0, 4);
-                                          setGuardianPin(val);
-                                       }}
-                                       placeholder="••••"
-                                       className="w-full bg-[#F4F4F4] dark:bg-[#1A1A1C] border-2 border-[#E7E7E7] dark:border-[#252528] text-slate-800 dark:text-white text-[14px] font-bold rounded-[16px] px-4 py-3 outline-none focus:border-amber-500/50 dark:focus:border-amber-500/50 transition-colors placeholder:text-slate-400/50 tracking-widest"
-                                    />
-                                    <button
-                                       type="button"
-                                       onClick={() => setShowPin(!showPin)}
-                                       className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-amber-500 transition-colors"
-                                    >
-                                       {showPin ? <EyeOff size={16} /> : <Eye size={16} />}
+                                    <button className="px-2.5 h-[26px] flex items-center justify-center rounded-md text-[11px] font-bold transition-all border border-dashed border-slate-300 dark:border-white/20 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5 hover:text-slate-700 dark:hover:text-slate-300 gap-1.5">
+                                       <span>+</span> Custom
                                     </button>
                                  </div>
                               </div>
-
                            </RiskGuardCard>
 
-                           <RiskGuardCard icon={MonitorOff} title="Terminal Hard Stop" description="Force lock on limit breach" value={hardStopActive ? "Active" : "Disabled"} active={hardStopActive} onToggle={setHardStopActive}>
-                              <div className="space-y-4">
-                                 <div className="p-3.5 flex flex-col gap-3 rounded-[16px] bg-[#F4F4F4]/50 dark:bg-[#1A1A1C]/50 border border-transparent shadow-sm">
-                                    <div className="flex items-center justify-between">
-                                       <div>
-                                          <p className="text-[11px] font-bold text-slate-700 dark:text-slate-200">Force Action Lockout</p>
-                                          <p className="text-[10px] text-slate-400 font-medium mt-1">Simulate a max-loss breach</p>
+                           <RiskGuardCard icon={Trophy} title="Win Streak Cooldown" description="Lock trading after wins" value={`${consecutiveWins} Wins`} active={stopAfterWin} onToggle={setStopAfterWin}>
+                              <div className="flex flex-col sm:flex-row gap-3">
+                                 <div className="flex-1">
+                                    <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block tracking-widest">MAX CONSECUTIVE WINS</label>
+                                    <div className="flex items-center gap-2">
+                                       <button onClick={() => setConsecutiveWins(prev => Math.max(1, prev - 1))} className="w-[32px] h-[32px] flex items-center justify-center rounded-lg bg-white dark:bg-[#202020] border border-slate-200/60 dark:border-white/10 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] text-slate-700 dark:text-slate-300 font-bold hover:bg-slate-50 transition-colors active:scale-95">-</button>
+                                       <span className="flex-1 bg-slate-50 dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-lg px-3 h-[32px] flex items-center justify-center text-[13px] font-bold text-slate-800 dark:text-white shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]">{consecutiveWins}</span>
+                                       <button onClick={() => setConsecutiveWins(prev => prev + 1)} className="w-[32px] h-[32px] flex items-center justify-center rounded-lg bg-white dark:bg-[#202020] border border-slate-200/60 dark:border-white/10 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] text-slate-700 dark:text-slate-300 font-bold hover:bg-slate-50 transition-colors active:scale-95">+</button>
+                                    </div>
+                                 </div>
+                                 <div className="flex-[1.2]">
+                                    <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block tracking-widest">ACTION</label>
+                                    <Select defaultValue="pause">
+                                       <SelectTrigger className="w-full bg-slate-50 dark:bg-[#141414] border border-slate-200/60 dark:border-white/10 rounded-lg px-3 h-[32px] text-[13px] font-bold text-slate-800 dark:text-white shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] focus:ring-1 focus:ring-indigo-500/30">
+                                          <SelectValue />
+                                       </SelectTrigger>
+                                       <SelectContent>
+                                          <SelectItem value="pause">Pause trading</SelectItem>
+                                          <SelectItem value="confirm">Require confirmation</SelectItem>
+                                       </SelectContent>
+                                    </Select>
+                                 </div>
+                              </div>
+                           </RiskGuardCard>
+
+                           <RiskGuardCard icon={Sunrise} title="No Trading After Time" description="Daily cutoff time" value={noTradingAfterTime} active={noTradingAfterTimeActive} onToggle={setNoTradingAfterTimeActive} intent="discipline">
+                              <div className="flex flex-col sm:flex-row gap-3">
+                                 <div className="flex-[0.8]">
+                                    <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block tracking-widest">CUTOFF TIME</label>
+                                    <Popover>
+                                       <PopoverTrigger asChild>
+                                          <button className="flex items-center justify-between w-full h-[32px] bg-slate-50 dark:bg-[#141414] border border-slate-200/60 dark:border-white/10 rounded-lg shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] focus-within:border-indigo-500/30 focus-within:ring-1 focus-within:ring-indigo-500/30 overflow-hidden pl-3 pr-2.5 outline-none transition-all">
+                                             <span className="text-[13px] font-bold text-slate-800 dark:text-white">{noTradingAfterTime}</span>
+                                             <div className="flex items-center gap-1.5 text-[9px] font-bold text-slate-400 uppercase select-none whitespace-nowrap">
+                                                <Clock size={12} className="text-slate-400" />
+                                                Broker Time
+                                             </div>
+                                          </button>
+                                       </PopoverTrigger>
+                                       <PopoverContent className="w-[150px] p-0 border-slate-200 dark:border-white/10 rounded-md overflow-hidden shadow-xl" align="start">
+                                          <div className="flex bg-white dark:bg-[#1A1A1A] p-1.5 gap-1.5 border-b border-slate-100 dark:border-white/5">
+                                             <div className="flex-1 bg-[#106efb] text-white font-bold text-center py-1.5 rounded-sm text-[13px] shadow-sm border border-slate-900 dark:border-black">
+                                                {noTradingAfterTime.split(':')[0] || '15'}
+                                             </div>
+                                             <div className="flex-1 bg-[#106efb] text-white font-bold text-center py-1.5 rounded-sm text-[13px] shadow-sm border border-slate-900 dark:border-black">
+                                                {noTradingAfterTime.split(':')[1] || '00'}
+                                             </div>
+                                          </div>
+                                          <div className="flex h-[200px] bg-white dark:bg-[#1A1A1A]">
+                                             <div className="flex-1 overflow-y-auto border-r border-slate-100 dark:border-white/5 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:bg-slate-200 dark:[&::-webkit-scrollbar-thumb]:bg-white/10 [&::-webkit-scrollbar-track]:bg-transparent">
+                                                {Array.from({ length: 24 }).map((_, i) => {
+                                                   const h = i.toString().padStart(2, '0');
+                                                   const currentH = noTradingAfterTime.split(':')[0] || '15';
+                                                   return (
+                                                      <button 
+                                                         key={`h-${h}`}
+                                                         onClick={() => setNoTradingAfterTime(`${h}:${noTradingAfterTime.split(':')[1] || '00'}`)}
+                                                         className={`w-full text-center py-2.5 text-[13px] transition-colors outline-none ${h === currentH ? 'bg-slate-100 dark:bg-white/10 font-bold text-[#106efb] dark:text-[#3b82f6]' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5'}`}
+                                                      >
+                                                         {h}
+                                                      </button>
+                                                   )
+                                                })}
+                                             </div>
+                                             <div className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:bg-slate-200 dark:[&::-webkit-scrollbar-thumb]:bg-white/10 [&::-webkit-scrollbar-track]:bg-transparent">
+                                                {Array.from({ length: 60 }).map((_, i) => {
+                                                   const m = i.toString().padStart(2, '0');
+                                                   const currentM = noTradingAfterTime.split(':')[1] || '00';
+                                                   return (
+                                                      <button 
+                                                         key={`m-${m}`}
+                                                         onClick={() => setNoTradingAfterTime(`${noTradingAfterTime.split(':')[0] || '15'}:${m}`)}
+                                                         className={`w-full text-center py-2.5 text-[13px] transition-colors outline-none ${m === currentM ? 'bg-slate-100 dark:bg-white/10 font-bold text-[#106efb] dark:text-[#3b82f6]' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5'}`}
+                                                      >
+                                                         {m}
+                                                      </button>
+                                                   )
+                                                })}
+                                             </div>
+                                          </div>
+                                       </PopoverContent>
+                                    </Popover>
+                                 </div>
+                                 <div className="flex-1">
+                                    <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block tracking-widest">ACTION</label>
+                                    <Select defaultValue="block">
+                                       <SelectTrigger className="w-full bg-slate-50 dark:bg-[#141414] border border-slate-200/60 dark:border-white/10 rounded-lg px-3 h-[32px] text-[13px] font-bold text-slate-800 dark:text-white shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] focus:ring-1 focus:ring-indigo-500/30">
+                                          <SelectValue />
+                                       </SelectTrigger>
+                                       <SelectContent>
+                                          <SelectItem value="block">Block new trades</SelectItem>
+                                          <SelectItem value="close">Close positions & block</SelectItem>
+                                       </SelectContent>
+                                    </Select>
+                                 </div>
+                              </div>
+                           </RiskGuardCard>
+
+                           <RiskGuardCard icon={HeartPulse} title="Behavioural Risk Detector" description="AI pacing detection" value={emotionalTradingDetector ? "Active" : "Disabled"} active={emotionalTradingDetector} onToggle={setEmotionalTradingDetector} intent="discipline">
+                              <div>
+                                 <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block tracking-widest">SENSITIVITY</label>
+                                 <div className="flex items-center gap-3 w-full">
+                                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Low</span>
+                                    <div className="flex-1 h-[32px] flex items-center relative">
+                                       <input type="range" min="0" max="100" step="10" value={emotionSensitivity} onChange={e => setEmotionSensitivity(Number(e.target.value))} className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500" />
+                                    </div>
+                                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">High</span>
+                                 </div>
+                              </div>
+                           </RiskGuardCard>
+
+                           <RiskGuardCard icon={AlertTriangle} title="News Filter" description="Block around high-impact news" value={newsFilter ? "Active" : "Disabled"} active={newsFilter} onToggle={setNewsFilter} intent="warning">
+                              <div className="flex flex-col sm:flex-row gap-3">
+                                 <div className="flex-[1.2]">
+                                    <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block tracking-widest">IMPACT LEVEL</label>
+                                    <Select defaultValue={newsImpactLevel} onValueChange={setNewsImpactLevel}>
+                                       <SelectTrigger className="w-full bg-slate-50 dark:bg-[#141414] border border-slate-200/60 dark:border-white/10 rounded-lg px-3 h-[32px] text-[13px] font-bold text-slate-800 dark:text-white shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] focus:ring-1 focus:ring-indigo-500/30">
+                                          <SelectValue />
+                                       </SelectTrigger>
+                                       <SelectContent>
+                                          <SelectItem value="high">High Only</SelectItem>
+                                          <SelectItem value="medium_high">Medium & High</SelectItem>
+                                       </SelectContent>
+                                    </Select>
+                                 </div>
+                                 <div className="flex-1 flex gap-2">
+                                    <div className="flex-1">
+                                       <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block tracking-widest">BLOCK BFR.</label>
+                                       <div className="flex items-center bg-slate-50 dark:bg-[#141414] border border-slate-200/60 dark:border-white/10 rounded-lg h-[32px] shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] px-2">
+                                          <input type="number" defaultValue="30" className="w-full bg-transparent text-[13px] font-bold text-slate-800 dark:text-white outline-none text-center" />
+                                          <span className="text-[9px] text-slate-400 font-bold ml-1">M</span>
                                        </div>
+                                    </div>
+                                    <div className="flex-1">
+                                       <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block tracking-widest">RESUME AFT.</label>
+                                       <div className="flex items-center bg-slate-50 dark:bg-[#141414] border border-slate-200/60 dark:border-white/10 rounded-lg h-[32px] shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] px-2">
+                                          <input type="number" defaultValue="15" className="w-full bg-transparent text-[13px] font-bold text-slate-800 dark:text-white outline-none text-center" />
+                                          <span className="text-[9px] text-slate-400 font-bold ml-1">M</span>
+                                       </div>
+                                    </div>
+                                 </div>
+                              </div>
+                           </RiskGuardCard>
+
+                           <RiskGuardCard icon={Moon} title="Sleep Protection" description="Disable midnight trading" value={sleepProtection ? "Active" : "Disabled"} active={sleepProtection} onToggle={setSleepProtection} intent="discipline">
+                              <div className="flex gap-3">
+                                 <div className="flex-1">
+                                    <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block tracking-widest">LOCKOUT START</label>
+                                    <div className="relative flex items-center w-full">
+                                       <input type="time" value={sleepTimeStart} onChange={e => setSleepTimeStart(e.target.value)} className="w-full h-[32px] bg-slate-50 dark:bg-[#141414] border border-slate-200/60 dark:border-white/10 rounded-lg pl-3 pr-2 text-[13px] font-bold text-slate-800 dark:text-white outline-none focus:ring-1 focus:ring-indigo-500/30 transition-all tabular-nums shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]" />
+                                    </div>
+                                 </div>
+                                 <div className="flex-1">
+                                    <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block tracking-widest">LOCKOUT END</label>
+                                    <div className="relative flex items-center w-full">
+                                       <input type="time" defaultValue="06:00" className="w-full h-[32px] bg-slate-50 dark:bg-[#141414] border border-slate-200/60 dark:border-white/10 rounded-lg pl-3 pr-2 text-[13px] font-bold text-slate-800 dark:text-white outline-none focus:ring-1 focus:ring-indigo-500/30 transition-all tabular-nums shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]" />
+                                    </div>
+                                 </div>
+                              </div>
+                           </RiskGuardCard>
+
+                           <RiskGuardCard icon={CheckSquare} title="Pre-Trade Checklist" description="Mandatory popup checklist" value={preTradeChecklist ? "Active" : "Disabled"} active={preTradeChecklist} onToggle={setPreTradeChecklist} intent="discipline">
+                              <div className="flex flex-col sm:flex-row gap-3">
+                                 <div className="flex-[1.2]">
+                                    <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block tracking-widest">CHECKLIST PRESET</label>
+                                    <Select defaultValue="standard">
+                                       <SelectTrigger className="w-full bg-slate-50 dark:bg-[#141414] border border-slate-200/60 dark:border-white/10 rounded-lg px-3 h-[32px] text-[13px] font-bold text-slate-800 dark:text-white shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] focus:ring-1 focus:ring-indigo-500/30">
+                                          <SelectValue />
+                                       </SelectTrigger>
+                                       <SelectContent>
+                                          <SelectItem value="basic">Basic (3 items)</SelectItem>
+                                          <SelectItem value="standard">Standard (5 items)</SelectItem>
+                                          <SelectItem value="strict">Strict (8 items)</SelectItem>
+                                       </SelectContent>
+                                    </Select>
+                                 </div>
+                                 <div className="flex-1">
+                                    <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block tracking-widest">CUSTOMIZE</label>
+                                    <button className="w-full h-[32px] flex items-center justify-center gap-1.5 bg-slate-50 dark:bg-[#141414] border border-slate-200/60 dark:border-white/10 rounded-lg text-[11px] font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]">
+                                       <Settings size={12} />
+                                       Edit Items
+                                    </button>
+                                 </div>
+                              </div>
+                           </RiskGuardCard>
+
+                           <RiskGuardCard icon={Brain} title="Psychology Check" description="Mandatory mood-slider" value={psychologyCheck ? "Active" : "Disabled"} active={psychologyCheck} onToggle={setPsychologyCheck} intent="discipline">
+                              <div>
+                                 <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block tracking-widest">CHECK FREQUENCY</label>
+                                 <Select defaultValue="first">
+                                    <SelectTrigger className="w-full bg-slate-50 dark:bg-[#141414] border border-slate-200/60 dark:border-white/10 rounded-lg px-3 h-[32px] text-[13px] font-bold text-slate-800 dark:text-white shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] focus:ring-1 focus:ring-indigo-500/30">
+                                       <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                       <SelectItem value="first">Before first trade</SelectItem>
+                                       <SelectItem value="loss">After a losing trade</SelectItem>
+                                       <SelectItem value="every">Before every trade</SelectItem>
+                                       <SelectItem value="daily">Once daily</SelectItem>
+                                    </SelectContent>
+                                 </Select>
+                              </div>
+                           </RiskGuardCard>
+
+                           <RiskGuardCard icon={Sparkles} title="AI Weekly Review" description="AI review of your trades" value={aiWeeklyReview ? "Active" : "Disabled"} active={aiWeeklyReview} onToggle={setAiWeeklyReview} intent="discipline">
+                              <div className="flex flex-col sm:flex-row gap-3">
+                                 <div className="flex-[0.8] flex gap-2">
+                                    <div className="flex-[1.2]">
+                                       <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block tracking-widest">DAY</label>
+                                       <Select defaultValue="friday">
+                                          <SelectTrigger className="w-full bg-slate-50 dark:bg-[#141414] border border-slate-200/60 dark:border-white/10 rounded-lg px-3 h-[32px] text-[13px] font-bold text-slate-800 dark:text-white shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] focus:ring-1 focus:ring-indigo-500/30">
+                                             <SelectValue />
+                                          </SelectTrigger>
+                                          <SelectContent>
+                                             <SelectItem value="friday">Friday</SelectItem>
+                                             <SelectItem value="saturday">Saturday</SelectItem>
+                                             <SelectItem value="sunday">Sunday</SelectItem>
+                                          </SelectContent>
+                                       </Select>
+                                    </div>
+                                    <div className="flex-[0.8]">
+                                       <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block tracking-widest">TIME</label>
+                                       <input type="time" defaultValue="17:00" className="w-full h-[32px] bg-slate-50 dark:bg-[#141414] border border-slate-200/60 dark:border-white/10 rounded-lg px-2 text-[13px] font-bold text-slate-800 dark:text-white outline-none focus:ring-1 focus:ring-indigo-500/30 transition-all tabular-nums shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]" />
+                                    </div>
+                                 </div>
+                                 <div className="flex-1">
+                                    <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block tracking-widest">DELIVERY</label>
+                                    <Select defaultValue="in_app">
+                                       <SelectTrigger className="w-full bg-slate-50 dark:bg-[#141414] border border-slate-200/60 dark:border-white/10 rounded-lg px-3 h-[32px] text-[13px] font-bold text-slate-800 dark:text-white shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] focus:ring-1 focus:ring-indigo-500/30">
+                                          <SelectValue />
+                                       </SelectTrigger>
+                                       <SelectContent>
+                                          <SelectItem value="in_app">In-app report</SelectItem>
+                                          <SelectItem value="email">Email summary</SelectItem>
+                                       </SelectContent>
+                                    </Select>
+                                 </div>
+                              </div>
+                           </RiskGuardCard>
+
+                           <RiskGuardCard icon={Volume2} title="AI Voice Warning" description="Audible alerts for limits" value={aiVoiceWarning ? "Active" : "Disabled"} active={aiVoiceWarning} onToggle={setAiVoiceWarning} intent="warning">
+                              <div className="flex flex-col sm:flex-row gap-3">
+                                 <div className="flex-1">
+                                    <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block tracking-widest">VOLUME</label>
+                                    <div className="flex items-center gap-3 w-full">
+                                       <div className="flex-1 h-[32px] flex items-center relative">
+                                          <input type="range" min="0" max="100" step="10" value={voiceVolume} onChange={e => setVoiceVolume(Number(e.target.value))} className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500" />
+                                       </div>
+                                       <button className="w-[32px] h-[32px] flex items-center justify-center rounded-lg bg-slate-50 dark:bg-[#141414] border border-slate-200/60 dark:border-white/10 text-slate-700 dark:text-slate-300 font-bold hover:bg-slate-100 dark:hover:bg-white/5 transition-colors shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]">
+                                          <Volume2 size={14} />
+                                       </button>
+                                    </div>
+                                 </div>
+                                 <div className="flex-1">
+                                    <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block tracking-widest">TRIGGERS</label>
+                                    <Select defaultValue="critical">
+                                       <SelectTrigger className="w-full bg-slate-50 dark:bg-[#141414] border border-slate-200/60 dark:border-white/10 rounded-lg px-3 h-[32px] text-[13px] font-bold text-slate-800 dark:text-white shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] focus:ring-1 focus:ring-indigo-500/30">
+                                          <SelectValue />
+                                       </SelectTrigger>
+                                       <SelectContent>
+                                          <SelectItem value="all">All warnings</SelectItem>
+                                          <SelectItem value="critical">Critical limits only</SelectItem>
+                                          <SelectItem value="drawdown">Drawdown only</SelectItem>
+                                       </SelectContent>
+                                    </Select>
+                                 </div>
+                              </div>
+                           </RiskGuardCard>
+
+                           <RiskGuardCard icon={Key} title="Guardian PIN" description="Require PIN to override limits" value={pinActive ? "Active" : "Disabled"} active={pinActive} onToggle={setPinActive} intent="emergency">
+                              <div className="flex gap-3">
+                                 <div className="flex-1">
+                                    <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block tracking-widest">ENTER PIN</label>
+                                    <div className="relative flex items-center w-full">
+                                       <input
+                                          type={showPin ? "text" : "password"}
+                                          value={guardianPin}
+                                          onChange={e => {
+                                             const val = e.target.value.replace(/\D/g, '').slice(0, 4);
+                                             setGuardianPin(val);
+                                          }}
+                                          placeholder="••••"
+                                          className="w-full h-[32px] bg-slate-50 dark:bg-[#141414] border border-slate-200/60 dark:border-white/10 rounded-lg pl-3 pr-8 text-[13px] font-bold text-slate-900 dark:text-white outline-none focus:ring-1 focus:ring-indigo-500/30 transition-all placeholder:text-slate-400 tracking-widest shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]"
+                                       />
                                        <button
-                                          onClick={() => setHardStopActive(true)}
-                                          className="px-4 py-2 rounded-xl bg-rose-500/10 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400 text-[11px] font-bold hover:bg-rose-500 hover:text-white transition-all shadow-sm"
+                                          type="button"
+                                          onClick={() => setShowPin(!showPin)}
+                                          className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
                                        >
-                                          Trigger Demo Lock
+                                          {showPin ? <EyeOff size={14} /> : <Eye size={14} />}
+                                       </button>
+                                    </div>
+                                 </div>
+                                 <div className="flex-1">
+                                    <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block tracking-widest">CONFIRM PIN</label>
+                                    <div className="relative flex items-center w-full">
+                                       <input
+                                          type={showPin ? "text" : "password"}
+                                          placeholder="••••"
+                                          className="w-full h-[32px] bg-slate-50 dark:bg-[#141414] border border-slate-200/60 dark:border-white/10 rounded-lg pl-3 pr-8 text-[13px] font-bold text-slate-900 dark:text-white outline-none focus:ring-1 focus:ring-indigo-500/30 transition-all placeholder:text-slate-400 tracking-widest shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]"
+                                       />
+                                       <button
+                                          type="button"
+                                          onClick={() => setShowPin(!showPin)}
+                                          className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                                       >
+                                          {showPin ? <EyeOff size={14} /> : <Eye size={14} />}
                                        </button>
                                     </div>
                                  </div>
                               </div>
+                           </RiskGuardCard>
 
+                           <RiskGuardCard icon={MonitorOff} title="Terminal Hard Stop" description="Force lock on limit breach" value={hardStopActive ? "Active" : "Disabled"} active={hardStopActive} onToggle={setHardStopActive} intent="emergency">
+                              <div className="flex flex-col sm:flex-row gap-3">
+                                 <div className="flex-[1.5]">
+                                    <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block tracking-widest">TRIGGER CONDITION</label>
+                                    <Select defaultValue="drawdown">
+                                       <SelectTrigger className="w-full bg-slate-50 dark:bg-[#141414] border border-slate-200/60 dark:border-white/10 rounded-lg px-3 h-[32px] text-[13px] font-bold text-slate-800 dark:text-white shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] focus:ring-1 focus:ring-indigo-500/30">
+                                          <SelectValue />
+                                       </SelectTrigger>
+                                       <SelectContent>
+                                          <SelectItem value="drawdown">Max Drawdown breach</SelectItem>
+                                          <SelectItem value="equity">Equity stop limit hit</SelectItem>
+                                          <SelectItem value="rules">Repeated rule violation</SelectItem>
+                                       </SelectContent>
+                                    </Select>
+                                 </div>
+                                 <div className="flex-1">
+                                    <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block tracking-widest">TEST</label>
+                                    <button
+                                       onClick={() => setHardStopActive(true)}
+                                       className="w-full h-[32px] flex items-center justify-center gap-1.5 bg-rose-50 dark:bg-rose-500/10 border border-rose-200/60 dark:border-rose-500/20 rounded-lg text-[11px] font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-500/20 transition-colors shadow-[0_2px_10px_-4px_rgba(244,63,94,0.1)]"
+                                    >
+                                       <MonitorOff size={12} />
+                                       Test Lock
+                                    </button>
+                                 </div>
+                              </div>
                            </RiskGuardCard>
                         </div>
                      </div>
@@ -1530,83 +1675,82 @@ export default function RiskGuard() {
                </div>
 
                {/* Right Column: 3 Widgets */}
-               <div className="w-full xl:w-[320px] shrink-0 space-y-6 xl:sticky xl:top-6 self-start xl:-mt-[72px]">
+               <div className="w-full xl:w-[320px] shrink-0 space-y-6 xl:sticky xl:top-24 self-start pb-6 px-1 -mx-1 pt-1 -mt-1">
 
                   {/* 1. Risk Score Card */}
-                  <div className="bg-white dark:bg-[#1A1A1C] border border-slate-200 dark:border-zinc-800/80 rounded-[24px] p-6 shadow-sm flex flex-col items-center">
-                     <h3 className="text-[15px] font-bold text-slate-800 dark:text-white self-start mb-6">Risk Score</h3>
-                     <div className="relative w-48 flex flex-col items-center justify-start mt-2">
-                        <svg viewBox="0 0 100 65" className="w-full drop-shadow-sm">
-                           <defs>
-                              <linearGradient id="risk-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                                 <stop offset="0%" stopColor="#ef4444" />
-                                 <stop offset="50%" stopColor="#f59e0b" />
-                                 <stop offset="100%" stopColor="#10b981" />
-                              </linearGradient>
-                           </defs>
-                           {/* Background Track */}
-                           <path d="M 15 15 A 35 35 0 0 0 85 15" fill="none" stroke="currentColor" className="text-slate-100 dark:text-zinc-800" strokeWidth="16" strokeLinecap="round" />
-                           {/* Foreground Track */}
-                           <path d="M 15 15 A 35 35 0 0 0 85 15" fill="none" stroke="url(#risk-gradient)" strokeWidth="16" strokeDasharray="110" strokeDashoffset={110 - (110 * (avgDisciplineScore || 85) / 100)} strokeLinecap="round" />
-                        </svg>
-
-                        {/* Score Text Nested Inside Gauge */}
-                        <div className="absolute inset-x-0 bottom-0 flex justify-center translate-y-2">
-                           <div className="flex items-baseline text-slate-800 dark:text-white">
-                              <span className="text-[44px] font-black tracking-tighter leading-none">{avgDisciplineScore || 85}</span>
-                              <span className="text-[15px] font-bold text-slate-400">/100</span>
-                           </div>
-                        </div>
-                     </div>
-                     <div className="text-center mt-2">
-                        <p className="text-[15px] font-bold text-emerald-500">Excellent</p>
-                        <p className="text-[11px] font-semibold text-emerald-500/70 mt-1">You are trading with discipline</p>
-                     </div>
-                  </div>
+                  <RiskScoreCard score={avgDisciplineScore ?? 0} />
 
                   {/* 2. Connected Account Card */}
-                  <div className="bg-white dark:bg-[#1A1A1C] border border-slate-200 dark:border-zinc-800/80 rounded-[24px] p-6 shadow-sm flex flex-col gap-5">
-                     <h3 className="text-[15px] font-bold text-slate-800 dark:text-white">Connected Account</h3>
+                  <div className="rounded-[22px] p-5 border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:shadow-none flex flex-col gap-6">
+                     <h3 className="text-[16px] font-bold text-slate-900 dark:text-white">Connected Account</h3>
+
                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                           <div className="w-7 h-7 bg-blue-50/50 rounded-full flex items-center justify-center border border-blue-100">
-                              <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                        <div className="flex items-center gap-3">
+                           <div className="w-11 h-11 bg-black rounded-full shrink-0"></div>
+                           <div className="flex flex-col">
+                              <span className="text-[15px] font-bold text-slate-800 dark:text-white leading-tight">
+                                 {accountMetrics?.broker_name || (isConnected ? "Connected Broker" : "Not Connected")}
+                              </span>
+                              <span className="text-[13px] font-medium text-slate-500 mt-0.5">Account: {accountMetrics?.account_number || (isConnected ? "Connected" : "---")}</span>
                            </div>
-                           <span className="text-[14px] font-bold text-slate-800 dark:text-white">Zerodha</span>
-                           <span className="text-[11px] font-semibold text-slate-400">{accountMetrics?.account_number || "NKN123"}</span>
                         </div>
-                        <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20">
-                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                           <span className="text-[9px] font-bold text-emerald-600 uppercase tracking-wider">Live</span>
+                        {isConnected ? (
+                           <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full ${accountMetrics?.demo ? 'bg-amber-100/80 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400' : 'bg-emerald-100/80 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'}`}>
+                              <span className={`w-1.5 h-1.5 rounded-full ${accountMetrics?.demo ? 'bg-amber-500 shadow-[0_0_4px_rgba(245,158,11,0.5)]' : 'bg-emerald-500 shadow-[0_0_4px_rgba(16,185,129,0.5)]'}`}></span>
+                              <span className="text-[11px] font-bold tracking-wide">{accountMetrics?.demo ? 'DEMO' : 'LIVE'}</span>
+                           </div>
+                        ) : (
+                           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100/80 dark:bg-slate-500/10 text-slate-500 dark:text-slate-400">
+                              <span className="w-1.5 h-1.5 rounded-full bg-slate-400 shadow-[0_0_4px_rgba(148,163,184,0.5)]"></span>
+                              <span className="text-[11px] font-bold tracking-wide">OFFLINE</span>
+                           </div>
+                        )}
+                     </div>
+
+                     <div className="space-y-3.5 pt-1">
+                        <div className="flex justify-between items-center text-[13px]">
+                           <span className="text-slate-500 font-medium">Balance</span>
+                           <span className="font-bold text-slate-800 dark:text-white">{sym}{balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                        </div>
+                        <div className="flex justify-between items-center text-[13px]">
+                           <span className="text-slate-500 font-medium">Equity</span>
+                           <span className="font-bold text-slate-800 dark:text-white">{sym}{(equity || balance).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                        </div>
+                        <div className="flex justify-between items-center text-[13px]">
+                           <span className="text-slate-500 font-medium">Free Margin</span>
+                           <span className="font-bold text-slate-800 dark:text-white">{sym}{((accountMetrics?.margin_free || accountMetrics?.equity || equity || balance) * 0.85).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                        </div>
+                        <div className="flex justify-between items-center text-[13px]">
+                           <span className="text-slate-500 font-medium">Leverage</span>
+                           <span className="font-bold text-slate-800 dark:text-white">1:{accountMetrics?.leverage || (isConnected ? "100" : "---")}</span>
+                        </div>
+                        <div className="flex justify-between items-center text-[13px]">
+                           <span className="text-slate-500 font-medium">Last Sync</span>
+                           <div className="flex items-center gap-1.5">
+                              <span className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-emerald-500' : 'bg-slate-400'}`}></span>
+                              <span className={`font-medium ${isConnected ? 'text-emerald-600 dark:text-emerald-500' : 'text-slate-500'}`}>
+                                 {isConnected ? (lastImportTime || "Just now") : "---"}
+                              </span>
+                           </div>
                         </div>
                      </div>
 
-                     <div className="space-y-3 pt-2">
-                        <div className="flex justify-between items-center">
-                           <span className="text-[13px] font-semibold text-slate-500">Balance</span>
-                           <span className="text-[13px] font-bold text-slate-800 dark:text-white">{sym}{balance.toLocaleString()}</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                           <span className="text-[13px] font-semibold text-slate-500">Daily P&L</span>
-                           <span className={`text-[13px] font-bold ${todayProfit >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
-                              {todayProfit >= 0 ? '+' : '-'}{sym}{Math.abs(todayProfit).toFixed(2)}
-                           </span>
-                        </div>
-                     </div>
-
-                     <button className="w-full py-2.5 mt-2 rounded-xl bg-slate-50 hover:bg-slate-100 dark:bg-white/5 dark:hover:bg-white/10 text-[12px] font-bold text-slate-700 dark:text-slate-300 transition-colors">
-                        Manage Connection
+                     <button
+                        onClick={() => navigate('/settings?tab=trading')}
+                        className="w-full py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-transparent hover:bg-slate-50 dark:hover:bg-white/5 text-[13px] font-bold text-slate-700 dark:text-slate-300 transition-colors flex items-center justify-center gap-2"
+                     >
+                        <Settings size={16} /> Manage Connection
                      </button>
                   </div>
 
                   {/* 3. Today's Summary Card */}
-                  <div className="bg-white dark:bg-[#1A1A1C] border border-slate-200 dark:border-zinc-800/80 rounded-[24px] p-6 shadow-sm flex flex-col gap-5">
+                  <div className="rounded-[22px] p-5 border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:shadow-none flex flex-col gap-5">
                      <h3 className="text-[15px] font-bold text-slate-800 dark:text-white">Today's Summary</h3>
 
                      <div className="space-y-4">
                         <div className="flex justify-between items-center">
                            <span className="text-[13px] font-semibold text-slate-500">Trades Taken</span>
-                           <div className="text-[13px] font-bold text-emerald-500">{tradesToday} <span className="text-slate-400">/ 5</span></div>
+                           <div className="text-[13px] font-bold text-emerald-500">{tradesToday} <span className="text-slate-400">/ {tradeLimit}</span></div>
                         </div>
                         <div className="flex justify-between items-center">
                            <span className="text-[13px] font-semibold text-slate-500">Daily P&L</span>
@@ -1616,7 +1760,7 @@ export default function RiskGuard() {
                         </div>
                         <div className="flex justify-between items-center pb-2 border-b border-slate-100 dark:border-white/5">
                            <span className="text-[13px] font-semibold text-slate-500">Daily Loss Limit</span>
-                           <span className="text-[13px] font-bold text-rose-500">{sym}0</span>
+                           <span className="text-[13px] font-bold text-rose-500">{sym}{((startingCapital || balance || 0) * (maxDrawdown / 100)).toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
                         </div>
                         <div className="flex justify-between items-center pt-1">
                            <span className="text-[13px] font-semibold text-slate-500">Daily Profit Target</span>

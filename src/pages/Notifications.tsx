@@ -32,7 +32,7 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { useNavigate } from "react-router-dom";
-import { ENABLE_MOCK_DATA, mockNotifications } from "@/lib/mockData";
+
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
 export default function Notifications() {
@@ -55,11 +55,7 @@ export default function Notifications() {
   const fetchNotifications = async () => {
     setLoading(true);
 
-    if (ENABLE_MOCK_DATA) {
-      setNotifications(mockNotifications);
-      setLoading(false);
-      return;
-    }
+
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
