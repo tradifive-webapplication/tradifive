@@ -217,12 +217,7 @@ export default function RiskGuardScreen() {
       elevation: 2,
     },
     activeMetricCard: {
-      borderColor: isDark ? '#064e3b' : '#a7f3d0',
-      shadowColor: '#10b981',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: isDark ? 0.2 : 0.4,
-      shadowRadius: 12,
-      elevation: 6,
+      // Intentionally left empty as per user request to not change box color
     },
     iconBoxStyle: {
       width: 44,

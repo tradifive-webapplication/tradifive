@@ -21,10 +21,7 @@ export function RiskGuardCard({
   children?: React.ReactNode;
 }) {
   return (
-    <div className={`p-3 sm:p-4 rounded-[22px] transition-all flex flex-col justify-start relative overflow-hidden isolate ${active
-      ? "border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:shadow-[0_4px_12px_-4px_rgba(16,185,129,0.15)]"
-      : "border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:shadow-none"
-      }`}>
+    <div className="p-3 sm:p-4 rounded-[22px] transition-all flex flex-col justify-start relative overflow-hidden isolate border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:shadow-none">
 
       {/* Header row — always visible & interactive */}
       <div className="flex items-start justify-between gap-3">
