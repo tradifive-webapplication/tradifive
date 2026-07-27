@@ -103,11 +103,23 @@ import { Modal, FlatList, TouchableWithoutFeedback } from 'react-native';
 function DropdownButton({ value, options, onSelect }: { value: string, options?: string[], onSelect?: (val: string) => void }) {
   const { isDark } = useAppTheme();
   const [modalVisible, setModalVisible] = React.useState(false);
+  const buttonRef = React.useRef<any>(null);
+  const [dropdownCoords, setDropdownCoords] = React.useState({ x: 0, y: 0, width: 0, height: 0 });
+
+  const openDropdown = () => {
+    if (buttonRef.current) {
+      buttonRef.current.measure((fx: any, fy: any, width: any, height: any, px: any, py: any) => {
+        setDropdownCoords({ x: px, y: py, width, height });
+        setModalVisible(true);
+      });
+    }
+  };
 
   return (
     <>
       <TouchableOpacity 
-        onPress={() => setModalVisible(true)}
+        ref={buttonRef}
+        onPress={openDropdown}
         style={{ backgroundColor: isDark ? '#141414' : '#f8fafc', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8, borderWidth: 1, borderColor: isDark ? '#2c2c2e' : '#e2e8f0' }}
       >
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -116,28 +128,41 @@ function DropdownButton({ value, options, onSelect }: { value: string, options?:
         </View>
       </TouchableOpacity>
 
-      <Modal visible={modalVisible} transparent={true} animationType="fade">
+      <Modal visible={modalVisible} transparent={true} animationType="none">
         <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
-          <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' }}>
-            <TouchableWithoutFeedback>
-              <View style={{ backgroundColor: isDark ? '#1a1a1e' : '#ffffff', width: '80%', borderRadius: 12, maxHeight: '60%', padding: 8, shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 10, elevation: 5 }}>
-                <FlatList
-                  data={options || []}
-                  keyExtractor={(item) => item}
-                  renderItem={({ item }) => (
-                    <TouchableOpacity
-                      style={{ paddingVertical: 14, paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: isDark ? '#2c2c2e' : '#f1f5f9' }}
-                      onPress={() => {
-                        if (onSelect) onSelect(item);
-                        setModalVisible(false);
-                      }}
-                    >
-                      <Text style={{ fontSize: 15, fontFamily: 'Inter_600SemiBold', color: isDark ? '#fff' : '#0f172a' }}>{item}</Text>
-                    </TouchableOpacity>
-                  )}
-                />
-              </View>
-            </TouchableWithoutFeedback>
+          <View style={{ flex: 1 }}>
+            <View style={{
+              position: 'absolute',
+              top: dropdownCoords.y + dropdownCoords.height + 4,
+              left: dropdownCoords.x,
+              width: dropdownCoords.width,
+              backgroundColor: isDark ? '#1a1a1e' : '#ffffff',
+              borderRadius: 8,
+              maxHeight: 200,
+              shadowColor: '#000',
+              shadowOpacity: 0.25,
+              shadowRadius: 10,
+              elevation: 5,
+              borderWidth: 1,
+              borderColor: isDark ? '#333' : '#e2e8f0',
+              overflow: 'hidden'
+            }}>
+              <FlatList
+                data={options || []}
+                keyExtractor={(item) => item}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={{ paddingVertical: 12, paddingHorizontal: 12, borderBottomWidth: 1, borderBottomColor: isDark ? '#2c2c2e' : '#f1f5f9' }}
+                    onPress={() => {
+                      if (onSelect) onSelect(item);
+                      setModalVisible(false);
+                    }}
+                  >
+                    <Text style={{ fontSize: 13, fontFamily: 'Inter_600SemiBold', color: isDark ? '#fff' : '#0f172a' }}>{item}</Text>
+                  </TouchableOpacity>
+                )}
+              />
+            </View>
           </View>
         </TouchableWithoutFeedback>
       </Modal>
