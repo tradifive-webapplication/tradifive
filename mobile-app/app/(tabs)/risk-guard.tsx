@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { BlurView } from 'expo-blur';
-import { View, Text, ScrollView, TouchableOpacity, Dimensions, Platform, StatusBar, Image, Switch, Animated, DeviceEventEmitter, Alert, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Dimensions, Platform, StatusBar, Image, Switch, Animated, DeviceEventEmitter, Alert, StyleSheet, TextInput, PanResponder } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getHeaderStyle, HeaderStyle } from '../utils/headerStore';
 import { useRouter } from 'expo-router';
@@ -68,32 +68,83 @@ function HalfGauge({ value, max }: { value: number; max: number }) {
   );
 }
 
-function CustomSlider({ label, valuePct, valueText, color = '#6366f1' }: { label: string, valuePct: number, valueText: string, color?: string }) {
+
+function CustomSlider({ label, valuePct, valueText, color = '#6366f1', onValueChange }: { label: string, valuePct: number, valueText: string, color?: string, onValueChange?: (pct: number) => void }) {
   const { isDark } = useAppTheme();
+  
+  const panResponderRef = React.useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onPanResponderMove: (evt: any, gestureState: any) => {
+        // approximate width is screen width minus padding, let's say 300
+        const newPct = Math.min(100, Math.max(0, valuePct + (gestureState.dx / 300) * 100));
+        if (onValueChange) onValueChange(newPct);
+      },
+    })
+  ).current;
+
   return (
     <View style={{ marginBottom: 24 }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
         <Text style={{ fontSize: 10, fontFamily: 'Inter_700Bold', color: '#64748b', letterSpacing: 1, textTransform: 'uppercase' }}>{label}</Text>
         <Text style={{ fontSize: 12, fontFamily: 'Inter_700Bold', color: isDark ? '#e8e8e8' : '#0f172a' }}>{valueText}</Text>
       </View>
-      <View style={{ height: 16, justifyContent: 'center' }}>
+      <View style={{ height: 30, justifyContent: 'center' }} {...panResponderRef.panHandlers}>
         <View style={{ height: 4, backgroundColor: isDark ? '#2a2a2e' : '#e2e8f0', borderRadius: 2, width: '100%', position: 'absolute' }} />
-        <View style={{ height: 4, backgroundColor: color, borderRadius: 2, width: `${Math.min(100, Math.max(0, valuePct))}%`, position: 'absolute' }} />
-        <View style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: color, left: `${Math.min(100, Math.max(0, valuePct))}%`, marginLeft: -7, position: 'absolute' }} />
+        <View style={{ height: 4, backgroundColor: color, borderRadius: 2, width: `${Math.min(100, Math.max(0, valuePct))}%`, position: 'absolute', pointerEvents: 'none' }} />
+        <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: color, left: `${Math.min(100, Math.max(0, valuePct))}%`, marginLeft: -10, position: 'absolute', pointerEvents: 'none' }} />
       </View>
     </View>
   );
 }
 
-function DropdownButton({ value, onPress }: { value: string, onPress: () => void }) {
+import { Modal, FlatList, TouchableWithoutFeedback } from 'react-native';
+
+function DropdownButton({ value, options, onSelect }: { value: string, options?: string[], onSelect?: (val: string) => void }) {
   const { isDark } = useAppTheme();
+  const [modalVisible, setModalVisible] = React.useState(false);
+
   return (
-    <TouchableOpacity onPress={() => { h(); onPress(); }} style={{ backgroundColor: isDark ? '#141414' : '#f8fafc', borderWidth: 1, borderColor: isDark ? '#222' : '#e2e8f0', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-      <Text style={{ fontSize: 13, fontFamily: 'Inter_700Bold', color: isDark ? '#fff' : '#0f172a' }}>{value}</Text>
-      <Text style={{ color: '#64748b', fontSize: 12, marginLeft: 8 }}>▼</Text>
-    </TouchableOpacity>
+    <>
+      <TouchableOpacity 
+        onPress={() => setModalVisible(true)}
+        style={{ backgroundColor: isDark ? '#141414' : '#f8fafc', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8, borderWidth: 1, borderColor: isDark ? '#2c2c2e' : '#e2e8f0' }}
+      >
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Text style={{ fontSize: 13, fontFamily: 'Inter_700Bold', color: isDark ? '#fff' : '#0f172a' }}>{value}</Text>
+          <ChevronDown size={14} color="#64748b" />
+        </View>
+      </TouchableOpacity>
+
+      <Modal visible={modalVisible} transparent={true} animationType="fade">
+        <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
+          <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' }}>
+            <TouchableWithoutFeedback>
+              <View style={{ backgroundColor: isDark ? '#1a1a1e' : '#ffffff', width: '80%', borderRadius: 12, maxHeight: '60%', padding: 8, shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 10, elevation: 5 }}>
+                <FlatList
+                  data={options || []}
+                  keyExtractor={(item) => item}
+                  renderItem={({ item }) => (
+                    <TouchableOpacity
+                      style={{ paddingVertical: 14, paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: isDark ? '#2c2c2e' : '#f1f5f9' }}
+                      onPress={() => {
+                        if (onSelect) onSelect(item);
+                        setModalVisible(false);
+                      }}
+                    >
+                      <Text style={{ fontSize: 15, fontFamily: 'Inter_600SemiBold', color: isDark ? '#fff' : '#0f172a' }}>{item}</Text>
+                    </TouchableOpacity>
+                  )}
+                />
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
+    </>
   );
 }
+
 
 export default function RiskGuardScreen() {
   const { isDark, theme } = useAppTheme();
@@ -245,7 +296,7 @@ export default function RiskGuardScreen() {
 
   
   const renderCardContent = (active: boolean, children: any, gap?: number) => (
-    <View style={{ position: 'relative', marginTop: 4, minHeight: active ? 80 : 0 }}>
+    <View style={{ position: 'relative', marginTop: 4 }}>
       <View pointerEvents={active ? 'none' : 'auto'} style={{ opacity: active ? 0.3 : 1, gap: gap }}>
         {children}
       </View>
@@ -350,9 +401,9 @@ export default function RiskGuardScreen() {
             {/* TABS */}
             <View style={{ flexDirection: 'row', backgroundColor: isDark ? '#1c1c1c' : '#f1f5f9', borderRadius: 30, padding: 4, marginBottom: 24, width: '100%', alignItems: 'center', justifyContent: 'space-between' }}>
               {[
-                { id: 'trading_control', label: 'Control' },
-                { id: 'risk_management', label: 'Risk Mgt' },
-                { id: 'behaviour', label: 'Behaviour' }
+                { id: 'trading_control', label: 'Trading Control' },
+                { id: 'risk_management', label: 'Risk Management' },
+                { id: 'behaviour', label: 'Behaviour & Discipline' }
               ].map((tab) => (
                 <TouchableOpacity 
                   key={tab.id}
@@ -371,18 +422,24 @@ export default function RiskGuardScreen() {
                   {renderCardHeader(Layers, "Max Lot Size", "Hard cap on lot size per trade", maxLotActive, setMaxLotActive)}
                   {renderCardContent(maxLotActive, (<>
                     <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>MAX LOT SIZE LIMIT</Text>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <TouchableOpacity onPress={() => setMaxLot(Math.max(0.01, maxLot - 0.1))} style={styles.plusMinusBtn}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                      <TouchableOpacity onPress={() => setMaxLot(Math.max(0.01, maxLot - 0.1))} style={{ width: 28, height: 28, alignItems: "center", justifyContent: "center", backgroundColor: isDark ? "#1a1a1e" : "#f1f5f9", borderRadius: 8, borderWidth: 1, borderColor: isDark ? "#222" : "#e2e8f0" }}>
                         <Minus size={16} color={isDark ? '#fff' : '#000'} />
                       </TouchableOpacity>
-                      <View style={[styles.inputWrapperStyle, { width: 140, justifyContent: 'space-between', paddingHorizontal: 16 }]}>
-                        <Text style={{ fontSize: 16, fontFamily: 'Inter_700Bold', color: isDark ? '#fff' : '#0f172a' }}>{maxLot.toFixed(2)}</Text>
-                        <Text style={{ fontSize: 11, fontFamily: 'Inter_600SemiBold', color: '#64748b' }}>Lots</Text>
+                      <View style={[styles.inputWrapperStyle, { flex: 1, marginHorizontal: 12, justifyContent: 'center' }]}>
+                        <TextInput 
+                          value={maxLot.toFixed(2)}
+                          onChangeText={(val: string) => { const n = parseFloat(val); if (!isNaN(n)) setMaxLot(n); }}
+                          keyboardType="numeric"
+                          style={{ fontSize: 16, fontFamily: 'Inter_700Bold', color: isDark ? '#fff' : '#0f172a', textAlign: 'center' }}
+                        />
+                        <Text style={{ position: 'absolute', right: 12, fontSize: 11, fontFamily: 'Inter_600SemiBold', color: '#64748b' }}>Lots</Text>
                       </View>
-                      <TouchableOpacity onPress={() => setMaxLot(Math.min(10.0, maxLot + 0.1))} style={styles.plusMinusBtn}>
+                      <TouchableOpacity onPress={() => setMaxLot(Math.min(10.0, maxLot + 0.1))} style={{ width: 28, height: 28, alignItems: "center", justifyContent: "center", backgroundColor: isDark ? "#1a1a1e" : "#f1f5f9", borderRadius: 8, borderWidth: 1, borderColor: isDark ? "#222" : "#e2e8f0" }}>
                         <Plus size={16} color={isDark ? '#fff' : '#000'} />
                       </TouchableOpacity>
                     </View>
+                    <CustomSlider label="" valuePct={(maxLot / 10.0) * 100} valueText="" onValueChange={(pct) => setMaxLot((pct / 100) * 10.0)} />
                   </>))}
                 </View>
 
@@ -391,11 +448,11 @@ export default function RiskGuardScreen() {
                   {renderCardContent(noAveragingDown, (<>
                     <View>
                       <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>MODE</Text>
-                      <DropdownButton value="Strict Block" onPress={() => {}} />
+                      <DropdownButton value="Strict Block" options={["Strict Block", "Option B"]} onSelect={() => {}} />
                     </View>
                     <View>
                       <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>SCOPE</Text>
-                      <DropdownButton value="Same Symbol + Direction" onPress={() => {}} />
+                      <DropdownButton value="Same Symbol + Direction" options={["Same Symbol + Direction", "Option B"]} onSelect={() => {}} />
                     </View>
                   </>), 12)}
                 </View>
@@ -403,10 +460,17 @@ export default function RiskGuardScreen() {
                 <View style={[styles.metricCard, martingaleDetection && styles.activeMetricCard]}>
                   {renderCardHeader(AlertTriangle, "Martingale Protection", "Block increasing lot sizes after a loss", martingaleDetection, setMartingaleDetection)}
                   {renderCardContent(martingaleDetection, (<>
-                    <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>TRIGGER MULTIPLIER</Text>
-                    <View style={[styles.inputWrapperStyle, { justifyContent: 'center' }]}>
-                      <Text style={{ fontSize: 15, fontFamily: 'Inter_700Bold', color: isDark ? '#fff' : '#0f172a' }}>{martingaleMultiplier.toFixed(1)}×</Text>
+                                        <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>TRIGGER MULTIPLIER</Text>
+                    <View style={[styles.inputWrapperStyle, { justifyContent: 'center', marginBottom: 12 }]}>
+                      <TextInput 
+                          value={martingaleMultiplier.toFixed(1)}
+                          onChangeText={(val: string) => { const n = parseFloat(val); if (!isNaN(n)) setMartingaleMultiplier(n); }}
+                          keyboardType="numeric"
+                          style={{ fontSize: 15, fontFamily: 'Inter_700Bold', color: isDark ? '#fff' : '#0f172a', textAlign: 'center' }}
+                      />
+                      <Text style={{ position: 'absolute', right: 12, fontSize: 15, fontFamily: 'Inter_700Bold', color: isDark ? '#fff' : '#0f172a' }}>×</Text>
                     </View>
+                    <CustomSlider label="" valuePct={((martingaleMultiplier - 1.1) / (5.0 - 1.1)) * 100} valueText="" onValueChange={(pct) => setMartingaleMultiplier(1.1 + (pct / 100) * (5.0 - 1.1))} />
                   </>))}
                 </View>
 
@@ -414,7 +478,7 @@ export default function RiskGuardScreen() {
                   {renderCardHeader(Crosshair, "One Instrument Mode", "Limit trading to a single ticker", oneInstrumentMode, setOneInstrumentMode)}
                   {renderCardContent(oneInstrumentMode, (<>
                     <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>ALLOWED INSTRUMENT</Text>
-                    <DropdownButton value={allowedTicker} onPress={() => {}} />
+                    <DropdownButton value={allowedTicker} options={[allowedTicker, "Option B"]} onSelect={() => {}} />
                   </>))}
                 </View>
 
@@ -422,7 +486,7 @@ export default function RiskGuardScreen() {
                   {renderCardHeader(CheckSquare, "Allowed Strategy Only", "Allow trades only from the selected strategy", oneStrategyRule, setOneStrategyRule)}
                   {renderCardContent(oneStrategyRule, (<>
                     <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>ALLOWED STRATEGY</Text>
-                    <DropdownButton value={strategyName} onPress={() => {}} />
+                    <DropdownButton value={strategyName} options={[strategyName, "Option B"]} onSelect={() => {}} />
                   </>))}
                 </View>
               </View>
@@ -434,9 +498,25 @@ export default function RiskGuardScreen() {
                 <View style={[styles.metricCard, drawdownGuardActive && styles.activeMetricCard]}>
                   {renderCardHeader(ShieldAlert, "Drawdown Guard", "Max daily drawdown limits", drawdownGuardActive, setDrawdownGuardActive)}
                   {renderCardContent(drawdownGuardActive, (<>
-                    <CustomSlider label="MAX DAILY DRAWDOWN" valuePct={maxDrawdown} valueText={`${maxDrawdown.toFixed(1)}%`} />
-                    <CustomSlider label="MAX WEEKLY DRAWDOWN" valuePct={weeklyDrawdown} valueText={`${weeklyDrawdown.toFixed(1)}%`} />
-                    <CustomSlider label="MAX MONTHLY DRAWDOWN" valuePct={monthlyDrawdown} valueText={`${monthlyDrawdown.toFixed(1)}%`} />
+                                        <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
+                      <View style={{ flex: 1 }}>
+                        <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>LIMIT</Text>
+                        <View style={[styles.inputWrapperStyle, { marginTop: 0, paddingVertical: 8, justifyContent: 'center' }]}>
+                          <TextInput 
+                            value={maxDrawdown.toFixed(1)}
+                            onChangeText={(val: string) => { const n = parseFloat(val); if (!isNaN(n)) setMaxDrawdown(n); }}
+                            keyboardType="numeric"
+                            style={{ fontSize: 13, fontFamily: 'Inter_700Bold', color: isDark ? '#fff' : '#0f172a', textAlign: 'center' }}
+                          />
+                          <Text style={{ position: 'absolute', right: 8, fontSize: 13, fontFamily: 'Inter_700Bold', color: '#64748b' }}>%</Text>
+                        </View>
+                      </View>
+                      <View style={{ flex: 1.5 }}>
+                        <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>BASIS</Text>
+                        <DropdownButton value="Start-of-day balance" options={['Start-of-day balance', 'Start-of-day equity']} onSelect={() => {}} />
+                      </View>
+                    </View>
+                    <CustomSlider label="" valuePct={(maxDrawdown / 20.0) * 100} valueText="" onValueChange={(pct) => setMaxDrawdown((pct / 100) * 20.0)} />
                   </>))}
                 </View>
 
@@ -453,7 +533,7 @@ export default function RiskGuardScreen() {
                     </View>
                     <View>
                       <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>CALCULATION</Text>
-                      <DropdownButton value="Closed P&L" onPress={() => {}} />
+                      <DropdownButton value="Closed P&L" options={["Closed P&L", "Option B"]} onSelect={() => {}} />
                     </View>
                   </>), 12)}
                 </View>
@@ -463,13 +543,13 @@ export default function RiskGuardScreen() {
                   {renderCardContent(stopLossRequired, (<>
                     <View>
                       <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>ACTION</Text>
-                      <DropdownButton value={stopLossAction === 'auto' ? "Auto add SL" : "Block trades without SL"} onPress={() => setStopLossAction(stopLossAction === 'auto' ? 'block' : 'auto')} />
+                      <DropdownButton value={stopLossAction === 'auto' ? "Auto add SL" : "Block trades without SL"} options={[stopLossAction === 'auto' ? "Auto add SL" : "Block trades without SL", "Option B"]} onSelect={() => {}} />
                     </View>
                     {stopLossAction === 'auto' && (
                       <View style={{ flexDirection: 'row', gap: 8 }}>
                         <View style={{ flex: 1 }}>
                           <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>METHOD</Text>
-                          <DropdownButton value={stopLossMethod === 'pips' ? "Pips" : "Percent"} onPress={() => setStopLossMethod(stopLossMethod === 'pips' ? 'percent' : 'pips')} />
+                          <DropdownButton value={stopLossMethod === 'pips' ? "Pips" : "Percent"} options={[stopLossMethod === 'pips' ? "Pips" : "Percent", "Option B"]} onSelect={() => {}} />
                         </View>
                         <View style={{ flex: 1 }}>
                           <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>VALUE</Text>
@@ -485,7 +565,7 @@ export default function RiskGuardScreen() {
                 <View style={[styles.metricCard, minRiskRewardActive && styles.activeMetricCard]}>
                   {renderCardHeader(TrendingUp, "Min Risk/Reward", "Require a minimum reward-to-risk ratio", minRiskRewardActive, setMinRiskRewardActive)}
                   {renderCardContent(minRiskRewardActive, (<>
-                    <CustomSlider label="MINIMUM TARGET R:R" valuePct={minRiskReward * 20} valueText={`1:${minRiskReward.toFixed(1)}`} />
+                                        <CustomSlider label="MINIMUM TARGET R:R" valuePct={(minRiskReward / 5.0) * 100} valueText={`1:${minRiskReward.toFixed(1)}`} onValueChange={(pct) => setMinRiskReward((pct / 100) * 5.0)} />
                   </>))}
                 </View>
 
@@ -501,7 +581,7 @@ export default function RiskGuardScreen() {
                       </View>
                       <View style={{ flex: 1 }}>
                         <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>ACTION</Text>
-                        <DropdownButton value="Close & Block" onPress={() => {}} />
+                        <DropdownButton value="Close & Block" options={["Close & Block", "Option B"]} onSelect={() => {}} />
                       </View>
                     </View>
                   </>), 12)}
@@ -510,11 +590,15 @@ export default function RiskGuardScreen() {
                 <View style={[styles.metricCard, equityHardStopActive && styles.activeMetricCard]}>
                   {renderCardHeader(Wallet, "Account Protection", "Minimum equity level", equityHardStopActive, setEquityHardStopActive)}
                   {renderCardContent(equityHardStopActive, (<>
-                    <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>MINIMUM EQUITY LEVEL</Text>
+                                        <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>MINIMUM EQUITY LEVEL</Text>
                     <View style={[styles.inputWrapperStyle, { justifyContent: 'flex-start' }]}>
                       <Text style={{ fontSize: 13, fontFamily: 'Inter_700Bold', color: '#64748b', marginRight: 4 }}>$</Text>
-                      <Text style={{ fontSize: 15, fontFamily: 'Inter_700Bold', color: isDark ? '#fff' : '#0f172a' }}>{equityHardStop}</Text>
-                      <View style={{ flex: 1 }} />
+                      <TextInput 
+                        value={equityHardStop.toString()}
+                        onChangeText={(val: string) => { const n = parseFloat(val); if (!isNaN(n)) setEquityHardStop(n); }}
+                        keyboardType="numeric"
+                        style={{ flex: 1, fontSize: 15, fontFamily: 'Inter_700Bold', color: isDark ? '#fff' : '#0f172a' }}
+                      />
                       <Text style={{ fontSize: 11, fontFamily: 'Inter_600SemiBold', color: '#64748b' }}>USD</Text>
                     </View>
                   </>))}
@@ -547,7 +631,7 @@ export default function RiskGuardScreen() {
                     <CustomSlider label="DURATION (MINUTES)" valuePct={(waitPeriod/120)*100} valueText={`${waitPeriod}M`} />
                     <View>
                       <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>TRIGGER</Text>
-                      <DropdownButton value="After every losing trade" onPress={() => {}} />
+                      <DropdownButton value="After every losing trade" options={["After every losing trade", "Option B"]} onSelect={() => {}} />
                     </View>
                   </>), 12)}
                 </View>
@@ -591,7 +675,7 @@ export default function RiskGuardScreen() {
                       </View>
                       <View style={{ flex: 1.5 }}>
                         <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>ACTION</Text>
-                        <DropdownButton value="Pause trading" onPress={() => {}} />
+                        <DropdownButton value="Pause trading" options={["Pause trading", "Option B"]} onSelect={() => {}} />
                       </View>
                     </View>
                   </>), 12)}
@@ -609,7 +693,7 @@ export default function RiskGuardScreen() {
                       </View>
                       <View style={{ flex: 1 }}>
                         <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>ACTION</Text>
-                        <DropdownButton value="Block new trades" onPress={() => {}} />
+                        <DropdownButton value="Block new trades" options={["Block new trades", "Option B"]} onSelect={() => {}} />
                       </View>
                     </View>
                   </>), 12)}
@@ -618,29 +702,37 @@ export default function RiskGuardScreen() {
                 <View style={[styles.metricCard, emotionalTradingDetector && styles.activeMetricCard]}>
                   {renderCardHeader(HeartPulse, "Behavioural Risk Detector", "AI pacing detection", emotionalTradingDetector, setEmotionalTradingDetector)}
                   {renderCardContent(emotionalTradingDetector, (<>
-                    <CustomSlider label="SENSITIVITY" valuePct={emotionSensitivity} valueText={`${emotionSensitivity}%`} />
+                                        <CustomSlider label="SENSITIVITY" valuePct={emotionSensitivity} valueText={`${Math.round(emotionSensitivity)}%`} onValueChange={(pct) => setEmotionSensitivity(pct)} />
                   </>))}
                 </View>
                 
                 <View style={[styles.metricCard, newsFilter && styles.activeMetricCard]}>
                   {renderCardHeader(AlertTriangle, "News Filter", "Block around high-impact news", newsFilter, setNewsFilter)}
                   {renderCardContent(newsFilter, (<>
-                    <View>
+                                        <View>
                       <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>IMPACT LEVEL</Text>
-                      <DropdownButton value="High Only" onPress={() => {}} />
+                      <DropdownButton value="High Only" options={['High Only', 'Medium & High']} onSelect={() => {}} />
                     </View>
                     <View style={{ flexDirection: 'row', gap: 8 }}>
                       <View style={{ flex: 1 }}>
                         <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>BLOCK BFR.</Text>
                         <View style={[styles.inputWrapperStyle, { marginTop: 0, paddingVertical: 8 }]}>
-                          <Text style={{ fontSize: 13, fontFamily: 'Inter_700Bold', color: isDark ? '#fff' : '#0f172a' }}>30</Text>
+                          <TextInput 
+                            defaultValue="30"
+                            keyboardType="numeric"
+                            style={{ flex: 1, fontSize: 13, fontFamily: 'Inter_700Bold', color: isDark ? '#fff' : '#0f172a', textAlign: 'center' }}
+                          />
                           <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8' }}>MIN</Text>
                         </View>
                       </View>
                       <View style={{ flex: 1 }}>
                         <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>RESUME AFT.</Text>
                         <View style={[styles.inputWrapperStyle, { marginTop: 0, paddingVertical: 8 }]}>
-                          <Text style={{ fontSize: 13, fontFamily: 'Inter_700Bold', color: isDark ? '#fff' : '#0f172a' }}>15</Text>
+                          <TextInput 
+                            defaultValue="15"
+                            keyboardType="numeric"
+                            style={{ flex: 1, fontSize: 13, fontFamily: 'Inter_700Bold', color: isDark ? '#fff' : '#0f172a', textAlign: 'center' }}
+                          />
                           <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8' }}>MIN</Text>
                         </View>
                       </View>
@@ -651,17 +743,24 @@ export default function RiskGuardScreen() {
                 <View style={[styles.metricCard, sleepProtection && styles.activeMetricCard]}>
                   {renderCardHeader(Moon, "Sleep Protection", "Disable midnight trading", sleepProtection, setSleepProtection)}
                   {renderCardContent(sleepProtection, (<>
-                    <View style={{ flexDirection: 'row', gap: 8 }}>
+                                        <View style={{ flexDirection: 'row', gap: 8 }}>
                       <View style={{ flex: 1 }}>
                         <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>LOCKOUT START</Text>
                         <View style={[styles.inputWrapperStyle, { marginTop: 0, paddingVertical: 8 }]}>
-                          <Text style={{ fontSize: 13, fontFamily: 'Inter_700Bold', color: isDark ? '#fff' : '#0f172a' }}>{sleepTimeStart}</Text>
+                          <TextInput 
+                            value={sleepTimeStart}
+                            onChangeText={setSleepTimeStart}
+                            style={{ width: '100%', fontSize: 13, fontFamily: 'Inter_700Bold', color: isDark ? '#fff' : '#0f172a', textAlign: 'center' }}
+                          />
                         </View>
                       </View>
                       <View style={{ flex: 1 }}>
                         <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>LOCKOUT END</Text>
                         <View style={[styles.inputWrapperStyle, { marginTop: 0, paddingVertical: 8 }]}>
-                          <Text style={{ fontSize: 13, fontFamily: 'Inter_700Bold', color: isDark ? '#fff' : '#0f172a' }}>06:00</Text>
+                          <TextInput 
+                            defaultValue="06:00"
+                            style={{ width: '100%', fontSize: 13, fontFamily: 'Inter_700Bold', color: isDark ? '#fff' : '#0f172a', textAlign: 'center' }}
+                          />
                         </View>
                       </View>
                     </View>
@@ -672,7 +771,7 @@ export default function RiskGuardScreen() {
                   {renderCardHeader(CheckSquare, "Pre-Trade Checklist", "Mandatory popup checklist", preTradeChecklist, setPreTradeChecklist)}
                   {renderCardContent(preTradeChecklist, (<>
                     <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>CHECKLIST PRESET</Text>
-                    <DropdownButton value="Standard Checklist" onPress={() => {}} />
+                    <DropdownButton value="Standard Checklist" options={["Standard Checklist", "Option B"]} onSelect={() => {}} />
                   </>))}
                 </View>
 
