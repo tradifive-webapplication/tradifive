@@ -113,34 +113,34 @@ export function RiskScoreCard({ score = 0 }: RiskScoreCardProps) {
   /* ── Dynamic status ── */
   let statusText = 'CRITICAL';
   let statusDesc = 'High probability of emotional trading.';
-  let statusColor = '#EF4444';
-  let shieldGradient = 'linear-gradient(160deg, #DC2626 0%, #EF4444 45%, #B91C1C 100%)';
-  let shieldGlow = 'rgba(239,68,68,0.35)';
+  let statusColor = '#FF4D5E';
+  let shieldGradient = 'linear-gradient(160deg, #DC2626 0%, #FF4D5E 45%, #B91C1C 100%)';
+  let shieldGlow = 'rgba(255,77,94,0.15)';
 
   if (score >= 80) {
     statusText = 'EXCELLENT';
     statusDesc = 'Excellent discipline maintained.';
-    statusColor = '#10B981';
-    shieldGradient = 'linear-gradient(160deg, #059669 0%, #10B981 45%, #047857 100%)';
-    shieldGlow = 'rgba(16,185,129,0.35)';
+    statusColor = '#22D99A';
+    shieldGradient = 'linear-gradient(160deg, #059669 0%, #22D99A 45%, #047857 100%)';
+    shieldGlow = 'rgba(34,217,154,0.15)';
   } else if (score >= 60) {
     statusText = 'GOOD';
     statusDesc = 'Good trading behavior detected.';
-    statusColor = '#3B82F6';
-    shieldGradient = 'linear-gradient(160deg, #2563EB 0%, #3B82F6 45%, #1D4ED8 100%)';
-    shieldGlow = 'rgba(59,130,246,0.35)';
+    statusColor = '#8DB8FF';
+    shieldGradient = 'linear-gradient(160deg, #2563EB 0%, #8DB8FF 45%, #1D4ED8 100%)';
+    shieldGlow = 'rgba(141,184,255,0.15)';
   } else if (score >= 40) {
     statusText = 'AVERAGE';
     statusDesc = 'Moderate risk exposure detected.';
-    statusColor = '#EAB308';
-    shieldGradient = 'linear-gradient(160deg, #CA8A04 0%, #EAB308 45%, #A16207 100%)';
-    shieldGlow = 'rgba(234,179,8,0.30)';
+    statusColor = '#FFB547';
+    shieldGradient = 'linear-gradient(160deg, #CA8A04 0%, #FFB547 45%, #A16207 100%)';
+    shieldGlow = 'rgba(255,181,71,0.15)';
   } else if (score >= 20) {
     statusText = 'WARNING';
     statusDesc = 'Elevated risk detected.';
-    statusColor = '#F97316';
-    shieldGradient = 'linear-gradient(160deg, #EA580C 0%, #F97316 45%, #C2410C 100%)';
-    shieldGlow = 'rgba(249,115,22,0.35)';
+    statusColor = '#FFB547';
+    shieldGradient = 'linear-gradient(160deg, #EA580C 0%, #FFB547 45%, #C2410C 100%)';
+    shieldGlow = 'rgba(255,181,71,0.15)';
   }
 
   const aiConfidence = 92;
@@ -165,7 +165,7 @@ export function RiskScoreCard({ score = 0 }: RiskScoreCardProps) {
 
   return (
     <div
-      className="w-full rounded-[22px] p-5 pb-4 flex flex-col items-center border-2 border-white shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] bg-[radial-gradient(ellipse_at_20%_0%,_#FFFFFF_0%,_#FAFBFC_100%)] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:shadow-none hover:-translate-y-[3px] transition-all duration-[250ms] group cursor-default relative overflow-hidden"
+      className="w-full rounded-[22px] p-5 pb-4 flex flex-col items-center border-2 border-white shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] bg-[radial-gradient(ellipse_at_20%_0%,_#FFFFFF_0%,_#FAFBFC_100%)] dark:bg-none dark:bg-[#191B1E] dark:border-[1px] dark:border-[#2B2F35] dark:shadow-none hover:-translate-y-[3px] transition-all duration-[250ms] group cursor-default relative overflow-hidden"
     >
       {/* Ambient moving highlight */}
       <motion.div
@@ -177,7 +177,7 @@ export function RiskScoreCard({ score = 0 }: RiskScoreCardProps) {
 
       {/* ── HEADER ── */}
       <div className="flex items-center justify-between w-full mb-0 relative z-10">
-        <h3 className="text-[18px] font-bold text-[#111827] dark:text-white tracking-[-0.02em]">
+        <h3 className="text-[18px] font-bold text-[#111827] dark:text-[#F5F7FA] tracking-[-0.02em]">
           Risk Score
         </h3>
         <div className="flex items-center gap-1.5">
@@ -185,9 +185,9 @@ export function RiskScoreCard({ score = 0 }: RiskScoreCardProps) {
             <motion.div
               animate={{ scale: [1, 1.4, 1], opacity: [0.3, 0.6, 0.3] }}
               transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
-              className="absolute w-3 h-3 bg-[#22C55E] rounded-full blur-[3px]"
+              className="absolute w-3 h-3 bg-[#22C55E] rounded-full "
             />
-            <div className="w-[7px] h-[7px] rounded-full bg-[#22C55E] relative z-10 shadow-[0_0_4px_rgba(34,197,94,0.5)]" />
+            <div className="w-[7px] h-[7px] rounded-full bg-[#22C55E] relative z-10 " />
           </div>
           <span className="text-[10px] font-bold text-[#22C55E] tracking-[0.08em] uppercase">
             Live
@@ -334,18 +334,20 @@ export function RiskScoreCard({ score = 0 }: RiskScoreCardProps) {
                 pointerEvents: 'none',
               }}
             />
-
-            {/* Score content */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center -mt-1 z-10">
-              <AnimatedCounter
-                value={score}
-                className="text-[42px] font-bold text-white leading-none tracking-[-0.03em] drop-shadow-[0_2px_6px_rgba(0,0,0,0.2)]"
-              />
-              <span className="text-[13px] font-medium text-white/60 mt-0 tracking-tight">/100</span>
-            </div>
+          {/* Score content */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center -mt-1 z-10">
+            <AnimatedCounter
+              value={score}
+              className="text-[48px] font-bold text-[#FFFFFF] leading-none tabular-nums antialiased"
+              style={{ textShadow: `none` }}
+            />
+            <span className="text-[12px] font-semibold text-[#8E99A8] antialiased">
+              /100
+            </span>
           </div>
-        </motion.div>
-      </div>
+        </div>
+      </motion.div>
+    </div>
 
       {/* ── RISK LABEL ── */}
       <div className="flex flex-col items-center mt-0.5 mb-0.5 relative z-10">
@@ -357,20 +359,17 @@ export function RiskScoreCard({ score = 0 }: RiskScoreCardProps) {
         >
           Risk Level
         </motion.div>
-        <motion.h4
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8, duration: 0.5 }}
-          className="text-[18px] font-extrabold tracking-[-0.01em] leading-tight"
-          style={{ color: statusColor }}
+        <motion.div
+          className="text-[12px] font-bold uppercase tracking-[0.06em] mt-4 antialiased"
+          style={{ color: statusColor, textShadow: `none` }}
         >
           {statusText}
-        </motion.h4>
+        </motion.div>
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.0, duration: 0.5 }}
-          className="text-[12px] text-[#64748B] font-medium mt-1 text-center leading-tight"
+          className="text-[12px] text-[#8E99A8] font-medium text-center antialiased max-w-[200px] leading-tight"
         >
           {statusDesc}
         </motion.p>
@@ -383,7 +382,7 @@ export function RiskScoreCard({ score = 0 }: RiskScoreCardProps) {
             AI Confidence
           </span>
           <div className="flex items-center gap-1.5">
-            <span className="text-[13px] font-bold text-[#334155] dark:text-white">{aiConfidence}%</span>
+            <span className="text-[13px] font-bold text-[#334155] dark:text-[#F5F7FA]">{aiConfidence}%</span>
             <span className="text-[9px] font-semibold text-[#10B981] bg-[#10B981]/10 px-1.5 py-0.5 rounded-full">
               Excellent
             </span>
@@ -413,7 +412,7 @@ export function RiskScoreCard({ score = 0 }: RiskScoreCardProps) {
       </div>
 
       {/* ── BOTTOM BUTTON ── */}
-      <button className="w-full h-[40px] rounded-[12px] border border-[#E7EAF0] bg-white/60 backdrop-blur-sm flex items-center justify-center gap-2 hover:bg-[#F5F3FF] hover:border-[#DDD6FE] hover:shadow-[0_4px_12px_rgba(109,93,246,0.08)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10 relative z-10 group/btn">
+      <button className="w-full h-[40px] rounded-[12px] border border-[#E7EAF0] bg-white/60 backdrop-blur-sm flex items-center justify-center gap-2 hover:bg-[#F5F3FF] hover:border-[#DDD6FE] hover:shadow-[0_4px_12px_rgba(109,93,246,0.08)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 dark:border-[#2B2F35] dark:bg-[#22252A] dark:hover:bg-[#292D33] relative z-10 group/btn">
         <span className="text-[13px] font-semibold text-[#64748B] group-hover/btn:text-[#6D5DF6] transition-colors duration-200">
           View Full Analysis
         </span>
