@@ -59,9 +59,30 @@ export function RiskGuardCard({
       {children && (
         <div className="relative pt-3 mt-2 border-t border-slate-100 dark:border-white/5">
           {/* Actual content */}
-          <div className="transition-all duration-300">
+          <div className={`transition-all duration-300 ${active ? "blur-[2px] opacity-40 pointer-events-none select-none" : ""}`}>
             {children}
           </div>
+
+          <AnimatePresence>
+            {active && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 flex flex-col items-center justify-center z-10 pt-2"
+              >
+                <div className="flex flex-col items-center gap-1 p-2 text-center">
+                  <Lock className="text-slate-400 dark:text-slate-500 mb-0.5" size={16} />
+                  <span className="text-[10px] font-bold tracking-widest text-slate-500 dark:text-slate-400 uppercase">
+                    Protocol Guard Active
+                  </span>
+                  <p className="text-[9px] font-medium text-slate-400/80 dark:text-slate-500/80 leading-tight max-w-[200px]">
+                    Configuration is locked to prevent trade disruption while running.
+                  </p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       )}
     </div>
