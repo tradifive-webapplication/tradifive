@@ -43,14 +43,14 @@ while i < len(lines):
         
         # Replace the opening tag
         prefix = line[:match.start()]
-        new_lines.append(prefix + f'{{renderCardContent({state_var}, (')
+        new_lines.append(prefix + f'{{renderCardContent({state_var}, (<>')
         
         # Now find the matching closing tag
         view_depth = 1
         j = i + 1
         inner_lines = []
         while j < len(lines):
-            # very naive view depth counting
+            # naive view depth counting
             open_views = len(re.findall(r'<View', lines[j]))
             close_views = len(re.findall(r'</View>', lines[j]))
             
@@ -62,10 +62,9 @@ while i < len(lines):
             
             if view_depth == 0:
                 # We found the closing tag
-                # Replace it with ), gap_str)}
-                closing_prefix = lines[j][:lines[j].find('</View>')]
-                closing_suffix = lines[j][lines[j].find('</View>')+7:]
-                inner_lines.append(closing_prefix + f'){gap_str})}}' + closing_suffix)
+                closing_prefix = lines[j][:lines[j].rfind('</View>')]
+                closing_suffix = lines[j][lines[j].rfind('</View>')+7:]
+                inner_lines.append(closing_prefix + f'</>){gap_str})}}' + closing_suffix)
                 break
             else:
                 inner_lines.append(lines[j])

@@ -5,9 +5,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getHeaderStyle, HeaderStyle } from '../utils/headerStore';
 import { useRouter } from 'expo-router';
 import UpgradeGate from '../components/UpgradeGate';
-import {
-  Eye, Shield, Zap, Power, Brain, Timer, Trophy, Target, ShieldAlert, Bell, Settings,
-  TrendingDown, Info, Clock, Check, Layers, AlertTriangle, Crosshair, CheckSquare,
+import { 
+  Eye, Shield, Zap, Power, Brain, Timer, Trophy, Target, ShieldAlert, Bell, Settings, 
+  TrendingDown, Info, Clock, Check, Layers, AlertTriangle, Crosshair, CheckSquare, 
   StopCircle, Star, Sparkles, Lock, ShieldCheck, Activity, HeartPulse, Moon, Volume2, ShieldOff,
   ChevronDown, TrendingUp, Sunrise, Minus, Plus, Calendar, Wallet, Key, MonitorOff
 } from 'lucide-react-native';
@@ -204,11 +204,11 @@ export default function RiskGuardScreen() {
       zIndex: 10,
     },
     metricCard: {
-      backgroundColor: isDark ? '#141414' : '#fafafa',
+      backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF',
       borderRadius: 24,
       padding: 16,
       borderWidth: 2,
-      borderColor: isDark ? '#222222' : '#ffffff',
+      borderColor: isDark ? '#2C2C2E' : '#F1F5F9',
       marginBottom: 12,
       shadowColor: '#000',
       shadowOffset: { width: 0, height: 6 },
@@ -228,22 +228,22 @@ export default function RiskGuardScreen() {
       width: 44,
       height: 44,
       borderRadius: 14,
-      backgroundColor: isDark ? '#1a1a1e' : '#f8fafc',
+      backgroundColor: isDark ? '#2C2C2E' : '#F8FAFC',
       alignItems: 'center',
       justifyContent: 'center',
       borderWidth: 1,
-      borderColor: isDark ? '#222222' : '#f1f5f9',
+      borderColor: isDark ? '#3C3C3E' : '#F1F5F9',
     },
     inputWrapperStyle: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
       borderWidth: 1,
-      borderColor: isDark ? '#222222' : '#f1f5f9',
+      borderColor: isDark ? '#2C2C2E' : '#F1F5F9',
       borderRadius: 12,
       paddingHorizontal: 12,
       paddingVertical: 10,
-      backgroundColor: isDark ? '#141414' : '#f8fafc',
+      backgroundColor: isDark ? '#2C2C2E' : '#F8FAFC',
       marginTop: 6
     }
   });
@@ -285,7 +285,7 @@ export default function RiskGuardScreen() {
   return (
     <View style={styles.container}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
-
+      
       {/* ── SMART-REVEAL HEADER ── */}
       {headerStyle !== 'simple' && (
         <Animated.View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: headerHeight, backgroundColor: '#000', zIndex: 2000, paddingTop: insets.top, opacity: headerOpacity, transform: [{ translateY: headerTranslateY }], borderBottomLeftRadius: 40, borderBottomRightRadius: 40, overflow: 'hidden' }}>
@@ -322,7 +322,7 @@ export default function RiskGuardScreen() {
       <Animated.View style={[styles.card, { marginTop: headerStyle === 'simple' ? 0 : scrollY.interpolate({ inputRange: [0, 150], outputRange: [-34, -184], extrapolate: 'clamp' }), borderTopLeftRadius: headerStyle === 'simple' ? 0 : 40, borderTopRightRadius: headerStyle === 'simple' ? 0 : 40 }]}>
         <Animated.ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 140, paddingTop: 16, paddingHorizontal: 20 }} onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: false })} scrollEventThrottle={16}>
           <Animated.View style={{ transform: headerStyle === 'simple' ? [] : [{ translateY: scrollY.interpolate({ inputRange: [0, 150], outputRange: [0, 150], extrapolate: 'clamp' }) }] }}>
-
+            
             {/* PROTOCOL ARCHITECTURE */}
             <View style={styles.metricCard}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -359,9 +359,9 @@ export default function RiskGuardScreen() {
                 { id: 'risk_management', label: 'Risk Mgt' },
                 { id: 'behaviour', label: 'Behaviour' }
               ].map((tab) => (
-                <TouchableOpacity
+                <TouchableOpacity 
                   key={tab.id}
-                  onPress={() => { h(); setActiveTab(tab.id as typeof activeTab); }}
+                  onPress={() => { h(); setActiveTab(tab.id as typeof activeTab); }} 
                   style={{ flex: 1, paddingVertical: 10, paddingHorizontal: 10, alignItems: 'center', justifyContent: 'center', borderRadius: 26, backgroundColor: activeTab === tab.id ? (isDark ? '#333' : '#fff') : 'transparent', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: activeTab === tab.id ? 0.1 : 0, shadowRadius: 2, elevation: activeTab === tab.id ? 1 : 0 }}
                 >
                   <Text adjustsFontSizeToFit numberOfLines={1} style={{ fontSize: 13, fontFamily: activeTab === tab.id ? 'Inter_700Bold' : 'Inter_600SemiBold', color: activeTab === tab.id ? (isDark ? '#fff' : '#0f172a') : '#64748b' }}>{tab.label}</Text>
@@ -374,7 +374,7 @@ export default function RiskGuardScreen() {
               <View>
                 <View style={[styles.metricCard, maxLotActive && styles.activeMetricCard]}>
                   {renderCardHeader(Layers, "Max Lot Size", "Hard cap on lot size per trade", maxLotActive, setMaxLotActive)}
-                  {renderCardContent(maxLotActive, (
+                  {renderCardContent(maxLotActive, (<>
                     <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>MAX LOT SIZE LIMIT</Text>
                     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                       <TouchableOpacity onPress={() => setMaxLot(Math.max(0.01, maxLot - 0.1))} style={styles.plusMinusBtn}>
@@ -388,47 +388,47 @@ export default function RiskGuardScreen() {
                         <Plus size={16} color={isDark ? '#fff' : '#000'} />
                       </TouchableOpacity>
                     </View>
-                  ))}
+                  </>))}
                 </View>
 
                 <View style={[styles.metricCard, noAveragingDown && styles.activeMetricCard]}>
                   {renderCardHeader(TrendingDown, "No Averaging Down", "Prevent adding to losing positions", noAveragingDown, setNoAveragingDown)}
-                  {renderCardContent(noAveragingDown, (
+                  {renderCardContent(noAveragingDown, (<>
                     <View>
                       <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>MODE</Text>
-                      <DropdownButton value="Strict Block" onPress={() => { }} />
+                      <DropdownButton value="Strict Block" onPress={() => {}} />
                     </View>
                     <View>
                       <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>SCOPE</Text>
-                      <DropdownButton value="Same Symbol + Direction" onPress={() => { }} />
+                      <DropdownButton value="Same Symbol + Direction" onPress={() => {}} />
                     </View>
-                  ), 12)}
+                  </>), 12)}
                 </View>
 
                 <View style={[styles.metricCard, martingaleDetection && styles.activeMetricCard]}>
                   {renderCardHeader(AlertTriangle, "Martingale Protection", "Block increasing lot sizes after a loss", martingaleDetection, setMartingaleDetection)}
-                  {renderCardContent(martingaleDetection, (
+                  {renderCardContent(martingaleDetection, (<>
                     <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>TRIGGER MULTIPLIER</Text>
                     <View style={[styles.inputWrapperStyle, { justifyContent: 'center' }]}>
                       <Text style={{ fontSize: 15, fontFamily: 'Inter_700Bold', color: isDark ? '#fff' : '#0f172a' }}>{martingaleMultiplier.toFixed(1)}×</Text>
                     </View>
-                  ))}
+                  </>))}
                 </View>
 
                 <View style={[styles.metricCard, oneInstrumentMode && styles.activeMetricCard]}>
                   {renderCardHeader(Crosshair, "One Instrument Mode", "Limit trading to a single ticker", oneInstrumentMode, setOneInstrumentMode)}
-                  {renderCardContent(oneInstrumentMode, (
+                  {renderCardContent(oneInstrumentMode, (<>
                     <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>ALLOWED INSTRUMENT</Text>
-                    <DropdownButton value={allowedTicker} onPress={() => { }} />
-                  ))}
+                    <DropdownButton value={allowedTicker} onPress={() => {}} />
+                  </>))}
                 </View>
 
                 <View style={[styles.metricCard, oneStrategyRule && styles.activeMetricCard]}>
                   {renderCardHeader(CheckSquare, "Allowed Strategy Only", "Allow trades only from the selected strategy", oneStrategyRule, setOneStrategyRule)}
-                  {renderCardContent(oneStrategyRule, (
+                  {renderCardContent(oneStrategyRule, (<>
                     <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>ALLOWED STRATEGY</Text>
-                    <DropdownButton value={strategyName} onPress={() => { }} />
-                  ))}
+                    <DropdownButton value={strategyName} onPress={() => {}} />
+                  </>))}
                 </View>
               </View>
             )}
@@ -438,16 +438,16 @@ export default function RiskGuardScreen() {
               <View>
                 <View style={[styles.metricCard, drawdownGuardActive && styles.activeMetricCard]}>
                   {renderCardHeader(ShieldAlert, "Drawdown Guard", "Max daily drawdown limits", drawdownGuardActive, setDrawdownGuardActive)}
-                  {renderCardContent(drawdownGuardActive, (
+                  {renderCardContent(drawdownGuardActive, (<>
                     <CustomSlider label="MAX DAILY DRAWDOWN" valuePct={maxDrawdown} valueText={`${maxDrawdown.toFixed(1)}%`} />
                     <CustomSlider label="MAX WEEKLY DRAWDOWN" valuePct={weeklyDrawdown} valueText={`${weeklyDrawdown.toFixed(1)}%`} />
                     <CustomSlider label="MAX MONTHLY DRAWDOWN" valuePct={monthlyDrawdown} valueText={`${monthlyDrawdown.toFixed(1)}%`} />
-                  ))}
+                  </>))}
                 </View>
 
                 <View style={[styles.metricCard, dailyProfitTargetActive && styles.activeMetricCard]}>
                   {renderCardHeader(Target, "Daily Profit Target", "Lock terminal after profit", dailyProfitTargetActive, setDailyProfitTargetActive)}
-                  {renderCardContent(dailyProfitTargetActive, (
+                  {renderCardContent(dailyProfitTargetActive, (<>
                     <View>
                       <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>TARGET AMOUNT</Text>
                       <View style={styles.inputWrapperStyle}>
@@ -458,14 +458,14 @@ export default function RiskGuardScreen() {
                     </View>
                     <View>
                       <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>CALCULATION</Text>
-                      <DropdownButton value="Closed P&L" onPress={() => { }} />
+                      <DropdownButton value="Closed P&L" onPress={() => {}} />
                     </View>
-                  ), 12)}
+                  </>), 12)}
                 </View>
 
                 <View style={[styles.metricCard, stopLossRequired && styles.activeMetricCard]}>
                   {renderCardHeader(StopCircle, "Stop Loss Required", "Require SL on every execution", stopLossRequired, setStopLossRequired)}
-                  {renderCardContent(stopLossRequired, (
+                  {renderCardContent(stopLossRequired, (<>
                     <View>
                       <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>ACTION</Text>
                       <DropdownButton value={stopLossAction === 'auto' ? "Auto add SL" : "Block trades without SL"} onPress={() => setStopLossAction(stopLossAction === 'auto' ? 'block' : 'auto')} />
@@ -484,19 +484,19 @@ export default function RiskGuardScreen() {
                         </View>
                       </View>
                     )}
-                  ), 12)}
+                  </>), 12)}
                 </View>
 
                 <View style={[styles.metricCard, minRiskRewardActive && styles.activeMetricCard]}>
                   {renderCardHeader(TrendingUp, "Min Risk/Reward", "Require a minimum reward-to-risk ratio", minRiskRewardActive, setMinRiskRewardActive)}
-                  {renderCardContent(minRiskRewardActive, (
+                  {renderCardContent(minRiskRewardActive, (<>
                     <CustomSlider label="MINIMUM TARGET R:R" valuePct={minRiskReward * 20} valueText={`1:${minRiskReward.toFixed(1)}`} />
-                  ))}
+                  </>))}
                 </View>
 
                 <View style={[styles.metricCard, weekendLock && styles.activeMetricCard]}>
                   {renderCardHeader(Calendar, "Weekend Lock", "Auto flatten before Friday close", weekendLock, setWeekendLock)}
-                  {renderCardContent(weekendLock, (
+                  {renderCardContent(weekendLock, (<>
                     <View style={{ flexDirection: 'row', gap: 8 }}>
                       <View style={{ flex: 1 }}>
                         <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>CLOSE TIME</Text>
@@ -506,15 +506,15 @@ export default function RiskGuardScreen() {
                       </View>
                       <View style={{ flex: 1 }}>
                         <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>ACTION</Text>
-                        <DropdownButton value="Close & Block" onPress={() => { }} />
+                        <DropdownButton value="Close & Block" onPress={() => {}} />
                       </View>
                     </View>
-                  ), 12)}
+                  </>), 12)}
                 </View>
 
                 <View style={[styles.metricCard, equityHardStopActive && styles.activeMetricCard]}>
                   {renderCardHeader(Wallet, "Account Protection", "Minimum equity level", equityHardStopActive, setEquityHardStopActive)}
-                  {renderCardContent(equityHardStopActive, (
+                  {renderCardContent(equityHardStopActive, (<>
                     <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>MINIMUM EQUITY LEVEL</Text>
                     <View style={[styles.inputWrapperStyle, { justifyContent: 'flex-start' }]}>
                       <Text style={{ fontSize: 13, fontFamily: 'Inter_700Bold', color: '#64748b', marginRight: 4 }}>$</Text>
@@ -522,7 +522,7 @@ export default function RiskGuardScreen() {
                       <View style={{ flex: 1 }} />
                       <Text style={{ fontSize: 11, fontFamily: 'Inter_600SemiBold', color: '#64748b' }}>USD</Text>
                     </View>
-                  ))}
+                  </>))}
                 </View>
               </View>
             )}
@@ -532,7 +532,7 @@ export default function RiskGuardScreen() {
               <View>
                 <View style={[styles.metricCard, disciplineSentinel && styles.activeMetricCard]}>
                   {renderCardHeader(Activity, "Daily Trade Limit", "Limits maximum executions per day", disciplineSentinel, setDisciplineSentinel)}
-                  {renderCardContent(disciplineSentinel, (
+                  {renderCardContent(disciplineSentinel, (<>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                       <View style={{ flex: 1 }}>
                         <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>DAILY EXECUTION LIMIT</Text>
@@ -543,23 +543,23 @@ export default function RiskGuardScreen() {
                         <TouchableOpacity onPress={() => { h(); setDailyTrades(Math.min(20, dailyTrades + 1)); }} style={{ width: 28, height: 28, backgroundColor: '#3b82f6', borderRadius: 8, alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: '#fff', fontSize: 18, fontFamily: 'Inter_700Bold' }}>+</Text></TouchableOpacity>
                       </View>
                     </View>
-                  ))}
+                  </>))}
                 </View>
 
                 <View style={[styles.metricCard, lossCooldown && styles.activeMetricCard]}>
                   {renderCardHeader(ShieldOff, "Loss Cooldown", "Locks execution after losing trades", lossCooldown, setLossCooldown)}
-                  {renderCardContent(lossCooldown, (
-                    <CustomSlider label="DURATION (MINUTES)" valuePct={(waitPeriod / 120) * 100} valueText={`${waitPeriod}M`} />
+                  {renderCardContent(lossCooldown, (<>
+                    <CustomSlider label="DURATION (MINUTES)" valuePct={(waitPeriod/120)*100} valueText={`${waitPeriod}M`} />
                     <View>
                       <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>TRIGGER</Text>
-                      <DropdownButton value="After every losing trade" onPress={() => { }} />
+                      <DropdownButton value="After every losing trade" onPress={() => {}} />
                     </View>
-                  ), 12)}
+                  </>), 12)}
                 </View>
 
                 <View style={[styles.metricCard, sessionSentinel && styles.activeMetricCard]}>
                   {renderCardHeader(Clock, "Session Sentinel", "Custom hourly trading windows", sessionSentinel, setSessionSentinel)}
-                  {renderCardContent(sessionSentinel, (
+                  {renderCardContent(sessionSentinel, (<>
                     <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>ACTIVE SESSIONS</Text>
                     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                       {['London', 'Sydney', 'New York', 'Asian'].map(city => {
@@ -579,12 +579,12 @@ export default function RiskGuardScreen() {
                         );
                       })}
                     </View>
-                  ))}
+                  </>))}
                 </View>
 
                 <View style={[styles.metricCard, stopAfterWin && styles.activeMetricCard]}>
                   {renderCardHeader(Trophy, "Win Streak Cooldown", "Lock trading after wins", stopAfterWin, setStopAfterWin)}
-                  {renderCardContent(stopAfterWin, (
+                  {renderCardContent(stopAfterWin, (<>
                     <View style={{ flexDirection: 'row', gap: 8 }}>
                       <View style={{ flex: 1 }}>
                         <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>MAX WINS</Text>
@@ -596,15 +596,15 @@ export default function RiskGuardScreen() {
                       </View>
                       <View style={{ flex: 1.5 }}>
                         <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>ACTION</Text>
-                        <DropdownButton value="Pause trading" onPress={() => { }} />
+                        <DropdownButton value="Pause trading" onPress={() => {}} />
                       </View>
                     </View>
-                  ), 12)}
+                  </>), 12)}
                 </View>
 
                 <View style={[styles.metricCard, noTradingAfterTimeActive && styles.activeMetricCard]}>
                   {renderCardHeader(Sunrise, "No Trading After Time", "Daily cutoff time", noTradingAfterTimeActive, setNoTradingAfterTimeActive)}
-                  {renderCardContent(noTradingAfterTimeActive, (
+                  {renderCardContent(noTradingAfterTimeActive, (<>
                     <View style={{ flexDirection: 'row', gap: 8 }}>
                       <View style={{ flex: 1 }}>
                         <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>CUTOFF TIME</Text>
@@ -614,25 +614,25 @@ export default function RiskGuardScreen() {
                       </View>
                       <View style={{ flex: 1 }}>
                         <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>ACTION</Text>
-                        <DropdownButton value="Block new trades" onPress={() => { }} />
+                        <DropdownButton value="Block new trades" onPress={() => {}} />
                       </View>
                     </View>
-                  ), 12)}
+                  </>), 12)}
                 </View>
 
                 <View style={[styles.metricCard, emotionalTradingDetector && styles.activeMetricCard]}>
                   {renderCardHeader(HeartPulse, "Behavioural Risk Detector", "AI pacing detection", emotionalTradingDetector, setEmotionalTradingDetector)}
-                  {renderCardContent(emotionalTradingDetector, (
+                  {renderCardContent(emotionalTradingDetector, (<>
                     <CustomSlider label="SENSITIVITY" valuePct={emotionSensitivity} valueText={`${emotionSensitivity}%`} />
-                  ))}
+                  </>))}
                 </View>
-
+                
                 <View style={[styles.metricCard, newsFilter && styles.activeMetricCard]}>
                   {renderCardHeader(AlertTriangle, "News Filter", "Block around high-impact news", newsFilter, setNewsFilter)}
-                  {renderCardContent(newsFilter, (
+                  {renderCardContent(newsFilter, (<>
                     <View>
                       <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>IMPACT LEVEL</Text>
-                      <DropdownButton value="High Only" onPress={() => { }} />
+                      <DropdownButton value="High Only" onPress={() => {}} />
                     </View>
                     <View style={{ flexDirection: 'row', gap: 8 }}>
                       <View style={{ flex: 1 }}>
@@ -650,12 +650,12 @@ export default function RiskGuardScreen() {
                         </View>
                       </View>
                     </View>
-                  ), 12)}
+                  </>), 12)}
                 </View>
 
                 <View style={[styles.metricCard, sleepProtection && styles.activeMetricCard]}>
                   {renderCardHeader(Moon, "Sleep Protection", "Disable midnight trading", sleepProtection, setSleepProtection)}
-                  {renderCardContent(sleepProtection, (
+                  {renderCardContent(sleepProtection, (<>
                     <View style={{ flexDirection: 'row', gap: 8 }}>
                       <View style={{ flex: 1 }}>
                         <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>LOCKOUT START</Text>
@@ -670,15 +670,15 @@ export default function RiskGuardScreen() {
                         </View>
                       </View>
                     </View>
-                  ))}
+                  </>))}
                 </View>
 
                 <View style={[styles.metricCard, preTradeChecklist && styles.activeMetricCard]}>
                   {renderCardHeader(CheckSquare, "Pre-Trade Checklist", "Mandatory popup checklist", preTradeChecklist, setPreTradeChecklist)}
-                  {renderCardContent(preTradeChecklist, (
+                  {renderCardContent(preTradeChecklist, (<>
                     <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>CHECKLIST PRESET</Text>
-                    <DropdownButton value="Standard Checklist" onPress={() => { }} />
-                  ))}
+                    <DropdownButton value="Standard Checklist" onPress={() => {}} />
+                  </>))}
                 </View>
 
                 <View style={[styles.metricCard, psychologyCheck && styles.activeMetricCard]}>
