@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { BlurView } from 'expo-blur';
-import { View, Text, ScrollView, TouchableOpacity, Dimensions, Platform, StatusBar, Image, Switch, Animated, DeviceEventEmitter, Alert, StyleSheet, TextInput, PanResponder } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Dimensions, Platform, StatusBar, Image, Switch, Animated, DeviceEventEmitter, Alert, StyleSheet, TextInput, PanResponder, Modal, FlatList, TouchableWithoutFeedback } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getHeaderStyle, HeaderStyle } from '../utils/headerStore';
 import { useRouter } from 'expo-router';
@@ -97,8 +97,6 @@ function CustomSlider({ label, valuePct, valueText, color = '#6366f1', onValueCh
     </View>
   );
 }
-
-import { Modal, FlatList, TouchableWithoutFeedback } from 'react-native';
 
 function DropdownButton({ value, options, onSelect }: { value: string, options?: string[], onSelect?: (val: string) => void }) {
   const { isDark } = useAppTheme();
