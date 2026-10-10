@@ -2065,7 +2065,7 @@ export default function SettingsScreen() {
               <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#a855f7', textTransform: 'uppercase' }}>Available</Text>
               <DollarSign size={13} color="#a855f7" />
             </View>
-            <Text style={{ fontSize: 18, fontFamily: 'Inter_900Black', color: isDark ? '#ffffff' : '#0f172a', marginTop: 4 }}>$1,245.50</Text>
+            <Text style={{ fontSize: 18, fontFamily: 'Inter_900Black', color: isDark ? '#ffffff' : '#0f172a', marginTop: 4 }}>₹1,245.50</Text>
           </View>
 
           {/* Active Subs */}
@@ -2083,7 +2083,7 @@ export default function SettingsScreen() {
               <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: '#10b981', textTransform: 'uppercase' }}>Gross</Text>
               <Trophy size={13} color="#10b981" />
             </View>
-            <Text style={{ fontSize: 18, fontFamily: 'Inter_900Black', color: isDark ? '#ffffff' : '#0f172a', marginTop: 4 }}>$5,840</Text>
+            <Text style={{ fontSize: 18, fontFamily: 'Inter_900Black', color: isDark ? '#ffffff' : '#0f172a', marginTop: 4 }}>₹5,840</Text>
           </View>
         </View>
 
@@ -2260,7 +2260,7 @@ export default function SettingsScreen() {
       <View style={styles.section}>
         <SectionHeader title="Terms & Policies" />
         <View style={styles.card}>
-          <TouchableOpacity style={styles.rowItem} onPress={() => Linking.openURL('https://tradifive.com/terms')}>
+          <TouchableOpacity style={styles.rowItem} onPress={() => Linking.openURL('https://tradifive.in/terms')}>
             <View style={styles.rowLeft}>
               <FileText size={20} color={isDark ? '#e8e8e8' : '#000000'} strokeWidth={1.8} />
               <View>
@@ -2269,7 +2269,7 @@ export default function SettingsScreen() {
             </View>
             <ChevronRight size={20} color="#94a3b8" />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.rowItem} onPress={() => Linking.openURL('https://tradifive.com/privacy')}>
+          <TouchableOpacity style={styles.rowItem} onPress={() => Linking.openURL('https://tradifive.in/privacy')}>
             <View style={styles.rowLeft}>
               <ShieldCheck size={20} color={isDark ? '#e8e8e8' : '#000000'} strokeWidth={1.8} />
               <View>
@@ -2306,12 +2306,12 @@ export default function SettingsScreen() {
               </View>
             </View>
           </View>
-          <TouchableOpacity style={[styles.rowItem, styles.lastRow]} onPress={() => Linking.openURL('https://tradifive.com')}>
+          <TouchableOpacity style={[styles.rowItem, styles.lastRow]} onPress={() => Linking.openURL('https://tradifive.in')}>
             <View style={styles.rowLeft}>
               <Globe size={20} color={isDark ? '#e8e8e8' : '#000000'} strokeWidth={1.8} />
               <View>
                 <Text style={styles.rowLabel}>Visit Website</Text>
-                <Text style={styles.rowSub}>tradifive.com</Text>
+                <Text style={styles.rowSub}>tradifive.in</Text>
               </View>
             </View>
             <ChevronRight size={20} color="#94a3b8" />

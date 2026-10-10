@@ -1733,11 +1733,11 @@ export default function ProfileScreen() {
                   </View>
                   <View style={{ width: '48%', backgroundColor: isDark ? theme.background : '#f8fafc', padding: 12, borderRadius: 12, borderWidth: isDark ? 1 : 0, borderColor: theme.cardBorder }}>
                     <Text style={{ fontSize: 11, color: isDark ? theme.textSecondary : '#64748b', fontWeight: '600', marginBottom: 4 }}>Avg Win</Text>
-                    <Text style={{ fontSize: 18, color: '#10b981', fontWeight: '800' }}>$450</Text>
+                    <Text style={{ fontSize: 18, color: '#10b981', fontWeight: '800' }}>₹450</Text>
                   </View>
                   <View style={{ width: '48%', backgroundColor: isDark ? theme.background : '#f8fafc', padding: 12, borderRadius: 12, borderWidth: isDark ? 1 : 0, borderColor: theme.cardBorder }}>
                     <Text style={{ fontSize: 11, color: isDark ? theme.textSecondary : '#64748b', fontWeight: '600', marginBottom: 4 }}>Avg Loss</Text>
-                    <Text style={{ fontSize: 18, color: '#ef4444', fontWeight: '800' }}>$180</Text>
+                    <Text style={{ fontSize: 18, color: '#ef4444', fontWeight: '800' }}>₹180</Text>
                   </View>
                 </View>
               </View>

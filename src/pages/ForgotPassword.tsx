@@ -132,7 +132,7 @@ export default function ForgotPassword() {
         </div>
 
         <p className="mt-8 text-center text-[11px] font-bold text-slate-300 tracking-[0.1em] uppercase">
-          Need help? <a href="mailto:hello@tradifive.com" className="text-slate-400 hover:text-primary transition-colors border-b border-slate-200 dark:border-[#333333] ml-1">Contact Support</a>
+          Need help? <a href="mailto:hello@tradifive.in" className="text-slate-400 hover:text-primary transition-colors border-b border-slate-200 dark:border-[#333333] ml-1">Contact Support</a>
         </p>
       </motion.div>
     </div>

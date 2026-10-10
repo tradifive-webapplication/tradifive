@@ -24,7 +24,7 @@ const MOCK_COMPETITIONS: Competition[] = [
     status: "Upcoming",
     start: "Oct 1, 2025",
     end: "Oct 31, 2025",
-    prize: "$8,000 Cash & $1.7M worth of Challenge Accounts",
+    prize: "₹8,000 Cash & ₹1.7M worth of Challenge Accounts",
     contestants: "58177",
     timeLabel: "Time Until Start",
     timeLeft: { days: 11, hours: 19, mins: 48, secs: 14 },
@@ -36,7 +36,7 @@ const MOCK_COMPETITIONS: Competition[] = [
     status: "In progress",
     start: "Sep 1, 2025",
     end: "Sep 30, 2025",
-    prize: "$8,000 Cash & $1.7M worth of Challenge Accounts",
+    prize: "₹8,000 Cash & ₹1.7M worth of Challenge Accounts",
     contestants: "93060",
     timeLabel: "Time Remaining",
     timeLeft: { days: 11, hours: 8, mins: 48, secs: 14 },
@@ -48,7 +48,7 @@ const MOCK_COMPETITIONS: Competition[] = [
     status: "Finished",
     start: "Aug 1, 2025",
     end: "Aug 31, 2025",
-    prize: "$8,000 Cash & $1.7M worth of Challenge Accounts",
+    prize: "₹8,000 Cash & ₹1.7M worth of Challenge Accounts",
     contestants: "83980",
     timeLabel: "Finished On",
     timeLeft: null,
@@ -60,7 +60,7 @@ const MOCK_COMPETITIONS: Competition[] = [
     status: "Finished",
     start: "Jul 1, 2025",
     end: "Jul 31, 2025",
-    prize: "$7,500 Cash & $1.5M worth of Challenge Accounts",
+    prize: "₹7,500 Cash & ₹1.5M worth of Challenge Accounts",
     contestants: "72140",
     timeLabel: "Finished On",
     timeLeft: null,
@@ -69,16 +69,16 @@ const MOCK_COMPETITIONS: Competition[] = [
 ];
 
 const MOCK_LEADERBOARD = [
-  { rank: 1, trader: "SkyWalker_FX", country: "🇺🇸", return: 54.2, winRate: 68, equity: "$300,000", maxDD: 4.2 },
-  { rank: 2, trader: "Nakamoto_Trade", country: "🇯🇵", return: 48.9, winRate: 72, equity: "$300,000", maxDD: 3.1 },
-  { rank: 3, trader: "AlphaPrime", country: "🇩🇪", return: 42.5, winRate: 65, equity: "$200,000", maxDD: 5.4 },
-  { rank: 4, trader: "BullishBane", country: "🇬🇧", return: 38.4, winRate: 61, equity: "$100,000", maxDD: 6.2 },
-  { rank: 5, trader: "ZenScalper", country: "🇨🇦", return: 35.1, winRate: 75, equity: "$300,000", maxDD: 2.8 },
-  { rank: 6, trader: "QuantWhale", country: "🇦🇺", return: 31.2, winRate: 59, equity: "$200,000", maxDD: 7.5 },
-  { rank: 7, trader: "GhostTrader", country: "🇫🇷", return: 28.9, winRate: 64, equity: "$100,000", maxDD: 4.9 },
-  { rank: 8, trader: "TrendMaster", country: "🇸🇬", return: 26.4, winRate: 67, equity: "$100,000", maxDD: 3.8 },
-  { rank: 9, trader: "LiquidLogic", country: "🇳🇱", return: 24.1, winRate: 70, equity: "$300,000", maxDD: 3.2 },
-  { rank: 10, trader: "MarginGod", country: "🇧🇷", return: 22.5, winRate: 62, equity: "$200,000", maxDD: 5.8 },
+  { rank: 1, trader: "SkyWalker_FX", country: "🇺🇸", return: 54.2, winRate: 68, equity: "₹300,000", maxDD: 4.2 },
+  { rank: 2, trader: "Nakamoto_Trade", country: "🇯🇵", return: 48.9, winRate: 72, equity: "₹300,000", maxDD: 3.1 },
+  { rank: 3, trader: "AlphaPrime", country: "🇩🇪", return: 42.5, winRate: 65, equity: "₹200,000", maxDD: 5.4 },
+  { rank: 4, trader: "BullishBane", country: "🇬🇧", return: 38.4, winRate: 61, equity: "₹100,000", maxDD: 6.2 },
+  { rank: 5, trader: "ZenScalper", country: "🇨🇦", return: 35.1, winRate: 75, equity: "₹300,000", maxDD: 2.8 },
+  { rank: 6, trader: "QuantWhale", country: "🇦🇺", return: 31.2, winRate: 59, equity: "₹200,000", maxDD: 7.5 },
+  { rank: 7, trader: "GhostTrader", country: "🇫🇷", return: 28.9, winRate: 64, equity: "₹100,000", maxDD: 4.9 },
+  { rank: 8, trader: "TrendMaster", country: "🇸🇬", return: 26.4, winRate: 67, equity: "₹100,000", maxDD: 3.8 },
+  { rank: 9, trader: "LiquidLogic", country: "🇳🇱", return: 24.1, winRate: 70, equity: "₹300,000", maxDD: 3.2 },
+  { rank: 10, trader: "MarginGod", country: "🇧🇷", return: 22.5, winRate: 62, equity: "₹200,000", maxDD: 5.8 },
 ];
 
 export function useCompetitionsData() {
@@ -151,7 +151,7 @@ export function useCompetitionsData() {
             status: (c.status as any) || "Upcoming",
             start: startStr,
             end: endStr,
-            prize: c.prize_pool || "$8,000 Cash",
+            prize: c.prize_pool || "₹8,000 Cash",
             contestants: "58177", // default fallback or count
             timeLabel: c.status === "In progress" ? "Time Remaining" : c.status === "Finished" ? "Finished On" : "Time Until Start",
             timeLeft,
@@ -212,7 +212,7 @@ export function useCompetitionsData() {
             status: status || "In progress",
             start_date: startDate,
             end_date: endDate,
-            prize_pool: prize || "$5,000 Cash & Challenge Accounts",
+            prize_pool: prize || "₹5,000 Cash & Challenge Accounts",
             max_contestants: 100000,
           });
 
@@ -352,7 +352,7 @@ export function useCompetitionsData() {
           country: row.profiles?.location || "🌐",
           return: Number(row.score),
           winRate: 65, // cached fallback
-          equity: "$100,000",
+          equity: "₹100,000",
           maxDD: 3.5,
         }));
       }

@@ -80,7 +80,7 @@ export function usePayoutsAndTransactions() {
       if (accounts && accounts.length > 0) {
         const bal = accounts[0].balance || 0;
         const eq = accounts[0].equity || 0;
-        // Let's say withdrawable profit is equity above $100,000, or if balance is smaller, let's show a portion of equity
+        // Let's say withdrawable profit is equity above ₹100,000, or if balance is smaller, let's show a portion of equity
         withdrawable = eq > 100000 ? eq - 100000 : Math.max(eq * 0.1, 1250.0);
         // Round to 2 decimals
         withdrawable = Math.round(withdrawable * 100) / 100;

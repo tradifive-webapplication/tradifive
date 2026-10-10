@@ -163,7 +163,7 @@ export default function EmployeeDirectoryPage() {
             
             <div className="flex items-start justify-between mb-4 mt-2">
               <div className="flex items-center gap-3">
-                {emp.role_level === "ceo" || emp.role_title?.toLowerCase() === "ceo" || emp.email === "ceo@tradifive.com" ? (
+                {emp.role_level === "ceo" || emp.role_title?.toLowerCase() === "ceo" || emp.email === "ceo@tradifive.in" ? (
                   <img
                     src="/nikil_avatar.jpg"
                     alt={emp.full_name}

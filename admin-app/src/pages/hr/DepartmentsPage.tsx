@@ -507,7 +507,7 @@ export default function DepartmentsPage() {
                         </div>
                         <div className="flex items-center gap-2">
                           <a 
-                            href={`mailto:${admin.email || 'admin@tradifive.com'}`}
+                            href={`mailto:${admin.email || 'admin@tradifive.in'}`}
                             className="w-7 h-7 rounded bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center hover:bg-indigo-500/30 transition-colors"
                             title={`Message ${admin.full_name}`}
                           >

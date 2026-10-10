@@ -45,7 +45,7 @@ const BOTS = [
     icon: Zap,
     features: [
       "Trades XAUUSD & EURUSD",
-      "Min. Balance: $500",
+      "Min. Balance: ₹500",
       "Max Drawdown: 8%",
       "Executes 15-25 trades per day"
     ]
@@ -68,7 +68,7 @@ const BOTS = [
     icon: TrendingUp,
     features: [
       "Trades All Major Pairs",
-      "Min. Balance: $1,000",
+      "Min. Balance: ₹1,000",
       "Max Drawdown: 4%",
       "Executes 3-5 trades per week"
     ]

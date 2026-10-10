@@ -132,9 +132,9 @@ const METRIC_CONTENT: Record<string, React.ReactNode> = {
       </div>
       <div className="flex items-end justify-between mt-1">
         <div>
-          <h3 className="text-[28px] font-medium text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>$0</h3>
+          <h3 className="text-[28px] font-medium text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>₹0</h3>
           <p className="text-[13px] font-medium text-slate-500 dark:text-slate-400 mt-1">
-            P&L: <span className="text-[#F06363]">-$2,001.78</span>
+            P&L: <span className="text-[#F06363]">-₹2,001.78</span>
           </p>
         </div>
         <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center shrink-0">

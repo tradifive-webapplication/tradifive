@@ -24,9 +24,9 @@ const METRICS = [
 ];
 
 const TRADES = [
-  { sym: "XAUUSD", dir: "BUY", pnl: "+$342.50", rr: "1:3.2", tag: "A+ Setup", win: true, time: "06:05 PM" },
-  { sym: "US30", dir: "SELL", pnl: "-$125.00", rr: "1:1.1", tag: "Revenge", win: false, time: "04:30 PM" },
-  { sym: "EURUSD", dir: "BUY", pnl: "+$87.20", rr: "1:2.0", tag: "Breakout", win: true, time: "02:15 PM" },
+  { sym: "XAUUSD", dir: "BUY", pnl: "+₹342.50", rr: "1:3.2", tag: "A+ Setup", win: true, time: "06:05 PM" },
+  { sym: "US30", dir: "SELL", pnl: "-₹125.00", rr: "1:1.1", tag: "Revenge", win: false, time: "04:30 PM" },
+  { sym: "EURUSD", dir: "BUY", pnl: "+₹87.20", rr: "1:2.0", tag: "Breakout", win: true, time: "02:15 PM" },
 ];
 
 const FEATURES = [

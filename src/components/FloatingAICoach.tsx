@@ -246,10 +246,10 @@ Here is my quantitative recommendation based on your account logs:
 **your losses are much bigger than your wins.**
 
 ### What the data says
-- **Net P&L:** -$2,001.78
+- **Net P&L:** -₹2,001.78
 - **Win rate:** 52.96%
-- **Average win:** +$18.53
-- **Average loss:** -$37.69
+- **Average win:** +₹18.53
+- **Average loss:** -₹37.69
 
 Your average loss is ~2.03x your average win. Even though you win often, when you lose, you give back too much.
 

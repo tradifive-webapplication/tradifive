@@ -424,8 +424,8 @@ export default function LiveSessions() {
                   <div>
                     <label className={labelCls}>Stream Server URL (RTMP)</label>
                     <div className="flex items-center gap-2">
-                      <input readOnly value="rtmp://live.tradifive.com/broadcast" className={`${inputCls} bg-slate-100 dark:bg-white/5 font-mono text-slate-600`} />
-                      <button onClick={() => { navigator.clipboard.writeText('rtmp://live.tradifive.com/broadcast'); toast.success('Server URL copied'); }} className="p-2.5 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-slate-800 transition-colors shrink-0">
+                      <input readOnly value="rtmp://live.tradifive.in/broadcast" className={`${inputCls} bg-slate-100 dark:bg-white/5 font-mono text-slate-600`} />
+                      <button onClick={() => { navigator.clipboard.writeText('rtmp://live.tradifive.in/broadcast'); toast.success('Server URL copied'); }} className="p-2.5 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-slate-800 transition-colors shrink-0">
                         <Copy size={16} />
                       </button>
                     </div>

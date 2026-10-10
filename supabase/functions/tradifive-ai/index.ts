@@ -3,8 +3,8 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 // ── SECURITY: Strict CORS ─────────────────────────────────────────────────────
 const ALLOWED_ORIGINS = [
-  'https://www.tradifive.com',
-  'https://tradifive.com',
+  'https://www.tradifive.in',
+  'https://tradifive.in',
   'https://fialgo-connect-main.vercel.app',
   'http://localhost:5173',
   'http://localhost:3000',

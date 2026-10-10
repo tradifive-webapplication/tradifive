@@ -142,7 +142,7 @@ export default function CommunityHubPublic() {
             <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 24, overflow: "hidden", padding: 24 }}>
               <div style={{ background: "rgba(99,102,241,0.08)", borderRadius: 16, padding: "16px 20px", marginBottom: 16 }}>
                 <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12 }}>🔴 Live — Pulse Feed</div>
-                {[{ a: "👤", n: "Marcus V.", t: "LONG XAUUSD · +$1,240 ✓", c: "#10b981" }, { a: "👤", n: "Elena R.", t: "EUR/USD Setup 📊", c: "#6366f1" }].map((p, i) => (
+                {[{ a: "👤", n: "Marcus V.", t: "LONG XAUUSD · +₹1,240 ✓", c: "#10b981" }, { a: "👤", n: "Elena R.", t: "EUR/USD Setup 📊", c: "#6366f1" }].map((p, i) => (
                   <div key={i} style={{ display: "flex", gap: 12, alignItems: "center", padding: "10px 0", borderBottom: i === 0 ? "1px solid rgba(255,255,255,0.04)" : "none" }}>
                     <div style={{ width: 32, height: 32, borderRadius: "50%", background: `${p.c}22`, border: `1px solid ${p.c}44`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13 }}>{p.a}</div>
                     <div>

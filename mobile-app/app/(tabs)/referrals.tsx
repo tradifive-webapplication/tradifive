@@ -28,7 +28,7 @@ const getStatusConfig = (isDark: boolean) => ({
 const HOW_IT_WORKS = [
   { step: '1', icon: Share2, title: 'Share Your Link', desc: 'Send your unique referral link or code to a friend who wants to trade smarter.', color: '#6366f1' },
   { step: '2', icon: UserPlus, title: 'Friend Signs Up', desc: 'They create a Tradifive account using your link and connect their broker.', color: '#3b82f6' },
-  { step: '3', icon: Gift, title: 'Both Earn Rewards', desc: 'You earn $50 per active referral. 3 referrals unlocks 1 month Pro for FREE!', color: '#10b981' },
+  { step: '3', icon: Gift, title: 'Both Earn Rewards', desc: 'You earn ₹50 per active referral. 3 referrals unlocks 1 month Pro for FREE!', color: '#10b981' },
 ];
 
 export default function Referrals() {
@@ -79,7 +79,7 @@ export default function Referrals() {
 
   // Dynamic Referral Link calculation
   const referralCode = currentUser?.referral_code || 'TF-NIKIL2024';
-  const referralLink = `https://tradifive.com/signup?ref=${referralCode}`;
+  const referralLink = `https://tradifive.in/signup?ref=${referralCode}`;
 
   const [referredUsers, setReferredUsers] = useState<any[]>([]);
 
@@ -123,7 +123,7 @@ export default function Referrals() {
     avatar: (ref.profiles?.full_name || 'AN').substring(0, 2).toUpperCase(),
     date: new Date(ref.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }),
     status: ref.status || 'pending',
-    earned: ref.status === 'active' ? `$${(ref.earned || 50.0).toFixed(2)}` : '$0.00'
+    earned: ref.status === 'active' ? `$${(ref.earned || 50.0).toFixed(2)}` : '₹0.00'
   })) : REFERRED_USERS;
 
   const handleCopy = () => {
@@ -234,7 +234,7 @@ export default function Referrals() {
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={{ fontSize: 18, fontFamily: 'Inter_800ExtraBold', color: '#0f172a', marginBottom: 4 }}>Invite & Earn Rewards</Text>
-                <Text style={{ fontSize: 13, fontFamily: 'Inter_500Medium', color: '#64748b', lineHeight: 18 }}>Earn $50 per active referral. 3 friends = 1 month Pro FREE!</Text>
+                <Text style={{ fontSize: 13, fontFamily: 'Inter_500Medium', color: '#64748b', lineHeight: 18 }}>Earn ₹50 per active referral. 3 friends = 1 month Pro FREE!</Text>
               </View>
             </View>
 

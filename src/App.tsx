@@ -19,6 +19,9 @@ const ContactPublic = lazy(() => import("./pages/ContactPublic"));
 const DownloadAppPublic = lazy(() => import("./pages/DownloadAppPublic"));
 const Login = lazy(() => import("./pages/Login"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Portfolio = lazy(() => import("./pages/dashboard/Portfolio"));
+const Brokers = lazy(() => import("./pages/dashboard/Brokers"));
+const Reports = lazy(() => import("./pages/dashboard/Reports"));
 const Settings = lazy(() => import("./pages/Settings"));
 const BrokerConnect = lazy(() => import("./pages/BrokerConnect"));
 const Profile = lazy(() => import("./pages/Profile"));
@@ -39,6 +42,12 @@ const CompetitionsDashboard = lazy(() => import("./pages/CompetitionsDashboard")
 const CompetitionsLeaderboard = lazy(() => import("./pages/CompetitionsLeaderboard"));
 const CompetitionsRewards = lazy(() => import("./pages/CompetitionsRewards"));
 const TradifiveAI = lazy(() => import("./pages/TradifiveAI"));
+const AITrading = lazy(() => import("./pages/AITrading"));
+const AutoTradeDashboardPage = lazy(() => import('./pages/AutoTradeDashboardPage'));
+const MyRobots = lazy(() => import('./pages/MyRobots'));
+const StrategyBuilderPage = lazy(() => import('./pages/StrategyBuilderPage'));
+const TradeHistory = lazy(() => import('./pages/TradeHistory'));
+const EASetup = lazy(() => import('./pages/EASetup'));
 const ChallengeConsole = lazy(() => import("./pages/ChallengeConsole"));
 const Payouts = lazy(() => import("./pages/Payouts"));
 const Transactions = lazy(() => import("./pages/Transactions"));
@@ -65,6 +74,9 @@ const RefundPolicyPublic = lazy(() => import("./pages/RefundPolicyPublic"));
 const RiskDisclosurePublic = lazy(() => import("./pages/RiskDisclosurePublic"));
 const CookiePolicyPublic = lazy(() => import("./pages/CookiePolicyPublic"));
 const AmlKycPolicyPublic = lazy(() => import("./pages/AmlKycPolicyPublic"));
+const CustomStrategiesPublic = lazy(() => import("./pages/CustomStrategiesPublic"));
+const OptionsTradingPublic = lazy(() => import("./pages/OptionsTradingPublic"));
+const PropFirmIntegrationsPublic = lazy(() => import("./pages/PropFirmIntegrationsPublic"));
 const AccountFrozen = lazy(() => import("./pages/AccountFrozen"));
 const AccountDeleted = lazy(() => import("./pages/AccountDeleted"));
 const AdminOverview = lazy(() => import("./pages/admin/AdminOverview"));
@@ -121,6 +133,9 @@ const App = () => {
                 <Route path="/features/community-hub" element={<CommunityHubPublic />} />
                 <Route path="/features/competitions" element={<CompetitionsPublic />} />
                 <Route path="/features/tradifive-ai" element={<TradifiveAIPublic />} />
+                <Route path="/features/custom-strategies" element={<CustomStrategiesPublic />} />
+                <Route path="/features/options-trading" element={<OptionsTradingPublic />} />
+                <Route path="/features/prop-firm-integrations" element={<PropFirmIntegrationsPublic />} />
                 <Route path="/account-frozen" element={<AccountFrozen />} />
                 <Route path="/account-deleted" element={<AccountDeleted />} />
                 <Route path="/broker-auth/:brokerId" element={<BrokerAuth />} />
@@ -129,11 +144,21 @@ const App = () => {
                   <Route path="/home" element={<Home />} />
                   <Route path="/discover" element={<Discover />} />
                   <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/dashboard/portfolio" element={<Portfolio />} />
+                  <Route path="/dashboard/brokers" element={<Brokers />} />
+                  <Route path="/dashboard/reports" element={<Reports />} />
                   <Route path="/broker-connect" element={<Navigate to="/settings?tab=trading" replace />} />
                   <Route path="/journal" element={<Journal />} />
                   <Route path="/risk-guard" element={<RiskGuard />} />
                   <Route path="/settings" element={<Settings />} />
                   <Route path="/ai-coach" element={<TradifiveAI />} />
+                  <Route path="/auto-trade/setup" element={<AITrading />} />
+                  <Route path="/auto-trade/dashboard" element={<AutoTradeDashboardPage />} />
+                  <Route path="/auto-trade/active-bots" element={<MyRobots />} />
+                  <Route path="/auto-trade/builder" element={<StrategyBuilderPage />} />
+                  <Route path="/auto-trade/history" element={<TradeHistory />} />
+                  <Route path="/auto-trade/license" element={<EASetup />} />
+                  <Route path="/ai-trading" element={<Navigate to="/auto-trade/setup" replace />} />
                   <Route path="/rewards" element={<Rewards />} />
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/user/:username" element={<UserProfilePublic />} />
@@ -180,3 +205,6 @@ const App = () => {
 };
 
 export default App;
+
+
+

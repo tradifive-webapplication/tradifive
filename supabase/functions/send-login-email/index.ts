@@ -143,9 +143,9 @@ function buildLoginEmailHtml(opts: {
             <td style="padding:28px 0 0;text-align:center;">
               <p style="margin:0;font-size:12px;color:#9ca3af;">
                 © 2026 Tradifive. All rights reserved.<br/>
-                <a href="https://tradifive.com" style="color:#6b7280;text-decoration:none;">tradifive.com</a>
+                <a href="https://tradifive.in" style="color:#6b7280;text-decoration:none;">tradifive.in</a>
                 &nbsp;·&nbsp;
-                <a href="https://tradifive.com/settings" style="color:#6b7280;text-decoration:none;">Manage notifications</a>
+                <a href="https://tradifive.in/settings" style="color:#6b7280;text-decoration:none;">Manage notifications</a>
               </p>
             </td>
           </tr>
@@ -280,7 +280,7 @@ serve(async (req) => {
       browser,
       ip,
       method,
-      securityUrl: `${Deno.env.get("SITE_URL") || "https://tradifive.com"}/settings`,
+      securityUrl: `${Deno.env.get("SITE_URL") || "https://tradifive.in"}/settings`,
     });
 
     // Send via Resend (https://resend.com — free 3,000 emails/month)
@@ -295,10 +295,10 @@ serve(async (req) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          // NOTE: If you haven't verified tradifive.com in Resend yet,
+          // NOTE: If you haven't verified tradifive.in in Resend yet,
           // you MUST change this 'from' address to "onboarding@resend.dev"
           // AND you can only send emails to your own registered Resend email address.
-          from: "Tradifive Security <security@tradifive.com>",
+          from: "Tradifive Security <security@tradifive.in>",
           to: [userEmail],
           subject: "New sign-in to your Tradifive account",
           html: emailHtml,

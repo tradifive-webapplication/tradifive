@@ -28,7 +28,7 @@ import {
    ArrowUpRight, ShieldCheck, Terminal, Volume2, Calendar, LockKeyhole, Sparkles,
    CircleUserRound, Languages, BellRing, MessageCircle, AlertCircle, Inbox, MoreVertical, ArrowRight, Plus, Minus, Download,
    AlertTriangle, Palette, Mail, Link2, Info, Crown, CreditCard, MessageSquare, LogOut
-} from 'lucide-react';
+, ChevronLeft } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { User, Category, Notification, Star, Swap, TicketStar, Wallet, Chat, InfoCircle, Danger, Logout, Edit, Search, ChevronRight } from 'react-iconly';
 import { useAICoachData } from '@/hooks/useAICoachData';
@@ -799,25 +799,12 @@ export default function Settings() {
             
             if (error || !data || !data.consentAppId) {
                 let errorMessage = error?.message || 'Failed to generate consent app ID';
-                if (error && (error as any).context) {
-                   try {
-                      const errBody = await (error as any).context.json();
-                      errorMessage = errBody.error || errorMessage;
-                   } catch (_) {
-                      try {
-                         const errText = await (error as any).context.text();
-                         if (errText) errorMessage = errText;
-                      } catch (__) {}
-                   }
-                }
                 throw new Error(errorMessage);
              }
             
-            // Save user/client id in localStorage temporarily to match on redirect
             localStorage.setItem('dhan_connecting_client_id', brokerClientId);
             localStorage.setItem('dhan_connecting_user_id', user.id);
             
-            // 2. Redirect user to Dhan OAuth page
             toast.loading('Redirecting to Dhan secure login...', { duration: 3000 });
             setTimeout(() => {
                window.open(`https://auth.dhan.co/login/consentApp-login?consentAppId=${data.consentAppId}`, '_blank');
@@ -829,6 +816,7 @@ export default function Settings() {
          return;
       }
       
+      // For Zerodha and Upstox, we insert into the database so that useDashboardData auto-syncs.
       try {
          const { data: { user } } = await supabase.auth.getUser();
          if (!user) {
@@ -836,28 +824,43 @@ export default function Settings() {
             return;
          }
 
+         if (selectedBrokerToConnect === 'zerodha' && !brokerApiKey) {
+             toast.error('API Key is required for Zerodha');
+             return;
+         }
+         
+         if (selectedBrokerToConnect === 'upstox' && !brokerClientId) {
+             toast.error('Client ID is required for Upstox');
+             return;
+         }
+
+         toast.loading(`Connecting to ${selectedBrokerToConnect.toUpperCase()}...`, { id: 'broker-connect' });
+
          const { error } = await supabase
             .from('broker_connections')
-            .insert({
+            .upsert({
                user_id: user.id,
                broker_name: selectedBrokerToConnect,
-               client_id: brokerClientId,
-               api_key: brokerApiKey,
-               connection_status: 'active'
-            });
+               client_id: brokerClientId || 'connected',
+               api_key: brokerApiKey || 'connected',
+               connection_status: 'active',
+               updated_at: new Date().toISOString()
+            }, { onConflict: 'user_id, broker_name' });
 
          if (error) throw error;
-
+         
+         toast.success(`Successfully linked ${selectedBrokerToConnect.toUpperCase()}! Your data will now sync.`, { id: 'broker-connect' });
          setConnectedBroker(selectedBrokerToConnect);
          setIsConnectingBroker(false);
-         toast.success(`Successfully connected to ${selectedBrokerToConnect.toUpperCase()}!`);
+         setSelectedBrokerToConnect('');
+
       } catch (err: any) {
-         console.error("Error connecting broker:", err);
-         toast.error(`Failed to connect: ${err.message}`);
+         console.error("Error saving broker:", err);
+         toast.error(`Failed to connect: ${err.message}`, { id: 'broker-connect' });
       }
    };
 
-    const handleDisconnectBroker = async () => {
+   const handleDisconnectBroker = async () => {
        const isGlobal = ['mt5', 'mt4', 'icmarkets', 'vantage', 'exness', 'xm'].includes(connectedBroker);
        
        if (isGlobal) {
@@ -1675,7 +1678,7 @@ export default function Settings() {
                                     )}
                                     
                                     {isConnectingBroker || selectedBrokerToConnect ? (
-                                       <div className="bg-white dark:bg-[#111112] border border-slate-200 dark:border-white/5 rounded-[32px] shadow-sm w-full overflow-hidden p-6 md:p-8">
+                                       <div className="bg-white dark:bg-[#111112] border border-slate-200/80 dark:border-white/5 rounded-[36px] shadow-[0_8px_40px_rgb(0,0,0,0.03)] w-full overflow-hidden p-6 md:p-10 relative">
                                           <div className="flex justify-between items-center mb-8 border-b border-slate-100 dark:border-white/5 pb-5">
                                              <h3 className="text-xl md:text-2xl font-extrabold text-slate-900 dark:text-white capitalize tracking-tight">
                                                 {!selectedBrokerToConnect ? 'Select A Broker' : `Connect ${selectedBrokerToConnect}`}
@@ -1686,7 +1689,8 @@ export default function Settings() {
                                                 } else {
                                                    setIsConnectingBroker(false);
                                                 }
-                                             }} className="px-5 py-2.5 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-[#222225] text-slate-600 hover:text-slate-900 dark:text-[#B5BAC1] dark:hover:text-white dark:hover:bg-[#2A2A2F] transition-all text-xs font-black uppercase tracking-wider active:scale-95">
+                                             }} className="group flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-slate-50 hover:bg-slate-100 dark:bg-white/5 dark:hover:bg-white/10 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-all text-[13px] font-bold border border-slate-200/60 dark:border-white/5 active:scale-95 shadow-sm">
+                                                <ChevronLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
                                                 Back
                                              </button>
                                           </div>
@@ -1694,32 +1698,32 @@ export default function Settings() {
                                           {!selectedBrokerToConnect ? (
                                              <div className="space-y-8">
                                                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                                                  <p className="text-[14px] text-slate-500 dark:text-[#949ba4] font-medium leading-relaxed max-w-xl">
+                                                  <p className="text-[15px] text-slate-500 dark:text-[#949ba4] font-medium leading-relaxed max-w-2xl">
                                                      Select your trading platform or broker to sync your live accounts and start tracking your performance.
                                                   </p>
                                                 </div>
                                                 
-                                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-5">
-                                                   {['mt5', 'mt4', 'icmarkets', 'vantage', 'exness', 'xm', 'zerodha', 'dhan', 'upstox'].filter(broker => {
-                                                      const isGlobal = ['mt5', 'mt4', 'icmarkets', 'vantage', 'exness', 'xm'].includes(broker);
-                                                      return activeMarket === 'indian' ? !isGlobal : isGlobal;
-                                                   }).map(broker => (
+                                                <div className="flex flex-wrap gap-5 md:gap-6">
+                                                   {['zerodha', 'dhan', 'upstox', 'mt5', 'mt4', 'icmarkets', 'vantage', 'exness', 'xm'].filter(broker => { const isGlobal = ['mt5', 'mt4', 'icmarkets', 'vantage', 'exness', 'xm'].includes(broker); return activeMarket === 'indian' ? !isGlobal : isGlobal; }).map(broker => (
                                                       <button
                                                          key={broker}
                                                          onClick={() => setSelectedBrokerToConnect(broker)}
-                                                         className="group relative flex flex-col items-center justify-center p-4 md:p-5 bg-gradient-to-b from-[#FFFFFF] to-[#F8F9FA] dark:from-[#1C1C1E] dark:to-[#121214] hover:from-white hover:to-white dark:hover:from-[#242428] dark:hover:to-[#18181A] border border-slate-200 dark:border-white/5 hover:border-indigo-500/40 dark:hover:border-indigo-500/50 rounded-[20px] transition-all duration-300 shadow-sm hover:shadow-[0_10px_40px_-10px_rgba(99,102,241,0.2)] dark:hover:shadow-[0_10px_40px_-10px_rgba(99,102,241,0.15)] active:scale-95 overflow-hidden"
+                                                         className={`group w-[150px] md:w-[160px] relative flex flex-col items-center justify-center p-6 bg-gradient-to-b from-white to-slate-50/80 dark:from-[#1A1A24] dark:to-[#121215] border border-slate-200/80 dark:border-white/10 hover:border-${broker === 'zerodha' ? 'blue' : broker === 'dhan' ? 'yellow' : broker === 'upstox' ? 'purple' : 'indigo'}-500/50 rounded-[32px] transition-all duration-500 shadow-[0_8px_30px_rgb(0,0,0,0.02)] hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] dark:hover:shadow-[0_20px_40px_-15px_rgba(255,255,255,0.05)] hover:-translate-y-1 active:translate-y-0 active:scale-95 overflow-hidden`}
                                                       >
-                                                         {/* Background Glow on Hover */}
-                                                         <div className="absolute inset-0 bg-indigo-500/0 group-hover:bg-indigo-500/5 transition-colors duration-300" />
+                                                         {/* Background Glow on Hover tailored to broker */}
+                                                         <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 ${broker === 'zerodha' ? 'bg-blue-500/5' : broker === 'dhan' ? 'bg-yellow-500/5' : broker === 'upstox' ? 'bg-purple-500/5' : 'bg-indigo-500/5'}`} />
+                                                         <div className={`absolute -top-10 -right-10 w-24 h-24 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 ${broker === 'zerodha' ? 'bg-blue-400/20' : broker === 'dhan' ? 'bg-yellow-400/20' : broker === 'upstox' ? 'bg-purple-400/20' : 'bg-indigo-400/20'}`} />
                                                          
-                                                         <div className="relative w-12 h-12 md:w-14 md:h-14 flex items-center justify-center bg-white dark:bg-black/40 border border-slate-100 dark:border-white/10 rounded-[14px] shadow-[inset_0_2px_10px_rgba(0,0,0,0.02)] dark:shadow-[inset_0_2px_10px_rgba(255,255,255,0.02)] mb-3 group-hover:scale-110 transition-transform duration-300 z-10">
+                                                         <div className={`relative w-16 h-16 md:w-20 md:h-20 flex items-center justify-center bg-white dark:bg-black/50 border border-slate-100 dark:border-white/5 rounded-[24px] shadow-sm mb-4 group-hover:scale-105 group-hover:shadow-md transition-all duration-300 z-10 overflow-hidden`}>
+                                                            <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 dark:to-transparent pointer-events-none" />
                                                             {broker === 'mt5' || broker === 'mt4' ? (
-                                                               <img src="/Mt5 logo.png" alt="MT" className="w-8 h-8 md:w-9 md:h-9 object-contain drop-shadow-md" />
+                                                               <img src="/Mt5 logo.png" alt="MT" className="w-10 h-10 md:w-12 md:h-12 object-contain drop-shadow-lg" />
                                                             ) : (
-                                                               <BrokerIcon name={broker} size={36} />
+                                                               <BrokerIcon name={broker} size={48} />
                                                             )}
                                                          </div>
-                                                         <span className="relative z-10 text-[12px] md:text-[13px] font-extrabold text-slate-800 dark:text-[#E2E8F0] capitalize text-center tracking-tight group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                                                         
+                                                         <span className={`relative z-10 text-[13px] md:text-[14px] font-black text-slate-800 dark:text-white capitalize text-center tracking-tight transition-colors duration-300 ${broker === 'zerodha' ? 'group-hover:text-blue-600 dark:group-hover:text-blue-400' : broker === 'dhan' ? 'group-hover:text-yellow-600 dark:group-hover:text-yellow-400' : broker === 'upstox' ? 'group-hover:text-purple-600 dark:group-hover:text-purple-400' : 'group-hover:text-indigo-600 dark:group-hover:text-indigo-400'}`}>
                                                             {broker === 'mt5' ? 'MetaTrader 5' : broker === 'mt4' ? 'MetaTrader 4' : broker === 'icmarkets' ? 'IC Markets' : broker}
                                                          </span>
                                                       </button>
@@ -1868,19 +1872,41 @@ export default function Settings() {
                                        </button>
                                        </>
                                     ) : (
-                                       <div className="flex flex-col items-center justify-center py-16 px-6 border-2 border-dashed border-slate-200 dark:border-white/10 rounded-[28px] bg-white/50 dark:bg-[#111112]/50 text-slate-500 dark:text-slate-400">
-                                          <div className="w-16 h-16 rounded-[20px] bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center mb-5 text-indigo-500 dark:text-indigo-400 shadow-[inset_0_2px_10px_rgba(0,0,0,0.02)]">
-                                             <Link2 size={28} />
+                                       
+                                          <div className="relative overflow-hidden flex flex-col items-center justify-center py-10 px-6 border border-slate-200/60 dark:border-white/5 rounded-[28px] bg-gradient-to-b from-white to-slate-50/50 dark:from-[#111112] dark:to-[#0A0A0B] text-slate-500 dark:text-slate-400 shadow-[0_4px_20px_rgb(0,0,0,0.02)]">
+                                          {/* Glowing Background Orbs */}
+                                          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200px] h-[200px] bg-indigo-500/10 dark:bg-indigo-500/5 blur-[60px] rounded-full pointer-events-none" />
+                                          
+                                          <div className="relative mb-6">
+                                             <div className="absolute inset-0 bg-indigo-500/20 dark:bg-indigo-500/20 blur-lg rounded-full" />
+                                             <div className="relative w-16 h-16 rounded-[20px] bg-gradient-to-br from-indigo-50 to-white dark:from-[#1A1A24] dark:to-[#121215] border border-indigo-100 dark:border-indigo-500/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shadow-[0_4px_12px_rgba(99,102,241,0.12)] rotate-[-5deg] hover:rotate-0 transition-transform duration-500">
+                                                <Link2 size={24} strokeWidth={2.5} />
+                                             </div>
                                           </div>
-                                          <p className="text-[18px] font-extrabold text-slate-900 dark:text-white mb-2 tracking-tight">No brokers connected yet</p>
-                                          <p className="text-[14px] mb-8 max-w-md text-center text-slate-500 dark:text-[#949BA4] leading-relaxed">Sync your trading accounts to automatically track your performance and populate your journal.</p>
+                                          
+                                          <h4 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white mb-2 tracking-tight z-10">No Broker Connected</h4>
+                                          <p className="text-[14px] mb-8 max-w-md text-center text-slate-500 dark:text-[#8B92A0] leading-relaxed font-medium z-10">
+                                             Link your trading account to unlock real-time performance tracking, automated journaling, and advanced AI risk management.
+                                          </p>
+                                          
                                           <button 
                                              onClick={() => setIsConnectingBroker(true)}
-                                             className="px-8 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-[14px] text-[14px] font-bold transition-all shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40 active:scale-95 flex items-center gap-2"
+                                             className="relative group px-8 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-[16px] text-[14px] font-bold transition-all shadow-[0_4px_12px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_12px_rgba(255,255,255,0.1)] hover:shadow-[0_8px_20px_rgba(0,0,0,0.15)] dark:hover:shadow-[0_8px_20px_rgba(255,255,255,0.15)] hover:-translate-y-0.5 active:translate-y-0 flex items-center gap-2 overflow-hidden z-10"
                                           >
-                                             <Plus size={18} />
-                                             Connect Broker
+                                             <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                                             <span className="relative flex items-center gap-2 group-hover:text-white transition-colors duration-300">
+                                                <Plus size={18} strokeWidth={3} />
+                                                Connect Your Broker
+                                             </span>
                                           </button>
+                                          
+                                          <div className="mt-8 flex items-center gap-5 opacity-60 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-500 z-10 bg-slate-100/50 dark:bg-black/20 px-5 py-2.5 rounded-full border border-slate-200 dark:border-white/5">
+                                             <div className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]"/><span className="text-[10px] font-black uppercase tracking-widest text-slate-700 dark:text-slate-300">Zerodha</span></div>
+                                             <div className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700" />
+                                             <div className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.8)]"/><span className="text-[10px] font-black uppercase tracking-widest text-slate-700 dark:text-slate-300">Dhan</span></div>
+                                             <div className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700" />
+                                             <div className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.8)]"/><span className="text-[10px] font-black uppercase tracking-widest text-slate-700 dark:text-slate-300">Upstox</span></div>
+                                          </div>
                                        </div>
                                     )}
                                  </div>

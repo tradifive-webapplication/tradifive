@@ -679,7 +679,7 @@ function MessageContent({ content }: { content: string }) {
           return (
              <div key={i} className="flex gap-3 text-neutral-300 text-[13px] mt-2 mb-1">
                <span className="text-indigo-400 font-mono font-bold shrink-0">{line.match(/^[0-9]+\./)?.[0]}</span>
-               <span className="leading-relaxed" dangerouslySetInnerHTML={{ __html: text.replace(/\*\*(.*?)\*\*/g, '<strong class="text-white font-bold">$1</strong>') }} />
+               <span className="leading-relaxed" dangerouslySetInnerHTML={{ __html: text.replace(/\*\*(.*?)\*\*/g, '<strong class="text-white font-bold">₹1</strong>') }} />
              </div>
           );
         }
@@ -689,7 +689,7 @@ function MessageContent({ content }: { content: string }) {
           return (
             <div key={i} className={`flex gap-3 pl-2 mt-1.5 ${isData ? "font-mono text-[11px] text-neutral-400" : "font-sans text-[13px] text-neutral-300"}`}>
                <span className="shrink-0 mt-1.5 w-1.5 h-1.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]" />
-               <span className="leading-relaxed" dangerouslySetInnerHTML={{ __html: text.replace(/\*\*(.*?)\*\*/g, '<strong class="text-white font-bold">$1</strong>').replace(/`(.*?)`/g, '<code class="px-1.5 py-0.5 rounded bg-black/40 border border-white/5 font-mono text-[11px] text-emerald-400">$1</code>') }} />
+               <span className="leading-relaxed" dangerouslySetInnerHTML={{ __html: text.replace(/\*\*(.*?)\*\*/g, '<strong class="text-white font-bold">₹1</strong>').replace(/`(.*?)`/g, '<code class="px-1.5 py-0.5 rounded bg-black/40 border border-white/5 font-mono text-[11px] text-emerald-400">₹1</code>') }} />
             </div>
           );
         }

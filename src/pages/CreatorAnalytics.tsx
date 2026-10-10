@@ -108,8 +108,8 @@ export default function CreatorAnalytics() {
         <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-8 gap-4">
           <StatCard title="Total Followers" value="12,156" change="+8.2" icon={IconlyTwoUsers} color="purple" />
           <StatCard title="Active Subs" value="177" change="+12.5" icon={IconlyUser} color="blue" />
-          <StatCard title="Monthly MRR" value="$3,750" change="+15.4" icon={IconlySwap} color="emerald" />
-          <StatCard title="Total Revenue" value="$45,450" change="+12.4" icon={IconlyWallet} color="emerald" />
+          <StatCard title="Monthly MRR" value="₹3,750" change="+15.4" icon={IconlySwap} color="emerald" />
+          <StatCard title="Total Revenue" value="₹45,450" change="+12.4" icon={IconlyWallet} color="emerald" />
           <StatCard title="Store Sales" value="342" change="+24.1" icon={IconlyBuy} color="amber" />
           <StatCard title="Active Students" value="84" change="+5.1" icon={WrappedGraduationCap} color="blue" />
           <StatCard title="Engagement Rate" value="8.4%" change="+2.1" icon={IconlyActivity} color="pink" />
@@ -129,7 +129,7 @@ export default function CreatorAnalytics() {
                  <p className="text-[12px] text-slate-500 dark:text-[#949ba4] mt-1 font-medium">Earnings from tips, premium posts, and VIP channels</p>
                </div>
                <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20">
-                  +$120 this week
+                  +₹120 this week
                </span>
             </div>
             <div className="h-[260px] w-full">

@@ -22,7 +22,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function run() {
   const { data, error } = await supabase.auth.signInWithPassword({
-    email: "agenttest@tradifive.com",
+    email: "agenttest@tradifive.in",
     password: "password123"
   });
 

@@ -46,7 +46,7 @@ export default function TaskAssignment() {
       title,
       description: finalDescription,
       assignee_email: assigneeEmail,
-      assigned_by_email: adminUser?.email || "ceo@tradifive.com",
+      assigned_by_email: adminUser?.email || "ceo@tradifive.in",
       due_date: dueDate || null,
       status: "pending"
     };

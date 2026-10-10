@@ -318,7 +318,7 @@ export default function RiskEngine() {
                           </div>
                           <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">Monthly Journal</h3>
                         </div>
-                        <span className="text-[10px] font-black text-emerald-600 bg-[#D1E4FF] dark:bg-emerald-500/10 px-2 py-1 rounded-lg">+$7,630</span>
+                        <span className="text-[10px] font-black text-emerald-600 bg-[#D1E4FF] dark:bg-emerald-500/10 px-2 py-1 rounded-lg">+₹7,630</span>
                       </div>
 
                       <div className="grid grid-cols-7 gap-2">

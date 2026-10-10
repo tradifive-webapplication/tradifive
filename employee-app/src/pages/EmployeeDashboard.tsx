@@ -180,8 +180,8 @@ export default function EmployeeDashboard() {
               <ExternalLink size={14} className="text-emerald-400" /> Web Testing Links
             </h2>
             <div className="space-y-3">
-              <a href="https://www.tradifive.com" target="_blank" rel="noreferrer" className="flex items-center justify-between p-3 bg-black/30 border border-white/5 rounded hover:border-white/10 group transition-all">
-                <span className="text-[11px] font-bold text-white uppercase tracking-wider">TradiFive.com</span>
+              <a href="https://www.tradifive.in" target="_blank" rel="noreferrer" className="flex items-center justify-between p-3 bg-black/30 border border-white/5 rounded hover:border-white/10 group transition-all">
+                <span className="text-[11px] font-bold text-white uppercase tracking-wider">tradifive.in</span>
                 <ExternalLink size={14} className="text-neutral-500 group-hover:text-emerald-400" />
               </a>
               <a href="http://localhost:5173" target="_blank" rel="noreferrer" className="flex items-center justify-between p-3 bg-black/30 border border-white/5 rounded hover:border-white/10 group transition-all">

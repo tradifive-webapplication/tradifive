@@ -122,21 +122,21 @@ export default function CompetitionsRewards() {
   const bountyBalance = gamState.bounty_balance;
 
   const xpMilestones = [
-    { xp: 500,  label: "Rookie",       reward: "$5 Fee Rebate",       icon: Shield,   color: "text-slate-500",  bg: "bg-slate-50 dark:bg-slate-900/20",   border: "border-slate-200 dark:border-slate-800",   unlocked: allTimeXP >= 500  },
-    { xp: 1000, label: "Competitor",   reward: "$10 Fee Rebate",      icon: Target,   color: "text-emerald-600",bg: "bg-emerald-50 dark:bg-emerald-950/20",border: "border-emerald-200 dark:border-emerald-900",unlocked: allTimeXP >= 1000  },
+    { xp: 500,  label: "Rookie",       reward: "₹5 Fee Rebate",       icon: Shield,   color: "text-slate-500",  bg: "bg-slate-50 dark:bg-slate-900/20",   border: "border-slate-200 dark:border-slate-800",   unlocked: allTimeXP >= 500  },
+    { xp: 1000, label: "Competitor",   reward: "₹10 Fee Rebate",      icon: Target,   color: "text-emerald-600",bg: "bg-emerald-50 dark:bg-emerald-950/20",border: "border-emerald-200 dark:border-emerald-900",unlocked: allTimeXP >= 1000  },
     { xp: 2500, label: "Challenger",   reward: "Free Month Pro",      icon: Zap,      color: "text-blue-600",   bg: "bg-blue-50 dark:bg-blue-950/20",      border: "border-blue-200 dark:border-blue-900",     unlocked: allTimeXP >= 2500 },
-    { xp: 5000, label: "Elite Trader", reward: "$50 Cash Prize",      icon: Trophy,   color: "text-amber-600",  bg: "bg-amber-50 dark:bg-amber-950/20",    border: "border-amber-200 dark:border-amber-900",   unlocked: allTimeXP >= 5000 },
-    { xp: 10000,label: "Legend",       reward: "$200 + VIP Badge",    icon: Crown,    color: "text-indigo-600", bg: "bg-indigo-50 dark:bg-indigo-950/20",  border: "border-indigo-200 dark:border-indigo-900", unlocked: allTimeXP >= 10000 },
+    { xp: 5000, label: "Elite Trader", reward: "₹50 Cash Prize",      icon: Trophy,   color: "text-amber-600",  bg: "bg-amber-50 dark:bg-amber-950/20",    border: "border-amber-200 dark:border-amber-900",   unlocked: allTimeXP >= 5000 },
+    { xp: 10000,label: "Legend",       reward: "₹200 + VIP Badge",    icon: Crown,    color: "text-indigo-600", bg: "bg-indigo-50 dark:bg-indigo-950/20",  border: "border-indigo-200 dark:border-indigo-900", unlocked: allTimeXP >= 10000 },
   ];
 
   const nextMilestone = xpMilestones.find(m => allTimeXP < m.xp) || xpMilestones[xpMilestones.length - 1];
   const progressPct = Math.min(100, (allTimeXP / nextMilestone.xp) * 100);
 
   const redeemableRewards = [
-    { id: 1, title: "Fee Rebate",        desc: "Redeem 500 XP for a $5 trading fee rebate on your next challenge.", cost: 500,  icon: TrendingUp, available: !gamState.unlocked_items.includes(1)  },
+    { id: 1, title: "Fee Rebate",        desc: "Redeem 500 XP for a ₹5 trading fee rebate on your next challenge.", cost: 500,  icon: TrendingUp, available: !gamState.unlocked_items.includes(1)  },
     { id: 2, title: "Pro Plan — 1 Month",desc: "Unlock one month of Pro features including AI Coach and advanced analytics.", cost: 2000, icon: Sparkles,  available: !gamState.unlocked_items.includes(2)  },
     { id: 3, title: "Exclusive Badge",   desc: "A rare profile badge displayed on your public leaderboard profile.", cost: 1000, icon: Medal,     available: !gamState.unlocked_items.includes(3)  },
-    { id: 4, title: "Cash Payout",       desc: "Withdraw $50 directly to your wallet. Requires verified account.", cost: 5000, icon: Gift,      available: false },
+    { id: 4, title: "Cash Payout",       desc: "Withdraw ₹50 directly to your wallet. Requires verified account.", cost: 5000, icon: Gift,      available: false },
   ];
 
   const badges = [

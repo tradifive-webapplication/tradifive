@@ -435,7 +435,7 @@ export function TradingCalendar() {
               }}>
                 <Text style={{ fontSize: 7, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 2 }}>Wk {wIdx + 1}</Text>
                 <Text style={{ fontSize: 9, fontFamily: 'Inter_700Bold', color: weeklyPnl[wIdx] >= 0 ? '#10b981' : '#ef4444' }} numberOfLines={1}>
-                  {weeklyPnl[wIdx] !== 0 ? `${weeklyPnl[wIdx] >= 0 ? '+' : ''}$${Math.abs(weeklyPnl[wIdx])}` : '$0'}
+                  {weeklyPnl[wIdx] !== 0 ? `${weeklyPnl[wIdx] >= 0 ? '+' : ''}$${Math.abs(weeklyPnl[wIdx])}` : '₹0'}
                 </Text>
                 <Text style={{ fontSize: 6, fontFamily: 'Inter_600SemiBold', color: '#94a3b8', marginTop: 1 }}>{weeklyDays[wIdx]}d</Text>
               </View>

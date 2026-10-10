@@ -23,7 +23,7 @@ const files = getAllFiles('app');
 
 function ensureTabularNums(content) {
   // Regex to find <Text ...>...</Text> blocks containing financial/numeric data 
-  // like $, %, or numbers showing P&L (e.g., +150, +$54) and inject fontVariant: ['tabular-nums']
+  // like $, %, or numbers showing P&L (e.g., +150, +₹54) and inject fontVariant: ['tabular-nums']
   
   // We'll match a generic <Text> tag and its content
   // Since JSX can be nested, regex isn't perfect, but we can look for basic text strings inside <Text style={{...}}>...</Text>

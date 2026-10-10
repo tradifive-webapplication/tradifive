@@ -3,10 +3,10 @@ import { Search, Filter, ShieldCheck, Mail, Edit, Trash2, GraduationCap, Users }
 import MentorDeepScan from "../components/MentorDeepScan";
 
 const MOCK_MENTORS = [
-  { id: "1", name: "Sarah Jenkins", email: "sarah@tradifive.com", expertise: "Forex & Gold", students: 124, status: "active", rating: 4.8 },
-  { id: "2", name: "David Chen", email: "david.c@tradifive.com", expertise: "Options Trading", students: 89, status: "active", rating: 4.9 },
-  { id: "3", name: "Marcus Wright", email: "marcus@tradifive.com", expertise: "Crypto & DeFi", students: 210, status: "inactive", rating: 4.5 },
-  { id: "4", name: "Elena Rodriguez", email: "elena@tradifive.com", expertise: "Swing Trading", students: 156, status: "active", rating: 4.7 },
+  { id: "1", name: "Sarah Jenkins", email: "sarah@tradifive.in", expertise: "Forex & Gold", students: 124, status: "active", rating: 4.8 },
+  { id: "2", name: "David Chen", email: "david.c@tradifive.in", expertise: "Options Trading", students: 89, status: "active", rating: 4.9 },
+  { id: "3", name: "Marcus Wright", email: "marcus@tradifive.in", expertise: "Crypto & DeFi", students: 210, status: "inactive", rating: 4.5 },
+  { id: "4", name: "Elena Rodriguez", email: "elena@tradifive.in", expertise: "Swing Trading", students: 156, status: "active", rating: 4.7 },
 ];
 
 export default function MentorManagerPage() {

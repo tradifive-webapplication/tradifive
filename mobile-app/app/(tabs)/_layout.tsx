@@ -321,18 +321,19 @@ export default function TabLayout() {
   const isCreator = (currentUser as any)?.is_creator || false;
 
   const ALL_DRAWER_ITEMS = [
-    { label: 'Profile', icon: User, type: 'profile' },
-    { label: 'Journal', icon: BookOpen, type: 'nav' },
-    { label: 'Risk Guard', icon: ShieldCheck, type: 'nav' },
-    { label: 'Channels', icon: Users, type: 'nav' },
-    { label: 'Discover', icon: Search, type: 'nav' },
-    { label: 'Rewards', icon: Gift, type: 'nav' },
+    { label: 'Home', icon: Home, type: 'nav', subItems: ['Dashboard Overview', 'Inbox', 'Notifications'] },
+    { label: 'Discover', icon: Search, type: 'nav', subItems: ['Marketplace', 'Rewards & Referrals'] },
+    { label: 'Auto Trade', icon: Rocket, type: 'nav', subItems: ['Active Bots', 'Strategy Builder', 'Backtesting', 'Order History'] },
+    { label: 'Portfolio & Finance', icon: Bag, type: 'nav', subItems: ['Portfolio', 'Broker Connect'] },
+    { label: 'Risk Guard', icon: ShieldCheck, type: 'nav', subItems: ['Risk Dashboard', 'Drawdown Limits', 'Kill Switch'] },
+    { label: 'AI & Journal', icon: Brain, type: 'nav', subItems: ['AI Coach Insights', 'Daily Journal', 'Performance Analytics'] },
+    { label: 'Community & Learning', icon: Users, type: 'nav', subItems: ['Channels', 'Contests', 'Mentorship Hub', 'Live Sessions'] },
   ];
 
   if (isElite && currentUser?.account_type === 'creator') {
     ALL_DRAWER_ITEMS.push({
-      label: 'Creator Hub', icon: Crown, type: 'nav',
-      subItems: ['Creator Dashboard', 'Mentorship Hub', 'My Store', 'Live Sessions']
+      label: 'Creator Studio', icon: Crown, type: 'nav',
+      subItems: ['Creator Dashboard', 'My Store']
     } as any);
   }
 
@@ -509,10 +510,29 @@ export default function TabLayout() {
                     <View style={{ paddingLeft: 32, paddingBottom: 10, borderLeftWidth: 1, borderLeftColor: isDark ? '#1e293b' : (headerStyle === 'simple' ? '#e2e8f0' : '#1e293b'), marginLeft: 26, marginTop: 4 }}>
                       {item.subItems.map((sub: string) => {
                         const SUB_ITEM_ICONS: Record<string, any> = {
-                          'Creator Dashboard': Crown,
+                          'Dashboard Overview': LayoutGrid,
+                          'Inbox': MessageCircle,
+                          'Notifications': Bookmark,
+                          'Marketplace': Bag,
+                          'Rewards & Referrals': Gift,
+                          'Active Bots': Cpu,
+                          'Strategy Builder': Zap,
+                          'Backtesting': History,
+                          'Order History': List,
+                          'Portfolio': Bag,
+                          'Broker Connect': Zap,
+                          'Risk Dashboard': ShieldCheck,
+                          'Drawdown Limits': CircleSlash,
+                          'Kill Switch': X,
+                          'AI Coach Insights': Brain,
+                          'Daily Journal': BookOpen,
+                          'Performance Analytics': Clock,
+                          'Channels': Users,
+                          'Contests': Trophy,
                           'Mentorship Hub': Bookmark,
-                          'My Store': Bag,
                           'Live Sessions': Video,
+                          'Creator Dashboard': Crown,
+                          'My Store': Bag,
                         };
                         const SubIcon = SUB_ITEM_ICONS[sub] || BookOpen;
                         return (
@@ -526,14 +546,23 @@ export default function TabLayout() {
                               setActiveNavItem({ label: item.label, icon: item.icon });
                               setActiveTab('dynamic');
                               setPendingTab('dynamic');
-                              if (sub === 'Messages') { closeDrawer(); router.push('/(tabs)/inbox' as any); return; }
+                              
+                              if (sub === 'Inbox') { closeDrawer(); router.push('/(tabs)/inbox' as any); return; }
+                              if (sub === 'Dashboard Overview') { closeDrawer(); router.setParams({ view: 'dashboard' }); return; }
+                              if (sub === 'Marketplace') { closeDrawer(); router.push('/(tabs)/marketplace'); return; }
+                              if (sub === 'Rewards & Referrals') { closeDrawer(); router.push('/(tabs)/rewards'); return; }
+                              if (sub === 'Portfolio') { closeDrawer(); router.push('/(tabs)/finance'); return; }
+                              if (sub === 'Broker Connect') { closeDrawer(); router.push('/broker-connect' as any); return; }
+                              if (sub === 'Risk Dashboard') { closeDrawer(); router.push('/(tabs)/risk-guard'); return; }
+                              if (sub === 'Daily Journal') { closeDrawer(); router.push('/(tabs)/journal'); return; }
+                              if (sub === 'AI Coach Insights') { closeDrawer(); openAI(); return; }
                               if (sub === 'Channels') { closeDrawer(); router.push('/(tabs)/channels'); return; }
-                              if (sub === 'Creator Dashboard') { closeDrawer(); router.push('/(tabs)/creator-studio'); return; }
+                              if (sub === 'Contests') { closeDrawer(); router.push('/(tabs)/contests'); return; }
                               if (sub === 'Mentorship Hub') { closeDrawer(); router.push('/(tabs)/mentorship-hub'); return; }
-                              if (sub === 'My Store') { closeDrawer(); router.push('/(tabs)/my-store'); return; }
                               if (sub === 'Live Sessions') { closeDrawer(); router.push('/(tabs)/live-sessions'); return; }
-                              if (item.label === 'Communities') router.push('/(tabs)/channel');
-                              else if (item.label === 'Contests') router.push('/(tabs)/contests');
+                              if (sub === 'Creator Dashboard') { closeDrawer(); router.push('/(tabs)/creator-studio'); return; }
+                              if (sub === 'My Store') { closeDrawer(); router.push('/(tabs)/my-store'); return; }
+
                               closeDrawer();
                             }}
                             style={{ paddingVertical: 10, flexDirection: 'row', alignItems: 'center', gap: 12 }}

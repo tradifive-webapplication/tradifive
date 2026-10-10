@@ -494,7 +494,7 @@ export default function Rewards() {
 
   const benefits = [
     { id: 1, title: "Custom Advanced Analytics", cost: 2500, type: "Tool Upgrade", icon: Target },
-    { id: 2, title: "$10,000 Funded Challenge", cost: 15000, type: "Capital Funding", icon: CircleDollarSign },
+    { id: 2, title: "₹10,000 Funded Challenge", cost: 15000, type: "Capital Funding", icon: CircleDollarSign },
     { id: 3, title: "Tactical UI Dark Theme", cost: 1000, type: "Cosmetic Theme", icon: Crown },
     { id: 4, title: "Advanced HUD Dashboard", cost: 5000, type: "UI Module", icon: Zap },
   ];

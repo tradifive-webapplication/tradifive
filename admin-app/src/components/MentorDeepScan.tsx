@@ -12,10 +12,10 @@ export default function MentorDeepScan({ mentorId, onClose }: MentorDeepScanProp
   const mentorData = {
     id: mentorId,
     name: mentorId === "1" ? "Sarah Jenkins" : mentorId === "2" ? "David Chen" : "Marcus Wright",
-    email: "mentor@tradifive.com",
+    email: "mentor@tradifive.in",
     expertise: "Forex & Gold",
     studentsCount: 124,
-    revenueSold: "$45,200",
+    revenueSold: "₹45,200",
     rating: 4.8,
     status: "active",
     joined: "2024-01-15",

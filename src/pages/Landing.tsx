@@ -45,10 +45,10 @@ function useReveal() {
 function HeroDashboard() {
   const [tick, setTick] = useState(0);
   const [trades, setTrades] = useState([
-    { pair: "EUR/USD", dir: "BUY", pnl: "+$142.50", pos: true, time: "2s ago" },
-    { pair: "XAU/USD", dir: "SELL", pnl: "+$89.20", pos: true, time: "18s ago" },
-    { pair: "BTC/USD", dir: "BUY", pnl: "-$32.10", pos: false, time: "1m ago" },
-    { pair: "GBP/JPY", dir: "BUY", pnl: "+$211.00", pos: true, time: "3m ago" },
+    { pair: "EUR/USD", dir: "BUY", pnl: "+₹142.50", pos: true, time: "2s ago" },
+    { pair: "XAU/USD", dir: "SELL", pnl: "+₹89.20", pos: true, time: "18s ago" },
+    { pair: "BTC/USD", dir: "BUY", pnl: "-₹32.10", pos: false, time: "1m ago" },
+    { pair: "GBP/JPY", dir: "BUY", pnl: "+₹211.00", pos: true, time: "3m ago" },
   ]);
   // Animated chart points
   const chartPoints = [
@@ -99,7 +99,7 @@ function HeroDashboard() {
         {/* Stats row */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10, marginBottom: 16 }}>
           {[
-            { l: "Total P&L", v: "+$2,847", c: "#10b981", sub: "this week" },
+            { l: "Total P&L", v: "+₹2,847", c: "#10b981", sub: "this week" },
             { l: "Win Rate", v: "73.4%", c: "rgba(255,255,255,0.9)", sub: "last 50 trades" },
             { l: "Followers", v: "1,240", c: "rgba(255,255,255,0.75)", sub: "on your profile" },
           ].map((s, i) => (
@@ -221,9 +221,9 @@ function HeroDashboard() {
       >
         <div style={{ fontSize: 10, fontWeight: 700, color: "#f59e0b", textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>🏆 Leaderboard</div>
         {[
-          { rank: "#1", name: "Elena R.", pnl: "+$4,820" },
-          { rank: "#2", name: "David M.", pnl: "+$3,210" },
-          { rank: "#3", name: "You", pnl: "+$2,847", you: true },
+          { rank: "#1", name: "Elena R.", pnl: "+₹4,820" },
+          { rank: "#2", name: "David M.", pnl: "+₹3,210" },
+          { rank: "#3", name: "You", pnl: "+₹2,847", you: true },
         ].map((r, i) => (
           <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "4px 0", borderBottom: i < 2 ? "1px solid rgba(255,255,255,0.04)" : "none" }}>
             <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
@@ -260,7 +260,7 @@ function HeroDashboard() {
         <div style={{ marginBottom: 8 }}>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
             <span style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>Daily Limit</span>
-            <span style={{ fontSize: 10, fontWeight: 700, color: "#fff" }}>$500</span>
+            <span style={{ fontSize: 10, fontWeight: 700, color: "#fff" }}>₹500</span>
           </div>
           <div style={{ height: 4, background: "rgba(255,255,255,0.08)", borderRadius: 4 }}>
             <div style={{ height: "100%", width: "34%", background: "linear-gradient(to right, #10b981, rgba(255,255,255,0.4))", borderRadius: 4 }} />
@@ -1198,7 +1198,7 @@ function CommunityNetwork({ onStart }: { onStart: () => void }) {
 
   const stats = [
     { value: "12,400+", label: "Active Traders", color: "#3b82f6" },
-    { value: "$2.8M", label: "Prizes Awarded", color: "#7c3aed" },
+    { value: "₹2.8M", label: "Prizes Awarded", color: "#7c3aed" },
     { value: "94%", label: "Satisfaction Rate", color: "#10b981" },
     { value: "47", label: "Countries", color: "#3b82f6" },
   ];

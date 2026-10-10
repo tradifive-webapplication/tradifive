@@ -2,7 +2,7 @@ import { Search, Plus, X, MoreHorizontal, Heart, MessageCircle, Bookmark, UserPl
 import DashboardLayout from "@/components/DashboardLayout";
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
@@ -11,6 +11,12 @@ import { useMarket } from "@/contexts/MarketContext";
 import CreatePostModal from "@/components/CreatePostModal";
 import FeedCard from "@/components/FeedCard";
 import { Star as IconlyStar, Discovery as IconlyDiscovery, Wallet as IconlyWallet, Activity as IconlyActivity, Graph as IconlyGraph, AddUser as IconlyAddUser, ShieldDone as IconlyShieldDone, Calendar as IconlyCalendar } from "react-iconly";
+import EconomicCalendarWidget from "@/components/EconomicCalendarWidget";
+import NewsWidget from "@/components/NewsWidget";
+import MajorsWidget from "@/components/MajorsWidget";
+import CustomEconomicCalendar from "@/components/CustomEconomicCalendar";
+import ForexFactoryDashboard from "@/components/ForexFactoryDashboard";
+import TickersWidget from "@/components/TickersWidget";
 
 
 
@@ -323,6 +329,8 @@ function WatchlistItem({ asset }: { asset: any }) {
 
 
 export default function Home() {
+    const [searchParams] = useSearchParams();
+    const currentTab = searchParams.get('tab') || 'feed';
     const navigate = useNavigate();
     const [user, setUser] = useState<any>(null);
     const [authChecked, setAuthChecked] = useState(false);
@@ -1127,7 +1135,7 @@ export default function Home() {
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 h-full min-h-0 relative">
 
                         {/* --- COLUMN 1: LEFT SIDEBAR (col-span-3) --- */}
-                        {(showWatchlist || showCalendar || showFollowers) && (
+                        {currentTab !== 'calendar' && (showWatchlist || showCalendar || showFollowers) && (
                             <div className="hidden lg:block lg:col-span-3 lg:col-start-1 h-full overflow-y-auto amazing-scrollbar space-y-4 px-4 pt-5 pb-4">
 
                                 {/* A. My Watchlist / Market Segment */}
@@ -1236,7 +1244,7 @@ export default function Home() {
                             </div>
                         )}
                         {/* --- COLUMN 2: MIDDLE MAIN CONTENT --- */}
-                        <div className="lg:col-span-6 lg:col-start-4 h-full relative overflow-hidden flex flex-col">
+                        <div className={`h-full relative overflow-hidden flex flex-col ${currentTab === 'calendar' ? 'lg:col-span-12 lg:col-start-1 px-8' : 'lg:col-span-6 lg:col-start-4'}`}>
                             <AnimatePresence>
                                 {showNewPosts && (
                                     <motion.button
@@ -1255,6 +1263,7 @@ export default function Home() {
 
 
                                 {/* Feeds Section */}
+                                {currentTab === 'feed' && (
                                 <div className="space-y-6">
                                     <div className="flex flex-col gap-4">
                                         <div className="flex items-center justify-between gap-4 mb-2">
@@ -1289,12 +1298,99 @@ export default function Home() {
                                         {feedCardsList}
                                     </div>
                                 </div>
+                                )}
+                                
+                                
+                                {currentTab === 'saved' && (
+                                    <div className="space-y-6">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight shrink-0">Saved Posts</h2>
+                                            <div className="bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 px-4 py-2 rounded-full text-sm font-medium">
+                                                2 Items
+                                            </div>
+                                        </div>
+
+                                        {/* Mock Saved Post 1 */}
+                                        <div className="bg-white dark:bg-[#1C1C1E] p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
+                                            <div className="flex items-center gap-3 mb-4">
+                                                <div className="w-10 h-10 rounded-full bg-indigo-500 flex items-center justify-center text-white font-bold">T</div>
+                                                <div>
+                                                    <h4 className="font-bold text-slate-900 dark:text-white text-sm">Trading Insights</h4>
+                                                    <p className="text-xs text-slate-500">2 days ago</p>
+                                                </div>
+                                                <div className="ml-auto">
+                                                    <Bookmark className="w-5 h-5 text-blue-500 fill-blue-500" />
+                                                </div>
+                                            </div>
+                                            <p className="text-slate-700 dark:text-slate-300 mb-4 text-sm leading-relaxed">
+                                                The key to consistency is risk management. Never risk more than 1-2% of your account on a single trade. If you string together a few losses, step away from the charts. Capital preservation is your #1 job as a trader. 🛡️
+                                            </p>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-xs font-semibold text-blue-600 bg-blue-50 dark:bg-blue-500/10 px-2.5 py-1 rounded-md">#psychology</span>
+                                                <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10 px-2.5 py-1 rounded-md">#riskmanagement</span>
+                                            </div>
+                                        </div>
+
+                                        {/* Mock Saved Post 2 */}
+                                        <div className="bg-white dark:bg-[#1C1C1E] p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
+                                            <div className="flex items-center gap-3 mb-4">
+                                                <div className="w-10 h-10 rounded-full bg-rose-500 flex items-center justify-center text-white font-bold">A</div>
+                                                <div>
+                                                    <h4 className="font-bold text-slate-900 dark:text-white text-sm">Algo Master</h4>
+                                                    <p className="text-xs text-slate-500">1 week ago</p>
+                                                </div>
+                                                <div className="ml-auto">
+                                                    <Bookmark className="w-5 h-5 text-blue-500 fill-blue-500" />
+                                                </div>
+                                            </div>
+                                            <p className="text-slate-700 dark:text-slate-300 mb-4 text-sm leading-relaxed">
+                                                Market structure is shifting on the H4 timeframe for EUR/USD. We've broken previous lower highs and are now forming higher lows. Look for entries on pullbacks to the golden pocket (0.618 - 0.65).
+                                            </p>
+                                            <div className="w-full h-48 bg-slate-100 dark:bg-slate-800 rounded-2xl mb-4 flex items-center justify-center border border-slate-200 dark:border-white/5">
+                                                <span className="text-slate-400 font-medium text-sm">Chart Image</span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-xs font-semibold text-purple-600 bg-purple-50 dark:bg-purple-500/10 px-2.5 py-1 rounded-md">#EURUSD</span>
+                                                <span className="text-xs font-semibold text-orange-600 bg-orange-50 dark:bg-orange-500/10 px-2.5 py-1 rounded-md">#technicalanalysis</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+
+                                {currentTab === 'calendar' && (
+                                    <div className="space-y-6">
+                                        <div className="w-full">
+                                            <MajorsWidget />
+                                        </div>
+                                        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 h-[800px]">
+                                            <div className="flex flex-col h-full">
+                                                <div className="flex items-center justify-between mb-4">
+                                                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight shrink-0">Economic Calendar</h2>
+                                                </div>
+                                                <div className="bg-white dark:bg-[#1C1C1E] rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm overflow-hidden flex-1">
+                                                    <CustomEconomicCalendar />
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="flex flex-col h-full">
+                                                <div className="flex items-center justify-between mb-4">
+                                                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight shrink-0">Market News</h2>
+                                                </div>
+                                                <div className="bg-white dark:bg-[#1C1C1E] rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm overflow-hidden flex-1">
+                                                    <NewsWidget />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
 
                             </div>
                         </div>
 
                         {/* --- COLUMN 3: RIGHT SIDEBAR (col-span-3) --- */}
-                        {(showRequests || showSuggestions || showStreaks || showDisciplined) && (
+                        {currentTab !== 'calendar' && (showRequests || showSuggestions || showStreaks || showDisciplined) && (
                             <div className="hidden lg:block lg:col-span-3 lg:col-start-10 h-full overflow-y-auto amazing-scrollbar space-y-4 px-4 pt-5 pb-4">
 
                                 {/* Requests Section */}

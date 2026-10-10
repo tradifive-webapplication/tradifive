@@ -456,7 +456,7 @@ export default function CreatorTab({
                     <span className="text-[10px] font-bold uppercase tracking-wider">Lifetime Gross</span>
                     <TrendingUp size={14} className="text-emerald-500" />
                   </div>
-                  <p className="text-2xl font-black text-slate-900 dark:text-white mt-1.5">$5,840.00</p>
+                  <p className="text-2xl font-black text-slate-900 dark:text-white mt-1.5">₹5,840.00</p>
                 </div>
               </div>
 

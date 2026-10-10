@@ -25,8 +25,8 @@ function SocialFeedScreen() {
       </div>
       {/* Posts */}
       {[
-        { user: "Marcus V.", tag: "@marcus", color: "#6366f1", pnl: "+$342", pair: "EUR/USD • BUY", time: "2m" },
-        { user: "Elena R.", tag: "@elena", color: "#10b981", pnl: "+$189", pair: "XAU/USD • BUY", time: "8m" },
+        { user: "Marcus V.", tag: "@marcus", color: "#6366f1", pnl: "+₹342", pair: "EUR/USD • BUY", time: "2m" },
+        { user: "Elena R.", tag: "@elena", color: "#10b981", pnl: "+₹189", pair: "XAU/USD • BUY", time: "8m" },
       ].map((p, i) => (
         <div key={i} style={{ background: "rgba(255,255,255,0.04)", borderRadius: 12, padding: "10px 10px 8px", marginBottom: 8, border: "1px solid rgba(255,255,255,0.05)" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
@@ -70,7 +70,7 @@ function RiskGuardScreen() {
           </div>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
-          {[{ l: "Daily Loss", v: "-$120", c: "#10b981" }, { l: "Limit", v: "$500", c: "rgba(255,255,255,0.6)" }].map((s, i) => (
+          {[{ l: "Daily Loss", v: "-₹120", c: "#10b981" }, { l: "Limit", v: "₹500", c: "rgba(255,255,255,0.6)" }].map((s, i) => (
             <div key={i} style={{ background: "rgba(255,255,255,0.04)", borderRadius: 8, padding: "6px 8px", textAlign: "left" }}>
               <div style={{ fontSize: 7, color: "rgba(255,255,255,0.3)", marginBottom: 2 }}>{s.l}</div>
               <div style={{ fontSize: 11, fontWeight: 800, color: s.c }}>{s.v}</div>
@@ -79,7 +79,7 @@ function RiskGuardScreen() {
         </div>
       </div>
       {/* Rules */}
-      {[{ r: "Max Daily Drawdown", v: "$500", on: true }, { r: "Stop After 3 Losses", v: "3 trades", on: true }, { r: "Weekend Lock", v: "Fri 10pm", on: false }].map((rule, i) => (
+      {[{ r: "Max Daily Drawdown", v: "₹500", on: true }, { r: "Stop After 3 Losses", v: "3 trades", on: true }, { r: "Weekend Lock", v: "Fri 10pm", on: false }].map((rule, i) => (
         <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "7px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
           <div>
             <div style={{ fontSize: 8, fontWeight: 600, color: "#fff" }}>{rule.r}</div>
@@ -113,9 +113,9 @@ function JournalScreen() {
       </div>
       {/* Recent trades */}
       {[
-        { pair: "EUR/USD", dir: "BUY", pnl: "+$142", rr: "1:2.8", date: "Today" },
-        { pair: "GBP/JPY", dir: "BUY", pnl: "+$88", rr: "1:1.9", date: "Yesterday" },
-        { pair: "BTC/USD", dir: "SELL", pnl: "-$31", rr: "1:0.6", date: "Yesterday" },
+        { pair: "EUR/USD", dir: "BUY", pnl: "+₹142", rr: "1:2.8", date: "Today" },
+        { pair: "GBP/JPY", dir: "BUY", pnl: "+₹88", rr: "1:1.9", date: "Yesterday" },
+        { pair: "BTC/USD", dir: "SELL", pnl: "-₹31", rr: "1:0.6", date: "Yesterday" },
       ].map((t, i) => (
         <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "7px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
@@ -147,7 +147,7 @@ function CompetitionScreen() {
             <div style={{ fontSize: 8, color: "rgba(255,255,255,0.45)" }}>24 days remaining</div>
           </div>
           <div style={{ textAlign: "right" }}>
-            <div style={{ fontSize: 13, fontWeight: 900, color: "#f59e0b" }}>$5,000</div>
+            <div style={{ fontSize: 13, fontWeight: 900, color: "#f59e0b" }}>₹5,000</div>
             <div style={{ fontSize: 7, color: "rgba(255,255,255,0.35)" }}>Prize Pool</div>
           </div>
         </div>
@@ -163,10 +163,10 @@ function CompetitionScreen() {
       {/* Leaderboard */}
       <div style={{ fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "1px", marginBottom: 8 }}>Leaderboard</div>
       {[
-        { rank: 1, name: "Marcus V.", pnl: "+$4,820", badge: "🥇" },
-        { rank: 2, name: "Elena R.", pnl: "+$3,210", badge: "🥈" },
-        { rank: 3, name: "David M.", pnl: "+$2,880", badge: "🥉" },
-        { rank: 12, name: "You", pnl: "+$891", badge: "#12", you: true },
+        { rank: 1, name: "Marcus V.", pnl: "+₹4,820", badge: "🥇" },
+        { rank: 2, name: "Elena R.", pnl: "+₹3,210", badge: "🥈" },
+        { rank: 3, name: "David M.", pnl: "+₹2,880", badge: "🥉" },
+        { rank: 12, name: "You", pnl: "+₹891", badge: "#12", you: true },
       ].map((p, i) => (
         <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, borderBottom: "1px solid rgba(255,255,255,0.04)", background: p.you ? "rgba(99,102,241,0.06)" : "transparent", borderRadius: p.you ? 8 : 0, padding: p.you ? "5px 6px" : "5px 0", margin: p.you ? "0 -6px" : "0" }}>
           <span style={{ fontSize: 10, width: 20, textAlign: "center" }}>{p.badge}</span>

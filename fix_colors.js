@@ -21,7 +21,7 @@ code = code.replace(/text-zinc-400/g, 'text-white/40');
 code = code.replace(/text-zinc-800/g, 'text-white/80');
 
 // Replace any remaining dark: classes with just the class
-code = code.replace(/dark:([a-zA-Z0-9\/\[\]#-]+)/g, '$1');
+code = code.replace(/dark:([a-zA-Z0-9\/\[\]#-]+)/g, '₹1');
 
 // FeatCard specific fix for shadows
 code = code.replace(/shadow-\[0_0_0_1px_rgba\(0,0,0,0\.08\),0_2px_4px_rgba\(0,0,0,0\.04\)\]/g, 'shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05),0_0_0_1px_rgba(255,255,255,0.05),0_2px_4px_rgba(0,0,0,0.2)]');

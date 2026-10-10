@@ -233,7 +233,7 @@ export default function AutomatedJournalPublic() {
                     <h3 style={{ fontSize: 24, fontWeight: 800, marginTop: 4 }}>XAUUSD <span style={{ color: "rgba(255,255,255,0.4)" }}>SELL</span></h3>
                   </div>
                   <div style={{ textAlign: "right" }}>
-                    <span style={{ fontSize: 24, fontWeight: 900, color: "#3b82f6" }}>+$1,240.50</span>
+                    <span style={{ fontSize: 24, fontWeight: 900, color: "#3b82f6" }}>+₹1,240.50</span>
                     <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", marginTop: 4 }}>Execution: 420ms</p>
                   </div>
                 </div>

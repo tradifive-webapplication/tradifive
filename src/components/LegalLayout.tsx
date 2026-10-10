@@ -149,11 +149,11 @@ export default function LegalLayout({ activeTab, title, lastUpdated, children }:
               </div>
               
               <a
-                href="mailto:compliance@tradifive.com"
+                href="mailto:compliance@tradifive.in"
                 className="w-full py-2.5 rounded-lg bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-300 hover:text-white text-xs font-semibold flex items-center justify-center gap-2 transition-all shadow-sm"
               >
                 <Mail size={13} />
-                compliance@tradifive.com
+                compliance@tradifive.in
               </a>
             </div>
             

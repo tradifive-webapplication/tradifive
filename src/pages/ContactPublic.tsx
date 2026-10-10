@@ -95,7 +95,7 @@ export default function ContactPublic() {
       title: "Support",
       icon: <Headset size={24} />,
       desc: "Need help with your account or platform features?",
-      email: "support@tradifive.com",
+      email: "support@tradifive.in",
       smallText: "Response within 24 hours",
       color: "#ffffff",
     },
@@ -103,21 +103,21 @@ export default function ContactPublic() {
       title: "Partnerships",
       icon: <Handshake size={24} />,
       desc: "Interested in collaborating with Tradifive?",
-      email: "partnerships@tradifive.com",
+      email: "partnerships@tradifive.in",
       color: "#10b981",
     },
     {
       title: "Business & Media",
       icon: <Briefcase size={24} />,
       desc: "Press, media, and business inquiries.",
-      email: "business@tradifive.com",
+      email: "business@tradifive.in",
       color: "#f59e0b",
     },
     {
       title: "General Enquiries",
       icon: <MessageSquare size={24} />,
       desc: "Have a question? Reach out to us anytime.",
-      email: "hello@tradifive.com",
+      email: "hello@tradifive.in",
       color: "#a855f7",
     },
   ];
@@ -145,7 +145,7 @@ export default function ContactPublic() {
     },
     {
       q: "How do I contact support?",
-      a: "You can send an email to support@tradifive.com or complete the contact form on this page. We typically respond to all support tickets and technical issues within 24 hours.",
+      a: "You can send an email to support@tradifive.in or complete the contact form on this page. We typically respond to all support tickets and technical issues within 24 hours.",
     },
     {
       q: "Is my data safe and secure?",
@@ -259,349 +259,363 @@ export default function ContactPublic() {
       <StarsBackground />
 
       <main style={{ position: "relative", zIndex: 1 }}>
-      {/* HERO SECTION */}
-      <section className="contact-hero" style={{ padding: "160px 24px 60px", position: "relative", overflow: "hidden", textAlign: "center" }}>
-        <div style={{ position: "absolute", top: 0, left: "50%", transform: "translateX(-50%)", width: 900, height: 600, background: "radial-gradient(ellipse, rgba(99,102,241,0.06) 0%, transparent 65%)", pointerEvents: "none" }} />
+        {/* HERO SECTION */}
+        <section className="contact-hero" style={{ padding: "160px 24px 60px", position: "relative", overflow: "hidden", textAlign: "center" }}>
+          <div style={{ position: "absolute", top: 0, left: "50%", transform: "translateX(-50%)", width: 900, height: 600, background: "radial-gradient(ellipse, rgba(99,102,241,0.06) 0%, transparent 65%)", pointerEvents: "none" }} />
 
-        <motion.div {...fadeUp()} style={{ maxWidth: 800, margin: "0 auto", position: "relative", zIndex: 1 }}>
-          <h1 style={{ fontSize: "clamp(36px, 5vw, 56px)", fontWeight: 900, letterSpacing: "-0.03em", marginBottom: 20 }}>
-            Get in{" "}
-            <span style={{ color: "#a1a1aa" }}>
-              Touch
-            </span>
-          </h1>
-          <p style={{ fontSize: "clamp(15px, 2vw, 18px)", color: "rgba(255,255,255,0.5)", lineHeight: 1.6, maxWidth: 640, margin: "0 auto" }}>
-            Have questions about Tradifive? We're here to help with support, partnerships, business inquiries, and general questions.
-          </p>
-        </motion.div>
-      </section>
+          <motion.div {...fadeUp()} style={{ maxWidth: 800, margin: "0 auto", position: "relative", zIndex: 1 }}>
+            <h1 style={{ fontSize: "clamp(36px, 5vw, 56px)", fontWeight: 900, letterSpacing: "-0.03em", marginBottom: 20 }}>
+              Get in{" "}
+              <span style={{ color: "#a1a1aa" }}>
+                Touch
+              </span>
+            </h1>
+            <p style={{ fontSize: "clamp(15px, 2vw, 18px)", color: "rgba(255,255,255,0.5)", lineHeight: 1.6, maxWidth: 640, margin: "0 auto" }}>
+              Have questions about Tradifive? We're here to help with support, partnerships, business inquiries, and general questions.
+            </p>
+          </motion.div>
+        </section>
 
-      {/* CONTACT CARDS */}
-      <section className="contact-cards-section" style={{ padding: "0 24px 40px", position: "relative", zIndex: 2 }}>
-        <div className="contact-grid">
-          {contactCards.map((card, idx) => (
-            <motion.div
-              key={idx}
-              {...fadeUp(idx * 0.08)}
-              whileHover={{ y: -6 }}
-              style={{
-                background: "linear-gradient(to bottom, #1C1C1E, #121214)",
-                borderRadius: 20,
-                padding: "32px 24px",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "flex-start",
-                transition: "all 0.3s ease",
-                boxShadow: "0 4px 7px -5px rgba(0,0,0,0.3), 0 0 0 1px #2B2B2F",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.boxShadow = "0 8px 15px -5px rgba(0,0,0,0.2), 0 0 0 1px rgba(255,255,255,0.1)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.boxShadow = "0 4px 7px -5px rgba(0,0,0,0.3), 0 0 0 1px #2B2B2F";
-              }}
-            >
-              <div style={{
-                width: 48,
-                height: 48,
-                borderRadius: 12,
-                background: `${card.color}15`,
-                border: `1px solid ${card.color}25`,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: card.color,
-                marginBottom: 24,
-              }}>
-                {card.icon}
-              </div>
-
-              <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 12 }}>{card.title}</h3>
-              <p style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", lineHeight: 1.5, marginBottom: 20, flexGrow: 1 }}>
-                {card.desc}
-              </p>
-
-              <a
-                href={`mailto:${card.email}`}
+        {/* CONTACT CARDS */}
+        <section className="contact-cards-section" style={{ padding: "0 24px 40px", position: "relative", zIndex: 2 }}>
+          <div className="contact-grid">
+            {contactCards.map((card, idx) => (
+              <motion.div
+                key={idx}
+                {...fadeUp(idx * 0.08)}
+                whileHover={{ y: -6 }}
                 style={{
-                  fontSize: 14,
-                  fontWeight: 600,
-                  color: "#fff",
-                  textDecoration: "none",
-                  transition: "color 0.2s",
-                  borderBottom: "1px solid rgba(255,255,255,0.2)",
-                  paddingBottom: 2,
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.color = "#ffffff"}
-                onMouseLeave={(e) => e.currentTarget.style.color = "#fff"}
-              >
-                {card.email}
-              </a>
-
-              {card.smallText && (
-                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", marginTop: 12 }}>
-                  {card.smallText}
-                </span>
-              )}
-            </motion.div>
-          ))}
-        </div>
-      </section>
-
-      {/* CONTACT FORM & SOCIALS SECTION */}
-      <section className="contact-form-section" style={{ padding: "40px 24px", position: "relative", zIndex: 2 }}>
-        <div className="contact-layout">
-          {/* Left Column: Form */}
-          <motion.div
-            {...fadeUp(0.1)}
-            className="contact-form-panel"
-            style={{
-              background: "rgba(255,255,255,0.015)",
-              border: "1px solid rgba(255,255,255,0.05)",
-              borderRadius: 24,
-              padding: "40px 32px",
-              boxShadow: "0 10px 40px rgba(0, 0, 0, 0.3)",
-              width: "100%",
-            }}
-          >
-            <h2 style={{ fontSize: 24, fontWeight: 800, marginBottom: 28, letterSpacing: "-0.02em" }}>Send Us a Message</h2>
-
-            <form onSubmit={handleFormSubmit} style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-              <div className="form-row-2col">
-                {/* Full Name */}
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  <label style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "rgba(255,255,255,0.4)", letterSpacing: 1 }}>Full Name</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="John Doe"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="contact-input"
-                  />
-                </div>
-
-                {/* Email Address */}
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  <label style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "rgba(255,255,255,0.4)", letterSpacing: 1 }}>Email Address</label>
-                  <input
-                    type="email"
-                    required
-                    placeholder="john@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="contact-input"
-                  />
-                </div>
-              </div>
-
-              <div className="form-row-2col">
-                {/* Subject */}
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  <label style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "rgba(255,255,255,0.4)", letterSpacing: 1 }}>Subject</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="How can we help?"
-                    value={subject}
-                    onChange={(e) => setSubject(e.target.value)}
-                    className="contact-input"
-                  />
-                </div>
-
-                {/* Category Dropdown */}
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  <label style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "rgba(255,255,255,0.4)", letterSpacing: 1 }}>Category</label>
-                  <select
-                    required
-                    className="custom-select contact-input"
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                    style={{ cursor: "pointer" }}
-                  >
-                    <option value="" disabled style={{ background: "#0c0d12", color: "#888" }}>Select a category</option>
-                    <option value="Support" style={{ background: "#0c0d12" }}>Support</option>
-                    <option value="Partnership" style={{ background: "#0c0d12" }}>Partnership</option>
-                    <option value="Billing" style={{ background: "#0c0d12" }}>Billing</option>
-                    <option value="Technical Issue" style={{ background: "#0c0d12" }}>Technical Issue</option>
-                    <option value="General Enquiry" style={{ background: "#0c0d12" }}>General Enquiry</option>
-                    <option value="Other" style={{ background: "#0c0d12" }}>Other</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Message */}
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                <label style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "rgba(255,255,255,0.4)", letterSpacing: 1 }}>Message</label>
-                <textarea
-                  required
-                  rows={6}
-                  placeholder="Your message details..."
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  className="contact-input"
-                  style={{ resize: "vertical", minHeight: 120 }}
-                />
-              </div>
-
-              {/* Submit Button */}
-              <motion.button
-                type="submit"
-                disabled={isSubmitting}
-                whileHover={{ scale: 1.02, y: -2 }}
-                whileTap={{ scale: 0.98 }}
-                style={{
-                  background: "#ffffff",
-                  color: "#000",
-                  border: "none",
-                  borderRadius: 12,
-                  padding: "16px",
-                  fontSize: 15,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  boxShadow: "0 4px 15px rgba(255, 255, 255, 0.1)",
-                  transition: "box-shadow 0.3s, background-color 0.3s",
+                  background: "#171717",
+                  boxShadow: "inset 0 1px 0 0 rgba(255,255,255,0.05), 0 0 0 1px rgba(255,255,255,0.05), 0 2px 4px rgba(0,0,0,0.2)",
+                  borderRadius: 20,
+                  padding: "32px 24px",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  textAlign: "center",
+                  transition: "all 0.3s ease",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.boxShadow = "0 8px 25px rgba(255, 255, 255, 0.2)";
-                  e.currentTarget.style.backgroundColor = "#f4f4f5";
+                  e.currentTarget.style.boxShadow = "inset 0 1px 0 0 rgba(255,255,255,0.1), 0 0 0 1px rgba(255,255,255,0.1), 0 8px 16px rgba(0,0,0,0.4)";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.boxShadow = "0 4px 15px rgba(255, 255, 255, 0.1)";
-                  e.currentTarget.style.backgroundColor = "#ffffff";
+                  e.currentTarget.style.boxShadow = "inset 0 1px 0 0 rgba(255,255,255,0.05), 0 0 0 1px rgba(255,255,255,0.05), 0 2px 4px rgba(0,0,0,0.2)";
                 }}
               >
-                {isSubmitting ? "Sending..." : "Send Message"}
-              </motion.button>
-            </form>
-          </motion.div>
+                <div style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: 12,
+                  background: `${card.color}15`,
+                  border: `1px solid ${card.color}25`,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: card.color,
+                  marginBottom: 24,
+                }}>
+                  {card.icon}
+                </div>
 
-          {/* Right Column: Connect With Us */}
-          <motion.div
-            {...fadeUp(0.15)}
-            className="contact-social-panel"
-            style={{
-              background: "linear-gradient(to bottom, #1C1C1E, #121214)",
-              borderRadius: 24,
-              padding: "40px 32px",
-              boxShadow: "0 4px 7px -5px rgba(0,0,0,0.3), 0 0 0 1px #2B2B2F",
-              width: "100%",
-              display: "flex",
-              flexDirection: "column",
-              gap: 28,
-              transition: "box-shadow 0.3s ease",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.boxShadow = "0 8px 15px -5px rgba(0,0,0,0.2), 0 0 0 1px rgba(255,255,255,0.1)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.boxShadow = "0 4px 7px -5px rgba(0,0,0,0.3), 0 0 0 1px #2B2B2F";
-            }}
-          >
-            <div>
-              <h2 style={{ fontSize: 24, fontWeight: 800, marginBottom: 12, letterSpacing: "-0.02em" }}>Connect With Us</h2>
-              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.45)", lineHeight: 1.5 }}>
-                Stay updated with Tradifive and join our community. Connect with us on your preferred platform.
-              </p>
-            </div>
+                <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 12 }}>{card.title}</h3>
+                <p style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", lineHeight: 1.5, marginBottom: 20, flexGrow: 1 }}>
+                  {card.desc}
+                </p>
 
-            {/* Social Links List */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-              {socialLinks.map((social, idx) => (
                 <a
-                  key={idx}
-                  href={social.url}
-                  className="social-row-btn"
+                  href={`mailto:${card.email}`}
                   style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 16,
-                    padding: "14px 18px",
-                    borderRadius: 16,
-                    background: "rgba(255,255,255,0.02)",
-                    border: "1px solid rgba(255,255,255,0.04)",
+                    fontSize: 14,
+                    fontWeight: 600,
                     color: "#fff",
                     textDecoration: "none",
-                    transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
+                    transition: "color 0.2s",
+                    borderBottom: "1px solid rgba(255,255,255,0.2)",
+                    paddingBottom: 2,
                   }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = social.color;
-                    e.currentTarget.style.background = `${social.color}08`;
-                    const iconWrap = e.currentTarget.querySelector('.social-icon-wrapper') as HTMLElement;
-                    if (iconWrap) {
-                      iconWrap.style.background = `${social.color}20`;
-                      iconWrap.style.color = social.color;
-                      iconWrap.style.borderColor = `${social.color}40`;
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.04)";
-                    e.currentTarget.style.background = "rgba(255,255,255,0.02)";
-                    const iconWrap = e.currentTarget.querySelector('.social-icon-wrapper') as HTMLElement;
-                    if (iconWrap) {
-                      iconWrap.style.background = "rgba(255,255,255,0.03)";
-                      iconWrap.style.color = "rgba(255,255,255,0.6)";
-                      iconWrap.style.borderColor = "rgba(255,255,255,0.05)";
-                    }
-                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.color = "#ffffff"}
+                  onMouseLeave={(e) => e.currentTarget.style.color = "#fff"}
                 >
-                  <div
-                    className="social-icon-wrapper"
-                    style={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: 10,
-                      background: "rgba(255,255,255,0.03)",
-                      border: "1px solid rgba(255,255,255,0.05)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: "rgba(255,255,255,0.6)",
-                      transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
-                      flexShrink: 0,
-                    }}
-                  >
-                    {social.icon}
-                  </div>
-                  <div style={{ flexGrow: 1 }}>
-                    <div style={{ fontSize: 14, fontWeight: 700 }}>{social.name}</div>
-                  </div>
-                  <ArrowRight size={14} style={{ color: "rgba(255,255,255,0.3)" }} />
+                  {card.email}
                 </a>
-              ))}
-            </div>
-          </motion.div>
-        </div>
-      </section>
 
-      {/* FREQUENTLY ASKED QUESTIONS */}
-      <PublicFAQ faqs={faqs} />
+                {card.smallText && (
+                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", marginTop: 12 }}>
+                    {card.smallText}
+                  </span>
+                )}
+              </motion.div>
+            ))}
+          </div>
+        </section>
 
-      {/* TRUST INDICATORS */}
-      <section className="contact-faq-section" style={{ padding: "0 24px 80px", maxWidth: 840, margin: "0 auto", position: "relative" }}>
-        <div className="trust-grid">
-          {trustBadges.map((badge, idx) => (
+        {/* CONTACT FORM & SOCIALS SECTION */}
+        <section className="contact-form-section" style={{ padding: "40px 24px", position: "relative", zIndex: 2 }}>
+          <div className="contact-layout">
+            {/* Left Column: Form */}
             <motion.div
-              key={idx}
-              {...fadeUp(0.1 + idx * 0.05)}
+              {...fadeUp(0.1)}
+              className="contact-form-panel"
               style={{
-                background: "rgba(255,255,255,0.01)",
-                border: "1px solid rgba(255,255,255,0.04)",
-                borderRadius: 16,
-                padding: "24px 20px",
-                textAlign: "center",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
+                background: "#171717",
+                borderRadius: 20,
+                padding: "40px 32px",
+                boxShadow: "inset 0 1px 0 0 rgba(255,255,255,0.05), 0 0 0 1px rgba(255,255,255,0.05), 0 2px 4px rgba(0,0,0,0.2)",
+                width: "100%",
+                transition: "box-shadow 0.3s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.boxShadow = "inset 0 1px 0 0 rgba(255,255,255,0.1), 0 0 0 1px rgba(255,255,255,0.1), 0 8px 16px rgba(0,0,0,0.4)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.boxShadow = "inset 0 1px 0 0 rgba(255,255,255,0.05), 0 0 0 1px rgba(255,255,255,0.05), 0 2px 4px rgba(0,0,0,0.2)";
               }}
             >
-              <div style={{ marginBottom: 12 }}>{badge.icon}</div>
-              <h4 style={{ fontSize: 14, fontWeight: 700, marginBottom: 6 }}>{badge.title}</h4>
-              <p style={{ fontSize: 11.5, color: "rgba(255,255,255,0.4)", lineHeight: 1.4 }}>{badge.desc}</p>
+              <h2 style={{ fontSize: 24, fontWeight: 800, marginBottom: 28, letterSpacing: "-0.02em" }}>Send Us a Message</h2>
+
+              <form onSubmit={handleFormSubmit} style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+                <div className="form-row-2col">
+                  {/* Full Name */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    <label style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "rgba(255,255,255,0.4)", letterSpacing: 1 }}>Full Name</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="John Doe"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="contact-input"
+                    />
+                  </div>
+
+                  {/* Email Address */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    <label style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "rgba(255,255,255,0.4)", letterSpacing: 1 }}>Email Address</label>
+                    <input
+                      type="email"
+                      required
+                      placeholder="john@example.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="contact-input"
+                    />
+                  </div>
+                </div>
+
+                <div className="form-row-2col">
+                  {/* Subject */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    <label style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "rgba(255,255,255,0.4)", letterSpacing: 1 }}>Subject</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="How can we help?"
+                      value={subject}
+                      onChange={(e) => setSubject(e.target.value)}
+                      className="contact-input"
+                    />
+                  </div>
+
+                  {/* Category Dropdown */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    <label style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "rgba(255,255,255,0.4)", letterSpacing: 1 }}>Category</label>
+                    <select
+                      required
+                      className="custom-select contact-input"
+                      value={category}
+                      onChange={(e) => setCategory(e.target.value)}
+                      style={{ cursor: "pointer" }}
+                    >
+                      <option value="" disabled style={{ background: "#0c0d12", color: "#888" }}>Select a category</option>
+                      <option value="Support" style={{ background: "#0c0d12" }}>Support</option>
+                      <option value="Partnership" style={{ background: "#0c0d12" }}>Partnership</option>
+                      <option value="Billing" style={{ background: "#0c0d12" }}>Billing</option>
+                      <option value="Technical Issue" style={{ background: "#0c0d12" }}>Technical Issue</option>
+                      <option value="General Enquiry" style={{ background: "#0c0d12" }}>General Enquiry</option>
+                      <option value="Other" style={{ background: "#0c0d12" }}>Other</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Message */}
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  <label style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "rgba(255,255,255,0.4)", letterSpacing: 1 }}>Message</label>
+                  <textarea
+                    required
+                    rows={6}
+                    placeholder="Your message details..."
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    className="contact-input"
+                    style={{ resize: "vertical", minHeight: 120 }}
+                  />
+                </div>
+
+                {/* Submit Button */}
+                <motion.button
+                  type="submit"
+                  disabled={isSubmitting}
+                  whileHover={{ scale: 1.02, y: -2 }}
+                  whileTap={{ scale: 0.98 }}
+                  style={{
+                    background: "#ffffff",
+                    color: "#000",
+                    border: "none",
+                    borderRadius: 12,
+                    padding: "16px",
+                    fontSize: 15,
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    boxShadow: "0 4px 15px rgba(255, 255, 255, 0.1)",
+                    transition: "box-shadow 0.3s, background-color 0.3s",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.boxShadow = "0 8px 25px rgba(255, 255, 255, 0.2)";
+                    e.currentTarget.style.backgroundColor = "#f4f4f5";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.boxShadow = "0 4px 15px rgba(255, 255, 255, 0.1)";
+                    e.currentTarget.style.backgroundColor = "#ffffff";
+                  }}
+                >
+                  {isSubmitting ? "Sending..." : "Send Message"}
+                </motion.button>
+              </form>
             </motion.div>
-          ))}
-        </div>
-      </section>
+
+            {/* Right Column: Connect With Us */}
+            <motion.div
+              {...fadeUp(0.15)}
+              className="contact-social-panel"
+              style={{
+                background: "#171717",
+                borderRadius: 20,
+                padding: "40px 32px",
+                boxShadow: "inset 0 1px 0 0 rgba(255,255,255,0.05), 0 0 0 1px rgba(255,255,255,0.05), 0 2px 4px rgba(0,0,0,0.2)",
+                width: "100%",
+                display: "flex",
+                flexDirection: "column",
+                gap: 28,
+                transition: "box-shadow 0.3s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.boxShadow = "inset 0 1px 0 0 rgba(255,255,255,0.1), 0 0 0 1px rgba(255,255,255,0.1), 0 8px 16px rgba(0,0,0,0.4)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.boxShadow = "inset 0 1px 0 0 rgba(255,255,255,0.05), 0 0 0 1px rgba(255,255,255,0.05), 0 2px 4px rgba(0,0,0,0.2)";
+              }}
+            >
+              <div>
+                <h2 style={{ fontSize: 24, fontWeight: 800, marginBottom: 12, letterSpacing: "-0.02em" }}>Connect With Us</h2>
+                <p style={{ fontSize: 14, color: "rgba(255,255,255,0.45)", lineHeight: 1.5 }}>
+                  Stay updated with Tradifive and join our community. Connect with us on your preferred platform.
+                </p>
+              </div>
+
+              {/* Social Links List */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                {socialLinks.map((social, idx) => (
+                  <a
+                    key={idx}
+                    href={social.url}
+                    className="social-row-btn"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 16,
+                      padding: "14px 18px",
+                      borderRadius: 16,
+                      background: "rgba(255,255,255,0.02)",
+                      border: "1px solid rgba(255,255,255,0.04)",
+                      color: "#fff",
+                      textDecoration: "none",
+                      transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = social.color;
+                      e.currentTarget.style.background = `${social.color}08`;
+                      const iconWrap = e.currentTarget.querySelector('.social-icon-wrapper') as HTMLElement;
+                      if (iconWrap) {
+                        iconWrap.style.background = `${social.color}20`;
+                        iconWrap.style.color = social.color;
+                        iconWrap.style.borderColor = `${social.color}40`;
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.04)";
+                      e.currentTarget.style.background = "rgba(255,255,255,0.02)";
+                      const iconWrap = e.currentTarget.querySelector('.social-icon-wrapper') as HTMLElement;
+                      if (iconWrap) {
+                        iconWrap.style.background = "rgba(255,255,255,0.03)";
+                        iconWrap.style.color = "rgba(255,255,255,0.6)";
+                        iconWrap.style.borderColor = "rgba(255,255,255,0.05)";
+                      }
+                    }}
+                  >
+                    <div
+                      className="social-icon-wrapper"
+                      style={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: 10,
+                        background: "rgba(255,255,255,0.03)",
+                        border: "1px solid rgba(255,255,255,0.05)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "rgba(255,255,255,0.6)",
+                        transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
+                        flexShrink: 0,
+                      }}
+                    >
+                      {social.icon}
+                    </div>
+                    <div style={{ flexGrow: 1 }}>
+                      <div style={{ fontSize: 14, fontWeight: 700 }}>{social.name}</div>
+                    </div>
+                    <ArrowRight size={14} style={{ color: "rgba(255,255,255,0.3)" }} />
+                  </a>
+                ))}
+              </div>
+            </motion.div>
+          </div>
+        </section>
+
+        {/* FREQUENTLY ASKED QUESTIONS */}
+        <PublicFAQ faqs={faqs} />
+
+        {/* TRUST INDICATORS */}
+        <section className="contact-faq-section" style={{ padding: "0 24px 80px", maxWidth: 840, margin: "0 auto", position: "relative" }}>
+          <div className="trust-grid">
+            {trustBadges.map((badge, idx) => (
+              <motion.div
+                key={idx}
+                {...fadeUp(0.1 + idx * 0.05)}
+                style={{
+                  background: "#171717",
+                  boxShadow: "inset 0 1px 0 0 rgba(255,255,255,0.05), 0 0 0 1px rgba(255,255,255,0.05), 0 2px 4px rgba(0,0,0,0.2)",
+                  borderRadius: 20,
+                  padding: "24px 20px",
+                  textAlign: "center",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  transition: "box-shadow 0.3s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.boxShadow = "inset 0 1px 0 0 rgba(255,255,255,0.1), 0 0 0 1px rgba(255,255,255,0.1), 0 8px 16px rgba(0,0,0,0.4)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.boxShadow = "inset 0 1px 0 0 rgba(255,255,255,0.05), 0 0 0 1px rgba(255,255,255,0.05), 0 2px 4px rgba(0,0,0,0.2)";
+                }}
+              >
+                <div style={{ marginBottom: 12 }}>{badge.icon}</div>
+                <h4 style={{ fontSize: 14, fontWeight: 700, marginBottom: 6 }}>{badge.title}</h4>
+                <p style={{ fontSize: 11.5, color: "rgba(255,255,255,0.4)", lineHeight: 1.4 }}>{badge.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+        </section>
       </main>
 
       <PublicFooter />

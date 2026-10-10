@@ -80,8 +80,8 @@ const getUserStats = (userId: string) => {
       bestStreak: 25,
       winRate: '72%',
       profitFactor: '2.8',
-      avgWin: '$620',
-      avgLoss: '$150',
+      avgWin: '₹620',
+      avgLoss: '₹150',
       roleTag: 'RISK DESK',
       streakDots: [
         { status: 'green' }, { status: 'green' }, { status: 'green' },
@@ -98,8 +98,8 @@ const getUserStats = (userId: string) => {
       bestStreak: 30,
       winRate: '78%',
       profitFactor: '3.2',
-      avgWin: '$850',
-      avgLoss: '$210',
+      avgWin: '₹850',
+      avgLoss: '₹210',
       roleTag: 'MENTOR',
       streakDots: [
         { status: 'green' }, { status: 'green' }, { status: 'green' },
@@ -116,8 +116,8 @@ const getUserStats = (userId: string) => {
       bestStreak: 15,
       winRate: '65%',
       profitFactor: '2.1',
-      avgWin: '$340',
-      avgLoss: '$130',
+      avgWin: '₹340',
+      avgLoss: '₹130',
       roleTag: 'STAFF',
       streakDots: [
         { status: 'green' }, { status: 'green' }, { status: 'red' },
@@ -134,8 +134,8 @@ const getUserStats = (userId: string) => {
       bestStreak: 12,
       winRate: '60%',
       profitFactor: '1.9',
-      avgWin: '$280',
-      avgLoss: '$140',
+      avgWin: '₹280',
+      avgLoss: '₹140',
       roleTag: 'TRADER',
       streakDots: [
         { status: 'green' }, { status: 'green' }, { status: 'red' },

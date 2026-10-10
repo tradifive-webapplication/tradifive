@@ -190,7 +190,7 @@ export default function ProfileTab({
                         <label className="text-[11px] font-bold text-slate-500 dark:text-[#949ba4] px-1 flex justify-between">Username <Check size={12} className="text-green-500" /></label>
                         <div className="relative">
                            <input type="text" placeholder="@your_username" value={profile.username || ""} onChange={e => setProfile({ ...profile, username: e.target.value })} className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] text-[13px] font-medium text-slate-800 dark:text-white outline-none focus:border-[#3b82f6] transition-all" />
-                           <span className="absolute -bottom-5 left-1 text-[10px] text-slate-500 dark:text-[#949ba4]">tradifive.com/<span className="text-green-500">{profile.username || "your_username"}</span></span>
+                           <span className="absolute -bottom-5 left-1 text-[10px] text-slate-500 dark:text-[#949ba4]">tradifive.in/<span className="text-green-500">{profile.username || "your_username"}</span></span>
                         </div>
                      </div>
                   </div>

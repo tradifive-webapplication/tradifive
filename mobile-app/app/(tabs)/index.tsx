@@ -2513,7 +2513,7 @@ export default function DashboardScreen() {
                         </View>
                         <View style={{ marginLeft: 10 }}>
                           <Text style={{ color: '#94a3b8', fontSize: 12, marginBottom: 4, fontFamily: 'Inter_500Medium' }}>Prize Pool</Text>
-                          <Text style={{ color: '#fff', fontSize: 14, fontFamily: 'Inter_400Regular' }}>$1,000 Cash - Competitions Accounts</Text>
+                          <Text style={{ color: '#fff', fontSize: 14, fontFamily: 'Inter_400Regular' }}>₹1,000 Cash - Competitions Accounts</Text>
                         </View>
                       </View>
                       <View style={{ flexDirection: 'row' }}>
@@ -2593,10 +2593,10 @@ export default function DashboardScreen() {
 
                     <View style={{ flexDirection: 'column', gap: 12, marginBottom: 24 }}>
                       <View style={{ backgroundColor: '#0f172a', padding: 12, borderRadius: 12 }}>
-                        <Text style={{ color: '#94a3b8', fontSize: 13, fontFamily: 'Inter_400Regular' }}>Current Balance: <Text style={{ color: '#fff', fontFamily: 'Inter_700Bold', fontVariant: ['tabular-nums'] }}>$10,000.00</Text></Text>
+                        <Text style={{ color: '#94a3b8', fontSize: 13, fontFamily: 'Inter_400Regular' }}>Current Balance: <Text style={{ color: '#fff', fontFamily: 'Inter_700Bold', fontVariant: ['tabular-nums'] }}>₹10,000.00</Text></Text>
                       </View>
                       <View style={{ backgroundColor: '#0f172a', padding: 12, borderRadius: 12 }}>
-                        <Text style={{ color: '#94a3b8', fontSize: 13, fontFamily: 'Inter_400Regular' }}>Initial Balance: <Text style={{ color: '#fff', fontFamily: 'Inter_700Bold', fontVariant: ['tabular-nums'] }}>$100,000.00</Text></Text>
+                        <Text style={{ color: '#94a3b8', fontSize: 13, fontFamily: 'Inter_400Regular' }}>Initial Balance: <Text style={{ color: '#fff', fontFamily: 'Inter_700Bold', fontVariant: ['tabular-nums'] }}>₹100,000.00</Text></Text>
                       </View>
                     </View>
 
@@ -2648,12 +2648,12 @@ export default function DashboardScreen() {
                   <View style={{ backgroundColor: '#1e293b', borderRadius: 28, padding: 24 }}>
                     <Text style={{ color: '#fff', fontSize: 18, marginBottom: 20, fontFamily: 'Inter_500Medium' }}>Account Details</Text>
                     {[
-                      { l: 'Current Equity', r: '$100000.00' },
-                      { l: 'Current Balance', r: '$100000.00' },
+                      { l: 'Current Equity', r: '₹100000.00' },
+                      { l: 'Current Balance', r: '₹100000.00' },
                       { l: 'Return', r: '0.00%' },
                       { l: 'Daily Loss Limit', r: 'Ongoing', dim: true },
-                      { l: 'Max Loss Limit', r: '$5000.00', dim: true },
-                      { l: "Today's Permitted Loss", r: '$0.00', dim: true },
+                      { l: 'Max Loss Limit', r: '₹5000.00', dim: true },
+                      { l: "Today's Permitted Loss", r: '₹0.00', dim: true },
                     ].map(item => (
                       <View key={item.l} style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 }}>
                         <Text style={{ color: item.dim ? '#64748b' : '#fff', fontSize: 14, fontFamily: 'Inter_400Regular' }}>{item.l}</Text>
@@ -2690,7 +2690,7 @@ export default function DashboardScreen() {
                       <View style={{ gap: 12 }}>
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#0f172a', padding: 20, borderRadius: 16, borderWidth: 1, borderColor: '#1e293b' }}>
                           <View>
-                            <Text style={{ color: '#fff', fontSize: 18, fontVariant: ['tabular-nums'], marginBottom: 4, fontFamily: 'Inter_500Medium' }}>$3,000</Text>
+                            <Text style={{ color: '#fff', fontSize: 18, fontVariant: ['tabular-nums'], marginBottom: 4, fontFamily: 'Inter_500Medium' }}>₹3,000</Text>
                             <Text style={{ color: '#64748b', fontSize: 12, fontFamily: 'Inter_500Medium' }}>Cash Prize</Text>
                           </View>
                           <View style={{ alignItems: 'flex-end' }}>
@@ -2699,7 +2699,7 @@ export default function DashboardScreen() {
                         </View>
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#0f172a', padding: 20, borderRadius: 16, borderWidth: 1, borderColor: '#3b82f6' }}>
                           <View>
-                            <Text style={{ color: '#fff', fontSize: 20, fontVariant: ['tabular-nums'], marginBottom: 4, fontFamily: 'Inter_600SemiBold' }}>$5,000</Text>
+                            <Text style={{ color: '#fff', fontSize: 20, fontVariant: ['tabular-nums'], marginBottom: 4, fontFamily: 'Inter_600SemiBold' }}>₹5,000</Text>
                             <Text style={{ color: '#3b82f6', fontSize: 13, fontFamily: 'Inter_400Regular' }}>Cash Prize</Text>
                           </View>
                           <View style={{ alignItems: 'flex-end' }}>
@@ -2708,7 +2708,7 @@ export default function DashboardScreen() {
                         </View>
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#0f172a', padding: 16, borderRadius: 16, borderWidth: 1, borderColor: '#1e293b' }}>
                           <View>
-                            <Text style={{ color: '#fff', fontSize: 18, fontVariant: ['tabular-nums'], marginBottom: 4, fontFamily: 'Inter_500Medium' }}>$2,000</Text>
+                            <Text style={{ color: '#fff', fontSize: 18, fontVariant: ['tabular-nums'], marginBottom: 4, fontFamily: 'Inter_500Medium' }}>₹2,000</Text>
                             <Text style={{ color: '#64748b', fontSize: 12, fontFamily: 'Inter_500Medium' }}>Cash Prize</Text>
                           </View>
                           <View style={{ alignItems: 'flex-end' }}>
@@ -2747,7 +2747,7 @@ export default function DashboardScreen() {
                         <Text style={{ color: '#94a3b8', fontSize: 16, width: 30, fontFamily: 'Inter_400Regular' }}>{i + 1}</Text>
                         <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: '#000', marginRight: 12 }} />
                         <Text style={{ color: '#fff', fontSize: 15, flex: 1, fontFamily: 'Inter_400Regular' }}>{name}</Text>
-                        <Text style={{ color: '#fff', fontSize: 15, fontFamily: 'Inter_400Regular' }}>$0.00</Text>
+                        <Text style={{ color: '#fff', fontSize: 15, fontFamily: 'Inter_400Regular' }}>₹0.00</Text>
                       </View>
                     ))}
                   </View>

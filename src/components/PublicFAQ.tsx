@@ -27,7 +27,7 @@ const defaultFaqs = [
   },
   {
     q: "How do I contact support?",
-    a: "You can send an email to support@tradifive.com or use the contact form on our contact page. We typically respond to all support tickets and technical issues within 24 hours.",
+    a: "You can send an email to support@tradifive.in or use the contact form on our contact page. We typically respond to all support tickets and technical issues within 24 hours.",
   },
   {
     q: "Is my data safe and secure?",
@@ -64,17 +64,17 @@ export function PublicFAQ({ faqs = defaultFaqs }: { faqs?: { q: string; a: strin
               key={idx}
               {...fadeUp(idx * 0.05)}
               style={{
-                background: "rgba(255,255,255,0.015)",
-                border: "1px solid rgba(255,255,255,0.05)",
-                borderRadius: 16,
+                background: "#171717",
+                boxShadow: "inset 0 1px 0 0 rgba(255,255,255,0.05), 0 0 0 1px rgba(255,255,255,0.05), 0 2px 4px rgba(0,0,0,0.2)",
+                borderRadius: 20,
                 overflow: "hidden",
-                transition: "border-color 0.2s",
+                transition: "box-shadow 0.3s ease",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)";
+                e.currentTarget.style.boxShadow = "inset 0 1px 0 0 rgba(255,255,255,0.1), 0 0 0 1px rgba(255,255,255,0.1), 0 8px 16px rgba(0,0,0,0.4)";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = "rgba(255,255,255,0.05)";
+                e.currentTarget.style.boxShadow = "inset 0 1px 0 0 rgba(255,255,255,0.05), 0 0 0 1px rgba(255,255,255,0.05), 0 2px 4px rgba(0,0,0,0.2)";
               }}
             >
               <button

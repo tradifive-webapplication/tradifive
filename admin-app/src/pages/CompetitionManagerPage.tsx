@@ -128,7 +128,7 @@ export default function CompetitionManagerPage() {
             <div>
               <label className="text-[9px] font-bold text-neutral-500 uppercase tracking-widest block mb-1">Prize Pool</label>
               <input value={form.prize_pool} onChange={e => setForm({ ...form, prize_pool: e.target.value })}
-                className="w-full bg-[#121212] border border-white/5 rounded px-3 py-2 text-[11px] text-white outline-none" placeholder="$8,000 Cash & Challenge Accounts" />
+                className="w-full bg-[#121212] border border-white/5 rounded px-3 py-2 text-[11px] text-white outline-none" placeholder="₹8,000 Cash & Challenge Accounts" />
             </div>
             <div>
               <label className="text-[9px] font-bold text-neutral-500 uppercase tracking-widest block mb-1">Max Contestants</label>

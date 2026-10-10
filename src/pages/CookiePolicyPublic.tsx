@@ -15,7 +15,7 @@ export default function CookiePolicyPublic() {
       {/* Intro section */}
       <div className="space-y-4">
         <p className="text-[15px] leading-relaxed text-zinc-300">
-          This Cookie Policy explains how Tradifive ("we", "us", or "our") uses cookies and similar technologies to recognize you when you visit our website at tradifive.com, or use our desktop and mobile applications (collectively, the "Services").
+          This Cookie Policy explains how Tradifive ("we", "us", or "our") uses cookies and similar technologies to recognize you when you visit our website at tradifive.in, or use our desktop and mobile applications (collectively, the "Services").
         </p>
         <p className="text-[15px] leading-relaxed text-zinc-400">
           It explains what these technologies are and why we use them, as well as your rights to control our use of them. In some cases, we may use cookies to collect personal information, or that becomes personal information if we combine it with other information.

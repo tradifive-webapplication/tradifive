@@ -12,7 +12,7 @@ export default function SettingsPage() {
     platformName: "TradiFive Institutional",
     maxDrawdown: 20,
     maxDailyTrades: 50,
-    apiEndpoint: "https://api.tradifive.com/v1",
+    apiEndpoint: "https://api.tradifive.in/v1",
     nodeCluster: "London-01",
   });
 

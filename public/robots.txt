@@ -13,4 +13,4 @@ Allow: /
 User-agent: *
 Allow: /
 
-Sitemap: https://www.tradifive.com/sitemap.xml
+Sitemap: https://www.tradifive.in/sitemap.xml

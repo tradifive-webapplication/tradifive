@@ -43,7 +43,7 @@ export class ContestsService {
         status: 'Upcoming',
         start: `${months[upcomingMonthIdx].slice(0, 3)} 1, ${upcomingYear}`,
         end: `${months[upcomingMonthIdx].slice(0, 3)} 30, ${upcomingYear}`,
-        prize: '$10,000 Cash & $2.0M Challenges',
+        prize: '₹10,000 Cash & ₹2.0M Challenges',
         contestants: '12,450',
         time: '12D 10H',
         finished: null
@@ -54,7 +54,7 @@ export class ContestsService {
         status: 'Active',
         start: `${months[activeMonthIdx].slice(0, 3)} 1, ${currentYear}`,
         end: `${months[activeMonthIdx].slice(0, 3)} 31, ${currentYear}`,
-        prize: '$8,000 Cash & $1.7M Challenges',
+        prize: '₹8,000 Cash & ₹1.7M Challenges',
         contestants: '84,192',
         time: '6D 4H',
         finished: null
@@ -65,7 +65,7 @@ export class ContestsService {
         status: 'Finished',
         start: `${months[prev1MonthIdx].slice(0, 3)} 1, ${prev1Year}`,
         end: `${months[prev1MonthIdx].slice(0, 3)} 30, ${prev1Year}`,
-        prize: '$8,000 Cash & $1.7M Challenges',
+        prize: '₹8,000 Cash & ₹1.7M Challenges',
         contestants: '79,020',
         time: null,
         finished: `${months[prev1MonthIdx].slice(0, 3)} 30, ${prev1Year}`
@@ -76,7 +76,7 @@ export class ContestsService {
         status: 'Finished',
         start: `${months[prev2MonthIdx].slice(0, 3)} 1, ${prev2Year}`,
         end: `${months[prev2MonthIdx].slice(0, 3)} 31, ${prev2Year}`,
-        prize: '$7,500 Cash & $1.5M Challenges',
+        prize: '₹7,500 Cash & ₹1.5M Challenges',
         contestants: '71,940',
         time: null,
         finished: `${months[prev2MonthIdx].slice(0, 3)} 31, ${prev2Year}`

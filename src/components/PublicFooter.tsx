@@ -18,10 +18,10 @@ const COLS = [
   {
     title: "Coming Soon",
     links: [
-      { label: "AI Auto-Trading", href: "#" },
-      { label: "Custom Strategies", href: "#" },
-      { label: "Options Trading", href: "#" },
-      { label: "Prop Firm Integrations", href: "#" },
+      { label: "AI Auto-Trading", href: "/features/tradifive-ai" },
+      { label: "Custom Strategies", href: "/features/custom-strategies" },
+      { label: "Options Trading", href: "/features/options-trading" },
+      { label: "Prop Firm Integrations", href: "/features/prop-firm-integrations" },
     ],
   },
   {
@@ -47,9 +47,9 @@ const COLS = [
 ];
 
 const SOCIALS = [
-  { icon: Twitter, label: "Twitter", href: "#" },
-  { icon: Github, label: "GitHub", href: "#" },
-  { icon: Linkedin, label: "LinkedIn", href: "#" },
+  { icon: Twitter, label: "Twitter", href: "https://twitter.com/tradifive" },
+  { icon: Github, label: "GitHub", href: "https://github.com/tradifive" },
+  { icon: Linkedin, label: "LinkedIn", href: "https://linkedin.com/company/tradifive" },
 ];
 
 export default function PublicFooter() {
@@ -103,11 +103,11 @@ export default function PublicFooter() {
 
             {/* Direct contact link */}
             <a
-              href="mailto:hello@tradifive.com"
+              href="mailto:hello@tradifive.in"
               className="inline-flex items-center gap-2 text-[13px] text-indigo-400 hover:text-indigo-300 font-semibold transition-colors duration-200"
             >
               <Mail size={14} />
-              hello@tradifive.com
+              hello@tradifive.in
             </a>
 
             {/* Social Icons list */}
@@ -166,18 +166,24 @@ export default function PublicFooter() {
         </div>
 
         {/* Footer bottom bar */}
-        <div className="pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-[12px] text-slate-500 text-center md:text-left font-medium">
-            &copy; {new Date().getFullYear()} TradiFive. Built for verified traders. All rights reserved.
+        <div className="pt-8 flex flex-col items-center md:items-start gap-4">
+          <p className="text-[11px] text-slate-500 leading-relaxed text-center md:text-left max-w-4xl">
+            Trading involves substantial risk of loss. TradiFive is a risk management and analytics tool, not a guarantee against losses. Past performance does not guarantee future results.
           </p>
 
-          <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-500">
-            <span>Made with</span>
-            <Heart size={12} className="text-rose-500 fill-rose-500 animate-pulse" />
-            <span>by the tech team at</span>
-            <span className="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent font-black">
-              TradiFive
-            </span>
+          <div className="w-full flex flex-col md:flex-row items-center justify-between gap-4 mt-2">
+            <p className="text-[12px] text-slate-500 text-center md:text-left font-medium">
+              &copy; {new Date().getFullYear()} TradiFive. Built for verified traders. All rights reserved.
+            </p>
+
+            <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-500">
+              <span>Made with</span>
+              <Heart size={12} className="text-rose-500 fill-rose-500 animate-pulse" />
+              <span>by the tech team at</span>
+              <span className="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent font-black">
+                TradiFive
+              </span>
+            </div>
           </div>
         </div>
 

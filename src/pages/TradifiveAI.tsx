@@ -540,7 +540,7 @@ I have processed your **Dashboard Performance Metrics** context. Here is your St
 
 #### 📈 Key Performance Indicators:
 - **Cumulative Win-Rate**: **58.5%** (Excellent consistency for a trend-following profile).
-- **Profit Factor**: **1.82** (Healthy; indicates you are earning $1.82 for every $1.00 lost).
+- **Profit Factor**: **1.82** (Healthy; indicates you are earning ₹1.82 for every ₹1.00 lost).
 - **Average Win/Loss Ratio**: **1:1.35** (Standard. To optimize your funded profile, we should target **1:1.8**).
 - **Sharpe Ratio**: **1.45** (Stable return profile with moderate volatility).
 
@@ -628,13 +628,13 @@ Checking your active **MetaTrader 5 Bridge Sync Configuration**:
 
 From your account:
 
-- **Net P&L:** -$2,001.78
+- **Net P&L:** -₹2,001.78
 - **Total trades:** 255
 - **Win rate:** 52.96%
-- **Average win:** +$18.53
-- **Average loss:** -$37.69
+- **Average win:** +₹18.53
+- **Average loss:** -₹37.69
 - **Profit factor:** 0.55
-- **Expectancy:** -$7.91 per trade
+- **Expectancy:** -₹7.91 per trade
 - **Average realized R:** -0.77R
 
 ### The blunt truth
@@ -697,19 +697,19 @@ This strongly suggests:
 I have processed your uploaded candlestick chart screenshot and mapped it against standard price action parameters:
 
 #### 📈 Key Observations:
-1. **Price Structure**: A distinct **Double Top Pattern** has formed near local resistance at **$2,045.50**.
+1. **Price Structure**: A distinct **Double Top Pattern** has formed near local resistance at **₹2,045.50**.
 2. **Candlestick Confirmation**: The second peak shows a bearish engulfing candle with a long upper wick, showing heavy absorption of buying liquidity at high prices.
 3. **Volume Divergence**: While the first peak was supported by high volume, the second peak displays a **38% decrease in buying volume**, signaling buyers are fully exhausted.
 4. **EMA Shifting**: Price has closed below the 20-period Exponential Moving Average (EMA), which is now twisting downwards to serve as dynamic resistance.
 
 #### 🎯 Tactical Setup Recommendations:
 - **Bias**: Bearish (Short bias).
-- **Trigger**: Wait for a 5-minute candle close below the neckline support at **$2,038.00**.
-- **Stop Loss**: Place strictly at **$2,046.50** (just above the double top peak).
-- **Take Profit**: Target the next major support zone at **$2,024.00**.
+- **Trigger**: Wait for a 5-minute candle close below the neckline support at **₹2,038.00**.
+- **Stop Loss**: Place strictly at **₹2,046.50** (just above the double top peak).
+- **Take Profit**: Target the next major support zone at **₹2,024.00**.
 - **Risk-Reward Ratio**: **1:2.1**, which perfectly complies with your premium risk parameters.
 
-${bio ? `*Coaching Note for your specific style: Since you set up your bio as "${bio}", make sure to manage your scaling carefully near $2,030.00.*` : ""}`;
+${bio ? `*Coaching Note for your specific style: Since you set up your bio as "${bio}", make sure to manage your scaling carefully near ₹2,030.00.*` : ""}`;
     }
 
     // Drawdown Diagnostic
@@ -742,13 +742,13 @@ ${persona === "Strict Guard" ? `> [!WARNING]
       return `I understand that missing a rapid price surge in BTC/USD can trigger intense **Rally Regret** (FOMO). Let's realign your mindset and strategy before you commit sub-optimal capital.
 
 #### 🧠 Cognitive Realignment:
-1. **The Fallacy of Chasing**: BTC/USD has surged 4.2% in the last 2 hours and is now trading near the 4-hour resistance zone ($67,200). Your desire to enter now is driven by emotional urgency, not edge.
+1. **The Fallacy of Chasing**: BTC/USD has surged 4.2% in the last 2 hours and is now trading near the 4-hour resistance zone (₹67,200). Your desire to enter now is driven by emotional urgency, not edge.
 2. **Asymmetric Risk**: Buying at the top of a parabolic expansion gives you a highly unfavorable **1:3 Risk-to-Reward ratio** (your stop-loss would need to be below the breakout origin, while upside is capped by immediate range resistance).
 3. **Preservation is a Win**: Missing a trade is not a loss of money; it is a successful preservation of your capital. The market is infinite; your buying power is finite.
 
 #### 📉 Tactical Chart Plan:
 - **Do Not Chase**: Wait for a standard Fibonacci consolidation (38.2% or 50% retracement) on the 15-minute chart.
-- **Set Passive Alerts**: Place price alerts at **$65,800** and **$65,400**. Close your terminal tab until those alerts trigger.
+- **Set Passive Alerts**: Place price alerts at **₹65,800** and **₹65,400**. Close your terminal tab until those alerts trigger.
 - **Micro-Sizing**: If you absolutely must participate, execute a micro-lot (0.01) to satisfy the psychological urge without exposing your prop-account to critical drawdown.
 
 > [!TIP]

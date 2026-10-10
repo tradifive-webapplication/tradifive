@@ -11,7 +11,7 @@ export default function LiveAppView({ isOpen, onClose }: LiveAppViewProps) {
   const [deviceView, setDeviceView] = useState<"desktop" | "mobile">("desktop");
   const [env, setEnv] = useState<"local" | "prod">("local");
 
-  const url = env === "local" ? "http://localhost:5173" : "https://tradifive.com";
+  const url = env === "local" ? "http://localhost:5173" : "https://tradifive.in";
 
   if (!isOpen) return null;
 

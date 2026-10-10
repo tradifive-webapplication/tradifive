@@ -191,7 +191,7 @@ export default function EmployeeProfileModal({ employeeId, onClose, onSuccess }:
                 
                 <div className="p-6">
                   <div className="flex justify-between items-start mb-6">
-                    {employee.role_level === "ceo" || employee.role_title?.toLowerCase() === "ceo" || employee.email === "ceo@tradifive.com" ? (
+                    {employee.role_level === "ceo" || employee.role_title?.toLowerCase() === "ceo" || employee.email === "ceo@tradifive.in" ? (
                       <img
                         src="/nikil_avatar.jpg"
                         alt={employee.full_name}

@@ -87,8 +87,8 @@ export function isSafeRedirectUrl(url: string): boolean {
     const parsed = new URL(url, window.location.origin);
     const trustedDomains = [
       window.location.hostname,
-      "tradifive.com",
-      "www.tradifive.com",
+      "tradifive.in",
+      "www.tradifive.in",
     ];
     return trustedDomains.includes(parsed.hostname);
   } catch {

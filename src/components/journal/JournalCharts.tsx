@@ -309,7 +309,7 @@ export default function JournalCharts({ cardId }: { cardId?: string }) {
       time: info.dateObject.getTime()
     })).sort((a, b) => a.time - b.time);
 
-    // Prepend the initial starting/deposit baseline point so curves start correctly at the deposit amount ($500.00)
+    // Prepend the initial starting/deposit baseline point so curves start correctly at the deposit amount (₹500.00)
     if (dailyList.length > 0) {
       const firstTime = dailyList[0].time;
       const prevDate = new Date(firstTime - 24 * 60 * 60 * 1000);

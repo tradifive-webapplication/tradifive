@@ -12,23 +12,23 @@ function fadeUp(delay = 0) {
 }
 
 const LEADERBOARD = [
-  { rank: 1, badge: "🥇", name: "Marcus V.", country: "🇺🇸", gain: "+$4,820", pct: "+24.1%", color: "#f59e0b" },
-  { rank: 2, badge: "🥈", name: "Elena R.", country: "🇩🇪", gain: "+$3,210", pct: "+16.0%", color: "#94a3b8" },
-  { rank: 3, badge: "🥉", name: "David M.", country: "🇬🇧", gain: "+$2,880", pct: "+14.4%", color: "#cd7c2f" },
-  { rank: 4, badge: "#4", name: "Yuki T.", country: "🇯🇵", gain: "+$2,100", pct: "+10.5%", color: "#6366f1" },
-  { rank: 12, badge: "You", name: "Your Account", country: "🏁", gain: "+$891", pct: "+4.4%", color: "#10b981", isYou: true },
+  { rank: 1, badge: "🥇", name: "Marcus V.", country: "🇺🇸", gain: "+₹4,820", pct: "+24.1%", color: "#f59e0b" },
+  { rank: 2, badge: "🥈", name: "Elena R.", country: "🇩🇪", gain: "+₹3,210", pct: "+16.0%", color: "#94a3b8" },
+  { rank: 3, badge: "🥉", name: "David M.", country: "🇬🇧", gain: "+₹2,880", pct: "+14.4%", color: "#cd7c2f" },
+  { rank: 4, badge: "#4", name: "Yuki T.", country: "🇯🇵", gain: "+₹2,100", pct: "+10.5%", color: "#6366f1" },
+  { rank: 12, badge: "You", name: "Your Account", country: "🏁", gain: "+₹891", pct: "+4.4%", color: "#10b981", isYou: true },
 ];
 
 const STEPS = [
   { step: "01", icon: <Zap size={24} />, title: "Connect MT5", color: "#f59e0b", desc: "Link your existing MT5 broker account in under 60 seconds using our secure read-only API bridge. No withdrawal access, ever." },
   { step: "02", icon: <TrendingUp size={24} />, title: "Trade & Climb", color: "#6366f1", desc: "Execute trades in your normal MT5 terminal. Your performance metrics update in real-time on the live competition leaderboard." },
-  { step: "03", icon: <Trophy size={24} />, title: "Win Real Prizes", color: "#10b981", desc: "Finish in the top tier at month's end to claim direct cash payouts or an exclusive funded account challenge worth up to $100k." },
+  { step: "03", icon: <Trophy size={24} />, title: "Win Real Prizes", color: "#10b981", desc: "Finish in the top tier at month's end to claim direct cash payouts or an exclusive funded account challenge worth up to ₹100k." },
 ];
 
 const PRIZES = [
-  { place: "1st Place", amount: "$2,000", badge: "🥇", desc: "Cash + Funded Account Seat ($50k)", color: "#f59e0b" },
-  { place: "2nd Place", amount: "$1,000", badge: "🥈", desc: "Cash Prize + Premium Badge", color: "#94a3b8" },
-  { place: "3rd Place", amount: "$500", badge: "🥉", desc: "Cash Prize + Elite Badge", color: "#cd7c2f" },
+  { place: "1st Place", amount: "₹2,000", badge: "🥇", desc: "Cash + Funded Account Seat (₹50k)", color: "#f59e0b" },
+  { place: "2nd Place", amount: "₹1,000", badge: "🥈", desc: "Cash Prize + Premium Badge", color: "#94a3b8" },
+  { place: "3rd Place", amount: "₹500", badge: "🥉", desc: "Cash Prize + Elite Badge", color: "#cd7c2f" },
   { place: "Top 10%", amount: "Bonus", badge: "⭐", desc: "Exclusive Tier Upgrade + XP Multiplier", color: "#6366f1" },
 ];
 
@@ -99,7 +99,7 @@ export default function CompetitionsPublic() {
                   </div>
                 </div>
                 <div style={{ textAlign: "right" }}>
-                  <div style={{ color: "#f59e0b", fontSize: 24, fontWeight: 900 }}>$5,000</div>
+                  <div style={{ color: "#f59e0b", fontSize: 24, fontWeight: 900 }}>₹5,000</div>
                   <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: 1 }}>Prize Pool</div>
                 </div>
               </div>

@@ -17,8 +17,8 @@ async function run() {
   if (error) {
     console.error("Sign-up error:", error.message);
     if (error.message.toLowerCase().includes("already") || error.message.toLowerCase().includes("exists")) {
-      console.log("\nTrying with a new admin account (admin@tradifive.com)...");
-      const fallbackEmail = "admin@tradifive.com";
+      console.log("\nTrying with a new admin account (admin@tradifive.in)...");
+      const fallbackEmail = "admin@tradifive.in";
       const { data: fbData, error: fbError } = await supabase.auth.signUp({
         email: fallbackEmail,
         password,

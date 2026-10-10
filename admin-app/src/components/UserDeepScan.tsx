@@ -434,7 +434,7 @@ export default function UserDeepScan({ userId, onClose }: UserDeepScanProps) {
                     { label: "Total Trades", value: data.trades.length },
                     { label: "Win Rate", value: `${winRate}%` },
                     { label: "Net P&L", value: `$${netPnl.toFixed(2)}` },
-                    { label: "Avg Trade", value: data.trades.length > 0 ? `$${(netPnl / data.trades.length).toFixed(2)}` : "$0" },
+                    { label: "Avg Trade", value: data.trades.length > 0 ? `$${(netPnl / data.trades.length).toFixed(2)}` : "₹0" },
                   ].map(s => (
                     <div key={s.label} className="bg-[#1a1a1a] border border-white/5 rounded-xl p-4">
                       <p className="text-[9px] text-neutral-600 font-bold uppercase tracking-widest mb-1">{s.label}</p>

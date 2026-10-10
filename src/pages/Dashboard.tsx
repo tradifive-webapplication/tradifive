@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   ShieldAlert, ChevronRight, Activity, AlertCircle,
@@ -8,6 +8,9 @@ import {
   BookOpen, Brain, Award, TrendingUp, Flame
 } from "lucide-react";
 import DashboardLayout from "@/components/DashboardLayout";
+import Portfolio from "./dashboard/Portfolio";
+import Brokers from "./dashboard/Brokers";
+import Reports from "./dashboard/Reports";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { useMarket } from "@/contexts/MarketContext";
 import { supabase } from "@/lib/supabase";
@@ -41,6 +44,8 @@ const TrendUpIcon = () => (
 
 // ── Main Component ──────────────────────────────────────────────────────────
 const Dashboard = () => {
+  const [searchParams] = useSearchParams();
+  const currentTab = searchParams.get("tab") || "main";
   const navigate = useNavigate();
   let {
     equity, balance, todayProfit, totalProfit, winRate, tradesToday,
@@ -118,8 +123,8 @@ const Dashboard = () => {
     return recentTrades?.filter((t: any) => !t.closed_at && !t.is_pending) || [];
   }, [recentTrades]);
 
-  const pnlTodayStr = todayProfit === 0 ? '$0.00' : (todayProfit > 0 ? `+$${todayProfit.toFixed(2)}` : `-$${Math.abs(todayProfit).toFixed(2)}`);
-  const pnlNetStr = totalProfit === 0 ? '$0.00' : (totalProfit > 0 ? `+$${totalProfit.toFixed(2)}` : `-$${Math.abs(totalProfit).toFixed(2)}`);
+  const pnlTodayStr = todayProfit === 0 ? '₹0.00' : (todayProfit > 0 ? `+₹${todayProfit.toFixed(2)}` : `-₹${Math.abs(todayProfit).toFixed(2)}`);
+  const pnlNetStr = totalProfit === 0 ? '₹0.00' : (totalProfit > 0 ? `+₹${totalProfit.toFixed(2)}` : `-₹${Math.abs(totalProfit).toFixed(2)}`);
 
   // Greeting based on time of day
   const hour = new Date().getHours();
@@ -141,7 +146,8 @@ const Dashboard = () => {
 
   return (
     <DashboardLayout breadcrumbs={[{ label: 'Dashboard' }]}>
-      <div className="max-w-[1600px] mx-auto px-4 md:px-8 pb-12 space-y-5 min-h-screen font-sans">
+      {currentTab === 'main' && (
+        <div className="max-w-[1600px] mx-auto px-4 md:px-8 pb-12 space-y-5 min-h-screen font-sans">
 
         {/* ── Demo Mode Banner ──────────────────────────────────────────── */}
         {!isConnected && activeMarket !== 'indian' && (
@@ -512,7 +518,11 @@ const Dashboard = () => {
         </div>
 
       </div>
-    </DashboardLayout>
+          )}
+        {currentTab === 'portfolio' && <Portfolio />}
+        {currentTab === 'brokers' && <Brokers />}
+        {currentTab === 'reports' && <Reports />}
+      </DashboardLayout>
   );
 };
 

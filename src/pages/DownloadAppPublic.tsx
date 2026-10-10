@@ -70,8 +70,8 @@ function SocialFeedScreen() {
       </div>
       {/* Posts */}
       {[
-        { user: "Marcus V.", tag: "@marcus", color: "#6366f1", pnl: "+$342", pair: "EUR/USD • BUY", time: "2m" },
-        { user: "Elena R.", tag: "@elena", color: "#10b981", pnl: "+$189", pair: "XAU/USD • BUY", time: "8m" },
+        { user: "Marcus V.", tag: "@marcus", color: "#6366f1", pnl: "+₹342", pair: "EUR/USD • BUY", time: "2m" },
+        { user: "Elena R.", tag: "@elena", color: "#10b981", pnl: "+₹189", pair: "XAU/USD • BUY", time: "8m" },
       ].map((p, i) => (
         <div key={i} style={{ background: "rgba(255,255,255,0.04)", borderRadius: 12, padding: "10px 10px 8px", marginBottom: 8, border: "1px solid rgba(255,255,255,0.05)" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
@@ -115,7 +115,7 @@ function RiskGuardScreen() {
           </div>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
-          {[{ l: "Daily Loss", v: "-$120", c: "#10b981" }, { l: "Limit", v: "$500", c: "rgba(255,255,255,0.6)" }].map((s, i) => (
+          {[{ l: "Daily Loss", v: "-₹120", c: "#10b981" }, { l: "Limit", v: "₹500", c: "rgba(255,255,255,0.6)" }].map((s, i) => (
             <div key={i} style={{ background: "rgba(255,255,255,0.04)", borderRadius: 8, padding: "6px 8px", textAlign: "left" }}>
               <div style={{ fontSize: 7, color: "rgba(255,255,255,0.3)", marginBottom: 2 }}>{s.l}</div>
               <div style={{ fontSize: 11, fontWeight: 800, color: s.c }}>{s.v}</div>
@@ -124,7 +124,7 @@ function RiskGuardScreen() {
         </div>
       </div>
       {/* Rules */}
-      {[{ r: "Max Daily Drawdown", v: "$500", on: true }, { r: "Stop After 3 Losses", v: "3 trades", on: true }, { r: "Weekend Lock", v: "Fri 10pm", on: false }].map((rule, i) => (
+      {[{ r: "Max Daily Drawdown", v: "₹500", on: true }, { r: "Stop After 3 Losses", v: "3 trades", on: true }, { r: "Weekend Lock", v: "Fri 10pm", on: false }].map((rule, i) => (
         <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "7px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
           <div>
             <div style={{ fontSize: 8, fontWeight: 600, color: "#fff" }}>{rule.r}</div>
@@ -158,9 +158,9 @@ function JournalScreen() {
       </div>
       {/* Recent trades */}
       {[
-        { pair: "EUR/USD", dir: "BUY", pnl: "+$142", rr: "1:2.8", date: "Today" },
-        { pair: "GBP/JPY", dir: "BUY", pnl: "+$88", rr: "1:1.9", date: "Yesterday" },
-        { pair: "BTC/USD", dir: "SELL", pnl: "-$31", rr: "1:0.6", date: "Yesterday" },
+        { pair: "EUR/USD", dir: "BUY", pnl: "+₹142", rr: "1:2.8", date: "Today" },
+        { pair: "GBP/JPY", dir: "BUY", pnl: "+₹88", rr: "1:1.9", date: "Yesterday" },
+        { pair: "BTC/USD", dir: "SELL", pnl: "-₹31", rr: "1:0.6", date: "Yesterday" },
       ].map((t, i) => (
         <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "7px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
@@ -192,7 +192,7 @@ function CompetitionScreen() {
             <div style={{ fontSize: 8, color: "rgba(255,255,255,0.45)" }}>24 days remaining</div>
           </div>
           <div style={{ textAlign: "right" }}>
-            <div style={{ fontSize: 13, fontWeight: 900, color: "#f59e0b" }}>$5,000</div>
+            <div style={{ fontSize: 13, fontWeight: 900, color: "#f59e0b" }}>₹5,000</div>
             <div style={{ fontSize: 7, color: "rgba(255,255,255,0.35)" }}>Prize Pool</div>
           </div>
         </div>
@@ -208,10 +208,10 @@ function CompetitionScreen() {
       {/* Leaderboard */}
       <div style={{ fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "1px", marginBottom: 8 }}>Leaderboard</div>
       {[
-        { rank: 1, name: "Marcus V.", pnl: "+$4,820", badge: "🥇" },
-        { rank: 2, name: "Elena R.", pnl: "+$3,210", badge: "🥈" },
-        { rank: 3, name: "David M.", pnl: "+$2,880", badge: "🥉" },
-        { rank: 12, name: "You", pnl: "+$891", badge: "#12", you: true },
+        { rank: 1, name: "Marcus V.", pnl: "+₹4,820", badge: "🥇" },
+        { rank: 2, name: "Elena R.", pnl: "+₹3,210", badge: "🥈" },
+        { rank: 3, name: "David M.", pnl: "+₹2,880", badge: "🥉" },
+        { rank: 12, name: "You", pnl: "+₹891", badge: "#12", you: true },
       ].map((p, i) => (
         <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, borderBottom: "1px solid rgba(255,255,255,0.04)", background: p.you ? "rgba(99,102,241,0.06)" : "transparent", borderRadius: p.you ? 8 : 0, padding: p.you ? "5px 6px" : "5px 0", margin: p.you ? "0 -6px" : "0" }}>
           <span style={{ fontSize: 10, width: 20, textAlign: "center" }}>{p.badge}</span>
@@ -491,8 +491,8 @@ export default function DownloadAppPublic() {
         .dl-card {
           background: #171717;
           border: none;
-          box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.05), 0 0 0 1px rgba(255,255,255,0.05), 0 4px 12px rgba(0,0,0,0.2);
-          border-radius: 28px;
+          box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.05), 0 0 0 1px rgba(255,255,255,0.05), 0 2px 4px rgba(0,0,0,0.2);
+          border-radius: 20px;
           padding: 44px 36px;
           text-align: center;
           position: relative;
@@ -503,7 +503,7 @@ export default function DownloadAppPublic() {
         .dl-card:hover {
           background: #1f1f1f;
           transform: translateY(-6px);
-          box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.08), 0 0 0 1px rgba(255,255,255,0.15), 0 40px 80px -20px rgba(0,0,0,0.8), 0 0 50px -10px rgba(0,0,0,0.4);
+          box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.1), 0 0 0 1px rgba(255,255,255,0.1), 0 8px 16px rgba(0,0,0,0.4);
         }
 
         .btn-primary {
@@ -520,10 +520,12 @@ export default function DownloadAppPublic() {
           gap: 8px;
           font-size: 14px;
           width: 100%;
+          box-shadow: 0 4px 12px rgba(255, 255, 255, 0.15);
           transition: all 0.2s ease;
         }
         .btn-primary:hover {
           background: #f3f4f6;
+          box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);
           transform: translateY(-1.5px);
         }
         .btn-primary:active {
@@ -562,20 +564,21 @@ export default function DownloadAppPublic() {
           background: #171717;
           border: none;
           box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.05), 0 0 0 1px rgba(255,255,255,0.05), 0 2px 4px rgba(0,0,0,0.2);
-          border-radius: 16px;
+          border-radius: 20px;
           padding: 22px 24px;
           transition: all 0.3s ease;
         }
         .feature-item:hover {
           background: #1f1f1f;
-          box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.08), 0 0 0 1px rgba(255,255,255,0.1), 0 4px 8px rgba(0,0,0,0.3);
+          box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.1), 0 0 0 1px rgba(255,255,255,0.1), 0 8px 16px rgba(0,0,0,0.4);
+          transform: translateY(-2px);
         }
 
         .screen-card {
           background: #171717;
           border: none;
           box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.05), 0 0 0 1px rgba(255,255,255,0.05), 0 2px 4px rgba(0,0,0,0.2);
-          border-radius: 22px;
+          border-radius: 20px;
           padding: 32px 20px;
           text-align: center;
           aspect-ratio: 0.68;
@@ -588,7 +591,7 @@ export default function DownloadAppPublic() {
         }
         .screen-card:hover {
           background: #1f1f1f;
-          box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.08), 0 0 0 1px rgba(255,255,255,0.15), 0 8px 16px rgba(0,0,0,0.4);
+          box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.1), 0 0 0 1px rgba(255,255,255,0.1), 0 8px 16px rgba(0,0,0,0.4);
           transform: translateY(-4px);
         }
 
@@ -598,14 +601,14 @@ export default function DownloadAppPublic() {
           align-items: flex-start;
           background: #171717;
           border: none;
-          box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.05), 0 0 0 1px rgba(124, 58, 237, 0.25), 0 2px 4px rgba(0,0,0,0.2);
+          box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.05), 0 0 0 1px rgba(255,255,255,0.05), 0 2px 4px rgba(0,0,0,0.2);
           border-radius: 20px;
           padding: 28px 24px;
           transition: all 0.3s ease;
         }
         .desktop-feat-card:hover {
           background: #1f1f1f;
-          box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.08), 0 0 0 1px rgba(255,255,255,0.15), 0 8px 16px rgba(0,0,0,0.4);
+          box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.1), 0 0 0 1px rgba(255,255,255,0.1), 0 8px 16px rgba(0,0,0,0.4);
           transform: translateY(-3px);
         }
 
@@ -660,9 +663,8 @@ export default function DownloadAppPublic() {
           <motion.div {...fadeUp(0.15)} className="dl-hero">
             {/* Mobile App */}
             <div className="dl-card">
-              <div style={{ position: "absolute", top: -40, right: -40, width: 160, height: 160, borderRadius: "50%", background: "radial-gradient(circle, rgba(99,102,241,0.08) 0%, transparent 70%)" }} />
-              <div style={{ width: 64, height: 64, borderRadius: 18, background: "rgba(99,102,241,0.12)", border: "1px solid rgba(99,102,241,0.25)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 24px" }}>
-                <Smartphone size={28} color="#6366f1" />
+              <div style={{ width: 64, height: 64, borderRadius: 18, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 24px" }}>
+                <Smartphone size={28} color="#fff" />
               </div>
               <h2 style={{ color: "#fff", fontWeight: 900, fontSize: 22, marginBottom: 10, letterSpacing: "-0.02em" }}>Mobile App</h2>
               <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 13.5, marginBottom: 28, lineHeight: 1.6, maxWidth: 320, margin: "0 auto 28px" }}>

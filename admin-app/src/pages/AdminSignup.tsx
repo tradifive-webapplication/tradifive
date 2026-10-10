@@ -173,7 +173,7 @@ export default function AdminSignup() {
               </div>
               <div className="space-y-1.5">
                 <label className="text-[9px] text-neutral-600 font-bold uppercase tracking-widest px-1">Internal Email</label>
-                <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-[#121212] border border-white/[0.03] rounded-sm py-2.5 px-4 text-[12px] text-white focus:outline-none focus:border-white/10 placeholder:text-neutral-800 transition-colors" placeholder="ID@TRADIFIVE.COM" />
+                <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-[#121212] border border-white/[0.03] rounded-sm py-2.5 px-4 text-[12px] text-white focus:outline-none focus:border-white/10 placeholder:text-neutral-800 transition-colors" placeholder="ID@tradifive.in" />
               </div>
               <div className="space-y-1.5">
                 <label className="text-[9px] text-neutral-600 font-bold uppercase tracking-widest px-1">Create Pass-Key</label>

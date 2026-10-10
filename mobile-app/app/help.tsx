@@ -448,12 +448,12 @@ export default function HelpCentre() {
                     <Text style={styles.actionDesc}>Submit a request</Text>
                   </TouchableOpacity>
 
-                  <TouchableOpacity style={styles.actionCard} onPress={() => Linking.openURL('mailto:support@tradifive.com')} activeOpacity={0.85}>
+                  <TouchableOpacity style={styles.actionCard} onPress={() => Linking.openURL('mailto:support@tradifive.in')} activeOpacity={0.85}>
                     <View style={[styles.actionIcon, { backgroundColor: '#fef3c7' }]}>
                       <Mail size={22} color="#d97706" />
                     </View>
                     <Text style={styles.actionTitle}>Email Us</Text>
-                    <Text style={styles.actionDesc}>support@tradifive.com</Text>
+                    <Text style={styles.actionDesc}>support@tradifive.in</Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity style={styles.actionCard} onPress={() => Linking.openURL('tel:0008001004378')} activeOpacity={0.85}>

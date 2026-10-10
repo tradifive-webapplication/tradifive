@@ -25,7 +25,7 @@ export class AuthService {
       return {
         user: {
           id: 'mock-user-id-demo',
-          email: 'demo@tradifive.com',
+          email: 'demo@tradifive.in',
           user_metadata: {
             first_name: 'Demo',
             last_name: 'Trader',

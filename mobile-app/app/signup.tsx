@@ -357,7 +357,7 @@ export default function SignupScreen() {
                       {agreed && <Text style={styles.checkmark}>✓</Text>}
                     </View>
                     <Text style={styles.rememberText}>
-                      I agree to the <Text style={styles.redText} onPress={() => WebBrowser.openBrowserAsync('https://tradifive.com/terms-of-service')}>Terms</Text> and <Text style={styles.redText} onPress={() => WebBrowser.openBrowserAsync('https://tradifive.com/privacy-policy')}>Privacy Policies</Text>
+                      I agree to the <Text style={styles.redText} onPress={() => WebBrowser.openBrowserAsync('https://tradifive.in/terms-of-service')}>Terms</Text> and <Text style={styles.redText} onPress={() => WebBrowser.openBrowserAsync('https://tradifive.in/privacy-policy')}>Privacy Policies</Text>
                     </Text>
                   </TouchableOpacity>
                 </View>

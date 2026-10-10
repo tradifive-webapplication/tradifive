@@ -37,7 +37,7 @@ const MOCK_ACTIVITIES: ActivityEvent[] = [
       "Lot Size": "2.5",
       "Open Price": "2040.10",
       "Close Price": "2045.50",
-      "Net Profit": "+$1,350.00"
+      "Net Profit": "+₹1,350.00"
     }
   },
   {
@@ -66,7 +66,7 @@ const MOCK_ACTIVITIES: ActivityEvent[] = [
     referenceId: "INV-0042",
     details: {
       "Invoice ID": "INV-2023-11-042",
-      "Amount": "$49.00",
+      "Amount": "₹49.00",
       "Payment Method": "Visa ending in 4242",
       "Next Billing": "Jun 25, 2026"
     }
@@ -100,7 +100,7 @@ const MOCK_ACTIVITIES: ActivityEvent[] = [
       "Lot Size": "1.0",
       "Open Price": "1.0920",
       "Close Price": "1.0950",
-      "Net Profit": "-$300.00"
+      "Net Profit": "-₹300.00"
     }
   },
   {
@@ -114,7 +114,7 @@ const MOCK_ACTIVITIES: ActivityEvent[] = [
     referenceId: "TXN-9982",
     details: {
       "Transaction ID": "TXN-99827364",
-      "Amount": "$5,000.00",
+      "Amount": "₹5,000.00",
       "Destination": "Chase Chase Bank ****1234",
       "Expected Arrival": "2-3 Business Days"
     }

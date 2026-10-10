@@ -478,14 +478,14 @@ export default function ChallengeConsole() {
                           </div>
                           <div className="relative z-10">
                             <div className="text-[10px] font-black text-amber-400 uppercase tracking-tight mb-2">1st Place Reward</div>
-                            <h3 className="text-2xl font-black text-white italic">$5,000 Cash</h3>
-                            <p className="text-[11px] font-bold text-white/40 mt-1 uppercase tracking-tight">+ $300k Funded Account</p>
+                            <h3 className="text-2xl font-black text-white italic">₹5,000 Cash</h3>
+                            <p className="text-[11px] font-bold text-white/40 mt-1 uppercase tracking-tight">+ ₹300k Funded Account</p>
                           </div>
                         </div>
                         <div className="bg-white dark:bg-[#1E1E1E] rounded-[32px] p-8 border border-white shadow-sm relative overflow-hidden">
                           <div className="relative z-10">
                             <div className="text-[10px] font-black text-slate-400 uppercase tracking-tight mb-2">2nd - 5th Place</div>
-                            <h3 className="text-2xl font-black text-slate-900 dark:text-white italic">$100k Account</h3>
+                            <h3 className="text-2xl font-black text-slate-900 dark:text-white italic">₹100k Account</h3>
                             <p className="text-[11px] font-bold text-slate-400 mt-1 uppercase tracking-tight">+ Elite Dashboard Access</p>
                           </div>
                         </div>

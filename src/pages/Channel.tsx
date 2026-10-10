@@ -1027,7 +1027,7 @@ function ChannelSkeleton() {
                 <div className="border-l-2 border-slate-350 dark:border-white/5 pl-3 min-w-0">
                   <p className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest leading-none mb-0.5">Pinned message</p>
                   <p className="text-[11px] font-medium leading-relaxed truncate text-slate-600 dark:text-slate-400">
-                    HOW TO JOIN VIP GROUP? 🔑 1. Register* through vantage link. Ensure minimum deposit of $100.
+                    HOW TO JOIN VIP GROUP? 🔑 1. Register* through vantage link. Ensure minimum deposit of ₹100.
                   </p>
                 </div>
               </div>

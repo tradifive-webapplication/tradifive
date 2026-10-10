@@ -20,18 +20,18 @@ const h = () => { if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactF
 
 const TIMEFRAMES = ['24H', '7D', '30D', 'ALL'];
 const CONTENT = [
-  { id: '1', type: 'video', title: 'My 5-Step Entry Framework', views: 42800, likes: 2340, revenue: '$182.50', date: 'Jun 4' },
-  { id: '2', type: 'post', title: 'Why 90% of traders fail at risk management', views: 28100, likes: 1870, revenue: '$94.20', date: 'Jun 2' },
-  { id: '3', type: 'video', title: 'LIVE: London Session Breakdown', views: 19400, likes: 980, revenue: '$67.80', date: 'May 30' },
-  { id: '4', type: 'audio', title: 'Trading Psychology Deep Dive', views: 11600, likes: 540, revenue: '$38.90', date: 'May 27' },
-  { id: '5', type: 'post', title: 'Gold setup for next week (XAU/USD)', views: 9200, likes: 720, revenue: '$31.10', date: 'May 25' },
+  { id: '1', type: 'video', title: 'My 5-Step Entry Framework', views: 42800, likes: 2340, revenue: '₹182.50', date: 'Jun 4' },
+  { id: '2', type: 'post', title: 'Why 90% of traders fail at risk management', views: 28100, likes: 1870, revenue: '₹94.20', date: 'Jun 2' },
+  { id: '3', type: 'video', title: 'LIVE: London Session Breakdown', views: 19400, likes: 980, revenue: '₹67.80', date: 'May 30' },
+  { id: '4', type: 'audio', title: 'Trading Psychology Deep Dive', views: 11600, likes: 540, revenue: '₹38.90', date: 'May 27' },
+  { id: '5', type: 'post', title: 'Gold setup for next week (XAU/USD)', views: 9200, likes: 720, revenue: '₹31.10', date: 'May 25' },
 ];
 
 const STATS_BY_TIMEFRAME: Record<string, { followers: string; followerChange: number; revenue: string; revenueChange: number; views: string; viewsChange: number; engagement: string }> = {
-  '24H': { followers: '24,812', followerChange: 48, revenue: '$92.30', revenueChange: 12, views: '3,240', viewsChange: 8, engagement: '5.4%' },
-  '7D': { followers: '24,812', followerChange: 312, revenue: '$614.50', revenueChange: 18, views: '22,100', viewsChange: 14, engagement: '5.4%' },
-  '30D': { followers: '24,812', followerChange: 1240, revenue: '$2,180.00', revenueChange: 24, views: '111,200', viewsChange: 31, engagement: '5.4%' },
-  'ALL': { followers: '24,812', followerChange: 0, revenue: '$18,420.00', revenueChange: 0, views: '1.2M', viewsChange: 0, engagement: '5.4%' },
+  '24H': { followers: '24,812', followerChange: 48, revenue: '₹92.30', revenueChange: 12, views: '3,240', viewsChange: 8, engagement: '5.4%' },
+  '7D': { followers: '24,812', followerChange: 312, revenue: '₹614.50', revenueChange: 18, views: '22,100', viewsChange: 14, engagement: '5.4%' },
+  '30D': { followers: '24,812', followerChange: 1240, revenue: '₹2,180.00', revenueChange: 24, views: '111,200', viewsChange: 31, engagement: '5.4%' },
+  'ALL': { followers: '24,812', followerChange: 0, revenue: '₹18,420.00', revenueChange: 0, views: '1.2M', viewsChange: 0, engagement: '5.4%' },
 };
 
 const TYPE_ICON: Record<string, any> = { video: Video, post: FileText, audio: Mic };

@@ -4,7 +4,7 @@
     const res = await fetch('https://rylwyxhupwpwsdbvuoej.supabase.co/functions/v1/ai-proxy', {
       method: 'POST',
       headers: {
-        'Origin': 'https://tradifive.com',
+        'Origin': 'https://tradifive.in',
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({

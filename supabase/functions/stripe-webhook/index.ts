@@ -13,8 +13,8 @@ const stripe = new Stripe(stripeSecretKey || '', {
 })
 
 const ALLOWED_ORIGINS = [
-  'https://www.tradifive.com',
-  'https://tradifive.com',
+  'https://www.tradifive.in',
+  'https://tradifive.in',
   'https://fialgo-connect-main.vercel.app',
 ];
 

@@ -169,10 +169,10 @@ export default function RiskGuardPublic() {
               <div style={{ background: "rgba(16,185,129,0.04)", border: "1px solid rgba(16,185,129,0.12)", borderRadius: 14, padding: "14px 20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div>
                   <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, fontWeight: 600, marginBottom: 4, textTransform: "uppercase", letterSpacing: 1 }}>Account Equity</div>
-                  <div style={{ color: "#fff", fontSize: 22, fontWeight: 900 }}>$24,817.40</div>
+                  <div style={{ color: "#fff", fontSize: 22, fontWeight: 900 }}>₹24,817.40</div>
                 </div>
                 <div style={{ textAlign: "right" }}>
-                  <div style={{ color: "#10b981", fontSize: 14, fontWeight: 800 }}>+$342.20</div>
+                  <div style={{ color: "#10b981", fontSize: 14, fontWeight: 800 }}>+₹342.20</div>
                   <div style={{ color: "rgba(255,255,255,0.3)", fontSize: 11 }}>Today</div>
                 </div>
               </div>

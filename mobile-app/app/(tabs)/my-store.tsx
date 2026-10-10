@@ -11,7 +11,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const h = () => { if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); };
 
 const STORE_STATS = [
-  { label: 'Total Revenue', value: '$0.00', delta: null, up: null },
+  { label: 'Total Revenue', value: '₹0.00', delta: null, up: null },
   { label: 'Orders (30d)', value: '0', delta: null, up: null },
   { label: 'Conversion', value: '0.0%', delta: null, up: null },
   { label: 'Active Subs', value: '0', delta: null, up: null },

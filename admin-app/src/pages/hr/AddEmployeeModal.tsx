@@ -275,7 +275,7 @@ export default function AddEmployeeModal({ onClose, onSuccess }: AddEmployeeModa
                       <label className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
                         <Mail size={12} /> Email Address *
                       </label>
-                      <input required type="email" name="email" value={formData.email} onChange={handleChange} className="w-full bg-[#1A1A1A] border border-white/10 rounded p-2.5 text-[13px] text-white outline-none focus:border-indigo-500 transition-colors" placeholder="jane@tradifive.com" />
+                      <input required type="email" name="email" value={formData.email} onChange={handleChange} className="w-full bg-[#1A1A1A] border border-white/10 rounded p-2.5 text-[13px] text-white outline-none focus:border-indigo-500 transition-colors" placeholder="jane@tradifive.in" />
                     </div>
                     <div className="space-y-1.5">
                       <label className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">

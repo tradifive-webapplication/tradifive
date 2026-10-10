@@ -484,7 +484,7 @@ const STATUS_ICONS: Record<string, { icon: any; color: string; bg: string; gradi
 
 export function Card3() {
   const logs = [
-    { agent: "Bot", action: "Closed EUR/USD position", status: "done", t: "+$45" },
+    { agent: "Bot", action: "Closed EUR/USD position", status: "done", t: "+₹45" },
     { agent: "Guard", action: "Blocked impulsive trade", status: "running", t: "—" },
     { agent: "Comm", action: "Alex hit 10% gain", status: "waiting", t: "—" },
     { agent: "Sync", action: "Syncing daily trades", status: "done", t: "0.5s" },

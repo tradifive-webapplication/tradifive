@@ -9,7 +9,7 @@ const Button = ({ text = "TradiFive AI", onClick }: { text?: string, onClick?: (
         <Sparkles size={16} />
         {text}
         <div className="icon-1">
-          <svg xmlnsXlink="http://www.w3.org/1999/xlink" viewBox="0 0 26.3 65.33" style={{shapeRendering: 'geometricPrecision', textRendering: 'geometricPrecision', imageRendering: 'optimizeQuality', fillRule: 'evenodd', clipRule: 'evenodd'}} version="1.1" xmlSpace="preserve" xmlns="http://www.w3.org/2000/svg">
+          <svg xmlnsXlink="http://www.w3.org/1999/xlink" viewBox="0 0 26.3 65.33" style={{ shapeRendering: 'geometricPrecision', textRendering: 'geometricPrecision', imageRendering: 'optimizeQuality', fillRule: 'evenodd', clipRule: 'evenodd' }} version="1.1" xmlSpace="preserve" xmlns="http://www.w3.org/2000/svg">
             <defs />
             <g id="Layer_x0020_1">
               <metadata id="CorelCorpID_0Corel-Layer" />
@@ -18,7 +18,7 @@ const Button = ({ text = "TradiFive AI", onClick }: { text?: string, onClick?: (
           </svg>
         </div>
         <div className="icon-2">
-          <svg xmlnsXlink="http://www.w3.org/1999/xlink" viewBox="0 0 11.67 37.63" style={{shapeRendering: 'geometricPrecision', textRendering: 'geometricPrecision', imageRendering: 'optimizeQuality', fillRule: 'evenodd', clipRule: 'evenodd'}} version="1.1" xmlSpace="preserve" xmlns="http://www.w3.org/2000/svg">
+          <svg xmlnsXlink="http://www.w3.org/1999/xlink" viewBox="0 0 11.67 37.63" style={{ shapeRendering: 'geometricPrecision', textRendering: 'geometricPrecision', imageRendering: 'optimizeQuality', fillRule: 'evenodd', clipRule: 'evenodd' }} version="1.1" xmlSpace="preserve" xmlns="http://www.w3.org/2000/svg">
             <defs />
             <g id="Layer_x0020_1">
               <metadata id="CorelCorpID_0Corel-Layer" />
@@ -27,7 +27,7 @@ const Button = ({ text = "TradiFive AI", onClick }: { text?: string, onClick?: (
           </svg>
         </div>
         <div className="icon-3">
-          <svg xmlnsXlink="http://www.w3.org/1999/xlink" viewBox="0 0 25.29 76.92" style={{shapeRendering: 'geometricPrecision', textRendering: 'geometricPrecision', imageRendering: 'optimizeQuality', fillRule: 'evenodd', clipRule: 'evenodd'}} version="1.1" xmlSpace="preserve" xmlns="http://www.w3.org/2000/svg">
+          <svg xmlnsXlink="http://www.w3.org/1999/xlink" viewBox="0 0 25.29 76.92" style={{ shapeRendering: 'geometricPrecision', textRendering: 'geometricPrecision', imageRendering: 'optimizeQuality', fillRule: 'evenodd', clipRule: 'evenodd' }} version="1.1" xmlSpace="preserve" xmlns="http://www.w3.org/2000/svg">
             <defs />
             <g id="Layer_x0020_1">
               <metadata id="CorelCorpID_0Corel-Layer" />

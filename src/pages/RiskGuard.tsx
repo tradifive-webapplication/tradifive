@@ -398,6 +398,14 @@ export default function RiskGuard() {
    const [noTradingAfterTime, setNoTradingAfterTime] = useState("20:00");
    const [noTradingAfterTimeActive, setNoTradingAfterTimeActive] = useState(false);
 
+   const [dayBasedKillActive, setDayBasedKillActive] = useState(false);
+   const [dayBasedKillDays, setDayBasedKillDays] = useState<string[]>(['Thu']);
+   const [dayBasedKillTime, setDayBasedKillTime] = useState("13:00");
+   
+   const [specificDateKillActive, setSpecificDateKillActive] = useState(false);
+   const [specificDateKillDate, setSpecificDateKillDate] = useState("");
+   const [specificDateKillTime, setSpecificDateKillTime] = useState("13:00");
+
    const { userSubscription } = useTrading();
    const { canAccess } = usePlan();
 
@@ -435,7 +443,6 @@ export default function RiskGuard() {
       }
    }, [dbConfig]);
 
-   // --- Load Persisted Settings ---
    useEffect(() => {
       const saved = localStorage.getItem('fialgo_risk_config');
       if (saved) {
@@ -474,6 +481,12 @@ export default function RiskGuard() {
          if (config.aiVoiceWarning !== undefined) setAiVoiceWarning(config.aiVoiceWarning);
       }
    }, []);
+
+   useEffect(() => {
+      if (activeMarket === 'indian' && weekendCloseTime === "20:00") {
+         setWeekendCloseTime("15:15");
+      }
+   }, [activeMarket]);
 
    const handleSave = async () => {
       // 1. Sync core configs to Supabase Postgres table
@@ -909,13 +922,13 @@ export default function RiskGuard() {
                   {activeTab === 'trading_control' && (
                      <div>
                         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-8">
-                           <RiskGuardCard icon={Layers} title="Max Lot Size" description="Hard cap on lot size per trade" value={`${maxLot} Lots`} active={maxLotActive} onToggle={setMaxLotActive}>
+                           <RiskGuardCard icon={Layers} title={activeMarket === 'indian' ? "Max Quantity Limit" : "Max Lot Size"} description={activeMarket === 'indian' ? "Hard cap on quantity (shares/lots) per trade" : "Hard cap on lot size per trade"} value={`${maxLot} ${activeMarket === 'indian' ? 'Qty' : 'Lots'}`} active={maxLotActive} onToggle={setMaxLotActive}>
                               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                  <div className="flex-1 max-w-[200px]">
-                                    <label className="text-[10px] font-semibold text-slate-400 dark:text-[#91A0B4] uppercase tracking-[0.06em] mb-1.5 block antialiased">MAX LOT SIZE LIMIT</label>
+                                    <label className="text-[10px] font-semibold text-slate-400 dark:text-[#91A0B4] uppercase tracking-[0.06em] mb-1.5 block antialiased">{activeMarket === 'indian' ? 'MAX QUANTITY LIMIT' : 'MAX LOT SIZE LIMIT'}</label>
                                     <div className="relative flex items-center w-full">
                                        <input type="number" step="0.01" min="0.01" value={maxLot} onChange={e => setMaxLot(Number(e.target.value))} className="w-full bg-slate-50 dark:bg-[#22252A] border border-slate-200/60 dark:border-[#2B2F35] dark:border-[#2B2F35] rounded-full pl-4 pr-12 py-1.5 text-[13px] font-semibold text-slate-800 dark:text-[#F5F7FA] tabular-nums outline-none tabular-nums focus:border-indigo-500/30 dark:focus:border-[#3A4049]  transition-all" />
-                                       <span className="absolute right-4 text-[11px] font-bold text-slate-400">Lots</span>
+                                       <span className="absolute right-4 text-[11px] font-bold text-slate-400">{activeMarket === 'indian' ? 'Qty' : 'Lots'}</span>
                                     </div>
                                  </div>
                                  <div className="flex-1 flex flex-col justify-end pt-4 max-w-[150px]">
@@ -938,65 +951,69 @@ export default function RiskGuard() {
                               </div>
                            </RiskGuardCard>
 
-                           <RiskGuardCard icon={TrendingDown} title="No Averaging Down" description="Prevent adding to losing positions" value={noAveragingDown ? "Active" : "Disabled"} active={noAveragingDown} onToggle={setNoAveragingDown}>
-                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                                 <div className="flex-1">
-                                    <label className="text-[10px] font-semibold text-slate-400 dark:text-[#91A0B4] uppercase tracking-[0.06em] mb-1.5 block antialiased">MODE</label>
-                                    <Select defaultValue="strict">
-                                       <SelectTrigger className="w-full bg-slate-50 dark:bg-[#22252A] border border-slate-200/60 dark:border-[#2B2F35] dark:border-[#2B2F35] rounded-lg px-3 py-1.5 h-auto text-[13px] font-semibold text-slate-800 dark:text-[#F5F7FA] tabular-nums tabular-nums antialiased  focus:ring-1 focus:ring-indigo-500/30">
-                                          <SelectValue />
-                                       </SelectTrigger>
-                                       <SelectContent>
-                                          <SelectItem value="strict">Strict Block</SelectItem>
-                                          <SelectItem value="warning">Warning Only</SelectItem>
-                                       </SelectContent>
-                                    </Select>
+                           {activeMarket !== 'indian' && (
+                              <RiskGuardCard icon={TrendingDown} title="No Averaging Down" description="Prevent adding to losing positions" value={noAveragingDown ? "Active" : "Disabled"} active={noAveragingDown} onToggle={setNoAveragingDown}>
+                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                    <div className="flex-1">
+                                       <label className="text-[10px] font-semibold text-slate-400 dark:text-[#91A0B4] uppercase tracking-[0.06em] mb-1.5 block antialiased">MODE</label>
+                                       <Select defaultValue="strict">
+                                          <SelectTrigger className="w-full bg-slate-50 dark:bg-[#22252A] border border-slate-200/60 dark:border-[#2B2F35] dark:border-[#2B2F35] rounded-lg px-3 py-1.5 h-auto text-[13px] font-semibold text-slate-800 dark:text-[#F5F7FA] tabular-nums tabular-nums antialiased  focus:ring-1 focus:ring-indigo-500/30">
+                                             <SelectValue />
+                                          </SelectTrigger>
+                                          <SelectContent>
+                                             <SelectItem value="strict">Strict Block</SelectItem>
+                                             <SelectItem value="warning">Warning Only</SelectItem>
+                                          </SelectContent>
+                                       </Select>
+                                    </div>
+                                    <div className="flex-1">
+                                       <label className="text-[10px] font-semibold text-slate-400 dark:text-[#91A0B4] uppercase tracking-[0.06em] mb-1.5 block antialiased">SCOPE</label>
+                                       <Select defaultValue="symbol_dir">
+                                          <SelectTrigger className="w-full bg-slate-50 dark:bg-[#22252A] border border-slate-200/60 dark:border-[#2B2F35] dark:border-[#2B2F35] rounded-lg px-3 py-1.5 h-auto text-[13px] font-semibold text-slate-800 dark:text-[#F5F7FA] tabular-nums tabular-nums antialiased  focus:ring-1 focus:ring-indigo-500/30">
+                                             <SelectValue />
+                                          </SelectTrigger>
+                                          <SelectContent>
+                                             <SelectItem value="symbol_dir">Same Symbol + Direction</SelectItem>
+                                             <SelectItem value="symbol_only">Same Symbol</SelectItem>
+                                             <SelectItem value="all">Global Account</SelectItem>
+                                          </SelectContent>
+                                       </Select>
+                                    </div>
                                  </div>
-                                 <div className="flex-1">
-                                    <label className="text-[10px] font-semibold text-slate-400 dark:text-[#91A0B4] uppercase tracking-[0.06em] mb-1.5 block antialiased">SCOPE</label>
-                                    <Select defaultValue="symbol_dir">
-                                       <SelectTrigger className="w-full bg-slate-50 dark:bg-[#22252A] border border-slate-200/60 dark:border-[#2B2F35] dark:border-[#2B2F35] rounded-lg px-3 py-1.5 h-auto text-[13px] font-semibold text-slate-800 dark:text-[#F5F7FA] tabular-nums tabular-nums antialiased  focus:ring-1 focus:ring-indigo-500/30">
-                                          <SelectValue />
-                                       </SelectTrigger>
-                                       <SelectContent>
-                                          <SelectItem value="symbol_dir">Same Symbol + Direction</SelectItem>
-                                          <SelectItem value="symbol_only">Same Symbol</SelectItem>
-                                          <SelectItem value="all">Global Account</SelectItem>
-                                       </SelectContent>
-                                    </Select>
-                                 </div>
-                              </div>
-                           </RiskGuardCard>
+                              </RiskGuardCard>
+                           )}
 
-                           <RiskGuardCard icon={AlertTriangle} title="Martingale Protection" description="Block increasing lot sizes after a loss" value={martingaleDetection ? "Active" : "Disabled"} active={martingaleDetection} onToggle={setMartingaleDetection}>
-                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                                 <div className="flex-1 max-w-[200px]">
-                                    <label className="text-[10px] font-semibold text-slate-400 dark:text-[#91A0B4] uppercase tracking-[0.06em] mb-1.5 block antialiased">TRIGGER MULTIPLIER</label>
-                                    <div className="relative flex items-center w-full">
-                                       <div className="w-full bg-slate-50 dark:bg-[#22252A] border border-slate-200/60 dark:border-[#2B2F35] dark:border-[#2B2F35] rounded-full py-1.5 text-[13px] font-semibold text-slate-800 dark:text-[#F5F7FA] tabular-nums text-center tabular-nums">
-                                          {martingaleMultiplier.toFixed(1)}×
+                           {activeMarket !== 'indian' && (
+                              <RiskGuardCard icon={AlertTriangle} title="Martingale Protection" description="Block increasing lot sizes after a loss" value={martingaleDetection ? "Active" : "Disabled"} active={martingaleDetection} onToggle={setMartingaleDetection}>
+                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                    <div className="flex-1 max-w-[200px]">
+                                       <label className="text-[10px] font-semibold text-slate-400 dark:text-[#91A0B4] uppercase tracking-[0.06em] mb-1.5 block antialiased">TRIGGER MULTIPLIER</label>
+                                       <div className="relative flex items-center w-full">
+                                          <div className="w-full bg-slate-50 dark:bg-[#22252A] border border-slate-200/60 dark:border-[#2B2F35] dark:border-[#2B2F35] rounded-full py-1.5 text-[13px] font-semibold text-slate-800 dark:text-[#F5F7FA] tabular-nums text-center tabular-nums">
+                                             {martingaleMultiplier.toFixed(1)}×
+                                          </div>
+                                       </div>
+                                    </div>
+                                    <div className="flex-1 flex flex-col justify-end pt-4 max-w-[150px]">
+                                       <div className="relative flex items-center w-full">
+                                          <input 
+                                             type="range" 
+                                             min="1.1" 
+                                             max="5.0" 
+                                             step="0.1" 
+                                             value={martingaleMultiplier} 
+                                             onChange={e => setMartingaleMultiplier(Number(e.target.value))} 
+                                             className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                                          />
+                                       </div>
+                                       <div className="flex justify-between items-center mt-1.5">
+                                          <span className="text-[10px] font-medium text-slate-400 dark:text-[#8793A5] antialiased">1.1×</span>
+                                          <span className="text-[10px] font-medium text-slate-400 dark:text-[#8793A5] antialiased">5.0×</span>
                                        </div>
                                     </div>
                                  </div>
-                                 <div className="flex-1 flex flex-col justify-end pt-4 max-w-[150px]">
-                                    <div className="relative flex items-center w-full">
-                                       <input 
-                                          type="range" 
-                                          min="1.1" 
-                                          max="5.0" 
-                                          step="0.1" 
-                                          value={martingaleMultiplier} 
-                                          onChange={e => setMartingaleMultiplier(Number(e.target.value))} 
-                                          className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
-                                       />
-                                    </div>
-                                    <div className="flex justify-between items-center mt-1.5">
-                                       <span className="text-[10px] font-medium text-slate-400 dark:text-[#8793A5] antialiased">1.1×</span>
-                                       <span className="text-[10px] font-medium text-slate-400 dark:text-[#8793A5] antialiased">5.0×</span>
-                                    </div>
-                                 </div>
-                              </div>
-                           </RiskGuardCard>
+                              </RiskGuardCard>
+                           )}
 
                            <RiskGuardCard icon={Crosshair} title="One Instrument Mode" description="Limit trading to a single ticker" value={oneInstrumentMode ? "Active" : "Disabled"} active={oneInstrumentMode} onToggle={setOneInstrumentMode}>
                               <div className="flex flex-col w-full">
@@ -1006,32 +1023,46 @@ export default function RiskGuard() {
                                        <SelectValue placeholder="Select an instrument..." />
                                     </SelectTrigger>
                                     <SelectContent>
-                                       <SelectItem value="XAUUSD">XAUUSD — Gold</SelectItem>
-                                       <SelectItem value="EURUSD">EURUSD — Euro / US Dollar</SelectItem>
-                                       <SelectItem value="GBPUSD">GBPUSD — British Pound / US Dollar</SelectItem>
-                                       <SelectItem value="US30">US30 — Wall Street 30</SelectItem>
-                                       <SelectItem value="NAS100">NAS100 — US Tech 100</SelectItem>
+                                       {activeMarket === 'indian' ? (
+                                          <>
+                                             <SelectItem value="NIFTY50">NIFTY 50</SelectItem>
+                                             <SelectItem value="BANKNIFTY">BANKNIFTY</SelectItem>
+                                             <SelectItem value="RELIANCE">RELIANCE</SelectItem>
+                                             <SelectItem value="HDFCBANK">HDFCBANK</SelectItem>
+                                             <SelectItem value="INFY">INFY</SelectItem>
+                                          </>
+                                       ) : (
+                                          <>
+                                             <SelectItem value="XAUUSD">XAUUSD — Gold</SelectItem>
+                                             <SelectItem value="EURUSD">EURUSD — Euro / US Dollar</SelectItem>
+                                             <SelectItem value="GBPUSD">GBPUSD — British Pound / US Dollar</SelectItem>
+                                             <SelectItem value="US30">US30 — Wall Street 30</SelectItem>
+                                             <SelectItem value="NAS100">NAS100 — US Tech 100</SelectItem>
+                                          </>
+                                       )}
                                     </SelectContent>
                                  </Select>
                               </div>
                            </RiskGuardCard>
 
-                           <RiskGuardCard icon={CheckSquare} title="Allowed Strategy Only" description="Allow trades only from the selected strategy" value={oneStrategyRule ? "Active" : "Disabled"} active={oneStrategyRule} onToggle={setOneStrategyRule}>
-                              <div className="flex flex-col w-full">
-                                 <label className="text-[10px] font-semibold text-slate-400 dark:text-[#91A0B4] uppercase tracking-[0.06em] mb-1.5 block antialiased">ALLOWED STRATEGY</label>
-                                 <Select value={strategyName} onValueChange={setStrategyName}>
-                                    <SelectTrigger className="w-full bg-slate-50 dark:bg-[#22252A] border border-slate-200/60 dark:border-[#2B2F35] dark:border-[#2B2F35] rounded-lg px-3 py-1.5 h-auto text-[13px] font-semibold text-slate-800 dark:text-[#F5F7FA] tabular-nums tabular-nums antialiased  focus:ring-1 focus:ring-indigo-500/30 truncate text-left">
-                                       <SelectValue placeholder="Select a strategy..." />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                       <SelectItem value="Breakout Pro">Breakout Pro — Magic No. 1024</SelectItem>
-                                       <SelectItem value="Trend Follower">Trend Follower — Magic No. 2048</SelectItem>
-                                       <SelectItem value="Mean Reversion">Mean Reversion — Magic No. 4096</SelectItem>
-                                       <SelectItem value="News Scalper">News Scalper — Magic No. 8192</SelectItem>
-                                    </SelectContent>
-                                 </Select>
-                              </div>
-                           </RiskGuardCard>
+                           {activeMarket !== 'indian' && (
+                              <RiskGuardCard icon={CheckSquare} title="Allowed Strategy Only" description="Allow trades only from the selected strategy" value={oneStrategyRule ? "Active" : "Disabled"} active={oneStrategyRule} onToggle={setOneStrategyRule}>
+                                 <div className="flex flex-col w-full">
+                                    <label className="text-[10px] font-semibold text-slate-400 dark:text-[#91A0B4] uppercase tracking-[0.06em] mb-1.5 block antialiased">ALLOWED STRATEGY</label>
+                                    <Select value={strategyName} onValueChange={setStrategyName}>
+                                       <SelectTrigger className="w-full bg-slate-50 dark:bg-[#22252A] border border-slate-200/60 dark:border-[#2B2F35] dark:border-[#2B2F35] rounded-lg px-3 py-1.5 h-auto text-[13px] font-semibold text-slate-800 dark:text-[#F5F7FA] tabular-nums tabular-nums antialiased  focus:ring-1 focus:ring-indigo-500/30 truncate text-left">
+                                          <SelectValue placeholder="Select a strategy..." />
+                                       </SelectTrigger>
+                                       <SelectContent>
+                                          <SelectItem value="Breakout Pro">Breakout Pro — Magic No. 1024</SelectItem>
+                                          <SelectItem value="Trend Follower">Trend Follower — Magic No. 2048</SelectItem>
+                                          <SelectItem value="Mean Reversion">Mean Reversion — Magic No. 4096</SelectItem>
+                                          <SelectItem value="News Scalper">News Scalper — Magic No. 8192</SelectItem>
+                                       </SelectContent>
+                                    </Select>
+                                 </div>
+                              </RiskGuardCard>
+                           )}
                         </div>
                      </div>
                   )}
@@ -1041,20 +1072,31 @@ export default function RiskGuard() {
                      <div>
 
                         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-8">
-                           <RiskGuardCard icon={ShieldAlert} title="Drawdown Guard" description="Max daily drawdown limits" value={`${maxDrawdown.toFixed(1)}%`} active={drawdownGuardActive} onToggle={setDrawdownGuardActive}>
+                           <RiskGuardCard icon={ShieldAlert} title={activeMarket === 'indian' ? "Max Daily Loss" : "Drawdown Guard"} description="Max daily drawdown limits" value={activeMarket === 'indian' ? `${sym}${maxDrawdown * 1000}` : `${maxDrawdown.toFixed(1)}%`} active={drawdownGuardActive} onToggle={setDrawdownGuardActive}>
                               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                                 <div className="flex-[0.8] max-w-[100px]">
-                                    <label className="text-[10px] font-medium text-slate-400 dark:text-[#8793A5] antialiased dark:text-[#E8ECF2] uppercase mb-1 block tracking-widest">LIMIT</label>
+                                 <div className="flex-[0.8] max-w-[150px]">
+                                    <label className="text-[10px] font-medium text-slate-400 dark:text-[#8793A5] antialiased dark:text-[#E8ECF2] uppercase mb-1 block tracking-widest">{activeMarket === 'indian' ? 'LOSS LIMIT (₹)' : 'LIMIT'}</label>
                                     <div className="flex items-center w-full h-[32px] bg-slate-50 dark:bg-[#22252A] border border-slate-200/60 dark:border-[#2B2F35] dark:border-[#2B2F35] rounded-lg  focus-within:border-indigo-500/30 dark:focus-within:border-[#3A4049] focus-within:ring-1 focus-within:ring-indigo-500/30 overflow-hidden">
-                                       <input type="number" min="0.5" max="20.0" step={0.5} value={maxDrawdown} onChange={e => setMaxDrawdown(Number(e.target.value))} className="w-full bg-transparent outline-none py-1 pl-3 pr-1 text-[13px] font-semibold text-slate-800 dark:text-[#F5F7FA] tabular-nums tabular-nums antialiased text-center" />
-                                       <div className="pr-3 text-[13px] font-bold text-slate-500 select-none">%</div>
+                                       {activeMarket === 'indian' ? (
+                                          <>
+                                             <div className="pl-3 pr-1 text-[13px] font-bold text-slate-400 select-none">{sym}</div>
+                                             <input type="number" min="0" step="500" value={maxDrawdown * 1000} onChange={e => setMaxDrawdown(Number(e.target.value) / 1000)} className="w-full bg-transparent outline-none py-1 pr-3 text-[13px] font-semibold text-slate-800 dark:text-[#F5F7FA] tabular-nums tabular-nums antialiased text-left" placeholder="e.g. 5000" />
+                                          </>
+                                       ) : (
+                                          <>
+                                             <input type="number" min="0.5" max="20.0" step={0.5} value={maxDrawdown} onChange={e => setMaxDrawdown(Number(e.target.value))} className="w-full bg-transparent outline-none py-1 pl-3 pr-1 text-[13px] font-semibold text-slate-800 dark:text-[#F5F7FA] tabular-nums tabular-nums antialiased text-center" />
+                                             <div className="pr-3 text-[13px] font-bold text-slate-500 select-none">%</div>
+                                          </>
+                                       )}
                                     </div>
                                  </div>
-                                 <div className="flex-1 flex flex-col justify-end pt-3 max-w-[100px]">
-                                    <div className="relative flex items-center w-full">
-                                       <input type="range" min="0.5" max="20.0" step="0.5" value={maxDrawdown} onChange={e => setMaxDrawdown(Number(e.target.value))} className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500" />
+                                 {activeMarket !== 'indian' && (
+                                    <div className="flex-1 flex flex-col justify-end pt-3 max-w-[100px]">
+                                       <div className="relative flex items-center w-full">
+                                          <input type="range" min="0.5" max="20.0" step="0.5" value={maxDrawdown} onChange={e => setMaxDrawdown(Number(e.target.value))} className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500" />
+                                       </div>
                                     </div>
-                                 </div>
+                                 )}
                                  <div className="flex-[1.5]">
                                     <label className="text-[10px] font-medium text-slate-400 dark:text-[#8793A5] antialiased dark:text-[#E8ECF2] uppercase mb-1 block tracking-widest">BASIS</label>
                                     <Select defaultValue="balance">
@@ -1070,10 +1112,10 @@ export default function RiskGuard() {
                               </div>
                            </RiskGuardCard>
 
-                           <RiskGuardCard icon={Target} title="Daily Profit Target" description="Lock terminal after profit" value={dailyProfitTargetActive ? `${sym}${dailyProfitTarget}` : "Disabled"} active={dailyProfitTargetActive} onToggle={setDailyProfitTargetActive}>
+                           <RiskGuardCard icon={Target} title={activeMarket === 'indian' ? "Profit Target" : "Daily Profit Target"} description={activeMarket === 'indian' ? "Kill when profit ≥ target" : "Lock terminal after profit"} value={dailyProfitTargetActive ? `${sym}${dailyProfitTarget}` : "Disabled"} active={dailyProfitTargetActive} onToggle={setDailyProfitTargetActive}>
                               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                                  <div className="flex-1">
-                                    <label className="text-[10px] font-medium text-slate-400 dark:text-[#8793A5] antialiased dark:text-[#E8ECF2] uppercase mb-1 block tracking-widest">TARGET AMOUNT</label>
+                                    <label className="text-[10px] font-medium text-slate-400 dark:text-[#8793A5] antialiased dark:text-[#E8ECF2] uppercase mb-1 block tracking-widest">{activeMarket === 'indian' ? 'PROFIT TARGET (₹)' : 'TARGET AMOUNT'}</label>
                                     <div className="relative flex items-center w-full">
                                        <span className="absolute left-3 text-[13px] font-bold text-slate-400">{sym}</span>
                                        <input type="number" value={dailyProfitTarget} onChange={e => setDailyProfitTarget(Number(e.target.value))} className="w-full bg-slate-50 dark:bg-[#22252A] border border-slate-200/60 dark:border-[#2B2F35] dark:border-[#2B2F35] rounded-lg pl-7 pr-12 h-[32px] text-[13px] font-semibold text-slate-800 dark:text-[#F5F7FA] tabular-nums tabular-nums antialiased outline-none focus:border-indigo-500/30 dark:focus:border-[#3A4049]  transition-all" />
@@ -1095,70 +1137,74 @@ export default function RiskGuard() {
                               </div>
                            </RiskGuardCard>
 
-                           <RiskGuardCard icon={StopCircle} title="Stop Loss Required" description="Require SL on every execution" value={stopLossRequired ? "Active" : "Disabled"} active={stopLossRequired} onToggle={setStopLossRequired}>
-                              <div className="flex flex-col sm:flex-row gap-2.5">
-                                 <div className={stopLossAction === 'auto' ? "flex-[1.2]" : "w-full"}>
-                                    <label className="text-[10px] font-medium text-slate-400 dark:text-[#8793A5] antialiased dark:text-[#E8ECF2] uppercase mb-1 block tracking-widest">ACTION</label>
-                                    <Select value={stopLossAction} onValueChange={setStopLossAction}>
-                                       <SelectTrigger className="w-full bg-slate-50 dark:bg-[#22252A] border border-slate-200/60 dark:border-[#2B2F35] dark:border-[#2B2F35] rounded-lg px-3 h-[32px] text-[13px] font-semibold text-slate-800 dark:text-[#F5F7FA] tabular-nums tabular-nums antialiased  focus:ring-1 focus:ring-indigo-500/30">
-                                          <SelectValue />
-                                       </SelectTrigger>
-                                       <SelectContent>
-                                          <SelectItem value="block">Block trades without SL</SelectItem>
-                                          <SelectItem value="auto">Auto add SL</SelectItem>
-                                       </SelectContent>
-                                    </Select>
+                           {activeMarket !== 'indian' && (
+                              <RiskGuardCard icon={StopCircle} title="Stop Loss Required" description="Require SL on every execution" value={stopLossRequired ? "Active" : "Disabled"} active={stopLossRequired} onToggle={setStopLossRequired}>
+                                 <div className="flex flex-col sm:flex-row gap-2.5">
+                                    <div className={stopLossAction === 'auto' ? "flex-[1.2]" : "w-full"}>
+                                       <label className="text-[10px] font-medium text-slate-400 dark:text-[#8793A5] antialiased dark:text-[#E8ECF2] uppercase mb-1 block tracking-widest">ACTION</label>
+                                       <Select value={stopLossAction} onValueChange={setStopLossAction}>
+                                          <SelectTrigger className="w-full bg-slate-50 dark:bg-[#22252A] border border-slate-200/60 dark:border-[#2B2F35] dark:border-[#2B2F35] rounded-lg px-3 h-[32px] text-[13px] font-semibold text-slate-800 dark:text-[#F5F7FA] tabular-nums tabular-nums antialiased  focus:ring-1 focus:ring-indigo-500/30">
+                                             <SelectValue />
+                                          </SelectTrigger>
+                                          <SelectContent>
+                                             <SelectItem value="block">Block trades without SL</SelectItem>
+                                             <SelectItem value="auto">Auto add SL</SelectItem>
+                                          </SelectContent>
+                                       </Select>
+                                    </div>
+                                    {stopLossAction === 'auto' && (
+                                       <>
+                                          <div className="flex-[1.2]">
+                                             <label className="text-[10px] font-medium text-slate-400 dark:text-[#8793A5] antialiased dark:text-[#E8ECF2] uppercase mb-1 block tracking-widest">METHOD</label>
+                                             <Select value={stopLossMethod} onValueChange={setStopLossMethod}>
+                                                <SelectTrigger className="w-full bg-slate-50 dark:bg-[#22252A] border border-slate-200/60 dark:border-[#2B2F35] dark:border-[#2B2F35] rounded-lg px-3 h-[32px] text-[13px] font-semibold text-slate-800 dark:text-[#F5F7FA] tabular-nums tabular-nums antialiased  focus:ring-1 focus:ring-indigo-500/30">
+                                                   <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                   <SelectItem value="pips">{activeMarket === 'indian' ? 'Points' : 'Pips'}</SelectItem>
+                                                   <SelectItem value="percent">Percent (%)</SelectItem>
+                                                   <SelectItem value="atr">ATR</SelectItem>
+                                                </SelectContent>
+                                             </Select>
+                                          </div>
+                                          <div className="flex-[0.8]">
+                                             <label className="text-[10px] font-medium text-slate-400 dark:text-[#8793A5] antialiased dark:text-[#E8ECF2] uppercase mb-1 block tracking-widest">VALUE</label>
+                                             <div className="relative flex items-center w-full">
+                                                <input type="number" value={defaultStopLoss} onChange={e => setDefaultStopLoss(Number(e.target.value))} className="w-full bg-slate-50 dark:bg-[#22252A] border border-slate-200/60 dark:border-[#2B2F35] dark:border-[#2B2F35] rounded-lg px-3 h-[32px] text-[13px] font-semibold text-slate-800 dark:text-[#F5F7FA] tabular-nums tabular-nums antialiased outline-none focus:border-indigo-500/30 dark:focus:border-[#3A4049]  transition-all" />
+                                             </div>
+                                          </div>
+                                       </>
+                                    )}
                                  </div>
-                                 {stopLossAction === 'auto' && (
-                                    <>
-                                       <div className="flex-[1.2]">
-                                          <label className="text-[10px] font-medium text-slate-400 dark:text-[#8793A5] antialiased dark:text-[#E8ECF2] uppercase mb-1 block tracking-widest">METHOD</label>
-                                          <Select value={stopLossMethod} onValueChange={setStopLossMethod}>
-                                             <SelectTrigger className="w-full bg-slate-50 dark:bg-[#22252A] border border-slate-200/60 dark:border-[#2B2F35] dark:border-[#2B2F35] rounded-lg px-3 h-[32px] text-[13px] font-semibold text-slate-800 dark:text-[#F5F7FA] tabular-nums tabular-nums antialiased  focus:ring-1 focus:ring-indigo-500/30">
-                                                <SelectValue />
-                                             </SelectTrigger>
-                                             <SelectContent>
-                                                <SelectItem value="pips">Pips</SelectItem>
-                                                <SelectItem value="percent">Percent (%)</SelectItem>
-                                                <SelectItem value="atr">ATR</SelectItem>
-                                             </SelectContent>
-                                          </Select>
-                                       </div>
-                                       <div className="flex-[0.8]">
-                                          <label className="text-[10px] font-medium text-slate-400 dark:text-[#8793A5] antialiased dark:text-[#E8ECF2] uppercase mb-1 block tracking-widest">VALUE</label>
-                                          <div className="relative flex items-center w-full">
-                                             <input type="number" value={defaultStopLoss} onChange={e => setDefaultStopLoss(Number(e.target.value))} className="w-full bg-slate-50 dark:bg-[#22252A] border border-slate-200/60 dark:border-[#2B2F35] dark:border-[#2B2F35] rounded-lg px-3 h-[32px] text-[13px] font-semibold text-slate-800 dark:text-[#F5F7FA] tabular-nums tabular-nums antialiased outline-none focus:border-indigo-500/30 dark:focus:border-[#3A4049]  transition-all" />
+                              </RiskGuardCard>
+                           )}
+
+
+                           {activeMarket !== 'indian' && (
+                              <RiskGuardCard icon={TrendingUp} title="Min Risk/Reward" description="Require a minimum reward-to-risk ratio for every trade" value={`1:${minRiskReward}`} active={minRiskRewardActive} onToggle={setMinRiskRewardActive} intent="trading">
+                                 <div className="flex flex-col gap-2">
+                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                       <div className="flex-[0.8] max-w-[120px]">
+                                          <label className="text-[10px] font-medium text-slate-400 dark:text-[#8793A5] antialiased dark:text-[#E8ECF2] uppercase mb-1 block tracking-widest">MINIMUM TARGET R:R</label>
+                                          <div className="flex items-center w-full h-[32px] bg-slate-50 dark:bg-[#22252A] border border-slate-200/60 dark:border-[#2B2F35] dark:border-[#2B2F35] rounded-lg  focus-within:border-indigo-500/30 dark:focus-within:border-[#3A4049] focus-within:ring-1 focus-within:ring-indigo-500/30 transition-all overflow-hidden">
+                                             <div className="pl-3 pr-1 text-[13px] font-bold text-slate-500 select-none">1:</div>
+                                             <input type="number" min="1.0" max="5.0" step={0.1} value={minRiskReward} onChange={e => setMinRiskReward(Number(e.target.value))} className="w-full bg-transparent outline-none py-1 pr-3 text-[13px] font-semibold text-slate-800 dark:text-[#F5F7FA] tabular-nums tabular-nums antialiased" />
                                           </div>
                                        </div>
-                                    </>
-                                 )}
-                              </div>
-                           </RiskGuardCard>
-
-
-                           <RiskGuardCard icon={TrendingUp} title="Min Risk/Reward" description="Require a minimum reward-to-risk ratio for every trade" value={`1:${minRiskReward}`} active={minRiskRewardActive} onToggle={setMinRiskRewardActive} intent="trading">
-                              <div className="flex flex-col gap-2">
-                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                                    <div className="flex-[0.8] max-w-[120px]">
-                                       <label className="text-[10px] font-medium text-slate-400 dark:text-[#8793A5] antialiased dark:text-[#E8ECF2] uppercase mb-1 block tracking-widest">MINIMUM TARGET R:R</label>
-                                       <div className="flex items-center w-full h-[32px] bg-slate-50 dark:bg-[#22252A] border border-slate-200/60 dark:border-[#2B2F35] dark:border-[#2B2F35] rounded-lg  focus-within:border-indigo-500/30 dark:focus-within:border-[#3A4049] focus-within:ring-1 focus-within:ring-indigo-500/30 transition-all overflow-hidden">
-                                          <div className="pl-3 pr-1 text-[13px] font-bold text-slate-500 select-none">1:</div>
-                                          <input type="number" min="1.0" max="5.0" step={0.1} value={minRiskReward} onChange={e => setMinRiskReward(Number(e.target.value))} className="w-full bg-transparent outline-none py-1 pr-3 text-[13px] font-semibold text-slate-800 dark:text-[#F5F7FA] tabular-nums tabular-nums antialiased" />
-                                       </div>
-                                    </div>
-                                    <div className="flex-1 flex flex-col justify-end pt-3 max-w-[120px]">
-                                       <div className="relative flex items-center w-full">
-                                          <input type="range" min="1.0" max="5.0" step="0.1" value={minRiskReward} onChange={e => setMinRiskReward(Number(e.target.value))} className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500" />
+                                       <div className="flex-1 flex flex-col justify-end pt-3 max-w-[120px]">
+                                          <div className="relative flex items-center w-full">
+                                             <input type="range" min="1.0" max="5.0" step="0.1" value={minRiskReward} onChange={e => setMinRiskReward(Number(e.target.value))} className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500" />
+                                          </div>
                                        </div>
                                     </div>
                                  </div>
-                              </div>
-                           </RiskGuardCard>
+                              </RiskGuardCard>
+                           )}
 
-                           <RiskGuardCard icon={Calendar} title="Weekend Lock" description="Auto flatten before Friday close" value={weekendLock ? "Active" : "Disabled"} active={weekendLock} onToggle={setWeekendLock} intent="warning">
+                           <RiskGuardCard icon={Calendar} title={activeMarket === 'indian' ? "Time-Based Kill" : "Weekend Lock"} description={activeMarket === 'indian' ? "Auto kill at specific IST time" : "Auto flatten before Friday close"} value={weekendLock ? "Active" : "Disabled"} active={weekendLock} onToggle={setWeekendLock} intent="warning">
                               <div className="flex flex-col sm:flex-row gap-3">
                                  <div className="flex-[0.8]">
-                                    <label className="text-[10px] font-medium text-slate-400 dark:text-[#8793A5] antialiased dark:text-[#E8ECF2] uppercase mb-1 block tracking-widest">FRIDAY CLOSE TIME</label>
+                                    <label className="text-[10px] font-medium text-slate-400 dark:text-[#8793A5] antialiased dark:text-[#E8ECF2] uppercase mb-1 block tracking-widest">{activeMarket === 'indian' ? "KILL TIME (IST 24HR)" : "FRIDAY CLOSE TIME"}</label>
                                     <Popover>
                                        <PopoverTrigger asChild>
                                           <button className="flex items-center justify-between w-full h-[32px] bg-slate-50 dark:bg-[#22252A] border border-slate-200/60 dark:border-[#2B2F35] dark:border-[#2B2F35] rounded-lg  focus-within:border-indigo-500/30 dark:focus-within:border-[#3A4049] focus-within:ring-1 focus-within:ring-indigo-500/30 overflow-hidden pl-3 pr-2.5 outline-none transition-all">
@@ -1227,7 +1273,71 @@ export default function RiskGuard() {
                                     </Select>
                                  </div>
                               </div>
+                              {activeMarket === 'indian' && (
+                                 <div className="mt-3 text-[10px] font-medium text-amber-500/90 dark:text-amber-400/80 flex items-center gap-1.5">
+                                    <Zap size={10} />
+                                    <span>Set 12:00 PM on expiry days - stops when option premiums spike</span>
+                                 </div>
+                              )}
                            </RiskGuardCard>
+
+                           {activeMarket === 'indian' && (
+                              <>
+                                 <RiskGuardCard icon={Calendar} title="Day-Based Kill" description="Kill on weekdays + time" value={dayBasedKillActive ? "Active" : "Disabled"} active={dayBasedKillActive} onToggle={setDayBasedKillActive} intent="warning">
+                                    <div className="flex flex-col gap-3">
+                                       <div>
+                                          <label className="text-[10px] font-medium text-slate-400 dark:text-[#8793A5] antialiased dark:text-[#E8ECF2] uppercase mb-1 block tracking-widest">SELECT DAYS</label>
+                                          <div className="flex items-center gap-2">
+                                             {['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map(day => (
+                                                <button
+                                                   key={day}
+                                                   onClick={() => {
+                                                      setDayBasedKillDays(prev =>
+                                                         prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]
+                                                      );
+                                                   }}
+                                                   className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all border ${dayBasedKillDays.includes(day) ? 'bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-700/30' : 'bg-slate-50 text-slate-500 border-slate-200 dark:bg-[#22252A] dark:text-[#E8ECF2] dark:border-[#2B2F35]'}`}
+                                                >
+                                                   {day}
+                                                </button>
+                                             ))}
+                                          </div>
+                                          <div className="mt-2 text-[10px] font-medium text-amber-500/90 dark:text-amber-400/80 flex items-center gap-1.5">
+                                             <Zap size={10} />
+                                             <span>Thursday = Weekly Nifty/BankNifty expiry</span>
+                                          </div>
+                                       </div>
+                                       <div>
+                                          <label className="text-[10px] font-medium text-slate-400 dark:text-[#8793A5] antialiased dark:text-[#E8ECF2] uppercase mb-1 block tracking-widest">KILL TIME ON THESE DAYS (IST)</label>
+                                          <div className="relative flex items-center w-full max-w-[200px]">
+                                             <input type="time" value={dayBasedKillTime} onChange={e => setDayBasedKillTime(e.target.value)} className="w-full bg-slate-50 dark:bg-[#22252A] border border-slate-200/60 dark:border-[#2B2F35] dark:border-[#2B2F35] rounded-lg px-3 h-[32px] text-[13px] font-semibold text-slate-800 dark:text-[#F5F7FA] tabular-nums tabular-nums antialiased outline-none focus:border-indigo-500/30 dark:focus:border-[#3A4049] transition-all" />
+                                          </div>
+                                       </div>
+                                    </div>
+                                 </RiskGuardCard>
+
+                                 <RiskGuardCard icon={Calendar} title="Specific Dates" description="Kill on exact dates" value={specificDateKillActive ? "Active" : "Disabled"} active={specificDateKillActive} onToggle={setSpecificDateKillActive} intent="warning">
+                                    <div className="flex flex-col gap-3">
+                                       <div>
+                                          <label className="text-[10px] font-medium text-slate-400 dark:text-[#8793A5] antialiased dark:text-[#E8ECF2] uppercase mb-1 block tracking-widest">SELECTED DATES</label>
+                                          <div className="relative flex items-center w-full">
+                                             <input type="date" value={specificDateKillDate} onChange={e => setSpecificDateKillDate(e.target.value)} className="w-full bg-slate-50 dark:bg-[#22252A] border border-slate-200/60 dark:border-[#2B2F35] dark:border-[#2B2F35] rounded-lg px-3 h-[32px] text-[13px] font-semibold text-slate-800 dark:text-[#F5F7FA] tabular-nums tabular-nums antialiased outline-none focus:border-indigo-500/30 dark:focus:border-[#3A4049] transition-all" />
+                                          </div>
+                                       </div>
+                                       <div>
+                                          <label className="text-[10px] font-medium text-slate-400 dark:text-[#8793A5] antialiased dark:text-[#E8ECF2] uppercase mb-1 block tracking-widest">KILL TIME ON THESE DATES (IST)</label>
+                                          <div className="relative flex items-center w-full max-w-[200px]">
+                                             <input type="time" value={specificDateKillTime} onChange={e => setSpecificDateKillTime(e.target.value)} className="w-full bg-slate-50 dark:bg-[#22252A] border border-slate-200/60 dark:border-[#2B2F35] dark:border-[#2B2F35] rounded-lg px-3 h-[32px] text-[13px] font-semibold text-slate-800 dark:text-[#F5F7FA] tabular-nums tabular-nums antialiased outline-none focus:border-indigo-500/30 dark:focus:border-[#3A4049] transition-all" />
+                                          </div>
+                                          <div className="mt-2 text-[10px] font-medium text-amber-500/90 dark:text-amber-400/80 flex items-center gap-1.5">
+                                             <Zap size={10} />
+                                             <span>Add monthly expiry, RBI policy day, budget day etc.</span>
+                                          </div>
+                                       </div>
+                                    </div>
+                                 </RiskGuardCard>
+                              </>
+                           )}
 
                            <RiskGuardCard icon={Wallet} title="Account Protection" description="Minimum equity level" value={`${sym}${equityHardStop}`} active={equityHardStopActive} onToggle={setEquityHardStopActive} intent="emergency">
                               <div className="flex flex-col gap-2">
@@ -1250,9 +1360,9 @@ export default function RiskGuard() {
                      <div>
 
                         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-8">
-                           <RiskGuardCard icon={ShieldCheck} title="Daily Trade Limit" description="Limits the maximum number of executions per day" value={disciplineActive ? "Active" : "Disabled"} active={disciplineActive} onToggle={setDisciplineActive}>
+                           <RiskGuardCard icon={ShieldCheck} title={activeMarket === 'indian' ? "Max Trades" : "Daily Trade Limit"} description={activeMarket === 'indian' ? "Kill after N orders" : "Limits the maximum number of executions per day"} value={disciplineActive ? "Active" : "Disabled"} active={disciplineActive} onToggle={setDisciplineActive}>
                               <div>
-                                 <label className="text-[10px] font-medium text-slate-400 dark:text-[#8793A5] antialiased dark:text-[#E8ECF2] uppercase mb-1 block tracking-widest">Daily Execution Limit</label>
+                                 <label className="text-[10px] font-medium text-slate-400 dark:text-[#8793A5] antialiased dark:text-[#E8ECF2] uppercase mb-1 block tracking-widest">{activeMarket === 'indian' ? 'MAX TRADES' : 'Daily Execution Limit'}</label>
                                  <div className="flex items-center gap-3 w-[160px]">
                                     <button onClick={() => setTradeLimit(prev => Math.max(1, prev - 1))} className="w-8 h-8 flex items-center justify-center rounded-full bg-white dark:bg-[#22252A] border border-slate-200/60 dark:border-[#2B2F35] shadow-sm text-slate-700 dark:text-[#E8ECF2] font-bold hover:bg-slate-50 transition-colors active:scale-95">-</button>
                                     <span className="flex-1 bg-slate-50 dark:bg-[#22252A] border border-slate-200 dark:border-[#2B2F35] rounded-lg px-3 h-[32px] flex items-center justify-center text-[13px] font-semibold text-slate-800 dark:text-[#F5F7FA] tabular-nums tabular-nums antialiased text-center ">{(!isProOrElite && tradeLimit > 5) ? 5 : tradeLimit}</span>
@@ -1428,18 +1538,20 @@ export default function RiskGuard() {
                               </div>
                            </RiskGuardCard>
 
-                           <RiskGuardCard icon={HeartPulse} title="Behavioural Risk Detector" description="AI pacing detection" value={emotionalTradingDetector ? "Active" : "Disabled"} active={emotionalTradingDetector} onToggle={setEmotionalTradingDetector} intent="discipline">
-                              <div>
-                                 <label className="text-[10px] font-medium text-slate-400 dark:text-[#8793A5] antialiased dark:text-[#E8ECF2] uppercase mb-1 block tracking-widest">SENSITIVITY</label>
-                                 <div className="flex items-center gap-3 w-full">
-                                    <span className="text-[10px] font-medium text-slate-400 dark:text-[#8793A5] antialiased dark:text-[#E8ECF2] uppercase tracking-widest">Low</span>
-                                    <div className="flex-1 h-[32px] flex items-center relative">
-                                       <input type="range" min="0" max="100" step="10" value={emotionSensitivity} onChange={e => setEmotionSensitivity(Number(e.target.value))} className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500" />
+                           {activeMarket !== 'indian' && (
+                              <RiskGuardCard icon={HeartPulse} title="Behavioural Risk Detector" description="AI pacing detection" value={emotionalTradingDetector ? "Active" : "Disabled"} active={emotionalTradingDetector} onToggle={setEmotionalTradingDetector} intent="discipline">
+                                 <div>
+                                    <label className="text-[10px] font-medium text-slate-400 dark:text-[#8793A5] antialiased dark:text-[#E8ECF2] uppercase mb-1 block tracking-widest">SENSITIVITY</label>
+                                    <div className="flex items-center gap-3 w-full">
+                                       <span className="text-[10px] font-medium text-slate-400 dark:text-[#8793A5] antialiased dark:text-[#E8ECF2] uppercase tracking-widest">Low</span>
+                                       <div className="flex-1 h-[32px] flex items-center relative">
+                                          <input type="range" min="0" max="100" step="10" value={emotionSensitivity} onChange={e => setEmotionSensitivity(Number(e.target.value))} className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500" />
+                                       </div>
+                                       <span className="text-[10px] font-medium text-slate-400 dark:text-[#8793A5] antialiased dark:text-[#E8ECF2] uppercase tracking-widest">High</span>
                                     </div>
-                                    <span className="text-[10px] font-medium text-slate-400 dark:text-[#8793A5] antialiased dark:text-[#E8ECF2] uppercase tracking-widest">High</span>
                                  </div>
-                              </div>
-                           </RiskGuardCard>
+                              </RiskGuardCard>
+                           )}
 
                            <RiskGuardCard icon={AlertTriangle} title="News Filter" description="Block around high-impact news" value={newsFilter ? "Active" : "Disabled"} active={newsFilter} onToggle={setNewsFilter} intent="warning">
                               <div className="flex flex-col sm:flex-row gap-3">
@@ -1491,112 +1603,120 @@ export default function RiskGuard() {
                               </div>
                            </RiskGuardCard>
 
-                           <RiskGuardCard icon={CheckSquare} title="Pre-Trade Checklist" description="Mandatory popup checklist" value={preTradeChecklist ? "Active" : "Disabled"} active={preTradeChecklist} onToggle={setPreTradeChecklist} intent="discipline">
-                              <div className="flex flex-col sm:flex-row gap-3">
-                                 <div className="flex-[1.2]">
-                                    <label className="text-[10px] font-medium text-slate-400 dark:text-[#8793A5] antialiased dark:text-[#E8ECF2] uppercase mb-1 block tracking-widest">CHECKLIST PRESET</label>
-                                    <Select defaultValue="standard">
-                                       <SelectTrigger className="w-full bg-slate-50 dark:bg-[#22252A] border border-slate-200/60 dark:border-[#2B2F35] dark:border-[#2B2F35] rounded-lg px-3 h-[32px] text-[13px] font-semibold text-slate-800 dark:text-[#F5F7FA] tabular-nums tabular-nums antialiased  focus:ring-1 focus:ring-indigo-500/30">
-                                          <SelectValue />
-                                       </SelectTrigger>
-                                       <SelectContent>
-                                          <SelectItem value="basic">Basic (3 items)</SelectItem>
-                                          <SelectItem value="standard">Standard (5 items)</SelectItem>
-                                          <SelectItem value="strict">Strict (8 items)</SelectItem>
-                                       </SelectContent>
-                                    </Select>
-                                 </div>
-                                 <div className="flex-1">
-                                    <label className="text-[10px] font-medium text-slate-400 dark:text-[#8793A5] antialiased dark:text-[#E8ECF2] uppercase mb-1 block tracking-widest">CUSTOMIZE</label>
-                                    <button className="w-full h-[32px] flex items-center justify-center gap-1.5 bg-slate-50 dark:bg-[#22252A] border border-slate-200/60 dark:border-[#2B2F35] dark:border-[#2B2F35] rounded-lg text-[11px] font-bold text-slate-700 dark:text-[#E8ECF2] hover:bg-slate-100 dark:hover:bg-[#292D33] transition-colors ">
-                                       <Settings size={12} />
-                                       Edit Items
-                                    </button>
-                                 </div>
-                              </div>
-                           </RiskGuardCard>
-
-                           <RiskGuardCard icon={Brain} title="Psychology Check" description="Mandatory mood-slider" value={psychologyCheck ? "Active" : "Disabled"} active={psychologyCheck} onToggle={setPsychologyCheck} intent="discipline">
-                              <div>
-                                 <label className="text-[10px] font-medium text-slate-400 dark:text-[#8793A5] antialiased dark:text-[#E8ECF2] uppercase mb-1 block tracking-widest">CHECK FREQUENCY</label>
-                                 <Select defaultValue="first">
-                                    <SelectTrigger className="w-full bg-slate-50 dark:bg-[#22252A] border border-slate-200/60 dark:border-[#2B2F35] dark:border-[#2B2F35] rounded-lg px-3 h-[32px] text-[13px] font-semibold text-slate-800 dark:text-[#F5F7FA] tabular-nums tabular-nums antialiased  focus:ring-1 focus:ring-indigo-500/30">
-                                       <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                       <SelectItem value="first">Before first trade</SelectItem>
-                                       <SelectItem value="loss">After a losing trade</SelectItem>
-                                       <SelectItem value="every">Before every trade</SelectItem>
-                                       <SelectItem value="daily">Once daily</SelectItem>
-                                    </SelectContent>
-                                 </Select>
-                              </div>
-                           </RiskGuardCard>
-
-                           <RiskGuardCard icon={Sparkles} title="AI Weekly Review" description="AI review of your trades" value={aiWeeklyReview ? "Active" : "Disabled"} active={aiWeeklyReview} onToggle={setAiWeeklyReview} intent="discipline">
-                              <div className="flex flex-col sm:flex-row gap-3">
-                                 <div className="flex-[0.8] flex gap-2">
+                           {activeMarket !== 'indian' && (
+                              <RiskGuardCard icon={CheckSquare} title="Pre-Trade Checklist" description="Mandatory popup checklist" value={preTradeChecklist ? "Active" : "Disabled"} active={preTradeChecklist} onToggle={setPreTradeChecklist} intent="discipline">
+                                 <div className="flex flex-col sm:flex-row gap-3">
                                     <div className="flex-[1.2]">
-                                       <label className="text-[10px] font-medium text-slate-400 dark:text-[#8793A5] antialiased dark:text-[#E8ECF2] uppercase mb-1 block tracking-widest">DAY</label>
-                                       <Select defaultValue="friday">
+                                       <label className="text-[10px] font-medium text-slate-400 dark:text-[#8793A5] antialiased dark:text-[#E8ECF2] uppercase mb-1 block tracking-widest">CHECKLIST PRESET</label>
+                                       <Select defaultValue="standard">
                                           <SelectTrigger className="w-full bg-slate-50 dark:bg-[#22252A] border border-slate-200/60 dark:border-[#2B2F35] dark:border-[#2B2F35] rounded-lg px-3 h-[32px] text-[13px] font-semibold text-slate-800 dark:text-[#F5F7FA] tabular-nums tabular-nums antialiased  focus:ring-1 focus:ring-indigo-500/30">
                                              <SelectValue />
                                           </SelectTrigger>
                                           <SelectContent>
-                                             <SelectItem value="friday">Friday</SelectItem>
-                                             <SelectItem value="saturday">Saturday</SelectItem>
-                                             <SelectItem value="sunday">Sunday</SelectItem>
+                                             <SelectItem value="basic">Basic (3 items)</SelectItem>
+                                             <SelectItem value="standard">Standard (5 items)</SelectItem>
+                                             <SelectItem value="strict">Strict (8 items)</SelectItem>
                                           </SelectContent>
                                        </Select>
                                     </div>
-                                    <div className="flex-[0.8]">
-                                       <label className="text-[10px] font-medium text-slate-400 dark:text-[#8793A5] antialiased dark:text-[#E8ECF2] uppercase mb-1 block tracking-widest">TIME</label>
-                                       <input type="time" defaultValue="17:00" className="w-full h-[32px] bg-slate-50 dark:bg-[#22252A] border border-slate-200/60 dark:border-[#2B2F35] dark:border-[#2B2F35] rounded-lg px-2 text-[13px] font-semibold text-slate-800 dark:text-[#F5F7FA] tabular-nums tabular-nums antialiased outline-none focus:ring-1 focus:ring-indigo-500/30 transition-all tabular-nums " />
-                                    </div>
-                                 </div>
-                                 <div className="flex-1">
-                                    <label className="text-[10px] font-medium text-slate-400 dark:text-[#8793A5] antialiased dark:text-[#E8ECF2] uppercase mb-1 block tracking-widest">DELIVERY</label>
-                                    <Select defaultValue="in_app">
-                                       <SelectTrigger className="w-full bg-slate-50 dark:bg-[#22252A] border border-slate-200/60 dark:border-[#2B2F35] dark:border-[#2B2F35] rounded-lg px-3 h-[32px] text-[13px] font-semibold text-slate-800 dark:text-[#F5F7FA] tabular-nums tabular-nums antialiased  focus:ring-1 focus:ring-indigo-500/30">
-                                          <SelectValue />
-                                       </SelectTrigger>
-                                       <SelectContent>
-                                          <SelectItem value="in_app">In-app report</SelectItem>
-                                          <SelectItem value="email">Email summary</SelectItem>
-                                       </SelectContent>
-                                    </Select>
-                                 </div>
-                              </div>
-                           </RiskGuardCard>
-
-                           <RiskGuardCard icon={Volume2} title="AI Voice Warning" description="Audible alerts for limits" value={aiVoiceWarning ? "Active" : "Disabled"} active={aiVoiceWarning} onToggle={setAiVoiceWarning} intent="warning">
-                              <div className="flex flex-col sm:flex-row gap-3">
-                                 <div className="flex-1">
-                                    <label className="text-[10px] font-medium text-slate-400 dark:text-[#8793A5] antialiased dark:text-[#E8ECF2] uppercase mb-1 block tracking-widest">VOLUME</label>
-                                    <div className="flex items-center gap-3 w-full">
-                                       <div className="flex-1 h-[32px] flex items-center relative">
-                                          <input type="range" min="0" max="100" step="10" value={voiceVolume} onChange={e => setVoiceVolume(Number(e.target.value))} className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500" />
-                                       </div>
-                                       <button className="w-[32px] h-[32px] flex items-center justify-center rounded-lg bg-slate-50 dark:bg-[#22252A] border border-slate-200/60 dark:border-[#2B2F35] dark:border-[#2B2F35] text-slate-700 dark:text-[#E8ECF2] font-bold hover:bg-slate-100 dark:hover:bg-[#292D33] transition-colors ">
-                                          <Volume2 size={14} />
+                                    <div className="flex-1">
+                                       <label className="text-[10px] font-medium text-slate-400 dark:text-[#8793A5] antialiased dark:text-[#E8ECF2] uppercase mb-1 block tracking-widest">CUSTOMIZE</label>
+                                       <button className="w-full h-[32px] flex items-center justify-center gap-1.5 bg-slate-50 dark:bg-[#22252A] border border-slate-200/60 dark:border-[#2B2F35] dark:border-[#2B2F35] rounded-lg text-[11px] font-bold text-slate-700 dark:text-[#E8ECF2] hover:bg-slate-100 dark:hover:bg-[#292D33] transition-colors ">
+                                          <Settings size={12} />
+                                          Edit Items
                                        </button>
                                     </div>
                                  </div>
-                                 <div className="flex-1">
-                                    <label className="text-[10px] font-medium text-slate-400 dark:text-[#8793A5] antialiased dark:text-[#E8ECF2] uppercase mb-1 block tracking-widest">TRIGGERS</label>
-                                    <Select defaultValue="critical">
+                              </RiskGuardCard>
+                           )}
+
+                           {activeMarket !== 'indian' && (
+                              <RiskGuardCard icon={Brain} title="Psychology Check" description="Mandatory mood-slider" value={psychologyCheck ? "Active" : "Disabled"} active={psychologyCheck} onToggle={setPsychologyCheck} intent="discipline">
+                                 <div>
+                                    <label className="text-[10px] font-medium text-slate-400 dark:text-[#8793A5] antialiased dark:text-[#E8ECF2] uppercase mb-1 block tracking-widest">CHECK FREQUENCY</label>
+                                    <Select defaultValue="first">
                                        <SelectTrigger className="w-full bg-slate-50 dark:bg-[#22252A] border border-slate-200/60 dark:border-[#2B2F35] dark:border-[#2B2F35] rounded-lg px-3 h-[32px] text-[13px] font-semibold text-slate-800 dark:text-[#F5F7FA] tabular-nums tabular-nums antialiased  focus:ring-1 focus:ring-indigo-500/30">
                                           <SelectValue />
                                        </SelectTrigger>
                                        <SelectContent>
-                                          <SelectItem value="all">All warnings</SelectItem>
-                                          <SelectItem value="critical">Critical limits only</SelectItem>
-                                          <SelectItem value="drawdown">Drawdown only</SelectItem>
+                                          <SelectItem value="first">Before first trade</SelectItem>
+                                          <SelectItem value="loss">After a losing trade</SelectItem>
+                                          <SelectItem value="every">Before every trade</SelectItem>
+                                          <SelectItem value="daily">Once daily</SelectItem>
                                        </SelectContent>
                                     </Select>
                                  </div>
-                              </div>
-                           </RiskGuardCard>
+                              </RiskGuardCard>
+                           )}
+
+                           {activeMarket !== 'indian' && (
+                              <RiskGuardCard icon={Sparkles} title="AI Weekly Review" description="AI review of your trades" value={aiWeeklyReview ? "Active" : "Disabled"} active={aiWeeklyReview} onToggle={setAiWeeklyReview} intent="discipline">
+                                 <div className="flex flex-col sm:flex-row gap-3">
+                                    <div className="flex-[0.8] flex gap-2">
+                                       <div className="flex-[1.2]">
+                                          <label className="text-[10px] font-medium text-slate-400 dark:text-[#8793A5] antialiased dark:text-[#E8ECF2] uppercase mb-1 block tracking-widest">DAY</label>
+                                          <Select defaultValue="friday">
+                                             <SelectTrigger className="w-full bg-slate-50 dark:bg-[#22252A] border border-slate-200/60 dark:border-[#2B2F35] dark:border-[#2B2F35] rounded-lg px-3 h-[32px] text-[13px] font-semibold text-slate-800 dark:text-[#F5F7FA] tabular-nums tabular-nums antialiased  focus:ring-1 focus:ring-indigo-500/30">
+                                                <SelectValue />
+                                             </SelectTrigger>
+                                             <SelectContent>
+                                                <SelectItem value="friday">Friday</SelectItem>
+                                                <SelectItem value="saturday">Saturday</SelectItem>
+                                                <SelectItem value="sunday">Sunday</SelectItem>
+                                             </SelectContent>
+                                          </Select>
+                                       </div>
+                                       <div className="flex-[0.8]">
+                                          <label className="text-[10px] font-medium text-slate-400 dark:text-[#8793A5] antialiased dark:text-[#E8ECF2] uppercase mb-1 block tracking-widest">TIME</label>
+                                          <input type="time" defaultValue="17:00" className="w-full h-[32px] bg-slate-50 dark:bg-[#22252A] border border-slate-200/60 dark:border-[#2B2F35] dark:border-[#2B2F35] rounded-lg px-2 text-[13px] font-semibold text-slate-800 dark:text-[#F5F7FA] tabular-nums tabular-nums antialiased outline-none focus:ring-1 focus:ring-indigo-500/30 transition-all tabular-nums " />
+                                       </div>
+                                    </div>
+                                    <div className="flex-1">
+                                       <label className="text-[10px] font-medium text-slate-400 dark:text-[#8793A5] antialiased dark:text-[#E8ECF2] uppercase mb-1 block tracking-widest">DELIVERY</label>
+                                       <Select defaultValue="in_app">
+                                          <SelectTrigger className="w-full bg-slate-50 dark:bg-[#22252A] border border-slate-200/60 dark:border-[#2B2F35] dark:border-[#2B2F35] rounded-lg px-3 h-[32px] text-[13px] font-semibold text-slate-800 dark:text-[#F5F7FA] tabular-nums tabular-nums antialiased  focus:ring-1 focus:ring-indigo-500/30">
+                                             <SelectValue />
+                                          </SelectTrigger>
+                                          <SelectContent>
+                                             <SelectItem value="in_app">In-app report</SelectItem>
+                                             <SelectItem value="email">Email summary</SelectItem>
+                                          </SelectContent>
+                                       </Select>
+                                    </div>
+                                 </div>
+                              </RiskGuardCard>
+                           )}
+
+                           {activeMarket !== 'indian' && (
+                              <RiskGuardCard icon={Volume2} title="AI Voice Warning" description="Audible alerts for limits" value={aiVoiceWarning ? "Active" : "Disabled"} active={aiVoiceWarning} onToggle={setAiVoiceWarning} intent="warning">
+                                 <div className="flex flex-col sm:flex-row gap-3">
+                                    <div className="flex-1">
+                                       <label className="text-[10px] font-medium text-slate-400 dark:text-[#8793A5] antialiased dark:text-[#E8ECF2] uppercase mb-1 block tracking-widest">VOLUME</label>
+                                       <div className="flex items-center gap-3 w-full">
+                                          <div className="flex-1 h-[32px] flex items-center relative">
+                                             <input type="range" min="0" max="100" step="10" value={voiceVolume} onChange={e => setVoiceVolume(Number(e.target.value))} className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500" />
+                                          </div>
+                                          <button className="w-[32px] h-[32px] flex items-center justify-center rounded-lg bg-slate-50 dark:bg-[#22252A] border border-slate-200/60 dark:border-[#2B2F35] dark:border-[#2B2F35] text-slate-700 dark:text-[#E8ECF2] font-bold hover:bg-slate-100 dark:hover:bg-[#292D33] transition-colors ">
+                                             <Volume2 size={14} />
+                                          </button>
+                                       </div>
+                                    </div>
+                                    <div className="flex-1">
+                                       <label className="text-[10px] font-medium text-slate-400 dark:text-[#8793A5] antialiased dark:text-[#E8ECF2] uppercase mb-1 block tracking-widest">TRIGGERS</label>
+                                       <Select defaultValue="critical">
+                                          <SelectTrigger className="w-full bg-slate-50 dark:bg-[#22252A] border border-slate-200/60 dark:border-[#2B2F35] dark:border-[#2B2F35] rounded-lg px-3 h-[32px] text-[13px] font-semibold text-slate-800 dark:text-[#F5F7FA] tabular-nums tabular-nums antialiased  focus:ring-1 focus:ring-indigo-500/30">
+                                             <SelectValue />
+                                          </SelectTrigger>
+                                          <SelectContent>
+                                             <SelectItem value="all">All warnings</SelectItem>
+                                             <SelectItem value="critical">Critical limits only</SelectItem>
+                                             <SelectItem value="drawdown">Drawdown only</SelectItem>
+                                          </SelectContent>
+                                       </Select>
+                                    </div>
+                                 </div>
+                              </RiskGuardCard>
+                           )}
 
                            <RiskGuardCard icon={Key} title="Guardian PIN" description="Require PIN to override limits" value={pinActive ? "Active" : "Disabled"} active={pinActive} onToggle={setPinActive} intent="emergency">
                               <div className="flex gap-3">

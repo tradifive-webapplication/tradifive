@@ -109,7 +109,7 @@ function PricingCard({ tier, price, description, features, popular = false }: {
             : "bg-transparent border border-[#1a1a2e] hover:border-[#6366f1] text-white hover:bg-[#6366f1]/5"
         }`}
       >
-        {price === "Custom" ? "Contact Sales" : price === "$0" ? "Get Started Free" : "Start Pro Trial"}
+        {price === "Custom" ? "Contact Sales" : price === "₹0" ? "Get Started Free" : "Start Pro Trial"}
       </Button>
     </div>
   );
@@ -384,7 +384,7 @@ export default function LandingPro() {
               <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[
                   { label: "AI Coach", sub: "3 new insights today", avatar: "AI", gradient: "from-[#6366f1] to-[#7c3aed]", chart: true },
-                  { label: "Portfolio", sub: "+$2,847 this week", avatar: "P", gradient: "from-emerald-500 to-emerald-600", value: "$48,293", change: "↑ 6.3% vs last month", changeColor: "text-emerald-400" },
+                  { label: "Portfolio", sub: "+₹2,847 this week", avatar: "P", gradient: "from-emerald-500 to-emerald-600", value: "₹48,293", change: "↑ 6.3% vs last month", changeColor: "text-emerald-400" },
                   { label: "RiskGuard", sub: "All systems green", avatar: "R", gradient: "from-amber-500 to-amber-600", progress: 72, limit: "Daily drawdown: 2.8% / 5.0% limit" },
                   { label: "Channels", sub: "12 unread messages", avatar: "C", gradient: "from-pink-500 to-pink-600", avatars: true },
                 ].map((card, i) => (
@@ -458,7 +458,7 @@ export default function LandingPro() {
             <Reveal delay={0}>
               <PricingCard
                 tier="Starter"
-                price="$0"
+                price="₹0"
                 description="Perfect for getting started and exploring the platform."
                 features={[
                   "1 MT5 Account Connection",
@@ -473,7 +473,7 @@ export default function LandingPro() {
             <Reveal delay={0.1}>
               <PricingCard
                 tier="Pro"
-                price="$29"
+                price="₹2499"
                 description="For serious traders who want the full power of AI + social."
                 features={[
                   "Unlimited MT5 Accounts",

@@ -369,7 +369,7 @@ function CompetitionsDashboardSkeleton() {
                         {[
                           {
                             pos: "2nd Place",
-                            cash: "$2k Cash",
+                            cash: "₹2k Cash",
                             acc: "100K Acc",
                             icon: Trophy,
                             color: "text-slate-400",
@@ -377,7 +377,7 @@ function CompetitionsDashboardSkeleton() {
                           },
                           {
                             pos: "1st Place",
-                            cash: "$5k Cash",
+                            cash: "₹5k Cash",
                             acc: "100K Acc",
                             icon: Trophy,
                             color: "text-amber-500",
@@ -386,7 +386,7 @@ function CompetitionsDashboardSkeleton() {
                           },
                           {
                             pos: "3rd Place",
-                            cash: "$1k Cash",
+                            cash: "₹1k Cash",
                             acc: "100K Acc",
                             icon: Trophy,
                             color: "text-orange-500",
@@ -492,7 +492,7 @@ function CompetitionsDashboardSkeleton() {
                           },
                           {
                             label: "Asset Commissions",
-                            desc: "$3/lot Forex. Zero fee for Indices.",
+                            desc: "₹3/lot Forex. Zero fee for Indices.",
                             icon: Banknote,
                             iconBg:
                               "bg-orange-50 dark:bg-orange-950/20 text-orange-500",
