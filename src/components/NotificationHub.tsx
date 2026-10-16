@@ -77,7 +77,8 @@ export default function NotificationHub() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const channel = supabase.channel(`notifications_${user.id}`)
+      const chanId = Math.random().toString(36).substring(2, 8);
+      const channel = supabase.channel(`notifications_${user.id}_${chanId}`)
         .on('postgres_changes', {
           event: 'INSERT',
           schema: 'public',

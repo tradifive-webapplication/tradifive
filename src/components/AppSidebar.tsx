@@ -537,7 +537,8 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
     fetchUnreadDMs(currentUserId);
     fetchUnreadNotifications(currentUserId);
 
-    const dmChannel = supabase.channel('sidebar-unread-dms')
+    const subId = Math.random().toString(36).substring(2, 9);
+    const dmChannel = supabase.channel(`sidebar-unread-dms-${currentUserId}-${subId}`)
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
@@ -547,7 +548,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
       })
       .subscribe();
 
-    const notificationsChannel = supabase.channel('sidebar-unread-notifications')
+    const notificationsChannel = supabase.channel(`sidebar-unread-notifications-${currentUserId}-${subId}`)
       .on('postgres_changes', {
         event: '*',
         schema: 'public',

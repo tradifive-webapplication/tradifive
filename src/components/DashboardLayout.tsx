@@ -68,7 +68,8 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      channel = supabase.channel('global-dm-notifications')
+      const chanId = Math.random().toString(36).substring(2, 8);
+      channel = supabase.channel(`global-dm-notifications-${user.id}-${chanId}`)
         .on(
           'postgres_changes',
           { event: 'INSERT', schema: 'public', table: 'direct_messages', filter: `receiver_id=eq.${user.id}` },
