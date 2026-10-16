@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, HashRouter, Route, Routes, Navigate } from "react-router-dom";
+import { BrowserRouter, HashRouter, Route, Routes, Navigate, useNavigate, useLocation } from "react-router-dom";
 import { Suspense, lazy, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -98,6 +99,42 @@ const queryClient = new QueryClient();
 const isElectron = navigator.userAgent.toLowerCase().includes('electron');
 const AppRouter = isElectron ? HashRouter : BrowserRouter;
 
+const OAuthCallbackHandler = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    const hash = window.location.hash || '';
+    const search = window.location.search || '';
+    const hasAuthParams =
+      hash.includes('access_token=') ||
+      search.includes('code=') ||
+      hash.includes('type=recovery');
+
+    if (hasAuthParams) {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+        if (event === 'SIGNED_IN' && session) {
+          if (location.pathname === '/' || location.pathname === '/login') {
+            sessionStorage.removeItem('fresh_login');
+            navigate('/home', { replace: true });
+          }
+        }
+      });
+
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session && (location.pathname === '/' || location.pathname === '/login')) {
+          sessionStorage.removeItem('fresh_login');
+          navigate('/home', { replace: true });
+        }
+      });
+
+      return () => subscription.unsubscribe();
+    }
+  }, [location.pathname, navigate]);
+
+  return null;
+};
+
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
@@ -109,6 +146,7 @@ const App = () => {
         <TradingProvider>
           <PresenceProvider>
           <AppRouter>
+            <OAuthCallbackHandler />
             <CustomCursor />
             <Suspense fallback={<div style={{ minHeight: '100vh', width: '100%', background: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div style={{ width: 40, height: 40, border: '3px solid rgba(99,102,241,0.3)', borderTopColor: '#6366f1', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} /><style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style></div>}>
               <Routes>
