@@ -78,7 +78,6 @@ export default function Login() {
         // If they just arrived at the page and were already logged in, we let them stay
         const isFreshLogin = sessionStorage.getItem('fresh_login') === 'true';
         if (isFreshLogin) {
-          sessionStorage.removeItem('fresh_login');
           navigate("/home");
         }
       }

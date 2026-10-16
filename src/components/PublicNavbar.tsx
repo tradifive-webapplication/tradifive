@@ -29,7 +29,11 @@ export default function PublicNavbar({
   const [showWaitlist, setShowWaitlist] = useState(false);
 
   const handleSignIn = (e?: React.MouseEvent) => {
-    if (e?.shiftKey) {
+    if (
+      window.location.hostname === 'localhost' ||
+      window.location.hostname === '127.0.0.1' ||
+      e?.shiftKey
+    ) {
       navigate("/login");
       return;
     }

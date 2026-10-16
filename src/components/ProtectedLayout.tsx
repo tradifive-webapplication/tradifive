@@ -6,10 +6,18 @@ import { useEffect } from "react";
 export const ProtectedLayout = () => {
   useEffect(() => {
     const checkMobile = () => {
+      // Never hijack local development or desktop resize
+      if (
+        window.location.hostname === 'localhost' ||
+        window.location.hostname === '127.0.0.1' ||
+        window.location.hostname.endsWith('.local')
+      ) {
+        return;
+      }
+
       const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-      const isMobileWidth = window.innerWidth <= 768;
       
-      if (isMobileUA || isMobileWidth) {
+      if (isMobileUA) {
         if (!window.location.pathname.startsWith('/mobile')) {
           window.location.href = '/mobile/';
         }
