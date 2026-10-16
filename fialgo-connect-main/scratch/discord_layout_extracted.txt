@@ -1,0 +1,64 @@
+Created At: 2026-05-31T07:58:22Z
+Completed At: 2026-05-31T07:58:23Z
+File Path: `file:///c:/Users/nikil/Downloads/fialgo-connect-main/fialgo-connect-main/src/pages/Settings.tsx`
+Total Lines: 843
+Total Bytes: 60619
+Showing lines 1 to 800
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+1: import React, { useState, useRef, useEffect } from 'react';
+2: import { Mail, motion, AnimatePresence } from 'framer-motion';
+3: import DashboardLayout from '@/components/DashboardLayout';
+4: import { supabase } from '@/lib/supabase';
+5: import { toast } from 'sonner';
+6: import { 
+7:    User, Settings as SettingsIcon, Bell, Palette, Camera, Check, Link2, 
+8:    Twitter, Instagram, Youtube, Trash2, Mail, Shield, MessageSquare, 
+9:    Smartphone, AlertTriangle, Monitor, Moon, Sun, MonitorSmartphone, Power
+10: } from 'lucide-react';
+11: 
+12: const PushableButton = ({ children, onClick, type = 'primary', className = '', ...props }: any) => {
+13:    const baseClasses = "relative rounded-xl font-bold transition-all duration-200 active:top-[2px] active:shadow-none overflow-hidden";
+14:    
+15:    const types = {
+16:       primary: "bg-indigo-600 text-white shadow-[0_4px_0_rgb(67,56,202)] hover:bg-indigo-500 active:shadow-[0_0px_0_rgb(67,56,202)]",
+17:       secondary: "bg-white dark:bg-[#1E1E1E] text-slate-700 dark:text-slate-200 shadow-[0_4px_0_rgb(203,213,225)] dark:shadow-[0_4px_0_rgb(15,15,15)] hover:bg-slate-50 dark:hover:bg-[#252525] border border-slate-200 dark:border-[#333]",
+18:       danger: "bg-red-500 text-white shadow-[0_4px_0_rgb(185,28,28)] hover:bg-red-400 active:shadow-[0_0px_0_rgb(185,28,28)]"
+19:    };
+20: 
+21:    return (
+22:       <button 
+23:          className={`${baseClasses} ${types[type as keyof typeof types]} ${className}`}
+24:          onClick={onClick}
+25:          {...props}
+26:       >
+27:          <div className="ab
+<truncated 45283 bytes>
+k:border-transparent flex items-center justify-between">
+612:                                        <div className="flex flex-col gap-1 max-w-[80%]">
+613:                                           <span className="text-[13px] font-bold text-slate-900 dark:text-white">{item.label}</span>
+614:                                           <span className="text-[11px] text-slate-500">{item.desc}</span>
+615:                                        </div>
+616:                                        <SettingsToggle checked={privacySettings[item.key]} onChange={(v) => setPrivacySettings(prev => ({ ...prev, [item.key]: v }))} />
+617:                                     </div>
+618:                                     ))}
+619:                                  </div>
+620:                               </div>
+621: 
+622:                               <div className="flex justify-end gap-3 pt-6 pb-12">
+623:                                  <button className="px-6 py-2.5 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">Cancel</button>
+624:                                  <button className="px-8 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl shadow-lg shadow-blue-600/20 transition-all" onClick={handleUpdateProfile}>Save Changes</button>
+625:                               </div>
+626:                            </motion.div>
+627:                         )}`
+628: 
+629: const newContent = content.substring(0, startIndex) + replacement + content.substring(endIndex);
+630: fs.writeFileSync(file, newContent, 'utf8');
+631: console.log('Successfully replaced profiles block')
+632: {activeTab === "notifications" && (
+633:                            <motion.div
+634:                               key="notifications"
+635:                               initial={{ opacity: 0, y: 10 }}
+636:   
+<truncated 13640 bytes>
+
+NOTE: The output was truncated because it was too long. Use a more targeted query or a smaller range to get the information you need.

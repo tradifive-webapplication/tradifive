@@ -134,10 +134,10 @@ export default function RiskGuardPublic() {
               Risk Guard is your autonomous trading safety net. It monitors your live MT5 or Indian broker account in real time and fires an instant kill-switch the moment any of your predefined risk rules are breached — protecting your capital while you sleep, travel, or trade.
             </p>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <button onClick={handleStart} style={{ background: "linear-gradient(135deg, #ef4444, #dc2626)", color: "#fff", border: "none", borderRadius: 100, padding: "13px 28px", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
+              <button onClick={handleStart} className="btn-glow-primary" style={{ borderRadius: 100, padding: "13px 28px", fontSize: 14, fontWeight: 700 }}>
                 Enable Risk Guard →
               </button>
-              <button onClick={() => { const el = document.getElementById("how-rg-works"); el?.scrollIntoView({ behavior: "smooth" }); }} style={{ background: "transparent", color: "rgba(255,255,255,0.6)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 100, padding: "13px 28px", fontWeight: 600, fontSize: 14, cursor: "pointer" }}>
+              <button onClick={() => { const el = document.getElementById("how-rg-works"); el?.scrollIntoView({ behavior: "smooth" }); }} className="btn-ghost" style={{ borderRadius: 100, padding: "13px 28px", fontSize: 14, fontWeight: 600 }}>
                 How it works
               </button>
             </div>
@@ -179,6 +179,59 @@ export default function RiskGuardPublic() {
             </div>
           </motion.div>
         </div>
+      </section>
+
+      {/* DESKTOP PLATFORM SHOWCASE */}
+      <section style={{ padding: "40px 24px 100px", maxWidth: 1240, margin: "0 auto", position: "relative" }}>
+        <motion.div {...fadeUp()} style={{ textAlign: "center", marginBottom: 36 }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.25)", borderRadius: 100, padding: "6px 16px", marginBottom: 18 }}>
+            <Shield size={13} color="#10b981" />
+            <span style={{ color: "#10b981", fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase" }}>FEATURE 02 · PLATFORM SHOWCASE</span>
+          </div>
+          <h2 style={{ fontSize: "clamp(26px, 4.5vw, 48px)", fontWeight: 900, letterSpacing: "-0.03em", color: "#fff", marginBottom: 14 }}>
+            Protect your capital before emotions take over.
+          </h2>
+          <p style={{ color: "rgba(255,255,255,0.6)", fontSize: 16, maxWidth: 680, margin: "0 auto", lineHeight: 1.6 }}>
+            Set daily loss limits, maximum drawdown rules, trading restrictions, and automated safeguards that help maintain discipline.
+          </p>
+        </motion.div>
+
+        <motion.div
+          {...fadeUp(0.15)}
+          style={{
+            background: "rgba(255,255,255,0.02)",
+            border: "1px solid rgba(255,255,255,0.08)",
+            borderRadius: 24,
+            padding: "16px",
+            position: "relative",
+            boxShadow: "0 30px 80px -20px rgba(0,0,0,0.85), 0 0 60px rgba(16,185,129,0.08)",
+            overflow: "hidden"
+          }}
+        >
+          {/* Ambient backlight glow */}
+          <div style={{ position: "absolute", top: -80, left: "50%", transform: "translateX(-50%)", width: 600, height: 200, background: "radial-gradient(ellipse, rgba(16,185,129,0.15) 0%, transparent 70%)", pointerEvents: "none" }} />
+          
+          {/* Window Header Bar */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 14px 14px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+            <div style={{ display: "flex", gap: 6 }}>
+              <div style={{ width: 10, height: 10, borderRadius: "50%", background: "rgba(255,255,255,0.15)" }} />
+              <div style={{ width: 10, height: 10, borderRadius: "50%", background: "rgba(255,255,255,0.15)" }} />
+              <div style={{ width: 10, height: 10, borderRadius: "50%", background: "rgba(255,255,255,0.15)" }} />
+            </div>
+            <div style={{ fontSize: 11.5, color: "rgba(255,255,255,0.35)", fontWeight: 600, letterSpacing: 0.5 }}>Tradifive Terminal · Risk Guard Engine</div>
+            <div style={{ width: 32 }} />
+          </div>
+
+          {/* Screenshot */}
+          <div style={{ borderRadius: 16, overflow: "hidden", marginTop: 12, background: "#08090d" }}>
+            <img
+              src="/riskguarddesktop.png"
+              alt="Risk Guard Platform"
+              style={{ width: "100%", height: "auto", display: "block", objectFit: "contain" }}
+              onError={(e) => { (e.currentTarget as HTMLElement).style.display = "none"; }}
+            />
+          </div>
+        </motion.div>
       </section>
 
       {/* FEATURES */}
@@ -232,7 +285,7 @@ export default function RiskGuardPublic() {
             Protect your capital today.
           </h2>
           <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 16, marginBottom: 36 }}>Set up Risk Guard in minutes. Free with every Tradifive account.</p>
-          <button onClick={handleStart} style={{ background: "linear-gradient(135deg, #ef4444, #dc2626)", color: "#fff", border: "none", borderRadius: 100, padding: "15px 40px", fontWeight: 800, fontSize: 15, cursor: "pointer" }}>
+          <button onClick={handleStart} className="btn-glow-primary" style={{ borderRadius: 100, padding: "15px 40px", fontWeight: 800, fontSize: 15 }}>
             Start Free →
           </button>
         </motion.div>

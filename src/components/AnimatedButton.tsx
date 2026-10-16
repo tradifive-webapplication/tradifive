@@ -44,20 +44,23 @@ const StyledWrapper = styled.div`
   button {
     position: relative;
     padding: 10px 24px;
-    background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
-    box-shadow: none;
-    font-size: 15px;
-    font-weight: 600;
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 6px rgba(0, 0, 0, 0.3);
+    font-size: 14px;
+    font-weight: 700;
     font-family: 'Outfit', sans-serif;
-    color: #ffffff;
+    color: #60a5fa;
     cursor: pointer;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: none;
     border-radius: 100px;
+    transition: all 0.2s ease;
+    outline: none;
   }
 
   button:hover {
-    box-shadow: none;
-    background: linear-gradient(135deg, #9366f7 0%, #7c3aed 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 4px 12px rgba(0, 0, 0, 0.4);
+    background: linear-gradient(135deg, #253347 0%, #131c33 100%);
+    color: #93c5fd;
     animation: wind 2s ease-in-out infinite;
   }
 

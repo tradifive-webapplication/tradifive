@@ -107,7 +107,8 @@ export default function AutomatedJournalPublic() {
 
             <button
               onClick={() => navigate("/login")}
-              style={{ padding: "14px 32px", borderRadius: 100, background: "#3b82f6", color: "#fff", fontWeight: 800, fontSize: 14, border: "none", cursor: "pointer", transition: "all 0.3s" }}
+              className="btn-glow-primary"
+              style={{ padding: "14px 32px", borderRadius: 100, fontSize: 14, fontWeight: 800 }}
             >
               Open Your Journal
             </button>

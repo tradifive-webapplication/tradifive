@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { Users, Shield, BookOpen, Crown, Sparkles } from "lucide-react";
+import { Users, Shield, BookOpen, Crown, Sparkles, Cpu } from "lucide-react";
 import useEmblaCarousel from 'embla-carousel-react';
 
 function fadeUp(delay = 0) {
@@ -316,6 +316,15 @@ export default function DeepDiveFeatures() {
       desc: "Launch premium communities, create educational content, share signals, and monetize your trading knowledge.",
       imageSrc: "/mentordesktop.png",
     },
+    {
+      id: "FiAlgo Engine",
+      icon: <Cpu size={24} color="#0ea5e9" />,
+      color: "#0ea5e9",
+      featureNumber: "FEATURE 06",
+      title: "FiAlgo Algorithmic Trading Engine (MT5).",
+      desc: "Deploy V1 of our intelligent FiAlgo trading algorithms. Supports major pairs like XAUUSD on any MT5 broker. Purchase a license to execute trades completely hands-free while you sleep.",
+      imageSrc: "/autotradedesktop.png",
+    },
   ];
 
   return (
@@ -353,7 +362,7 @@ export default function DeepDiveFeatures() {
             }}
           >
             <span style={{ background: "linear-gradient(to right, #ffffff, #3b82f6)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-              Five Powerful Systems.
+              Six Powerful Systems.
               <br />
               One Trading Ecosystem.
             </span>

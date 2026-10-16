@@ -77,8 +77,7 @@ export default function NotificationHub() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const chanId = Math.random().toString(36).substring(2, 8);
-      const channel = supabase.channel(`notifications_${user.id}_${chanId}`)
+      const channel = supabase.channel(`notifications_${user.id}`)
         .on('postgres_changes', {
           event: 'INSERT',
           schema: 'public',
@@ -196,7 +195,7 @@ export default function NotificationHub() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -8, scale: 0.96 }}
               transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
-              className="absolute right-0 top-12 w-[400px] bg-white dark:bg-[#0F111A] rounded-3xl shadow-[0_24px_64px_-12px_rgba(0,0,0,0.25),0_0_0_1px_rgba(0,0,0,0.05)] dark:shadow-none overflow-hidden z-[110]"
+              className="fixed sm:absolute left-4 right-4 sm:left-auto sm:right-0 top-[70px] sm:top-12 w-auto sm:w-[400px] max-w-[400px] bg-white dark:bg-[#121214] border border-slate-200/80 dark:border-white/10 rounded-3xl shadow-[0_24px_64px_-12px_rgba(0,0,0,0.25)] overflow-hidden z-[110]"
             >
               {/* Header */}
               <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-white/[0.05]">

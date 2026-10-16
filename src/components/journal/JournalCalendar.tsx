@@ -172,35 +172,37 @@ export default function JournalCalendar({ loading }: { loading?: boolean }) {
   return (
     <div className="bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] rounded-[22px] border-2 border-white shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] flex flex-col h-full overflow-hidden transition-all duration-300 hover:scale-[1.002] hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#CBD5E1] relative dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:rounded-[20px] dark:shadow-none dark:hover:shadow-none">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-[#333333] dark:border-white/5 bg-slate-50/30 dark:bg-white/[0.002]">
-        <div className="flex items-center gap-3">
-          <button 
-            onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1))}
-            className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-400 hover:text-slate-700"
-          >
-            <IconlyChevronLeft set="curved" primaryColor="currentColor" size={16} stroke="bold" />
-          </button>
-          <h2 className="text-[16px] font-bold text-slate-900 dark:text-slate-200 tracking-tight min-w-[120px] text-center">{monthLabel}</h2>
-          <button 
-            onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1))}
-            className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-400 hover:text-slate-700"
-          >
-            <IconlyChevronRight set="curved" primaryColor="currentColor" size={16} stroke="bold" />
-          </button>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-3.5 sm:px-6 py-3.5 sm:py-4 border-b border-slate-100 dark:border-[#333333] dark:border-white/5 bg-slate-50/30 dark:bg-white/[0.002]">
+        <div className="flex items-center justify-between sm:justify-start gap-2 sm:gap-3">
+          <div className="flex items-center gap-1 sm:gap-2">
+            <button 
+              onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1))}
+              className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-400 hover:text-slate-700 active:scale-95 cursor-pointer"
+            >
+              <IconlyChevronLeft set="curved" primaryColor="currentColor" size={16} stroke="bold" />
+            </button>
+            <h2 className="text-[15px] sm:text-[16px] font-bold text-slate-900 dark:text-slate-200 tracking-tight min-w-[110px] sm:min-w-[120px] text-center">{monthLabel}</h2>
+            <button 
+              onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1))}
+              className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-400 hover:text-slate-700 active:scale-95 cursor-pointer"
+            >
+              <IconlyChevronRight set="curved" primaryColor="currentColor" size={16} stroke="bold" />
+            </button>
+          </div>
           <button 
             onClick={() => setCurrentDate(new Date())}
-            className="ml-1 px-4 py-1.5 rounded-full border border-slate-200 dark:border-[#333333] dark:border-white/10 text-[11px] font-bold uppercase tracking-wider text-slate-500 hover:text-slate-800 dark:hover:text-white hover:bg-slate-50 dark:bg-[#141414] dark:hover:bg-slate-800 transition-colors"
+            className="px-3 sm:px-4 py-1 sm:py-1.5 rounded-full border border-slate-200 dark:border-[#333333] dark:border-white/10 text-[10.5px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-500 hover:text-slate-800 dark:hover:text-white hover:bg-slate-50 dark:bg-[#141414] dark:hover:bg-slate-800 transition-colors active:scale-95 cursor-pointer"
           >
             This month
           </button>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 pt-1 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-white/5">
           <div className="flex items-center gap-1.5">
-            <span className="text-[11px] text-slate-400 font-bold uppercase tracking-wider">Monthly stats:</span>
+            <span className="text-[10px] sm:text-[11px] text-slate-400 font-bold uppercase tracking-wider">Monthly:</span>
             {isPageLoading ? (
               <Skeleton className="h-4.5 w-16 bg-slate-200 dark:bg-white/10 rounded" />
             ) : (
-              <span className={`text-[13px] font-bold tracking-tight ${monthlyTotal >= 0 ? "text-[#10B981]" : "text-[#F06363]"}`}>
+              <span className={`text-[12.5px] sm:text-[13px] font-bold tracking-tight ${monthlyTotal >= 0 ? "text-[#10B981]" : "text-[#F06363]"}`}>
                 {formatPnl(monthlyTotal)}
               </span>
             )}
@@ -209,10 +211,10 @@ export default function JournalCalendar({ loading }: { loading?: boolean }) {
             <Skeleton className="h-5 w-24 bg-slate-200 dark:bg-white/10 rounded" />
           ) : (
             <div className="flex items-center gap-2">
-              <span className="text-[11px] font-bold tracking-wider uppercase text-slate-400 bg-slate-100 dark:bg-white/5 px-2 py-0.5 rounded">{tradingDays} days active</span>
+              <span className="text-[10px] sm:text-[11px] font-bold tracking-wider uppercase text-slate-400 bg-slate-100 dark:bg-white/5 px-2 py-0.5 rounded">{tradingDays} days active</span>
               <button 
                 onClick={() => setShowSettings(!showSettings)}
-                className={`p-1.5 rounded-lg transition-all duration-200 ${showSettings ? "bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-white" : "text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"}`}
+                className={`p-1.5 rounded-lg transition-all duration-200 cursor-pointer ${showSettings ? "bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-white" : "text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"}`}
                 title="View Legend & Insights"
               >
                 <IconlySetting set="curved" primaryColor="currentColor" size={15} stroke="bold" className={showSettings ? "rotate-45" : ""} />
@@ -222,95 +224,109 @@ export default function JournalCalendar({ loading }: { loading?: boolean }) {
         </div>
       </div>
 
-      {/* Day headers */}
-      <div className="grid grid-cols-[repeat(7,1fr)_110px] gap-1.5 px-2 py-2 bg-slate-50/50 dark:bg-white/[0.01] border-b border-slate-100 dark:border-white/5">
-        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(d => (
-          <div key={d} className="py-1.5 text-center text-[10px] font-bold uppercase tracking-wider text-slate-400/80">
-            {d}
-          </div>
-        ))}
-        <div className="py-1.5 text-center text-[10px] font-bold uppercase tracking-wider text-slate-400/80">
-          Weekly
-        </div>
-      </div>
-
-      {/* Calendar rows */}
-      <div className="flex flex-col gap-1.5 p-2 bg-slate-50/40 dark:bg-black/10">
-        {isPageLoading ? (
-          Array.from({ length: 5 }).map((_, wIdx) => (
-            <div key={wIdx} className="grid grid-cols-[repeat(7,1fr)_110px] gap-1.5 animate-pulse">
-              {Array.from({ length: 7 }).map((_, dIdx) => (
-                <div key={dIdx} className="min-h-[110px] p-3.5 rounded-[18px] border border-slate-100 dark:border-white/[0.03] flex flex-col justify-between bg-slate-50/20 dark:bg-white/[0.005]">
-                  <div className="flex justify-between items-start">
-                    <Skeleton className="w-5 h-5 rounded-full bg-slate-200 dark:bg-white/10" />
-                    <Skeleton className="w-12 h-3 bg-slate-200 dark:bg-white/10 rounded" />
-                  </div>
-                  <div className="mt-auto pt-2">
-                    <Skeleton className="h-4 w-16 bg-slate-200 dark:bg-white/10 rounded" />
-                  </div>
-                </div>
-              ))}
-              <div className="border-2 border-white dark:border-white/5 rounded-[22px] flex flex-col items-center justify-center text-center px-4 py-3 bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:shadow-none">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Week {wIdx + 1}</span>
-                <Skeleton className="h-4 w-14 bg-slate-200 dark:bg-white/10 rounded mb-1" />
-                <Skeleton className="h-3 w-10 bg-slate-200 dark:bg-white/10 rounded" />
+      <div className="w-full pb-2">
+        <div className="w-full">
+          {/* Day headers */}
+          <div className="grid grid-cols-7 sm:grid-cols-[repeat(7,1fr)_110px] gap-1 sm:gap-1.5 px-1.5 sm:px-2 py-1.5 sm:py-2 bg-slate-50/50 dark:bg-white/[0.01] border-b border-slate-100 dark:border-white/5">
+            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(d => (
+              <div key={d} className="py-1 text-center text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-slate-400/80">
+                {d}
               </div>
+            ))}
+            <div className="hidden sm:block py-1 text-center text-[10px] font-bold uppercase tracking-wider text-slate-400/80">
+              Weekly
             </div>
-          ))
-        ) : (
-          weeks.map((week, wIdx) => {
-            const ws = weeklyData[wIdx] ?? { pnl: 0, active: 0 };
-            return (
-              <div key={wIdx} className="grid grid-cols-[repeat(7,1fr)_110px] gap-1.5">
-                {week.map((day, dIdx) => {
-                  const dayData = day ? tradesByDate.get(day) : undefined;
-                  const isToday = day === new Date().getDate() && 
-                                  currentDate.getMonth() === new Date().getMonth() && 
-                                  currentDate.getFullYear() === new Date().getFullYear();
-                  return (
-                    <CalendarCell
-                      key={dIdx}
-                      day={day}
-                      pnl={dayData?.pnl}
-                      formattedPnl={dayData?.pnl !== undefined ? formatPnl(dayData.pnl) : undefined}
-                      trades={dayData?.trades}
-                      isToday={isToday}
-                      onClick={() => {
-                        if (isStarter) {
-                          toast.error(
-                            <div className="flex flex-col gap-1">
-                              <div className="flex items-center gap-2">
-                                <Crown size={16} className="text-amber-500" />
-                                <span className="font-bold text-slate-900 dark:text-white">Pro Feature</span>
-                              </div>
-                              <span className="text-slate-600 dark:text-slate-300">Upgrade to Pro or Elite to access the Daily Journal & Performance Summary.</span>
-                            </div>
-                          );
-                          return;
-                        }
-                        if (day) {
-                          setSelectedDateObj(new Date(currentDate.getFullYear(), currentDate.getMonth(), day));
-                        }
-                      }}
-                    />
-                  );
-                })}
-                <div className="border-2 border-white dark:border-[1px] dark:border-white/5 rounded-[22px] flex flex-col items-center justify-center text-center px-4 py-3 bg-gradient-to-b from-[#F5F7FB] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#CBD5E1] dark:bg-none dark:bg-[#161A22] dark:shadow-none dark:hover:shadow-none">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Week {wIdx + 1}</span>
-                  <span className={`text-[13px] font-bold tracking-tight font-sans tabular-nums ${ws.pnl >= 0 ? "text-[#10B981]" : "text-[#F06363]"}`}>
-                    {ws.pnl !== 0 ? formatPnl(ws.pnl) : formatPnl(0)}
-                  </span>
-                  <span className="text-[9px] font-bold uppercase text-slate-400/80 tracking-wide mt-1">{ws.active} {ws.active === 1 ? "day" : "days"}</span>
+          </div>
+
+          {/* Calendar rows */}
+          <div className="flex flex-col gap-1 sm:gap-1.5 p-1 sm:p-2 bg-slate-50/40 dark:bg-black/10">
+            {isPageLoading ? (
+              Array.from({ length: 5 }).map((_, wIdx) => (
+                <div key={wIdx} className="grid grid-cols-7 sm:grid-cols-[repeat(7,1fr)_110px] gap-1 sm:gap-1.5 animate-pulse">
+                  {Array.from({ length: 7 }).map((_, dIdx) => (
+                    <div key={dIdx} className="min-h-[56px] sm:min-h-[110px] p-1.5 sm:p-3.5 rounded-[14px] sm:rounded-[22px] border border-slate-100 dark:border-white/[0.03] flex flex-col justify-between bg-slate-50/20 dark:bg-white/[0.005]">
+                      <Skeleton className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-slate-200 dark:bg-white/10" />
+                      <div className="mt-auto pt-1">
+                        <Skeleton className="h-3 sm:h-4 w-12 sm:w-16 bg-slate-200 dark:bg-white/10 rounded" />
+                      </div>
+                    </div>
+                  ))}
+                  <div className="hidden sm:flex border-2 border-white dark:border-white/5 rounded-[18px] sm:rounded-[22px] flex-col items-center justify-center text-center px-4 py-3 bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:shadow-none">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Week {wIdx + 1}</span>
+                    <Skeleton className="h-4 w-14 bg-slate-200 dark:bg-white/10 rounded mb-1" />
+                    <Skeleton className="h-3 w-10 bg-slate-200 dark:bg-white/10 rounded" />
+                  </div>
                 </div>
+              ))
+            ) : (
+              weeks.map((week, wIdx) => {
+                const ws = weeklyData[wIdx] ?? { pnl: 0, active: 0 };
+                return (
+                  <div key={wIdx} className="grid grid-cols-7 sm:grid-cols-[repeat(7,1fr)_110px] gap-1 sm:gap-1.5">
+                    {week.map((day, dIdx) => {
+                      const dayData = day ? tradesByDate.get(day) : undefined;
+                      const isToday = day === new Date().getDate() && 
+                                      currentDate.getMonth() === new Date().getMonth() && 
+                                      currentDate.getFullYear() === new Date().getFullYear();
+                      return (
+                        <CalendarCell
+                          key={dIdx}
+                          day={day}
+                          pnl={dayData?.pnl}
+                          formattedPnl={dayData?.pnl !== undefined ? formatPnl(dayData.pnl) : undefined}
+                          trades={dayData?.trades}
+                          isToday={isToday}
+                          onClick={() => {
+                            if (isStarter) {
+                              toast.error(
+                                <div className="flex flex-col gap-1">
+                                  <div className="flex items-center gap-2">
+                                    <Crown size={16} className="text-amber-500" />
+                                    <span className="font-bold text-slate-900 dark:text-white">Pro Feature</span>
+                                  </div>
+                                  <span className="text-slate-600 dark:text-slate-300">Upgrade to Pro or Elite to access the Daily Journal & Performance Summary.</span>
+                                </div>
+                              );
+                              return;
+                            }
+                            if (day) {
+                              setSelectedDateObj(new Date(currentDate.getFullYear(), currentDate.getMonth(), day));
+                            }
+                          }}
+                        />
+                      );
+                    })}
+                    <div className="hidden sm:flex border-2 border-white dark:border-[1px] dark:border-white/5 rounded-[18px] sm:rounded-[22px] flex-col items-center justify-center text-center px-3 sm:px-4 py-2 sm:py-3 bg-gradient-to-b from-[#F5F7FB] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#CBD5E1] dark:bg-none dark:bg-[#161A22] dark:shadow-none dark:hover:shadow-none">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Week {wIdx + 1}</span>
+                      <span className={`text-[12.5px] sm:text-[13px] font-bold tracking-tight font-sans tabular-nums ${ws.pnl >= 0 ? "text-[#10B981]" : "text-[#F06363]"}`}>
+                        {ws.pnl !== 0 ? formatPnl(ws.pnl) : formatPnl(0)}
+                      </span>
+                      <span className="text-[9px] font-bold uppercase text-slate-400/80 tracking-wide mt-0.5 sm:mt-1">{ws.active} {ws.active === 1 ? "day" : "days"}</span>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+          
+          {/* Mobile Weekly Summary Bar */}
+          <div className="sm:hidden flex items-center justify-between gap-1.5 px-2.5 py-2 mt-1.5 rounded-xl bg-slate-50/70 dark:bg-white/[0.02] border border-slate-100 dark:border-white/5 overflow-x-auto scrollbar-hide">
+            <span className="text-[9px] font-extrabold uppercase text-slate-400 shrink-0">Weekly:</span>
+            {weeklyData.map((ws, idx) => (
+              <div key={idx} className="flex items-center gap-1 shrink-0 px-2 py-0.5 rounded-lg bg-white dark:bg-white/5 border border-slate-200/60 dark:border-white/10 shadow-2xs">
+                <span className="text-[9px] font-bold text-slate-400">W{idx + 1}:</span>
+                <span className={`text-[9.5px] font-bold tabular-nums font-sans ${ws.pnl >= 0 ? "text-[#10B981]" : "text-[#F06363]"}`}>
+                  {ws.pnl !== 0 ? formatPnl(ws.pnl) : "$0"}
+                </span>
               </div>
-            );
-          })
-        )}
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Settings / Info Popover */}
       {showSettings && (
-        <div className="absolute right-6 top-[64px] z-[100] w-80 bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-md border border-slate-200/80 dark:border-white/5 shadow-[0_20px_50px_rgba(0,0,0,0.12)] dark:shadow-none p-5 rounded-2xl flex flex-col gap-4 animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="absolute right-2 sm:right-6 top-[64px] z-[100] w-[calc(100%-16px)] sm:w-80 max-w-[340px] bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-md border border-slate-200/80 dark:border-white/5 shadow-[0_20px_50px_rgba(0,0,0,0.12)] dark:shadow-none p-5 rounded-2xl flex flex-col gap-4 animate-in fade-in slide-in-from-top-2 duration-200">
           <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/5 pb-2.5">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-2">
               <Info size={14} className="text-slate-400" />
@@ -421,23 +437,23 @@ function CalendarCell({ day, pnl, formattedPnl, trades, isToday, onClick }: { da
 
   const getCellClasses = () => {
     if (!day) {
-      return "min-h-[110px] p-3.5 rounded-[22px] border-2 border-dashed border-slate-200/40 dark:border-white/[0.02] bg-slate-100/5 dark:bg-white/[0.002] transition-all duration-200";
+      return "min-h-[56px] sm:min-h-[110px] p-1 sm:p-3.5 rounded-[12px] sm:rounded-[22px] border border-transparent bg-transparent transition-all duration-200 pointer-events-none";
     }
 
-    const baseClasses = "min-h-[110px] p-3.5 rounded-[22px] border-2 border-white dark:border-[1px] dark:border-white/5 transition-all duration-300 relative flex flex-col justify-between cursor-pointer";
+    const baseClasses = "min-h-[56px] sm:min-h-[110px] p-1.5 sm:p-3.5 rounded-[12px] sm:rounded-[22px] border-2 border-white dark:border-[1px] dark:border-white/5 transition-all duration-300 relative flex flex-col justify-between cursor-pointer";
 
     if (pnl === undefined || pnl === 0) {
       // Neutral day
-      return `${baseClasses} bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] hover:scale-[1.02] hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#D0D0D5] dark:bg-none dark:bg-[#141414] dark:shadow-none dark:hover:shadow-none`;
+      return `${baseClasses} bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] shadow-[0_2px_5px_-3px_rgba(0,0,0,0.08),0_0_0_1.5px_#E7E7E7] hover:scale-[1.02] hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#D0D0D5] dark:bg-none dark:bg-[#141414] dark:shadow-none dark:hover:shadow-none`;
     }
 
     if (pnl > 0) {
       // Profitable day
-      return `${baseClasses} bg-gradient-to-b from-[#EBF9F3] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#C2F0DD] hover:scale-[1.02] hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#A5E5CB] dark:bg-none dark:bg-[#10B981]/5 dark:border-[#10B981]/20 dark:shadow-none dark:hover:shadow-none`;
+      return `${baseClasses} bg-gradient-to-b from-[#EBF9F3] to-[#FFFFFF] shadow-[0_2px_5px_-3px_rgba(0,0,0,0.08),0_0_0_1.5px_#C2F0DD] hover:scale-[1.02] hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#A5E5CB] dark:bg-none dark:bg-[#10B981]/5 dark:border-[#10B981]/20 dark:shadow-none dark:hover:shadow-none`;
     }
 
     // Losing day
-    return `${baseClasses} bg-gradient-to-b from-[#FFF0F0] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#FCD1D1] hover:scale-[1.02] hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#FAA2A2] dark:bg-none dark:bg-[#F06363]/5 dark:border-[#F06363]/20 dark:shadow-none dark:hover:shadow-none`;
+    return `${baseClasses} bg-gradient-to-b from-[#FFF0F0] to-[#FFFFFF] shadow-[0_2px_5px_-3px_rgba(0,0,0,0.08),0_0_0_1.5px_#FCD1D1] hover:scale-[1.02] hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#FAA2A2] dark:bg-none dark:bg-[#F06363]/5 dark:border-[#F06363]/20 dark:shadow-none dark:hover:shadow-none`;
   };
 
   return (
@@ -445,9 +461,9 @@ function CalendarCell({ day, pnl, formattedPnl, trades, isToday, onClick }: { da
       onClick={day ? onClick : undefined}
       className={getCellClasses()}
     >
-      <div className="flex justify-between items-start">
+      <div className="flex justify-between items-start gap-1">
         {day && (
-          <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-[12px] font-bold ${
+          <span className={`inline-flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 rounded-full text-[10px] sm:text-[12px] font-bold shrink-0 ${
             isToday 
               ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-md shadow-slate-900/10 dark:shadow-white/5" 
               : "text-[#393939] dark:text-slate-400"
@@ -456,14 +472,14 @@ function CalendarCell({ day, pnl, formattedPnl, trades, isToday, onClick }: { da
           </span>
         )}
         {trades !== undefined && trades > 0 && (
-          <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-lg leading-none shrink-0 tracking-wide uppercase ${getPillClass()}`}>
-            {trades} {trades === 1 ? "trade" : "trades"}
+          <span className={`text-[7.5px] sm:text-[9px] font-bold px-1 sm:px-1.5 py-0.5 rounded leading-none shrink-0 tracking-wide uppercase truncate max-w-[38px] sm:max-w-none ${getPillClass()}`}>
+            {trades} {trades === 1 ? "trd" : "trds"}
           </span>
         )}
       </div>
       {day && pnl !== undefined && (
-        <div className="mt-auto pt-2">
-          <p className={`text-[13px] font-bold tracking-tight leading-none font-sans tabular-nums ${pnl >= 0 ? "text-[#10B981]" : "text-[#F06363]"}`}>
+        <div className="mt-auto pt-1 sm:pt-2">
+          <p className={`text-[9.5px] sm:text-[13px] font-bold tracking-tight leading-none font-sans tabular-nums truncate ${pnl >= 0 ? "text-[#10B981]" : "text-[#F06363]"}`}>
             {formattedPnl}
           </p>
         </div>

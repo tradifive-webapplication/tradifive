@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Bell, Clock, ChevronLeft, Sparkles, AlertTriangle, XCircle, ShieldAlert, Timer, X, Bot, Menu } from "lucide-react";
+import { Search, Bell, Clock, ChevronLeft, Sparkles, AlertTriangle, XCircle, ShieldAlert, Timer, X, Bot, Menu, Monitor } from "lucide-react";
 import AppSidebar from "./AppSidebar";
 import FloatingAICoach from "./FloatingAICoach";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -11,6 +11,8 @@ import { toast } from "sonner";
 import { useMarket } from "@/contexts/MarketContext";
 import { supabase } from "@/lib/supabase";
 import BottomNav from "./BottomNav";
+import NotificationHub from "./NotificationHub";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Breadcrumb {
   label: string;
@@ -24,11 +26,13 @@ interface DashboardLayoutProps {
   headerActions?: React.ReactNode;
   noPadding?: boolean;
   noScroll?: boolean;
+  hideBottomNav?: boolean;
 }
 
-export default function DashboardLayout({ children, breadcrumbs, onBack, headerActions, noPadding = false, noScroll = false }: DashboardLayoutProps) {
+export default function DashboardLayout({ children, breadcrumbs, onBack, headerActions, noPadding = false, noScroll = false, hideBottomNav = false }: DashboardLayoutProps) {
   const location = useLocation();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [isMounted, setIsMounted] = useState(false);
   const [emergencyHaltActive, setEmergencyHaltActive] = useState(false);
   const [showFlash, setShowFlash] = useState(false);
@@ -68,8 +72,7 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const chanId = Math.random().toString(36).substring(2, 8);
-      channel = supabase.channel(`global-dm-notifications-${user.id}-${chanId}`)
+      channel = supabase.channel('global-dm-notifications')
         .on(
           'postgres_changes',
           { event: 'INSERT', schema: 'public', table: 'direct_messages', filter: `receiver_id=eq.${user.id}` },
@@ -109,7 +112,7 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
                     </p>
                   </div>
                   <button
-                    onClick={() => { toast.dismiss(t); navigate(`/messages`); }}
+                    onClick={() => { toast.dismiss(t); navigate(`/inbox`); }}
                     className="bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 px-4 py-1.5 rounded-xl text-[13px] font-bold hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors shrink-0 shadow-sm"
                   >
                     Reply
@@ -357,9 +360,11 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
       <div className="absolute top-[-10%] left-[-5%] w-[40%] h-[40%] rounded-full bg-primary/5 dark:hidden blur-[120px] -z-10 animate-float" />
       <div className="absolute bottom-[10%] right-[-5%] w-[30%] h-[40%] rounded-full bg-purple-400/5 dark:hidden blur-[100px] -z-10 animate-pulse" />
 
-      <div className="hidden md:block">
-        <AppSidebar isCollapsed={isCollapsed} toggleCollapse={handleToggleCollapse} isFullScreen={isFullScreen} />
-      </div>
+      {!isMobile && (
+        <div className="hidden md:block">
+          <AppSidebar isCollapsed={isCollapsed} toggleCollapse={handleToggleCollapse} isFullScreen={isFullScreen} />
+        </div>
+      )}
 
       <div className={`flex-1 flex flex-col h-screen overflow-hidden ${isMounted ? 'transition-[margin-left] duration-300' : ''} ml-0 ${isCollapsed ? 'md:ml-[90px]' : 'md:ml-[340px]'}`}>
 
@@ -379,7 +384,7 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
         )}
 
         {/* Main Content Area */}
-        <div className={`flex-1 ${isFullScreen ? 'pl-0 pr-0 pt-0 pb-0' : `px-0 md:px-5 ${impersonatingUser ? 'pt-0 md:pt-3' : 'pt-0 md:pt-5'} pb-16 md:pb-5`} ${noScroll ? 'overflow-hidden h-full flex flex-col' : 'overflow-y-auto scrollbar-hide'}`}>
+        <div className={`flex-1 ${isFullScreen || (noScroll && hideBottomNav) ? 'pl-0 pr-0 pt-0 pb-0' : `px-0 md:px-5 ${impersonatingUser ? 'pt-0 md:pt-3' : 'pt-0 md:pt-5'} pb-20 md:pb-5`} ${noScroll ? 'overflow-hidden h-full flex flex-col' : 'overflow-y-auto scrollbar-hide'}`}>
           <main
             className={`${noScroll ? 'flex-1 h-full flex flex-col overflow-hidden' : 'min-h-full'
               } ${isFullScreen ? 'rounded-none border-l border-slate-200 dark:border-white/5' : 'rounded-none md:rounded-[2.5rem] border-0 md:border md:border-slate-100 dark:md:border-white/5 shadow-none md:shadow-[0_8px_30_rgb(0,0,0,0.04)]'} bg-white dark:bg-[#121212] font-sans`}
@@ -394,18 +399,20 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
                         <Menu size={16} />
                       </button>
                     </SheetTrigger>
-                    <SheetContent side="left" className="p-0 w-[280px] bg-white dark:bg-[#1E1E1E] border-r border-slate-200 dark:border-white/5">
+                    <SheetContent side="left" className="p-0 w-[325px] sm:w-[350px] max-w-[86vw] bg-[#f4f7fb] dark:bg-[#121214] border-r border-slate-200/80 dark:border-white/10 shadow-2xl overflow-hidden focus:outline-none">
                       <AppSidebar isMobile={true} toggleCollapse={() => setIsMobileMenuOpen(false)} />
                     </SheetContent>
                   </Sheet>
                 </div>
-                <button
-                  onClick={onBack ? onBack : () => navigate(-1)}
-                  className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] text-[#393939] dark:text-[#E2E8F0] font-extrabold transition-all border-2 border-white dark:border-white/5 shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),_0_0_0_2px_#E7E7E7] dark:shadow-none hover:shadow-[0_6px_10px_-4px_rgba(0,0,0,0.15),_0_0_0_2px_#D4D4D4] dark:hover:shadow-none active:scale-95 select-none mr-2"
-                  title="Go Back"
-                >
-                  <ChevronLeft size={16} />
-                </button>
+                {location.pathname !== '/home' && (
+                  <button
+                    onClick={onBack ? onBack : () => navigate(-1)}
+                    className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] text-[#393939] dark:text-[#E2E8F0] font-extrabold transition-all border-2 border-white dark:border-white/5 shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),_0_0_0_2px_#E7E7E7] dark:shadow-none hover:shadow-[0_6px_10px_-4px_rgba(0,0,0,0.15),_0_0_0_2px_#D4D4D4] dark:hover:shadow-none active:scale-95 select-none mr-2"
+                    title="Go Back"
+                  >
+                    <ChevronLeft size={16} />
+                  </button>
+                )}
                 {breadcrumbs && breadcrumbs.length > 0 ? (
                   <div className="hidden sm:flex items-center gap-2 text-[14px] font-semibold text-slate-500 dark:text-slate-400">
                     <button onClick={() => navigate('/dashboard')} className="hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors">{categoryName}</button>
@@ -437,13 +444,29 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
                 )}
                 {/* Mobile Title (shows only on mobile when breadcrumbs/segments are hidden) */}
                 <div className="sm:hidden flex items-center text-[15px] font-semibold text-slate-900 dark:text-white capitalize">
-                  {breadcrumbs && breadcrumbs.length > 0 ? breadcrumbs[breadcrumbs.length - 1].label : title}
+                  {location.pathname === '/home' ? (
+                    <div onClick={() => navigate('/home')} className="flex items-center gap-2.5 cursor-pointer">
+                      <img src="/tf-logo.png" alt="Logo" className="w-[34px] h-[34px] object-contain shrink-0" />
+                      <img 
+                        src="/Tradifive_logo1.png" 
+                        alt="Tradifive" 
+                        className="h-[28px] w-auto object-contain dark:hidden" 
+                      />
+                      <img 
+                        src="/Dark mode logo with white.png" 
+                        alt="Tradifive" 
+                        className="h-[28px] w-auto object-contain hidden dark:block" 
+                      />
+                    </div>
+                  ) : (
+                    breadcrumbs && breadcrumbs.length > 0 ? breadcrumbs[breadcrumbs.length - 1].label : title
+                  )}
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 sm:gap-4">
-
+              <div className="flex items-center gap-2 sm:gap-3">
                 {headerActions}
+                <NotificationHub />
                 <button
                   onClick={() => setIsAIOpen(!isAIOpen)}
                   className="hidden md:flex items-center justify-center gap-2 px-4 h-10 rounded-full bg-white dark:bg-[#1E1E1E] border border-slate-200 dark:border-white/5 text-slate-700 dark:text-slate-300 font-bold text-[13px] transition-all shadow-sm hover:bg-slate-50 dark:hover:bg-[#222] hover:text-slate-900 dark:hover:text-white active:scale-95 select-none"
@@ -524,7 +547,7 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
             </AnimatePresence>
 
             {/* Internal Content Padding - stretch flex dynamically if noScroll is active */}
-            <div className={`${noPadding || noScroll ? "p-0" : "p-4 pb-16 md:p-10 md:pb-20"} ${noScroll ? "flex-1 min-h-0 flex flex-col overflow-hidden" : ""}`}>
+            <div className={`${noPadding || noScroll ? "p-0" : "p-3 pb-24 md:p-10 md:pb-20"} ${noScroll ? "flex-1 min-h-0 flex flex-col overflow-hidden" : ""}`}>
               <motion.div
                 initial={{ opacity: location.pathname === '/settings' ? 1 : 0, y: location.pathname === '/settings' ? 0 : 15 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -548,6 +571,9 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
           </main>
         </div>
       </div>
+
+      {/* Mobile Bottom Navigation Bar */}
+      {!hideBottomNav && <BottomNav />}
     </div>
   );
 }

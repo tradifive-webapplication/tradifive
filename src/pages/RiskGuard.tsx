@@ -740,7 +740,7 @@ export default function RiskGuard() {
                      </div>
 
                      {/* ── KILL SWITCH (Header Position) ── */}
-                     <div className="flex-none flex justify-end">
+                     <div className="flex-none w-full sm:w-auto flex sm:justify-end">
                         <div className={`px-4 py-2 rounded-[22px] border-2 relative group w-full sm:w-auto transition-all duration-300 ${killSwitchActive
                            ? 'border-red-200 bg-red-50/50 shadow-[0_8px_30px_rgb(239,68,68,0.1)] dark:bg-red-500/10 dark:border-[1px] dark:border-red-500/30 dark:shadow-none dark:rounded-[22px]'
                            : 'border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:bg-none dark:bg-[#191B1E] dark:border-[1px] dark:border-[#2B2F35] dark:rounded-[22px] dark:shadow-none'
@@ -846,15 +846,15 @@ export default function RiskGuard() {
                         {/* Horizontal Progress Bar Section */}
                         <div className="space-y-2">
                            {/* Starting & Target Capital Labels */}
-                           <div className="flex justify-between items-end px-1">
+                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 px-1">
                               <div className="flex items-center gap-2 mb-1">
-                                 <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
+                                 <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse shrink-0" />
                                  <p className="text-[12px] text-slate-500 font-medium">
                                     Starting Capital: <span className="font-semibold text-slate-800 dark:text-[#F5F7FA] tabular-nums">{sym}{(startingCapital || balance || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {iso}</span>
                                  </p>
                               </div>
                               <div className="flex items-center gap-2 mb-1 shrink-0">
-                                 <span className="w-1.5 h-1.5 rounded-full bg-[#22D99A]" />
+                                 <span className="w-1.5 h-1.5 rounded-full bg-[#22D99A] shrink-0" />
                                  <p className="text-[12px] text-slate-500 font-medium">
                                     Target Capital: <span className="font-semibold text-slate-800 dark:text-[#F5F7FA] tabular-nums">{sym}{targetCapital.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {iso}</span>
                                  </p>
@@ -897,7 +897,7 @@ export default function RiskGuard() {
                   </div>
 
                   {/* ===== REORGANIZED CATEGORIES TABS ===== */}
-                  <div className="flex space-x-1 p-1 bg-slate-100 dark:bg-[#1A1A1C] rounded-[20px] mb-8 overflow-x-auto hide-scrollbar">
+                  <div className="flex space-x-1 p-1 bg-slate-100 dark:bg-[#1A1A1C] rounded-[20px] mb-8 overflow-x-auto no-scrollbar scrollbar-hide">
                      <button
                         onClick={() => setActiveTab('trading_control')}
                         className={`flex-1 min-w-[120px] py-2.5 px-4 rounded-[16px] text-[13px] font-medium transition-all ${activeTab === 'trading_control' ? 'bg-white dark:bg-[#2B2E35] font-semibold text-slate-800 dark:text-[#FFFFFF] shadow-sm' : 'text-slate-500 dark:text-[#778396] hover:text-slate-700 dark:hover:text-[#F5F7FA]'}`}

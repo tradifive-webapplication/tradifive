@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import '../theme-switch.css';
 import DashboardLayout from '@/components/DashboardLayout';
 import logoOnly from '@/assets/Logo_only.png';
@@ -33,11 +33,22 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { User, Category, Notification, Star, Swap, TicketStar, Wallet, Chat, InfoCircle, Danger, Logout, Edit, Search, ChevronRight } from 'react-iconly';
 import { useAICoachData } from '@/hooks/useAICoachData';
 
-const TabHeaderUpdater = ({ title, setHeaderTitle }: any) => {
-   useEffect(() => {
-      setHeaderTitle(title);
-   }, [title, setHeaderTitle]);
-   return null;
+const TAB_TITLES: Record<string, string> = {
+   account: "My Account",
+   general: "General Details",
+   profile: "Edit Profile & Privacy",
+   security: "Account & Security",
+   privacy: "Privacy & Community",
+   appearance: "Theme",
+   notifications: "Notifications",
+   ai: "AI Assistant",
+   trading: "Broker & Integrations",
+   subscription: "Subscription",
+   channel: "Channel Settings",
+   creator: "Creator Account",
+   help: "Help Center",
+   report: "Report a Problem",
+   terms: "Terms & Policies"
 };
 
 const PushableButton = ({ children, onClick, type = 'primary', className = '', ...props }: any) => {
@@ -143,11 +154,41 @@ const BrokerIcon = ({ name, size = 36 }: { name: string; size?: number }) => {
 
 export default function Settings() {
    const navigate = useNavigate();
+   const [searchParams] = useSearchParams();
    const { activeMarket } = useMarket();
-   const [activeTab, setActiveTab] = useState('account');
+
+   const normalizeTab = (rawTab: string | null) => {
+      if (!rawTab) return 'account';
+      if (rawTab === 'plan') return 'subscription';
+      if (rawTab === 'profiles') return 'profile';
+      if (rawTab === 'File Setup') return 'trading';
+      return rawTab;
+   };
+
+   const [activeTab, setActiveTab] = useState(() => normalizeTab(searchParams.get('tab')));
+   const [mobileShowDetails, setMobileShowDetails] = useState(() => Boolean(searchParams.get('tab')));
+
+   useEffect(() => {
+      const rawTab = searchParams.get('tab');
+      if (rawTab) {
+         if (rawTab === 'plan') {
+            navigate('/upgrade', { replace: true });
+            return;
+         }
+         setActiveTab(normalizeTab(rawTab));
+         setMobileShowDetails(true);
+      } else {
+         setMobileShowDetails(false);
+      }
+
+      const planParam = searchParams.get('plan');
+      if (planParam && ['starter', 'pro', 'elite'].includes(planParam)) {
+         setSelectedPlan(planParam);
+      }
+   }, [searchParams, navigate]);
    const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
    const [isLoggingOut, setIsLoggingOut] = useState(false);
-   const [headerTitle, setHeaderTitle] = useState('Settings');
+   const headerTitle = TAB_TITLES[activeTab] || "Settings";
    const [activeSubTab, setActiveSubTab] = useState('account-info');
    const [activePlan, setActivePlan] = useState(() => localStorage.getItem('tradifive_cached_plan') || 'starter');
    const [selectedPlan, setSelectedPlan] = useState(() => activePlan);
@@ -337,26 +378,7 @@ export default function Settings() {
       return () => window.removeEventListener('storage', handleStorage);
    }, []);
 
-   // Read tab parameter from URL search params with aliases
-   useEffect(() => {
-      const params = new URLSearchParams(window.location.search);
-      const tabParam = params.get('tab');
-      if (tabParam) {
-         if (tabParam === 'plan') {
-            navigate('/upgrade');
-         } else if (tabParam === 'profiles') {
-            setActiveTab('profile');
-         } else if (tabParam === 'File Setup') {
-            setActiveTab('trading');
-         } else {
-            setActiveTab(tabParam);
-         }
-      }
-      const planParam = params.get('plan');
-      if (planParam && ['starter', 'pro', 'elite'].includes(planParam)) {
-         setSelectedPlan(planParam);
-      }
-   }, []);
+
 
    // Load privacy settings and profile details on mount
    useEffect(() => {
@@ -970,22 +992,7 @@ export default function Settings() {
 
    const displayName = `${profile.firstName} ${profile.lastName}`.trim() || profile.name || "username";
 
-   const tabTitles: Record<string, string> = {
-      general: "General Details",
-      profile: "Edit Profile & Privacy",
-      security: "Account & Security",
-      privacy: "Privacy & Community",
-      appearance: "Theme",
-      notifications: "Notifications",
-      ai: "AI Assistant",
-      trading: "Broker & Integrations",
-      subscription: "Subscription",
-      channel: "Channel Settings",
-      creator: "Creator Account",
-      help: "Help Center",
-      report: "Report a Problem",
-      terms: "Terms & Policies"
-   };
+   const tabTitles = TAB_TITLES;
 
    const resizeImageFile = (file: File, maxWidth: number, maxHeight: number, quality: number = 0.8): Promise<string> => {
       return new Promise((resolve, reject) => {
@@ -1028,26 +1035,41 @@ export default function Settings() {
    };
 
    return (
-      <DashboardLayout breadcrumbs={[{ label: "Home", path: "/home" }, { label: "Settings", path: "/settings" }]}>
+      <DashboardLayout 
+         breadcrumbs={[{ label: "Home", path: "/home" }, { label: "Settings", path: "/settings" }]}
+         noScroll={true}
+         hideBottomNav={mobileShowDetails}
+      >
       <motion.div
-         className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-[3px] p-4 sm:p-6 md:p-8 select-none font-sans"
+         className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-[3px] p-0 sm:p-6 md:p-8 select-none font-sans"
          initial={{ opacity: 0 }}
          animate={{ opacity: 1 }}
          transition={{ duration: 0.05, ease: "easeOut" }}
       >
          
-         {/* Click outside backdrop container back to dashboard page */}
-         <div className="absolute inset-0" onClick={handleCloseSettings} />
+         {/* Click outside backdrop container back to dashboard page (desktop/tablet only) */}
+         <div className="absolute inset-0 hidden sm:block" onClick={handleCloseSettings} />
 
          {/* Centered Settings Dialog Modal Box */}
-         <div className="relative w-full h-full max-w-[1440px] max-h-[880px] rounded-[16px] bg-white dark:bg-[#121212] text-slate-800 dark:text-[#dbdee1] flex overflow-hidden shadow-2xl border border-slate-200/60 dark:border-white/5 z-10">
+         <div className="relative w-full h-full sm:h-auto max-w-[1440px] max-h-full sm:max-h-[880px] rounded-none sm:rounded-[16px] bg-white dark:bg-[#121212] text-slate-800 dark:text-[#dbdee1] flex overflow-hidden shadow-2xl border-0 sm:border sm:border-slate-200/60 dark:sm:border-white/5 z-10 pb-16 md:pb-0">
             
             {/* LEFT SIDEBAR PANEL inside Modal */}
-            <div className="w-60 sm:w-64 bg-[#f2f3f5] dark:bg-[#1E1E1E] flex flex-col h-full border-r border-slate-200/60 dark:border-white/5 shrink-0">
+            <div className={`${mobileShowDetails ? 'hidden md:flex' : 'flex'} w-full md:w-64 bg-[#f2f3f5] dark:bg-[#1E1E1E] flex-col h-full border-r border-slate-200/60 dark:border-white/5 shrink-0`}>
+               {/* Mobile Header for Settings Sidebar */}
+               <div className="flex md:hidden items-center justify-between px-4 py-3 border-b border-slate-200/60 dark:border-white/5 bg-white dark:bg-[#1A1A1C] shrink-0">
+                  <span className="text-[14px] font-extrabold uppercase tracking-wider text-slate-800 dark:text-white">Settings</span>
+                  <button onClick={handleCloseSettings} className="flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 dark:bg-white/10 text-slate-500 hover:text-slate-700 dark:hover:text-white">
+                     <X size={16} />
+                  </button>
+               </div>
+
                <div className="py-6 px-4 flex flex-col gap-4 h-full overflow-y-auto amazing-scrollbar">
                             {/* Mini Profile Display */}
                   <div 
-                     onClick={() => setActiveTab('profile')}
+                     onClick={() => {
+                        setActiveTab('profile');
+                        setMobileShowDetails(true);
+                     }}
                      className="group bg-slate-200/50 dark:bg-[#121212] p-3 rounded-[16px] flex items-center gap-3 shadow-sm border border-slate-300/30 dark:border-transparent cursor-pointer hover:bg-slate-300/30 dark:hover:bg-[#292929]/50 transition-all"
                   >
                      <div className="w-10 h-10 rounded-full overflow-hidden shrink-0 bg-slate-300 dark:bg-[#1E1E1E] shadow-inner">
@@ -1109,6 +1131,7 @@ export default function Settings() {
                                                 setShowLogoutConfirm(true);
                                              } else {
                                                 setActiveTab(item.id); 
+                                                setMobileShowDetails(true);
                                                 if(item.children) setActiveSubTab(item.children[0].id); 
                                              }
                                           }}
@@ -1139,6 +1162,7 @@ export default function Settings() {
                                                    key={child.id}
                                                    onClick={() => {
                                                       setActiveSubTab(child.id);
+                                                      setMobileShowDetails(true);
                                                       const el = document.getElementById(child.id);
                                                       const container = document.getElementById('settings-scroll-container');
                                                       if (el && container) {
@@ -1194,13 +1218,24 @@ export default function Settings() {
             </div>
 
             {/* RIGHT CONTENT PANEL inside Modal */}
-            <div className="flex-1 bg-white dark:bg-[#121212] h-full overflow-hidden relative flex flex-col">
+            <div className={`${mobileShowDetails ? 'flex' : 'hidden md:flex'} flex-1 bg-white dark:bg-[#121212] h-full overflow-hidden relative flex flex-col`}>
                
                {/* Fixed Header outside the scrollable container at the top */}
-               <div className="bg-white/95 dark:bg-[#1E1E1E]/95 backdrop-blur-sm px-6 py-3 sm:px-8 border-b border-slate-150 dark:border-white/5 flex items-center justify-between shrink-0">
-                  <h1 className="text-[13px] font-extrabold text-slate-900 dark:text-white uppercase tracking-wider">
-                     {headerTitle}
-                  </h1>
+               <div className="bg-white/95 dark:bg-[#1E1E1E]/95 backdrop-blur-sm px-4 sm:px-6 md:px-8 py-3 border-b border-slate-150 dark:border-white/5 flex items-center justify-between shrink-0">
+                  <div className="flex items-center gap-2 min-w-0">
+                     {/* Mobile Back Button to return to Settings Sidebar */}
+                     <button
+                        type="button"
+                        onClick={() => setMobileShowDetails(false)}
+                        className="flex md:hidden items-center gap-1 text-[13px] font-bold text-blue-600 dark:text-blue-400 py-1 px-2 -ml-2 rounded-lg hover:bg-blue-50 dark:hover:bg-white/5 transition-colors shrink-0"
+                     >
+                        <ChevronLeft size={18} />
+                        <span>Settings</span>
+                     </button>
+                     <h1 className="text-[13px] font-extrabold text-slate-900 dark:text-white uppercase tracking-wider truncate">
+                        {headerTitle}
+                     </h1>
+                  </div>
                   
                   <button
                       onClick={handleCloseSettings}
@@ -1215,7 +1250,7 @@ export default function Settings() {
                <div id="settings-scroll-container" className="w-full flex-1 overflow-y-auto amazing-scrollbar scroll-smooth">
 
                   {/* Scrollable Content wrapper with padding */}
-                  <div className="w-full mx-auto pt-10 px-6 pb-12 sm:px-10 space-y-6">
+                  <div className="w-full mx-auto pt-4 sm:pt-10 px-3 sm:px-10 pb-28 sm:pb-12 space-y-6">
                      <AnimatePresence mode="wait">
 
                      {/* TAB 0: ACCOUNT SETTINGS */}
@@ -1228,7 +1263,6 @@ export default function Settings() {
                            transition={{ duration: 0.2 }}
                            className="space-y-6 w-full max-w-[740px] mx-auto"
                         >
-                           <TabHeaderUpdater title={tabTitles[activeTab] || "Settings"} setHeaderTitle={setHeaderTitle} />
                            <AccountTab 
                               profile={profile}
                               isInitialLoading={isInitialLoading}
@@ -1249,7 +1283,6 @@ export default function Settings() {
                            transition={{ duration: 0.2 }}
                            className="space-y-6 w-full max-w-[1100px] mx-auto"
                         >
-                           <TabHeaderUpdater title={tabTitles[activeTab] || "Settings"} setHeaderTitle={setHeaderTitle} />
 
 
                            <ProfileTab 
@@ -1310,7 +1343,6 @@ export default function Settings() {
                            transition={{ duration: 0.2 }}
                            className="space-y-6 w-full max-w-[740px] mx-auto"
                         >
-                           <TabHeaderUpdater title={tabTitles[activeTab] || "Settings"} setHeaderTitle={setHeaderTitle} />
                            
 
                            <div className="p-6 rounded-xl bg-slate-50 dark:bg-[#121212] border border-slate-200/50 dark:border-transparent space-y-5">
@@ -1376,7 +1408,6 @@ export default function Settings() {
                            transition={{ duration: 0.2 }}
                            className="space-y-6 w-full max-w-[740px] mx-auto"
                         >
-                           <TabHeaderUpdater title={tabTitles[activeTab] || "Settings"} setHeaderTitle={setHeaderTitle} />
                            
                            {/* Visibility list */}
                            <div className="p-6 rounded-xl bg-slate-50 dark:bg-[#121212] border border-slate-200/50 dark:border-transparent space-y-4">
@@ -1430,7 +1461,6 @@ export default function Settings() {
                            transition={{ duration: 0.2 }}
                            className="space-y-6 w-full max-w-[740px] mx-auto"
                         >
-                           <TabHeaderUpdater title={tabTitles[activeTab] || "Settings"} setHeaderTitle={setHeaderTitle} />
                            <h2 className="text-[20px] font-bold text-slate-900 dark:text-white mb-6 border-b border-slate-200 dark:border-[#3f4147] pb-4">
                               Theme
                            </h2>
@@ -1520,7 +1550,6 @@ export default function Settings() {
                            transition={{ duration: 0.2 }}
                            className="space-y-6 w-full max-w-[740px] mx-auto"
                         >
-                           <TabHeaderUpdater title={tabTitles[activeTab] || "Settings"} setHeaderTitle={setHeaderTitle} />
                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 dark:border-[#3f4147] pb-4 mb-6">
                               <h2 className="text-[20px] font-bold text-slate-900 dark:text-white">
                                  Notifications
@@ -1605,7 +1634,6 @@ export default function Settings() {
                            transition={{ duration: 0.2 }}
                            className="space-y-6 w-full max-w-[740px] mx-auto"
                         >
-                           <TabHeaderUpdater title={tabTitles[activeTab] || "Settings"} setHeaderTitle={setHeaderTitle} />
                            <h2 className="text-[20px] font-bold text-slate-900 dark:text-white mb-6 border-b border-slate-200 dark:border-[#3f4147] pb-4">
                               AI Assistant
                            </h2>
@@ -1665,8 +1693,7 @@ export default function Settings() {
                                  transition={{ duration: 0.2 }}
                                  className="space-y-6 w-full max-w-[1100px] mx-auto"
                               >
-                                 <TabHeaderUpdater title={tabTitles[activeTab] || "Settings"} setHeaderTitle={setHeaderTitle} />
-                                 <h2 className="text-[20px] font-bold text-slate-900 dark:text-white mb-6 border-b border-slate-200 dark:border-[#3f4147] pb-4">
+                                       <h2 className="text-[20px] font-bold text-slate-900 dark:text-white mb-6 border-b border-slate-200 dark:border-[#3f4147] pb-4">
                                     Broker & Integrations
                                  </h2>
                                  <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1] mb-8">Manage your connected trading accounts and third-party integrations.</p>
@@ -1925,7 +1952,6 @@ export default function Settings() {
                            transition={{ duration: 0.2 }}
                            className="space-y-6 w-full max-w-[740px] mx-auto"
                         >
-                           <TabHeaderUpdater title={tabTitles[activeTab] || "Settings"} setHeaderTitle={setHeaderTitle} />
                            <div className="flex items-center justify-between mb-8 border-b border-slate-200 dark:border-[#3f4147] pb-4">
                               <div>
                                  <h2 className="text-[20px] font-bold text-slate-900 dark:text-white">Subscription & Billing</h2>
@@ -2077,7 +2103,6 @@ export default function Settings() {
                            transition={{ duration: 0.2 }}
                            className="w-full max-w-[740px] mx-auto"
                         >
-                           <TabHeaderUpdater title={tabTitles[activeTab] || "Settings"} setHeaderTitle={setHeaderTitle} />
                            <h2 className="text-[20px] font-bold text-slate-900 dark:text-white mb-6 border-b border-slate-200 dark:border-[#3f4147] pb-4">
                               Channel Settings
                            </h2>
@@ -2150,7 +2175,6 @@ export default function Settings() {
                            transition={{ duration: 0.2 }}
                            className="space-y-8 w-full max-w-[740px] mx-auto animate-in fade-in duration-300"
                         >
-                           <TabHeaderUpdater title={tabTitles[activeTab] || "Settings"} setHeaderTitle={setHeaderTitle} />
                            <h2 className="text-[20px] font-bold text-slate-900 dark:text-white mb-6 border-b border-slate-200 dark:border-[#3f4147] pb-4">
                               Creator Account
                            </h2>
@@ -2180,7 +2204,6 @@ export default function Settings() {
                            transition={{ duration: 0.2 }}
                            className="w-full"
                         >
-                           <TabHeaderUpdater title={tabTitles[activeTab] || "Settings"} setHeaderTitle={setHeaderTitle} />
                            <HelpTab />
                         </motion.div>
                      )}
@@ -2195,7 +2218,6 @@ export default function Settings() {
                            transition={{ duration: 0.2 }}
                            className="w-full max-w-[740px] mx-auto"
                         >
-                           <TabHeaderUpdater title={tabTitles[activeTab] || "Settings"} setHeaderTitle={setHeaderTitle} />
                            <ReportTab />
                         </motion.div>
                      )}

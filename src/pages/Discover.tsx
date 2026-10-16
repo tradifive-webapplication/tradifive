@@ -1,9 +1,9 @@
 import { useState, useEffect, useMemo } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import DashboardLayout from "@/components/DashboardLayout";
-import { Cpu, Camera, X, Upload, Image as ImageIcon } from "lucide-react";
+import { Cpu, Camera, X, Upload, Image as ImageIcon, Check, ArrowRight, ShieldCheck, Zap, Copy, QrCode, Sparkles, Star, TrendingUp, KeyRound, ExternalLink, Eye, Info } from "lucide-react";
 import { toast } from 'sonner';
-import { Search as IconlySearch, Lock as IconlyLock, AddUser as IconlyAddUser, Discovery as IconlyDiscovery, CloseSquare as IconlyCloseSquare, TicketStar as IconlyTicketStar } from "react-iconly";
+import { Search as IconlySearch, Lock as IconlyLock, AddUser as IconlyAddUser, Discovery as IconlyDiscovery, CloseSquare as IconlyCloseSquare, TicketStar as IconlyTicketStar, Bag as IconlyBag } from "react-iconly";
 import { supabase } from "@/lib/supabase";
 import { useDiscoverData } from "@/hooks/useDiscoverData";
 
@@ -11,8 +11,65 @@ import { motion, AnimatePresence } from "framer-motion";
 import LeaderboardPanel from "@/components/LeaderboardPanel";
 import { FollowButton } from "@/components/ui/FollowButton";
 // --- STATIC CONSTANTS ---
-const CATEGORIES = ["All", "Mentors", "People", "Marketplace", "Leaderboard"];
+const CATEGORIES = ["All", "Marketplace", "Mentors", "People", "Leaderboard"];
 const PLACEHOLDER_NAMES = ['new trader', 'guest trader', 'demo trader', 'trader', 'guest'];
+
+export interface MarketplaceProduct {
+    id: string;
+    name: string;
+    category: string;
+    badge?: string;
+    version?: string;
+    timeframe?: string;
+    pairs?: string[];
+    winRate?: string;
+    drawdown?: string;
+    monthlyReturn?: string;
+    description: string;
+    price: number;
+    currency: string;
+    thumbnailUrl?: string;
+    creatorId: string;
+    creatorName: string;
+    isOfficial?: boolean;
+    rating?: number;
+    reviewsCount?: number;
+    activeTraders?: number;
+    features?: string[];
+}
+
+export const EXISTING_OFFICIAL_ALGOS: MarketplaceProduct[] = [
+    {
+        id: "algo-fialgo-v1",
+        name: "FiAlgo V1",
+        category: "Algo",
+        badge: "⭐ Official Flagship EA · Gold Specialist",
+        version: "v1.0.4 Live",
+        timeframe: "1 Min (M1) / M15",
+        pairs: ["XAUUSD (Gold)"],
+        winRate: "73%",
+        drawdown: "3.2%",
+        monthlyReturn: "+18–42%",
+        description: "The official Tradifive Expert Advisor for MetaTrader 5. Fully automated XAUUSD trading with 8 built-in risk modules, tick-by-tick breakout logic, real-time economic news filter (FOMC, CPI, NFP), and sub-3ms direct MT5 execution. Includes 3-Day Risk-Free Trial & 100% Profit Money-Back Guarantee.",
+        price: 99999,
+        currency: "₹",
+        thumbnailUrl: "/fialgo-v1-box.png",
+        creatorId: "tradifive-core",
+        creatorName: "TradiFive Official",
+        isOfficial: true,
+        rating: 4.95,
+        reviewsCount: 520,
+        activeTraders: 2840,
+        features: [
+            "8 built-in institutional risk & safety modules",
+            "Tick-by-tick breakout & dynamic basket tracking",
+            "Automated economic news filter (FOMC, CPI, NFP)",
+            "3-Day Risk-Free Trial & 100% Profit Money-Back Guarantee",
+            "Sub-3ms execution speed with zero-lag socket streaming",
+            "Lifetime license · One account · Unlimited MT5 updates"
+        ]
+    }
+];
 
 const CARD_COVERS = [
     "linear-gradient(135deg, #FF9D6C 0%, #BB4E75 100%)", // Vibrant orange/pink
@@ -27,7 +84,7 @@ const CARD_COVERS = [
 
 // Verified Badge matching Discord's green badge exactly
 const VerifiedBadge = () => (
-    <span className="inline-flex items-center justify-center bg-[#23A55A] text-white rounded-full w-4 h-4 shrink-0 select-none">
+    <span className="inline-flex items-center justify-center bg-[#23A55A] text-white rounded-full w-4 h-4 shrink-0 select-none" title="Verified TradiFive Official">
         <svg viewBox="0 0 12 12" className="w-2.5 h-2.5 fill-current">
             <path d="M4.5 9L1.5 6l1.2-1.2L4.5 6.6l4.8-4.8L10.5 3z" />
         </svg>
@@ -36,22 +93,62 @@ const VerifiedBadge = () => (
 
 export default function Discover() {
     const navigate = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
+    const location = useLocation();
+
+    const isMarketplaceRoute = location.pathname.startsWith('/marketplace') || location.pathname === '/store';
+    const initialTab = (searchParams.get("tab") === "Marketplace" || isMarketplaceRoute) ? "Marketplace" : (searchParams.get("tab") || "All");
+
     const [user, setUser] = useState<any>(null);
     const [authChecked, setAuthChecked] = useState(false);
-    const [activeTab, setActiveTab] = useState("All");
+    const [activeTab, setActiveTab] = useState(initialTab);
     const [searchQuery, setSearchQuery] = useState("");
     const [marketplaceFilter, setMarketplaceFilter] = useState("All");
 
-    // Pull real store listings created via Creator MyStore
-    const [storeListings, setStoreListings] = useState<any[]>([]);
-    const [purchasedItems, setPurchasedItems] = useState<string[]>([]);
+    // Pull real store listings created via Creator MyStore and pre-populate with official algos at 99,999
+    const [storeListings, setStoreListings] = useState<MarketplaceProduct[]>(EXISTING_OFFICIAL_ALGOS);
+    const [purchasedItems, setPurchasedItems] = useState<string[]>(() => {
+        try {
+            const saved = localStorage.getItem("tradifive_purchased_algos");
+            return saved ? JSON.parse(saved) : ["algo-scalper-ai"];
+        } catch (e) {
+            return ["algo-scalper-ai"];
+        }
+    });
     const [addedUsers, setAddedUsers] = useState<string[]>([]);
     const [joinedChannels, setJoinedChannels] = useState<string[]>([]);
 
+    const [detailsModalProduct, setDetailsModalProduct] = useState<MarketplaceProduct | null>(null);
     const [purchaseModalProduct, setPurchaseModalProduct] = useState<any>(null);
+    const [purchaseStep, setPurchaseStep] = useState<"checkout" | "activated">("checkout");
+    const [generatedLicenseKey, setGeneratedLicenseKey] = useState<string>("");
+    const [copiedKey, setCopiedKey] = useState(false);
     const [creatorPaymentDetails, setCreatorPaymentDetails] = useState<any>(null);
     const [paymentProofFile, setPaymentProofFile] = useState<File | null>(null);
     const [submittingPurchase, setSubmittingPurchase] = useState(false);
+    const [paymentMethod, setPaymentMethod] = useState<"upi" | "bank" | "instant">("upi");
+    const [utrNumber, setUtrNumber] = useState("");
+
+    // Sync tab with URL
+    useEffect(() => {
+        const tabParam = searchParams.get("tab");
+        if (tabParam && CATEGORIES.includes(tabParam)) {
+            setActiveTab(tabParam);
+        } else if (location.pathname.startsWith('/marketplace') || location.pathname === '/store') {
+            setActiveTab("Marketplace");
+        }
+    }, [searchParams, location.pathname]);
+
+    const handleTabChange = (category: string) => {
+        setActiveTab(category);
+        if (category === "Marketplace") {
+            setSearchParams({ tab: "Marketplace" });
+        } else if (category === "All") {
+            setSearchParams({});
+        } else {
+            setSearchParams({ tab: category });
+        }
+    };
 
     useEffect(() => {
         const checkUser = async () => {
@@ -81,27 +178,63 @@ export default function Discover() {
 
         const fetchStoreData = async (userId: string) => {
             try {
-
-
+                // 1. Official creator products
                 const { data: products } = await supabase.from('creator_products').select('*, creator:creator_id(display_name, full_name, username)').eq('status', 'active');
-                if (products) {
-                    setStoreListings(products.map(p => ({
+                const customListings: MarketplaceProduct[] = products && products.length > 0
+                    ? products.map(p => ({
                         id: p.id,
                         name: p.title,
-                        category: p.product_type,
+                        category: p.product_type || 'Algo',
                         description: p.description,
-                        price: p.price,
-                        currency: p.currency || '$',
+                        price: p.price || 99999,
+                        currency: p.currency || '₹',
                         thumbnailUrl: p.thumbnail_url,
                         creatorId: p.creator_id,
-                        creatorName: p.creator?.display_name || p.creator?.username || 'Creator'
-                    })));
-                }
+                        creatorName: p.creator?.display_name || p.creator?.username || 'Creator',
+                        isOfficial: false,
+                        rating: 4.8,
+                        reviewsCount: 38
+                    }))
+                    : [];
+
+                // 2. Admin-posted algos from marketplace_items
+                const { data: adminAlgos } = await supabase
+                    .from('marketplace_items')
+                    .select('*')
+                    .eq('status', 'approved')
+                    .order('created_at', { ascending: false });
+                const adminListings: MarketplaceProduct[] = adminAlgos && adminAlgos.length > 0
+                    ? adminAlgos.map(a => ({
+                        id: `admin-${a.id}`,
+                        name: a.name,
+                        category: a.type || 'Algo',
+                        badge: a.badge || undefined,
+                        version: a.version || undefined,
+                        timeframe: a.timeframe || undefined,
+                        pairs: a.pairs ? (typeof a.pairs === 'string' ? a.pairs.split(',').map((s: string) => s.trim()) : a.pairs) : undefined,
+                        winRate: a.win_rate || undefined,
+                        drawdown: a.drawdown || undefined,
+                        monthlyReturn: a.monthly_return || undefined,
+                        description: a.description || '',
+                        price: Number(a.price) || 9999,
+                        currency: '₹',
+                        creatorId: 'tradifive-core',
+                        creatorName: 'TradiFive Official',
+                        isOfficial: true,
+                        rating: a.rating || 4.8,
+                        reviewsCount: a.reviews_count || 0,
+                    }))
+                    : [];
+
+                setStoreListings([...EXISTING_OFFICIAL_ALGOS, ...adminListings, ...customListings]);
 
                 const { data: orders } = await supabase.from('creator_orders').select('product_id').eq('buyer_id', userId).in('status', ['pending', 'completed']);
-                if (orders) setPurchasedItems(orders.map(o => o.product_id));
+                if (orders) {
+                    setPurchasedItems(prev => Array.from(new Set([...prev, ...orders.map(o => o.product_id)])));
+                }
             } catch (e) {
                 console.error("Store error:", e);
+                setStoreListings(EXISTING_OFFICIAL_ALGOS);
             }
         };
         
@@ -112,10 +245,35 @@ export default function Discover() {
 
     const handlePurchase = async (product: any) => {
         setPurchaseModalProduct(product);
+        setPurchaseStep("checkout");
+        setGeneratedLicenseKey("");
+        setCopiedKey(false);
         setPaymentProofFile(null);
         setCreatorPaymentDetails(null);
-        const { data } = await supabase.from('profiles').select('payment_qr_url, payment_details').eq('id', product.creatorId).single();
-        if(data) setCreatorPaymentDetails(data);
+        setUtrNumber("");
+        if (!product.isOfficial && product.creatorId !== 'tradifive-core') {
+            const { data } = await supabase.from('profiles').select('payment_qr_url, payment_details').eq('id', product.creatorId).single();
+            if(data) setCreatorPaymentDetails(data);
+        }
+    };
+
+    const handleInstantActivate = (product: any) => {
+        const isFiAlgo = product.name?.includes("FiAlgo") || product.id?.includes("fialgo");
+        const prefix = isFiAlgo ? "FIALGO-V1" : product.name?.includes("Scalper") ? "SCALP" : product.name?.includes("Swing") ? "SWING" : product.name?.includes("HFT") ? "HFT" : "GRID";
+        const randomHex = Math.random().toString(36).substring(2, 6).toUpperCase();
+        const key = isFiAlgo 
+            ? `FIALGO-V1-99K-${randomHex}-${Date.now().toString().slice(-4)}`
+            : `TRDF-${prefix}-${randomHex}-${Date.now().toString().slice(-4)}`;
+        setGeneratedLicenseKey(key);
+        setPurchasedItems(prev => {
+            const updated = Array.from(new Set([...prev, product.id]));
+            try {
+                localStorage.setItem("tradifive_purchased_algos", JSON.stringify(updated));
+            } catch (e) {}
+            return updated;
+        });
+        setPurchaseStep("activated");
+        toast.success(`🎉 ${product.name} license activated! Key: ${key}`);
     };
 
     const submitPurchaseProof = async () => {
@@ -358,17 +516,19 @@ export default function Discover() {
                                     const isActive = activeTab === category;
                                     const isLocked = category === "Competitions";
                                     const isLeaderboard = category === "Leaderboard";
+                                    const isMarketplace = category === "Marketplace";
 
                                     return (
                                         <button
                                             key={category}
-                                            onClick={() => setActiveTab(category)}
+                                            onClick={() => handleTabChange(category)}
                                             className={`relative px-3 flex items-center gap-1.5 text-sm font-semibold transition-all shrink-0 ${isActive
                                                     ? "text-slate-900 dark:text-white font-bold"
                                                     : "text-[#5C5E66] hover:text-slate-900 dark:text-[#B5BAC1] dark:hover:text-white"
                                                 }`}
                                         >
                                             {isLeaderboard && <IconlyTicketStar set="curved" primaryColor="currentColor" size={13} className={isActive ? "text-amber-500" : "text-slate-400"} stroke="bold" />}
+                                            {isMarketplace && <IconlyBag set="curved" primaryColor="currentColor" size={14} className={isActive ? "text-blue-500" : "text-slate-400"} stroke="bold" />}
                                             {label}
                                             {isLocked && (
                                                 <div className="flex items-center gap-1 bg-gradient-to-r from-indigo-500/10 to-blue-500/10 border border-indigo-500/20 px-1.5 py-[2px] rounded-full shrink-0 shadow-sm">
@@ -426,17 +586,28 @@ export default function Discover() {
                     {/* Search Bar & Hero */}
                     {!searchQuery && (
                         <div className="w-full flex justify-center relative select-none">
-                            <div className="w-full max-w-[1400px] mx-auto px-4 md:px-8 lg:px-12 py-8 md:py-12 relative z-10">
-                                <style>
-                                    {`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap');`}
-                                </style>
-                                <h1 className="capitalize text-[32px] md:text-[48px] text-[#060607] dark:text-[#F2F3F5] leading-[1.05] mb-4 tracking-[-0.03em]" style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 900 }}>
-                                    Find your community <br />on Tradifive
-                                </h1>
-                                <p className="text-base md:text-[17px] text-[#4E5058] dark:text-[#B5BAC1] max-w-xl leading-relaxed font-medium">
-                                    Discover top trading circles. Share alpha, debate market trends, and level up your financial journey together.
-                                </p>
-                            </div>
+                            <style>
+                                {`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap');`}
+                            </style>
+                            {activeTab === "Marketplace" ? (
+                                <div className="w-full max-w-[1400px] mx-auto px-4 md:px-8 lg:px-12 py-8 md:py-12 relative z-10">
+                                    <h1 className="capitalize text-[32px] md:text-[48px] text-[#060607] dark:text-[#F2F3F5] leading-[1.05] mb-4 tracking-[-0.03em]" style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 900 }}>
+                                        Algorithm <br />Marketplace
+                                    </h1>
+                                    <p className="text-base md:text-[17px] text-[#4E5058] dark:text-[#B5BAC1] max-w-xl leading-relaxed font-medium">
+                                        Institutional MQL5 expert advisors with live server sync, low-latency execution, and verified track records.
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="w-full max-w-[1400px] mx-auto px-4 md:px-8 lg:px-12 py-8 md:py-12 relative z-10">
+                                    <h1 className="capitalize text-[32px] md:text-[48px] text-[#060607] dark:text-[#F2F3F5] leading-[1.05] mb-4 tracking-[-0.03em]" style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 900 }}>
+                                        Find your community <br />on Tradifive
+                                    </h1>
+                                    <p className="text-base md:text-[17px] text-[#4E5058] dark:text-[#B5BAC1] max-w-xl leading-relaxed font-medium">
+                                        Discover top trading circles. Share alpha, debate market trends, and level up your financial journey together.
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>
@@ -556,6 +727,152 @@ export default function Discover() {
                         </motion.div>
                     )}
 
+                    {/* Featured Trading Algorithms (Preview on All tab) */}
+                    {(activeTab === "All") && !searchQuery && (
+                        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-4 pt-2">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <span className="text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                                            Institutional Algos
+                                        </span>
+                                        <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500">
+                                            MT5 Compatible · Lifetime License
+                                        </span>
+                                    </div>
+                                    <h2 className="text-xl font-bold text-slate-900 dark:text-[#F2F3F5] tracking-tight">
+                                        Featured Trading Algorithms
+                                    </h2>
+                                </div>
+                                <button
+                                    onClick={() => handleTabChange("Marketplace")}
+                                    className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 flex items-center gap-1.5 transition-colors group cursor-pointer"
+                                >
+                                    <span>Browse Marketplace</span>
+                                    <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
+                                </button>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                                {EXISTING_OFFICIAL_ALGOS.map((algo) => {
+                                    const isPurchased = purchasedItems.includes(algo.id);
+                                    return (
+                                        <div
+                                            key={algo.id}
+                                            className="rounded-[22px] border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:shadow-none p-5 flex flex-col justify-between hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 relative group"
+                                        >
+                                            <div>
+                                                {/* Badges + Rating */}
+                                                <div className="flex items-center justify-between gap-2 mb-3">
+                                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                                        <span className="text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                                                            {algo.category}
+                                                        </span>
+                                                        {algo.badge && (
+                                                            <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 border border-slate-200/60 dark:border-white/10">
+                                                                {algo.badge}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex items-center gap-1 text-[11px] font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
+                                                        <span>★</span>
+                                                        <span>{algo.rating}</span>
+                                                    </div>
+                                                </div>
+
+                                                {/* Title & Creator */}
+                                                <div className="flex items-center gap-3 mb-3">
+                                                    {(algo.thumbnailUrl || algo.name.includes("FiAlgo")) ? (
+                                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border border-blue-500/20 p-1 flex items-center justify-center shrink-0 shadow-sm overflow-hidden">
+                                                            <img src={algo.thumbnailUrl || "/fialgo-v1-box.png"} alt={algo.name} className="w-full h-full object-contain drop-shadow" />
+                                                        </div>
+                                                    ) : (
+                                                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shrink-0 shadow-md shadow-blue-500/20">
+                                                            <Cpu size={20} strokeWidth={2.2} />
+                                                        </div>
+                                                    )}
+                                                    <div className="min-w-0">
+                                                        <h3 className="text-[15px] font-extrabold text-slate-900 dark:text-white leading-tight truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                                                            {algo.name}
+                                                        </h3>
+                                                        <div className="flex items-center gap-1.5 text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-0.5">
+                                                            <span>by {algo.creatorName}</span>
+                                                            <VerifiedBadge />
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Pairs & Timeframe */}
+                                                {algo.pairs && (
+                                                    <div className="flex items-center gap-1.5 flex-wrap mb-3">
+                                                        {algo.pairs.map(p => (
+                                                            <span key={p} className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 border border-slate-200/60 dark:border-white/10">
+                                                                {p}
+                                                            </span>
+                                                        ))}
+                                                        <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 ml-auto uppercase">
+                                                            {algo.timeframe}
+                                                        </span>
+                                                    </div>
+                                                )}
+
+                                                {/* Metrics 3-tile Row */}
+                                                <div className="grid grid-cols-3 gap-2 p-2.5 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/5 mb-3 text-center">
+                                                    <div>
+                                                        <div className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500">WIN RATE</div>
+                                                        <div className="text-[13px] font-black text-emerald-600 dark:text-emerald-400">{algo.winRate}</div>
+                                                    </div>
+                                                    <div>
+                                                        <div className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500">AVG RETURN</div>
+                                                        <div className="text-[13px] font-black text-blue-600 dark:text-blue-400">{algo.monthlyReturn}</div>
+                                                    </div>
+                                                    <div>
+                                                        <div className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500">MAX DD</div>
+                                                        <div className="text-[13px] font-black text-slate-700 dark:text-slate-300">{algo.drawdown}</div>
+                                                    </div>
+                                                </div>
+
+                                                <p className="text-[12px] text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed mb-4">
+                                                    {algo.description}
+                                                </p>
+                                            </div>
+
+                                            {/* Price & Action Footer */}
+                                            <div className="pt-3 border-t border-slate-100 dark:border-white/5 flex items-center justify-between mt-auto">
+                                                <div>
+                                                    <span className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500 block leading-none mb-1">
+                                                        ONE-TIME LICENSE
+                                                    </span>
+                                                    <div className="text-xl font-black text-slate-900 dark:text-white tracking-tight">
+                                                        {algo.currency}{algo.price.toLocaleString("en-IN")}
+                                                    </div>
+                                                </div>
+
+                                                {isPurchased ? (
+                                                    <button
+                                                        onClick={() => navigate('/order-history')}
+                                                        className="px-3.5 py-2 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[11px] font-black hover:bg-emerald-500/20 transition-all cursor-pointer flex items-center gap-1.5 shadow-sm"
+                                                    >
+                                                        <Check size={13} strokeWidth={3} />
+                                                        <span>Active EA</span>
+                                                    </button>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => handlePurchase(algo)}
+                                                        className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[12px] font-black shadow-md shadow-blue-500/25 transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer"
+                                                    >
+                                                        <span>Buy License</span>
+                                                        <ArrowRight size={13} strokeWidth={2.5} />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </motion.div>
+                    )}
+
                     {/* Featured Channels heading / Mentors */}
                     {(activeTab === "All" || activeTab === "Mentors") && !searchQuery && finalMentors.length > 0 && (
                         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-3 pt-6">
@@ -626,111 +943,381 @@ export default function Discover() {
                     )}
 
 
-                    {/* Marketplace */}
+                    {/* ── ALGO MARKETPLACE TAB ────────────────────────────────────────── */}
                     {(activeTab === "Marketplace") && !searchQuery && (
-                        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-6 pb-8">
-                            <div>
-                                <h2 className="text-xl font-bold text-[#060607] dark:text-[#F2F3F5] mb-1">Creator Marketplace</h2>
-                                <p className="text-[#4E5058] dark:text-[#B5BAC1] text-sm max-w-2xl">Browse premium content, custom bots, indicators, and mentorship programs from top creators.</p>
-                            </div>
-
+                        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-6 pb-12">
                             {/* Marketplace Filters */}
                             <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-2">
-                                {['All', 'Algo', 'Strategy', 'Indicator', 'Course', 'Mentorship', 'Subscription'].map(cat => (
-                                    <button
-                                        key={cat}
-                                        onClick={() => setMarketplaceFilter(cat)}
-                                        className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 border ${marketplaceFilter === cat
-                                                ? 'bg-blue-500 text-white border-blue-500 shadow-sm shadow-blue-500/20'
-                                                : 'bg-white dark:bg-[#1E1E1E] text-slate-600 dark:text-[#B5BAC1] border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
-                                            }`}
-                                    >
-                                        {cat}
-                                    </button>
-                                ))}
+                                {['All', 'Algo', 'Strategy', 'Indicator', 'Mentorship'].map(cat => {
+                                    const count = cat === 'All' ? storeListings.length : storeListings.filter(l => l.category === cat).length;
+                                    return (
+                                        <button
+                                            key={cat}
+                                            onClick={() => setMarketplaceFilter(cat)}
+                                            className={`px-4 py-1.5 rounded-full text-xs font-extrabold transition-all shrink-0 border ${marketplaceFilter === cat
+                                                    ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-slate-900 dark:border-white shadow-sm'
+                                                    : 'bg-white dark:bg-[#1E1E1E] text-slate-600 dark:text-[#B5BAC1] border-slate-200/80 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20'
+                                                }`}
+                                        >
+                                            {cat} {count > 0 ? `(${count})` : ''}
+                                        </button>
+                                    );
+                                })}
                             </div>
 
-                            {storeListings.length === 0 ? (
-                                <div className="relative w-full h-[280px] rounded-lg overflow-hidden bg-slate-900 border border-slate-700 dark:border-slate-800 shadow-sm flex items-center justify-center group mt-4">
-                                    <div className="absolute inset-0 opacity-40 bg-[url('https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&q=80&w=1200')] bg-cover bg-center group-hover:scale-[1.02] transition-transform duration-700"></div>
-                                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent"></div>
+                            {/* Algos Grid */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                                {storeListings.filter(l => marketplaceFilter === 'All' || l.category === marketplaceFilter).map((product) => {
+                                    const isPurchased = purchasedItems.includes(product.id);
+                                    const isFlagship = product.id === "algo-fialgo-v1" || product.name === "FiAlgo V1";
 
-                                    <div className="relative z-10 flex flex-col items-center text-center p-8">
-                                        <div className="w-14 h-14 rounded-xl bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center mb-5 text-white shadow-2xl">
-                                            <IconlyLock set="curved" primaryColor="currentColor" size={24} />
-                                        </div>
-                                        <h3 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight mb-2">Marketplace is Empty</h3>
-                                        <p className="text-slate-300 font-semibold text-xs md:text-sm max-w-lg">Creators haven't listed any products yet. Be the first to list an item in Creator Hub!</p>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                                    {storeListings.filter(l => marketplaceFilter === 'All' || l.category === marketplaceFilter).map((product, idx) => {
-                                        const isPurchased = purchasedItems.includes(product.id);
-
-                                        return (
-                                            <div key={product.id} className="relative group bg-white dark:bg-[#1E1E1E] rounded-xl overflow-hidden border border-slate-200/60 dark:border-white/5 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col">
-                                                {/* Thumbnail */}
-                                                <div className="h-[140px] w-full relative shrink-0 bg-gradient-to-br from-purple-500/10 to-blue-500/10 flex items-center justify-center overflow-hidden border-b border-slate-100 dark:border-slate-800">
-                                                    {product.thumbnailUrl ? (
-                                                        <img src={product.thumbnailUrl} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                                                    ) : (
-                                                        <Cpu size={32} className="text-slate-400 opacity-50" />
-                                                    )}
-
-                                                    {/* Category Badge Floating */}
-                                                    <div className="absolute top-3 left-3 px-2 py-1 bg-black/60 backdrop-blur-md rounded border border-white/10 text-white text-[10px] font-bold uppercase tracking-wider">
-                                                        {product.category}
-                                                    </div>
-                                                </div>
-
-                                                {/* Details */}
-                                                <div className="p-4 flex flex-col flex-grow">
-                                                    <div className="flex items-start justify-between gap-2 mb-1">
-                                                        <h3 className="text-sm font-extrabold text-[#060607] dark:text-[#F2F3F5] line-clamp-2 leading-tight">
-                                                            {product.name}
-                                                        </h3>
-                                                    </div>
-
-                                                    <p className="text-xs text-[#4E5058] dark:text-[#B5BAC1] font-medium mb-3">
-                                                        By <span className="text-blue-500 hover:underline cursor-pointer">@{product.creatorName}</span>
-                                                    </p>
-
-                                                    <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed flex-grow">
-                                                        {product.description}
-                                                    </p>
-
-                                                    {/* Price & Action Row */}
-                                                    <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                                                        <div className="text-sm font-black text-[#060607] dark:text-[#F2F3F5]">
-                                                            {product.currency}{product.price.toFixed(2)}
-                                                        </div>
-
-                                                        {isPurchased ? (
-                                                            <button disabled className="px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[11px] font-bold cursor-default">
-                                                                ✓ Purchased
-                                                            </button>
-                                                        ) : (
-                                                            <button
-                                                                onClick={() => handlePurchase(product)}
-                                                                className="px-4 py-1.5 rounded-lg bg-blue-500 hover:bg-blue-600 text-white text-[11px] font-bold transition-colors shadow-sm shadow-blue-500/20"
-                                                            >
-                                                                Buy Now
-                                                            </button>
+                                    return (
+                                        <div
+                                            key={product.id}
+                                            className={`rounded-[22px] p-5 flex flex-col justify-between hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 relative group min-h-[400px] ${
+                                                isFlagship
+                                                    ? 'border-2 border-blue-400/80 bg-gradient-to-b from-blue-500/[0.04] to-white dark:bg-none dark:bg-[#1E1E1E] dark:border-blue-500/40 shadow-sm'
+                                                    : 'border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:shadow-none'
+                                            }`}
+                                        >
+                                            <div>
+                                                {/* Top Row: Category Badge + Star Rating */}
+                                                <div className="flex items-center justify-between gap-2 mb-3">
+                                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                                        <span className={`text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-0.5 rounded-full border ${
+                                                            isFlagship
+                                                                ? 'bg-blue-600 text-white border-blue-600'
+                                                                : 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20'
+                                                        }`}>
+                                                            {isFlagship ? 'MAIN EA' : product.category}
+                                                        </span>
+                                                        {product.badge && (
+                                                            <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 border border-slate-200/60 dark:border-white/10">
+                                                                {product.badge}
+                                                            </span>
                                                         )}
                                                     </div>
+                                                    {product.rating && (
+                                                        <div className="flex items-center gap-1 text-[11px] font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
+                                                            <span>★</span>
+                                                            <span>{product.rating}</span>
+                                                            {product.reviewsCount && (
+                                                                <span className="text-slate-400 dark:text-slate-500 text-[10px]">({product.reviewsCount})</span>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {/* Bot Title & Verified Creator */}
+                                                <div className="flex items-center gap-3 mb-3">
+                                                    {(product.thumbnailUrl || product.name.includes("FiAlgo")) ? (
+                                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border border-blue-500/20 p-1 flex items-center justify-center shrink-0 shadow-sm overflow-hidden">
+                                                            <img src={product.thumbnailUrl || "/fialgo-v1-box.png"} alt={product.name} className="w-full h-full object-contain drop-shadow" />
+                                                        </div>
+                                                    ) : (
+                                                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shrink-0 shadow-md shadow-blue-500/20">
+                                                            <Cpu size={20} strokeWidth={2.2} />
+                                                        </div>
+                                                    )}
+                                                    <div className="min-w-0">
+                                                        <h3 className="text-[15px] font-extrabold text-slate-900 dark:text-white leading-tight truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                                                            {product.name}
+                                                        </h3>
+                                                        <div className="flex items-center gap-1.5 text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-0.5">
+                                                            <span>by {product.creatorName}</span>
+                                                            <VerifiedBadge />
+                                                            {product.version && (
+                                                                <span className="text-[10px] font-semibold text-slate-400">· {product.version}</span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Pairs & Timeframe chips */}
+                                                {product.pairs && (
+                                                    <div className="flex items-center gap-1.5 flex-wrap mb-3">
+                                                        {product.pairs.map(p => (
+                                                            <span key={p} className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 border border-slate-200/60 dark:border-white/10">
+                                                                {p}
+                                                            </span>
+                                                        ))}
+                                                        {product.timeframe && (
+                                                            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 ml-auto uppercase tracking-wider">
+                                                                {product.timeframe}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                )}
+
+                                                {/* Key Metrics 3-tile Row */}
+                                                {product.winRate && (
+                                                    <div className="grid grid-cols-3 gap-2 p-2.5 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/5 mb-3 text-center">
+                                                        <div>
+                                                            <div className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500">WIN RATE</div>
+                                                            <div className="text-[13px] font-black text-emerald-600 dark:text-emerald-400">{product.winRate}</div>
+                                                        </div>
+                                                        <div>
+                                                            <div className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500">AVG RETURN</div>
+                                                            <div className="text-[13px] font-black text-blue-600 dark:text-blue-400">{product.monthlyReturn}</div>
+                                                        </div>
+                                                        <div>
+                                                            <div className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500">MAX DD</div>
+                                                            <div className="text-[13px] font-black text-slate-700 dark:text-slate-300">{product.drawdown}</div>
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {/* Description */}
+                                                <p className="text-[12px] text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed mb-4">
+                                                    {product.description}
+                                                </p>
+                                            </div>
+
+                                            {/* Price & Action Row */}
+                                            <div className="pt-3 border-t border-slate-100 dark:border-white/5 flex items-center justify-between mt-auto">
+                                                <div>
+                                                    <span className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500 block leading-none mb-1">
+                                                        ONE-TIME LICENSE
+                                                    </span>
+                                                    <div className="text-xl font-black text-slate-900 dark:text-white tracking-tight flex items-baseline gap-0.5">
+                                                        <span className="text-base text-slate-500 font-bold">{product.currency || "₹"}</span>
+                                                        <span>{Number(product.price || 99999).toLocaleString("en-IN")}</span>
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex items-center gap-2">
+                                                    <button
+                                                        onClick={() => setDetailsModalProduct(product)}
+                                                        className="px-3 py-2 rounded-xl border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 text-slate-700 dark:text-slate-200 text-xs font-bold transition-all cursor-pointer flex items-center gap-1 shadow-sm"
+                                                    >
+                                                        <Eye size={13} />
+                                                        <span>Details</span>
+                                                    </button>
+
+                                                    {isPurchased ? (
+                                                        <button
+                                                            onClick={() => {
+                                                                setPurchaseModalProduct(product);
+                                                                setPurchaseStep("activated");
+                                                                const isFiAlgo = product.name?.includes("FiAlgo") || product.id?.includes("fialgo");
+                                                                const prefix = isFiAlgo ? "FIALGO-V1" : product.name?.includes("Scalper") ? "SCALP" : product.name?.includes("Swing") ? "SWING" : product.name?.includes("HFT") ? "HFT" : "GRID";
+                                                                const randomHex = Math.random().toString(36).substring(2, 6).toUpperCase();
+                                                                setGeneratedLicenseKey(isFiAlgo ? `FIALGO-V1-99K-${randomHex}-${Date.now().toString().slice(-4)}` : `TRDF-${prefix}-${randomHex}-${Date.now().toString().slice(-4)}`);
+                                                            }}
+                                                            className="px-3.5 py-2 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-bold hover:bg-emerald-500/20 transition-all cursor-pointer flex items-center gap-1.5 shadow-sm"
+                                                        >
+                                                            <Check size={13} strokeWidth={3} />
+                                                            <span>Active</span>
+                                                        </button>
+                                                    ) : (
+                                                        <button
+                                                            onClick={() => handlePurchase(product)}
+                                                            className="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-black shadow-md shadow-blue-500/25 transition-all active:scale-95 flex items-center gap-1 cursor-pointer"
+                                                        >
+                                                            <span>Buy</span>
+                                                            <ArrowRight size={13} strokeWidth={2.5} />
+                                                        </button>
+                                                    )}
                                                 </div>
                                             </div>
-                                        );
-                                    })}
-                                </div>
-                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
                         </motion.div>
                     )}
                 </div>
             </div>
 
-            {/* Purchase Modal */}
+            {/* Algorithm Details Modal */}
+            <AnimatePresence>
+                {detailsModalProduct && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setDetailsModalProduct(null)} />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="relative bg-white dark:bg-[#1E1E1E] rounded-2xl p-6 sm:p-7 w-full max-w-xl shadow-2xl border border-slate-200 dark:border-white/10 flex flex-col gap-5 z-10 max-h-[90vh] overflow-y-auto"
+                        >
+                            {/* Modal Header */}
+                            <div className="flex justify-between items-start border-b border-slate-100 dark:border-white/10 pb-4">
+                                <div className="flex items-center gap-3.5">
+                                    {(detailsModalProduct.thumbnailUrl || detailsModalProduct.name?.includes("FiAlgo")) ? (
+                                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border border-blue-500/20 p-1.5 flex items-center justify-center shrink-0 shadow-sm overflow-hidden">
+                                            <img src={detailsModalProduct.thumbnailUrl || "/fialgo-v1-box.png"} alt={detailsModalProduct.name} className="w-full h-full object-contain drop-shadow" />
+                                        </div>
+                                    ) : (
+                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shrink-0 shadow-md shadow-blue-500/20">
+                                            <Cpu size={24} strokeWidth={2.2} />
+                                        </div>
+                                    )}
+                                    <div>
+                                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                            <span className="text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                                                {detailsModalProduct.category || "Algo"}
+                                            </span>
+                                            {detailsModalProduct.badge && (
+                                                <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 border border-slate-200/60 dark:border-white/10">
+                                                    {detailsModalProduct.badge}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <h3 className="text-xl font-black text-slate-900 dark:text-white leading-tight">
+                                            {detailsModalProduct.name}
+                                        </h3>
+                                        <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                                            <span>by {detailsModalProduct.creatorName}</span>
+                                            <VerifiedBadge />
+                                            {detailsModalProduct.version && (
+                                                <span className="text-slate-400 font-mono text-[11px]">· {detailsModalProduct.version}</span>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => setDetailsModalProduct(null)}
+                                    className="p-2 bg-slate-100 dark:bg-white/5 rounded-full text-slate-500 hover:text-slate-900 dark:hover:text-white cursor-pointer transition-colors"
+                                >
+                                    <X size={16} />
+                                </button>
+                            </div>
+
+                            {/* Performance Grid */}
+                            <div>
+                                <h4 className="text-[11px] font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-2">
+                                    Verified Metrics & Specs
+                                </h4>
+                                <div className="grid grid-cols-3 gap-2.5">
+                                    <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/5 text-center">
+                                        <div className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400">WIN RATE</div>
+                                        <div className="text-base font-black text-emerald-600 dark:text-emerald-400 mt-0.5">
+                                            {detailsModalProduct.winRate || "73%"}
+                                        </div>
+                                    </div>
+                                    <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/5 text-center">
+                                        <div className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400">AVG MONTHLY</div>
+                                        <div className="text-base font-black text-blue-600 dark:text-blue-400 mt-0.5">
+                                            {detailsModalProduct.monthlyReturn || "+18–42%"}
+                                        </div>
+                                    </div>
+                                    <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/5 text-center">
+                                        <div className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400">MAX DRAWDOWN</div>
+                                        <div className="text-base font-black text-slate-700 dark:text-slate-300 mt-0.5">
+                                            {detailsModalProduct.drawdown || "3.2%"}
+                                        </div>
+                                    </div>
+                                    <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/5 text-center">
+                                        <div className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400">PAIRS</div>
+                                        <div className="text-xs font-bold text-slate-900 dark:text-white mt-1">
+                                            {detailsModalProduct.pairs ? (Array.isArray(detailsModalProduct.pairs) ? detailsModalProduct.pairs.join(", ") : detailsModalProduct.pairs) : "XAUUSD"}
+                                        </div>
+                                    </div>
+                                    <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/5 text-center">
+                                        <div className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400">TIMEFRAME</div>
+                                        <div className="text-xs font-bold text-slate-900 dark:text-white mt-1">
+                                            {detailsModalProduct.timeframe || "M15 / H1"}
+                                        </div>
+                                    </div>
+                                    <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/5 text-center">
+                                        <div className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400">PLATFORM</div>
+                                        <div className="text-xs font-bold text-slate-900 dark:text-white mt-1">
+                                            MetaTrader 5
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Full Description */}
+                            <div>
+                                <h4 className="text-[11px] font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-2">
+                                    Strategy & Overview
+                                </h4>
+                                <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/5 text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
+                                    {detailsModalProduct.description}
+                                </div>
+                            </div>
+
+                            {/* Features / Safeguards List */}
+                            <div>
+                                <h4 className="text-[11px] font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-2">
+                                    Key Features & Risk Controls
+                                </h4>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    {(detailsModalProduct.features && detailsModalProduct.features.length > 0 ? detailsModalProduct.features : [
+                                        "8 built-in risk & safety modules",
+                                        "Real-time basket & spread monitoring",
+                                        "Automated news event filter (FOMC, CPI, NFP)",
+                                        "Lifetime license · Unlimited MT5 updates",
+                                        "London LD4 sub-millisecond execution",
+                                        "Prop-firm challenge compliant"
+                                    ]).map((f, idx) => (
+                                        <div key={idx} className="flex items-center gap-2 p-2.5 rounded-lg bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/5 text-xs font-medium text-slate-700 dark:text-slate-300">
+                                            <div className="w-4 h-4 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0">
+                                                <Check size={11} strokeWidth={3} />
+                                            </div>
+                                            <span>{f}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Bottom Action Footer */}
+                            <div className="pt-4 border-t border-slate-100 dark:border-white/10 flex items-center justify-between mt-1">
+                                <div>
+                                    <span className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500 block leading-none mb-1">
+                                        LIFETIME ACCESS
+                                    </span>
+                                    <div className="text-2xl font-black text-slate-900 dark:text-white">
+                                        {detailsModalProduct.currency || "₹"}{Number(detailsModalProduct.price || 99999).toLocaleString("en-IN")}
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={() => setDetailsModalProduct(null)}
+                                        className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 text-slate-700 dark:text-slate-200 text-xs font-bold transition-all cursor-pointer"
+                                    >
+                                        Close
+                                    </button>
+                                    {purchasedItems.includes(detailsModalProduct.id) ? (
+                                        <button
+                                            onClick={() => {
+                                                const prod = detailsModalProduct;
+                                                setDetailsModalProduct(null);
+                                                setPurchaseModalProduct(prod);
+                                                setPurchaseStep("activated");
+                                                const isFiAlgo = prod.name?.includes("FiAlgo") || prod.id?.includes("fialgo");
+                                                const prefix = isFiAlgo ? "FIALGO-V1" : prod.name?.includes("Scalper") ? "SCALP" : prod.name?.includes("Swing") ? "SWING" : prod.name?.includes("HFT") ? "HFT" : "GRID";
+                                                const randomHex = Math.random().toString(36).substring(2, 6).toUpperCase();
+                                                setGeneratedLicenseKey(isFiAlgo ? `FIALGO-V1-99K-${randomHex}-${Date.now().toString().slice(-4)}` : `TRDF-${prefix}-${randomHex}-${Date.now().toString().slice(-4)}`);
+                                            }}
+                                            className="px-5 py-2.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-bold hover:bg-emerald-500/20 transition-all cursor-pointer flex items-center gap-1.5"
+                                        >
+                                            <Check size={14} strokeWidth={3} />
+                                            <span>Active License</span>
+                                        </button>
+                                    ) : (
+                                        <button
+                                            onClick={() => {
+                                                const prod = detailsModalProduct;
+                                                setDetailsModalProduct(null);
+                                                handlePurchase(prod);
+                                            }}
+                                            className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-black shadow-md shadow-blue-500/25 transition-all active:scale-95 flex items-center gap-2 cursor-pointer"
+                                        >
+                                            <span>Buy License Now</span>
+                                            <ArrowRight size={14} strokeWidth={2.5} />
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* Purchase & Checkout Modal */}
             <AnimatePresence>
                 {purchaseModalProduct && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -739,64 +1326,236 @@ export default function Discover() {
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.95 }}
-                            className="relative bg-white dark:bg-[#1E1E1E] rounded-2xl p-6 w-full max-w-md shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col gap-5"
+                            className="relative bg-white dark:bg-[#1E1E1E] rounded-2xl p-6 w-full max-w-lg shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col gap-5 z-10 max-h-[90vh] overflow-y-auto"
                         >
-                            <div className="flex justify-between items-start">
-                                <div>
-                                    <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">Checkout</h3>
-                                    <p className="text-sm text-slate-500 dark:text-slate-400">{purchaseModalProduct.name}</p>
-                                </div>
-                                <button onClick={() => setPurchaseModalProduct(null)} className="p-2 bg-slate-100 dark:bg-white/5 rounded-full text-slate-500 hover:text-slate-900 dark:hover:text-white">
-                                    <X size={18} />
-                                </button>
-                            </div>
-
-                            <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4">
-                                <p className="text-sm text-blue-600 dark:text-blue-400 font-bold mb-1">Total Due: {purchaseModalProduct.currency}{purchaseModalProduct.price}</p>
-                                <p className="text-xs text-blue-500/80">Please pay the creator directly using the details below, then upload a screenshot of your payment.</p>
-                            </div>
-
-                            <div className="space-y-4">
-                                {creatorPaymentDetails?.payment_qr_url && (
-                                    <div className="flex flex-col items-center gap-2">
-                                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Scan to Pay</p>
-                                        <img src={creatorPaymentDetails.payment_qr_url} alt="QR Code" className="w-48 h-48 rounded-xl border border-slate-200 dark:border-white/10" />
+                            {purchaseStep === "activated" ? (
+                                /* Activation Success Screen */
+                                <div className="space-y-5 text-center py-4">
+                                    <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/10">
+                                        <Check size={32} strokeWidth={3} />
                                     </div>
-                                )}
 
-                                {creatorPaymentDetails?.payment_details && (
                                     <div>
-                                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Payment Instructions</p>
-                                        <div className="bg-slate-50 dark:bg-white/5 p-3 rounded-lg text-sm text-slate-800 dark:text-slate-300 border border-slate-200 dark:border-white/10 whitespace-pre-wrap">
-                                            {creatorPaymentDetails.payment_details}
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
+                                            License Issued & Synced
+                                        </span>
+                                        <h3 className="text-xl font-black text-slate-900 dark:text-white mt-2">
+                                            {purchaseModalProduct.name}
+                                        </h3>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">
+                                            Your lifetime license for 1 MT5 Live Terminal and unlimited demo accounts has been provisioned.
+                                        </p>
+                                    </div>
+
+                                    {/* Generated License Key Box */}
+                                    <div className="p-4 rounded-xl bg-slate-50 dark:bg-black/30 border border-slate-200 dark:border-white/10 text-left">
+                                        <div className="flex items-center justify-between mb-1.5">
+                                            <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">YOUR MASTER LICENSE KEY</span>
+                                            <span className="text-[10px] font-bold text-emerald-500">Active</span>
+                                        </div>
+                                        <div className="flex items-center justify-between gap-3">
+                                            <code className="text-base font-black text-blue-600 dark:text-blue-400 font-mono tracking-wider">
+                                                {generatedLicenseKey}
+                                            </code>
+                                            <button
+                                                onClick={() => {
+                                                    navigator.clipboard.writeText(generatedLicenseKey);
+                                                    setCopiedKey(true);
+                                                    toast.success("License key copied!");
+                                                    setTimeout(() => setCopiedKey(false), 2000);
+                                                }}
+                                                className="px-3 py-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                                            >
+                                                {copiedKey ? <Check size={13} strokeWidth={3} /> : <Copy size={13} />}
+                                                <span>{copiedKey ? "Copied" : "Copy Key"}</span>
+                                            </button>
                                         </div>
                                     </div>
-                                )}
 
-                                {(!creatorPaymentDetails?.payment_qr_url && !creatorPaymentDetails?.payment_details) && (
-                                    <div className="text-center text-sm text-rose-500 bg-rose-500/10 p-4 rounded-xl">
-                                        This creator hasn't set up payment details yet.
+                                    <div className="grid grid-cols-2 gap-3 pt-2">
+                                        <button
+                                            onClick={() => {
+                                                setPurchaseModalProduct(null);
+                                                navigate('/auto-trade/license');
+                                            }}
+                                            className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-sm shadow-blue-500/20 flex items-center justify-center gap-1.5 cursor-pointer"
+                                        >
+                                            <KeyRound size={14} />
+                                            <span>EA Setup Guide</span>
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setPurchaseModalProduct(null);
+                                                navigate('/order-history');
+                                            }}
+                                            className="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/20 text-slate-800 dark:text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                                        >
+                                            <span>View Order History</span>
+                                        </button>
                                     </div>
-                                )}
-                            </div>
+                                </div>
+                            ) : (
+                                /* Standard Checkout Screen */
+                                <>
+                                    <div className="flex justify-between items-start border-b border-slate-100 dark:border-white/5 pb-3">
+                                        <div>
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                                                    Checkout
+                                                </span>
+                                                <span className="text-[10px] font-bold text-slate-400">TradiFive Algo License</span>
+                                            </div>
+                                            <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">{purchaseModalProduct.name}</h3>
+                                        </div>
+                                        <button onClick={() => setPurchaseModalProduct(null)} className="p-2 bg-slate-100 dark:bg-white/5 rounded-full text-slate-500 hover:text-slate-900 dark:hover:text-white cursor-pointer">
+                                            <X size={16} />
+                                        </button>
+                                    </div>
 
-                            <div className="border-t border-slate-100 dark:border-white/10 pt-4">
-                                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Upload Payment Screenshot</p>
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={e => setPaymentProofFile(e.target.files ? e.target.files[0] : null)}
-                                    className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-blue-500/10 dark:file:text-blue-400 text-slate-500"
-                                />
-                            </div>
+                                    {/* Price Card */}
+                                    <div className="bg-gradient-to-br from-blue-500/10 via-indigo-500/10 to-transparent border border-blue-500/20 rounded-2xl p-4">
+                                        <div className="flex items-center justify-between mb-1">
+                                            <span className="text-[10px] font-extrabold uppercase tracking-widest text-blue-600 dark:text-blue-400">Total Due (One-Time)</span>
+                                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">Lifetime License</span>
+                                        </div>
+                                        <div className="flex items-baseline justify-between">
+                                            <span className="text-2xl font-black text-slate-900 dark:text-white">
+                                                {purchaseModalProduct.currency || "₹"}{Number(purchaseModalProduct.price || 99999).toLocaleString("en-IN")}
+                                            </span>
+                                            <span className="text-xs text-slate-500 dark:text-slate-400">Includes 18% GST</span>
+                                        </div>
+                                        <div className="mt-3 pt-3 border-t border-blue-500/15 flex items-center gap-2 text-[11px] text-blue-700 dark:text-blue-300 font-medium">
+                                            <ShieldCheck size={14} className="shrink-0" />
+                                            <span>Entitles 1 Live MT5 Account + Unlimited Demo + London LD4 VPS Gateway</span>
+                                        </div>
+                                    </div>
 
-                            <button
-                                onClick={submitPurchaseProof}
-                                disabled={submittingPurchase || (!creatorPaymentDetails?.payment_qr_url && !creatorPaymentDetails?.payment_details)}
-                                className="w-full py-3 rounded-xl bg-blue-500 hover:bg-blue-600 text-white text-sm font-bold transition-all shadow-sm shadow-blue-500/20 disabled:opacity-50 mt-2"
-                            >
-                                {submittingPurchase ? 'Submitting...' : 'Submit Payment Proof'}
-                            </button>
+                                    {/* Payment Method Tabs */}
+                                    <div className="flex items-center gap-2 p-1 bg-slate-100 dark:bg-white/5 rounded-xl border border-slate-200/60 dark:border-white/10">
+                                        <button
+                                            onClick={() => setPaymentMethod("upi")}
+                                            className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${paymentMethod === "upi" ? "bg-white dark:bg-[#1E1E1E] text-slate-900 dark:text-white shadow-sm" : "text-slate-500 hover:text-slate-900 dark:text-slate-400"}`}
+                                        >
+                                            UPI / QR (Instant)
+                                        </button>
+                                        <button
+                                            onClick={() => setPaymentMethod("bank")}
+                                            className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${paymentMethod === "bank" ? "bg-white dark:bg-[#1E1E1E] text-slate-900 dark:text-white shadow-sm" : "text-slate-500 hover:text-slate-900 dark:text-slate-400"}`}
+                                        >
+                                            Bank Transfer
+                                        </button>
+                                        <button
+                                            onClick={() => setPaymentMethod("instant")}
+                                            className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${paymentMethod === "instant" ? "bg-white dark:bg-[#1E1E1E] text-slate-900 dark:text-white shadow-sm" : "text-slate-500 hover:text-slate-900 dark:text-slate-400"}`}
+                                        >
+                                            Instant Test Key
+                                        </button>
+                                    </div>
+
+                                    {/* Payment Content based on method */}
+                                    {paymentMethod === "upi" && (
+                                        <div className="space-y-4">
+                                            <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 flex flex-col items-center text-center">
+                                                <div className="w-36 h-36 rounded-xl bg-white p-2 border border-slate-200 shadow-sm flex items-center justify-center mb-3">
+                                                    {/* Clean SVG QR Representation */}
+                                                    <svg viewBox="0 0 100 100" className="w-full h-full">
+                                                        <rect width="100" height="100" fill="white" />
+                                                        <rect x="10" y="10" width="25" height="25" fill="#0f172a" />
+                                                        <rect x="14" y="14" width="17" height="17" fill="white" />
+                                                        <rect x="18" y="18" width="9" height="9" fill="#0f172a" />
+                                                        <rect x="65" y="10" width="25" height="25" fill="#0f172a" />
+                                                        <rect x="69" y="14" width="17" height="17" fill="white" />
+                                                        <rect x="73" y="18" width="9" height="9" fill="#0f172a" />
+                                                        <rect x="10" y="65" width="25" height="25" fill="#0f172a" />
+                                                        <rect x="14" y="69" width="17" height="17" fill="white" />
+                                                        <rect x="18" y="73" width="9" height="9" fill="#0f172a" />
+                                                        <rect x="42" y="15" width="16" height="6" fill="#0f172a" />
+                                                        <rect x="45" y="45" width="12" height="12" fill="#2563eb" />
+                                                        <rect x="42" y="70" width="16" height="8" fill="#0f172a" />
+                                                        <rect x="68" y="45" width="20" height="8" fill="#0f172a" />
+                                                        <rect x="68" y="70" width="8" height="18" fill="#0f172a" />
+                                                        <rect x="80" y="80" width="8" height="8" fill="#0f172a" />
+                                                    </svg>
+                                                </div>
+                                                <div className="text-xs text-slate-500 mb-1">TradiFive Official Merchant UPI</div>
+                                                <div className="flex items-center gap-2 bg-white dark:bg-black/30 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-white/10">
+                                                    <code className="text-xs font-mono font-bold text-slate-900 dark:text-white">tradifive.algo@icici</code>
+                                                    <button
+                                                        onClick={() => {
+                                                            navigator.clipboard.writeText("tradifive.algo@icici");
+                                                            toast.success("UPI ID copied!");
+                                                        }}
+                                                        className="text-[11px] font-bold text-blue-600 hover:underline cursor-pointer"
+                                                    >
+                                                        Copy
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">
+                                                    UPI UTR / Reference Number
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={utrNumber}
+                                                    onChange={e => setUtrNumber(e.target.value)}
+                                                    placeholder="e.g. 429184920192"
+                                                    className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500/20"
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {paymentMethod === "bank" && (
+                                        <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 space-y-2.5 text-xs">
+                                            <div className="flex justify-between border-b border-slate-100 dark:border-white/5 pb-2">
+                                                <span className="text-slate-400">Account Name:</span>
+                                                <span className="font-bold text-slate-900 dark:text-white">TradiFive Tech Private Limited</span>
+                                            </div>
+                                            <div className="flex justify-between border-b border-slate-100 dark:border-white/5 pb-2">
+                                                <span className="text-slate-400">Bank:</span>
+                                                <span className="font-bold text-slate-900 dark:text-white">ICICI Bank Limited</span>
+                                            </div>
+                                            <div className="flex justify-between border-b border-slate-100 dark:border-white/5 pb-2">
+                                                <span className="text-slate-400">Account Number:</span>
+                                                <span className="font-mono font-bold text-slate-900 dark:text-white">000405019824</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-slate-400">IFSC Code:</span>
+                                                <span className="font-mono font-bold text-blue-600 dark:text-blue-400">ICIC0000004</span>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {paymentMethod === "instant" && (
+                                        <div className="p-4 rounded-xl bg-blue-50/60 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 space-y-2 text-center">
+                                            <Sparkles size={24} className="text-blue-600 dark:text-blue-400 mx-auto mb-1" />
+                                            <h4 className="text-sm font-bold text-slate-900 dark:text-white">Instant Provisioning</h4>
+                                            <p className="text-xs text-slate-600 dark:text-slate-300 max-w-sm mx-auto">
+                                                Activate {purchaseModalProduct.name} immediately to generate your license key and start testing on MetaTrader 5 right away.
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    {/* Action Buttons */}
+                                    <div className="flex flex-col gap-2 pt-2">
+                                        <button
+                                            onClick={() => handleInstantActivate(purchaseModalProduct)}
+                                            className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-black shadow-md shadow-blue-500/25 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                                        >
+                                            <KeyRound size={15} />
+                                            <span>Confirm & Generate MT5 License Key</span>
+                                        </button>
+                                        <button
+                                            onClick={() => setPurchaseModalProduct(null)}
+                                            className="w-full py-2 rounded-xl text-slate-500 hover:text-slate-800 dark:hover:text-white text-xs font-bold transition-colors cursor-pointer"
+                                        >
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </>
+                            )}
                         </motion.div>
                     </div>
                 )}

@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { PricingCards } from "@/components/PricingCards";
-import DeepDiveFeatures from "@/components/DeepDiveFeatures";
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
 import { PushableButton } from "../components/PushableButton";
 import tradifiveLogo from "@/assets/tradifive-login-logo.png";
@@ -1206,7 +1205,6 @@ export default function TradiFive() {
         <Philosophy />
         <Discipline />
         <Features />
-        <DeepDiveFeatures />
         <TerminalBento />
         <PricingSection onStart={handleStart} />
       </main>

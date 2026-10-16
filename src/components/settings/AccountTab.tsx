@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import defaultAvatar from '@/assets/default-avatar.svg';
 import { Button } from '@/components/ui/button';
-import { AlertDialog, AlertDialogClose, AlertDialogPopup, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 
 export default function AccountTab({
    profile,
@@ -465,31 +465,38 @@ export default function AccountTab({
                      </p>
                   </div>
 
-                  <AlertDialog>
-                     <AlertDialogTrigger asChild>
+                  <Dialog>
+                     <DialogTrigger asChild>
                         <Button variant="destructive" className="bg-red-500 hover:bg-red-600 text-white text-[13px] font-semibold shrink-0">
                            Delete Account
                         </Button>
-                     </AlertDialogTrigger>
-                     <AlertDialogPopup>
-                        <AlertDialogHeader className="px-6 pt-5 pb-3">
-                           <AlertDialogTitle className="font-sans text-[1.1rem] text-slate-900 dark:text-white tracking-tight">Are you absolutely sure?</AlertDialogTitle>
-                           <AlertDialogDescription className="text-[0.92rem] text-slate-500 dark:text-slate-400 mt-1 leading-snug">
+                     </DialogTrigger>
+                     <DialogContent className="sm:max-w-[425px]">
+                        <DialogHeader>
+                           <DialogTitle className="font-sans text-[1.1rem] text-slate-900 dark:text-white tracking-tight">Are you absolutely sure?</DialogTitle>
+                           <DialogDescription className="text-[0.92rem] text-slate-500 dark:text-slate-400 mt-1 leading-snug">
                               This action cannot be undone. This will permanently delete your account
                               and remove your data from our servers.
-                           </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter className="bg-slate-50 dark:bg-slate-900 border-t border-black/5 dark:border-white/10 px-6 py-3">
-                           <AlertDialogClose render={<Button variant="ghost" className="m-0 h-8 px-3 rounded-[8px] text-[13px] font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-800" />}>Cancel</AlertDialogClose>
-                           <AlertDialogClose
-                              onClick={() => toast.error('Account deletion not fully implemented yet.')}
-                              render={<Button variant="destructive" className="m-0 h-8 px-3 rounded-[8px] bg-[#f53a3a] hover:bg-[#df2c2c] text-white font-medium shadow-[0_2px_8px_-2px_rgba(245,58,58,0.4),inset_0_1px_1px_rgba(255,255,255,0.3)] border border-[#d62828] text-[13px]" />}
-                           >
-                              Delete Account
-                           </AlertDialogClose>
-                        </AlertDialogFooter>
-                     </AlertDialogPopup>
-                  </AlertDialog>
+                           </DialogDescription>
+                        </DialogHeader>
+                        <DialogFooter className="gap-2 sm:gap-0 pt-2">
+                           <DialogClose asChild>
+                              <Button variant="ghost" className="h-9 px-4 rounded-xl text-[13px] font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-800">
+                                 Cancel
+                              </Button>
+                           </DialogClose>
+                           <DialogClose asChild>
+                              <Button 
+                                 variant="destructive" 
+                                 className="h-9 px-4 rounded-xl bg-[#f53a3a] hover:bg-[#df2c2c] text-white font-medium text-[13px]"
+                                 onClick={() => toast.error('Account deletion not fully implemented yet.')}
+                              >
+                                 Delete Account
+                              </Button>
+                           </DialogClose>
+                        </DialogFooter>
+                     </DialogContent>
+                  </Dialog>
                </div>
             </div>
          </section>

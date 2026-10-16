@@ -1,0 +1,93 @@
+.electric-border {
+  position: relative;
+  border-radius: calc(var(--borderRadius) * 1px);
+}
+
+.eb-canvas-container {
+  position: absolute;
+  inset: -60px;
+  pointer-events: none;
+  z-index: 20;
+}
+
+.eb-canvas {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.eb-layers {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  border-radius: inherit;
+}
+
+.eb-glow-1 {
+  position: absolute;
+  inset: -4px;
+  border-radius: calc(var(--borderRadius) * 1px + 4px);
+  background: conic-gradient(
+    from var(--glow-angle, 0deg) at 50% 50%,
+    transparent 0%,
+    var(--electric-border-color) 10%,
+    transparent 30%,
+    transparent 50%,
+    var(--electric-border-color) 60%,
+    transparent 80%,
+    transparent 100%
+  );
+  opacity: 0.6;
+  filter: blur(8px);
+}
+
+.eb-background-glow {
+  position: absolute;
+  inset: -10px;
+  border-radius: calc(var(--borderRadius) * 1px + 10px);
+  background: conic-gradient(
+    from var(--glow-angle, 0deg) at 50% 50%,
+    transparent 0%,
+    var(--electric-border-color) 10%,
+    transparent 30%,
+    transparent 50%,
+    var(--electric-border-color) 60%,
+    transparent 80%,
+    transparent 100%
+  );
+  opacity: 0.25;
+  filter: blur(25px);
+}
+
+.eb-card-border {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 2px;
+  background: conic-gradient(
+    from var(--glow-angle, 0deg) at 50% 50%,
+    transparent 0%,
+    var(--electric-border-color) 10%,
+    transparent 30%,
+    transparent 50%,
+    var(--electric-border-color) 60%,
+    transparent 80%,
+    transparent 100%
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 25;
+}
+
+.eb-content {
+  position: relative;
+  z-index: 10;
+  border-radius: inherit;
+  height: 100%;
+}
+

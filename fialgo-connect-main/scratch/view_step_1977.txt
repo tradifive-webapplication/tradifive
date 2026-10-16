@@ -1,0 +1,1 @@
+I will view `Settings.tsx` to fix any remaining spelling fallbacks to "Nikhil".

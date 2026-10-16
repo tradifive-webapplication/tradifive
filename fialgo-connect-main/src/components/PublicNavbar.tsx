@@ -2,9 +2,10 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Ic } from "./Ic";
-import { Download, Menu, X, ArrowRight, Sparkles, ChevronRight, Tag, Smartphone, Mail, Brain } from "lucide-react";
+import { Download, Menu, X, ArrowRight, Sparkles, ChevronRight, ChevronDown, Tag, Smartphone, Mail, Brain, Cpu, Shield, BookOpen, Users, Radio } from "lucide-react";
 import AnimatedButton from "./AnimatedButton";
 import WaitlistModal from "./WaitlistModal";
+import FeaturesMegaMenu from "./FeaturesMegaMenu";
 
 export default function PublicNavbar({
   onSignIn,
@@ -28,12 +29,123 @@ export default function PublicNavbar({
   const [isHoveredTop, setIsHoveredTop] = useState(false);
   const [showWaitlist, setShowWaitlist] = useState(false);
 
+  // Desktop Features Mega Dropdown State
+  const [featuresDropdownOpen, setFeaturesDropdownOpen] = useState(false);
+  const [mobileFeaturesOpen, setMobileFeaturesOpen] = useState(true);
+  const [dropdownLeft, setDropdownLeft] = useState<number>(-120);
+  const featuresDropdownRef = useRef<HTMLDivElement>(null);
+
+  const MOBILE_FEATURES = [
+    {
+      title: "FiAlgo",
+      category: "AUTOMATED TRADING",
+      desc: "Hands-free automated execution bots.",
+      path: "/features/auto-trade",
+      accentColor: "#38bdf8",
+    },
+    {
+      title: "Risk Guard Protection",
+      category: "CAPITAL PRESERVATION",
+      desc: "Drawdown kill-switch & daily loss limits.",
+      path: "/features/risk-guard",
+      accentColor: "#34d399",
+    },
+    {
+      title: "Smart Trade Journal",
+      category: "ANALYTICS & METRICS",
+      desc: "Auto broker sync & 40+ analytics metrics.",
+      path: "/features/smart-journal",
+      accentColor: "#f472b6",
+    },
+    {
+      title: "Community Hub",
+      category: "SOCIAL TRADING",
+      desc: "Connect with verified traders worldwide.",
+      path: "/features/community-hub",
+      accentColor: "#818cf8",
+    },
+    {
+      title: "Creator Hub",
+      category: "CREATOR ROOMS",
+      desc: "Curated creator broadcast rooms & verified signals.",
+      path: "/features/channels",
+      accentColor: "#fb7185",
+    },
+  ];
+  const dropdownTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const calculateDropdownPosition = () => {
+    if (!featuresDropdownRef.current) return;
+    const rect = featuresDropdownRef.current.getBoundingClientRect();
+    const dropdownWidth = Math.min(680, window.innerWidth - 32);
+    let offset = Math.round((rect.width - dropdownWidth) / 2);
+    const currentLeftOnScreen = rect.left + offset;
+
+    if (currentLeftOnScreen + dropdownWidth > window.innerWidth - 16) {
+      offset -= (currentLeftOnScreen + dropdownWidth - (window.innerWidth - 16));
+    }
+    if (rect.left + offset < 16) {
+      offset = 16 - rect.left;
+    }
+    setDropdownLeft(offset);
+  };
+
+  const handleFeaturesMouseEnter = () => {
+    if (dropdownTimeoutRef.current) clearTimeout(dropdownTimeoutRef.current);
+    calculateDropdownPosition();
+    setFeaturesDropdownOpen(true);
+  };
+
+  const handleFeaturesMouseLeave = () => {
+    dropdownTimeoutRef.current = setTimeout(() => {
+      setFeaturesDropdownOpen(false);
+    }, 200);
+  };
+
+  const handleToggleFeaturesDropdown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (dropdownTimeoutRef.current) clearTimeout(dropdownTimeoutRef.current);
+    calculateDropdownPosition();
+    setFeaturesDropdownOpen((prev) => !prev);
+  };
+
+  // Close dropdown on click outside or Escape
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (featuresDropdownRef.current && !featuresDropdownRef.current.contains(e.target as Node)) {
+        setFeaturesDropdownOpen(false);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setFeaturesDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
+
+  // Close dropdown on route change
+  useEffect(() => {
+    setFeaturesDropdownOpen(false);
+  }, [location.pathname]);
+
+  // Recalculate position on resize when open
+  useEffect(() => {
+    if (featuresDropdownOpen) {
+      calculateDropdownPosition();
+      window.addEventListener("resize", calculateDropdownPosition);
+      return () => window.removeEventListener("resize", calculateDropdownPosition);
+    }
+  }, [featuresDropdownOpen]);
+
   const handleSignIn = (e?: React.MouseEvent) => {
-    if (
-      window.location.hostname === 'localhost' ||
-      window.location.hostname === '127.0.0.1' ||
-      e?.shiftKey
-    ) {
+    if (e?.shiftKey) {
       navigate("/login");
       return;
     }
@@ -136,54 +248,48 @@ export default function PublicNavbar({
         }
         
         .nav-btn-signin {
-          background: none;
+          background: #171717;
           border: none;
-          color: rgba(255,255,255,0.65);
+          color: rgba(255, 255, 255, 0.9);
           font-size: 13px;
-          font-weight: 500;
+          font-weight: 600;
           cursor: pointer;
-          padding: 8px 16px;
-          transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+          padding: 8px 18px;
+          transition: all 0.2s ease;
           border-radius: 100px;
+          box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.12), 0 2px 4px rgba(0, 0, 0, 0.2);
+          outline: none;
         }
         .nav-btn-signin:hover {
           color: #fff;
-          background: rgba(255, 255, 255, 0.08);
+          background: #1e1e1e;
           transform: translateY(-1px);
+          box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.16), 0 0 0 1px rgba(255, 255, 255, 0.18), 0 2px 4px rgba(0, 0, 0, 0.25);
         }
         
         .nav-btn-get-started {
           padding: 10px 22px;
           border-radius: 100px;
-          background: linear-gradient(135deg, #6366f1 0%, #4f46e5 50%, #7c3aed 100%);
-          color: #fff;
-          font-weight: 600;
+          background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+          color: #60a5fa;
+          font-weight: 700;
           font-size: 13px;
           border: none;
           cursor: pointer;
-          transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-          box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3), inset -1.5px 1.5px 2px rgba(150, 200, 255, 0.5), inset 0 1px 0 rgba(255,255,255,0.2);
+          transition: all 0.2s ease;
+          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 6px rgba(0, 0, 0, 0.3);
           position: relative;
           overflow: hidden;
-        }
-        .nav-btn-get-started::before {
-          content: "";
-          position: absolute;
-          top: 0; left: -100%; width: 50%; height: 100%;
-          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
-          transform: skewX(-20deg);
-          transition: 0.5s;
+          outline: none;
         }
         .nav-btn-get-started:hover {
-          transform: translateY(-2px) scale(1.02);
-          box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4), inset 0 1px 0 rgba(255,255,255,0.3);
-        }
-        .nav-btn-get-started:hover::before {
-          left: 150%;
+          transform: translateY(-1px);
+          background: linear-gradient(135deg, #253347 0%, #131c33 100%);
+          color: #93c5fd;
+          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 4px 12px rgba(0, 0, 0, 0.4);
         }
         .nav-btn-get-started:active {
-          transform: translateY(0) scale(0.98);
-          box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+          transform: translateY(0);
         }
 
         @media (max-width: 768px) {
@@ -234,7 +340,7 @@ export default function PublicNavbar({
           top: 10,
           left: "50%",
           transform: "translateX(-50%) translateY(var(--nav-translate-y, 0%))",
-          ["--nav-translate-y" as any]: inDeepDives && !isHoveredTop && !mobileMenuOpen ? "-120%" : "0%",
+          ["--nav-translate-y" as any]: inDeepDives && !isHoveredTop && !mobileMenuOpen && !featuresDropdownOpen ? "-120%" : "0%",
           width: "min(96%, 1280px)",
           maxWidth: 1280,
           height: 64,
@@ -261,7 +367,58 @@ export default function PublicNavbar({
 
           <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
             <div style={{ display: "flex", gap: 24, alignItems: "center" }} className="hide-sm">
-              <a href={isHome ? "#features" : "/#features"} onClick={(e) => handleScrollTo(e, "features")} className="nav-link-item">Features</a>
+              {/* Desktop Features Mega Dropdown Trigger */}
+              <div
+                ref={featuresDropdownRef}
+                style={{ position: "relative" }}
+                onMouseEnter={handleFeaturesMouseEnter}
+                onMouseLeave={handleFeaturesMouseLeave}
+              >
+                <button
+                  type="button"
+                  onClick={handleToggleFeaturesDropdown}
+                  className={`nav-link-item ${featuresDropdownOpen || isFeaturesActive ? "active" : ""}`}
+                  style={{
+                    background: featuresDropdownOpen ? "rgba(255, 255, 255, 0.08)" : "transparent",
+                    border: "none",
+                    cursor: "pointer",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 5,
+                    padding: "6px 12px",
+                    borderRadius: 999,
+                    transition: "all 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
+                  }}
+                  aria-expanded={featuresDropdownOpen}
+                  aria-haspopup="true"
+                >
+                  <span>Features</span>
+                  <ChevronDown
+                    size={14}
+                    style={{
+                      transition: "transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
+                      transform: featuresDropdownOpen ? "rotate(180deg)" : "rotate(0deg)",
+                      opacity: featuresDropdownOpen ? 1 : 0.65,
+                    }}
+                  />
+                </button>
+
+                <FeaturesMegaMenu
+                  isOpen={featuresDropdownOpen}
+                  dropdownLeft={dropdownLeft}
+                  onClose={() => setFeaturesDropdownOpen(false)}
+                  onNavigate={(path) => {
+                    setFeaturesDropdownOpen(false);
+                    navigate(path);
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
+                  onMouseEnter={() => {
+                    if (dropdownTimeoutRef.current) clearTimeout(dropdownTimeoutRef.current);
+                  }}
+                  onMouseLeave={handleFeaturesMouseLeave}
+                />
+              </div>
+
               <div style={{ transform: "scale(0.85)", display: "flex", alignItems: "center" }}>
                 <AnimatedButton text="TradiFive AI" onClick={() => navigate("/features/tradifive-ai")} />
               </div>
@@ -420,50 +577,76 @@ export default function PublicNavbar({
               {/* â”€â”€ Scrollable Content â”€â”€ */}
               <div style={{ flex: 1, overflowY: "auto", padding: "20px 16px", display: "flex", flexDirection: "column", gap: 2 }}>
 
-                {/* Section Label */}
-                <div style={{ padding: "4px 8px 10px", fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.22)", letterSpacing: "0.16em", textTransform: "uppercase" }}>
-                  Features
-                </div>
-
-                {/* TradiFive AI Feature Card */}
-                <motion.div
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.07, duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                {/* Collapsible Features Dropdown Header */}
+                <button
+                  onClick={() => setMobileFeaturesOpen((prev) => !prev)}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    width: "100%",
+                    padding: "6px 8px 10px",
+                    background: "transparent",
+                    border: "none",
+                    cursor: "pointer",
+                    fontSize: 10,
+                    fontWeight: 700,
+                    color: "rgba(255,255,255,0.45)",
+                    letterSpacing: "0.16em",
+                    textTransform: "uppercase",
+                  }}
                 >
-                  <button
-                    onClick={() => { setMobileMenuOpen(false); navigate("/features/tradifive-ai"); }}
+                  <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    Features
+                    <span style={{ fontSize: 9, background: "rgba(96, 165, 250, 0.15)", color: "#60a5fa", padding: "1px 6px", borderRadius: 100, fontWeight: 700 }}>5</span>
+                  </span>
+                  <ChevronDown
+                    size={14}
                     style={{
-                      width: "100%", textAlign: "left",
-                      background: "rgba(255,255,255,0.015)",
-                      border: "none",
-                      borderRadius: 16, padding: "16px 18px",
-                      cursor: "pointer", marginBottom: 8,
-                      position: "relative", overflow: "hidden",
-                      transition: "all 0.2s ease",
+                      transform: mobileFeaturesOpen ? "rotate(180deg)" : "rotate(0deg)",
+                      transition: "transform 0.2s ease",
+                      color: "rgba(255,255,255,0.45)",
                     }}
-                  >
-                    <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 7 }}>
-                      <div style={{
-                        width: 34, height: 34, borderRadius: 10,
-                        background: "rgba(255,255,255,0.04)",
-                        border: "1px solid rgba(255,255,255,0.07)",
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        flexShrink: 0,
-                      }}>
-                        <Brain size={15} color="rgba(255,255,255,0.55)" />
-                      </div>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", lineHeight: 1.2 }}>TradiFive AI</div>
-                        <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", marginTop: 2 }}>AI Coach</div>
-                      </div>
-                      <ChevronRight size={14} color="rgba(255,255,255,0.2)" />
-                    </div>
-                    <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", margin: 0, lineHeight: 1.6 }}>
-                      Real-time behavioral coaching that adapts to your trading style.
-                    </p>
-                  </button>
-                </motion.div>
+                  />
+                </button>
+
+                {/* Features Items Dropdown List */}
+                <AnimatePresence>
+                  {mobileFeaturesOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                      style={{ overflow: "hidden", display: "flex", flexDirection: "column", gap: 6, marginBottom: 8 }}
+                    >
+                      {MOBILE_FEATURES.map((feat) => {
+                        return (
+                          <button
+                            key={feat.path}
+                            onClick={() => { setMobileMenuOpen(false); navigate(feat.path); }}
+                            style={{
+                              width: "100%", textAlign: "left",
+                              background: "rgba(255,255,255,0.015)",
+                              border: "1px solid rgba(255,255,255,0.04)",
+                              borderRadius: 14, padding: "12px 14px",
+                              cursor: "pointer",
+                              transition: "all 0.2s ease",
+                            }}
+                          >
+                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 3 }}>
+                              <div style={{ fontSize: 13.5, fontWeight: 700, color: "#fff", lineHeight: 1.2 }}>{feat.title}</div>
+                              <div style={{ fontSize: 9.5, color: feat.accentColor, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" }}>{feat.category}</div>
+                            </div>
+                            <p style={{ fontSize: 11.5, color: "rgba(255,255,255,0.45)", margin: 0, lineHeight: 1.5 }}>
+                              {feat.desc}
+                            </p>
+                          </button>
+                        );
+                      })}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
                 {/* Section Label */}
                 <div style={{ padding: "10px 8px 8px", fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.22)", letterSpacing: "0.16em", textTransform: "uppercase" }}>
@@ -528,45 +711,72 @@ export default function PublicNavbar({
               >
                 <motion.button
                   whileTap={{ scale: 0.97 }}
-                  whileHover={{ background: "rgba(255,255,255,0.1)" } as any}
                   onClick={(e: any) => { setMobileMenuOpen(false); handleSignIn(e); }}
                   style={{
-                    background: "rgba(255,255,255,0.05)",
-                    border: "1px solid rgba(255,255,255,0.1)",
-                    color: "#fff",
+                    background: "#171717",
+                    border: "none",
+                    color: "rgba(255, 255, 255, 0.9)",
                     padding: "12px",
-                    borderRadius: "8px",
-                    fontSize: "15px",
+                    borderRadius: "12px",
+                    fontSize: "14.5px",
                     fontWeight: 600,
                     width: "100%",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    gap: "8px"
+                    gap: "8px",
+                    cursor: "pointer",
+                    boxShadow: "inset 0 1px 0 0 rgba(255, 255, 255, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.12), 0 2px 4px rgba(0, 0, 0, 0.2)",
+                    transition: "all 0.2s ease",
+                    outline: "none",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = "#1e1e1e";
+                    e.currentTarget.style.color = "#ffffff";
+                    e.currentTarget.style.boxShadow = "inset 0 1px 0 0 rgba(255, 255, 255, 0.16), 0 0 0 1px rgba(255, 255, 255, 0.18), 0 2px 4px rgba(0, 0, 0, 0.25)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "#171717";
+                    e.currentTarget.style.color = "rgba(255, 255, 255, 0.9)";
+                    e.currentTarget.style.boxShadow = "inset 0 1px 0 0 rgba(255, 255, 255, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.12), 0 2px 4px rgba(0, 0, 0, 0.2)";
                   }}
                 >
                   Sign In
                 </motion.button>
                 <motion.button
                   whileTap={{ scale: 0.97 }}
-                  whileHover={{ background: "#2563eb" } as any}
                   onClick={() => { setMobileMenuOpen(false); handleSignUp(); }}
                   style={{
-                    background: "#3b82f6",
+                    background: "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)",
                     border: "none",
-                    color: "#fff",
-                    padding: "12px",
-                    borderRadius: "8px",
-                    fontSize: "15px",
-                    fontWeight: 600,
+                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.1), 0 2px 6px rgba(0,0,0,0.3)",
+                    color: "#60a5fa",
+                    padding: "13px",
+                    borderRadius: "12px",
+                    fontSize: "14.5px",
+                    fontWeight: 700,
                     width: "100%",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    gap: "8px"
+                    gap: "8px",
+                    cursor: "pointer",
+                    transition: "all 0.2s ease",
+                    outline: "none",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = "linear-gradient(135deg, #253347 0%, #131c33 100%)";
+                    e.currentTarget.style.color = "#93c5fd";
+                    e.currentTarget.style.boxShadow = "inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 4px 12px rgba(0, 0, 0, 0.4)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)";
+                    e.currentTarget.style.color = "#60a5fa";
+                    e.currentTarget.style.boxShadow = "inset 0 1px 0 rgba(255,255,255,0.1), 0 2px 6px rgba(0,0,0,0.3)";
                   }}
                 >
-                  Join Waitlist
+                  <Sparkles size={15} />
+                  <span>Join Waitlist</span>
                 </motion.button>
               </motion.div>
             </motion.div>

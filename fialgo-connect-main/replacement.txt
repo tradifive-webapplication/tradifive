@@ -1,0 +1,184 @@
+  const fetchProfileAndData = async () => {
+    // Check local cache for immediate render
+    const cacheProf = localStorage.getItem('prof_cache_data');
+    if (cacheProf && !profile) setProfile(JSON.parse(cacheProf));
+    const cachePosts = localStorage.getItem('prof_cache_posts');
+    if (cachePosts && posts.length === 0) setPosts(JSON.parse(cachePosts));
+    if (!cacheProf) setLoading(true);
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        // Parallelize all independent DB fetches!
+        const [
+          profRes,
+          followersRes,
+          followingRes,
+          sugRes,
+          postsRes,
+          likesRes,
+          tradesRes,
+          mt5Res
+        ] = await Promise.all([
+          supabase.from('profiles').select('*').eq('id', user.id).maybeSingle(),
+          supabase.from('social_follows').select('*', { count: 'exact', head: true }).eq('following_id', user.id),
+          supabase.from('social_follows').select('following_id').eq('follower_id', user.id),
+          supabase.from('profiles').select('id, display_name, username, avatar_url, win_rate, bio').neq('id', user.id).limit(10),
+          supabase.from('social_posts').select('*, profiles:user_id (id, first_name, last_name, avatar_url, username, display_name, bio, banner_url)').order('created_at', { ascending: false }),
+          supabase.from('social_post_likes').select('post_id').eq('user_id', user.id),
+          supabase.from('trades').select('*').eq('user_id', user.id),
+          supabase.from('mt5_accounts').select('balance').eq('user_id', user.id).maybeSingle()
+        ]);
+
+        const profileData = profRes.data;
+        if (profileData) {
+          const emailUsername = user.email?.split('@')[0]?.toLowerCase().replace(/[^a-z0-9]/g, '') || "trader";
+          if (profileData.display_name === "Guest Trader" || !profileData.display_name || profileData.username === "guest_trader" || !profileData.username) {
+            const meta = user.user_metadata || {};
+            const resolvedDisplayName = meta.full_name || meta.name || `${meta.first_name || ''} ${meta.last_name || ''}`.trim() || emailUsername;
+            const resolvedUsername = profileData.username && profileData.username !== "guest_trader" ? profileData.username : emailUsername;
+            const resolvedAvatarUrl = profileData.avatar_url || meta.avatar_url || meta.picture || `https://api.dicebear.com/7.x/initials/svg?seed=${resolvedDisplayName}`;
+
+            const updatedProfile = {
+              ...profileData,
+              display_name: profileData.display_name && profileData.display_name !== "Guest Trader" ? profileData.display_name : resolvedDisplayName,
+              username: resolvedUsername,
+              bio: profileData.bio || "",
+              avatar_url: resolvedAvatarUrl,
+              banner_url: profileData.banner_url || "https://images.unsplash.com/photo-1557682250-33bd709cbe85?w=1200&fit=crop&q=80",
+            };
+            supabase.from('profiles').update({
+                display_name: updatedProfile.display_name,
+                username: updatedProfile.username,
+                avatar_url: updatedProfile.avatar_url,
+                banner_url: updatedProfile.banner_url
+              }).eq('id', user.id).then();
+            setProfile(updatedProfile);
+            localStorage.setItem('prof_cache_data', JSON.stringify(updatedProfile));
+          } else {
+            setProfile(profileData);
+            localStorage.setItem('prof_cache_data', JSON.stringify(profileData));
+          }
+        }
+
+        if (followersRes.count !== null) setFollowerCount(followersRes.count);
+        if (followingRes.data) {
+          setFollowingCount(followingRes.data.length);
+          const map: Record<string, boolean> = {};
+          followingRes.data.forEach((f: any) => { map[f.following_id] = true; });
+          setFollowedUsers(map);
+        }
+
+        if (sugRes.data) {
+          const realTraders = sugRes.data.filter((p: any) => {
+            const name = (p.display_name || '').trim().toLowerCase();
+            return name.length > 0 && !PLACEHOLDER_NAMES.includes(name);
+          }).slice(0, 5);
+          setSuggestedTraders(realTraders);
+        }
+
+        if (!postsRes.error && postsRes.data) {
+          const localPosts = JSON.parse(localStorage.getItem('fialgo_local_posts') || '[]');
+          const combinedPosts = [...localPosts, ...(postsRes.data ?? [])];
+          combinedPosts.sort((a: any, b: any) => {
+            const timeA = a && a.created_at ? new Date(a.created_at).getTime() : 0;
+            const timeB = b && b.created_at ? new Date(b.created_at).getTime() : 0;
+            return isNaN(timeB) || isNaN(timeA) ? 0 : timeB - timeA;
+          });
+          setPosts(combinedPosts);
+          localStorage.setItem('prof_cache_posts', JSON.stringify(combinedPosts));
+          setOwnPostsCount(combinedPosts.filter((p: any) => p.user_id === user.id || p.id.startsWith('local-')).length);
+        } else {
+          const localPosts = JSON.parse(localStorage.getItem('fialgo_local_posts') || '[]');
+          setPosts(localPosts);
+          setOwnPostsCount(localPosts.length);
+        }
+
+        if (likesRes.data) {
+          const likedMap: Record<string, boolean> = {};
+          likesRes.data.forEach((l: any) => { likedMap[l.post_id] = true; });
+          setLikedPosts(likedMap);
+        }
+
+        const tradesData = tradesRes.data;
+        if (tradesData && tradesData.length > 0) {
+          const total = tradesData.length;
+          const wins = tradesData.filter((t: any) => Number(t.profit) > 0).length;
+          const wr = total > 0 ? Math.round((wins / total) * 100) : 0;
+          const pnlSum = tradesData.reduce((acc: number, t: any) => acc + Number(t.profit || 0), 0);
+          
+          setTotalTradesCount(total);
+          setWinRateVal(`${wr}%`);
+          
+          let currentStreak = 0;
+          const sortedTrades = [...tradesData].sort((a: any, b: any) => new Date(b.closed_at || b.created_at).getTime() - new Date(a.closed_at || a.created_at).getTime());
+          for (const t of sortedTrades) {
+            if (Number(t.profit) > 0) { currentStreak++; } else { break; }
+          }
+          setStreakVal(`${currentStreak} Day${currentStreak !== 1 ? 's' : ''}`);
+
+          let best = 0;
+          let runLen = 0;
+          const chronoTrades = [...tradesData].sort((a: any, b: any) => new Date(a.closed_at || a.created_at).getTime() - new Date(b.closed_at || b.created_at).getTime());
+          for (const t of chronoTrades) {
+            if (Number(t.profit) > 0) { runLen++; if (runLen > best) best = runLen; } else { runLen = 0; }
+          }
+          setBestStreak(best);
+
+          const today = new Date();
+          const dots: {date: string; status: 'green'|'red'|'gray'}[] = [];
+          const dailyPnl: Record<string, number> = {};
+          for (const t of tradesData) {
+            const d = new Date(t.closed_at || t.created_at);
+            const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+            dailyPnl[key] = (dailyPnl[key] || 0) + Number(t.profit || 0);
+          }
+          for (let i = 14; i >= 0; i--) {
+            const d = new Date(today);
+            d.setDate(d.getDate() - i);
+            const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+            if (dailyPnl[key] !== undefined) {
+              dots.push({ date: key, status: dailyPnl[key] > 0 ? 'green' : 'red' });
+            } else {
+              dots.push({ date: key, status: 'gray' });
+            }
+          }
+          setStreakDots(dots);
+
+          const calMap: Record<string, 'green'|'red'|'gray'> = {};
+          for (const [key, pnl] of Object.entries(dailyPnl)) {
+            calMap[key] = pnl > 0 ? 'green' : 'red';
+          }
+          setCalendarDayMap(calMap);
+
+          const balance = mt5Res.data?.balance || 10000;
+          const roiPercent = balance > 0 ? (pnlSum / balance) * 100 : 0;
+          setRoiVal((pnlSum >= 0 ? "+" : "") + roiPercent.toFixed(2) + "%");
+        } else {
+          setTotalTradesCount(0);
+          setWinRateVal("0%");
+          setStreakVal("0 Days");
+          setRoiVal("0.00%");
+          setBestStreak(0);
+          setStreakDots([]);
+          setCalendarDayMap({});
+        }
+      } else {
+        setProfile({
+          id: "guest",
+          display_name: "Guest Trader",
+          username: "guest",
+          bio: "",
+          avatar_url: "",
+          banner_url: "https://images.unsplash.com/photo-1557682250-33bd709cbe85?w=1200&fit=crop&q=80",
+        });
+        setPosts([]);
+        setOwnPostsCount(0);
+      }
+    } catch (err) {
+      console.error("Error loading profile data:", err);
+      setPosts([]);
+    } finally {
+      setLoading(false);
+    }
+  };

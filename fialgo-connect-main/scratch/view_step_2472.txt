@@ -1,0 +1,1 @@
+I will view lines 650 to 710 of `src/pages/Settings.tsx` to see how the theme selector is rendered in the settings UI.

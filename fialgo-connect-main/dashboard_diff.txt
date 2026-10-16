@@ -1,0 +1,787 @@
+Created At: 2026-07-01T10:42:21Z
+Completed At: 2026-07-01T10:43:08Z
+The following changes were made by the multi_replace_file_content tool to: c:\Users\nikil\Downloads\fialgo-connect-main\fialgo-connect-main\src\pages\Dashboard.tsx. If relevant, proactively run terminal commands to execute this code for the USER. Don't ask for permission.
+[diff_block_start]
+@@ -37,7 +37,7 @@
+ import { Bar, BarChart, ResponsiveContainer, YAxis, Tooltip, AreaChart, Area, XAxis, CartesianGrid, ReferenceLine } from 'recharts';
+ import { usePlan } from '@/hooks/usePlan';
+ import { useMarket } from '@/contexts/MarketContext';
+-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
++import { Tooltip as UITooltip, TooltipContent as UITooltipContent, TooltipProvider as UITooltipProvider, TooltipTrigger as UITooltipTrigger } from "@/components/ui/tooltip";
+ import { InfoCircle as IconlyInfoCircle, Activity as IconlyActivity, Setting as IconlySetting, Discovery as IconlyDiscovery, TicketStar as IconlyTicketStar, Calendar as IconlyCalendar, Message as IconlyMessage, Danger as IconlyDanger, Graph as IconlyGraph, ShieldDone as IconlyShieldDone, Document as IconlyDocument } from "react-iconly";
+ import DashboardLayout from "@/components/DashboardLayout";
+ import { useDashboardData } from "@/hooks/useDashboardData";
+@@ -1058,731 +1058,205 @@
+        return { isOpen: false, text: "Indian markets are closed (Opens tomorrow 9:15 AM IST)" };
+     }
+     
+-    return { isOpen: true, text: "Indian markets are open" };
+-  }, [activeMarket]);
+-
+-  return (
++    // Dynamic execution limits
++    const maxExecutions = riskConfig?.max_open_trades || 5;
++    const executionsCount = tradesToday;
++    const executionsRemaining = Math.max(0, maxExecutions - executionsCount);
++    const executionsPercentage = Math.min(100, (executionsCount / maxExecutions) * 100);
++
++    // Dynamic daily drawdown limits
++    const currentDrawdownDollar = Math.max(0, balance - equity);
++
++    // Support prop firm fixed daily loss limit vs default percentage limit
++    const maxLossPercent = riskConfig?.max_daily_loss_percent || 5.0;
++    const drawdownLimitDollar = (riskConfig?.is_prop_firm_mode && riskConfig?.prop_firm_daily_loss)
++      ? riskConfig.prop_firm_daily_loss
++      : balance * (maxLossPercent / 100);
++
++    const drawdownPercentage = balance > 0 ? (currentDrawdownDollar / balance) * 100 : 0;
++    const drawdownLimitPercentage = maxLossPercent;
++
++    const drawdownProgressPercent = drawdownLimitDollar > 0
++      ? Math.min(100, (currentDrawdownDollar / drawdownLimitDollar) * 100)
++      : 0;
++
++    // Determine Revenge Guard status
++    const isEngaged = currentDrawdownDollar >= drawdownLimitDollar || executionsCount >= maxExecutions;
++    const revengeGuardStatus = isEngaged ? "Engaged" : "Standby";
++    const revengeGuardColor = isEngaged ? "bg-rose-500" : "bg-emerald-500";
++    const revengeGuardTextClass = isEngaged ? "text-rose-500" : "text-emerald-500";
++
++    // Determine risk level based on drawdown progress
++    let riskLevelText = "Low";
++    let riskLevelClass = "bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900/30 text-emerald-600 dark:text-emerald-400";
++    if (drawdownProgressPercent >= 80) {
++      riskLevelText = "High";
++      riskLevelClass = "bg-rose-50 dark:bg-rose-950/30 border border-rose-100 dark:border-rose-900/30 text-rose-600 dark:text-rose-400";
++    } else if (drawdownProgressPercent >= 40) {
++      riskLevelText = "Moderate";
++      riskLevelClass = "bg-amber-50 dark:bg-amber-950/30 border border-amber-100 dark:border-amber-900/30 text-amber-600 dark:text-amber-400";
++    }
++
++    return {
++      executionsCount,
++      executionsLimit: maxExecutions,
++      executionsRemaining,
++      executionsPercentage,
++      drawdownDollar: currentDrawdownDollar,
++      drawdownLimitDollar,
++      drawdownPercentage,
++      drawdownLimitPercentage,
++      drawdownProgressPercent,
++      revengeGuardStatus,
++      revengeGuardColor,
++      revengeGuardTextClass,
++      riskLevelText,
++      riskLevelClass
++    };
++  }, [isConnected, riskConfig, tradesToday, balance, equity]);
++
++  // AI Coach Insights mapping based on logs vs stats
++  const aiInsights = useMemo(() => {
++
++    if (breachLogs.length === 0) {
++      // Smart positive coaching insights based on live statistics
++      const insights = [];
++
++      // Insight 1: Discipline Score
++      if (avgDisciplineScore && avgDisciplineScore >= 90) {
++        insights.push({
++          id: 'live-insight-discipline-high',
++          type: 'success',
++          title: 'Excellent discipline score maintained today.',
++          subtitle: `Your average discipline score is ${avgDisciplineScore}/100. Keep sticking to your rules.`,
++          time: 'Just now',
++          icon: 'shield'
++        });
++      } else if (avgDisciplineScore && avgDisciplineScore < 80) {
++        insights.push({
++          id: 'live-insight-discipline-low',
++          type: 'warning',
++          title: 'Discipline score is below optimal target.',
++          subtitle: `Average score is ${avgDisciplineScore}/100. Focus on placing trades that align strictly with your playbook.`,
++          time: 'Just now',
++          icon: 'alert'
++        });
++      }
++
++      // Insight 2: Win Rate
++      if (winRate >= 60) {
++        insights.push({
++          id: 'live-insight-winrate-high',
++          type: 'info',
++          title: 'High win rate registered this period.',
++          subtitle: `You are maintaining a strong ${winRate}% win rate. Continue executing on your edge.`,
++          time: '5m ago',
++          icon: 'chart'
++        });
++      } else if (winRate > 0 && winRate < 45) {
++        insights.push({
++          id: 'live-insight-winrate-low',
++          type: 'warning',
++          title: 'Win rate is currently under pressure.',
++          subtitle: `Your win rate is ${winRate}%. Re-evaluate market conditions and focus on smaller sizes.`,
++          time: '5m ago',
++          icon: 'chart'
++        });
++      }
++
++      // Insight 3: Stable status
++      insights.push({
++        id: 'live-insight-stable',
++        type: 'success',
++        title: 'All operational metrics are completely stable.',
++        subtitle: 'No risk rule breaches or threshold warnings have been logged today.',
++        time: 'Active',
++        icon: 'shield'
++      });
++
++      // Insight 4: Focus asset based on recent trades if any
++      const recentSymbols = recentTrades.map((t: any) => t.symbol);
++      const mostFrequentSymbol = recentSymbols.length > 0
++        ? recentSymbols.sort((a, b) => recentSymbols.filter(v => v === a).length - recentSymbols.filter(v => v === b).length).pop()
++        : null;
++
++      if (mostFrequentSymbol) {
++        insights.push({
++          id: 'live-insight-focus',
++          type: 'info',
++          title: `Active trading pair: ${mostFrequentSymbol}`,
++          subtitle: `Most of your executions today are in ${mostFrequentSymbol}. Keep managing risk per position.`,
++          time: 'Today',
++          icon: 'target'
++        });
++      }
++
++      return insights.slice(0, 4); // Keep at most 4 items
++    }
++
++    // Map actual risk breach logs
++    return breachLogs.map((log: any) => {
++      const timeStr = log.created_at
++        ? new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
++        : 'Just now';
++
++      let title = 'Risk threshold warning triggered';
++      let subtitle = `A risk limit rule of ${log.rule_value} was exceeded (actual: ${log.actual_value}).`;
++      let icon = 'alert';
++      const type = log.severity?.toLowerCase() === 'critical' ? 'critical' : 'warning';
++
++      if (log.breach_type === 'DAILY_DRAWDOWN') {
++        title = 'Daily drawdown limit approached/breached';
++        subtitle = `Drawdown of ${parseFloat(log.actual_value).toFixed(2)}% exceeded the safety threshold of ${parseFloat(log.rule_value).toFixed(2)}%.`;
++        icon = 'alert';
++      } else if (log.breach_type === 'MAX_LOT_SIZE') {
++        title = 'Maximum position sizing exceeded';
++        subtitle = `Executing position of ${log.actual_value} lots exceeded your risk limit of ${log.rule_value} lots.`;
++        icon = 'alert';
++      } else if (log.breach_type === 'MAX_OPEN_TRADES') {
++        title = 'Maximum daily trade counts exhausted';
++        subtitle = `Your account reached the daily trade limit of ${log.rule_value} executions.`;
++        icon = 'alert';
++      }
++
++      return {
++        id: log.id,
++        type,
++        title,
++        subtitle,
++        time: timeStr,
++        icon
++      };
++    });
++  }, [isConnected, breachLogs, avgDisciplineScore, winRate, recentTrades]);
++  const marketStatus = useMemo(() => {
++    if (activeMarket !== 'indian') return { isOpen: true, text: 'Markets are open' };
++    
++    const now = new Date();
++    const istString = now.toLocaleString("en-US", {timeZone: "Asia/Kolkata"});
++    const istDate = new Date(istString);
++    
++    const day = istDate.getDay();
++    if (day === 0 || day === 6) return { isOpen: false, text: "Indian markets are closed (Opens Mon 9:15 AM IST)" };
++    
++    const hours = istDate.getHours();
++    const minutes = istDate.getMinutes();
++    const timeInMinutes = hours * 60 + minutes;
++    
++    const openTime = 9 * 60 + 15; // 9:15 AM
++    const closeTime = 15 * 60 + 30; // 3:30 PM
++    
++    if (timeInMinutes < openTime) {
++       return { isOpen: false, text: "Indian markets are closed (Opens at 9:15 AM IST)" };
++    } else if (timeInMinutes > closeTime) {
++       return { isOpen: false, text: "Indian markets are closed (Opens tomorrow 9:15 AM IST)" };
++    }
++    
++    return { isOpen: true, text: "Indian markets are open" };
++  }, [activeMarket]);
++
++  return (
+     <DashboardLayout>
+-      <TooltipProvider>
+-      <div className="max-w-[1600px] mx-auto space-y-8">
+-        <style>{`
+-          .amazing-scrollbar::-webkit-scrollbar {
+-            width: 5px;
+-            height: 6px;
+-          }
+-          .amazing-scrollbar::-webkit-scrollbar-button {
+-            display: none !important;
+-            width: 0 !important;
+-            height: 0 !important;
+-          }
+-          .amazing-scrollbar::-webkit-scrollbar-track {
+-            background: transparent;
+-          }
+-          .amazing-scrollbar::-webkit-scrollbar-thumb {
+-            background: rgba(156, 163, 175, 0.3);
+-            border-radius: 9999px;
+-          }
+-          .amazing-scrollbar::-webkit-scrollbar-thumb:hover {
+-            background: rgba(156, 163, 175, 0.5);
+-          }
+-          .dark .amazing-scrollbar::-webkit-scrollbar-thumb {
+-            background: rgba(255, 255, 255, 0.1);
+-          }
+-          .dark .amazing-scrollbar::-webkit-scrollbar-thumb:hover {
+-            background: rgba(255, 255, 255, 0.2);
+-          }
+-        `}</style>
+-
+-        {/* 1. Header Area */}
+-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-4 gap-4">
+-          <div>
+-            <h1 className="text-[32px] font-bold text-slate-900 dark:text-white tracking-tight leading-none min-h-[38px] flex items-center">
+-              {userName === null ? (
+-                <span className="flex items-center">Welcome back,&nbsp;<Skeleton className="h-8 w-24 bg-slate-200 dark:bg-white/10 inline-block rounded" />.</span>
+-              ) : (
+-                `Welcome back, ${userName}.`
+-              )}
+-            </h1>
+-            <p className="text-[14px] text-slate-500 font-medium mt-2 flex items-center gap-2">
+-              {marketStatus.text} 
+-              {marketStatus.isOpen ? (
+-                <span className="inline-block w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+-              ) : (
+-                <span className="inline-block w-2 h-2 rounded-full bg-slate-400"></span>
+-              )}
+-            </p>
+-          </div>
+-          <div className="flex items-center gap-3 pb-1 shrink-0">
+-            {loading ? (
+-              <div className="px-5 py-2 bg-white/90 dark:bg-[#111113]/90 backdrop-blur-xl rounded-full flex items-center gap-4 border border-slate-200/50 dark:border-white/5 shadow-sm w-[380px] h-[38px]">
+-                <div className="flex items-center gap-2.5 w-[140px]">
+-                   <Skeleton className="w-2.5 h-2.5 rounded-full bg-slate-200 dark:bg-white/10 shrink-0" />
+-                   <Skeleton className="h-3.5 w-full bg-slate-200 dark:bg-white/10 rounded" />
+-                </div>
+-                <div className="w-px h-4 bg-slate-200 dark:bg-white/10"></div>
+-                <Skeleton className="h-3.5 w-[80px] bg-slate-200 dark:bg-white/10 rounded" />
+-                <div className="w-px h-4 bg-slate-200 dark:bg-white/10"></div>
+-                <Skeleton className="h-3.5 w-[80px] bg-slate-200 dark:bg-white/10 rounded" />
+-              </div>
+-            ) : (
+-              <div className={`px-5 py-2 bg-white/90 dark:bg-[#111113]/90 backdrop-blur-xl rounded-full flex items-center gap-4 border shadow-sm transition-all duration-500 group ${
+-                isConnected 
+-                  ? "border-emerald-500/30 hover:border-emerald-500/60 hover:shadow-[0_0_20px_rgba(16,185,129,0.15)] dark:border-emerald-500/20" 
+-                  : "border-amber-500/30 hover:border-amber-500/60 hover:shadow-[0_0_20px_rgba(245,158,11,0.15)] dark:border-amber-500/20"
+-              }`}>
+-                <div className="flex items-center gap-2.5">
+-                  <div className="relative flex h-2.5 w-2.5">
+-                    <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${isConnected ? 'bg-emerald-400' : 'bg-amber-400'}`}></span>
+-                    <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${isConnected ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
+-                  </div>
+-                  <span className="text-[12.5px] font-bold text-slate-900 dark:text-white tracking-wide">
+-                    {isConnected 
+-                      ? (activeMarket === 'indian' ? `${accountMetrics?.broker ? accountMetrics.broker.toUpperCase() : 'Broker'} Connected` : "MT5 Connected") 
+-                      : (activeMarket === 'indian' ? "Broker Stream" : "MT5 Stream")
+-                    }
+-                  </span>
+-                  <div className={`flex items-center justify-center px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${
+-                    isConnected 
+-                      ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400' 
+-                      : 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400'
+-                  }`}>
+-                    {isConnected ? "Live" : "Demo"}
+-                  </div>
+-                </div>
+-                
+-                <div className="w-px h-4 bg-slate-200 dark:bg-white/10 group-hover:bg-slate-300 dark:group-hover:bg-white/20 transition-colors"></div>
+-                
+-                <div className="flex items-center gap-1.5 text-[11.5px] tracking-wide">
+-                  <span className="text-slate-500 dark:text-slate-400 font-medium">Account:</span>
+-                  <span className="font-bold text-slate-800 dark:text-slate-200">
+-                    {isConnected ? accountMetrics?.account_number : "Demo Engine"}
+-                  </span>
+-                </div>
+-                
+-                {activeMarket !== 'indian' && (
+-                  <>
+-                    <div className="w-px h-4 bg-slate-200 dark:bg-white/10 group-hover:bg-slate-300 dark:group-hover:bg-white/20 transition-colors"></div>
+-                    
+-                    <div className="flex items-center gap-1.5 text-[11.5px] tracking-wide">
+-                      <span className="text-slate-500 dark:text-slate-400 font-medium">Server:</span>
+-                      <span className="font-bold text-slate-800 dark:text-slate-200">
+-                        {isConnected ? accountMetrics?.broker_server : "Simulated"}
+-                      </span>
+-                    </div>
+-                  </>
+-                )}
+-              </div>
+-            )}
+-          </div>
+-        </div>
+-
+-        {/* 2. Top Metrics Row */}
+-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+-          {loading ? (
+-            <>
+-              {Array.from({ length: 4 }).map((_, idx) => (
+-                <motion.div key={idx} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="h-[110px] px-4 py-3 rounded-[22px] border-2 border-white dark:border-[#262626] bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] dark:from-[#252528] dark:to-[#1A1A1C] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:shadow-[0_4px_7px_-5px_rgba(0,0,0,0.3),0_0_0_2px_#333336] flex flex-col justify-between transition-all duration-300">
+-                  <div className="flex items-center justify-between">
+-                    <Skeleton className="h-3.5 w-24 bg-slate-200 dark:bg-white/10" />
+-                    <Skeleton className="h-6 w-16 bg-slate-200 dark:bg-white/10" />
+-                  </div>
+-                  <div className="space-y-2">
+-                    <Skeleton className="h-7 w-32 bg-slate-200 dark:bg-white/10" />
+-                    <Skeleton className="h-3 w-20 bg-slate-200 dark:bg-white/10" />
+-                  </div>
+-                </motion.div>
+-              ))}
+-            </>
+-          ) : (
+-            <>
+-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="h-[110px] px-4 py-3 rounded-[24px] border-2 border-white dark:border-transparent bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] premium-pnl-card shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:shadow-none flex flex-col justify-between transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#D0D0D5] dark:hover:shadow-[0_4px_20px_rgba(59,130,246,0.1)]">
+-                <div className="flex items-start justify-between">
+-                  <p className="text-[10px] font-bold text-slate-400 dark:text-white/60 uppercase tracking-widest mt-1">Account P&L</p>
+-                  <div className="flex items-center gap-2">
+-                    <SimpleSparkline data={MOCK_SPARKLINE} color="#10B981" />
+-                    <Tooltip delayDuration={100}>
+-                      <TooltipTrigger asChild>
+-                        <div><IconlyInfoCircle set="curved" primaryColor="currentColor" size={15} className="text-slate-350 dark:text-white/40 cursor-help transition-colors hover:text-slate-500 dark:hover:text-white/70" /></div>
+-                      </TooltipTrigger>
+-                      <TooltipContent><p className="text-xs">Metric details and information</p></TooltipContent>
+-                    </Tooltip>
+-                  </div>
+-                </div>
+-                <div>
+-                  <h3 className={`text-[26px] font-bold tracking-tight leading-none ${totalProfit >= 0 ? "text-slate-900 dark:text-emerald-400" : "text-rose-500"}`}>
+-                    {totalProfit >= 0 ? "+" : "-"}${Math.abs(totalProfit).toFixed(2)}
+-                  </h3>
+-                  <p className={`text-[11px] font-medium mt-1 ${todayProfit >= 0 ? "text-emerald-450 dark:text-emerald-400" : "text-rose-500"}`}>
+-                    Today: {todayProfit >= 0 ? "+" : ""}${todayProfit.toFixed(2)}
+-                  </p>
+-                </div>
+-              </motion.div>
+-
+-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="h-[110px] px-4 py-3 rounded-[24px] border-2 border-white dark:border-transparent bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] premium-flat-card shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:shadow-none flex flex-col justify-between transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#D0D0D5] dark:hover:shadow-none">
+-                <div className="flex items-start justify-between">
+-                  <p className="text-[10px] font-bold text-slate-400 dark:text-white/60 uppercase tracking-widest mt-1">Discipline Score</p>
+-                  <div className="flex items-center gap-2">
+-                    <SimpleSparkline data={MOCK_SPARKLINE} color="#3B82F6" />
+-                    <Tooltip delayDuration={100}>
+-                      <TooltipTrigger asChild>
+-                        <div><IconlyInfoCircle set="curved" primaryColor="currentColor" size={15} className="text-slate-350 dark:text-white/40 cursor-help transition-colors hover:text-slate-500 dark:hover:text-white/70" /></div>
+-                      </TooltipTrigger>
+-                      <TooltipContent><p className="text-xs">Metric details and information</p></TooltipContent>
+-                    </Tooltip>
+-                  </div>
+-                </div>
+-                <div className="flex items-end gap-1.5">
+-                  <h3 className="text-[26px] font-bold text-slate-900 dark:text-white tracking-tight leading-none">
+-                    {avgDisciplineScore !== null ? avgDisciplineScore : "--"}
+-                  </h3>
+-                  <span className="text-[13px] text-slate-405 dark:text-white/40 font-bold mb-0.5">/ 100</span>
+-                </div>
+-              </motion.div>
+-
+-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="h-[110px] px-4 py-3 rounded-[24px] border-2 border-white dark:border-transparent bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] premium-flat-card shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:shadow-none flex flex-col justify-between transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#D0D0D5] dark:hover:shadow-none">
+-                <div className="flex items-start justify-between">
+-                  <p className="text-[10px] font-bold text-slate-400 dark:text-white/60 uppercase tracking-widest mt-1">Win Rate (7D)</p>
+-                  <Tooltip delayDuration={100}>
+-                      <TooltipTrigger asChild>
+-                        <div><IconlyInfoCircle set="curved" primaryColor="currentColor" size={15} className="text-slate-350 dark:text-white/40 cursor-help transition-colors hover:text-slate-500 dark:hover:text-white/70" /></div>
+-                      </TooltipTrigger>
+-                      <TooltipContent><p className="text-xs">Metric details and information</p></TooltipContent>
+-                    </Tooltip>
+-                </div>
+-                <div className="flex items-end justify-between">
+-                  <h3 className="text-[26px] font-bold text-slate-900 dark:text-white tracking-tight leading-none">{winRate}%</h3>
+-                  <div className="w-16 h-1.5 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden mb-1">
+-                    <div className="h-full bg-blue-500" style={{ width: `${winRate}%` }}></div>
+-                  </div>
+-                </div>
+-              </motion.div>
+-
+-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="h-[110px] px-4 py-3 rounded-[24px] border-2 border-white dark:border-transparent bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] premium-flat-card shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:shadow-none flex flex-col justify-between transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#D0D0D5] dark:hover:shadow-none">
+-                <div className="flex items-start justify-between">
+-                  <p className="text-[10px] font-bold text-slate-400 dark:text-white/60 uppercase tracking-widest mt-1">Daily XP Earned</p>
+-                  <Tooltip delayDuration={100}>
+-                      <TooltipTrigger asChild>
+-                        <div><IconlyInfoCircle set="curved" primaryColor="currentColor" size={15} className="text-slate-350 dark:text-white/40 cursor-help transition-colors hover:text-slate-500 dark:hover:text-white/70" /></div>
+-                      </TooltipTrigger>
+-                      <TooltipContent><p className="text-xs">Metric details and information</p></TooltipContent>
+-                    </Tooltip>
+-                </div>
+-                <div className="flex items-center gap-3">
+-                  <div className="p-2 bg-blue-100 dark:bg-purple-500/10 rounded-xl">
+-                    <Flame size={18} className="text-blue-650 dark:text-purple-400" />
+-                  </div>
+-                  <h3 className="text-[26px] font-bold text-blue-650 dark:text-purple-450 tracking-tight leading-none font-mono">
+-                    {dailyXpEarned >= 0 ? `+${dailyXpEarned}` : dailyXpEarned} XP
+-                  </h3>
+-                </div>
+-              </motion.div>
+-            </>
+-          )}
+-        </div>
+-
+-        {/* 3. Center Stage & Right Panel */}
+-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+-          <div className="lg:col-span-2 space-y-4">
+-            {/* Daily Net Cumulative P&L */}
+-            <GlassCard className="p-5">
+-              {(() => {
+-                const isPositive = cumulativePnL.length > 0 && cumulativePnL[cumulativePnL.length - 1].v >= 0;
+-                const chartColor = isPositive ? "#4EBF94" : "#F06363";
+-                return (
+-                  <>
+-                    <div className="flex items-center justify-between mb-4">
+-                      <div>
+-                        <h3 className="text-[15px] font-bold text-slate-900 dark:text-white leading-tight">Daily Net Cumulative P&L</h3>
+-                        <div className="flex items-center gap-1.5 text-[12px] font-semibold text-slate-500 mt-2">
+-                          <span className="w-2.5 h-2.5 rounded-full shadow-sm" style={{ backgroundColor: chartColor }} />
+-                          Cumulative P&L
+-                        </div>
+-                      </div>
+-                      <div className="flex items-center bg-slate-50 dark:bg-white/5 p-1 rounded-xl border border-slate-100 dark:border-[#333333]">
+-                        <button className="px-3 py-1 rounded-lg text-[11px] font-bold transition-all text-slate-400 hover:text-slate-700">1W</button>
+-                        <button className="px-3 py-1 rounded-lg text-[11px] font-bold transition-all text-slate-400 hover:text-slate-700">1M</button>
+-                        <button className="px-4 py-1.5 rounded-lg text-[11px] font-bold transition-all bg-white dark:bg-[#222] text-blue-600 dark:text-blue-400 shadow-sm border border-slate-200/50 dark:border-white/5">All</button>
+-                      </div>
+-                    </div>
+-
+-                    <div className="h-[250px] w-full">
+-                      {loading ? (
+-                        <div className="h-full w-full flex items-end gap-3 pt-6 animate-pulse">
+-                          {Array.from({ length: 12 }).map((_, idx) => {
+-                            const heights = ["h-12", "h-20", "h-16", "h-28", "h-36", "h-24", "h-40", "h-48", "h-32", "h-44", "h-28", "h-20"];
+-                            return (
+-                              <div
+-                                key={idx}
+-                                className={`flex-1 ${heights[idx % heights.length]} bg-slate-200 dark:bg-white/10 rounded-t-lg`}
+-                              />
+-                            );
+-                          })}
+-                        </div>
+-                      ) : (
+-                        <ResponsiveContainer width="100%" height="100%" className="group focus:outline-none focus-visible:outline-none">
+-                          <AreaChart data={cumulativePnL} margin={{ top: 5, right: 5, left: 10, bottom: 0 }} style={{ outline: 'none' }}>
+-                            <defs>
+-                              <linearGradient id="colorPnl" x1="0" y1="0" x2="0" y2="1">
+-                                <stop offset="5%" stopColor={chartColor} stopOpacity={0.2} />
+-                                <stop offset="95%" stopColor={chartColor} stopOpacity={0} />
+-                              </linearGradient>
+-                            </defs>
+-                            <CartesianGrid strokeDasharray="3 3" stroke={isDark ? "rgba(255, 255, 255, 0.02)" : "#e2e8f0"} className="opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+-                            <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#94a3b8', fontWeight: 500 }} axisLine={false} tickLine={false} />
+-                            <YAxis tick={{ fontSize: 10, fill: '#94a3b8', fontWeight: 500 }} axisLine={false} tickLine={false} tickFormatter={(val) => `$${val}`} />
+-                            <Tooltip
+-                              contentStyle={dynamicTooltipStyle}
+-                              itemStyle={{ color: isDark ? "#fff" : "#0f172a" }}
+-                              labelStyle={{ color: isDark ? "#94a3b8" : "#64748b" }}
+-                              formatter={(value: any) => {
+-                                const val = Number(value);
+-                                return [val >= 0 ? `+$${val.toFixed(2)}` : `-$${Math.abs(val).toFixed(2)}`, "Cumulative P&L"];
+-                              }}
+-                            />
+-                            <ReferenceLine y={0} stroke="#94a3b8" strokeDasharray="3 3" />
+-                            <Area type="monotone" dataKey="v" stroke={chartColor} strokeWidth={2.5} fillOpacity={1} fill="url(#colorPnl)" />
+-                          </AreaChart>
+-                        </ResponsiveContainer>
+-                      )}
+-                    </div>
+-                  </>
+-                );
+-              })()}
+-            </GlassCard>
+-
+-            {/* Live Risk Monitor */}
+-            <GlassCard className="p-5">
+-              <div className="flex items-center justify-between mb-10">
+-                <div className="flex items-center gap-2.5">
+-                  <BarChart2 size={20} className="text-[#F97316]" strokeWidth={2.5} />
+-                  <h2 className="text-[14px] font-bold text-slate-900 dark:text-white tracking-[0.1em] uppercase">Live Risk Monitor</h2>
+-                </div>
+-                <div className="bg-[#ecfdf5] dark:bg-emerald-500/10 text-emerald-500 text-[13px] font-medium px-2.5 py-1 rounded border border-emerald-100 dark:border-emerald-500/20">
+-                  Risk Level: {riskMonitorData.riskLevelText}
+-                </div>
+-              </div>
+-
+-              {loading ? (
+-                <div className="grid grid-cols-2 gap-x-8 gap-y-8 mb-4 pb-6">
+-                  {/* Q1 Loading */}
+-                  <div className="flex flex-col space-y-3 pr-4">
+-                    <Skeleton className="h-3 w-24 bg-slate-200 dark:bg-white/10" />
+-                    <Skeleton className="h-7 w-16 bg-slate-200 dark:bg-white/10" />
+-                    <Skeleton className="h-1 w-full bg-slate-200 dark:bg-white/10" />
+-                    <Skeleton className="h-3.5 w-28 bg-slate-200 dark:bg-white/10" />
+-                  </div>
+-                  {/* Q2 Loading */}
+-                  <div className="flex flex-col space-y-3 pl-4 border-l border-slate-200 dark:border-white/10">
+-                    <Skeleton className="h-3 w-24 bg-slate-200 dark:bg-white/10" />
+-                    <Skeleton className="h-7 w-20 bg-slate-200 dark:bg-white/10" />
+-                    <Skeleton className="h-1 w-full bg-slate-200 dark:bg-white/10" />
+-                    <Skeleton className="h-3.5 w-24 bg-slate-200 dark:bg-white/10" />
+-                  </div>
+-                  {/* Q3 Loading */}
+-                  <div className="flex flex-col space-y-3 pr-4 pt-6">
+-                    <Skeleton className="h-3 w-32 bg-slate-200 dark:bg-white/10" />
+-                    <Skeleton className="h-7 w-12 bg-slate-200 dark:bg-white/10" />
+-                    <Skeleton className="h-1 w-full bg-slate-200 dark:bg-white/10" />
+-                    <Skeleton className="h-3.5 w-20 bg-slate-200 dark:bg-white/10" />
+-                  </div>
+-                  {/* Q4 Loading */}
+-                  <div className="flex flex-col space-y-3 pl-4 border-l border-slate-200 dark:border-white/10 pt-6">
+-                    <Skeleton className="h-3 w-24 bg-slate-200 dark:bg-white/10" />
+-                    <Skeleton className="h-7 w-20 bg-slate-200 dark:bg-white/10" />
+-                    <Skeleton className="h-1 w-full bg-slate-200 dark:bg-white/10" />
+-                    <Skeleton className="h-3.5 w-24 bg-slate-200 dark:bg-white/10" />
+-                  </div>
+-                </div>
+-              ) : (
+-                <div className="grid grid-cols-2 gap-x-8 gap-y-10 mb-10">
+-                  {/* Q1: Daily Executions */}
+-                  <div className="flex flex-col pr-4 relative">
+-                    <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">Daily Executions</span>
+-                    <span className="text-[32px] font-bold text-slate-900 dark:text-white leading-none tracking-tight mb-4">
+-                      {riskMonitorData.executionsCount} <span className="text-slate-400 dark:text-slate-500 text-[20px] font-bold">/ {riskMonitorData.executionsLimit}</span>
+-                    </span>
+-                    <div className="w-full h-[1px] bg-slate-200 dark:bg-white/10 mb-3" />
+-                    <span className="text-[12px] font-medium text-slate-500 dark:text-slate-400">
+-                      {riskMonitorData.executionsRemaining} trade{riskMonitorData.executionsRemaining === 1 ? '' : 's'} remaining
+-                    </span>
+-                  </div>
+-
+-                  {/* Q2: Daily Drawdown */}
+-                  <div className="flex flex-col pl-6 relative before:absolute before:left-0 before:top-0 before:bottom-0 before:w-[1px] before:bg-slate-200 dark:before:bg-white/10">
+-                    <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">Daily Drawdown</span>
+-                    <span className="text-[32px] font-bold text-slate-900 dark:text-white leading-none tracking-tight mb-4 tabular-nums">
+-                      ${riskMonitorData.drawdownDollar.toFixed(2)}
+-                    </span>
+-                    <div className="w-full h-[1px] bg-slate-200 dark:bg-white/10 mb-3" />
+-                    <div className="flex items-center justify-between text-[12px] font-medium text-slate-500 dark:text-slate-400">
+-                      <span>Limit:</span>
+-                      <span className="font-bold text-slate-700 dark:text-slate-300 tabular-nums">${riskMonitorData.drawdownLimitDollar.toFixed(2)}</span>
+-                    </div>
+-                  </div>
+-
+-                  {/* Q3: Drawdown Progress */}
+-                  <div className="flex flex-col pr-4 relative">
+-                    <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">Drawdown Progress</span>
+-                    <span className="text-[32px] font-bold text-emerald-500 leading-none tracking-tight mb-4 tabular-nums">
+-                      {riskMonitorData.drawdownPercentage.toFixed(2)}%
+-                    </span>
+-                    <div className="w-full h-[1px] bg-slate-200 dark:bg-white/10 mb-3" />
+-                    <span className="text-[12px] font-medium text-slate-500 dark:text-slate-400">
+-                      of {riskMonitorData.drawdownLimitPercentage.toFixed(2)}% Limit
+-                    </span>
+-                  </div>
+-
+-                  {/* Q4: Revenge Guard */}
+-                  <div className="flex flex-col pl-6 relative before:absolute before:left-0 before:top-0 before:bottom-0 before:w-[1px] before:bg-slate-200 dark:before:bg-white/10">
+-                    <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">Revenge Guard</span>
+-                    <div className="flex items-center gap-2 mb-4 h-[32px]">
+-                      <span className={`w-2.5 h-2.5 rounded-full ${riskMonitorData.revengeGuardColor} ${riskMonitorData.revengeGuardStatus === "Engaged" ? "animate-pulse" : ""}`} />
+-                      <span className={`text-[20px] font-bold ${riskMonitorData.revengeGuardTextClass} tracking-wide uppercase leading-none`}>
+-                        {riskMonitorData.revengeGuardStatus}
+-                      </span>
+-                    </div>
+-                    <div className="w-full h-[1px] bg-slate-200 dark:bg-white/10 mb-3" />
+-                    <span className="text-[12px] font-medium text-slate-500 dark:text-slate-400">
+-                      {riskMonitorData.revengeGuardStatus === "Engaged" ? "Killswitch Engaged" : "Active Protection"}
+-                    </span>
+-                  </div>
+-                </div>
+-              )}
+-
+-              {/* Bottom Row: Emergency Stop */}
+-              <div className="">
+-                <div
+-                  className={`flex items-center justify-between p-4 rounded-[16px] transition-all duration-300 ${emergencyStop
+-                    ? "bg-rose-50 border border-rose-200 dark:bg-rose-500/10 dark:border-rose-500/20 shadow-sm"
+-                    : "bg-white dark:bg-[#1A1A1C] border border-slate-200 dark:border-white/10 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.02)]"
+-                    }`}
+-                >
+-                  <div className="flex items-center gap-4 relative z-10">
+-                    <div className={`w-10 h-10 flex items-center justify-center rounded-full transition-all duration-500 ${emergencyStop ? "bg-rose-100 text-rose-600 dark:bg-rose-500/20" : "bg-rose-50 dark:bg-rose-500/10 text-rose-500"
+-                      }`}>
+-                      <AlertTriangle size={18} className={emergencyStop ? "animate-pulse" : ""} strokeWidth={2.5} />
+-                    </div>
+-                    <div className="flex flex-col">
+-                      <span className={`text-[15px] font-bold tracking-tight ${emergencyStop ? "text-rose-700 dark:text-rose-400" : "text-slate-900 dark:text-white"}`}>
+-                        Emergency Kill Switch
+-                      </span>
+-                      <span className={`text-[12px] font-medium ${emergencyStop ? "text-rose-500 dark:text-rose-400/80" : "text-slate-500 dark:text-[#999]"}`}>
+-                        Instantly flatten all open positions
+-                      </span>
+-                    </div>
+-                  </div>
+-
+-                  {/* Custom Tailwind Switch */}
+-                  <button
+-                    onClick={() => {
+-                      const nextState = !emergencyStop;
+-                      setEmergencyStop(nextState);
+-                      if (nextState) {
+-                        toast.error("EMERGENCY STOP ACTIVATED! Automations paused.", {
+-                          description: "All active positions have been killed.",
+-                          duration: 4000,
+-                        });
+-                      } else {
+-                        toast.success("Emergency Stop deactivated.", {
+-                          description: "Algos and limits are back to standby.",
+-                        });
+-                      }
+-                    }}
+-                    className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-300 ease-in-out focus:outline-none ${emergencyStop ? "bg-rose-500" : "bg-slate-200 dark:bg-[#333]"
+-                      }`}
+-                  >
+-                    <span
+-                      className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-sm ring-0 transition duration-300 ease-in-out ${emergencyStop ? "translate-x-5" : "translate-x-0"
+-                        }`}
+-                    />
+-                  </button>
+-                </div>
+-              </div>
+-            </GlassCard>
+-            <SessionIntensityGauge loading={loading} />
+-            <DefenseProtocols loading={loading} />
+-          </div>
+-
+-          <div className="lg:col-span-1 space-y-4">
+-            <GlassCard className="flex flex-col p-5">
+-              <div className="flex items-center justify-between mb-8">
+-                <div className="flex items-center gap-2">
+-                  <IconlyDiscovery set="curved" primaryColor="currentColor" size={18} className="text-purple-500" />
+-                  <h2 className="text-[14px] font-bold text-slate-900 dark:text-white tracking-widest uppercase">AI Coach Insights</h2>
+-                </div>
+-                <div className="bg-purple-100 dark:bg-[#2D1B69] text-purple-700 dark:text-purple-300 text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider">AI</div>
+-              </div>
+-
+-              {loading ? (
+-                <div className="flex-1 space-y-4">
+-                  {Array.from({ length: 4 }).map((_, idx) => (
+-                    <div key={idx} className="space-y-2">
+-                      <div className="flex gap-4">
+-                        <Skeleton className="h-8 w-8 rounded-full bg-slate-200 dark:bg-white/10 shrink-0" />
+-                        <div className="flex-1 space-y-2">
+-                          <Skeleton className="h-4 w-full bg-slate-200 dark:bg-white/10" />
+-                          <Skeleton className="h-3.5 w-2/3 bg-slate-200 dark:bg-white/10" />
+-                        </div>
+-                      </div>
+-                      {idx < 3 && <div className="w-full h-px bg-slate-100 dark:bg-white/5 my-2"></div>}
+-                    </div>
+-                  ))}
+-                </div>
+-              ) : (
+-                <>
+-                  <div className="flex-1 space-y-4">
+-                    {aiInsights.map((insight, idx) => {
+-                      let iconEl = <AlertTriangle size={14} className="text-rose-500" />;
+-                      let bgClass = "bg-rose-500/10 border-rose-500/20";
+-
+-                      if (insight.type === 'success') {
+-                        iconEl = <IconlyShieldDone set="curved" primaryColor="currentColor" size={14} className="text-emerald-500" />;
+-                        bgClass = "bg-emerald-500/10 border-emerald-500/20";
+-                      } else if (insight.type === 'info') {
+-                        if (insight.icon === 'target') {
+-                          iconEl = <Target size={14} className="text-purple-500" />;
+-                          bgClass = "bg-purple-500/10 border-purple-500/20";
+-                        } else {
+-                          iconEl = <TrendingDown size={14} className="text-blue-500" />;
+-                          bgClass = "bg-blue-500/10 border-blue-500/20";
+-                        }
+-                      } else if (insight.type === 'warning') {
+-                        iconEl = <AlertTriangle size={14} className="text-amber-500" />;
+-                        bgClass = "bg-amber-500/10 border-amber-500/20";
+-                      } else if (insight.type === 'critical') {
+-                        iconEl = <AlertTriangle size={14} className="text-rose-500" />;
+-                        bgClass = "bg-rose-500/10 border-rose-500/20";
+-                      }
+-
+-                      return (
+-                        <div key={insight.id}>
+-                          <div className="flex gap-4">
+-                            <div className={`mt-1 flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center border ${bgClass}`}>
+-                              {iconEl}
+-                            </div>
+-                            <div className="flex-1">
+-                              <div className="flex justify-between items-start mb-1">
+-                                <p className="text-[13px] font-bold text-slate-800 dark:text-indigo-200 leading-tight">
+-                                  {insight.title}
+-                                </p>
+-                                <span className="text-[10px] text-slate-500 font-medium whitespace-nowrap ml-2 mt-0.5">
+-                                  {insight.time}
+-                                </span>
+-                              </div>
+-                              <p className="text-[13px] text-slate-400 font-medium mt-1">
+-                                {insight.subtitle}
+-                              </p>
+-                            </div>
+-                          </div>
+-                          {idx < aiInsights.length - 1 && (
+-                            <div className="w-full h-px bg-slate-100 dark:bg-white/5 my-2"></div>
+-                          )}
+-                        </div>
+-                      );
+-                    })}
+-                  </div>
+-
+-                  <button onClick={() => navigate("/ai-coach")} className="w-full mt-8 flex items-center justify-center gap-2 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[13px] rounded-full transition-all shadow-sm hover:shadow-md active:scale-[0.98]">
+-                    Ask AI Coach <Brain size={16} className="ml-1 text-white" />
+-                  </button>
+-                </>
+-              )}
+-            </GlassCard>
+-
+-            {/* Journal Preview */}
+-            <GlassCard className="flex flex-col p-5">
+-              <div className="flex justify-between items-center mb-4">
+-                <h2 className="text-[14px] font-bold text-slate-900 dark:text-white tracking-widest uppercase">Journal Preview</h2>
+-                <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 px-3 py-1 rounded-full text-[11px] font-bold">
+-                  <Calendar size={12} />
+-                  <span>Today</span>
+-                </div>
+-              </div>
+-
+-              {loading ? (
+-                <div className="space-y-4">
+-                  <div className="rounded-2xl p-5 border border-slate-100 dark:border-[#262626] bg-slate-50/50 dark:bg-white/[0.02]">
+-                    <Skeleton className="h-5 w-2/3 bg-slate-200 dark:bg-white/10 mb-2 animate-pulse" />
+-                    <Skeleton className="h-3.5 w-full bg-slate-200 dark:bg-white/10 mb-1 animate-pulse" />
+-                    <Skeleton className="h-3.5 w-1/2 bg-slate-200 dark:bg-white/10 animate-pulse" />
+-                  </div>
+-                  <div className="space-y-2">
+-                    <Skeleton className="h-12 w-full bg-slate-200 dark:bg-white/10 rounded-xl animate-pulse" />
+-                    <Skeleton className="h-12 w-full bg-slate-200 dark:bg-white/10 rounded-xl animate-pulse" />
+-                  </div>
+-                </div>
+-              ) : (
+-                <div className="relative">
+-                  {isStarter && (
+-                    <div className="absolute inset-0 z-20 flex flex-col items-center justify-center rounded-2xl bg-white/60 dark:bg-[#0B0B0E]/80 backdrop-blur-[8px]">
+-                      <div className="bg-gradient-to-br from-blue-500 to-indigo-600 p-3.5 rounded-full mb-4 shadow-[0_0_20px_rgba(59,130,246,0.4)] text-white">
+-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+-                      </div>
+-                      <h3 className="text-lg font-black text-slate-900 dark:text-white mb-2 tracking-tight">PRO Feature</h3>
+-                      <p className="text-[13px] text-slate-600 dark:text-slate-400 max-w-[220px] text-center mb-5 font-medium leading-relaxed">Upgrade your plan to unlock detailed journal previews and analytics.</p>
+-                      <button onClick={() => navigate("/settings?plan=pro")} className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[13px] rounded-full transition-all shadow-lg hover:shadow-blue-500/25 active:scale-[0.98]">
+-                        Upgrade to Pro
+-                      </button>
+-                    </div>
+-                  )}
+-                  <div className={`transition-all duration-500 ${isStarter ? 'blur-[6px] opacity-30 select-none pointer-events-none' : ''}`}>
+-                    <div className="bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/1
+<truncated 10189 bytes>
+
+NOTE: The output was truncated because it was too long. Use a more targeted query or a smaller range to get the information you need.

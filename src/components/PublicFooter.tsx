@@ -7,41 +7,43 @@ const COLS = [
   {
     title: "Platform",
     links: [
-      { label: "Social Feed", href: "/features/pulse-feeds" },
-      { label: "Risk Guard", href: "/features/risk-guard" },
-      { label: "Auto-Journal", href: "/features/smart-journal" },
+      { label: "FiAlgo", href: "/features/auto-trade", isNew: true },
+      { label: "Tradifive AI Assistant", href: "/features/tradifive-ai" },
+      { label: "Risk Guard Protection", href: "/features/risk-guard" },
+      { label: "Smart Auto-Journal", href: "/features/smart-journal" },
       { label: "Multi-Broker Bridge", href: "/features/smart-journal" },
-      { label: "Discover", href: "/features/discover" },
-      { label: "Channels", href: "/features/channels" },
-    ],
-  },
-  {
-    title: "Coming Soon",
-    links: [
-      { label: "AI Auto-Trading", href: "/features/tradifive-ai" },
-      { label: "Custom Strategies", href: "/features/custom-strategies" },
-      { label: "Options Trading", href: "/features/options-trading" },
-      { label: "Prop Firm Integrations", href: "/features/prop-firm-integrations" },
+      { label: "Desktop & Mobile App", href: "/download" },
     ],
   },
   {
     title: "Community",
     links: [
-      { label: "Pulse Feeds", href: "/features/pulse-feeds" },
-      { label: "Signal Channels", href: "/features/channels" },
-      { label: "Competitions", href: "/features/competitions" },
+      { label: "Pulse Social Feeds", href: "/features/pulse-feeds" },
+      { label: "Creator Hub", href: "/features/channels" },
+      { label: "Trading Competitions", href: "/features/competitions" },
       { label: "Community Hub", href: "/features/community-hub" },
+      { label: "Discover Top Traders", href: "/features/discover" },
     ],
   },
   {
-    title: "Legal Directory",
+    title: "Resources",
+    links: [
+      { label: "ROI & Profit Simulator", href: "/features/auto-trade" },
+      { label: "Partner & IB Program", href: "/auto-trade/setup" },
+      { label: "Help & Support", href: "/contact" },
+      { label: "Download App (Mac & PC)", href: "/download" },
+      { label: "Contact Us", href: "/contact" },
+    ],
+  },
+  {
+    title: "Legal & Trust",
     links: [
       { label: "Privacy Policy", href: "/privacy-policy" },
       { label: "Terms of Service", href: "/terms-of-service" },
       { label: "Cancel & Refund Policy", href: "/refund-policy" },
       { label: "Risk Disclosure", href: "/risk-disclosure" },
       { label: "Cookie Policy", href: "/cookie-policy" },
-      { label: "AML & KYC Policy", href: "/aml-kyc-policy" },
+      { label: "AML & KYC Compliance", href: "/aml-kyc-policy" },
     ],
   },
 ];
@@ -95,7 +97,25 @@ export default function PublicFooter() {
                   placeholder="Enter your email" 
                   className="w-full bg-white/[0.03] border border-white/10 rounded-full py-2.5 pl-4 pr-24 text-[13px] text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500/50 focus:bg-white/[0.05] transition-all"
                 />
-                <button className="absolute right-1 top-1 bottom-1 px-4 bg-indigo-600 hover:bg-indigo-500 text-white text-[12px] font-bold rounded-full transition-colors">
+                <button
+                  className="absolute right-1 top-1 bottom-1 px-4 text-[12px] font-bold rounded-full transition-all"
+                  style={{
+                    background: "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)",
+                    color: "#60a5fa",
+                    border: "none",
+                    boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 4px rgba(0, 0, 0, 0.3)",
+                    cursor: "pointer",
+                    outline: "none",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = "linear-gradient(135deg, #253347 0%, #131c33 100%)";
+                    e.currentTarget.style.color = "#93c5fd";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)";
+                    e.currentTarget.style.color = "#60a5fa";
+                  }}
+                >
                   Join
                 </button>
               </div>
@@ -141,9 +161,14 @@ export default function PublicFooter() {
                       {link.href.startsWith("/") ? (
                         <Link
                           to={link.href}
-                          className="text-[13px] font-medium text-slate-400 hover:text-white hover:translate-x-1 inline-flex items-center gap-1 transition-all duration-200 group"
+                          className="text-[13px] font-medium text-slate-400 hover:text-white hover:translate-x-1 inline-flex items-center gap-1.5 transition-all duration-200 group"
                         >
-                          {link.label}
+                          <span>{link.label}</span>
+                          {"isNew" in link && link.isNew && (
+                            <span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 tracking-wider uppercase">
+                              NEW
+                            </span>
+                          )}
                           {link.href.startsWith("/features") && (
                             <ArrowUpRight size={12} className="opacity-0 group-hover:opacity-100 transition-opacity" />
                           )}
@@ -165,24 +190,40 @@ export default function PublicFooter() {
 
         </div>
 
+        {/* Big Tech Trust Badges & System Status Row */}
+        <div className="pt-8 pb-6 flex flex-wrap items-center justify-between gap-4 border-b border-white/[0.04]">
+          <div className="flex items-center gap-4 flex-wrap">
+            {/* Live Operational Status */}
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              All Systems Operational
+            </div>
+
+            {/* Security Badges */}
+            <span className="text-xs text-slate-500 font-medium hidden sm:inline">•</span>
+            <span className="text-xs text-slate-400 font-medium">Bank-Grade 256-Bit SSL</span>
+            <span className="text-xs text-slate-500 font-medium hidden sm:inline">•</span>
+            <span className="text-xs text-slate-400 font-medium">MetaTrader 5 Bridge Certified</span>
+          </div>
+
+          <div className="text-xs text-slate-500 font-medium">
+            Global Execution Infrastructure (NY4 & LD4)
+          </div>
+        </div>
+
         {/* Footer bottom bar */}
-        <div className="pt-8 flex flex-col items-center md:items-start gap-4">
-          <p className="text-[11px] text-slate-500 leading-relaxed text-center md:text-left max-w-4xl">
-            Trading involves substantial risk of loss. TradiFive is a risk management and analytics tool, not a guarantee against losses. Past performance does not guarantee future results.
+        <div className="pt-6 flex flex-col items-center md:items-start gap-4">
+          <p className="text-[11px] text-slate-500 leading-relaxed text-center md:text-left max-w-5xl">
+            <strong>Regulatory & Risk Disclosure:</strong> Trading forex, commodities, and derivatives carries a high level of risk and may not be suitable for all investors. Leverage can work both to your advantage and disadvantage. TradiFive is a financial technology software provider offering analytics, risk management, and algorithmic bridge execution tools. We do not provide personalized financial or investment advice.
           </p>
 
           <div className="w-full flex flex-col md:flex-row items-center justify-between gap-4 mt-2">
             <p className="text-[12px] text-slate-500 text-center md:text-left font-medium">
-              &copy; {new Date().getFullYear()} TradiFive. Built for verified traders. All rights reserved.
+              &copy; {new Date().getFullYear()} TradiFive Technologies Inc. All rights reserved.
             </p>
 
             <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-500">
-              <span>Made with</span>
-              <Heart size={12} className="text-rose-500 fill-rose-500 animate-pulse" />
-              <span>by the tech team at</span>
-              <span className="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent font-black">
-                TradiFive
-              </span>
+              <span>Crafted for serious traders worldwide</span>
             </div>
           </div>
         </div>

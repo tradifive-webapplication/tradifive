@@ -12,6 +12,7 @@ import {
 
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { useIsMobile } from "@/hooks/use-mobile";
 // Icons handled entirely via react-iconly
 import {
   InputOTP,
@@ -45,6 +46,7 @@ export default function Login() {
   const [lockoutSeconds, setLockoutSeconds] = useState(0);
   const [tempUser, setTempUser] = useState<any>(null);
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   // Force white mode only on the login/register pages and disable page-level scrolling
   useEffect(() => {
@@ -78,6 +80,7 @@ export default function Login() {
         // If they just arrived at the page and were already logged in, we let them stay
         const isFreshLogin = sessionStorage.getItem('fresh_login') === 'true';
         if (isFreshLogin) {
+          sessionStorage.removeItem('fresh_login');
           navigate("/home");
         }
       }
@@ -489,6 +492,8 @@ export default function Login() {
           transition={{ duration: 0.15 }}
           className="w-full max-w-[420px]"
         >
+
+
 
 
           <div className="mb-6 lg:mb-10 text-left">

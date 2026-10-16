@@ -357,7 +357,7 @@ export function PricingCards({ selectedPlan, onSelectPlan, onUpgradeClick, isSta
             <div className="flex flex-col items-center md:items-end gap-2 mt-4 md:mt-0">
               <button
                 onClick={() => handleUpgrade(selectedPlan)}
-                className="bg-white text-black hover:bg-zinc-200 px-8 py-3 rounded-full font-bold text-[14px] w-full md:w-[320px] transition-colors shadow-lg"
+                className="btn-glow-primary px-8 py-3 rounded-full font-bold text-[14px] w-full md:w-[320px] justify-center transition-all shadow-lg"
               >
                 Subscribe & Pay
               </button>

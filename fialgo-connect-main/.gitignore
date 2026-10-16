@@ -1,0 +1,60 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+
+# Environment variables - NEVER commit these
+.env
+.env.*
+.env*.local
+
+.vercel
+
+# Additional Secrets and API keys
+*.key
+*.pem
+*.cert
+secrets.json
+config.private.json
+
+# Cache and temp files
+.cache/
+.eslintcache
+.npm/
+.temp/
+.tmp/
+temp/
+tmp/
+*.bak
+*.swp
+
+# Large Build Files & Installers
+release/
+*.exe
+*.7z
+*.msi
+*.zip
+*.tmp
+*.dat
+*.dll

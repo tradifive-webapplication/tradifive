@@ -1,7 +1,7 @@
 import React from "react";
 import PublicNavbar from "@/components/PublicNavbar";
 import PublicFooter from "@/components/PublicFooter";
-import { RefreshCw, TrendingUp, CheckCircle2, BrainCircuit, BarChart2, Search, Calendar, Trophy, Tag, Clock, DollarSign } from "lucide-react";
+import { RefreshCw, TrendingUp, CheckCircle2, BrainCircuit, BarChart2, Search, Calendar, Trophy, Tag, Clock, DollarSign, BookOpen } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import StarsBackground from "@/components/StarsBackground";
@@ -126,10 +126,10 @@ export default function SmartJournalPublic() {
               The Smart Trade Journal automatically syncs every execution from your MT5 terminal and Indian broker accounts in real time — plotting your true edge across 40+ professional metrics. Find out exactly what setups make you money, and which ones are bleeding your account.
             </p>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <button onClick={handleStart} style={{ background: "linear-gradient(135deg, #ec4899, #a855f7)", color: "#fff", border: "none", borderRadius: 100, padding: "13px 28px", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
+              <button onClick={handleStart} className="btn-glow-primary" style={{ borderRadius: 100, padding: "13px 28px", fontSize: 14, fontWeight: 700 }}>
                 Connect Broker Free →
               </button>
-              <button onClick={() => { const el = document.getElementById("sj-features"); el?.scrollIntoView({ behavior: "smooth" }); }} style={{ background: "transparent", color: "rgba(255,255,255,0.6)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 100, padding: "13px 28px", fontWeight: 600, fontSize: 14, cursor: "pointer" }}>
+              <button onClick={() => { const el = document.getElementById("sj-features"); el?.scrollIntoView({ behavior: "smooth" }); }} className="btn-ghost" style={{ borderRadius: 100, padding: "13px 28px", fontSize: 14, fontWeight: 600 }}>
                 See all features
               </button>
             </div>
@@ -188,6 +188,59 @@ export default function SmartJournalPublic() {
             </div>
           </motion.div>
         </div>
+      </section>
+
+      {/* DESKTOP PLATFORM SHOWCASE */}
+      <section style={{ padding: "40px 24px 100px", maxWidth: 1240, margin: "0 auto", position: "relative" }}>
+        <motion.div {...fadeUp()} style={{ textAlign: "center", marginBottom: 36 }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(168,85,247,0.1)", border: "1px solid rgba(168,85,247,0.25)", borderRadius: 100, padding: "6px 16px", marginBottom: 18 }}>
+            <BookOpen size={13} color="#a855f7" />
+            <span style={{ color: "#a855f7", fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase" }}>FEATURE 03 · PLATFORM SHOWCASE</span>
+          </div>
+          <h2 style={{ fontSize: "clamp(26px, 4.5vw, 48px)", fontWeight: 900, letterSpacing: "-0.03em", color: "#fff", marginBottom: 14 }}>
+            Every trade tracked automatically.
+          </h2>
+          <p style={{ color: "rgba(255,255,255,0.6)", fontSize: 16, maxWidth: 680, margin: "0 auto", lineHeight: 1.6 }}>
+            Connect your broker and let Tradifive automatically record, analyze, and organize every trade without manual input.
+          </p>
+        </motion.div>
+
+        <motion.div
+          {...fadeUp(0.15)}
+          style={{
+            background: "rgba(255,255,255,0.02)",
+            border: "1px solid rgba(255,255,255,0.08)",
+            borderRadius: 24,
+            padding: "16px",
+            position: "relative",
+            boxShadow: "0 30px 80px -20px rgba(0,0,0,0.85), 0 0 60px rgba(168,85,247,0.08)",
+            overflow: "hidden"
+          }}
+        >
+          {/* Ambient backlight glow */}
+          <div style={{ position: "absolute", top: -80, left: "50%", transform: "translateX(-50%)", width: 600, height: 200, background: "radial-gradient(ellipse, rgba(168,85,247,0.15) 0%, transparent 70%)", pointerEvents: "none" }} />
+          
+          {/* Window Header Bar */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 14px 14px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+            <div style={{ display: "flex", gap: 6 }}>
+              <div style={{ width: 10, height: 10, borderRadius: "50%", background: "rgba(255,255,255,0.15)" }} />
+              <div style={{ width: 10, height: 10, borderRadius: "50%", background: "rgba(255,255,255,0.15)" }} />
+              <div style={{ width: 10, height: 10, borderRadius: "50%", background: "rgba(255,255,255,0.15)" }} />
+            </div>
+            <div style={{ fontSize: 11.5, color: "rgba(255,255,255,0.35)", fontWeight: 600, letterSpacing: 0.5 }}>Tradifive Terminal · AI Smart Journal</div>
+            <div style={{ width: 32 }} />
+          </div>
+
+          {/* Screenshot */}
+          <div style={{ borderRadius: 16, overflow: "hidden", marginTop: 12, background: "#08090d" }}>
+            <img
+              src="/journaldesktop.png"
+              alt="Smart Journal Platform"
+              style={{ width: "100%", height: "auto", display: "block", objectFit: "contain" }}
+              onError={(e) => { (e.currentTarget as HTMLElement).style.display = "none"; }}
+            />
+          </div>
+        </motion.div>
       </section>
 
       {/* FEATURES */}
@@ -275,7 +328,7 @@ export default function SmartJournalPublic() {
             Know your edge. Trade it with confidence.
           </h2>
           <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 16, marginBottom: 36 }}>Connect your MT5 or Indian broker account in 60 seconds. No spreadsheets required.</p>
-          <button onClick={handleStart} style={{ background: "linear-gradient(135deg, #ec4899, #a855f7)", color: "#fff", border: "none", borderRadius: 100, padding: "15px 40px", fontWeight: 800, fontSize: 15, cursor: "pointer" }}>
+          <button onClick={handleStart} className="btn-glow-primary" style={{ borderRadius: 100, padding: "15px 40px", fontWeight: 800, fontSize: 15 }}>
             Start Journaling Free →
           </button>
         </motion.div>

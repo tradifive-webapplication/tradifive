@@ -128,10 +128,10 @@ export default function CommunityHubPublic() {
               Stop trading in isolation. Connect with a global network of verified, elite traders. Share setups, follow signals, message mentors — all in one place.
             </p>
             <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
-              <button onClick={handleStart} style={{ background: "linear-gradient(135deg, #6366f1, #7c3aed)", color: "#fff", border: "none", borderRadius: 100, padding: "14px 32px", fontWeight: 700, fontSize: 15, cursor: "pointer" }}>
+              <button onClick={handleStart} className="btn-glow-primary" style={{ borderRadius: 100, padding: "14px 32px", fontSize: 15, fontWeight: 700 }}>
                 Join the Network →
               </button>
-              <button onClick={() => navigate("/features/discover")} style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.7)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 100, padding: "14px 28px", fontWeight: 600, fontSize: 14, cursor: "pointer" }}>
+              <button onClick={() => navigate("/features/discover")} className="btn-ghost" style={{ borderRadius: 100, padding: "14px 28px", fontSize: 14, fontWeight: 600 }}>
                 Explore Features
               </button>
             </div>
@@ -172,6 +172,59 @@ export default function CommunityHubPublic() {
             </motion.div>
           ))}
         </div>
+      </section>
+
+      {/* DESKTOP PLATFORM SHOWCASE */}
+      <section style={{ padding: "20px 24px 80px", maxWidth: 1240, margin: "0 auto", position: "relative" }}>
+        <motion.div {...fadeUp()} style={{ textAlign: "center", marginBottom: 36 }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(99,102,241,0.1)", border: "1px solid rgba(99,102,241,0.25)", borderRadius: 100, padding: "6px 16px", marginBottom: 18 }}>
+            <Users size={13} color="#6366f1" />
+            <span style={{ color: "#6366f1", fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase" }}>FEATURE 01 · PLATFORM SHOWCASE</span>
+          </div>
+          <h2 style={{ fontSize: "clamp(26px, 4.5vw, 48px)", fontWeight: 900, letterSpacing: "-0.03em", color: "#fff", marginBottom: 14 }}>
+            The trading network built for modern traders.
+          </h2>
+          <p style={{ color: "rgba(255,255,255,0.6)", fontSize: 16, maxWidth: 680, margin: "0 auto", lineHeight: 1.6 }}>
+            Share ideas, post analysis, follow creators, join public or private channels, and connect with traders worldwide through a beautifully designed social canvas.
+          </p>
+        </motion.div>
+
+        <motion.div
+          {...fadeUp(0.15)}
+          style={{
+            background: "rgba(255,255,255,0.02)",
+            border: "1px solid rgba(255,255,255,0.08)",
+            borderRadius: 24,
+            padding: "16px",
+            position: "relative",
+            boxShadow: "0 30px 80px -20px rgba(0,0,0,0.85), 0 0 60px rgba(99,102,241,0.08)",
+            overflow: "hidden"
+          }}
+        >
+          {/* Ambient backlight glow */}
+          <div style={{ position: "absolute", top: -80, left: "50%", transform: "translateX(-50%)", width: 600, height: 200, background: "radial-gradient(ellipse, rgba(99,102,241,0.15) 0%, transparent 70%)", pointerEvents: "none" }} />
+          
+          {/* Window Header Bar */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 14px 14px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+            <div style={{ display: "flex", gap: 6 }}>
+              <div style={{ width: 10, height: 10, borderRadius: "50%", background: "rgba(255,255,255,0.15)" }} />
+              <div style={{ width: 10, height: 10, borderRadius: "50%", background: "rgba(255,255,255,0.15)" }} />
+              <div style={{ width: 10, height: 10, borderRadius: "50%", background: "rgba(255,255,255,0.15)" }} />
+            </div>
+            <div style={{ fontSize: 11.5, color: "rgba(255,255,255,0.35)", fontWeight: 600, letterSpacing: 0.5 }}>Tradifive Terminal · Community Network</div>
+            <div style={{ width: 32 }} />
+          </div>
+
+          {/* Screenshot */}
+          <div style={{ borderRadius: 16, overflow: "hidden", marginTop: 12, background: "#08090d" }}>
+            <img
+              src="/homedesktop.png"
+              alt="Community Hub Platform"
+              style={{ width: "100%", height: "auto", display: "block", objectFit: "contain" }}
+              onError={(e) => { (e.currentTarget as HTMLElement).style.display = "none"; }}
+            />
+          </div>
+        </motion.div>
       </section>
 
       {/* FEATURE DEEP-DIVES */}
@@ -217,7 +270,7 @@ export default function CommunityHubPublic() {
             Ready to join the network?
           </h2>
           <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 16, marginBottom: 36 }}>Free to start. No credit card required.</p>
-          <button onClick={handleStart} style={{ background: "linear-gradient(135deg, #6366f1, #7c3aed)", color: "#fff", border: "none", borderRadius: 100, padding: "16px 44px", fontWeight: 800, fontSize: 16, cursor: "pointer" }}>
+          <button onClick={handleStart} className="btn-glow-primary" style={{ borderRadius: 100, padding: "16px 44px", fontWeight: 800, fontSize: 16 }}>
             Join TradiFive Free →
           </button>
         </motion.div>

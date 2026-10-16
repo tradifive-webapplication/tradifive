@@ -1,9 +1,9 @@
 import {
   LayoutDashboard, ShieldAlert, BookOpen, Bell, Sparkles, Trophy, HelpCircle,
-  Search, PanelLeftClose, PanelLeftOpen, Lock, ChevronDown, ChevronRight, ChevronLeft, Inbox, Moon, Palette, ChevronsUpDown, Clock, User, CreditCard, MessageSquare, UserCheck,
+  Search, PanelLeftClose, PanelLeftOpen, Lock, ChevronDown, ChevronRight, ChevronLeft, Inbox, Moon, Sun, Palette, ChevronsUpDown, Clock, User, CreditCard, MessageSquare, UserCheck,
   Plus, Users, LayoutGrid, Shield, Gift, Compass, BookText, Brain, ShieldCheck, Target, Award, Mail, Crown, PlusCircle, X, GraduationCap, ShoppingBag, Video, Hash, Globe, TrendingUp, Home as LucideHome, UserPlus, Share2, Server, Box, Rocket
 } from "lucide-react";
-import { Home, Category, Discovery, Document, Star, ShieldDone, TwoUsers, Scan, TicketStar, Discount, Work, Bag, Video as IconlyVideo, Message, Notification, Logout, Wallet, Setting, User as IconlyUser, Graph, Chat, AddUser, Activity, TimeCircle, Play } from "react-iconly";
+import { Home, Category, Discovery, Document, Star, ShieldDone, TwoUsers, Scan, TicketStar, Discount, Work, Bag, Video as IconlyVideo, Message, Notification, Logout, Wallet, Setting, User as IconlyUser, Graph, Chat, AddUser, Activity, TimeCircle, Play, ShieldFail, Danger, Filter, Paper } from "react-iconly";
 
 import "./UiverseProButton.css";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -114,6 +114,7 @@ const homeMenu = [
 
 const discoverMenu = [
   { path: "/discover", icon: WrappedIconly(Discovery), label: "Discover Hub" },
+  { path: "/marketplace", icon: WrappedIconly(Bag), label: "Algo Marketplace" },
   { path: "/discover/strategies", icon: WrappedIconly(Category), label: "Top Strategies" },
   { path: "/discover/traders", icon: WrappedIconly(TwoUsers), label: "Top Traders" },
   { path: "/competitions/dashboard", icon: WrappedIconly(Scan), label: "Contests", isLocked: true },
@@ -125,11 +126,9 @@ const getAutoTradeMenu = () => {
   return [
     { path: isSetup ? "/auto-trade/dashboard" : "/auto-trade/setup", icon: WrappedIconly(Category), label: "Dashboard" },
     { path: "/auto-trade/active-bots", icon: WrappedIconly(Activity), label: "Active Bots", isLocked: !isSetup },
-    
+    { path: "/marketplace", icon: WrappedIconly(Bag), label: "Algo Marketplace" },
     { path: "/auto-trade/builder", icon: WrappedIconly(Setting), label: "Strategy Builder", isLocked: !isSetup },
-
     { path: "/auto-trade/history", icon: WrappedIconly(Document), label: "Order History", isLocked: !isSetup },
-    
     { path: "/auto-trade/license", icon: WrappedIconly(ShieldDone), label: "License & Activation", isLocked: !isSetup },
   ];
 };
@@ -155,6 +154,7 @@ const dashboardMenu = [
 
 const journalMenu = [
   { path: "/journal", icon: WrappedIconly(Document), label: "Daily Journal" },
+  { path: "/charts", icon: WrappedIconly(Graph), label: "Performance Charts" },
   { path: "/journal/history", icon: wrapLucide(Clock), label: "Trade History" },
   { path: "/journal/mistakes", icon: WrappedIconly(ShieldDone), label: "Mistake Tracking" },
   { path: "/journal/tags", icon: wrapLucide(Hash), label: "Tags & Filters" },
@@ -291,11 +291,13 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
     if (path.startsWith("/journal")) return "journal";
     if (path.startsWith("/risk-guard")) return "riskGuard";
     if (path.startsWith("/ai-coach")) return "aiCoach";
-    if (path.startsWith("/auto-trade")) return "autoTrade";
-    if (path.startsWith("/discover")) return "discover";
-    if (path.startsWith("/community") || path.startsWith("/channel") || path.startsWith("/learning") || path.startsWith("/competitions")) return "community";
+    if (path.startsWith("/auto-trade") || path.startsWith("/strategy-builder")) return "autoTrade";
+    if (path.startsWith("/discover") || path.startsWith("/marketplace")) return "discover";
+    if (path.startsWith("/channel") || path.startsWith("/inbox") || path.startsWith("/notifications") || path.startsWith("/community")) return "community";
+    if (path.startsWith("/rewards") || path.startsWith("/referrals")) return "rewards";
+    if (path.startsWith("/settings") || path.startsWith("/profile") || path.startsWith("/upgrade")) return "settings";
     if (path.startsWith("/creator")) return "creatorHub";
-    return "home";
+    return "dashboard";
   };
 
   const [activePillar, setActivePillar] = useState(getInitialPillar());
@@ -537,8 +539,8 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
     fetchUnreadDMs(currentUserId);
     fetchUnreadNotifications(currentUserId);
 
-    const subId = Math.random().toString(36).substring(2, 9);
-    const dmChannel = supabase.channel(`sidebar-unread-dms-${currentUserId}-${subId}`)
+    const suffix = `${currentUserId}_${isMobile ? 'mobile' : 'desktop'}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const dmChannel = supabase.channel(`sidebar-unread-dms_${suffix}`)
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
@@ -548,7 +550,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
       })
       .subscribe();
 
-    const notificationsChannel = supabase.channel(`sidebar-unread-notifications-${currentUserId}-${subId}`)
+    const notificationsChannel = supabase.channel(`sidebar-unread-notifs_${suffix}`)
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
@@ -563,7 +565,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
       supabase.removeChannel(dmChannel);
       supabase.removeChannel(notificationsChannel);
     };
-  }, [currentUserId]);
+  }, [currentUserId, isMobile]);
 
   useEffect(() => {
     const handleXPUpdate = () => {
@@ -656,39 +658,183 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
     { path: "/notifications", icon: WrappedIconly(Notification), label: "Notifications", badge: (unreadNotifications > 0 ? (unreadNotifications > 15 ? "15+" : String(unreadNotifications)) : undefined) },
   ];
 
+  const isAutoTradeSetup = typeof window !== 'undefined' && localStorage.getItem("tradifive_auto_trade_setup") === "true";
+
+  const mobilePillars = [
+    { id: "home", label: "Home", icon: WrappedIconly(Home) },
+    { id: "dashboard", label: "Dashboard", icon: WrappedIconly(Category) },
+    { id: "journal", label: "Journal", icon: WrappedIconly(Document) },
+    { id: "riskGuard", label: "Risk Guard", icon: WrappedIconly(ShieldDone) },
+    { id: "discover", label: "Discover", icon: WrappedIconly(Discovery) },
+    { id: "aiCoach", label: "AI Coach", icon: WrappedIconly(Chat) },
+    { id: "autoTrade", label: "Auto Trade", icon: WrappedIconly(Activity) },
+    { id: "community", label: "Channels", icon: WrappedIconly(Chat) },
+    ...(isCreator ? [{ id: "creatorHub", label: "Creator Hub", icon: WrappedIconly(Star) }] : [])
+  ];
+
+  const getSecondaryPagesForPillar = (pillarId: string) => {
+    switch (pillarId) {
+      case "home":
+        return [
+          { path: "/home", icon: WrappedIconly(Home), label: "Home Feed" },
+          { path: "/home?tab=saved", icon: WrappedIconly(Star), label: "Saved Posts" },
+          { path: "/home?tab=calendar", icon: WrappedIconly(TimeCircle), label: "Economic Calendar" },
+        ];
+      case "dashboard":
+        return [
+          { path: "/dashboard", icon: WrappedIconly(Category), label: "Live Terminal" },
+          { path: "/dashboard?tab=portfolio", icon: WrappedIconly(Wallet), label: "Portfolio & Holdings" },
+          { path: "/broker-connect", icon: WrappedIconly(Activity), label: "Connected Brokers" },
+          { path: "/dashboard?tab=reports", icon: WrappedIconly(Document), label: "Reports & Statements" },
+        ];
+      case "journal":
+        return [
+          { path: "/journal", icon: WrappedIconly(Document), label: "Daily Journal" },
+          { path: "/charts", icon: WrappedIconly(Graph), label: "Performance Charts" },
+          { path: "/journal/history", icon: WrappedIconly(TimeCircle), label: "Trade History" },
+          { path: "/journal/mistakes", icon: WrappedIconly(ShieldDone), label: "Mistake Tracking" },
+          { path: "/journal/tags", icon: WrappedIconly(Filter), label: "Tags & Filters" },
+        ];
+      case "riskGuard":
+        return [
+          { path: "/risk-guard", icon: WrappedIconly(ShieldDone), label: "Risk Dashboard" },
+          { path: "/risk-guard/limits", icon: WrappedIconly(ShieldFail), label: "Drawdown Limits" },
+          { path: "/risk-guard/exposure", icon: WrappedIconly(Graph), label: "Position Exposure" },
+          { path: "/risk-guard/kill-switch", icon: WrappedIconly(Danger), label: "Kill Switch", isDanger: true },
+        ];
+      case "discover":
+        return [
+          { path: "/discover", icon: WrappedIconly(Discovery), label: "Discover Hub" },
+          { path: "/marketplace", icon: WrappedIconly(Bag), label: "Algo Marketplace" },
+          { path: "/discover/strategies", icon: WrappedIconly(Category), label: "Top Strategies" },
+          { path: "/discover/traders", icon: WrappedIconly(TwoUsers), label: "Top Traders" },
+          { path: "/competitions/dashboard", icon: WrappedIconly(Scan), label: "Trading Contests", isLocked: true },
+          { path: "/learning", icon: WrappedIconly(Paper), label: "Trader Academy" },
+        ];
+      case "aiCoach":
+        return [
+          { path: "/ai-coach", icon: WrappedIconly(Chat), label: "AI Coach Insights" },
+          { path: "/ai-coach/chat", icon: WrappedIconly(Message), label: "Coach Chat" },
+          { path: "/ai-coach/feedback", icon: WrappedIconly(Notification), label: "Trade Feedback" },
+          { path: "/ai-coach/goals", icon: WrappedIconly(TicketStar), label: "Trading Goals" },
+          { path: "/analytics", icon: WrappedIconly(Graph), label: "Performance Analytics" },
+        ];
+      case "autoTrade":
+        return [
+          { path: isAutoTradeSetup ? "/auto-trade/dashboard" : "/auto-trade/setup", icon: WrappedIconly(Category), label: "AutoTrade Dashboard" },
+          { path: "/auto-trade/active-bots", icon: WrappedIconly(Activity), label: "Active Bots", isLocked: !isAutoTradeSetup },
+          { path: "/strategy-builder", icon: WrappedIconly(Setting), label: "Strategy Builder", isLocked: !isAutoTradeSetup },
+          { path: "/marketplace", icon: WrappedIconly(Bag), label: "Algo Marketplace" },
+          { path: "/auto-trade/history", icon: WrappedIconly(Document), label: "Order History", isLocked: !isAutoTradeSetup },
+          { path: "/auto-trade/license", icon: WrappedIconly(ShieldDone), label: "License & Activation", isLocked: !isAutoTradeSetup },
+        ];
+      case "community":
+        return [
+          { path: "/channel", icon: WrappedIconly(Chat), label: "Channels & Chat" },
+          { path: "/inbox", icon: WrappedIconly(Message), label: "Direct Messages", badge: (unreadDMs > 0 ? String(unreadDMs) : undefined) },
+          { path: "/notifications", icon: WrappedIconly(Notification), label: "Notifications", badge: (unreadNotifications > 0 ? (unreadNotifications > 15 ? "15+" : String(unreadNotifications)) : undefined) },
+          { path: "/home", icon: WrappedIconly(Home), label: "Home Feed" },
+        ];
+      case "creatorHub":
+        return [
+          { path: "/creator/analytics", icon: WrappedIconly(Graph), label: "Creator Dashboard" },
+          { path: "/creator/store", icon: WrappedIconly(Bag), label: "My Store" },
+          { path: "/creator/live", icon: WrappedIconly(IconlyVideo), label: "Live Sessions" },
+        ];
+      default:
+        return [
+          { path: "/dashboard", icon: WrappedIconly(Category), label: "Live Terminal" },
+          { path: "/journal", icon: WrappedIconly(Document), label: "Daily Journal" },
+          { path: "/ai-coach", icon: WrappedIconly(Chat), label: "AI Coach" },
+        ];
+    }
+  };
+
+  const allMobileSecondaryItems = [
+    ...mobilePillars.flatMap(p => getSecondaryPagesForPillar(p.id)),
+    { path: "/referrals", icon: WrappedIconly(AddUser), label: "Refer & Earn" },
+    { path: "/rewards", icon: WrappedIconly(TicketStar), label: "Rewards Hub" },
+    { path: "/settings", icon: WrappedIconly(Setting), label: "Settings" },
+    { path: "/upgrade", icon: wrapLucide(Crown), label: "Upgrade Plan" },
+    {
+      label: theme === 'dark' ? "Light Mode" : "Dark Mode",
+      icon: wrapLucide(theme === 'dark' ? Sun : Moon),
+      isAction: true,
+      action: toggleTheme,
+      keepDrawerOpen: true
+    },
+    {
+      label: "Logout",
+      icon: WrappedIconly(Logout),
+      isAction: true,
+      action: (e: any) => handleLogoutClick(e),
+      isDanger: true
+    }
+  ];
+
   const renderMenuItem = (item: any) => {
     const currentUrl = location.pathname + location.search;
-    const active = currentUrl === item.path || (location.pathname === '/' && item.path === '/dashboard');
+    const active = !item.isAction && (
+      currentUrl === item.path || 
+      (location.pathname === '/' && item.path === '/dashboard') ||
+      ((item.path === '/home' || item.path === '/home') && location.pathname === '/home' && (!location.search || location.search === ''))
+    );
 
     return (
-      <Tooltip delayDuration={0}>
+      <Tooltip delayDuration={0} key={item.label}>
         <TooltipTrigger asChild>
       <button
-        key={item.label}
         id={`tour-nav-${item.label.toLowerCase().replace(/[\s\/]+/g, '-')}`}
-        onClick={() => !item.isLocked && item.path !== "#" && React.startTransition(() => navigate(item.path))}
+        onClick={(e) => {
+          if (item.isAction && item.action) {
+            item.action(e);
+            if (isMobile && !item.keepDrawerOpen) {
+              toggleCollapse?.();
+            }
+            return;
+          }
+          if (!item.isLocked && item.path && item.path !== "#") {
+            React.startTransition(() => navigate(item.path));
+            if (isMobile) {
+              toggleCollapse?.();
+            }
+          }
+        }}
         className={`relative flex items-center justify-between transition-all duration-300 group ${isCollapsed
           ? "rounded-xl py-3 px-0 justify-center mx-2 w-auto h-[44px]"
           : `rounded-xl py-2.5 w-auto h-[42px] ${item.isChild ? "ml-8 mr-2 px-3" : "mx-3 px-3"}`
           } ${item.isLocked ? "opacity-60 cursor-not-allowed" : "cursor-pointer"
-          } ${active
-            ? theme === 'dark'
-              ? "sidebar-magic-active border border-transparent"
-              : "bg-white text-slate-900 font-bold shadow-sm border border-slate-200/50"
-            : "text-slate-500 dark:text-neutral-400 font-semibold hover:text-slate-900 hover:bg-slate-100/50 dark:hover:bg-white/5 dark:hover:text-white border border-transparent"
+          } ${item.isDanger
+            ? "text-rose-500 hover:bg-rose-500/10 dark:hover:bg-rose-500/10 font-semibold"
+            : active
+              ? theme === 'dark'
+                ? "sidebar-magic-active border border-transparent font-bold text-white shadow-sm"
+                : "bg-white text-slate-900 font-bold shadow-sm border border-slate-200/50"
+              : "text-slate-600 dark:text-neutral-300 font-medium hover:text-slate-900 hover:bg-slate-100/70 dark:hover:bg-white/5 dark:hover:text-white border border-transparent"
           }`}
-        
       >
-        {/* Removed left-side active indicator */}
-        <div className={`flex items-center transition-all duration-300 ${isCollapsed ? "justify-center w-full gap-0" : "gap-3"}`}>
-          <item.icon set="curved" stroke="bold" primaryColor="currentColor" size={item.isChild ? 16 : 18} strokeWidth={2} className={`shrink-0 ${active ? "text-slate-900 dark:text-white" : "text-slate-400 dark:text-neutral-400 group-hover:text-slate-600 dark:group-hover:text-white"}`} />
-          <span className={`text-[13px] ${item.isChild ? "text-[12px]" : ""} font-medium whitespace-nowrap overflow-hidden transition-all duration-300 ${isCollapsed ? "max-w-0 opacity-0" : "max-w-[150px] opacity-100"}`}>
+        <div className={`flex items-center min-w-0 transition-all duration-300 ${isCollapsed ? "justify-center w-full gap-0" : "gap-3 flex-1"}`}>
+          <item.icon 
+            set="curved" 
+            stroke="bold" 
+            primaryColor="currentColor" 
+            size={item.isChild ? 16 : 18} 
+            strokeWidth={2} 
+            className={`shrink-0 ${
+              item.isDanger 
+                ? 'text-rose-500' 
+                : active 
+                  ? (theme === 'dark' ? "text-white" : "text-slate-900") 
+                  : "text-slate-400 dark:text-neutral-400 group-hover:text-slate-600 dark:group-hover:text-white"
+            }`} 
+          />
+          <span className={`text-[13px] ${item.isChild ? "text-[12px]" : ""} font-medium truncate ${isCollapsed ? "max-w-0 opacity-0" : "opacity-100"}`}>
             {item.label}
           </span>
         </div>
 
         {item.isLocked && (
-          <div className={`flex items-center gap-1 overflow-hidden transition-all duration-300 ${isCollapsed ? "max-w-0 opacity-0" : "max-w-[70px] opacity-100 ml-2"}`}>
+          <div className={`flex items-center gap-1 overflow-hidden transition-all duration-300 ${isCollapsed ? "max-w-0 opacity-0" : "ml-2"}`}>
             <div className="flex items-center gap-1 bg-gradient-to-r from-indigo-500/10 to-blue-500/10 border border-indigo-500/20 px-2 py-[3px] rounded-full shrink-0 shadow-sm">
               <Lock size={10} className="text-indigo-500 shrink-0" />
               <span className="text-[8.5px] font-black uppercase tracking-[0.15em] text-indigo-600 dark:text-indigo-400 leading-none">Soon</span>
@@ -697,21 +843,21 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
         )}
 
         {item.badge && (
-          <div className={`overflow-hidden transition-all duration-300 ${isCollapsed ? "max-w-0 opacity-0" : "max-w-[40px] opacity-100 ml-2"}`}>
-            <span className="text-[11px] font-extrabold text-rose-500 min-w-[20px] text-right select-none drop-shadow-md inline-block whitespace-nowrap">
+          <div className={`overflow-hidden transition-all duration-300 ${isCollapsed ? "max-w-0 opacity-0" : "ml-2"}`}>
+            <span className="px-2 py-0.5 rounded-full bg-blue-500 text-white text-[10px] font-bold shadow-sm">
               {item.badge}
             </span>
           </div>
         )}
 
         {item.hasDropdown && (
-          <div className={`overflow-hidden transition-all duration-300 ${isCollapsed ? "max-w-0 opacity-0" : "max-w-[20px] opacity-100 ml-2"}`}>
+          <div className={`overflow-hidden transition-all duration-300 ${isCollapsed ? "max-w-0 opacity-0" : "ml-2"}`}>
             <ChevronDown size={14} className="text-slate-400 group-hover:text-slate-600 shrink-0" />
           </div>
         )}
 
         {active && theme !== "dark" && (
-          <div className={`absolute right-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-blue-600 rounded-l-full shadow-[0_0_10px_rgba(37,99,235,0.4)] ${isCollapsed ? 'hidden' : 'block'}`} />
+          <div className={`absolute right-0 top-1/2 -translate-y-1/2 w-1.5 h-6 bg-blue-600 rounded-l-full shadow-[0_0_10px_rgba(37,99,235,0.4)] ${isCollapsed ? 'hidden' : 'block'}`} />
         )}
       </button>
         </TooltipTrigger>
@@ -730,7 +876,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
     <>
       <aside
         className={`${!isFullScreen ? 'dark-sidebar' : ''} ${isMobile
-          ? `flex h-full flex-col ${mobileBgClass} dark:bg-[#1E1E1E] w-full`
+          ? 'flex h-full flex-col bg-[#f4f7fb] dark:bg-[#121214] w-full text-slate-900 dark:text-slate-100'
           : `fixed left-0 top-0 z-40 flex h-screen flex-row bg-transparent dark:bg-transparent ${isMounted ? "transition-[width] duration-300" : ""
           } ${isCollapsed ? "w-[90px]" : "w-[340px]"}`
           }`}
@@ -832,21 +978,35 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
 
           {/* ── SIDEBAR HEADER ── */}
-          <div className="shrink-0 px-4 pb-3 flex flex-col gap-5 relative">
+          <div className="shrink-0 px-3.5 pb-2 flex flex-col gap-3 relative">
             
             {/* Image Logo & Markets Dropdown Aligned with Primary Sidebar Favicon */}
-            <div className={`overflow-hidden transition-all duration-300 flex items-center justify-between h-[54px] mt-[48px] pr-2 ${isCollapsed ? "max-w-0 opacity-0" : "max-w-full opacity-100"}`}>
-              <img src="/logo.png" alt="TradiFive Logo" className="h-[52px] object-contain ml-3" />
+            <div className={`overflow-hidden transition-all duration-300 flex items-center justify-between h-[54px] ${isMobile ? 'mt-0.5 pl-1 pr-12' : 'mt-[48px] pr-2'} ${isCollapsed ? "max-w-0 opacity-0" : "max-w-full opacity-100"}`}>
+              <div className="flex items-center gap-2">
+                {isMobile && (
+                  <img src="/tf-logo.png" alt="Logo" className="w-[30px] h-[30px] sm:w-[34px] sm:h-[34px] object-contain shrink-0" />
+                )}
+                <img 
+                  src="/Tradifive_logo1.png" 
+                  alt="TradiFive" 
+                  className="h-[26px] sm:h-[28px] w-auto object-contain dark:hidden" 
+                />
+                <img 
+                  src="/Dark mode logo with white.png" 
+                  alt="TradiFive" 
+                  className="h-[26px] sm:h-[28px] w-auto object-contain hidden dark:block" 
+                />
+              </div>
               
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <div className="w-[34px] h-[34px] rounded-full bg-slate-100/80 dark:bg-white/5 border border-slate-200/60 dark:border-white/[0.08] flex items-center justify-center text-slate-500 dark:text-slate-400 cursor-pointer shadow-sm hover:text-blue-500 dark:hover:text-blue-400 hover:border-blue-500/30 transition-colors mr-1" title="Select Market">
+                  <button className="flex items-center justify-center w-8 h-8 rounded-full bg-white dark:bg-white/5 border border-slate-200/80 dark:border-white/10 text-slate-700 dark:text-slate-300 shadow-xs hover:border-blue-500/40 transition-all active:scale-95 cursor-pointer select-none" title={activeMarket === 'forex' ? "Global Market" : "Indian Market"}>
                     {activeMarket === 'forex' ? (
-                      <Globe size={16} strokeWidth={2.5} />
+                      <Globe size={16} className="text-blue-500" strokeWidth={2.2} />
                     ) : (
-                      <TrendingUp size={16} strokeWidth={2.5} />
+                      <TrendingUp size={16} className="text-emerald-500" strokeWidth={2.2} />
                     )}
-                  </div>
+                  </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" side="bottom" sideOffset={8} className="w-[170px] rounded-xl bg-white dark:bg-[#1E1E1E] border border-slate-200/80 dark:border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-1 z-[100]">
                   <DropdownMenuItem onClick={() => setActiveMarket('forex')} className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg cursor-pointer transition-all ${activeMarket === 'forex' ? 'bg-blue-50/50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5'}`}>
@@ -863,22 +1023,35 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
               </DropdownMenu>
             </div>
 
+
             <div className="flex items-center gap-2 w-full">
               {/* Search Bar */}
               <div className="relative group flex-1">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 group-focus-within:text-blue-500 transition-colors" />
+                <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 group-focus-within:text-blue-500 transition-colors" />
                 <input
                   type="text"
-                  placeholder="Search…"
-                  className="w-full h-[36px] pl-9 pr-3 rounded-xl bg-slate-100/80 dark:bg-white/5 border border-slate-200/60 dark:border-white/[0.08] text-[13px] font-medium text-slate-700 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/40 dark:focus:ring-blue-400/20 dark:focus:border-blue-400/30 transition-all"
+                  placeholder="Search navigation…"
+                  value={navSearchQuery}
+                  onChange={(e) => setNavSearchQuery(e.target.value)}
+                  className="w-full h-[40px] pl-10 pr-9 rounded-2xl bg-white dark:bg-[#1A1A1E] border border-slate-200/80 dark:border-white/[0.08] text-[13px] font-medium text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/40 dark:focus:ring-blue-400/20 dark:focus:border-blue-400/30 shadow-xs transition-all"
                 />
-                <kbd className="absolute right-3 top-1/2 -translate-y-1/2 hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-slate-200/60 dark:bg-white/[0.08] text-[10px] font-bold text-slate-400 dark:text-slate-500 border border-slate-300/40 dark:border-white/5">
-                  ⌘K
-                </kbd>
+                {navSearchQuery ? (
+                  <button
+                    type="button"
+                    onClick={() => setNavSearchQuery("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                  >
+                    <X size={13} />
+                  </button>
+                ) : (
+                  <kbd className="absolute right-3.5 top-1/2 -translate-y-1/2 hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-white/[0.08] text-[10px] font-bold text-slate-400 dark:text-slate-500 border border-slate-200 dark:border-white/5">
+                    ⌘K
+                  </kbd>
+                )}
               </div>
 
-              {/* Collapse Button (Inline) */}
-              {toggleCollapse && theme === 'dark' && (
+              {/* Collapse Button (Inline) for desktop */}
+              {!isMobile && toggleCollapse && theme === 'dark' && (
                 <button
                   id="tour-collapse-btn"
                   onClick={toggleCollapse}
@@ -889,6 +1062,85 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
                 </button>
               )}
             </div>
+
+            {/* Quick Mobile Communication Access: Messages & Notifications */}
+            {isMobile && (
+              <div className="grid grid-cols-2 gap-2 pt-1 pb-0.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    React.startTransition(() => navigate("/inbox"));
+                    toggleCollapse?.();
+                  }}
+                  className={`flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-[12px] font-semibold border transition-all active:scale-[0.98] ${
+                    location.pathname.startsWith('/inbox')
+                      ? 'bg-blue-50 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30 shadow-xs font-bold'
+                      : 'bg-white dark:bg-[#1A1A1E] text-slate-700 dark:text-slate-300 border-slate-200/80 dark:border-white/[0.08] hover:bg-slate-50 dark:hover:bg-white/5 shadow-xs'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 truncate">
+                    <Message set="curved" primaryColor="currentColor" size={16} stroke="bold" />
+                    <span>Inbox</span>
+                  </div>
+                  {unreadDMs > 0 && (
+                    <span className="px-1.5 py-0.5 bg-rose-500 text-white text-[10px] font-black rounded-full leading-none shadow-xs">
+                      {unreadDMs}
+                    </span>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    React.startTransition(() => navigate("/notifications"));
+                    toggleCollapse?.();
+                  }}
+                  className={`flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-[12px] font-semibold border transition-all active:scale-[0.98] ${
+                    location.pathname.startsWith('/notifications')
+                      ? 'bg-blue-50 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30 shadow-xs font-bold'
+                      : 'bg-white dark:bg-[#1A1A1E] text-slate-700 dark:text-slate-300 border-slate-200/80 dark:border-white/[0.08] hover:bg-slate-50 dark:hover:bg-white/5 shadow-xs'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 truncate">
+                    <Notification set="curved" primaryColor="currentColor" size={16} stroke="bold" />
+                    <span>Alerts</span>
+                  </div>
+                  {unreadNotifications > 0 && (
+                    <span className="px-1.5 py-0.5 bg-blue-500 text-white text-[10px] font-black rounded-full leading-none shadow-xs">
+                      {unreadNotifications > 15 ? '15+' : unreadNotifications}
+                    </span>
+                  )}
+                </button>
+              </div>
+            )}
+
+            {/* Primary Buttons Horizontal (Pillars) - Segmented Control */}
+            {isMobile && (
+              <div className="pt-2 pb-1.5 -mx-1">
+                <div className="p-1 bg-slate-200/60 dark:bg-white/[0.06] rounded-2xl flex items-center gap-1 overflow-x-auto scrollbar-hide no-scrollbar border border-slate-200/50 dark:border-white/[0.04]">
+                  {mobilePillars.map((p) => {
+                    const isActive = activePillar === p.id;
+                    return (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => {
+                          setActivePillar(p.id);
+                        }}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[12px] whitespace-nowrap shrink-0 transition-all cursor-pointer select-none active:scale-95 ${
+                          isActive
+                            ? 'bg-white dark:bg-[#202025] text-blue-600 dark:text-blue-400 font-bold shadow-xs border border-slate-200/70 dark:border-white/10'
+                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium hover:bg-white/40 dark:hover:bg-white/5'
+                        }`}
+                      >
+                        <p.icon size={13} primaryColor="currentColor" stroke="bold" />
+                        <span>{p.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
 
@@ -896,51 +1148,106 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
           <div
             ref={scrollContainerRef}
             onScroll={handleScroll}
-            className={`flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide flex flex-col pb-4 ${isCollapsed ? "px-2" : "px-2"}`}
+            className={`flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide flex flex-col pb-4 ${isCollapsed ? "px-2" : isMobile ? "px-3" : "px-2"}`}
           >
+            {isMobile ? (
+              navSearchQuery ? (
+                /* Mobile Search Results */
+                <div className="pt-2 pb-3">
+                  <div className="px-2 mb-2 flex items-center justify-between">
+                    <span className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-slate-400 dark:text-neutral-400">
+                      Search Results
+                    </span>
+                    <button
+                      onClick={() => setNavSearchQuery("")}
+                      className="text-[11px] font-semibold text-blue-600 dark:text-blue-400 hover:underline"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                  {(() => {
+                    const matching = allMobileSecondaryItems.filter(m => m.label.toLowerCase().includes(navSearchQuery.toLowerCase()));
+                    if (matching.length === 0) {
+                      return (
+                        <div className="py-8 text-center px-4">
+                          <p className="text-[13px] font-medium text-slate-500 dark:text-slate-400 mb-2">No navigation links found for "{navSearchQuery}"</p>
+                          <button
+                            onClick={() => setNavSearchQuery("")}
+                            className="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-white/10 text-[12px] font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-200"
+                          >
+                            Reset Search
+                          </button>
+                        </div>
+                      );
+                    }
+                    return (
+                      <div className="flex flex-col gap-1">
+                        {matching.map(renderMenuItem)}
+                      </div>
+                    );
+                  })()}
+                </div>
+              ) : (
+                /* Mobile Vertical Secondary Pages for the Active Primary Button */
+                <div className="pt-2.5 pb-3">
+                  <div className="px-3 mb-2 flex items-center justify-between">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500 font-sans">
+                      {mobilePillars.find(p => p.id === activePillar)?.label || "Main"} Pages
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full bg-slate-200/60 dark:bg-white/5 text-[10px] font-semibold text-slate-500 dark:text-zinc-400 font-mono">
+                      {getSecondaryPagesForPillar(activePillar).length} items
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    {getSecondaryPagesForPillar(activePillar).map(renderMenuItem)}
+                  </div>
+                </div>
+              )
+            ) : (
+              /* Desktop Original Active Pillar Submenu */
+              <>
+                {/* COMMUNICATION SECTION */}
+                <div className={isCollapsed ? "mx-2 border-t border-slate-200 dark:border-white/5" : "mx-6 border-t border-slate-200 dark:border-white/5"} />
+                <div className="pb-3 pt-3">
+                  <div className={`overflow-hidden transition-all duration-300 ${isCollapsed ? "max-h-0 opacity-0" : "max-h-[30px] opacity-100 mb-2"}`}>
+                    <h3 className="text-slate-400 dark:text-neutral-400 text-[10px] font-extrabold uppercase tracking-[0.15em] px-6 font-sans whitespace-nowrap">Communication</h3>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    {communicationMenu.filter(m => m.label.toLowerCase().includes(navSearchQuery.toLowerCase())).map(renderMenuItem)}
+                  </div>
+                </div>
 
-            {/* COMMUNICATION SECTION */}
-            <div className={isCollapsed ? "mx-2 border-t border-slate-200 dark:border-white/5" : "mx-6 border-t border-slate-200 dark:border-white/5"} />
-            <div className="pb-3 pt-3">
-              <div className={`overflow-hidden transition-all duration-300 ${isCollapsed ? "max-h-0 opacity-0" : "max-h-[30px] opacity-100 mb-2"}`}>
-                <h3 className="text-slate-400 dark:text-neutral-400 text-[10px] font-extrabold uppercase tracking-[0.15em] px-6 font-sans whitespace-nowrap">Communication</h3>
-              </div>
-              <div className="flex flex-col gap-1">
-                {communicationMenu.filter(m => m.label.toLowerCase().includes(navSearchQuery.toLowerCase())).map(renderMenuItem)}
-              </div>
-            </div>
-
-            {/* ACTIVE PILLAR SUB-MENU SECTION */}
-            <div className={isCollapsed ? "mx-2 mb-3 border-t border-slate-200 dark:border-white/5" : "mx-6 mb-3 border-t border-slate-200 dark:border-white/5"} />
-            <div className="pb-3">
-              <div className={`overflow-hidden transition-all duration-300 ${isCollapsed ? "max-h-0 opacity-0" : "max-h-[30px] opacity-100 mb-2"}`}>
-                <h3 className="text-slate-400 dark:text-neutral-400 text-[10px] font-extrabold uppercase tracking-[0.15em] px-6 font-sans whitespace-nowrap">
-                  {getPillars(isCreator).find(p => p.id === activePillar)?.tooltip || "Menu"}
-                </h3>
-              </div>
-              <div className="flex flex-col gap-1">
-                {
-                  activePillar === "home" ? homeMenu.filter(m => m.label.toLowerCase().includes(navSearchQuery.toLowerCase())).map(renderMenuItem) :
-                    activePillar === "dashboard" ? dashboardMenu.filter(m => m.label.toLowerCase().includes(navSearchQuery.toLowerCase())).map(renderMenuItem) :
-                      activePillar === "journal" ? journalMenu.filter(m => m.label.toLowerCase().includes(navSearchQuery.toLowerCase())).map(renderMenuItem) :
-                        activePillar === "riskGuard" ? riskGuardMenu.filter(m => m.label.toLowerCase().includes(navSearchQuery.toLowerCase())).map(renderMenuItem) :
-                          activePillar === "aiCoach" ? aiCoachMenu.filter(m => m.label.toLowerCase().includes(navSearchQuery.toLowerCase())).map(renderMenuItem) :
-                            activePillar === "autoTrade" ? getAutoTradeMenu().filter(m => m.label.toLowerCase().includes(navSearchQuery.toLowerCase())).map(renderMenuItem) :
-                              activePillar === "discover" ? discoverMenu.filter(m => m.label.toLowerCase().includes(navSearchQuery.toLowerCase())).map(renderMenuItem) :
-                                activePillar === "community" ? communityMenu.filter(m => m.label.toLowerCase().includes(navSearchQuery.toLowerCase())).map(renderMenuItem) :
-                                activePillar === "creatorHub" ? creatorHubMenu.filter(m => m.label.toLowerCase().includes(navSearchQuery.toLowerCase())).map(renderMenuItem) :
-                                  null
-                }
-              </div>
-            </div>
-
-            {/* END OF SECTIONS */}
+                {/* ACTIVE PILLAR SUB-MENU SECTION */}
+                <div className={isCollapsed ? "mx-2 mb-3 border-t border-slate-200 dark:border-white/5" : "mx-6 mb-3 border-t border-slate-200 dark:border-white/5"} />
+                <div className="pb-3">
+                  <div className={`overflow-hidden transition-all duration-300 ${isCollapsed ? "max-h-0 opacity-0" : "max-h-[30px] opacity-100 mb-2"}`}>
+                    <h3 className="text-slate-400 dark:text-neutral-400 text-[10px] font-extrabold uppercase tracking-[0.15em] px-6 font-sans whitespace-nowrap">
+                      {getPillars(isCreator).find(p => p.id === activePillar)?.tooltip || "Menu"}
+                    </h3>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    {
+                      activePillar === "home" ? homeMenu.filter(m => m.label.toLowerCase().includes(navSearchQuery.toLowerCase())).map(renderMenuItem) :
+                        activePillar === "dashboard" ? dashboardMenu.filter(m => m.label.toLowerCase().includes(navSearchQuery.toLowerCase())).map(renderMenuItem) :
+                          activePillar === "journal" ? journalMenu.filter(m => m.label.toLowerCase().includes(navSearchQuery.toLowerCase())).map(renderMenuItem) :
+                            activePillar === "riskGuard" ? riskGuardMenu.filter(m => m.label.toLowerCase().includes(navSearchQuery.toLowerCase())).map(renderMenuItem) :
+                              activePillar === "aiCoach" ? aiCoachMenu.filter(m => m.label.toLowerCase().includes(navSearchQuery.toLowerCase())).map(renderMenuItem) :
+                                activePillar === "autoTrade" ? getAutoTradeMenu().filter(m => m.label.toLowerCase().includes(navSearchQuery.toLowerCase())).map(renderMenuItem) :
+                                  activePillar === "discover" ? discoverMenu.filter(m => m.label.toLowerCase().includes(navSearchQuery.toLowerCase())).map(renderMenuItem) :
+                                    activePillar === "community" ? communityMenu.filter(m => m.label.toLowerCase().includes(navSearchQuery.toLowerCase())).map(renderMenuItem) :
+                                    activePillar === "creatorHub" ? creatorHubMenu.filter(m => m.label.toLowerCase().includes(navSearchQuery.toLowerCase())).map(renderMenuItem) :
+                                      null
+                    }
+                  </div>
+                </div>
+              </>
+            )}
           </div>
 
           {/* UPGRADE CARDS */}
-          {!isCreator && !hideProCard && (
-            <div id="tour-pro-card" className={`px-4 mt-1 font-sans overflow-hidden transition-all duration-300 ${isCollapsed ? "max-h-0 opacity-0 mb-0" : "max-h-[250px] opacity-100 mb-4"}`}>
-              <div className="relative overflow-hidden bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-indigo-950/40 dark:via-[#161616] dark:to-[#111] rounded-2xl p-5 py-6 border border-indigo-100 dark:border-white/10 shadow-sm group">
+          {!isCreator && !hideProCard && !isMobile && (
+            <div id="tour-pro-card" className={`px-3 mt-1 font-sans overflow-hidden transition-all duration-300 ${isCollapsed ? "max-h-0 opacity-0 mb-0" : "max-h-[250px] opacity-100 mb-3"}`}>
+              <div className="relative overflow-hidden bg-gradient-to-br from-indigo-50/90 via-white to-purple-50/90 dark:from-indigo-950/40 dark:via-[#161616] dark:to-[#111] rounded-2xl p-4 py-4.5 border border-indigo-100 dark:border-white/10 shadow-sm group">
                 {/* Soft background gradient overlay */}
                 <div className={`absolute inset-0 opacity-40 dark:opacity-10 bg-gradient-to-br ${(userPlan === "intermediate" || userPlan === "pro") ? "from-amber-200 to-yellow-100" : "from-indigo-200 to-purple-100"}`} />
 
@@ -1016,14 +1323,132 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
           )}
 
 
-          <div className={isCollapsed ? "mx-2 mb-2 border-t border-slate-200 dark:border-white/5" : "mx-6 mb-2 border-t border-slate-200 dark:border-white/5"} />
-          {/* Footer Profile */}
-          <div className={`shrink-0 pb-4 flex justify-center ${isCollapsed ? "px-2" : "px-4 w-full"}`}>
+          {/* Footer for Mobile: Integrated Actions & Utility Toolbar */}
+          {isMobile ? (
+            <div className="shrink-0 pt-2.5 pb-3 px-3 bg-[#f4f7fb] dark:bg-[#121214] border-t border-slate-200/80 dark:border-white/10 flex flex-col gap-2.5 select-none">
+              {/* Dual Action Tiles: Refer & Earn and Rewards Hub */}
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    React.startTransition(() => navigate("/referrals"));
+                    toggleCollapse?.();
+                  }}
+                  className="flex items-center gap-2.5 p-2.5 rounded-2xl bg-white dark:bg-[#1E1E22] hover:bg-slate-100/80 dark:hover:bg-[#26262B] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-none transition-all active:scale-[0.98] text-left cursor-pointer group"
+                >
+                  <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-indigo-500/20 group-hover:scale-105 transition-transform">
+                    <AddUser set="curved" primaryColor="currentColor" size={17} stroke="bold" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[12px] font-bold text-slate-800 dark:text-slate-100 leading-tight truncate">
+                      Refer & Earn
+                    </div>
+                    <div className="text-[10px] font-semibold text-indigo-600 dark:text-indigo-400 leading-tight mt-0.5 truncate">
+                      +500 XP / 20%
+                    </div>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    React.startTransition(() => navigate("/rewards"));
+                    toggleCollapse?.();
+                  }}
+                  className="flex items-center gap-2.5 p-2.5 rounded-2xl bg-white dark:bg-[#1E1E22] hover:bg-slate-100/80 dark:hover:bg-[#26262B] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-none transition-all active:scale-[0.98] text-left cursor-pointer group"
+                >
+                  <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 text-white flex items-center justify-center shrink-0 shadow-sm shadow-amber-500/20 group-hover:scale-105 transition-transform">
+                    <TicketStar set="curved" primaryColor="currentColor" size={17} stroke="bold" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[12px] font-bold text-slate-800 dark:text-slate-100 leading-tight truncate">
+                      Rewards
+                    </div>
+                    <div className="text-[10px] font-semibold text-amber-600 dark:text-amber-400 leading-tight mt-0.5 truncate">
+                      Claim perks
+                    </div>
+                  </div>
+                </button>
+              </div>
+
+              {/* Integrated Utility Toolbar: Theme Toggle | Settings | Logout */}
+              <div className="flex items-center bg-white dark:bg-[#1E1E22] rounded-xl p-1 border border-slate-200/80 dark:border-white/[0.08] shadow-xs">
+                {/* Theme Switch */}
+                <button
+                  type="button"
+                  onClick={toggleTheme}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-all text-[11.5px] font-semibold cursor-pointer active:scale-95"
+                  title="Toggle Light / Dark mode"
+                >
+                  {theme === 'dark' ? (
+                    <>
+                      <Sun size={13} className="text-amber-400 shrink-0" />
+                      <span>Light</span>
+                    </>
+                  ) : (
+                    <>
+                      <Moon size={13} className="text-slate-700 shrink-0" />
+                      <span>Dark</span>
+                    </>
+                  )}
+                </button>
+
+                <div className="w-[1px] h-3.5 bg-slate-200 dark:bg-white/10 shrink-0" />
+
+                {/* Settings */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    React.startTransition(() => navigate("/settings"));
+                    toggleCollapse?.();
+                  }}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-all text-[11.5px] font-semibold cursor-pointer active:scale-95"
+                >
+                  <Setting set="curved" primaryColor="currentColor" size={14} stroke="bold" className="shrink-0" />
+                  <span>Settings</span>
+                </button>
+
+                <div className="w-[1px] h-3.5 bg-slate-200 dark:bg-white/10 shrink-0" />
+
+                {/* Logout */}
+                <button
+                  type="button"
+                  onClick={(e) => handleLogoutClick(e)}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-rose-500 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all text-[11.5px] font-semibold cursor-pointer active:scale-95"
+                >
+                  <Logout set="curved" primaryColor="currentColor" size={14} stroke="bold" className="shrink-0" />
+                  <span>Logout</span>
+                </button>
+              </div>
+
+              {/* Status and Version Indicator */}
+              <div className="flex items-center justify-between text-[10px] text-slate-400 dark:text-zinc-500 font-mono px-1">
+                <span className="uppercase tracking-wider">v2.0.0 Stable</span>
+                <span className="flex items-center gap-1.5 text-emerald-500 font-sans font-medium text-[10px]">
+                  <span className="relative flex h-1.5 w-1.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                  </span>
+                  Connected
+                </span>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className={isCollapsed ? "mx-2 mb-2 border-t border-slate-200 dark:border-white/5" : "mx-4 mb-2 border-t border-slate-200 dark:border-white/5"} />
+              <div className={`shrink-0 pb-4 flex flex-col justify-center ${isCollapsed ? "px-2" : "px-3 w-full"}`}>
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <div
                   onMouseEnter={() => !isCollapsed && setIsHoveredProfile(true)}
                   onMouseLeave={() => !isCollapsed && setIsHoveredProfile(false)}
+                  onClick={() => {
+                    if (isMobile) {
+                      navigate('/profile');
+                      toggleCollapse?.();
+                    }
+                  }}
                   className={`relative cursor-pointer select-none outline-none transition-all duration-200 ${isCollapsed
                     ? "mx-auto"
                     : "flex items-center gap-3 w-full p-2 rounded-xl hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50 border border-transparent hover:border-zinc-200/30 dark:hover:border-zinc-700/30"
@@ -1395,6 +1820,8 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
+        </>
+      )}
           <style dangerouslySetInnerHTML={{
             __html: `
          .scrollbar-hide::-webkit-scrollbar {

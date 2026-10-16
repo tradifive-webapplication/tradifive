@@ -349,9 +349,9 @@ export default function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
                     width: "100%",
                     height: 44,
                     borderRadius: 100,
-                    border: "2px solid rgba(99, 102, 241, 0.3)",
-                    background: "linear-gradient(180deg, #6366f1 0%, #4f46e5 100%)",
-                    color: "#fff",
+                    border: "none",
+                    background: "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)",
+                    color: "#60a5fa",
                     fontWeight: 700,
                     fontSize: 13,
                     cursor: loading ? "not-allowed" : "pointer",
@@ -360,20 +360,23 @@ export default function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
                     justifyContent: "center",
                     gap: 8,
                     marginTop: 10,
-                    transition: "all 0.25s",
-                    boxShadow: "0 4px 12px rgba(99, 102, 241, 0.3), 0 0 0 2px rgba(99, 102, 241, 0.1)"
+                    transition: "all 0.2s ease",
+                    boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 6px rgba(0, 0, 0, 0.3)",
+                    outline: "none"
                   }}
                   onMouseEnter={(e) => {
                     if (!loading) {
-                      e.currentTarget.style.transform = "translateY(-1px) scale(1.01)";
-                      e.currentTarget.style.filter = "brightness(1.1)";
-                      e.currentTarget.style.boxShadow = "0 6px 16px rgba(99, 102, 241, 0.45), 0 0 0 2px rgba(99, 102, 241, 0.2)";
+                      e.currentTarget.style.transform = "translateY(-1px)";
+                      e.currentTarget.style.background = "linear-gradient(135deg, #253347 0%, #131c33 100%)";
+                      e.currentTarget.style.color = "#93c5fd";
+                      e.currentTarget.style.boxShadow = "inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 4px 12px rgba(0, 0, 0, 0.4)";
                     }
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.transform = "none";
-                    e.currentTarget.style.filter = "none";
-                    e.currentTarget.style.boxShadow = "0 4px 12px rgba(99, 102, 241, 0.3), 0 0 0 2px rgba(99, 102, 241, 0.1)";
+                    e.currentTarget.style.background = "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)";
+                    e.currentTarget.style.color = "#60a5fa";
+                    e.currentTarget.style.boxShadow = "inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 6px rgba(0, 0, 0, 0.3)";
                   }}
                 >
                   {loading ? (
@@ -415,21 +418,27 @@ export default function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
                 style={{
                   padding: "12px 28px",
                   borderRadius: 100,
-                  border: "1px solid rgba(255, 255, 255, 0.15)",
-                  background: "rgba(255, 255, 255, 0.05)",
-                  color: "#fff",
+                  border: "none",
+                  background: "#171717",
+                  color: "rgba(255, 255, 255, 0.9)",
                   fontSize: 13,
                   fontWeight: 600,
                   cursor: "pointer",
-                  transition: "all 0.2s"
+                  boxShadow: "inset 0 1px 0 0 rgba(255, 255, 255, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.12), 0 2px 4px rgba(0, 0, 0, 0.2)",
+                  transition: "all 0.2s ease",
+                  outline: "none"
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = "rgba(255, 255, 255, 0.1)";
-                  e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.25)";
+                  e.currentTarget.style.transform = "translateY(-1px)";
+                  e.currentTarget.style.background = "#1e1e1e";
+                  e.currentTarget.style.color = "#ffffff";
+                  e.currentTarget.style.boxShadow = "inset 0 1px 0 0 rgba(255, 255, 255, 0.16), 0 0 0 1px rgba(255, 255, 255, 0.18), 0 2px 4px rgba(0, 0, 0, 0.25)";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)";
-                  e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.15)";
+                  e.currentTarget.style.transform = "none";
+                  e.currentTarget.style.background = "#171717";
+                  e.currentTarget.style.color = "rgba(255, 255, 255, 0.9)";
+                  e.currentTarget.style.boxShadow = "inset 0 1px 0 0 rgba(255, 255, 255, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.12), 0 2px 4px rgba(0, 0, 0, 0.2)";
                 }}
               >
                 Close Window

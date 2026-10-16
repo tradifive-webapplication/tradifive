@@ -111,7 +111,7 @@ export default function TradifiveAI() {
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [sessions, setSessions] = useState<ChatSession[]>([]);
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
   const [input, setInput] = useState("");
   const [typingPlaceholder, setTypingPlaceholder] = useState("");
   const [isThinking, setIsThinking] = useState(false);
@@ -1326,100 +1326,6 @@ ${JSON.stringify(contextData)}`;
           </div>
 
         </div>
-
-        {/* Prompt Shortcut Cards - only shown in new chat */}
-        {isNewChat && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full max-w-2xl mt-4">
-            {(activeMarket === 'indian' ? [
-              {
-                label: "Drawdown Diagnostics",
-                desc: "Analyze patterns to protect your daily limit",
-                prompt: "Analyze my drawdown patterns on Nifty/BankNifty to keep me from breaching my daily Risk Guard limit.",
-                icon: IconlyShieldDone,
-                gradient: "from-emerald-500/10 to-teal-500/10",
-                iconColor: "text-emerald-400"
-              },
-              {
-                label: "FOMO & Discipline Audit",
-                desc: "Stay calm during market rallies",
-                prompt: "Help me stay calm and stick to my plan after missing a major Sensex/Nifty rally.",
-                icon: IconlyActivity,
-                gradient: "from-violet-500/10 to-purple-500/10",
-                iconColor: "text-violet-400"
-              },
-              {
-                label: "Options Scalping Review",
-                desc: "Diagnose late-session overtrading",
-                prompt: "Diagnose why I tend to overtrade options in high-volatility conditions after 2:30 PM.",
-                icon: IconlyTimeSquare,
-                gradient: "from-amber-500/10 to-orange-500/10",
-                iconColor: "text-amber-400"
-              },
-              {
-                label: "Lot Sizing Calculation",
-                desc: "Calculate optimized lot sizes",
-                prompt: "Calculate optimized option lot sizes for my connected broker based on a 0.5% risk rule.",
-                icon: IconlyDiscovery,
-                gradient: "from-sky-500/10 to-blue-500/10",
-                iconColor: "text-sky-400"
-              }
-            ] : [
-              {
-                label: "Drawdown Diagnostics",
-                desc: "Analyze patterns to protect your daily limit",
-                prompt: "Analyze my drawdown patterns on XAU/USD to keep me from breaching my daily Risk Guard limit.",
-                icon: IconlyShieldDone,
-                gradient: "from-emerald-500/10 to-teal-500/10",
-                iconColor: "text-emerald-400"
-              },
-              {
-                label: "FOMO & Discipline Audit",
-                desc: "Stay calm during market rallies",
-                prompt: "Help me stay calm and stick to my plan after missing a major BTC/USD rally.",
-                icon: IconlyActivity,
-                gradient: "from-violet-500/10 to-purple-500/10",
-                iconColor: "text-violet-400"
-              },
-              {
-                label: "Overtrading & Slippage",
-                desc: "Diagnose late-session overtrading",
-                prompt: "Diagnose why I tend to overtrade in high-slippage conditions after 3 PM.",
-                icon: IconlyTimeSquare,
-                gradient: "from-amber-500/10 to-orange-500/10",
-                iconColor: "text-amber-400"
-              },
-              {
-                label: "Lot Sizing Calculation",
-                desc: "Calculate optimized lot sizes",
-                prompt: "Calculate optimized lot sizes for my connected account based on a 0.5% risk rule.",
-                icon: IconlyDiscovery,
-                gradient: "from-sky-500/10 to-blue-500/10",
-                iconColor: "text-sky-400"
-              }
-            ]).map((item, idx) => (
-              <motion.button
-                key={idx}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.06, duration: 0.3, ease: "easeOut" }}
-                onClick={() => handleSendMessage(item.prompt)}
-                className={`group flex items-start gap-3 p-4 rounded-2xl bg-slate-50 dark:bg-white/[0.03] hover:bg-slate-100 dark:hover:bg-gradient-to-br ${item.gradient} border border-slate-200 dark:border-white/[0.04] hover:border-slate-300 dark:hover:border-white/[0.1] transition-all duration-300 text-left w-full cursor-pointer`}
-              >
-                <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-white dark:bg-white/[0.05] shadow-sm dark:shadow-none ${item.iconColor} group-hover:scale-110 transition-transform duration-300`}>
-                  <item.icon set="curved" primaryColor="currentColor" size={18} stroke="bold" strokeWidth={2} />
-                </div>
-                <div className="flex flex-col gap-0.5 min-w-0">
-                  <span className="text-[13px] font-semibold text-slate-800 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-white transition-colors">
-                    {item.label}
-                  </span>
-                  <span className="text-[11px] text-slate-500 dark:text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-400 transition-colors leading-snug">
-                    {item.desc}
-                  </span>
-                </div>
-              </motion.button>
-            ))}
-          </div>
-        )}
       </div>
     );
   };
@@ -1708,7 +1614,7 @@ ${JSON.stringify(contextData)}`;
           initial={false}
           animate={{ width: isSidebarCollapsed ? 80 : 290 }}
           transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-          className="bg-white/40 dark:bg-[#1E1F22]/80 backdrop-blur-md border-r border-slate-200/50 dark:border-white/5 flex flex-col h-full shrink-0 relative z-10 overflow-hidden"
+          className={`bg-white/40 dark:bg-[#1E1F22]/80 backdrop-blur-md border-r border-slate-200/50 dark:border-white/5 ${isSidebarCollapsed ? "hidden md:flex" : "flex"} flex-col h-full shrink-0 relative z-10 overflow-hidden`}
         >
           {/* Header Area - Extremely clean, Menu button centered when collapsed */}
           <div className="h-14 px-5 flex items-center justify-between border-b border-slate-100 dark:border-white/5">
@@ -1897,7 +1803,7 @@ ${JSON.stringify(contextData)}`;
               }`}
           >
             {messages.length === 0 ? (
-              <div className="w-full max-w-2xl text-center flex flex-col items-center justify-center -mt-12">
+              <div className="w-full max-w-2xl text-center flex flex-col items-center justify-center pt-2 sm:pt-4">
                 {/* Sparkle Loader above welcome */}
                 <motion.div
                   initial={{ opacity: 0, scale: 0.8 }}
@@ -2033,7 +1939,7 @@ ${JSON.stringify(contextData)}`;
                 </motion.div>
 
                 {/* Input Console centered for new chat */}
-                <div className="w-full max-w-2xl mt-20">
+                <div className="w-full max-w-2xl mt-6 sm:mt-8">
                   {renderInputConsole()}
                 </div>
               </div>

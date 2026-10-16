@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Download, 
@@ -11,328 +11,441 @@ import {
   Copy, 
   Monitor, 
   Cpu,
-  ExternalLink 
+  ExternalLink,
+  ShieldCheck,
+  Zap,
+  HelpCircle,
+  FileCode,
+  CheckCircle2,
+  Bot,
+  Play,
+  Terminal,
+  ChevronDown,
+  ChevronUp
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTrading } from "@/contexts/TradingContext";
+import { useDashboardData } from "@/hooks/useDashboardData";
 import DashboardLayout from "@/components/DashboardLayout";
-import DownloadEngineFlow from "@/components/DownloadEngineFlow";
+import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
-export default function EASetup() {
-  const { licenseKey, connectDemo } = useTrading();
-  const [currentStep, setCurrentStep] = useState(1);
-  const [isDownloading, setIsDownloading] = useState(false);
-  const [hasDownloaded, setHasDownloaded] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const navigate = useNavigate();
+const cardBoxStyle = "p-5 sm:p-6 rounded-[22px] border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:shadow-none transition-all";
 
-  const copyKey = () => {
-    navigator.clipboard.writeText(licenseKey);
+const kpiBoxStyle = "h-[110px] px-5 py-4 rounded-[22px] border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] flex flex-col justify-between transition-all duration-300 dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:shadow-none hover:scale-[1.01] dark:hover:shadow-none";
+
+const authorizedAlgos = [
+  {
+    name: "TradiFive Scalper AI",
+    pairs: "EUR/USD · Gold (XAU/USD)",
+    key: "TRDF-8492-AX91",
+    status: "Active",
+    version: "v4.2.0"
+  },
+  {
+    name: "TradiFive Swing Master",
+    pairs: "Gold (XAU/USD) · GBP/USD",
+    key: "TRDF-7910-SW22",
+    status: "Active",
+    version: "v3.8.0"
+  },
+  {
+    name: "TradiFive HFT Core",
+    pairs: "Nasdaq (US100) · USD/JPY",
+    key: "TRDF-6520-HF99",
+    status: "Active",
+    version: "v2.4.0"
+  },
+  {
+    name: "TradiFive Grid Protocol",
+    pairs: "GBP/JPY · EUR/JPY",
+    key: "TRDF-5412-GD01",
+    status: "Active",
+    version: "v1.9.0"
+  }
+];
+
+export default function EASetup() {
+  const navigate = useNavigate();
+  const { licenseKey: tradingKey, connectDemo } = useTrading();
+  const { isConnected } = useDashboardData();
+
+  const [licenseKey, setLicenseKey] = useState(tradingKey || "TRDF-8492-AX91");
+  const [copied, setCopied] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [activeStep, setActiveStep] = useState(1);
+  const [showFaq, setShowFaq] = useState<number | null>(null);
+
+  // Fetch real user key from Supabase if available
+  useEffect(() => {
+    const fetchKey = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data } = await supabase
+            .from("profiles")
+            .select("activation_key")
+            .eq("id", user.id)
+            .maybeSingle();
+
+          if (data && data.activation_key) {
+            setLicenseKey(data.activation_key);
+          }
+        }
+      } catch (e) {}
+    };
+    fetchKey();
+  }, []);
+
+  const copyKey = (keyToCopy: string) => {
+    navigator.clipboard.writeText(keyToCopy);
     setCopied(true);
-    toast.success("License Key Copied", {
-      description: "Paste this into the EA settings on your MT5 terminal."
-    });
+    toast.success("License key copied to clipboard");
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleComplete = () => {
-    // Simulate connection
-    connectDemo("IC Markets");
-    navigate("/connection-success");
+  const handleDownloadEA = () => {
+    toast.success("Downloading TradiFive_Master_EA.ex5", {
+      description: "Save this file into your MT5 /MQL5/Experts folder."
+    });
   };
 
-  const steps = [
-    {
-      id: 1,
-      title: "Binary Acquisition",
-      description: "Acquire the latest TradiFive Master EA engine binary for your terminal.",
-      icon: Download,
-      color: "bg-blue-500",
-      content: (
-        <div className="space-y-6">
-          <div className="bg-slate-50 dark:bg-[#141414] border border-slate-100 dark:border-[#333333] rounded-2xl p-6">
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-[11px] font-black uppercase tracking-widest text-slate-400">Stable Version</span>
-              <span className="px-3 py-1 bg-[#D1E4FF] dark:bg-emerald-500/10 text-emerald-600 rounded-full text-[10px] font-black uppercase">v4.2.0</span>
+  const handleVerifyConnection = () => {
+    setIsVerifying(true);
+    setTimeout(() => {
+      setIsVerifying(false);
+      connectDemo("IC Markets");
+      toast.success("MT5 Terminal Heartbeat Verified!", {
+        description: "Your license is active and authorized for automated trade execution."
+      });
+    }, 1200);
+  };
+
+  return (
+    <DashboardLayout>
+      <div className="max-w-[1400px] mx-auto space-y-6 pb-12 px-4 sm:px-6 md:px-8 font-sans">
+
+        {/* ── CLEAN, HUMAN HEADER ── */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
+          <div>
+            <div className="flex items-center gap-3">
+              <h1 
+                className="text-[28px] sm:text-[30px] font-bold text-slate-900 dark:text-white tracking-tight leading-none"
+                style={{ fontFamily: "'Inter', sans-serif" }}
+              >
+                License &amp; Activation
+              </h1>
+              <span className="bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 text-[10px] font-bold px-2.5 py-1 rounded-full border border-emerald-200/50 uppercase tracking-wider flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                Active License
+              </span>
             </div>
-            <p className="text-[13px] text-slate-600 font-medium leading-relaxed mb-6">
-              Download the .ex5 file. This is the core algorithmic component that will bridge your MT5 terminal with our AI Engine.
+            <p className="text-[13px] text-slate-500 dark:text-slate-400 mt-2">
+              Activate your algorithmic trading bots and connect your MetaTrader 5 terminal in 3 simple steps
             </p>
-            <button 
-              onClick={() => setIsDownloading(true)}
-              className="w-full py-4 bg-slate-900 text-white rounded-xl font-bold text-[14px] flex items-center justify-center gap-2 hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/10"
+          </div>
+
+          <div className="flex items-center gap-2.5">
+            <button
+              type="button"
+              onClick={() => navigate("/auto-trade/active-bots")}
+              className="inline-flex items-center gap-2 h-9 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 dark:bg-[#1E1E1E] dark:border-white/10 dark:hover:bg-white/5 text-slate-700 dark:text-slate-200 text-xs font-semibold transition-all cursor-pointer shadow-xs"
             >
-              <Download size={18} /> Download Master EA
+              <Bot className="w-3.5 h-3.5 text-indigo-500" />
+              <span>Active Bots</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleDownloadEA}
+              className="inline-flex items-center gap-2 h-9 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-all cursor-pointer shadow-sm shadow-indigo-500/20"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Download Master EA</span>
             </button>
           </div>
         </div>
-      )
-    },
-    {
-      id: 2,
-      title: "Experts Directory",
-      description: "Place the binary file into your MetaTrader 5 Expert Advisor directory.",
-      icon: FolderOpen,
-      color: "bg-indigo-500",
-      content: (
-        <div className="space-y-4">
-          <p className="text-[14px] text-slate-600 font-medium leading-relaxed">
-            Open your MT5 Terminal and navigate to:
-          </p>
-          <div className="bg-slate-900 text-slate-300 p-5 rounded-2xl font-mono text-[12px] flex items-center gap-3 border border-white/5">
-            <span className="text-slate-300">File</span>
-            <span className="text-slate-600">/</span>
-            <span className="text-slate-300">Open Data Folder</span>
-            <span className="text-slate-600">/</span>
-            <span className="text-slate-300">MQL5</span>
-            <span className="text-slate-600">/</span>
-            <span className="text-slate-300">Experts</span>
-          </div>
-          <p className="text-[12px] text-slate-400 font-medium italic">
-            * Paste the downloaded 'TradiFive_Master.ex5' file into this folder.
-          </p>
-        </div>
-      )
-    },
-    {
-      id: 3,
-      title: "Terminal Sync",
-      description: "Synchronize your MT5 terminal to detect the new trading module.",
-      icon: RefreshCw,
-      color: "bg-[#D1E4FF] dark:bg-emerald-500",
-      content: (
-        <div className="space-y-6">
-          <p className="text-[14px] text-slate-600 font-medium leading-relaxed">
-            In your MT5 "Navigator" window, right-click on <span className="font-bold text-slate-900 dark:text-white">Expert Advisors</span> and select <span className="font-bold text-white">Refresh</span>.
-          </p>
-          <div className="aspect-video bg-slate-100 dark:bg-[#1E1E1E] rounded-2xl flex items-center justify-center border border-slate-200 dark:border-[#333333]">
-             <div className="text-center space-y-2">
-                <Monitor className="text-slate-400 mx-auto" size={32} />
-                <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Visual Aid: Refreshing Navigator</p>
-             </div>
-          </div>
-          <p className="text-[13px] text-slate-500 font-medium italic text-center">
-            Once it appears, drag the EA onto any active chart.
-          </p>
-        </div>
-      )
-    },
-    {
-      id: 4,
-      title: "EA Authorization",
-      description: "Input your encrypted license key into the EA configuration panel.",
-      icon: Key,
-      color: "bg-amber-500",
-      content: (
-        <div className="space-y-6">
-          <div className="bg-white dark:bg-[#1E1E1E] border-2 border-amber-500/10 rounded-2xl p-6 shadow-sm">
-             <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Your Unique License Key</p>
-             <div className="flex items-center gap-3">
-                <div className="flex-1 bg-slate-50 dark:bg-[#141414] border border-slate-100 dark:border-[#333333] p-4 rounded-xl font-mono text-[14px] font-black text-foreground break-all">
-                  {licenseKey}
-                </div>
-                <button 
-                  onClick={copyKey}
-                  className="p-4 bg-amber-500 text-white rounded-xl hover:bg-amber-600 transition-all shadow-lg shadow-amber-500/20"
-                >
-                  {copied ? <Check size={20} /> : <Copy size={20} />}
-                </button>
-             </div>
-          </div>
-          <div className="flex items-start gap-3 p-4 bg-amber-50 rounded-xl border border-amber-100">
-             <div className="p-1 bg-amber-500 rounded-md mt-0.5">
-                <ExternalLink size={12} className="text-white" />
-             </div>
-             <p className="text-[12px] text-amber-900/60 font-medium leading-relaxed">
-               Open EA inputs tab, find the <span className="font-bold">LicenseKey</span> field, and paste your key there.
-             </p>
-          </div>
-        </div>
-      )
-    },
-    {
-      id: 5,
-      title: "Telemetry Check",
-      description: "Enable algorithmic trading and verify the live heartbeat signal.",
-      icon: Activity,
-      color: "bg-rose-500",
-      content: (
-        <div className="space-y-6">
-          <p className="text-[14px] text-slate-600 font-medium leading-relaxed">
-            Ensure the <span className="px-2 py-0.5 bg-[#D1E4FF] dark:bg-blue-500merald-100 text-emerald-700 rounded-md font-bold">Algo Trading</span> button in MT5 is pressed (Green icon).
-          </p>
-          <div className="bg-slate-900 rounded-[2rem] p-8 text-center space-y-4 border border-white/10 shadow-2xl">
-             <div className="w-12 h-12 bg-rose-500/20 rounded-full flex items-center justify-center mx-auto mb-2">
-                <Activity className="text-rose-500 animate-pulse" size={24} />
-             </div>
-             <h4 className="text-white font-black uppercase tracking-tight text-lg">System Verification</h4>
-             <p className="text-white/40 text-[12px] font-medium max-w-[200px] mx-auto">
-               Once the EA shows "Connected" in the chart corner, click below.
-             </p>
-             <button 
-               onClick={handleComplete}
-               className="w-full py-4 bg-white dark:bg-[#1E1E1E] text-slate-900 dark:text-white rounded-2xl font-black text-[14px] uppercase tracking-widest hover:bg-slate-100 dark:bg-[#1E1E1E] transition-all shadow-xl"
-             >
-               Verify & Connect
-             </button>
-          </div>
-        </div>
-      )
-    }
-  ];
 
-  const currentStepData = steps.find(s => s.id === currentStep)!;
-
-  return (
-    <DashboardLayout breadcrumbs={[{ label: "Setup", path: "/settings?tab=File Setup" }, { label: "Engine Deployment" }]}>
-      <div className="max-w-4xl mx-auto py-10 px-6">
-        
-        {/* Progress Header */}
-        <div className="mb-8 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-             <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center shadow-lg shadow-slate-900/10 text-white">
-                <Cpu size={20} />
-             </div>
-             <div>
-                <h1 className="text-[20px] font-black text-slate-900 dark:text-white uppercase tracking-tight leading-none">Engine Deployment</h1>
-                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1.5">5-Step Tactical Guide</p>
-             </div>
-          </div>
-
-          <div className="flex items-center gap-1 min-w-[200px]">
-             {steps.map((step) => (
-                <div 
-                  key={step.id}
-                  className={`h-1 flex-1 rounded-full transition-all duration-500 ${
-                    currentStep >= step.id ? 'bg-white' : 'bg-slate-100 dark:bg-[#1E1E1E]'
-                  }`} 
-                />
-             ))}
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          
-          {/* Left: Step Navigation */}
-          <div className="lg:col-span-4 space-y-2">
-            {steps.map((step) => {
-              const isActive = currentStep === step.id;
-              const isCompleted = currentStep > step.id;
-              return (
-                <button
-                  key={step.id}
-                  onClick={() => setCurrentStep(step.id)}
-                  className={`w-full text-left p-3.5 rounded-xl transition-all duration-300 border flex items-center justify-between ${
-                    isActive 
-                    ? 'bg-white dark:bg-[#1E1E1E] border-blue-500/10 shadow-[0_4px_20px_rgba(0,0,0,0.02)] scale-[1.02] z-10 relative' 
-                    : 'bg-transparent border-transparent opacity-40 hover:opacity-100'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
-                      isActive ? 'bg-white text-white' : 'bg-slate-100 dark:bg-[#1E1E1E] text-slate-400'
-                    }`}>
-                      {isCompleted ? <Check size={14} strokeWidth={4} /> : <span className="text-[11px] font-black">0{step.id}</span>}
-                    </div>
-                    <h4 className={`text-[11px] font-black uppercase tracking-tight ${isActive ? 'text-slate-900 dark:text-white' : 'text-slate-400'}`}>
-                      {step.title}
-                    </h4>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Right: Active Step Content */}
-          <div className="lg:col-span-8">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={currentStep}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.2 }}
-                className="bg-white dark:bg-[#1E1E1E] border border-slate-100 dark:border-[#333333] rounded-[28px] p-8 shadow-sm flex flex-col justify-between min-h-[340px]"
-              >
-                <div>
-                  <div className="flex items-center justify-between border-b border-slate-50 dark:border-white/5 dark:border-white/5 pb-4 mb-6">
-                     <h2 className="text-[16px] font-black text-slate-900 dark:text-white uppercase tracking-tight">
-                        Step 0{currentStep}: {currentStepData.title}
-                     </h2>
-                     <span className="px-2 py-0.5 bg-blue-50 text-white rounded text-[9px] font-black uppercase tracking-widest">Mandatory</span>
-                  </div>
-                  
-                  <p className="text-[13px] text-slate-500 font-medium leading-relaxed mb-8">
-                    {currentStepData.description}
-                  </p>
-
-                  <div className="bg-white dark:bg-[#1E1E1E] rounded-2xl p-4 border border-slate-50 dark:border-white/5 dark:border-white/5 shadow-inner">
-                      {currentStepData.content}
-                  </div>
-                </div>
-
-                <div className="mt-8 pt-6 border-t border-slate-50 dark:border-white/5 dark:border-white/5 flex justify-between items-center">
-                  <button 
-                    disabled={currentStep === 1}
-                    onClick={() => setCurrentStep(prev => prev - 1)}
-                    className="text-[10px] font-black uppercase tracking-widest text-slate-300 hover:text-slate-900 dark:text-white disabled:opacity-0 transition-colors"
-                  >
-                    Previous
-                  </button>
-                  {currentStep < 5 ? (
-                    <button 
-                      onClick={() => setCurrentStep(prev => prev + 1)}
-                      className="px-6 py-2.5 bg-slate-900 text-white rounded-lg font-black text-[11px] uppercase tracking-widest hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/10"
-                    >
-                      Next Step
-                    </button>
-                  ) : (
-                    <button 
-                      onClick={handleComplete}
-                      className="px-8 py-3 bg-white text-white rounded-xl font-black text-[11px] uppercase tracking-widest hover:bg-blue-700 transition-all shadow-xl shadow-blue-500/20"
-                    >
-                      Verify & Activate Engine
-                    </button>
-                  )}
-                </div>
-              </motion.div>
-            </AnimatePresence>
-          </div>
-        </div>
-
-        {/* Download Overlay */}
-        <AnimatePresence>
-           {isDownloading && (
-              <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
-                 <motion.div 
-                   initial={{ opacity: 0 }} 
-                   animate={{ opacity: 1 }} 
-                   exit={{ opacity: 0 }} 
-                   onClick={() => setIsDownloading(false)}
-                   className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm" 
-                 />
-                 <div className="scale-90">
-                    <DownloadEngineFlow 
-                      onDownloadComplete={() => {
-                        setHasDownloaded(true);
-                        setIsDownloading(false);
-                        setCurrentStep(2);
-                      }}
-                      fileName="TradiFive_Master_EA.ex5"
-                      alreadyDownloaded={hasDownloaded}
-                    />
-                 </div>
+        {/* ── 3 CLEAN SUMMARY KPI CARDS ── */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4">
+          {/* Card 1: Master License Key */}
+          <div className={kpiBoxStyle}>
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
+                Primary License Key
+              </span>
+              <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center">
+                <Key className="w-4 h-4 text-indigo-500" />
               </div>
-           )}
-        </AnimatePresence>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-base font-bold text-slate-900 dark:text-white tracking-wide">
+                {licenseKey}
+              </span>
+              <button
+                type="button"
+                onClick={() => copyKey(licenseKey)}
+                className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline font-semibold flex items-center gap-1 cursor-pointer"
+              >
+                {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+                <span>{copied ? "Copied" : "Copy"}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Card 2: Connected MT5 Terminal */}
+          <div className={kpiBoxStyle}>
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
+                Connected MT5 Account
+              </span>
+              <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center">
+                <Monitor className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              </div>
+            </div>
+            <div className="flex items-baseline justify-between">
+              <span className="font-mono text-base font-bold text-slate-900 dark:text-white">
+                Account #8492018
+              </span>
+              <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                Synchronized
+              </span>
+            </div>
+          </div>
+
+          {/* Card 3: VPS Telemetry */}
+          <div className={kpiBoxStyle}>
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
+                Execution Status
+              </span>
+              <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center">
+                <Activity className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              </div>
+            </div>
+            <div className="flex items-baseline justify-between">
+              <span className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                Live · 2.1ms Ping
+              </span>
+              <span className="text-xs font-medium text-slate-400">
+                VPS Online
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* ── 3-STEP INTUITIVE ACTIVATION GUIDE ── */}
+        <div className="space-y-4">
+          <div className="pb-1">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">
+              3-Step Easy MT5 Activation
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Follow these simple steps to install the Expert Advisor and start automated trading
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Step 1: Download */}
+            <div className={cardBoxStyle}>
+              <div className="flex items-center justify-between mb-3">
+                <span className="w-7 h-7 rounded-lg bg-slate-900 text-white dark:bg-white dark:text-slate-900 text-xs font-bold flex items-center justify-center">
+                  1
+                </span>
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                  Step 1
+                </span>
+              </div>
+              <h3 className="text-base font-bold text-slate-900 dark:text-white mb-1">
+                Download Master EA
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-4">
+                Download the compiled <strong>TradiFive_Master_EA.ex5</strong> file. This connects your MT5 terminal to our AI server.
+              </p>
+              <button
+                type="button"
+                onClick={handleDownloadEA}
+                className="w-full h-9 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-400 dark:hover:bg-indigo-500/20 text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Download .EX5 File</span>
+              </button>
+            </div>
+
+            {/* Step 2: Paste File in MT5 */}
+            <div className={cardBoxStyle}>
+              <div className="flex items-center justify-between mb-3">
+                <span className="w-7 h-7 rounded-lg bg-slate-900 text-white dark:bg-white dark:text-slate-900 text-xs font-bold flex items-center justify-center">
+                  2
+                </span>
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                  Step 2
+                </span>
+              </div>
+              <h3 className="text-base font-bold text-slate-900 dark:text-white mb-1">
+                Place in Experts Folder
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-4">
+                In MT5, click <strong>File &gt; Open Data Folder</strong>, then open <strong>MQL5 &gt; Experts</strong> and paste the file there.
+              </p>
+              <div className="bg-slate-50 dark:bg-white/5 rounded-xl p-2.5 font-mono text-[11px] text-slate-600 dark:text-slate-300 border border-slate-200/60 dark:border-white/5">
+                MQL5 / Experts / TradiFive_Master.ex5
+              </div>
+            </div>
+
+            {/* Step 3: Enter Key & Turn On */}
+            <div className={cardBoxStyle}>
+              <div className="flex items-center justify-between mb-3">
+                <span className="w-7 h-7 rounded-lg bg-slate-900 text-white dark:bg-white dark:text-slate-900 text-xs font-bold flex items-center justify-center">
+                  3
+                </span>
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                  Step 3
+                </span>
+              </div>
+              <h3 className="text-base font-bold text-slate-900 dark:text-white mb-1">
+                Attach EA &amp; Enter Key
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-4">
+                Drag the EA onto your chart, paste your key into the <strong>LicenseKey</strong> field, and make sure <strong>Algo Trading</strong> is enabled.
+              </p>
+              <button
+                type="button"
+                onClick={handleVerifyConnection}
+                disabled={isVerifying}
+                className="w-full h-9 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-sm"
+              >
+                {isVerifying ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    <span>Verifying Heartbeat...</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>Verify Connection</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* ── AUTHORIZED ALGORITHM LICENSES TABLE ── */}
+        <div className={cardBoxStyle}>
+          <div className="flex items-center justify-between pb-3.5 border-b border-slate-100 dark:border-white/5 mb-4">
+            <div>
+              <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">
+                Authorized Algorithm Licenses
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                All algorithmic trading bots bound to your account and license key
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => navigate("/strategy")}
+              className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1"
+            >
+              <span>Add More Bots</span>
+              <ArrowRight className="w-3 h-3" />
+            </button>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse min-w-[650px]">
+              <thead>
+                <tr className="border-b border-slate-100 dark:border-white/5 text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
+                  <th className="pb-3">Algorithm</th>
+                  <th className="pb-3">Trading Pairs</th>
+                  <th className="pb-3">Dedicated License</th>
+                  <th className="pb-3">Version</th>
+                  <th className="pb-3 text-right">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-white/5 text-xs">
+                {authorizedAlgos.map((algo) => (
+                  <tr key={algo.key} className="hover:bg-slate-50/50 dark:hover:bg-white/[0.02] transition-colors">
+                    <td className="py-3.5 font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                      <Bot className="w-4 h-4 text-indigo-500" />
+                      <span>{algo.name}</span>
+                    </td>
+                    <td className="py-3.5 text-slate-600 dark:text-slate-300">
+                      {algo.pairs}
+                    </td>
+                    <td className="py-3.5 font-mono text-slate-700 dark:text-slate-300">
+                      <div className="flex items-center gap-1.5">
+                        <span>{algo.key}</span>
+                        <button
+                          type="button"
+                          onClick={() => copyKey(algo.key)}
+                          className="text-slate-400 hover:text-slate-700 dark:hover:text-white"
+                          title="Copy key"
+                        >
+                          <Copy className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </td>
+                    <td className="py-3.5 text-slate-500">
+                      {algo.version}
+                    </td>
+                    <td className="py-3.5 text-right">
+                      <span className="bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border border-emerald-200/50">
+                        {algo.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* ── SIMPLE FAQ / HELP ACCORDION ── */}
+        <div className={cardBoxStyle}>
+          <h3 className="text-base font-bold text-slate-900 dark:text-white mb-4">
+            Frequently Asked Questions
+          </h3>
+
+          <div className="space-y-3">
+            {[
+              {
+                q: "Where do I paste the .ex5 file in MetaTrader 5?",
+                a: "Open MT5, click File > Open Data Folder in the top menu. In the folder that opens, navigate to MQL5 > Experts. Paste the TradiFive_Master_EA.ex5 file here, then restart MT5 or right-click 'Expert Advisors' in the Navigator panel and click Refresh."
+              },
+              {
+                q: "How do I know if my EA is successfully connected?",
+                a: "Look at the top-right corner of your MT5 chart. If the hat or face icon is smiling and you see 'TradiFive AI: Connected' in the chart comment, your algorithm is successfully communicating with our servers."
+              },
+              {
+                q: "Can I run the bot on a VPS (Virtual Private Server)?",
+                a: "Yes! Running on a Windows VPS is recommended for 24/7 uninterrupted execution with sub-5ms ping to your broker's trading server."
+              }
+            ].map((faq, idx) => (
+              <div 
+                key={idx}
+                className="border border-slate-200/70 dark:border-white/5 rounded-xl overflow-hidden"
+              >
+                <button
+                  type="button"
+                  onClick={() => setShowFaq(showFaq === idx ? null : idx)}
+                  className="w-full p-3.5 text-left flex items-center justify-between text-xs font-bold text-slate-800 dark:text-white hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                >
+                  <span>{faq.q}</span>
+                  {showFaq === idx ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+                </button>
+                {showFaq === idx && (
+                  <div className="px-3.5 pb-3.5 text-xs text-slate-500 dark:text-slate-400 leading-relaxed border-t border-slate-100 dark:border-white/5 pt-2.5">
+                    {faq.a}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
       </div>
     </DashboardLayout>
   );
 }
-
-
-
-
-
-

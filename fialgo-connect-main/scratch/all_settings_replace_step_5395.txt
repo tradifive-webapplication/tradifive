@@ -1,0 +1,1 @@
+"                           const Icon = tab === \"Profile\" ? Smile :\n                              tab === \"Security\" ? Fingerprint :\n                                 tab === \"Plan\" ? Sparkles :\n                                    tab === \"Notifications\" ? BellRing :\n                                       tab === \"Integrations\" ? Blocks : Cpu;"

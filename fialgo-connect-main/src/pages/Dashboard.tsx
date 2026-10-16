@@ -123,8 +123,9 @@ const Dashboard = () => {
     return recentTrades?.filter((t: any) => !t.closed_at && !t.is_pending) || [];
   }, [recentTrades]);
 
-  const pnlTodayStr = todayProfit === 0 ? '₹0.00' : (todayProfit > 0 ? `+₹${todayProfit.toFixed(2)}` : `-₹${Math.abs(todayProfit).toFixed(2)}`);
-  const pnlNetStr = totalProfit === 0 ? '₹0.00' : (totalProfit > 0 ? `+₹${totalProfit.toFixed(2)}` : `-₹${Math.abs(totalProfit).toFixed(2)}`);
+  const currSym = activeMarket === 'indian' ? '₹' : '$';
+  const pnlTodayStr = todayProfit === 0 ? `${currSym}0.00` : (todayProfit > 0 ? `+${currSym}${todayProfit.toFixed(2)}` : `-${currSym}${Math.abs(todayProfit).toFixed(2)}`);
+  const pnlNetStr = totalProfit === 0 ? `${currSym}0.00` : (totalProfit > 0 ? `+${currSym}${totalProfit.toFixed(2)}` : `-${currSym}${Math.abs(totalProfit).toFixed(2)}`);
 
   // Greeting based on time of day
   const hour = new Date().getHours();
@@ -147,7 +148,7 @@ const Dashboard = () => {
   return (
     <DashboardLayout breadcrumbs={[{ label: 'Dashboard' }]}>
       {currentTab === 'main' && (
-        <div className="max-w-[1600px] mx-auto px-4 md:px-8 pb-12 space-y-5 min-h-screen font-sans">
+        <div className="max-w-[1600px] mx-auto px-3 sm:px-6 md:px-8 pb-12 space-y-4 sm:space-y-5 min-h-screen font-sans">
 
         {/* ── Demo Mode Banner ──────────────────────────────────────────── */}
         {!isConnected && activeMarket !== 'indian' && (
@@ -155,38 +156,26 @@ const Dashboard = () => {
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35 }}
-            className="bg-gradient-to-b from-[#FFFBEB] to-[#FFFDF5] border-2 border-white rounded-[22px] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.08),0_0_0_2px_#FDE68A] dark:bg-none dark:bg-[#1E1912] dark:border-[1px] dark:border-amber-500/30 dark:shadow-[inset_0_1px_1px_rgba(251,191,36,0.05)] mt-4"
-            style={{ padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}
+            className="bg-gradient-to-b from-[#FFFBEB] to-[#FFFDF5] border-2 border-white rounded-[22px] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.08),0_0_0_2px_#FDE68A] dark:bg-none dark:bg-[#1E1912] dark:border-[1px] dark:border-amber-500/30 dark:shadow-[inset_0_1px_1px_rgba(251,191,36,0.05)] mt-3 sm:mt-4 p-3.5 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div style={{
-                width: 36, height: 36, borderRadius: 10, flexShrink: 0,
-                background: 'rgba(251,191,36,0.15)',
-                border: '1px solid rgba(251,191,36,0.3)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl shrink-0 bg-amber-500/15 border border-amber-500/30 flex items-center justify-center">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
                 </svg>
               </div>
               <div>
-                <p className="text-[13px] font-semibold text-amber-800 dark:text-amber-300" style={{ margin: 0, lineHeight: 1.3 }}>
+                <p className="text-[13px] font-semibold text-amber-800 dark:text-amber-300 leading-snug">
                   You're viewing demo data
                 </p>
-                <p className="text-[12px] text-amber-700/70 dark:text-slate-300" style={{ margin: 0, lineHeight: 1.4 }}>
+                <p className="text-[12px] text-amber-700/80 dark:text-slate-300 leading-snug">
                   Connect your real broker account to see live trades, P&amp;L and risk metrics.
                 </p>
               </div>
             </div>
             <button
               onClick={() => navigate('/settings?tab=trading')}
-              className="text-[13px] font-semibold text-white flex items-center gap-2 transition-all hover:scale-[1.03] active:scale-[0.98]"
-              style={{
-                background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-                border: 'none', borderRadius: 12, padding: '9px 18px',
-                cursor: 'pointer', flexShrink: 0,
-                boxShadow: '0 2px 10px rgba(245,158,11,0.3)',
-              }}
+              className="w-full sm:w-auto text-[13px] font-semibold text-white flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl shrink-0 shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all bg-gradient-to-r from-amber-500 to-amber-600 cursor-pointer"
             >
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
@@ -198,99 +187,109 @@ const Dashboard = () => {
         )}
 
         {/* ── Header ───────────────────────────────────────────────────── */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end pt-4 pb-1">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end pt-3 sm:pt-4 pb-1">
           <div>
-            <h1 className="text-[26px] font-extrabold text-slate-900 dark:text-white tracking-tight">
+            <h1 className="text-[24px] sm:text-[26px] font-extrabold text-slate-900 dark:text-white tracking-tight">
               {greeting}, {userName || <Skeleton className="inline-block w-20 h-7 bg-slate-200" />}
             </h1>
-            <div className="flex items-center gap-4 mt-1.5">
+            <div className="flex items-center gap-4 mt-1">
               <div className="flex items-center gap-1.5">
                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.5)]" />
-                <span className="text-slate-500 dark:text-slate-400 text-[13px] font-medium">Markets open</span>
+                <span className="text-slate-500 dark:text-slate-400 text-[12px] sm:text-[13px] font-medium">Markets open</span>
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-2.5 mt-3 md:mt-0">
-            <div className="px-3.5 py-1.5 bg-white dark:bg-[#1E1E1E] rounded-full border border-slate-200 dark:border-white/10 flex items-center gap-2 shadow-sm">
+          <div className="flex items-center gap-2 mt-2.5 md:mt-0 flex-wrap">
+            <div className="px-3 py-1 bg-white dark:bg-[#1E1E1E] rounded-full border border-slate-200 dark:border-white/10 flex items-center gap-1.5 shadow-sm">
               <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-emerald-500' : 'bg-slate-300'}`} />
-              <span className="text-[13px] font-bold text-slate-700 dark:text-slate-300">
+              <span className="text-[12px] sm:text-[13px] font-bold text-slate-700 dark:text-slate-300">
                 {isConnected && accountMetrics ? `${accountMetrics.broker} • Live` : 'Not Connected'}
               </span>
             </div>
             <button
-              className="px-3.5 py-1.5 bg-white dark:bg-[#1E1E1E] rounded-full border border-rose-200 dark:border-rose-500/30 text-rose-500 flex items-center gap-1.5 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors shadow-sm disabled:opacity-40"
+              className="px-3 py-1 bg-white dark:bg-[#1E1E1E] rounded-full border border-rose-200 dark:border-rose-500/30 text-rose-500 flex items-center gap-1.5 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors shadow-sm disabled:opacity-40 cursor-pointer"
               disabled={!isConnected}
             >
-              <ShieldAlert size={14} strokeWidth={2.5} />
-              <span className="text-[13px] font-bold">Emergency Stop</span>
+              <ShieldAlert size={13} strokeWidth={2.5} />
+              <span className="text-[12px] sm:text-[13px] font-bold">Emergency Stop</span>
             </button>
           </div>
         </div>
 
         {/* ── Top KPI Strip ────────────────────────────────────────────── */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
 
           {/* Equity */}
-          <GlassCard className="!p-4 group cursor-pointer hover:shadow-[0_4px_12px_-4px_rgba(0,0,0,0.15),0_0_0_2px_#E2E8F0]">
-            <div className="flex items-center gap-1.5 mb-2">
-              <WalletIcon />
-              <span className="text-[11px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Account Equity</span>
+          <GlassCard className="!p-3.5 sm:!p-4 group cursor-pointer hover:shadow-[0_4px_12px_-4px_rgba(0,0,0,0.15),0_0_0_2px_#E2E8F0] flex flex-col justify-between h-full">
+            <div>
+              <div className="flex items-center gap-1.5 mb-2">
+                <WalletIcon />
+                <span className="text-[10.5px] sm:text-[11px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Account Equity</span>
+              </div>
+              <h3 className="text-[20px] sm:text-[22px] font-semibold text-slate-900 dark:text-white tracking-tight leading-none mb-1" style={{ fontFamily: "'Inter', sans-serif" }}>
+                {currSym}{equity > 0 ? equity.toLocaleString('en-US', { minimumFractionDigits: 2 }) : '0.00'}
+              </h3>
             </div>
-            <h3 className="text-[22px] font-semibold text-slate-900 dark:text-white tracking-tight leading-none mb-0.5" style={{ fontFamily: "'Inter', sans-serif" }}>
-              ${equity > 0 ? equity.toLocaleString('en-US', { minimumFractionDigits: 2 }) : '0.00'}
-            </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-              Balance ${balance > 0 ? balance.toLocaleString('en-US', { minimumFractionDigits: 2 }) : '0.00'}
+              Balance {currSym}{balance > 0 ? balance.toLocaleString('en-US', { minimumFractionDigits: 2 }) : '0.00'}
             </p>
           </GlassCard>
 
           {/* Today's P&L */}
-          <GlassCard className="!p-4 group cursor-pointer hover:shadow-[0_4px_12px_-4px_rgba(0,0,0,0.15),0_0_0_2px_#E2E8F0]">
-            <div className="flex items-center gap-1.5 mb-2">
-              <TrendUpIcon />
-              <span className="text-[11px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Today's P&L</span>
+          <GlassCard className="!p-3.5 sm:!p-4 group cursor-pointer hover:shadow-[0_4px_12px_-4px_rgba(0,0,0,0.15),0_0_0_2px_#E2E8F0] flex flex-col justify-between h-full">
+            <div>
+              <div className="flex items-center gap-1.5 mb-2">
+                <TrendUpIcon />
+                <span className="text-[10.5px] sm:text-[11px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Today's P&L</span>
+              </div>
+              <h3 className={`text-[20px] sm:text-[22px] font-semibold tracking-tight leading-none mb-1 ${todayProfit === 0 ? 'text-slate-900 dark:text-white' : (todayProfit > 0 ? 'text-emerald-500' : 'text-rose-500')}`} style={{ fontFamily: "'Inter', sans-serif" }}>
+                {pnlTodayStr}
+              </h3>
             </div>
-            <h3 className={`text-[22px] font-semibold tracking-tight leading-none mb-0.5 ${todayProfit === 0 ? 'text-slate-900 dark:text-white' : (todayProfit > 0 ? 'text-emerald-500' : 'text-rose-500')}`} style={{ fontFamily: "'Inter', sans-serif" }}>
-              {pnlTodayStr}
-            </h3>
             <p className={`text-xs font-medium ${todayProfit === 0 ? 'text-slate-500' : (todayProfit > 0 ? 'text-emerald-500' : 'text-rose-500')}`}>
               {balance > 0 ? `${todayProfit > 0 ? '+' : ''}${((todayProfit / balance) * 100).toFixed(2)}%` : '0.00%'} today
             </p>
           </GlassCard>
 
           {/* Win Rate */}
-          <GlassCard className="!p-4 group cursor-pointer hover:shadow-[0_4px_12px_-4px_rgba(0,0,0,0.15),0_0_0_2px_#E2E8F0]">
-            <div className="flex items-center gap-1.5 mb-2">
-              <Target size={16} className="text-slate-400" />
-              <span className="text-[11px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Win Rate</span>
+          <GlassCard className="!p-3.5 sm:!p-4 group cursor-pointer hover:shadow-[0_4px_12px_-4px_rgba(0,0,0,0.15),0_0_0_2px_#E2E8F0] flex flex-col justify-between h-full">
+            <div>
+              <div className="flex items-center gap-1.5 mb-2">
+                <Target size={15} className="text-slate-400" />
+                <span className="text-[10.5px] sm:text-[11px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Win Rate</span>
+              </div>
+              <h3 className="text-[20px] sm:text-[22px] font-semibold text-slate-900 dark:text-white tracking-tight leading-none mb-1" style={{ fontFamily: "'Inter', sans-serif" }}>
+                {winRate}%
+              </h3>
             </div>
-            <h3 className="text-[22px] font-semibold text-slate-900 dark:text-white tracking-tight leading-none mb-0.5" style={{ fontFamily: "'Inter', sans-serif" }}>
-              {winRate}%
-            </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
               {tradesToday} trade{tradesToday !== 1 ? 's' : ''} today
             </p>
           </GlassCard>
 
           {/* Discipline Score */}
-          <GlassCard className="!p-4 group cursor-pointer hover:shadow-[0_4px_12px_-4px_rgba(0,0,0,0.15),0_0_0_2px_#E2E8F0]">
-            <div className="flex items-center gap-1.5 mb-2">
-              <Shield size={16} className="text-slate-400" />
-              <span className="text-[11px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Discipline</span>
+          <GlassCard className="!p-3.5 sm:!p-4 group cursor-pointer hover:shadow-[0_4px_12px_-4px_rgba(0,0,0,0.15),0_0_0_2px_#E2E8F0] flex flex-col justify-between h-full">
+            <div>
+              <div className="flex items-center gap-1.5 mb-2">
+                <Shield size={15} className="text-slate-400" />
+                <span className="text-[10.5px] sm:text-[11px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Discipline</span>
+              </div>
+              <div className="flex items-end gap-1.5 mb-1">
+                <h3 className="text-[20px] sm:text-[22px] font-semibold text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
+                  {avgDisciplineScore !== null ? avgDisciplineScore : '—'}
+                </h3>
+                {avgDisciplineScore !== null && <span className="text-xs font-bold text-slate-400 mb-0.5">/ 100</span>}
+              </div>
             </div>
-            <div className="flex items-end gap-1.5">
-              <h3 className="text-[22px] font-semibold text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
-                {avgDisciplineScore !== null ? avgDisciplineScore : '—'}
-              </h3>
-              {avgDisciplineScore !== null && <span className="text-sm font-bold text-slate-400 mb-0.5">/ 100</span>}
+            <div>
+              {avgDisciplineScore !== null ? (
+                <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold border ${avgDisciplineScore >= 80 ? 'bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-950/30 dark:border-emerald-500/30' : (avgDisciplineScore >= 50 ? 'bg-amber-50 text-amber-600 border-amber-100 dark:bg-amber-950/30 dark:border-amber-500/30' : 'bg-rose-50 text-rose-600 border-rose-100 dark:bg-rose-950/30 dark:border-rose-500/30')}`}>
+                  {avgDisciplineScore >= 80 ? 'Excellent' : (avgDisciplineScore >= 50 ? 'Average' : 'Needs Work')}
+                </span>
+              ) : (
+                <p className="text-xs text-slate-500 font-medium">Not enough data</p>
+              )}
             </div>
-            {avgDisciplineScore !== null ? (
-              <span className={`inline-block mt-1 px-2 py-0.5 rounded text-[10px] font-bold border ${avgDisciplineScore >= 80 ? 'bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-950/30 dark:border-emerald-500/30' : (avgDisciplineScore >= 50 ? 'bg-amber-50 text-amber-600 border-amber-100 dark:bg-amber-950/30 dark:border-amber-500/30' : 'bg-rose-50 text-rose-600 border-rose-100 dark:bg-rose-950/30 dark:border-rose-500/30')}`}>
-                {avgDisciplineScore >= 80 ? 'Excellent' : (avgDisciplineScore >= 50 ? 'Average' : 'Needs Work')}
-              </span>
-            ) : (
-              <p className="text-xs text-slate-500 font-medium mt-0.5">Not enough data</p>
-            )}
           </GlassCard>
         </div>
 

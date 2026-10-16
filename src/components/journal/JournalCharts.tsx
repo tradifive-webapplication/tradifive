@@ -51,9 +51,9 @@ function ChartCard({
 }) {
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.98 }}
-      animate={{ opacity: 1, scale: 1 }}
-      className="bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] p-7 rounded-[22px] border-2 border-white shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] flex flex-col h-full min-h-[408px] transition-all duration-300 hover:scale-[1.005] hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#CBD5E1] relative dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:rounded-[20px] dark:shadow-none dark:hover:shadow-none"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] p-4 sm:p-6 md:p-7 rounded-[22px] border-2 border-white shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] flex flex-col h-full min-h-[380px] sm:min-h-[408px] transition-all duration-300 hover:scale-[1.005] hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#CBD5E1] relative dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:rounded-[20px] dark:shadow-none dark:hover:shadow-none"
     >
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -74,7 +74,7 @@ function ChartCard({
           </div>
         )}
       </div>
-      <div className="flex-1 min-h-0" style={{ height: chartHeight }}>
+      <div className="w-full relative flex-1 min-h-[260px]" style={{ height: chartHeight, minHeight: chartHeight }}>
         {children}
       </div>
     </motion.div>
@@ -92,7 +92,7 @@ function RecentTradesCard() {
     <motion.div
       initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] p-7 rounded-[22px] border-2 border-white shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] flex flex-col h-full min-h-[408px] transition-all duration-300 hover:scale-[1.005] hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#CBD5E1] relative dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:rounded-[20px] dark:shadow-none dark:hover:shadow-none"
+      className="bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] p-4 sm:p-7 rounded-[22px] border-2 border-white shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] flex flex-col h-full min-h-[380px] sm:min-h-[408px] transition-all duration-300 hover:scale-[1.005] hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#CBD5E1] relative dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:rounded-[20px] dark:shadow-none dark:hover:shadow-none"
     >
       {/* Custom Tabs */}
       <div className="flex items-center gap-8 mb-6 border-b border-slate-100 dark:border-[#333333] dark:border-white/5">
@@ -352,7 +352,7 @@ export default function JournalCharts({ cardId }: { cardId?: string }) {
         ) : (
           <>
             {!hasData && <BlurOverlay />}
-            <ResponsiveContainer width="100%" height="100%" className="group focus:outline-none focus-visible:outline-none">
+            <ResponsiveContainer width="100%" height={280} minWidth={0} minHeight={280} className="group focus:outline-none focus-visible:outline-none">
               <AreaChart data={filteredData} margin={{ top: 5, right: 5, left: 0, bottom: 0 }} style={{ outline: 'none' }}>
                 <defs><linearGradient id="cumPnlGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={chartColor} stopOpacity={0.2} /><stop offset="95%" stopColor={chartColor} stopOpacity={0} /></linearGradient></defs>
                 <CartesianGrid strokeDasharray="3 3" stroke={isDark ? "rgba(255, 255, 255, 0.02)" : "#e2e8f0"} className="opacity-0 group-hover:opacity-100 transition-opacity duration-300" /><XAxis dataKey="date" tick={{ ...tickStyle, filter: (hideBalance || percentageOnly) ? 'blur(3.5px)' : 'none', opacity: (hideBalance || percentageOnly) ? 0.3 : 1 }} axisLine={false} tickLine={false} />
@@ -383,7 +383,7 @@ export default function JournalCharts({ cardId }: { cardId?: string }) {
         ) : (
           <>
             {!hasData && <BlurOverlay />}
-            <ResponsiveContainer width="100%" height="100%" className="group focus:outline-none focus-visible:outline-none">
+            <ResponsiveContainer width="100%" height={280} minWidth={0} minHeight={280} className="group focus:outline-none focus-visible:outline-none">
               <BarChart data={filteredData} margin={{ top: 5, right: 5, left: 0, bottom: 0 }} style={{ outline: 'none' }}>
                 <CartesianGrid strokeDasharray="3 3" stroke={isDark ? "transparent" : "#e2e8f0"} fill="transparent" fillOpacity={0} horizontalFill={[]} verticalFill={[]} className={isDark ? "" : "opacity-0 group-hover:opacity-100 transition-opacity duration-300"} /><XAxis dataKey="date" tick={{ ...tickStyle, filter: (hideBalance || percentageOnly) ? 'blur(3.5px)' : 'none', opacity: (hideBalance || percentageOnly) ? 0.3 : 1 }} axisLine={false} tickLine={false} />
                 <YAxis width={72} tick={{ ...tickStyle, filter: (hideBalance || percentageOnly) ? 'blur(3.5px)' : 'none', opacity: (hideBalance || percentageOnly) ? 0.3 : 1 }} axisLine={false} tickLine={false} tickFormatter={(v) => fmtMoney(v, { raw: true })} />
@@ -414,7 +414,7 @@ export default function JournalCharts({ cardId }: { cardId?: string }) {
         ) : (
           <>
             {!hasData && <BlurOverlay />}
-            <ResponsiveContainer width="100%" height="100%" className="group focus:outline-none focus-visible:outline-none">
+            <ResponsiveContainer width="100%" height={280} minWidth={0} minHeight={280} className="group focus:outline-none focus-visible:outline-none">
               <AreaChart data={filteredData} margin={{ top: 5, right: 5, left: 0, bottom: 0 }} style={{ outline: 'none' }}>
                 <defs><linearGradient id="balGrad2" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#10B981" stopOpacity={0.2} /><stop offset="95%" stopColor="#10B981" stopOpacity={0} /></linearGradient><linearGradient id="depGrad2" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#10B981" stopOpacity={0.15} /><stop offset="95%" stopColor="#10B981" stopOpacity={0} /></linearGradient></defs>
                 <CartesianGrid strokeDasharray="3 3" stroke={isDark ? "rgba(255, 255, 255, 0.02)" : "#e2e8f0"} className="opacity-0 group-hover:opacity-100 transition-opacity duration-300" /><XAxis dataKey="date" tick={{ ...tickStyle, filter: (hideBalance || hideOnlyBalance || percentageOnly) ? 'blur(3.5px)' : 'none', opacity: (hideBalance || hideOnlyBalance || percentageOnly) ? 0.3 : 1 }} axisLine={false} tickLine={false} /><YAxis width={72} tick={{ ...tickStyle, filter: (hideBalance || hideOnlyBalance || percentageOnly) ? 'blur(3.5px)' : 'none', opacity: (hideBalance || hideOnlyBalance || percentageOnly) ? 0.3 : 1 }} axisLine={false} tickLine={false} tickFormatter={(v) => fmtMoney(v, { raw: true })} />
@@ -446,7 +446,7 @@ export default function JournalCharts({ cardId }: { cardId?: string }) {
         ) : (
           <>
             {!hasData && <BlurOverlay />}
-            <ResponsiveContainer width="100%" height="100%" className="group focus:outline-none focus-visible:outline-none">
+            <ResponsiveContainer width="100%" height={280} minWidth={0} minHeight={280} className="group focus:outline-none focus-visible:outline-none">
               <AreaChart data={filteredData} margin={{ top: 5, right: 5, left: 0, bottom: 0 }} style={{ outline: 'none' }}>
                 <defs><linearGradient id="ddGrad2" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={chartColor} stopOpacity={0.25} /><stop offset="95%" stopColor={chartColor} stopOpacity={0.02} /></linearGradient></defs>
                 <CartesianGrid strokeDasharray="3 3" stroke={isDark ? "rgba(255, 255, 255, 0.02)" : "#e2e8f0"} className="opacity-0 group-hover:opacity-100 transition-opacity duration-300" /><XAxis dataKey="date" tick={{ ...tickStyle, filter: (hideBalance || percentageOnly) ? 'blur(3.5px)' : 'none', opacity: (hideBalance || percentageOnly) ? 0.3 : 1 }} axisLine={false} tickLine={false} /><YAxis width={72} tick={{ ...tickStyle, filter: (hideBalance || percentageOnly) ? 'blur(3.5px)' : 'none', opacity: (hideBalance || percentageOnly) ? 0.3 : 1 }} axisLine={false} tickLine={false} tickFormatter={(v) => fmtMoney(v, { raw: true })} />
@@ -470,9 +470,9 @@ export default function JournalCharts({ cardId }: { cardId?: string }) {
   if (cardId === "trade-duration") {
     return (
       <motion.div
-        initial={{ opacity: 0, scale: 0.98 }}
-        animate={{ opacity: 1, scale: 1 }}
-      className="bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] p-7 rounded-[22px] border-2 border-white shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] flex flex-col h-full min-h-[408px] transition-all duration-300 hover:scale-[1.005] hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#CBD5E1] relative dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:rounded-[20px] dark:shadow-none dark:hover:shadow-none"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+      className="bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] p-4 sm:p-7 rounded-[22px] border-2 border-white shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] flex flex-col h-full min-h-[380px] sm:min-h-[408px] transition-all duration-300 hover:scale-[1.005] hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#CBD5E1] relative dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:rounded-[20px] dark:shadow-none dark:hover:shadow-none"
       >
         {loading ? (
           <>
@@ -495,8 +495,8 @@ export default function JournalCharts({ cardId }: { cardId?: string }) {
                 </div>
               </div>
             </div>
-            <div className="flex-1 min-h-0 w-full -ml-4">
-              <ResponsiveContainer width="100%" height="100%" className="group focus:outline-none focus-visible:outline-none">
+            <div className="w-full relative -ml-4 min-h-[280px]" style={{ height: 280, minHeight: 280 }}>
+              <ResponsiveContainer width="100%" height={280} minWidth={0} minHeight={280} className="group focus:outline-none focus-visible:outline-none">
                 <ScatterChart margin={{ top: 10, right: 10, left: 0, bottom: 0 }} style={{ outline: 'none' }}>
                   <CartesianGrid strokeDasharray="3 3" stroke={isDark ? "rgba(255, 255, 255, 0.02)" : "#e2e8f0"} vertical={false} className="opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   <XAxis 

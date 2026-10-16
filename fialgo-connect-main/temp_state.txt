@@ -1,0 +1,113 @@
+export default function RiskGuard() {
+   const navigate = useNavigate();
+   const [user, setUser] = useState<any>(null);
+   const [authChecked, setAuthChecked] = useState(false);
+
+   // --- Guardian PIN & Hard Stop States ---
+   const [pinActive, setPinActive] = useState(false);
+   const [guardianPin, setGuardianPin] = useState("");
+   const [showPin, setShowPin] = useState(false);
+   const [hardStopActive, setHardStopActive] = useState(false);
+
+   // --- SEBI Indian Market Daily Login State ---
+   const [dailyTokenActive, setDailyTokenActive] = useState(() => {
+      try {
+         const token = sessionStorage.getItem('indian_daily_token');
+         return token === 'active';
+      } catch(e) { return false; }
+   });
+
+   useEffect(() => {
+      const checkUser = async () => {
+         const { data: { session } } = await supabase.auth.getSession();
+         if (!session?.user) {
+            navigate("/login");
+         } else {
+            setUser(session.user);
+            setAuthChecked(true);
+         }
+      };
+      checkUser();
+   }, [navigate]);
+
+   // A. Risk Framework States
+   const [maxLotActive, setMaxLotActive] = useState(false);
+   const [drawdownGuardActive, setDrawdownGuardActive] = useState(false);
+   const [maxDrawdown, setMaxDrawdown] = useState(15);
+   const [weeklyDrawdown, setWeeklyDrawdown] = useState(20);
+   const [monthlyDrawdown, setMonthlyDrawdown] = useState(25);
+   const [stopAfterLoss, setStopAfterLoss] = useState(false);
+
+   // B. AI Bot Engine States
+   const [autoTrading, setAutoTrading] = useState(() => {
+      try {
+         const saved = localStorage.getItem('fialgo_risk_config');
+         if (saved) {
+            const config = JSON.parse(saved);
+            return config.autoTrading === true;
+         }
+      } catch (e) { }
+      return false;
+   });
+   const [tradeFreq, setTradeFreq] = useState("Medium");
+   const [allowHedging, setAllowHedging] = useState(false);
+
+
+   // Sync autoTrading state change to fialgo_risk_config instantly for layout warning banner
+   useEffect(() => {
+      const saved = localStorage.getItem('fialgo_risk_config');
+      const config = saved ? JSON.parse(saved) : {};
+      if (config.autoTrading !== autoTrading) {
+         config.autoTrading = autoTrading;
+         localStorage.setItem('fialgo_risk_config', JSON.stringify(config));
+         window.dispatchEvent(new Event('fialgo_config_changed'));
+      }
+   }, [autoTrading]);
+
+   const { balance, isConnected, lastClosedTrade, recentTrades, tradesToday, todayProfit, avgDisciplineScore, serverData } = useDashboardData();
+
+   // C. Institutional Discipline States
+   const { isProOrElite } = usePlan();
+   const [disciplineActive, setDisciplineActive] = useState(false);
+   const { activeMarket } = useMarket();
+   const sym = activeMarket === 'indian' ? '₹' : '$';
+   const iso = activeMarket === 'indian' ? 'INR' : 'USD';
+
+   const [revengeGuard, setRevengeGuard] = useState(false);
+   const [tradeLimit, setTradeLimit] = useState(3);
+   const [waitPeriod, setWaitPeriod] = useState(5);
+   const [emotionalFreeze, setEmotionalFreeze] = useState(false);
+   const [xpBonus, setXpBonus] = useState(false);
+   const [cooldownActive, setCooldownActive] = useState(false);
+   const [cooldownSeconds, setCooldownSeconds] = useState(0);
+   const [lastDetectedTradeId, setLastDetectedTradeId] = useState<string | null>(null);
+
+   // Restore cooldown from localStorage on mount
+   useEffect(() => {
+      try {
+         const saved = localStorage.getItem('fialgo_cooldown');
+         if (saved) {
+            const cd = JSON.parse(saved);
+            if (cd.active && cd.endsAt > Date.now()) {
+               const remainingMs = cd.endsAt - Date.now();
+               setCooldownActive(true);
+               setCooldownSeconds(Math.ceil(remainingMs / 1000));
+            } else {
+               localStorage.removeItem('fialgo_cooldown');
+            }
+         }
+      } catch (e) { console.error(e); }
+   }, []);
+
+   // Cooldown Timer
+   useEffect(() => {
+      if (!cooldownActive || cooldownSeconds <= 0) {
+         if (cooldownActive && cooldownSeconds <= 0) {
+            setCooldownActive(false);
+            localStorage.removeItem('fialgo_cooldown');
+            window.dispatchEvent(new Event('fialgo_cooldown_changed'));
+         }
+         return;
+      }
+      const timer = setTimeout(() => setCooldownSeconds(s => s - 1), 1000);
+      

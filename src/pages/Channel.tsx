@@ -58,12 +58,20 @@ export default function Channel() {
 
   const { channelId } = useParams<{ channelId: string }>();
   const [activeChannelId, setActiveChannelId] = useState(channelId || "");
+  const [mobileView, setMobileView] = useState<'list' | 'chat'>(() => Boolean(channelId) ? 'chat' : 'list');
   const [searchQuery, setSearchQuery] = useState("");
   const [isMuted, setIsMuted] = useState(false);
   const [inputText, setInputText] = useState("");
   const [showPinned, setShowPinned] = useState(true);
   const [showDetails, setShowDetails] = useState(false); // Drawer state
   const [themeMode, setThemeMode] = useState(() => localStorage.getItem("theme") || "light");
+
+  useEffect(() => {
+    if (channelId) {
+      setActiveChannelId(channelId);
+      setMobileView('chat');
+    }
+  }, [channelId]);
 
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [attachment, setAttachment] = useState<File | null>(null);
@@ -814,7 +822,7 @@ function ChannelSkeleton() {
         `}} />
 
         {/* --- 1. CHANNEL LIST COLUMN --- */}
-        <div className="w-[360px] shrink-0 border-r border-slate-150 dark:border-white/5 bg-[#F8FAFC] dark:bg-[#121212] flex flex-col overflow-hidden h-full">
+        <div className={`${mobileView === 'chat' ? 'hidden md:flex' : 'flex'} w-full md:w-[360px] shrink-0 border-r border-slate-150 dark:border-white/5 bg-[#F8FAFC] dark:bg-[#121212] flex-col overflow-hidden h-full`}>
           
           {/* List Search Header */}
           <div className="p-3 px-4 flex items-center gap-2 border-b border-slate-100 dark:border-white/5 bg-white dark:bg-[#121212] h-[60px] shrink-0">
@@ -844,7 +852,10 @@ function ChannelSkeleton() {
               return (
                 <div
                   key={ch.id}
-                  onClick={() => setActiveChannelId(ch.id)}
+                  onClick={() => {
+                    setActiveChannelId(ch.id);
+                    setMobileView('chat');
+                  }}
                   className={`relative text-left w-full p-4 flex gap-3.5 border-b border-slate-100/60 dark:border-white/5 transition-all duration-200 outline-none items-center cursor-pointer select-none ${
                     isActive 
                       ? "bg-slate-100/70 dark:bg-slate-800/30 text-slate-900 dark:text-white" 
@@ -893,23 +904,34 @@ function ChannelSkeleton() {
         </div>
 
         {/* --- 2. RIGHT CHAT WINDOW COLUMN --- */}
-        <div className="flex-1 flex flex-col bg-white dark:bg-[#000000] relative overflow-hidden h-full">
+        <div className={`${mobileView === 'list' ? 'hidden md:flex' : 'flex'} flex-1 flex-col bg-white dark:bg-[#000000] relative overflow-hidden h-full`}>
           {activeChannel ? (
             <>
           
           {/* Chat Header */}
-          <div className="p-4 px-6 border-b border-slate-150/50 dark:border-white/5 bg-white/80 dark:bg-[#121212]/80 backdrop-blur-xl flex items-center justify-between z-20 shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] h-[68px] shrink-0">
-            <div className="cursor-pointer flex-1 flex items-center gap-3" onClick={() => setShowDetails(!showDetails)}>
-              <img src={activeChannel.avatar} className="w-10 h-10 rounded-full object-cover border border-slate-200/50 dark:border-white/10 shadow-sm" alt="Channel avatar" onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.svg"; }} />
-              <div>
-                <h2 className="text-[15px] font-extrabold text-slate-900 dark:text-white flex items-center gap-1.5 leading-none mb-1">
-                  {activeChannel.name}
-                  {isChannelAdmin && <Crown size={15} className="text-amber-500 fill-amber-500/20 shrink-0 ml-0.5" title="You created this channel" />}
-                  {activeChannel.verified && <CheckCircle2 size={14} className="text-blue-500 fill-blue-500/20 dark:text-blue-400 dark:fill-blue-400/20 shrink-0" />}
-                </h2>
-                <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 leading-none">
-                  {activeChannel.id === "saved" ? "Personal saved notes" : activeChannel.subscribers || "Conversation"}
-                </p>
+          <div className="p-3 sm:p-4 px-3 sm:px-6 border-b border-slate-150/50 dark:border-white/5 bg-white/80 dark:bg-[#121212]/80 backdrop-blur-xl flex items-center justify-between z-20 shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] h-[64px] sm:h-[68px] shrink-0">
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              {/* Mobile Back Button to Channels List */}
+              <button
+                type="button"
+                onClick={() => setMobileView('list')}
+                className="flex md:hidden items-center justify-center w-8 h-8 rounded-full bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-200 shrink-0 active:scale-95"
+                title="Back to Channels"
+              >
+                <ChevronLeft size={18} />
+              </button>
+              <div className="cursor-pointer flex-1 flex items-center gap-2.5 sm:gap-3 min-w-0" onClick={() => setShowDetails(!showDetails)}>
+                <img src={activeChannel.avatar} className="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover border border-slate-200/50 dark:border-white/10 shadow-sm shrink-0" alt="Channel avatar" onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.svg"; }} />
+                <div className="min-w-0 flex-1">
+                  <h2 className="text-[14px] sm:text-[15px] font-extrabold text-slate-900 dark:text-white flex items-center gap-1.5 leading-none mb-1 truncate">
+                    <span className="truncate">{activeChannel.name}</span>
+                    {isChannelAdmin && <Crown size={14} className="text-amber-500 fill-amber-500/20 shrink-0 ml-0.5" title="You created this channel" />}
+                    {activeChannel.verified && <CheckCircle2 size={13} className="text-blue-500 fill-blue-500/20 dark:text-blue-400 dark:fill-blue-400/20 shrink-0" />}
+                  </h2>
+                  <p className="text-[10.5px] sm:text-[11px] font-semibold text-slate-500 dark:text-slate-400 leading-none truncate">
+                    {activeChannel.id === "saved" ? "Personal saved notes" : activeChannel.subscribers || "Conversation"}
+                  </p>
+                </div>
               </div>
             </div>
             
@@ -1301,7 +1323,9 @@ function ChannelSkeleton() {
         {/* --- 3. SLIDE-OUT CHANNEL DETAILS DRAWER --- */}
         <div 
           className={`shrink-0 border-l border-slate-150 dark:border-white/5 bg-white dark:bg-[#121212] flex flex-col transition-all duration-300 ease-in-out h-full ${
-            showDetails && activeChannel ? "w-[360px]" : "w-0 overflow-hidden border-l-0"
+            showDetails && activeChannel 
+              ? "fixed md:relative inset-0 md:inset-auto z-40 md:z-auto w-full md:w-[360px]" 
+              : "w-0 overflow-hidden border-l-0"
           }`}
         >
           <div className="p-4 px-6 border-b border-slate-100 dark:border-white/5 flex items-center justify-between shrink-0 h-[60px]">

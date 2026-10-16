@@ -905,12 +905,12 @@ export default function Home() {
         <div className="flex items-center gap-2 sm:gap-3">
             <button
                 onClick={() => setIsCreatePostModalOpen(true)}
-                className="flex items-center justify-center gap-2 px-5 h-10 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-semibold text-[13px] transition-all shadow-sm active:scale-95 select-none"
+                className="flex items-center justify-center gap-2 px-3.5 sm:px-5 h-10 rounded-full bg-white dark:bg-[#1E1E1E] text-slate-800 dark:text-slate-100 border border-slate-200/80 dark:border-white/10 font-bold text-[13px] hover:bg-slate-50 dark:hover:bg-[#252528] transition-all shadow-sm active:scale-95 select-none"
                 title="Create New Post"
             >
-                <Plus size={16} strokeWidth={2.5} /> <span className="hidden sm:inline">New Post</span>
+                <Plus size={16} strokeWidth={2.5} className="text-blue-600 dark:text-blue-400" /> <span className="hidden sm:inline">New Post</span>
             </button>
-            <div className="relative" ref={customizeMenuRef}>
+            <div className="relative hidden md:block" ref={customizeMenuRef}>
                 <button
                     onClick={() => setShowCustomizeMenu(!showCustomizeMenu)}
                     className={`flex items-center justify-center w-10 h-10 rounded-full border shadow-sm transition-all active:scale-95 select-none ${showCustomizeMenu ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 border-blue-500/30' : 'bg-white dark:bg-[#1E1E1E] border-slate-200 dark:border-white/5 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-[#222] hover:text-slate-900 dark:hover:text-white'}`}
@@ -1131,7 +1131,7 @@ export default function Home() {
     return (
         <>
             <DashboardLayout breadcrumbs={[{ label: "Home", path: "/home" }]} headerActions={headerActions} noScroll={true} noPadding={true}>
-                <div className="w-full h-full flex flex-col min-h-0 px-4 lg:px-10 pt-0 pb-0 select-none font-sans text-slate-800 dark:text-slate-100">
+                <div className="w-full h-full flex flex-col min-h-0 px-2 sm:px-4 lg:px-10 pt-0 pb-0 select-none font-sans text-slate-800 dark:text-slate-100">
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 h-full min-h-0 relative">
 
                         {/* --- COLUMN 1: LEFT SIDEBAR (col-span-3) --- */}
@@ -1259,18 +1259,18 @@ export default function Home() {
                                     </motion.button>
                                 )}
                             </AnimatePresence>
-                            <div className="flex-1 overflow-y-auto amazing-scrollbar space-y-8 px-4 pt-5 pb-6" onScroll={handleScroll} ref={middleColumnRef}>
+                            <div className="flex-1 overflow-y-auto amazing-scrollbar space-y-5 sm:space-y-6 px-1 sm:px-4 pt-3 sm:pt-5 pb-24 md:pb-6" onScroll={handleScroll} ref={middleColumnRef}>
 
 
                                 {/* Feeds Section */}
                                 {currentTab === 'feed' && (
-                                <div className="space-y-6">
-                                    <div className="flex flex-col gap-4">
-                                        <div className="flex items-center justify-between gap-4 mb-2">
-                                            <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight shrink-0">Feeds</h2>
+                                <div className="space-y-4 sm:space-y-5">
+                                    <div className="flex flex-col gap-3">
+                                        <div className="flex items-center justify-between gap-2 sm:gap-4 mb-1">
+                                            <h2 className="text-[22px] sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight shrink-0">Feeds</h2>
 
-                                            <div className="flex items-center overflow-x-auto no-scrollbar">
-                                                <div className="flex items-center bg-slate-100/80 dark:bg-[#1A1A1C] p-1 rounded-full shrink-0">
+                                            <div className="flex items-center overflow-x-auto no-scrollbar py-0.5">
+                                                <div className="flex items-center bg-slate-100/90 dark:bg-[#1A1A1C] p-1 rounded-full shrink-0">
                                                     {[
                                                         { id: 'for_you', label: 'For You' },
                                                         { id: 'forex', label: 'Global' },
@@ -1280,7 +1280,7 @@ export default function Home() {
                                                         <button
                                                             key={tab.id}
                                                             onClick={() => setFeedMarketFilter(tab.id as any)}
-                                                            className={`px-4 py-1.5 text-[13px] rounded-full transition-all duration-200 ease-out whitespace-nowrap font-medium ${feedMarketFilter === tab.id
+                                                            className={`px-3 sm:px-4 py-1 sm:py-1.5 text-[12px] sm:text-[13px] rounded-full transition-all duration-200 ease-out whitespace-nowrap font-medium ${feedMarketFilter === tab.id
                                                                 ? "bg-white dark:bg-[#2C2C2E] text-slate-900 dark:text-white shadow-[0_1px_3px_rgba(0,0,0,0.1)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.3)]"
                                                                 : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
                                                                 }`}

@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en" class="dark">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>TradiFive</title>
+  <meta name="description" content="Institutional Trading Terminal" />
+  <meta name="author" content="TradiFive" />
+
+  <!-- Security -->
+  <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://www.tradifive.in" />
+  <meta property="og:title" content="TradiFive" />
+  <meta property="og:description" content="Institutional Trading Terminal" />
+  <meta property="og:image" content="https://www.tradifive.in/dashboard-preview.png" />
+  <link rel="canonical" href="https://www.tradifive.in" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:site" content="@TradiFive" />
+  <meta name="twitter:title" content="TradiFive" />
+  <meta name="twitter:description" content="Institutional Trading Terminal" />
+  <meta name="twitter:image" content="https://www.tradifive.in/dashboard-preview.png" />
+
+  <!-- Icons -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-cropped.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-cropped.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon-cropped.png" />
+  <link rel="mask-icon" href="/favicon-cropped.png" color="#3b82f6" />
+  <meta name="theme-color" content="#161e45" />
+
+  <!-- Fonts — crossorigin required for CORS compliance -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin="anonymous" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&display=swap"
+    rel="stylesheet" crossorigin="anonymous" />
+
+  <!-- Google Structured Data (Schema.org JSON-LD) for Sitelinks & Brand Recognition -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "TradiFive",
+    "alternateName": ["Tradifive", "Fialgo", "Fialgo Connect"],
+    "url": "https://www.tradifive.in/",
+    "description": "Institutional Trading Terminal and Social Network for funded and retail traders.",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": {
+        "@type": "EntryPoint",
+        "urlTemplate": "https://www.tradifive.in/?search={search_term_string}"
+      },
+      "query-input": "required name=search_term_string"
+    }
+  }
+  </script>
+
+  <!-- Google Structured Data (Schema.org JSON-LD) for Sitelinks (Sub-navigation) mapping -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "name": "TradiFive Navigation Menu",
+    "itemListElement": [
+      {
+        "@type": "SiteNavigationElement",
+        "position": 1,
+        "name": "Download Desktop & Mobile App",
+        "url": "https://www.tradifive.in/download"
+      },
+      {
+        "@type": "SiteNavigationElement",
+        "position": 2,
+        "name": "TradiFive AI Coach",
+        "url": "https://www.tradifive.in/tradifive-ai-public"
+      },
+      {
+        "@type": "SiteNavigationElement",
+        "position": 3,
+        "name": "Smart Trading Journal",
+        "url": "https://www.tradifive.in/smart-journal-public"
+      },
+      {
+        "@type": "SiteNavigationElement",
+        "position": 4,
+        "name": "Risk Guard",
+        "url": "https://www.tradifive.in/risk-guard-public"
+      },
+      {
+        "@type": "SiteNavigationElement",
+        "position": 5,
+        "name": "Trading Competitions",
+        "url": "https://www.tradifive.in/competitions-public"
+      },
+      {
+        "@type": "SiteNavigationElement",
+        "position": 6,
+        "name": "Contact Support",
+        "url": "https://www.tradifive.in/contact"
+      }
+    ]
+  }
+  </script>
+
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+  <script type="module" src="https://unpkg.com/@splinetool/viewer@latest/build/spline-viewer.js"></script>
+</body>
+
+</html>

@@ -312,20 +312,23 @@
   align-items: center;
   gap: 8px;
   padding: 10px 22px;
-  background: linear-gradient(135deg, #6366f1 0%, #818cf8 100%);
-  color: #fff;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  color: #60a5fa;
   font-size: 13px;
   font-weight: 700;
   border: none;
   border-radius: 100px;
   cursor: pointer;
-  box-shadow: 0 0 30px rgba(99, 102, 241, 0.35), 0 8px 30px rgba(0, 0, 0, 0.3);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 6px rgba(0, 0, 0, 0.3);
   transition: all 0.2s ease;
   letter-spacing: -0.2px;
+  outline: none;
 }
 
 .btn-glow-primary:hover {
-  box-shadow: 0 0 50px rgba(99, 102, 241, 0.5), 0 8px 30px rgba(0, 0, 0, 0.3);
+  background: linear-gradient(135deg, #253347 0%, #131c33 100%);
+  color: #93c5fd;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 .btn-ghost {
@@ -333,21 +336,24 @@
   align-items: center;
   gap: 8px;
   padding: 10px 20px;
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.85);
+  background: #171717;
+  color: rgba(255, 255, 255, 0.9);
   font-size: 13px;
   font-weight: 600;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: none;
   border-radius: 100px;
   cursor: pointer;
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.12), 0 2px 4px rgba(0, 0, 0, 0.2);
   transition: all 0.2s ease;
   backdrop-filter: blur(12px);
   letter-spacing: -0.2px;
+  outline: none;
 }
 
 .btn-ghost:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.2);
+  background: #1e1e1e;
+  color: #ffffff;
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.16), 0 0 0 1px rgba(255, 255, 255, 0.18), 0 2px 4px rgba(0, 0, 0, 0.25);
 }
 
 @media (max-width: 768px) {
@@ -829,4 +835,31 @@
       #2196f3 28px),
     radial-gradient(circle at 60% 50%, rgba(255,255,255,0) 14.737px, #2196f3 18.665px),
     linear-gradient(180deg, #2A2C33, #3A3B45);
+}
+
+/* Scrollbar utilities */
+.no-scrollbar::-webkit-scrollbar,
+.scrollbar-hide::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.no-scrollbar,
+.scrollbar-hide {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
+/* Mobile clean edge - prevent native browser scrollbars from breaking card layouts */
+@media (max-width: 768px) {
+  ::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+  * {
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
+  }
 }

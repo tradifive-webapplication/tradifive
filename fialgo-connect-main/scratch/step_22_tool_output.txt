@@ -1,0 +1,74 @@
+Created At: 2026-05-23T07:34:46Z
+Completed At: 2026-05-23T07:34:46Z
+File Path: `file:///c:/Users/nikil/Downloads/fialgo-connect-main/fialgo-connect-main/src/pages/Settings.tsx`
+Total Lines: 1867
+Total Bytes: 119040
+Showing lines 343 to 1142
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+343: 
+344:       if (isBypass) {
+345:          setTimeout(() => {
+346:             toast.success("Identity Synced Successfully!", { id: loadingToast });
+347:          }, 1000);
+348:          return;
+349:       }
+350: 
+351:       try {
+352:          const { data: { user } } = await supabase.auth.getUser();
+353:          if (!user) throw new Error("No active session");
+354: 
+355:          const { error } = await supabase
+356:             .from('profiles')
+357:             .upsert({
+358:                id: user.id,
+359:                first_name: profile.firstName,
+360:                last_name: profile.lastName,
+361:                phone: profile.phone,
+362:                address: profile.address,
+363:                city: profile.city,
+364:                state: profile.state,
+365:                zip_code: profile.zipCode,
+366:                country: profile.country,
+367:                instagram_id: profile.instagram,
+368:                gender: profile.gender,
+369:                date_of_birth: profile.dob,
+370:                updated_at: new Date().toISOString()
+371:             });
+372: 
+373:          if (error) throw error;
+374: 
+375:          await supabase.auth.updateUser({
+376:             data: {
+377:                full_name: `${profile.firstName} ${profile.lastName}`.trim(),
+378:                first_name: profile.firstName,
+379:                last_name: profile.lastName
+380:             }
+381:          });
+382: 
+383:          toast.success("Identity Synced Successfully!", { id: loadingT
+<truncated 45283 bytes>
+eholder="+1 (555) 000-0000" 
+942:                                              className="w-full bg-slate-50 dark:bg-[#141414] dark:bg-[#1A1A1A] border-none rounded-xl p-4 text-[13px] font-bold" 
+943:                                           />
+944:                                        </div>
+945:                                     </div>
+946:                                  </div>
+947: 
+948:                                  {/* CARD 5: DANGER ZONE */}
+949:                                  <div className="bg-red-50/50 dark:bg-red-950/10 rounded-[24px] p-8 border border-red-100 dark:border-red-900/30 shadow-sm">
+950:                                     <h4 className="text-[11px] font-black text-red-600 uppercase tracking-[0.2em] mb-8 flex items-center gap-2">
+951:                                        <AlertTriangle size={14} /> Danger Zone
+952:                                     </h4>
+953:                                     <div className="space-y-4">
+954:                                        <button 
+955:                                           onClick={handleDeactivateAccount}
+956:                                           className="w-full bg-white dark:bg-[#1A1A1A] dark:bg-[#1A1A1A] border border-red-200 dark:border-red-900/50 text-red-600 font-bold py-4 rounded-xl text-[12px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all"
+957:                                        >
+958:                                           <Power size={16} /> Deactivate Account
+959:                                        </button>
+960:                                        <button 
+961:                                           onClick={handleDeleteAccount}
+962:                                           className="w-full bg-red-600 text-white font-black py-4 rounded-xl te
+<truncated 17413 bytes>
+
+NOTE: The output was truncated because it was too long. Use a more targeted query or a smaller range to get the information you need.

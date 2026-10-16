@@ -49,21 +49,13 @@ export const AuthGuard = ({ children }: { children: React.ReactNode }) => {
         // the auth lock. This avoids NavigatorLockAcquireTimeoutError when
         // multiple components (AuthGuard, useDashboardData, AppSidebar)
         // all try to call getUser() simultaneously on mount.
-        let { data: { session } } = await supabase.auth.getSession();
-
-        if (!session) {
-          // If fresh login just occurred or timing delay, wait briefly and retry once
-          await new Promise(r => setTimeout(r, 350));
-          const retry = await supabase.auth.getSession();
-          if (retry.data?.session) {
-            session = retry.data.session;
-          }
-        }
+        const { data: { session } } = await supabase.auth.getSession();
 
         if (!session) {
           if (isMounted.current) {
             sessionStorage.removeItem("fialgo_loaded");
-            navigate("/login");
+            const isElectron = navigator.userAgent.toLowerCase().includes('electron');
+            navigate(isElectron ? "/login" : "/");
           }
           return;
         }
@@ -216,7 +208,8 @@ export const AuthGuard = ({ children }: { children: React.ReactNode }) => {
         setIsLoading(false);
       } catch (err) {
         if (isMounted.current) {
-          navigate("/login");
+          const isElectron = navigator.userAgent.toLowerCase().includes('electron');
+          navigate(isElectron ? "/login" : "/");
         }
         setIsLoading(false);
       }
@@ -231,7 +224,8 @@ export const AuthGuard = ({ children }: { children: React.ReactNode }) => {
       if (event === "SIGNED_OUT" && !session) {
         if (isMounted.current) {
           sessionStorage.removeItem("fialgo_loaded");
-          navigate("/login");
+          const isElectron = navigator.userAgent.toLowerCase().includes('electron');
+          navigate(isElectron ? "/login" : "/");
         }
       }
 

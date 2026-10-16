@@ -407,7 +407,7 @@ function FeedCard({
     const hasVotedOrOwns = votedOption !== null || feed.user_id === currentUserId;
 
     return (
-        <div className="p-5 md:p-6 rounded-[32px] bg-white dark:bg-[#1C1C1E] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100/50 dark:border-white/5 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300">
+        <div className="p-4 sm:p-5 md:p-6 rounded-[24px] sm:rounded-[32px] bg-white dark:bg-[#1C1C1E] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100/50 dark:border-white/5 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300">
             {/* Header */}
             <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3 text-left">
@@ -600,7 +600,7 @@ function FeedCard({
 
             {/* Media Rendering */}
             {images.length > 0 ? (
-                <div className="mb-4 rounded-xl overflow-hidden border border-slate-100 dark:border-white/5 relative select-none">
+                <div className="mb-4 rounded-2xl overflow-hidden border border-slate-100 dark:border-white/5 relative select-none">
                     {images.length >= 4 ? (
                         <div className="grid grid-cols-2 gap-1 h-[300px]">
                             <div className="col-span-1 h-full min-h-0 cursor-pointer hover:opacity-95 transition-opacity" onClick={(e) => handleImageInteraction(images[0], e)}>
@@ -675,7 +675,7 @@ function FeedCard({
                     </AnimatePresence>
                 </div>
             ) : feed.media_url && typeof feed.media_url === 'string' && feed.media_url.trim() !== '' && !feed.media_url.trim().startsWith('{') && !feed.media_url.trim().startsWith('[') && feed.post_type !== "poll" && feed.post_type !== "signal" ? (
-                <div className="mb-4 rounded-xl overflow-hidden border border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-slate-900/30 flex items-center justify-center relative select-none group">
+                <div className="mb-4 rounded-2xl overflow-hidden border border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-slate-900/30 flex items-center justify-center relative select-none group">
                     {feed.media_type === 'video' ? (
                         <div 
                             className="relative w-full flex items-center justify-center bg-black group overflow-hidden"

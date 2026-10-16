@@ -1,0 +1,8 @@
+<SettingsToggle
+<SettingsToggle
+<JoystickSwitch
+<JoystickSwitch
+<AnimatedCheckbox
+<AnimatedCheckbox
+<AnimatedCheckbox
+<Monitor

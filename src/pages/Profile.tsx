@@ -920,7 +920,7 @@ export default function Profile() {
   return (
     <>
       <DashboardLayout breadcrumbs={[{ label: "Home", path: "/home" }, { label: "My Profile", path: "/profile" }]} headerActions={headerActions} noPadding={true}>
-        <div className="w-full min-h-screen flex flex-col px-4 lg:px-10 pt-6 pb-6 select-none font-sans text-slate-800 dark:text-slate-100 bg-[#F8FAFC] dark:bg-[#000000]">
+        <div className="w-full min-h-screen flex flex-col px-4 lg:px-10 pt-6 pb-28 md:pb-6 select-none font-sans text-slate-800 dark:text-slate-100 bg-[#F8FAFC] dark:bg-[#000000]">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6 min-h-0 relative max-w-7xl mx-auto w-full">
 
             {/* --- LEFT & MIDDLE MAIN CONTENT (col-span-9) --- */}

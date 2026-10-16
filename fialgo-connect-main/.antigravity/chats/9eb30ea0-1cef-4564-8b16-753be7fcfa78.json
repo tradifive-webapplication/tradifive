@@ -1,0 +1,33 @@
+{
+  "sessionId": "9eb30ea0-1cef-4564-8b16-753be7fcfa78",
+  "name": "tradifive",
+  "createdAt": "2026-07-27T10:06:06.790Z",
+  "filename": "9eb30ea0-1cef-4564-8b16-753be7fcfa78.json",
+  "geminiStarted": true,
+  "messages": [
+    {
+      "id": "50e7d80c-4dd8-4e71-b0b7-e6c8f3119f67",
+      "role": "user",
+      "content": "wht do u do?",
+      "status": "pending",
+      "model": "gemini-2.5-flash",
+      "client_type": "gemini-bridge",
+      "parent_message_id": null,
+      "created_at": "2026-07-27T10:06:18.4+00:00",
+      "sender": "ios",
+      "is_cancelled": false
+    },
+    {
+      "id": "d47f9a31-5825-4888-9e7f-2302d2d809d5",
+      "role": "agent",
+      "content": "[AUTH_MISSING_KEY] Gemini API key is not configured on this computer.\nPlease open Terminal and authenticate Gemini CLI there first (do not paste keys into app chat).\nExample: run `gemini` and complete sign-in, or export GEMINI_API_KEY in your shell profile.",
+      "status": "error",
+      "model": "gemini-2.5-flash",
+      "client_type": "gemini-bridge",
+      "parent_message_id": "50e7d80c-4dd8-4e71-b0b7-e6c8f3119f67",
+      "created_at": "2026-07-27T10:06:26.058Z",
+      "sender": "macOS",
+      "is_cancelled": false
+    }
+  ]
+}

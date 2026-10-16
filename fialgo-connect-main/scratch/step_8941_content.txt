@@ -1,0 +1,52 @@
+Created At: 2026-05-31T06:11:40Z
+Completed At: 2026-05-31T06:11:40Z
+File Path: `file:///c:/Users/nikil/Downloads/fialgo-connect-main/fialgo-connect-main/src/pages/Settings.tsx`
+Total Lines: 3137
+Total Bytes: 207767
+Showing lines 1100 to 1350
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+1100:                                   }`}
+1101:                                >
+1102:                                   <span className="text-[14px] font-medium">{tab.label}</span>
+1103:                                </button>
+1104:                             );
+1105:                          })}
+1106:                          {filteredTabs.length === 0 && (
+1107:                             <div className="px-4 py-8 text-center text-slate-400 dark:text-slate-500 text-[12px] font-medium border border-dashed border-slate-200 dark:border-[#222] rounded-xl">
+1108:                                No settings found
+1109:                             </div>
+1110:                          )}
+1111:                       </div>
+1112:                    </div>
+1113: 
+1114:                    {/* RIGHT PANE CONTENT */}
+1115:                    <div className="flex-1 w-full h-full bg-white dark:bg-[#141414] overflow-y-auto amazing-scrollbar relative">
+1116:                       
+1117:                       {/* Discord style top header with Page Name and close button */}
+1118:                       <div className="sticky top-0 left-0 w-full flex justify-between items-center px-10 py-4 z-10 bg-white/95 dark:bg-[#141414]/95 backdrop-blur-md border-b border-slate-200 dark:border-[#252528] pointer-events-none">
+1119:                          <h2 className="text-[16px] font-bold text-slate-900 dark:text-white pointer-events-auto">
+1120:                             {filteredTabs.find(t => t.id === activeTab)?.label || "Settings"}
+1121:   
+<truncated 20102 bytes>
+
+1331:                               </div>
+1332: 
+1333:                               {/* CARD 2: Profile Imagery */}
+1334:                               <div className="p-6 rounded-2xl bg-white dark:bg-[#1C1C1E] shadow-sm">
+1335:                                  <h4 className="text-[11px] font-black text-slate-900 dark:text-white uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+1336:                                     Profile Imagery
+1337:                                  </h4>
+1338:                                  
+1339:                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+1340:                                     {/* Custom Avatar Upload */}
+1341:                                     <div className="flex flex-col gap-4">
+1342:                                        <div className="flex flex-col gap-1">
+1343:                                           <label className="text-[11px] font-bold text-slate-900 dark:text-white uppercase tracking-wider">Avatar Image</label>
+1344:                                           <p className="text-[11px] text-slate-500">Recommended size: 256x256px.</p>
+1345:                                        </div>
+1346:                                        <div className="flex flex-col items-center justify-center gap-4 p-6 rounded-xl bg-slate-50 dark:bg-[#2B2B2F] border border-slate-200 dark:border-transparent">
+1347:                                           <img 
+1348:                                              src={profile.avatarUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${profile.firstName || profile.name || 'T'}`} 
+1349:                                              alt="Avatar preview" 
+1350:                                              className="w-20 h-20 rounded-full object-cover border-4 border-white dark:border-[#1A1A1A] shadow-md" 
+The above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.

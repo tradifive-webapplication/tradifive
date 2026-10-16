@@ -51,23 +51,23 @@ import { useMarket } from "@/contexts/MarketContext";
 
 // --- Donut/Gauge for Win Rate ---
 function WinRateGauge({ winPct, wins, even, losses }: { winPct: number; wins: number; even: number; losses: number }) {
-  const r = 32, c = 2 * Math.PI * r;
+  const r = 26, c = 2 * Math.PI * r;
   const total = wins + even + losses;
   const winArc = total > 0 ? (wins / total) * c : 0;
   const evenArc = total > 0 ? (even / total) * c : 0;
   const lossArc = total > 0 ? c - winArc - evenArc : c;
   return (
-    <div className="relative w-[72px] h-[72px] shrink-0">
-      <svg viewBox="0 0 80 80" className="w-full h-full -rotate-90">
-        <circle cx="40" cy="40" r={r} fill="none" stroke="#1e293b" strokeWidth="7" className="dark:stroke-slate-700 stroke-slate-100" />
-        <circle cx="40" cy="40" r={r} fill="none" stroke="#10B981" strokeWidth="7" strokeDasharray={`${winArc} ${c - winArc}`} strokeDashoffset="0" strokeLinecap="round" />
-        <circle cx="40" cy="40" r={r} fill="none" stroke="#64748b" strokeWidth="7" strokeDasharray={`${evenArc} ${c - evenArc}`} strokeDashoffset={`${-winArc}`} />
-        <circle cx="40" cy="40" r={r} fill="none" stroke="#F06363" strokeWidth="7" strokeDasharray={`${lossArc} ${c - lossArc}`} strokeDashoffset={`${-(winArc + evenArc)}`} />
+    <div className="relative w-[52px] h-[52px] sm:w-[64px] sm:h-[64px] shrink-0">
+      <svg viewBox="0 0 70 70" className="w-full h-full -rotate-90">
+        <circle cx="35" cy="35" r={r} fill="none" stroke="#1e293b" strokeWidth="6" className="dark:stroke-slate-700 stroke-slate-100" />
+        <circle cx="35" cy="35" r={r} fill="none" stroke="#10B981" strokeWidth="6" strokeDasharray={`${winArc} ${c - winArc}`} strokeDashoffset="0" strokeLinecap="round" />
+        <circle cx="35" cy="35" r={r} fill="none" stroke="#64748b" strokeWidth="6" strokeDasharray={`${evenArc} ${c - evenArc}`} strokeDashoffset={`${-winArc}`} />
+        <circle cx="35" cy="35" r={r} fill="none" stroke="#F06363" strokeWidth="6" strokeDasharray={`${lossArc} ${c - lossArc}`} strokeDashoffset={`${-(winArc + evenArc)}`} />
       </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center leading-none" style={{ gap: '2px' }}>
-        <span className="text-[10px] font-black" style={{ color: '#10B981' }}>{wins}</span>
-        <span className="text-[8px] text-slate-400 font-bold">{even}</span>
-        <span className="text-[9px] font-black" style={{ color: '#F06363' }}>{losses}</span>
+      <div className="absolute inset-0 flex flex-col items-center justify-center leading-none" style={{ gap: '1px' }}>
+        <span className="text-[9px] font-black" style={{ color: '#10B981' }}>{wins}</span>
+        <span className="text-[7.5px] text-slate-400 font-bold">{even}</span>
+        <span className="text-[8px] font-black" style={{ color: '#F06363' }}>{losses}</span>
       </div>
     </div>
   );
@@ -75,17 +75,17 @@ function WinRateGauge({ winPct, wins, even, losses }: { winPct: number; wins: nu
 
 // --- Circular Gauge (Profit Factor) ---
 function CircularGauge({ value, max = 2 }: { value: number; max?: number }) {
-  const r = 32, c = 2 * Math.PI * r;
+  const r = 24, c = 2 * Math.PI * r;
   const pct = Math.min(value / max, 1);
   const color = value >= 1 ? "#10B981" : "#F06363";
   return (
-    <div className="relative w-[60px] h-[60px] shrink-0">
-      <svg viewBox="0 0 80 80" className="w-full h-full -rotate-90">
-        <circle cx="40" cy="40" r={r} fill="none" stroke="#1e293b" strokeWidth="6" className="dark:stroke-slate-700 stroke-slate-100" />
-        <circle cx="40" cy="40" r={r} fill="none" stroke={color} strokeWidth="6" strokeDasharray={`${pct * c} ${c - pct * c}`} strokeLinecap="round" />
+    <div className="relative w-[48px] h-[48px] sm:w-[56px] sm:h-[56px] shrink-0">
+      <svg viewBox="0 0 60 60" className="w-full h-full -rotate-90">
+        <circle cx="30" cy="30" r={r} fill="none" stroke="#1e293b" strokeWidth="5.5" className="dark:stroke-slate-700 stroke-slate-100" />
+        <circle cx="30" cy="30" r={r} fill="none" stroke={color} strokeWidth="5.5" strokeDasharray={`${pct * c} ${c - pct * c}`} strokeLinecap="round" />
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
-        <span className="text-[10px] font-black" style={{ color }}>{value}</span>
+        <span className="text-[9.5px] font-black" style={{ color }}>{value}</span>
       </div>
     </div>
   );
@@ -99,12 +99,12 @@ function WinLossBar({ avgWin, avgLoss }: { avgWin: number; avgLoss: number }) {
   const displayWin = total > 0 ? avgWin : 0;
   const displayLoss = total > 0 ? Math.abs(avgLoss) : 0;
   return (
-    <div className="space-y-1.5 w-full max-w-[110px]">
+    <div className="space-y-1.5 w-full max-w-[85px] sm:max-w-[110px] shrink-0">
       <div className="flex h-[5px] rounded-full overflow-hidden bg-slate-100 dark:bg-slate-800">
         <div className="rounded-l-full" style={{ width: `${winW}%`, backgroundColor: '#10B981' }} />
         <div className="rounded-r-full" style={{ width: `${100 - winW}%`, backgroundColor: '#F06363' }} />
       </div>
-      <div className="flex justify-between text-[9px] font-bold">
+      <div className="flex justify-between text-[8.5px] sm:text-[9px] font-bold">
         <span className={`transition-all duration-300 ${hideBalance || percentageOnly ? 'blur-[2px] select-none opacity-40' : ''}`} style={{ color: '#10B981' }}>{formatMoney(displayWin, { raw: true })}</span>
         <span className={`transition-all duration-300 ${hideBalance || percentageOnly ? 'blur-[2px] select-none opacity-40' : ''}`} style={{ color: '#F06363' }}>{`-${formatMoney(displayLoss, { raw: true }).replace('-', '')}`}</span>
       </div>
@@ -203,7 +203,7 @@ const METRIC_CONTENT: Record<string, React.ReactNode> = {
 };
 
 // ── Sortable Wrapper ────────────────────────────────────────────────────────
-function SortableMetric({ id, isEditMode, children }: { id: string; isEditMode: boolean; children: React.ReactNode }) {
+function SortableMetric({ id, isEditMode, children, className = "" }: { id: string; isEditMode: boolean; children: React.ReactNode; className?: string }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id, disabled: !isEditMode });
 
@@ -219,10 +219,10 @@ function SortableMetric({ id, isEditMode, children }: { id: string; isEditMode: 
     <div
       ref={setNodeRef}
       style={style}
-      className="relative group h-full"
+      className={`relative group h-full ${className}`}
       {...(isEditMode ? { ...attributes, ...listeners } : {})}
     >
-      <div className={`h-[120px] px-5 py-4 rounded-[24px] border-2 border-white bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] premium-flat-card shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] flex flex-col justify-between transition-all duration-300 dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:rounded-[20px] dark:shadow-none
+      <div className={`min-h-[115px] sm:h-[120px] px-3.5 sm:px-5 py-3.5 sm:py-4 rounded-[22px] sm:rounded-[24px] border-2 border-white bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] premium-flat-card shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] flex flex-col justify-between transition-all duration-300 dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:rounded-[20px] dark:shadow-none
         ${isEditMode ? "ring-2 ring-[#10B981]/50 ring-offset-2 pointer-events-none" : "hover:scale-[1.02] hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#D0D0D5] dark:hover:shadow-none"}`}
       >
         {isEditMode && (
@@ -353,10 +353,10 @@ export default function JournalMetrics({
         </div>
         <div className="flex items-end justify-between mt-1">
           <div>
-            <h3 className={`text-[28px] font-medium text-slate-900 dark:text-white tracking-tight leading-none transition-all duration-300 ${hideBalance || hideOnlyBalance || percentageOnly ? 'blur-[5px] select-none opacity-40' : ''}`} style={{ fontFamily: "'Inter', sans-serif" }}>
+            <h3 className={`text-[20px] sm:text-[24px] lg:text-[26px] font-medium text-slate-900 dark:text-white tracking-tight leading-none transition-all duration-300 ${hideBalance || hideOnlyBalance || percentageOnly ? 'blur-[5px] select-none opacity-40' : ''}`} style={{ fontFamily: "'Inter', sans-serif" }}>
               {formatMoney(balance, { raw: true })}
             </h3>
-            <p className="text-[13px] font-medium text-slate-500 dark:text-slate-400 mt-1">
+            <p className="text-[12px] sm:text-[13px] font-medium text-slate-500 dark:text-slate-400 mt-1">
               P&L: <span className={`transition-all duration-300 ${hideBalance ? 'blur-[2px] select-none opacity-40' : ''}`} style={{ color: totalProfit >= 0 ? '#10B981' : '#F06363' }}>
                 {percentageOnly ? `${totalProfit >= 0 ? "+" : ""}${((totalProfit / (balance > 0 ? balance : 1)) * 100).toFixed(2)}%` : formatMoney(totalProfit, { showSign: true, raw: true })}
               </span>
@@ -383,7 +383,7 @@ export default function JournalMetrics({
           <MetricTooltip content="The percentage of winning trades relative to your total executed trades (excluding pending orders)." />
         </div>
         <div className="flex items-center justify-between">
-          <h3 className="text-[26px] font-medium text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>{winRate}%</h3>
+          <h3 className="text-[20px] sm:text-[24px] lg:text-[26px] font-medium text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>{winRate}%</h3>
           <WinRateGauge winPct={winRate} wins={totalWins} even={totalEvens} losses={totalLosses} />
         </div>
       </>
@@ -438,7 +438,7 @@ export default function JournalMetrics({
           <MetricTooltip content="The average profit of your winning trades compared to the average loss of your losing trades (Win/Loss Ratio)." />
         </div>
         <div className="flex items-center justify-between">
-          <h3 className="text-[26px] font-medium text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
+          <h3 className="text-[20px] sm:text-[24px] lg:text-[26px] font-medium text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
             {avgWinLossRatio > 0 ? avgWinLossRatio.toFixed(2) : "0.00"}
           </h3>
           <WinLossBar avgWin={avgWin} avgLoss={avgLoss} />
@@ -463,7 +463,7 @@ export default function JournalMetrics({
           <MetricTooltip content="Gross profits divided by gross losses. A profit factor above 1.0 means your trading strategy is profitable." />
         </div>
         <div className="flex items-center justify-between">
-          <h3 className="text-[26px] font-medium text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
+          <h3 className="text-[20px] sm:text-[24px] lg:text-[26px] font-medium text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
             {profitFactor > 0 ? profitFactor.toFixed(2) : "0.00"}
           </h3>
           <CircularGauge value={profitFactor > 0 ? profitFactor : 0} />
@@ -500,8 +500,8 @@ export default function JournalMetrics({
       )}
 
       {/* Import Bar */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-2 text-[13px] text-slate-400 dark:text-slate-400">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 sm:mb-6">
+        <div className="flex items-center gap-2 text-[12px] sm:text-[13px] text-slate-400 dark:text-slate-400 flex-wrap">
           <span className="font-bold text-slate-900 dark:text-white">Last import:</span>
           <span className="font-semibold">{lastImportTime}</span>
           <span className="text-slate-300 dark:text-slate-400">•</span>
@@ -528,12 +528,12 @@ export default function JournalMetrics({
                 }
               );
             }}
-            className="text-emerald-500 hover:text-emerald-500 dark:text-emerald-400 dark:hover:text-blue-300 transition-colors font-bold"
+            className="text-emerald-500 hover:text-emerald-500 dark:text-emerald-400 dark:hover:text-blue-300 transition-colors font-bold cursor-pointer"
           >
             Resync
           </button>
         </div>
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2 flex-wrap">
           {/* Currency Selector */}
           <div className="relative" ref={currencyDropdownRef}>
             <button
@@ -641,9 +641,14 @@ export default function JournalMetrics({
       {/* 5 Metric Cards — Draggable */}
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext items={order} strategy={horizontalListSortingStrategy}>
-          <div className="grid grid-cols-5 gap-4 h-[120px]">
-            {order.map((id) => (
-              <SortableMetric key={id} id={id} isEditMode={isEditMode}>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-4">
+            {order.map((id, index) => (
+              <SortableMetric 
+                key={id} 
+                id={id} 
+                isEditMode={isEditMode}
+                className={index === 4 ? "col-span-2 sm:col-span-1" : ""}
+              >
                 {metrics[id]}
               </SortableMetric>
             ))}

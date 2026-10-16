@@ -1,7 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, HashRouter, Route, Routes, Navigate, useNavigate, useLocation } from "react-router-dom";
+import { BrowserRouter, HashRouter, Route, Routes, Navigate } from "react-router-dom";
 import { Suspense, lazy, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -69,6 +68,7 @@ const SmartJournalPublic = lazy(() => import("./pages/SmartJournalPublic"));
 const CommunityHubPublic = lazy(() => import("./pages/CommunityHubPublic"));
 const CompetitionsPublic = lazy(() => import("./pages/CompetitionsPublic"));
 const TradifiveAIPublic = lazy(() => import("./pages/TradifiveAIPublic"));
+const AutoTradePublic = lazy(() => import("./pages/AutoTradePublic"));
 const PrivacyPolicyPublic = lazy(() => import("./pages/PrivacyPolicyPublic"));
 const TermsOfServicePublic = lazy(() => import("./pages/TermsOfServicePublic"));
 const RefundPolicyPublic = lazy(() => import("./pages/RefundPolicyPublic"));
@@ -81,6 +81,7 @@ const PropFirmIntegrationsPublic = lazy(() => import("./pages/PropFirmIntegratio
 const AccountFrozen = lazy(() => import("./pages/AccountFrozen"));
 const AccountDeleted = lazy(() => import("./pages/AccountDeleted"));
 const AdminOverview = lazy(() => import("./pages/admin/AdminOverview"));
+const AdminAutoTrade = lazy(() => import("./pages/admin/AdminAutoTrade"));
 const AdminUsers = lazy(() => import("./pages/admin/AdminUsers"));
 const AdminDeleted = lazy(() => import("./pages/admin/AdminDeleted"));
 const AdminTrading = lazy(() => import("./pages/admin/AdminTrading"));
@@ -93,49 +94,18 @@ const BrokerAuth = lazy(() => import("./pages/BrokerAuth"));
 
 import { MarketProvider } from "@/contexts/MarketContext";
 import { PresenceProvider } from "@/contexts/PresenceContext";
+import { initGlobalHaptics } from "@/utils/haptics";
 
 const queryClient = new QueryClient();
 
 const isElectron = navigator.userAgent.toLowerCase().includes('electron');
 const AppRouter = isElectron ? HashRouter : BrowserRouter;
 
-const OAuthCallbackHandler = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  useEffect(() => {
-    const hash = window.location.hash || '';
-    const search = window.location.search || '';
-    const hasAuthParams =
-      hash.includes('access_token=') ||
-      search.includes('code=') ||
-      hash.includes('type=recovery');
-
-    if (hasAuthParams) {
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-        if (event === 'SIGNED_IN' && session) {
-          if (location.pathname === '/' || location.pathname === '/login') {
-            sessionStorage.removeItem('fresh_login');
-            navigate('/home', { replace: true });
-          }
-        }
-      });
-
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session && (location.pathname === '/' || location.pathname === '/login')) {
-          sessionStorage.removeItem('fresh_login');
-          navigate('/home', { replace: true });
-        }
-      });
-
-      return () => subscription.unsubscribe();
-    }
-  }, [location.pathname, navigate]);
-
-  return null;
-};
-
 const App = () => {
+  useEffect(() => {
+    return initGlobalHaptics();
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -146,7 +116,6 @@ const App = () => {
         <TradingProvider>
           <PresenceProvider>
           <AppRouter>
-            <OAuthCallbackHandler />
             <CustomCursor />
             <Suspense fallback={<div style={{ minHeight: '100vh', width: '100%', background: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div style={{ width: 40, height: 40, border: '3px solid rgba(99,102,241,0.3)', borderTopColor: '#6366f1', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} /><style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style></div>}>
               <Routes>
@@ -160,6 +129,7 @@ const App = () => {
                 <Route path="/aml-kyc-policy" element={<AmlKycPolicyPublic />} />
                 <Route path="/features/discover" element={<DiscoverPublic />} />
                 <Route path="/features/channels" element={<ChannelsPublic />} />
+                <Route path="/features/creator-hub" element={<ChannelsPublic />} />
                 <Route path="/features/pulse-feeds" element={<PulseFeedsPublic />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/contact" element={<ContactPublic />} />
@@ -171,6 +141,7 @@ const App = () => {
                 <Route path="/features/community-hub" element={<CommunityHubPublic />} />
                 <Route path="/features/competitions" element={<CompetitionsPublic />} />
                 <Route path="/features/tradifive-ai" element={<TradifiveAIPublic />} />
+                <Route path="/features/auto-trade" element={<AutoTradePublic />} />
                 <Route path="/features/custom-strategies" element={<CustomStrategiesPublic />} />
                 <Route path="/features/options-trading" element={<OptionsTradingPublic />} />
                 <Route path="/features/prop-firm-integrations" element={<PropFirmIntegrationsPublic />} />
@@ -181,28 +152,58 @@ const App = () => {
                 <Route element={<ProtectedLayout />}>
                   <Route path="/home" element={<Home />} />
                   <Route path="/discover" element={<Discover />} />
+                  <Route path="/marketplace" element={<Discover />} />
+                  <Route path="/marketplace/store" element={<Discover />} />
+                  <Route path="/marketplace/signals" element={<Discover />} />
+                  <Route path="/store" element={<Discover />} />
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/dashboard/portfolio" element={<Portfolio />} />
                   <Route path="/dashboard/brokers" element={<Brokers />} />
                   <Route path="/dashboard/reports" element={<Reports />} />
                   <Route path="/broker-connect" element={<Navigate to="/settings?tab=trading" replace />} />
                   <Route path="/journal" element={<Journal />} />
+                  <Route path="/charts" element={<Navigate to="/journal" replace />} />
+                  <Route path="/chart" element={<Navigate to="/journal" replace />} />
+                  <Route path="/analytics" element={<Navigate to="/journal" replace />} />
+                  <Route path="/journal/history" element={<Navigate to="/journal" replace />} />
+                  <Route path="/journal/mistakes" element={<Navigate to="/journal" replace />} />
+                  <Route path="/journal/tags" element={<Navigate to="/journal" replace />} />
                   <Route path="/risk-guard" element={<RiskGuard />} />
+                  <Route path="/risk-guard/limits" element={<Navigate to="/risk-guard" replace />} />
+                  <Route path="/risk-guard/exposure" element={<Navigate to="/risk-guard" replace />} />
+                  <Route path="/risk-guard/kill-switch" element={<Navigate to="/risk-guard" replace />} />
                   <Route path="/settings" element={<Settings />} />
                   <Route path="/ai-coach" element={<TradifiveAI />} />
+                  <Route path="/ai-coach/chat" element={<Navigate to="/ai-coach" replace />} />
+                  <Route path="/ai-coach/feedback" element={<Navigate to="/ai-coach" replace />} />
+                  <Route path="/ai-coach/goals" element={<Navigate to="/ai-coach" replace />} />
                   <Route path="/auto-trade/setup" element={<AITrading />} />
                   <Route path="/auto-trade/dashboard" element={<AutoTradeDashboardPage />} />
                   <Route path="/auto-trade/active-bots" element={<MyRobots />} />
                   <Route path="/auto-trade/builder" element={<StrategyBuilderPage />} />
+                  <Route path="/strategy-builder" element={<StrategyBuilderPage />} />
+                  <Route path="/strategy" element={<StrategyBuilderPage />} />
                   <Route path="/auto-trade/history" element={<TradeHistory />} />
+                  <Route path="/history" element={<TradeHistory />} />
+                  <Route path="/order-history" element={<TradeHistory />} />
                   <Route path="/auto-trade/license" element={<EASetup />} />
+                  <Route path="/license" element={<EASetup />} />
+                  <Route path="/activation" element={<EASetup />} />
                   <Route path="/ai-trading" element={<Navigate to="/auto-trade/setup" replace />} />
                   <Route path="/rewards" element={<Rewards />} />
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/user/:username" element={<UserProfilePublic />} />
                   <Route path="/channel" element={<Channel />} />
+                  <Route path="/channels" element={<Navigate to="/channel" replace />} />
+                  <Route path="/channels/all" element={<Navigate to="/channel" replace />} />
                   <Route path="/channel/:channelId" element={<Channel />} />
                   <Route path="/inbox" element={<Inbox />} />
+                  <Route path="/messages" element={<Navigate to="/inbox" replace />} />
+                  <Route path="/channels/messages" element={<Navigate to="/inbox" replace />} />
+                  <Route path="/learning" element={<Navigate to="/discover" replace />} />
+                  <Route path="/discover/strategies" element={<Navigate to="/discover" replace />} />
+                  <Route path="/discover/traders" element={<Navigate to="/discover" replace />} />
+                  <Route path="/finance" element={<Navigate to="/dashboard/portfolio" replace />} />
                   <Route path="/support" element={<Support />} />
                   <Route path="/feedback" element={<Feedback />} />
                   <Route path="/upgrade" element={<Upgrade />} />
@@ -222,6 +223,7 @@ const App = () => {
 
                 {/* Admin Routes */}
                 <Route path="/admin" element={<AdminRoute><AdminOverview /></AdminRoute>} />
+                <Route path="/admin/auto-trade" element={<AdminRoute><AdminAutoTrade /></AdminRoute>} />
                 <Route path="/admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
                 <Route path="/admin/deleted" element={<AdminRoute><AdminDeleted /></AdminRoute>} />
                 <Route path="/admin/trading" element={<AdminRoute><AdminTrading /></AdminRoute>} />

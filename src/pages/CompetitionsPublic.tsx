@@ -75,7 +75,7 @@ export default function CompetitionsPublic() {
               Monthly trading competitions with real cash prizes and funded account seats. Your ranking is 100% transparent, verifiable, and MT5-authenticated. No pay-to-win, no fake results.
             </p>
             <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
-              <button onClick={handleStart} style={{ background: "linear-gradient(135deg, #f59e0b, #ef4444)", color: "#fff", border: "none", borderRadius: 100, padding: "14px 32px", fontWeight: 700, fontSize: 15, cursor: "pointer" }}>
+              <button onClick={handleStart} className="btn-glow-primary" style={{ borderRadius: 100, padding: "14px 32px", fontSize: 15, fontWeight: 700 }}>
                 Join Next Tournament →
               </button>
               <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "14px 0" }}>
@@ -175,7 +175,7 @@ export default function CompetitionsPublic() {
             Ready to compete?
           </h2>
           <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 16, marginBottom: 36 }}>Join the next tournament for free. No registration fee.</p>
-          <button onClick={handleStart} style={{ background: "linear-gradient(135deg, #f59e0b, #ef4444)", color: "#fff", border: "none", borderRadius: 100, padding: "16px 44px", fontWeight: 800, fontSize: 16, cursor: "pointer" }}>
+          <button onClick={handleStart} className="btn-glow-primary" style={{ borderRadius: 100, padding: "16px 44px", fontWeight: 800, fontSize: 16 }}>
             Enter the Arena →
           </button>
         </motion.div>

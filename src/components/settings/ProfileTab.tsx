@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { motion } from 'framer-motion';
 import { Camera, ExternalLink, Check, ChevronDown, CheckCircle2, Circle, ArrowRight, ChevronsUpDown, User, Crown, Briefcase } from 'lucide-react';
-import { Country, State, City } from 'country-state-city';
+import { Country, State } from 'country-state-city';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Button } from "@/components/ui/button";
@@ -100,8 +99,6 @@ export default function ProfileTab({
 
    const states = useMemo(() => selectedCountryCode ? State.getStatesOfCountry(selectedCountryCode) || [] : [], [selectedCountryCode]);
    const selectedStateCode = useMemo(() => states.find(s => s.name === profile.state)?.isoCode, [profile.state, states]);
-
-   const cities = useMemo(() => (selectedCountryCode && selectedStateCode) ? City.getCitiesOfState(selectedCountryCode, selectedStateCode) || [] : [], [selectedCountryCode, selectedStateCode]);
 
    const completenessChecks = useMemo(() => {
       const checks = {
@@ -254,12 +251,12 @@ export default function ProfileTab({
                      </div>
                      <div className="space-y-1.5">
                         <label className="text-[11px] font-bold text-slate-500 dark:text-[#949ba4] px-1">City</label>
-                        <SearchableCombobox
+                        <input
+                           type="text"
+                           placeholder="Enter your city"
                            value={profile.city || ""}
-                           onChange={(val: string) => setProfile({ ...profile, city: val })}
-                           items={cities}
-                           placeholder="Select City"
-                           disabled={!profile.state || cities.length === 0}
+                           onChange={(e) => setProfile({ ...profile, city: e.target.value })}
+                           className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] text-[13px] font-medium text-slate-800 dark:text-white outline-none focus:border-[#3b82f6] transition-all"
                         />
                      </div>
                      <div className="space-y-1.5">

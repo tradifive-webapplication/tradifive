@@ -20,7 +20,6 @@ import confetti from "canvas-confetti";
 const SplineLazy = lazy(() => import('@splinetool/react-spline'));
 import { FlipText } from "@/components/ui/flip-text";
 import { AgentBentoGrid } from "@/components/ui/agent-bento-grid";
-import DeepDiveFeatures from "@/components/DeepDiveFeatures";
 import SideRays from "@/components/SideRays";
 import PlasmaWave from "@/components/PlasmaWave";
 import BlurText from "@/components/BlurText";
@@ -517,6 +516,7 @@ const CORE_FEATURES = [
   { n: "Live Trading Competitions", c: "#7c3aed" },
   { n: "Institutional Risk Guard", c: "#3b82f6" },
   { n: "AI Trade Journal", c: "#10b981" },
+  { n: "FiAlgo Engine", c: "#0ea5e9" },
   { n: "24-Hour Trading Stories", c: "#7c3aed" },
   { n: "Real-Time Leaderboards", c: "#3b82f6" },
   { n: "Multi-Broker MT5 Bridge", c: "#10b981" },
@@ -1254,9 +1254,15 @@ function CommunityNetwork({ onStart }: { onStart: () => void }) {
               Join a vibrant global community. Share setups, learn from live webinars, and connect directly with the world's best verified traders.
             </p>
 
-            <button onClick={onStart} style={{ background: "#fff", color: "#000", padding: "14px 32px", borderRadius: 100, fontSize: 15, fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 8, transition: "all 0.2s", boxShadow: "0 0 40px rgba(255,255,255,0.15)" }}>
+            <motion.button
+              onClick={onStart}
+              className="btn-glow-primary"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              style={{ padding: "14px 32px", borderRadius: 100, fontSize: 15, fontWeight: 700 }}
+            >
               Join the Community <ArrowRight size={16} />
-            </button>
+            </motion.button>
           </motion.div>
         </div>
 
@@ -1524,9 +1530,15 @@ function MobileView({ onStart }: { onStart: () => void }) {
       <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.65, maxWidth: 340, marginBottom: 36 }}>
         The full Tradifive experience is available on desktop. For mobile, download our app for the best experience.
       </p>
-      <button onClick={onStart} style={{ padding: "14px 36px", background: "#3b82f6", color: "#fff", fontWeight: 800, fontSize: 15, border: "none", borderRadius: 100, cursor: "pointer", marginBottom: 14, width: "100%", maxWidth: 300 }}>
+      <motion.button
+        onClick={onStart}
+        className="btn-glow-primary"
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        style={{ padding: "14px 36px", borderRadius: 100, fontSize: 15, fontWeight: 800, marginBottom: 14, width: "100%", maxWidth: 300, justifyContent: "center" }}
+      >
         🚀 Sign Up Free
-      </button>
+      </motion.button>
       <a href="/download" style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", textDecoration: "none", fontWeight: 600 }}>Download Mobile App →</a>
     </div>
   );
@@ -1599,8 +1611,6 @@ export default function TradiFive() {
         <Problem />
         <Sep />
         <HowItWorks />
-        <Sep />
-        <DeepDiveFeatures />
         <Sep />
         <CommunityNetwork onStart={handleStart} />
         <Sep />

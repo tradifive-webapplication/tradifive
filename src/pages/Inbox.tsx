@@ -6,13 +6,15 @@ import { usePlan } from "@/hooks/usePlan";
 import { motion, AnimatePresence } from "framer-motion";
 import DashboardLayout from "@/components/DashboardLayout";
 import { 
-  Search, CheckCircle2, MoreVertical, Search as SearchIcon, VolumeX, Volume2, X, 
+  Search, CheckCircle2, MoreVertical, Search as SearchIcon, VolumeX, Volume2, X, ChevronLeft,
   Share2, CornerUpRight, Pin, Gift, Phone, User, Users, Bookmark, Settings as SettingsIcon, 
   Send, Plus, Eye, MessageSquare, Menu, LogOut, AlertTriangle, Image as ImageIcon, 
   Film, Folder, Link2, BarChart2, Mic, QrCode, Ticket, Check, ShieldAlert, Cpu, Sparkles, Smile, Paperclip, SendHorizonal, CheckCheck
 } from "lucide-react";
 import { Search as IconlySearch, User as IconlyUser, VolumeOff as IconlyVolumeOff, VolumeUp as IconlyVolumeUp, Voice2 as IconlyVoice2, MoreCircle as IconlyMoreCircle, Plus as IconlyPlus, Send as IconlySend } from "react-iconly";
 import { toast } from "sonner";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { triggerHaptic } from "@/utils/haptics";
 import { 
   DropdownMenu,
   DropdownMenuTrigger,
@@ -67,6 +69,10 @@ export default function InboxPage() {
   }, [navigate]);
 
   const [searchParams] = useSearchParams();
+  const isMobile = useIsMobile();
+  const [mobileView, setMobileView] = useState<"list" | "chat">(() => {
+    return searchParams.get('conv') ? "chat" : "list";
+  });
 
   const [activeConvId, setActiveConvId] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -91,9 +97,10 @@ export default function InboxPage() {
   // Set active conversation: URL param takes priority, then first conversation
   useEffect(() => {
     const convParam = searchParams.get('conv');
-    if (convParam && convParam !== activeConvId) {
+    if (convParam) {
       setActiveConvId(convParam);
-    } else if (!convParam && dbConversations.length > 0 && !activeConvId) {
+      setMobileView("chat");
+    } else if (dbConversations.length > 0 && !activeConvId) {
       setActiveConvId(dbConversations[0].id);
     }
   }, [dbConversations, searchParams]);
@@ -136,7 +143,7 @@ function InboxSkeleton() {
   return (
     <div className="w-full h-full flex min-h-0 select-none animate-pulse">
       {/* Sidebar column (DM List) */}
-      <div className="w-[360px] shrink-0 border-r border-slate-150 dark:border-white/5 bg-[#F8FAFC] dark:bg-[#121212] p-4 space-y-6">
+      <div className="w-full md:w-[360px] shrink-0 border-r border-slate-150 dark:border-white/5 bg-[#F8FAFC] dark:bg-[#121212] p-4 space-y-6">
         <div className="h-9 w-full bg-slate-250 dark:bg-[#111421]/60 rounded-xl border border-slate-200/50 dark:border-white/5" />
         <div className="space-y-4">
           {[1, 2, 3, 4, 5].map((i) => (
@@ -152,7 +159,7 @@ function InboxSkeleton() {
       </div>
 
       {/* Main chat window skeleton */}
-      <div className="flex-1 flex flex-col bg-[#F1F5F9] dark:bg-[#000000]">
+      <div className="hidden md:flex flex-1 flex-col bg-[#F1F5F9] dark:bg-[#000000]">
         {/* Chat header */}
         <div className="h-[60px] px-6 border-b border-slate-150 dark:border-white/5 flex items-center justify-between bg-white dark:bg-[#121212]">
           <div className="flex items-center gap-3">
@@ -207,6 +214,7 @@ function InboxSkeleton() {
   }
 
   const handleToggleMute = () => {
+    triggerHaptic("medium");
     setIsMuted(!isMuted);
     if (!isMuted) {
       toast.info("Conversation notifications muted");
@@ -219,6 +227,7 @@ function InboxSkeleton() {
     e.preventDefault();
     if (!inputText.trim()) return;
 
+    triggerHaptic("light");
     // Send message to Supabase database via hook
     await sendMessage(inputText);
     setInputText("");
@@ -296,8 +305,14 @@ function InboxSkeleton() {
   );
 
   return (
-    <DashboardLayout noPadding={true} noScroll={true} headerActions={headerActions}>
-      <div className="font-sans relative flex w-full bg-white dark:bg-[#121212] text-slate-800 dark:text-slate-100 rounded-b-[2.4rem] overflow-hidden flex-1 min-h-0 select-none transition-colors duration-200">
+    <DashboardLayout
+      noPadding={true}
+      noScroll={true}
+      headerActions={headerActions}
+      hideBottomNav={isMobile && mobileView === "chat"}
+      onBack={isMobile && mobileView === "chat" ? () => setMobileView("list") : undefined}
+    >
+      <div className="font-sans relative flex w-full bg-white dark:bg-[#121212] text-slate-800 dark:text-slate-100 rounded-b-none md:rounded-b-[2.4rem] overflow-hidden flex-1 min-h-0 select-none transition-colors duration-200">
         
         {/* Style tag to inject the clean amazing-scrollbar classes */}
         <style dangerouslySetInnerHTML={{__html: `
@@ -334,8 +349,11 @@ function InboxSkeleton() {
           }
         `}} />
 
-        {/* --- 1. CONVERSATIONS LIST PANEL (w-[360px]) --- */}
-        <div className="w-[360px] shrink-0 border-r border-slate-150 dark:border-white/5 bg-[#F8FAFC] dark:bg-[#121212] flex flex-col overflow-hidden h-full">
+        {/* --- 1. CONVERSATIONS LIST PANEL --- */}
+        <div className={`
+          ${mobileView === "list" ? "flex w-full" : "hidden"} 
+          md:flex md:w-[360px] shrink-0 border-r border-slate-150 dark:border-white/5 bg-[#F8FAFC] dark:bg-[#121212] flex-col overflow-hidden h-full
+        `}>
           
           {/* Search Header */}
           <div className="p-3 px-4 flex flex-col border-b border-slate-100 dark:border-white/5 bg-white dark:bg-[#121212] gap-2.5 shrink-0">
@@ -346,15 +364,26 @@ function InboxSkeleton() {
                 placeholder="Search inbox..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-slate-100/80 dark:bg-[#1E1E1E] border border-slate-200/50 dark:border-white/5 rounded-xl pl-10 pr-4 py-2.5 text-[13px] font-normal placeholder:text-slate-400 dark:placeholder:text-slate-500 text-slate-800 dark:text-white outline-none focus:border-slate-400 focus:bg-white transition-all"
+                className="w-full bg-slate-100/80 dark:bg-[#1E1E1E] border border-slate-200/50 dark:border-white/5 rounded-xl pl-10 pr-8 py-2.5 text-[13px] font-normal placeholder:text-slate-400 dark:placeholder:text-slate-500 text-slate-800 dark:text-white outline-none focus:border-slate-400 focus:bg-white transition-all"
               />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-white p-0.5"
+                >
+                  <X size={14} />
+                </button>
+              )}
             </div>
             
             {/* SaaS Filter Tabs (Favorites, Mentors, Support) */}
-            <div className="flex items-center gap-1.5 p-1 bg-slate-100/80 dark:bg-[#121212] rounded-full border border-slate-200/30 dark:border-white/5 text-[11px] font-bold shrink-0">
+            <div className="flex items-center gap-1.5 p-1 bg-slate-100/80 dark:bg-[#121212] rounded-full border border-slate-200/30 dark:border-white/5 text-[11px] font-bold shrink-0 overflow-x-auto scrollbar-hide">
               <button 
-                onClick={() => setActiveFilter("all")}
-                className={`flex-1 py-1.5 rounded-full text-center transition-all ${activeFilter === "all" ? 'bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] dark:shadow-none shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:shadow-none border border-white dark:border-white/5 text-slate-900 dark:text-white' : 'text-slate-450 hover:text-slate-850 dark:text-slate-400 dark:hover:text-slate-300 border border-transparent'}`}
+                onClick={() => {
+                  setActiveFilter("all");
+                  triggerHaptic("selection");
+                }}
+                className={`flex-1 min-w-[55px] py-1.5 rounded-full text-center transition-all ${activeFilter === "all" ? 'bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] dark:shadow-none shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:shadow-none border border-white dark:border-white/5 text-slate-900 dark:text-white' : 'text-slate-450 hover:text-slate-850 dark:text-slate-400 dark:hover:text-slate-300 border border-transparent'}`}
               >
                 All
               </button>
@@ -364,16 +393,20 @@ function InboxSkeleton() {
                     toast.error("Pro Feature", { description: "Upgrade to Pro to filter by Favorites." });
                     return;
                   }
+                  triggerHaptic("selection");
                   setActiveFilter("favorites");
                 }}
-                className={`flex-1 py-1.5 flex items-center justify-center gap-1.5 rounded-full text-center transition-all ${activeFilter === "favorites" ? 'bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] dark:shadow-none shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:shadow-none border border-white dark:border-white/5 text-slate-900 dark:text-white' : 'text-slate-450 hover:text-slate-850 dark:text-slate-400 dark:hover:text-slate-300 border border-transparent'} ${!canAccess('inbox_favorites') ? 'opacity-60' : ''}`}
+                className={`flex-1 min-w-[80px] py-1.5 flex items-center justify-center gap-1.5 rounded-full text-center transition-all ${activeFilter === "favorites" ? 'bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] dark:shadow-none shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:shadow-none border border-white dark:border-white/5 text-slate-900 dark:text-white' : 'text-slate-450 hover:text-slate-850 dark:text-slate-400 dark:hover:text-slate-300 border border-transparent'} ${!canAccess('inbox_favorites') ? 'opacity-60' : ''}`}
               >
                 {!canAccess('inbox_favorites') && <div className="text-amber-500"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></div>}
                 Favorites
               </button>
               <button 
-                onClick={() => setActiveFilter("mentors")}
-                className={`flex-1 py-1.5 rounded-full text-center transition-all ${activeFilter === "mentors" ? 'bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] dark:shadow-none shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:shadow-none border border-white dark:border-white/5 text-slate-900 dark:text-white' : 'text-slate-450 hover:text-slate-850 dark:text-slate-400 dark:hover:text-slate-300 border border-transparent'}`}
+                onClick={() => {
+                  setActiveFilter("mentors");
+                  triggerHaptic("selection");
+                }}
+                className={`flex-1 min-w-[75px] py-1.5 rounded-full text-center transition-all ${activeFilter === "mentors" ? 'bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] dark:shadow-none shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:shadow-none border border-white dark:border-white/5 text-slate-900 dark:text-white' : 'text-slate-450 hover:text-slate-850 dark:text-slate-400 dark:hover:text-slate-300 border border-transparent'}`}
               >
                 Mentors
               </button>
@@ -383,9 +416,10 @@ function InboxSkeleton() {
                     toast.error("Pro Feature", { description: "Upgrade to Pro to access priority Support." });
                     return;
                   }
+                  triggerHaptic("selection");
                   setActiveFilter("support");
                 }}
-                className={`flex-1 py-1.5 flex items-center justify-center gap-1.5 rounded-full text-center transition-all ${activeFilter === "support" ? 'bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] dark:shadow-none shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:shadow-none border border-white dark:border-white/5 text-slate-900 dark:text-white' : 'text-slate-450 hover:text-slate-850 dark:text-slate-400 dark:hover:text-slate-300 border border-transparent'} ${!canAccess('inbox_support') ? 'opacity-60' : ''}`}
+                className={`flex-1 min-w-[70px] py-1.5 flex items-center justify-center gap-1.5 rounded-full text-center transition-all ${activeFilter === "support" ? 'bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] dark:shadow-none shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:shadow-none border border-white dark:border-white/5 text-slate-900 dark:text-white' : 'text-slate-450 hover:text-slate-850 dark:text-slate-400 dark:hover:text-slate-300 border border-transparent'} ${!canAccess('inbox_support') ? 'opacity-60' : ''}`}
               >
                 {!canAccess('inbox_support') && <div className="text-amber-500"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></div>}
                 Support
@@ -394,7 +428,7 @@ function InboxSkeleton() {
           </div>
 
           {/* Scrollable list of conversations divided by light dividers */}
-          <div className="flex-1 overflow-y-auto amazing-scrollbar bg-white dark:bg-[#121212] min-h-0">
+          <div className="flex-1 overflow-y-auto amazing-scrollbar bg-white dark:bg-[#121212] min-h-0 pb-24 md:pb-0">
             {filteredConversations.map(conv => {
               const isActive = conv.id === activeConvId;
               
@@ -411,6 +445,8 @@ function InboxSkeleton() {
                   key={conv.id}
                   onClick={() => {
                     setActiveConvId(conv.id);
+                    setMobileView("chat");
+                    triggerHaptic("selection");
                   }}
                   className={`relative text-left w-full p-4 flex gap-3.5 border-b border-slate-100/60 dark:border-white/5 transition-all duration-200 outline-none items-start cursor-pointer select-none ${
                     isActive 
@@ -505,76 +541,138 @@ function InboxSkeleton() {
         </div>
 
         {/* --- 2. RIGHT CHAT WINDOW COLUMN --- */}
-        <div className="flex-1 flex flex-col bg-white dark:bg-[#000000] relative overflow-hidden h-full">
+        <div className={`
+          ${mobileView === "chat" ? "flex w-full" : "hidden"} 
+          md:flex flex-1 flex-col bg-white dark:bg-[#000000] relative overflow-hidden h-full
+        `}>
           {activeConv ? (
             <>
               {/* Chat Header */}
-              <div className="p-4 px-6 border-b border-slate-150 dark:border-white/5 bg-white dark:bg-[#121212] flex items-center justify-between z-10 shadow-xs h-[60px] shrink-0">
-                <div className="cursor-pointer flex-1" onClick={() => setShowDetails(!showDetails)}>
-                  <div className="flex items-center gap-2">
-                    <h2 className="text-[14px] font-bold text-slate-900 dark:text-white flex items-center gap-1.5 leading-none">
-                      {activeConv.name}
-                      {activeConv.verified && <CheckCircle2 size={14} className="text-slate-400 fill-slate-400 dark:text-slate-400 dark:fill-slate-550 text-white shrink-0" />}
-                    </h2>
-                    
-                    <span className={`w-1.5 h-1.5 rounded-full ${
-                      activeConv.status === 'Online' ? 'bg-green-500' :
-                      activeConv.status === 'Away' ? 'bg-amber-500' :
-                      activeConv.status === 'Offline' ? 'bg-slate-400' :
-                      activeConv.status === 'Bot' ? 'bg-indigo-500' : 'bg-slate-400'
-                    }`} />
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                      {activeConv.status}
-                      {activeConv.status !== 'Online' && activeConv.status !== 'Bot' && activeConv.lastSeen && (
-                        <span className="ml-1 text-slate-400/80 font-normal normal-case tracking-normal">
-                          (Last seen {activeConv.lastSeen})
-                        </span>
-                      )}
-                    </span>
+              <div className="p-3 sm:p-4 px-3 sm:px-6 border-b border-slate-150 dark:border-white/5 bg-white dark:bg-[#121212] flex items-center justify-between z-10 shadow-xs h-[60px] sm:h-[64px] shrink-0 gap-2">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                  {/* Mobile Back Button */}
+                  <button
+                    onClick={() => {
+                      setMobileView("list");
+                      triggerHaptic("selection");
+                    }}
+                    className="md:hidden w-8 h-8 rounded-full flex items-center justify-center -ml-1 text-slate-600 dark:text-slate-350 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors active:scale-95 shrink-0"
+                    title="Back to conversations"
+                  >
+                    <ChevronLeft size={22} strokeWidth={2.5} />
+                  </button>
+
+                  {/* Contact Avatar (tap to view details) */}
+                  <div 
+                    onClick={() => { setShowDetails(!showDetails); triggerHaptic("light"); }}
+                    className="relative shrink-0 cursor-pointer"
+                  >
+                    <img 
+                      src={activeConv.avatar} 
+                      alt={activeConv.name} 
+                      className="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover border border-slate-100 dark:border-white/5 shadow-2xs" 
+                      onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.svg"; }} 
+                    />
+                    {activeConv.status === "Online" && (
+                      <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white dark:border-[#0E121E] rounded-full" />
+                    )}
+                    {activeConv.status === "Away" && (
+                      <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-amber-500 border-2 border-white dark:border-[#0E121E] rounded-full" />
+                    )}
+                    {activeConv.status === "Offline" && (
+                      <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-slate-350 border-2 border-white dark:border-[#0E121E] rounded-full" />
+                    )}
+                    {activeConv.status === "Bot" && (
+                      <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-[#4F46E5] border-2 border-white dark:border-[#0E121E] rounded-full" />
+                    )}
                   </div>
-                  <p className="text-[10.5px] font-bold text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-wider">
-                    {activeConv.designation} &bull; {activeConv.roleTag}
-                  </p>
+
+                  {/* Contact Name & Status (tap to view details) */}
+                  <div 
+                    className="cursor-pointer min-w-0 flex-1" 
+                    onClick={() => { setShowDetails(!showDetails); triggerHaptic("light"); }}
+                  >
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <h2 className="text-[13.5px] sm:text-[14px] font-bold text-slate-900 dark:text-white flex items-center gap-1 leading-none truncate">
+                        <span className="truncate">{activeConv.name}</span>
+                        {activeConv.verified && <CheckCircle2 size={13} className="text-slate-400 fill-slate-400 dark:text-slate-400 dark:fill-slate-550 text-white shrink-0" />}
+                      </h2>
+                      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                        activeConv.status === 'Online' ? 'bg-green-500' :
+                        activeConv.status === 'Away' ? 'bg-amber-500' :
+                        activeConv.status === 'Offline' ? 'bg-slate-400' :
+                        activeConv.status === 'Bot' ? 'bg-indigo-500' : 'bg-slate-400'
+                      }`} />
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest shrink-0 hidden sm:inline">
+                        {activeConv.status}
+                      </span>
+                    </div>
+                    <p className="text-[10px] sm:text-[10.5px] font-bold text-slate-500 dark:text-slate-400 mt-0.5 sm:mt-1 uppercase tracking-wider truncate">
+                      {activeConv.designation} &bull; {activeConv.roleTag}
+                    </p>
+                  </div>
                 </div>
                 
-                <div className="flex items-center gap-2 shrink-0">
+                {/* Header Actions */}
+                <div className="flex items-center gap-1 sm:gap-2 shrink-0">
                   <button 
-                    onClick={() => setShowDetails(!showDetails)}
-                    className={`w-9 h-9 rounded-full flex items-center justify-center transition-all text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 active:scale-95 ${showDetails ? 'bg-slate-100 dark:bg-slate-800 text-blue-500 dark:text-blue-400' : ''}`}
+                    onClick={() => { setShowDetails(!showDetails); triggerHaptic("light"); }}
+                    className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center transition-all text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 active:scale-95 ${showDetails ? 'bg-slate-100 dark:bg-slate-800 text-blue-500 dark:text-blue-400' : ''}`}
                     title="Conversation Details"
                   >
-                    <IconlyUser set="curved" primaryColor="currentColor" size={18} stroke="bold" strokeWidth={2} />
+                    <IconlyUser set="curved" primaryColor="currentColor" size={17} stroke="bold" strokeWidth={2} />
                   </button>
                   
                   <button 
                     onClick={handleToggleMute}
-                    className="w-9 h-9 rounded-full flex items-center justify-center transition-all text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 active:scale-95"
+                    className="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center transition-all text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 active:scale-95"
                     title={isMuted ? "Unmute" : "Mute"}
                   >
-                    {isMuted ? <IconlyVolumeOff set="curved" primaryColor="currentColor" size={18} stroke="bold" strokeWidth={2} /> : <IconlyVolumeUp set="curved" primaryColor="currentColor" size={18} stroke="bold" strokeWidth={2} />}
+                    {isMuted ? <IconlyVolumeOff set="curved" primaryColor="currentColor" size={17} stroke="bold" strokeWidth={2} /> : <IconlyVolumeUp set="curved" primaryColor="currentColor" size={17} stroke="bold" strokeWidth={2} />}
                   </button>
-                  <button className="w-9 h-9 rounded-full flex items-center justify-center transition-all text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 active:scale-95">
+
+                  <button 
+                    onClick={() => toast.info("Search in conversation coming soon")} 
+                    className="hidden sm:flex w-9 h-9 rounded-full items-center justify-center transition-all text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 active:scale-95"
+                  >
                     <Search size={18} strokeWidth={2} />
                   </button>
-                  <button className="w-9 h-9 rounded-full flex items-center justify-center transition-all text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 active:scale-95">
-                    <MoreVertical size={18} />
-                  </button>
+
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center transition-all text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 active:scale-95 outline-none">
+                        <MoreVertical size={17} />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48 rounded-xl bg-white dark:bg-[#121212] border border-slate-150 dark:border-white/5 p-1 shadow-xl z-[100] outline-none">
+                      <DropdownMenuItem onClick={() => { setShowDetails(true); triggerHaptic("light"); }} className="flex items-center gap-2 text-xs font-semibold py-2 px-3 rounded-lg cursor-pointer">
+                        <User size={15} /> View Business Card
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={handleToggleMute} className="flex items-center gap-2 text-xs font-semibold py-2 px-3 rounded-lg cursor-pointer">
+                        {isMuted ? <Volume2 size={15} /> : <VolumeX size={15} />}
+                        {isMuted ? "Unmute Notifications" : "Mute Notifications"}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => toast.info(`Exporting thread for ${activeConv.name}...`)} className="flex items-center gap-2 text-xs font-semibold py-2 px-3 rounded-lg cursor-pointer">
+                        <Bookmark size={15} /> Export Audit Log
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
 
               {/* Ticket Header Banner */}
               {activeConv.ticketId && (
-                <div className="bg-[#F8FAFC] dark:bg-[#0B101D] border-b border-slate-150 dark:border-white/5 px-6 py-2.5 flex items-center justify-between text-xs text-slate-600 dark:text-slate-350 z-10 transition-all shrink-0">
-                  <div className="flex items-center gap-3 min-w-0 pr-4">
+                <div className="bg-[#F8FAFC] dark:bg-[#0B101D] border-b border-slate-150 dark:border-white/5 px-3 sm:px-6 py-2 sm:py-2.5 flex items-center justify-between text-xs text-slate-600 dark:text-slate-350 z-10 transition-all shrink-0">
+                  <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 pr-2 sm:pr-4">
                     <Ticket size={14} className="text-slate-400 dark:text-slate-400 shrink-0" />
-                    <div className="border-l-2 border-slate-350 dark:border-slate-700 pl-3 min-w-0">
-                      <p className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest leading-none mb-0.5">Active Support Ticket</p>
-                      <p className="text-[11px] font-medium leading-relaxed truncate text-slate-600 dark:text-slate-400">
-                        ID: <span className="font-extrabold">#{activeConv.ticketId}</span> &bull; Status: <span className="font-extrabold text-slate-850 dark:text-white">{activeConv.ticketStatus}</span> &bull; Designation: {activeConv.designation}
+                    <div className="border-l-2 border-slate-350 dark:border-slate-700 pl-2.5 sm:pl-3 min-w-0">
+                      <p className="text-[9.5px] sm:text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest leading-none mb-0.5">Active Support Ticket</p>
+                      <p className="text-[10.5px] sm:text-[11px] font-medium leading-relaxed truncate text-slate-600 dark:text-slate-400">
+                        ID: <span className="font-extrabold">#{activeConv.ticketId}</span> &bull; Status: <span className="font-extrabold text-slate-850 dark:text-white">{activeConv.ticketStatus}</span>
                       </p>
                     </div>
                   </div>
-                  <span className="text-[9.5px] font-black uppercase tracking-widest bg-slate-200/50 dark:bg-slate-800 px-2 py-0.5 rounded-full text-slate-600 dark:text-slate-400">
+                  <span className="text-[9px] sm:text-[9.5px] font-black uppercase tracking-widest bg-slate-200/50 dark:bg-slate-800 px-2 py-0.5 rounded-full text-slate-600 dark:text-slate-400 shrink-0">
                     Priority Audit
                   </span>
                 </div>
@@ -582,7 +680,7 @@ function InboxSkeleton() {
 
               {/* Messages Stream Scroll Area with Classic Wallpaper */}
               <div 
-                className="flex-1 overflow-y-auto p-6 space-y-6 amazing-scrollbar min-h-0"
+                className="flex-1 overflow-y-auto p-3 sm:p-6 space-y-3 sm:space-y-6 amazing-scrollbar min-h-0"
                 style={{
                   backgroundColor: themeMode === "dark" ? "#000000" : "#F1F5F9",
                   backgroundImage: themeMode === "dark" 
@@ -630,9 +728,9 @@ function InboxSkeleton() {
                   return activeMessages.map((msg: any) => {
                     const isMe = msg.isMe;
                     return (
-                      <div key={msg.id} className={`flex w-full gap-3 ${isMe ? 'justify-end' : 'justify-start'}`}>
+                      <div key={msg.id} className={`flex w-full gap-2.5 sm:gap-3 ${isMe ? 'justify-end' : 'justify-start'}`}>
                         {/* Bubble Container */}
-                        <div className={`rounded-2xl border shadow-2xs max-w-2xl text-slate-800 dark:text-slate-100 transition-all overflow-hidden ${
+                        <div className={`rounded-2xl border shadow-2xs max-w-[85%] sm:max-w-2xl text-slate-800 dark:text-slate-100 transition-all overflow-hidden ${
                           isMe 
                             ? "rounded-tr-none bg-white border-slate-200/60 dark:bg-[#1E1E1E] dark:border-white/5" 
                             : "rounded-tl-none bg-white border-slate-200/60 dark:bg-[#1E1E1E] dark:border-white/5"
@@ -689,28 +787,37 @@ function InboxSkeleton() {
               </div>
 
               {/* --- RIGHT CHAT FOOTER PANEL --- */}
-              <div className="p-4 px-6 border-t border-slate-150 dark:border-white/5 bg-white dark:bg-[#121212] flex items-center justify-between z-10 shadow-xs shrink-0 w-full">
-                <form onSubmit={handleSendMessage} className="w-full flex items-center gap-3">
-                  <button type="button" onClick={() => toast.success("Attachment selector opened")} className="w-12 h-12 rounded-full border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:shadow-none shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:shadow-none hover:shadow-[0_6px_10px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#E2E8F0] dark:hover:shadow-none flex items-center justify-center transition-all text-slate-400 dark:text-slate-400 hover:text-blue-500 shrink-0 outline-none active:scale-95">
-                    <IconlyPlus set="curved" primaryColor="currentColor" size={20} />
+              <div className="p-2.5 sm:p-4 px-3 sm:px-6 border-t border-slate-150 dark:border-white/5 bg-white dark:bg-[#121212] flex items-center justify-between z-10 shadow-xs shrink-0 w-full pb-[max(env(safe-area-inset-bottom),0.75rem)] md:pb-4">
+                <form onSubmit={handleSendMessage} className="w-full flex items-center gap-2 sm:gap-3">
+                  <button 
+                    type="button" 
+                    onClick={() => {
+                      toast.success("Attachment selector opened");
+                      triggerHaptic("light");
+                    }} 
+                    className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:shadow-none shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:shadow-none hover:shadow-[0_6px_10px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#E2E8F0] dark:hover:shadow-none flex items-center justify-center transition-all text-slate-400 dark:text-slate-400 hover:text-blue-500 shrink-0 outline-none active:scale-95"
+                    title="Add attachment"
+                  >
+                    <IconlyPlus set="curved" primaryColor="currentColor" size={19} />
                   </button>
                   
-                  <div className="flex-1 bg-slate-100 dark:bg-[#1E1E1E] border border-transparent rounded-[24px] flex items-center px-5 py-1.5 transition-all relative">
+                  <div className="flex-1 bg-slate-100 dark:bg-[#1E1E1E] border border-transparent rounded-[24px] flex items-center px-4 sm:px-5 py-1 sm:py-1.5 transition-all relative">
                     <input 
                       type="text" 
                       value={inputText}
                       onChange={(e) => setInputText(e.target.value)}
                       placeholder={`Reply to ${activeConv.name}...`} 
-                      className="w-full bg-transparent border-none outline-none text-slate-800 dark:text-slate-200 placeholder:text-slate-400 font-medium text-[14px] py-1.5"
+                      className="w-full bg-transparent border-none outline-none text-slate-800 dark:text-slate-200 placeholder:text-slate-400 font-medium text-[13.5px] sm:text-[14px] py-1 sm:py-1.5"
                     />
                   </div>
 
                   <button 
                     type="submit" 
                     disabled={!inputText.trim()} 
-                    className="w-12 h-12 rounded-full border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:shadow-none shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:shadow-none hover:shadow-[0_6px_10px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#E2E8F0] dark:hover:shadow-none disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all text-slate-400 dark:text-slate-400 hover:text-blue-500 shrink-0 outline-none active:scale-95 group"
+                    className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:shadow-none shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:shadow-none hover:shadow-[0_6px_10px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#E2E8F0] dark:hover:shadow-none disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-all text-slate-400 dark:text-slate-400 hover:text-blue-500 shrink-0 outline-none active:scale-95 group"
+                    title="Send message"
                   >
-                    <IconlySend set="curved" primaryColor="currentColor" size={20} className="mr-0.5 group-hover:translate-x-0.5 transition-transform" />
+                    <IconlySend set="curved" primaryColor="currentColor" size={19} className="mr-0.5 group-hover:translate-x-0.5 transition-transform" />
                   </button>
                 </form>
               </div>
@@ -730,25 +837,37 @@ function InboxSkeleton() {
 
         {/* --- 3. SLIDE-OUT PARTNER DETAILS DRAWER PANEL --- */}
         <div 
-          className={`shrink-0 border-l border-slate-150 dark:border-white/5 bg-white dark:bg-[#121212] flex flex-col transition-all duration-300 ease-in-out h-full ${
-            showDetails && activeConv ? "w-[360px]" : "w-0 overflow-hidden border-l-0"
+          className={`shrink-0 md:border-l border-slate-150 dark:border-white/5 bg-white dark:bg-[#121212] flex flex-col transition-all duration-300 ease-in-out h-full ${
+            showDetails && activeConv 
+              ? "fixed inset-0 z-[60] md:relative md:inset-auto md:z-auto flex w-full md:w-[360px]" 
+              : "hidden md:flex md:w-0 md:overflow-hidden md:border-l-0"
           }`}
         >
           {activeConv && (
             <>
               {/* Drawer Header */}
-              <div className="p-4 px-6 border-b border-slate-100 dark:border-white/5 flex items-center justify-between shrink-0 h-[60px]">
-                <span className="text-[14px] font-bold text-slate-800 dark:text-white">Business Card</span>
+              <div className="p-4 px-5 sm:px-6 border-b border-slate-100 dark:border-white/5 flex items-center justify-between shrink-0 h-[60px] sm:h-[64px]">
+                <div className="flex items-center gap-2">
+                  <button 
+                    onClick={() => { setShowDetails(false); triggerHaptic("light"); }}
+                    className="md:hidden w-8 h-8 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center transition-colors text-slate-600 dark:text-slate-350 -ml-1"
+                    title="Close"
+                  >
+                    <ChevronLeft size={20} />
+                  </button>
+                  <span className="text-[14px] font-bold text-slate-800 dark:text-white">Business Card</span>
+                </div>
                 <button 
-                  onClick={() => setShowDetails(false)}
+                  onClick={() => { setShowDetails(false); triggerHaptic("light"); }}
                   className="w-8 h-8 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center transition-colors text-slate-400 hover:text-slate-800 dark:hover:text-white outline-none"
+                  title="Close"
                 >
                   <X size={18} />
                 </button>
               </div>
 
               {/* Drawer Body Scroll Area */}
-              <div className="flex-1 overflow-y-auto amazing-scrollbar p-6 space-y-6">
+              <div className="flex-1 overflow-y-auto amazing-scrollbar p-5 sm:p-6 space-y-5 sm:space-y-6 pb-20 md:pb-6">
                 
                 {/* Core Profile Card */}
                 <div className="text-center space-y-2">

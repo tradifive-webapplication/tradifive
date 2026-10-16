@@ -509,8 +509,8 @@ export default function DownloadAppPublic() {
         .btn-primary {
           padding: 13px 20px;
           border-radius: 12px;
-          background: #ffffff;
-          color: #030712;
+          background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+          color: #60a5fa;
           font-weight: 700;
           border: none;
           cursor: pointer;
@@ -520,12 +520,14 @@ export default function DownloadAppPublic() {
           gap: 8px;
           font-size: 14px;
           width: 100%;
-          box-shadow: 0 4px 12px rgba(255, 255, 255, 0.15);
+          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 6px rgba(0, 0, 0, 0.3);
           transition: all 0.2s ease;
+          outline: none;
         }
         .btn-primary:hover {
-          background: #f3f4f6;
-          box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);
+          background: linear-gradient(135deg, #253347 0%, #131c33 100%);
+          color: #93c5fd;
+          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 4px 12px rgba(0, 0, 0, 0.4);
           transform: translateY(-1.5px);
         }
         .btn-primary:active {
@@ -535,10 +537,10 @@ export default function DownloadAppPublic() {
         .btn-secondary {
           padding: 13px 20px;
           border-radius: 12px;
-          background: rgba(255, 255, 255, 0.04);
-          color: #fff;
+          background: #171717;
+          color: rgba(255, 255, 255, 0.9);
           font-weight: 600;
-          border: 1px solid rgba(255, 255, 255, 0.1);
+          border: none;
           cursor: pointer;
           display: flex;
           align-items: center;
@@ -546,11 +548,14 @@ export default function DownloadAppPublic() {
           gap: 8px;
           font-size: 14px;
           width: 100%;
+          box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.12), 0 2px 4px rgba(0, 0, 0, 0.2);
           transition: all 0.2s ease;
+          outline: none;
         }
         .btn-secondary:hover {
-          background: rgba(255, 255, 255, 0.08);
-          border-color: rgba(255, 255, 255, 0.2);
+          background: #1e1e1e;
+          color: #ffffff;
+          box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.16), 0 0 0 1px rgba(255, 255, 255, 0.18), 0 2px 4px rgba(0, 0, 0, 0.25);
           transform: translateY(-1.5px);
         }
         .btn-secondary:active {
@@ -777,20 +782,13 @@ export default function DownloadAppPublic() {
           <p style={{ color: "rgba(255,255,255,0.45)", fontSize: 15.5, marginBottom: 36 }}>Sign up now and access the web, mobile, and desktop apps.</p>
           <button 
             onClick={handleStart} 
+            className="btn-glow-primary"
             style={{ 
-              background: "linear-gradient(135deg, #6366f1, #7c3aed)", 
-              color: "#fff", 
-              border: "none", 
               borderRadius: 100, 
               padding: "16px 44px", 
               fontWeight: 800, 
               fontSize: 15, 
-              cursor: "pointer",
-              boxShadow: "0 10px 30px -10px rgba(99,102,241,0.4)",
-              transition: "all 0.2s ease"
             }}
-            onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-1.5px)"; e.currentTarget.style.boxShadow = "0 15px 35px -10px rgba(99,102,241,0.6)"; }}
-            onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 10px 30px -10px rgba(99,102,241,0.4)"; }}
           >
             Create Free Account
           </button>

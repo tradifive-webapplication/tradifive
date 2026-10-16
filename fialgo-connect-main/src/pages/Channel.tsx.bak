@@ -1,0 +1,1154 @@
+import React, { useState, useEffect, useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import DashboardLayout from "@/components/DashboardLayout";
+import { 
+  Search, Megaphone, CheckCircle2, MoreVertical, 
+  Search as SearchIcon, VolumeX, Volume2, X, Share2, CornerUpRight, 
+  Pin, Gift, Phone, User, Users, Bookmark, Settings as SettingsIcon, 
+  Send, Plus, Eye, MessageSquare, Menu, LogOut, AlertTriangle, 
+  Image as ImageIcon, Film, Folder, Link2, BarChart2, Mic, QrCode, Trash
+} from "lucide-react";
+import { toast } from "sonner";
+import { 
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator
+} from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { supabase } from "@/lib/supabase";
+import { useChannelData, MessageType } from "@/hooks/useChannelData";
+
+export default function Channel() {
+  const navigate = useNavigate();
+  const [user, setUser] = useState<any>(null);
+  const [authChecked, setAuthChecked] = useState(false);
+
+  const [activeChannelId, setActiveChannelId] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isMuted, setIsMuted] = useState(false);
+  const [inputText, setInputText] = useState("");
+  const [showPinned, setShowPinned] = useState(true);
+  const [showDetails, setShowDetails] = useState(false); // Drawer state
+  const [themeMode, setThemeMode] = useState(() => localStorage.getItem("theme") || "light");
+
+  const messageEndRef = useRef<HTMLDivElement>(null);
+
+  // 1. Auth session check
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
+        navigate("/login");
+      } else {
+        setUser(session.user);
+        setAuthChecked(true);
+      }
+    };
+    checkUser();
+  }, [navigate]);
+
+  // 2. Real-time Database Messaging Hook
+  const { channels: dbChannels, messages: dbMessages, loading: dbLoading, sendMessage, refetchChannels, isMember, joinChannel } = useChannelData(user?.id ?? "", activeChannelId);
+
+  // Create Channel Modal State
+  const [createStep, setCreateStep] = useState<1 | 2>(1);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [newChannelName, setNewChannelName] = useState("");
+  const [newChannelDesc, setNewChannelDesc] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
+  const [followedUsers, setFollowedUsers] = useState<any[]>([]);
+  const [selectedInvites, setSelectedInvites] = useState<Record<string, boolean>>({});
+
+  // Manage Channel State
+  const [isManageModalOpen, setIsManageModalOpen] = useState(false);
+  const [manageType, setManageType] = useState("public");
+  const [manageMessages, setManageMessages] = useState(true);
+  const [isSavingSettings, setIsSavingSettings] = useState(false);
+
+  useEffect(() => {
+    if (isCreateModalOpen && user?.id) {
+        const fetchFollows = async () => {
+            const { data } = await supabase
+                .from('social_follows')
+                .select('following_id, profiles!social_follows_following_id_fkey(id, username, display_name, avatar_url)')
+                .eq('follower_id', user.id);
+            if (data) {
+                setFollowedUsers(data.map((d: any) => d.profiles));
+            }
+        };
+        fetchFollows();
+    } else {
+        setCreateStep(1);
+        setSelectedInvites({});
+        setNewChannelName("");
+        setNewChannelDesc("");
+    }
+  }, [isCreateModalOpen, user?.id]);
+
+  const handleCreateChannel = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (createStep === 1) {
+        if (!newChannelName.trim()) {
+            toast.error('Channel name is required');
+            return;
+        }
+        setCreateStep(2);
+        return;
+    }
+
+    setIsCreating(true);
+    try {
+      const currentUser = user;
+      if (!currentUser) {
+        toast.error('You must be logged in to create a channel');
+        setIsCreating(false);
+        return;
+      }
+
+      const slug = newChannelName.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Math.floor(Math.random() * 1000);
+      
+      const { data, error } = await supabase.from('channels').insert({
+          name: newChannelName,
+          description: newChannelDesc,
+          slug: slug,
+          created_by: currentUser.id,
+          channel_type: 'public',
+          is_official: false,
+      }).select().single();
+
+      if (error) throw error;
+
+      if (data?.id) {
+          await supabase.from('channel_members').insert({
+              channel_id: data.id,
+              user_id: currentUser.id,
+              role: 'admin'
+          });
+          
+          const invitesToInsert = Object.keys(selectedInvites).filter(k => selectedInvites[k]).map(uid => ({
+              channel_id: data.id,
+              user_id: uid,
+              role: 'member'
+          }));
+          if (invitesToInsert.length > 0) {
+              await supabase.from('channel_members').insert(invitesToInsert);
+          }
+      }
+
+      toast.success("Channel created successfully!");
+      setIsCreateModalOpen(false);
+      refetchChannels();
+      if (data?.id) setActiveChannelId(data.id);
+    } catch (err: any) {
+        toast.error(`Failed to create channel: ${err.message || JSON.stringify(err)}`);
+        console.error("Channel creation error details:", err);
+    } finally {
+        setIsCreating(false);
+    }
+  };
+  
+  const toggleInvite = (uid: string) => {
+      setSelectedInvites(prev => ({ ...prev, [uid]: !prev[uid] }));
+  };
+  
+  const handleSaveSettings = async () => {
+    if (!activeChannelId) return;
+    setIsSavingSettings(true);
+    try {
+        const { error } = await supabase
+            .from('channels')
+            .update({
+                channel_type: manageType,
+                rules: JSON.stringify({ allow_messages: manageMessages })
+            })
+            .eq('id', activeChannelId);
+        
+        if (error) throw error;
+        toast.success('Channel settings updated');
+        setIsManageModalOpen(false);
+        refetchChannels();
+    } catch(err: any) {
+        toast.error('Failed to update settings');
+    } finally {
+        setIsSavingSettings(false);
+    }
+  };
+
+  // Sync default active channel once loaded
+  useEffect(() => {
+    if (dbChannels.length > 0 && !dbChannels.some(c => c.id === activeChannelId)) {
+      setActiveChannelId(dbChannels[0].id);
+    } else if (dbChannels.length === 0) {
+      setActiveChannelId("");
+    }
+  }, [dbChannels, activeChannelId]);
+
+  useEffect(() => {
+    messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [activeChannelId, dbMessages]);
+
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const currentTheme = localStorage.getItem("theme") || "light";
+      setThemeMode(currentTheme);
+    };
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
+
+function ChannelSkeleton() {
+  return (
+    <div className="w-full h-full flex min-h-0 select-none animate-pulse">
+      {/* Sidebar column (Channels List) */}
+      <div className="w-[320px] shrink-0 border-r border-slate-200/60 dark:border-slate-800 bg-white/40 dark:bg-slate-900/40 p-4 space-y-6">
+        <div className="h-9 w-full bg-slate-200 dark:bg-slate-850 rounded-xl" />
+        <div className="space-y-4">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-850 shrink-0" />
+              <div className="flex-1 space-y-1.5">
+                <div className="h-3.5 w-24 bg-slate-200 dark:bg-slate-850 rounded" />
+                <div className="h-2.5 w-full bg-slate-200 dark:bg-slate-850 rounded" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Main chat window skeleton */}
+      <div className="flex-1 flex flex-col bg-white dark:bg-[#07090E]">
+        {/* Chat header */}
+        <div className="h-[76px] px-6 border-b border-slate-200/60 dark:border-slate-800 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-850" />
+            <div className="space-y-1.5">
+              <div className="h-4 w-28 bg-slate-200 dark:bg-slate-850 rounded" />
+              <div className="h-2.5 w-16 bg-slate-200 dark:bg-slate-850 rounded" />
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <div className="w-8 h-8 rounded-lg bg-slate-200 dark:bg-slate-850" />
+            <div className="w-8 h-8 rounded-lg bg-slate-200 dark:bg-slate-850" />
+          </div>
+        </div>
+
+        {/* Chat body messages list */}
+        <div className="flex-1 p-6 space-y-6">
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-850 shrink-0" />
+            <div className="p-4 rounded-[20px] bg-slate-100 dark:bg-slate-850 w-2/3 space-y-2">
+              <div className="h-3 w-full bg-slate-200 dark:bg-slate-800 rounded" />
+              <div className="h-3 w-5/6 bg-slate-200 dark:bg-slate-800 rounded" />
+            </div>
+          </div>
+          <div className="flex items-start gap-3 justify-end">
+            <div className="p-4 rounded-[20px] bg-blue-100/30 dark:bg-blue-950/20 w-1/2 space-y-2">
+              <div className="h-3 w-full bg-slate-200 dark:bg-slate-850 rounded" />
+              <div className="h-3 w-2/3 bg-slate-200 dark:bg-slate-850 rounded" />
+            </div>
+          </div>
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-850 shrink-0" />
+            <div className="p-4 rounded-[20px] bg-slate-100 dark:bg-slate-850 w-3/5 space-y-2">
+              <div className="h-3 w-full bg-slate-200 dark:bg-slate-800 rounded" />
+              <div className="h-3 w-full bg-slate-200 dark:bg-slate-800 rounded" />
+              <div className="h-3 w-1/3 bg-slate-200 dark:bg-slate-800 rounded" />
+            </div>
+          </div>
+        </div>
+
+        {/* Chat input footer */}
+        <div className="p-4 px-6 border-t border-slate-200/60 dark:border-slate-800">
+          <div className="h-12 w-full bg-slate-100 dark:bg-slate-850 rounded-2xl" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+  if (!authChecked || (activeChannelId && dbLoading && dbChannels.length > 0)) {
+    return (
+      <DashboardLayout noPadding={true} noScroll={true}>
+        <ChannelSkeleton />
+      </DashboardLayout>
+    );
+  }
+
+  // Blended Channels mapping
+  const finalChannels = dbChannels.map(ch => ({
+    id: ch.id,
+    name: ch.name,
+    handle: ch.slug,
+    unread: 0,
+    time: new Date(ch.created_at || "").toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
+    content: ch.description || "Welcome to the channel!",
+    avatar: `https://api.dicebear.com/7.x/identicon/png?seed=${ch.name}`,
+    verified: ch.is_official || false,
+    subscribers: ch.member_count !== null ? `${ch.member_count} subscribers` : "250 subscribers",
+    isBroadcast: ch.channel_type === "public",
+    created_by: ch.created_by,
+    channel_type: ch.channel_type,
+    rules: ch.rules
+  }));
+
+  const activeChannel = finalChannels.find(c => c.id === activeChannelId);
+
+  // Blended Messages mapping
+  const finalMessages = activeChannelId
+    ? dbMessages.map(m => ({
+        id: m.id,
+        sender: m.profiles?.full_name || m.profiles?.username || "Anonymous Member",
+        avatar: m.profiles?.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${m.profiles?.full_name || 'U'}`,
+        content: m.content,
+        views: "154",
+        time: new Date(m.created_at || "").toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
+        reactions: (m.reactions as any) || {},
+        image: m.media_url || null
+      }))
+    : [];
+
+  const activeDetails = activeChannel ? {
+    handle: activeChannel.handle,
+    link: `t.me/${activeChannel.handle}`,
+    description: activeChannel.content || "Official Tradifive communication channel.",
+    giftsCount: "0 gifts",
+    photosCount: "12 photos",
+    videosCount: "1 video",
+    filesCount: "3 files",
+    linksCount: "15 shared links",
+    pollsCount: "0 polls",
+    voicesCount: "0 voice messages",
+    gifsCount: "0 GIFs",
+    similarCount: "4 similar channels",
+    subscribers: activeChannel.subscribers
+  } : {
+    handle: "",
+    link: "",
+    description: "",
+    giftsCount: "0 gifts",
+    photosCount: "0 photos",
+    videosCount: "0 videos",
+    filesCount: "0 files",
+    linksCount: "0 shared links",
+    pollsCount: "0 polls",
+    voicesCount: "0 voice messages",
+    gifsCount: "0 GIFs",
+    similarCount: "0 similar channels",
+    subscribers: "0 subscribers"
+  };
+
+  const handleToggleMute = () => {
+    setIsMuted(!isMuted);
+    if (!isMuted) {
+      toast.info("Channel notifications muted");
+    } else {
+      toast.success("Channel notifications unmuted");
+    }
+  };
+
+  const handleReactionClick = async (messageId: string, emoji: string) => {
+    // Supabase update reactions
+    const targetMsg = dbMessages.find(m => m.id === messageId);
+    if (targetMsg) {
+      const reactions: Record<string, number> = (targetMsg.reactions as any) || {};
+      reactions[emoji] = (reactions[emoji] || 0) + 1;
+      await supabase.from('channel_messages').update({ reactions }).eq('id', messageId);
+    }
+  };
+
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inputText.trim()) return;
+
+    // Supabase send message
+    await sendMessage(inputText);
+
+    setInputText("");
+    setTimeout(() => {
+      messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 50);
+  };
+
+  const handleSharePost = (channelId: string) => {
+    navigator.clipboard.writeText(`${window.location.origin}/channel/${channelId}`);
+    toast.success("Channel link copied to clipboard!");
+  };
+
+  // Filter channels based on search query
+  const filteredChannels = finalChannels.filter(c => 
+    c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    c.content.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const headerActions = (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button 
+          className="flex items-center justify-center w-10 h-10 rounded-xl border-2 border-white dark:border-[#1A1A1A] bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] dark:from-[#212123] dark:to-[#171719] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.08),0_0_0_2px_#E2E8F0] dark:shadow-[0_4px_7px_-5px_rgba(0,0,0,0.3),0_0_0_2px_#2B2B2F] text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-all active:scale-95 cursor-pointer outline-none"
+          title="Channel Menu"
+        >
+          <Menu size={20} />
+        </button>
+      </DropdownMenuTrigger>
+      
+      <DropdownMenuContent align="end" className="w-56 mt-2 rounded-2xl bg-white dark:bg-[#0E121E] border border-slate-150 dark:border-slate-800 p-1.5 shadow-xl z-[100] outline-none">
+        <DropdownMenuLabel className="px-3 py-2 text-[11px] font-bold text-slate-400 dark:text-slate-505 uppercase tracking-wider">
+          Channel Actions
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator className="my-1 border-slate-100 dark:border-slate-800/60" />
+        
+        <DropdownMenuItem 
+          onClick={() => toast.info("New Group console requested")}
+          className="flex items-center gap-3 text-[13.5px] font-medium text-slate-700 dark:text-slate-350 hover:bg-slate-100/80 dark:hover:bg-slate-800/40 px-3 py-2.5 rounded-xl transition-all cursor-pointer outline-none"
+        >
+          <Users size={16} className="text-slate-400" />
+          <span>New Group</span>
+        </DropdownMenuItem>
+
+        <DropdownMenuItem 
+          onClick={() => setIsCreateModalOpen(true)}
+          className="flex items-center gap-3 text-[13.5px] font-medium text-slate-700 dark:text-slate-350 hover:bg-slate-100/80 dark:hover:bg-slate-800/40 px-3 py-2.5 rounded-xl transition-all cursor-pointer outline-none"
+        >
+          <Megaphone size={16} className="text-slate-400" />
+          <span>New Channel</span>
+        </DropdownMenuItem>
+
+        <DropdownMenuItem 
+          onClick={() => toast.info("Settings console requested")}
+          className="flex items-center gap-3 text-[13.5px] font-medium text-slate-700 dark:text-slate-350 hover:bg-slate-100/80 dark:hover:bg-slate-800/40 px-3 py-2.5 rounded-xl transition-all cursor-pointer outline-none"
+        >
+          <SettingsIcon size={16} className="text-slate-400" />
+          <span>Settings</span>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+
+  return (
+    <DashboardLayout noPadding={true} noScroll={true} headerActions={headerActions}>
+      <div className="font-sans relative flex w-full bg-white dark:bg-[#0E121E] text-slate-800 dark:text-slate-100 rounded-b-[2.4rem] overflow-hidden flex-1 min-h-0 select-none transition-colors duration-200">
+        
+        <style dangerouslySetInnerHTML={{__html: `
+          .amazing-scrollbar::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+          }
+          .amazing-scrollbar::-webkit-scrollbar-button {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+          }
+          .amazing-scrollbar::-webkit-scrollbar-track {
+            background: transparent !important;
+          }
+          .amazing-scrollbar::-webkit-scrollbar-thumb {
+            background: transparent !important;
+            border-radius: 9999px;
+            transition: background 0.15s ease-in-out;
+          }
+          .amazing-scrollbar:hover::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.25) !important;
+          }
+          .amazing-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(148, 163, 184, 0.45) !important;
+          }
+          .dark .amazing-scrollbar:hover::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.08) !important;
+          }
+          .dark .amazing-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.18) !important;
+          }
+        `}} />
+
+        {/* --- 1. CHANNEL LIST COLUMN --- */}
+        <div className="w-[360px] shrink-0 border-r border-slate-150 dark:border-slate-800/85 bg-[#F8FAFC] dark:bg-[#0A0D15]/80 flex flex-col overflow-hidden h-full">
+          
+          {/* List Search Header */}
+          <div className="p-3 px-4 flex items-center gap-2 border-b border-slate-100 dark:border-slate-800/50 bg-white dark:bg-[#0E121E] h-[60px] shrink-0">
+            <div className="relative flex-1">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-550" size={15} />
+              <input 
+                type="text" 
+                placeholder="Search..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-slate-100/80 dark:bg-[#111421]/60 border border-slate-200/50 dark:border-slate-800/80 rounded-xl pl-10 pr-4 py-2 text-[13px] font-normal placeholder:text-slate-400 dark:placeholder:text-slate-655 text-slate-800 dark:text-white outline-none focus:border-blue-600 focus:bg-white dark:focus:bg-slate-900 transition-all"
+              />
+            </div>
+            <button 
+              onClick={() => setIsCreateModalOpen(true)}
+              className="w-9 h-9 shrink-0 flex items-center justify-center rounded-xl bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 transition-colors border border-blue-200/50 dark:border-blue-800/30"
+              title="Create Channel or Group"
+            >
+              <Plus size={16} />
+            </button>
+          </div>
+
+          {/* Channels Scrollable list */}
+          <div className="flex-1 overflow-y-auto amazing-scrollbar bg-white dark:bg-[#0E121E] min-h-0">
+            {filteredChannels.map(ch => {
+              const isActive = ch.id === activeChannelId;
+              return (
+                <div
+                  key={ch.id}
+                  onClick={() => setActiveChannelId(ch.id)}
+                  className={`relative text-left w-full p-4 flex gap-3.5 border-b border-slate-100/60 dark:border-slate-800/30 transition-all duration-200 outline-none items-center cursor-pointer select-none ${
+                    isActive 
+                      ? "bg-slate-100/70 dark:bg-slate-800/30 text-slate-900 dark:text-white" 
+                      : "hover:bg-slate-50/50 dark:hover:bg-slate-800/10"
+                  }`}
+                >
+                  {isActive && (
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-slate-500 dark:bg-slate-400 rounded-r-full shadow-xs" />
+                  )}
+                  
+                  <img src={ch.avatar} alt={ch.name} className="w-10 h-10 rounded-full object-cover shrink-0 border border-slate-100 dark:border-slate-855 shadow-xs" />
+                  
+                  <div className="flex-1 min-w-0 flex flex-col gap-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <h4 className="text-[13.5px] font-semibold leading-none truncate flex items-center gap-1 min-w-0 text-slate-900 dark:text-white">
+                        <span className="truncate">{ch.name}</span>
+                        {ch.verified && <CheckCircle2 size={13} className="text-slate-400 fill-slate-400 dark:text-slate-505 dark:fill-slate-550 text-white shrink-0" />}
+                      </h4>
+                      <span className="text-[11px] shrink-0 font-semibold tabular-nums text-slate-400 dark:text-slate-505">
+                        {ch.time}
+                      </span>
+                    </div>
+                    
+                    <div className="flex items-start justify-between gap-2.5">
+                      <p className="text-[12.5px] font-normal leading-snug line-clamp-2 flex-1 text-slate-555 dark:text-slate-400">
+                        {ch.content}
+                      </p>
+                      
+                      {ch.unread > 0 && (
+                        <span className={`shrink-0 self-end px-2 py-0.5 rounded-full text-[10px] font-extrabold shadow-xs tabular-nums mt-0.5 ${
+                          isActive 
+                            ? "bg-slate-700 dark:bg-slate-600 text-white" 
+                            : "bg-slate-100 dark:bg-slate-800/60 text-slate-650 dark:text-slate-400 border border-slate-200/50 dark:border-slate-700/50"
+                        }`}>
+                          {ch.unread > 999 ? `${(ch.unread / 1000).toFixed(1)}k` : ch.unread}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+        </div>
+
+        {/* --- 2. RIGHT CHAT WINDOW COLUMN --- */}
+        <div className="flex-1 flex flex-col bg-white dark:bg-[#07090E] relative overflow-hidden h-full">
+          {activeChannel ? (
+            <>
+          
+          {/* Chat Header */}
+          <div className="p-4 px-6 border-b border-slate-150 dark:border-slate-800/80 bg-white dark:bg-[#090C16] flex items-center justify-between z-10 shadow-xs h-[60px] shrink-0">
+            <div className="cursor-pointer flex-1" onClick={() => setShowDetails(!showDetails)}>
+              <h2 className="text-[14px] font-bold text-slate-900 dark:text-white flex items-center gap-1.5 leading-none">
+                {activeChannel.name}
+                {activeChannel.verified && <CheckCircle2 size={14} className="text-slate-400 fill-slate-400 dark:text-slate-505 dark:fill-slate-550 text-white shrink-0" />}
+              </h2>
+              <p className="text-[10.5px] font-bold text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-wider">
+                {activeChannel.id === "saved" ? "Personal saved notes" : activeChannel.subscribers || "Conversation"}
+              </p>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => setShowDetails(!showDetails)}
+                className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors text-slate-400 hover:text-slate-700 dark:text-slate-450 dark:hover:text-white ${showDetails ? 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-white' : ''}`}
+                title="Channel Details"
+              >
+                <User size={18} />
+              </button>
+              
+              <button 
+                onClick={handleToggleMute}
+                className="w-9 h-9 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800/60 flex items-center justify-center transition-colors text-slate-400 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white"
+                title={isMuted ? "Unmute" : "Mute"}
+              >
+                {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+              </button>
+              <button className="w-9 h-9 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800/60 flex items-center justify-center transition-colors text-slate-400 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white">
+                <SearchIcon size={16} strokeWidth={2.2} />
+              </button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="w-9 h-9 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800/60 flex items-center justify-center transition-colors text-slate-400 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white outline-none">
+                    <MoreVertical size={18} />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56 mt-2 rounded-2xl bg-white dark:bg-[#0E121E] border border-slate-150 dark:border-slate-800 p-1.5 shadow-xl z-[100] outline-none">
+                  <DropdownMenuItem 
+                    onClick={() => setIsMuted(!isMuted)}
+                    className="flex items-center justify-between text-[13.5px] font-medium text-slate-700 dark:text-slate-350 hover:bg-slate-100/80 dark:hover:bg-slate-800/40 px-3 py-2.5 rounded-xl transition-all cursor-pointer outline-none"
+                  >
+                    <div className="flex items-center gap-3">
+                        {isMuted ? <VolumeX size={16} className="text-slate-400" /> : <Volume2 size={16} className="text-slate-400" />}
+                        <span>Mute notifications</span>
+                    </div>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuSeparator className="my-1 border-slate-100 dark:border-slate-800/60" />
+                  
+                  {activeChannel?.created_by === user?.id && (
+                      <DropdownMenuItem 
+                        onClick={() => {
+                            const rules = typeof activeChannel.rules === 'string' ? JSON.parse(activeChannel.rules || '{}') : (activeChannel.rules || {});
+                            setManageType(activeChannel.channel_type || 'public');
+                            setManageMessages(rules.allow_messages !== false);
+                            setIsManageModalOpen(true);
+                        }}
+                        className="flex items-center gap-3 text-[13.5px] font-medium text-slate-700 dark:text-slate-350 hover:bg-slate-100/80 dark:hover:bg-slate-800/40 px-3 py-2.5 rounded-xl transition-all cursor-pointer outline-none"
+                      >
+                        <SettingsIcon size={16} className="text-slate-400" />
+                        <span>Manage Channel</span>
+                      </DropdownMenuItem>
+                  )}
+
+                  <DropdownMenuItem 
+                    onClick={() => toast.info("Story Archive")}
+                    className="flex items-center gap-3 text-[13.5px] font-medium text-slate-700 dark:text-slate-350 hover:bg-slate-100/80 dark:hover:bg-slate-800/40 px-3 py-2.5 rounded-xl transition-all cursor-pointer outline-none"
+                  >
+                    <Folder size={16} className="text-slate-400" />
+                    <span>Story Archive</span>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem 
+                    onClick={() => toast.info("Boost Channel")}
+                    className="flex items-center gap-3 text-[13.5px] font-medium text-slate-700 dark:text-slate-350 hover:bg-slate-100/80 dark:hover:bg-slate-800/40 px-3 py-2.5 rounded-xl transition-all cursor-pointer outline-none"
+                  >
+                    <CornerUpRight size={16} className="text-slate-400" />
+                    <span>Boost Channel</span>
+                  </DropdownMenuItem>
+                  
+                  <DropdownMenuItem 
+                    onClick={() => toast.info("Create Poll")}
+                    className="flex items-center gap-3 text-[13.5px] font-medium text-slate-700 dark:text-slate-350 hover:bg-slate-100/80 dark:hover:bg-slate-800/40 px-3 py-2.5 rounded-xl transition-all cursor-pointer outline-none"
+                  >
+                    <BarChart2 size={16} className="text-slate-400" />
+                    <span>Create poll</span>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem 
+                    onClick={() => toast.info("Clear history")}
+                    className="flex items-center gap-3 text-[13.5px] font-medium text-slate-700 dark:text-slate-350 hover:bg-slate-100/80 dark:hover:bg-slate-800/40 px-3 py-2.5 rounded-xl transition-all cursor-pointer outline-none"
+                  >
+                    <Trash size={16} className="text-slate-400" />
+                    <span>Clear history</span>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuSeparator className="my-1 border-slate-100 dark:border-slate-800/60" />
+
+                  <DropdownMenuItem 
+                    onClick={() => toast.error("Left channel")}
+                    className="flex items-center gap-3 text-[13.5px] font-medium text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 px-3 py-2.5 rounded-xl transition-all cursor-pointer outline-none"
+                  >
+                    <LogOut size={16} className="text-rose-500" />
+                    <span>Leave channel</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+
+          {/* Pinned Messages Banner */}
+          {showPinned && activeChannel.id === "c2" && (
+            <div className="bg-[#F8FAFC] dark:bg-[#0B101D] border-b border-slate-150 dark:border-slate-800 px-6 py-2.5 flex items-center justify-between text-xs text-slate-600 dark:text-slate-350 z-10 transition-all shrink-0">
+              <div className="flex items-center gap-3 min-w-0 pr-4">
+                <Pin size={14} className="text-slate-400 dark:text-slate-500 rotate-45 shrink-0" />
+                <div className="border-l-2 border-slate-350 dark:border-slate-700 pl-3 min-w-0">
+                  <p className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest leading-none mb-0.5">Pinned message</p>
+                  <p className="text-[11px] font-medium leading-relaxed truncate text-slate-600 dark:text-slate-400">
+                    HOW TO JOIN VIP GROUP? 🔑 1. Register* through vantage link. Ensure minimum deposit of $100.
+                  </p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setShowPinned(false)}
+                className="text-slate-400 dark:text-slate-505 hover:text-slate-800 dark:hover:text-white transition-colors p-1"
+              >
+                <X size={14} />
+              </button>
+            </div>
+          )}
+
+          {/* Messages Stream */}
+          <div 
+            className="flex-1 overflow-y-auto p-6 space-y-6 amazing-scrollbar min-h-0"
+            style={{
+              backgroundColor: themeMode === "dark" ? "#080B13" : "#F1F5F9",
+              backgroundImage: themeMode === "dark" 
+                ? "none" 
+                : `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cg fill='%2394a3b8' fill-opacity='0.05'%3E%3Cpath d='M9 15c0-1.66 1.34-3 3-3s3 1.34 3 3-1.34 3-3 3-3-1.34-3-3zm3 1c.55 0 1-.45 1-1s-.45-1-1-1-1 .45-1 1 .45 1 1 1zm35 15c0-2.2 1.8-4 4-4s4 1.8 4 4-1.8 4-4 4-4-1.8-4-4zm4 2c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm35-15c0-1.66 1.34-3 3-3s3 1.34 3 3-1.34 3-3 3-3-1.34-3-3zm3 1c.55 0 1-.45 1-1s-.45-1-1-1-1 .45-1 1 .45 1 1 1zM15 75c0-1.66 1.34-3 3-3s3 1.34 3 3-1.34 3-3 3-3-1.34-3-3zm3 1c.55 0 1-.45 1-1s-.45-1-1-1-1 .45-1 1 .45 1 1 1zm72 15c0-2.2 1.8-4 4-4s4 1.8 4 4-1.8 4-4 4-4-1.8-4-4zm4 2c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z'/%3E%3C/g%3E%3C/svg%3E")`
+            }}
+          >
+            
+            {/* Date Badge */}
+            <div className="flex justify-center my-2">
+              <span className="bg-slate-200/60 dark:bg-slate-900/80 border border-slate-300/30 dark:border-slate-800 px-4 py-1.5 rounded-full text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400 tracking-wider">
+                Today
+              </span>
+            </div>
+
+            {/* Render active channel messages */}
+            {finalMessages.map((msg: any) => (
+              <div key={msg.id} className="flex gap-4 items-start max-w-2xl">
+                <div className="shrink-0 mt-0.5">
+                  <img 
+                    src={msg.avatar} 
+                    alt={msg.sender} 
+                    className="w-10 h-10 rounded-full border border-slate-200/50 dark:border-slate-800 object-cover shadow-xs" 
+                  />
+                </div>
+                
+                <div className="p-4 rounded-2xl rounded-tl-none border border-slate-200/60 dark:border-white/5 bg-white dark:bg-[#0E1321] shadow-xs flex-1 text-slate-800 dark:text-slate-100 text-left">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-[13px] font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                      {msg.sender}
+                      <CheckCircle2 size={12} className="text-slate-400 fill-slate-450 dark:text-slate-505 dark:fill-slate-550 text-white shrink-0" />
+                    </span>
+                  </div>
+
+                  {msg.image && (
+                    <div className="rounded-2xl overflow-hidden border border-slate-150 dark:border-slate-800 bg-slate-50 dark:bg-[#07090E] mb-3 aspect-video flex items-center justify-center relative group">
+                      <img src={msg.image} className="w-full h-full object-cover" />
+                    </div>
+                  )}
+
+                  <p className="text-[13.5px] text-slate-700 dark:text-slate-355 leading-relaxed font-normal whitespace-pre-line mb-3">
+                    {msg.content}
+                  </p>
+
+                  <div className="flex justify-between items-center pt-2.5 border-t border-slate-100 dark:border-slate-800/60 mt-4 text-[11px] text-slate-400 dark:text-slate-500 font-medium">
+                    <div className="flex items-center gap-1.5">
+                      <Eye size={12} />
+                      <span className="font-semibold tabular-nums">{msg.views || "125"} views</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="font-semibold tabular-nums">{msg.time}</span>
+                      <button 
+                        onClick={() => toast.success("Forwarding option requested")}
+                        className="text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors"
+                      >
+                        <CornerUpRight size={14} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {msg.reactions && Object.keys(msg.reactions).length > 0 && (
+                    <div className="flex flex-wrap items-center gap-1.5 mt-3 pt-3 border-t border-dashed border-slate-100 dark:border-slate-800/40">
+                      {Object.entries(msg.reactions).map(([emoji, count]) => (
+                        <button
+                          key={emoji}
+                          onClick={() => handleReactionClick(msg.id, emoji)}
+                          className="flex items-center gap-1.5 bg-slate-100/50 hover:bg-slate-100 dark:bg-slate-800/40 border border-slate-200/50 dark:border-slate-700/50 px-2.5 py-1 rounded-full text-xs font-semibold text-slate-650 dark:text-slate-350 shadow-xs transition-all focus:outline-none"
+                        >
+                          <span>{emoji}</span>
+                          <span className="text-[10px] text-slate-500/80 dark:text-slate-400/80 font-bold tabular-nums">{count as number}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                </div>
+              </div>
+            ))}
+
+            {finalMessages.length === 0 && (
+              <div className="text-center py-20 bg-white/70 dark:bg-black/20 rounded-2xl p-6 backdrop-blur-sm max-w-sm mx-auto shadow-xs border border-slate-200/50 flex-shrink-0">
+                <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800/40 flex items-center justify-center mx-auto text-slate-400 dark:text-slate-550 mb-4 border border-slate-200/30">
+                  <MessageSquare size={24} />
+                </div>
+                <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-1">No Broadcasts Yet</h4>
+                <p className="text-xs text-slate-500 dark:text-slate-455 max-w-xs mx-auto leading-relaxed">
+                  You have successfully joined 📣 {activeChannel.name}. Live execution alerts and signal broadcasts will appear here in real-time.
+                </p>
+              </div>
+            )}
+
+            <div ref={messageEndRef} />
+          </div>
+
+          {/* --- RIGHT CHAT FOOTER PANEL --- */}
+          <div className="p-4 px-6 border-t border-slate-150 dark:border-slate-800/80 bg-white dark:bg-[#090C16] flex items-center justify-center z-10 shadow-xs shrink-0 w-full">
+            {!isMember && activeChannel?.id !== "saved" ? (
+                <button onClick={joinChannel} className="px-8 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-full text-[13px] transition-colors shadow-md">
+                    Join Channel
+                </button>
+            ) : (() => {
+                const rules = typeof activeChannel?.rules === 'string' ? JSON.parse(activeChannel.rules || '{}') : (activeChannel?.rules || {});
+                const allowMessages = rules.allow_messages !== false;
+                const isAdmin = activeChannel?.created_by === user?.id;
+
+                if (!allowMessages && !isAdmin && activeChannel?.id !== "saved") {
+                    return <p className="text-[12px] font-bold text-slate-400">Only admins can send messages in this channel.</p>;
+                }
+
+                return activeChannel?.id === "saved" || dbChannels.length > 0 ? (
+                  <form onSubmit={handleSendMessage} className="w-full flex items-center gap-3">
+                    <button 
+                      type="button" 
+                      onClick={() => toast.info("Add file panel requested")}
+                      className="w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/40 dark:hover:bg-slate-700/85 flex items-center justify-center transition-colors text-slate-450 hover:text-[#2563EB]"
+                    >
+                      <Plus size={20} />
+                    </button>
+                    <div className="flex-1 relative">
+                      <input
+                        type="text"
+                        value={inputText}
+                        onChange={(e) => setInputText(e.target.value)}
+                        placeholder="Write a message..."
+                        className="w-full bg-slate-55 dark:bg-[#111421] border border-slate-205 dark:border-slate-800/60 rounded-full pl-5 pr-12 py-3 text-xs font-semibold text-slate-800 dark:text-white placeholder:text-slate-400 outline-none focus:border-slate-400 focus:bg-white transition-colors"
+                      />
+                      <button 
+                        type="submit" 
+                        className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-700 hover:bg-slate-800 dark:bg-slate-600 dark:hover:bg-slate-500 flex items-center justify-center transition-colors text-white shadow-xs"
+                      >
+                        <Send size={14} />
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <div className="w-full h-10 border-2 border-dashed border-slate-200 dark:border-[#222] rounded-xl" />
+                );
+            })()}
+          </div>
+
+            </>
+          ) : (
+            <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-white dark:bg-[#07090E]">
+              <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800/40 flex items-center justify-center mx-auto text-slate-400 dark:text-slate-550 mb-4 border border-slate-200/30">
+                <Megaphone size={24} />
+              </div>
+              <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-1">No Channels Yet</h4>
+              <p className="text-xs text-slate-500 dark:text-slate-450 max-w-xs mx-auto leading-relaxed">
+                Explore and join official broadcasting channels from the Discover page to keep up with news and signal flows.
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* --- 3. SLIDE-OUT CHANNEL DETAILS DRAWER --- */}
+        <div 
+          className={`shrink-0 border-l border-slate-150 dark:border-slate-800/85 bg-white dark:bg-[#0E121E] flex flex-col transition-all duration-300 ease-in-out h-full ${
+            showDetails && activeChannel ? "w-[360px]" : "w-0 overflow-hidden border-l-0"
+          }`}
+        >
+          <div className="p-4 px-6 border-b border-slate-100 dark:border-slate-800/50 flex items-center justify-between shrink-0 h-[60px]">
+            <span className="text-[14px] font-bold text-slate-800 dark:text-white">User Info</span>
+            <button 
+              onClick={() => setShowDetails(false)}
+              className="w-8 h-8 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center transition-colors text-slate-400 hover:text-slate-800 dark:hover:text-white outline-none"
+            >
+              <X size={18} />
+            </button>
+          </div>
+
+          <div className="flex-1 overflow-y-auto amazing-scrollbar p-6 space-y-6">
+            {activeChannel && (
+              <>
+            
+            <div className="text-center space-y-2">
+              <div className="w-[100px] h-[100px] rounded-full overflow-hidden mx-auto border-2 border-slate-100 dark:border-slate-800 shadow-sm relative group bg-slate-50">
+                <img 
+                  src={activeChannel.avatar} 
+                  alt={activeChannel.name} 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <h3 className="text-[17px] font-extrabold text-slate-900 dark:text-white flex items-center justify-center gap-1 mt-3 leading-tight">
+                {activeChannel.name}
+                {activeChannel.verified && <CheckCircle2 size={15} className="text-slate-400 fill-slate-450 dark:text-slate-505 dark:fill-slate-550 text-white shrink-0" />}
+              </h3>
+              <p className="text-[12.5px] text-slate-400 dark:text-slate-550 font-semibold leading-none">
+                {activeDetails.subscribers}
+              </p>
+              
+              <Link to={`/user/${activeChannel.name.replace(/\s+/g, '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase()}`} className="mt-4 inline-flex items-center justify-center gap-1.5 w-full py-2 rounded-xl border border-slate-200 dark:border-slate-800 text-[12px] font-bold uppercase tracking-wider text-slate-700 hover:text-blue-500 hover:border-blue-500 dark:text-slate-355 dark:hover:text-blue-400 dark:hover:border-blue-500/40 transition-colors shadow-3xs bg-slate-50/5 dark:bg-slate-900/20">
+                View Creator Profile
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2 px-1">
+              <button 
+                onClick={handleToggleMute}
+                className="flex flex-col items-center justify-center py-2.5 rounded-2xl border border-slate-100 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-850 transition-colors bg-white dark:bg-[#0E121E] shadow-2xs group"
+              >
+                {isMuted ? (
+                  <VolumeX size={18} className="text-slate-400 group-hover:text-slate-800 dark:group-hover:text-white mb-1 transition-colors" />
+                ) : (
+                  <Volume2 size={18} className="text-slate-400 group-hover:text-slate-800 dark:group-hover:text-white mb-1 transition-colors" />
+                )}
+                <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 mt-1">Mute</span>
+              </button>
+
+              <button 
+                onClick={() => toast.success("Gift feature panel coming soon!")}
+                className="flex flex-col items-center justify-center py-2.5 rounded-2xl border border-slate-100 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-850 transition-colors bg-white dark:bg-[#0E121E] shadow-2xs group"
+              >
+                <Gift size={18} className="text-slate-400 group-hover:text-slate-800 dark:group-hover:text-white mb-1 transition-colors" />
+                <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 mt-1">Gift</span>
+              </button>
+
+              <button 
+                onClick={() => toast.warning("Confirmation: Are you sure you want to leave?")}
+                className="flex flex-col items-center justify-center py-2.5 rounded-2xl border border-slate-100 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-850 transition-colors bg-white dark:bg-[#0E121E] shadow-2xs group"
+              >
+                <LogOut size={18} className="text-slate-400 group-hover:text-rose-500 mb-1 transition-colors" />
+                <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 mt-1">Leave</span>
+              </button>
+            </div>
+
+            <hr className="border-slate-100 dark:border-slate-800/60" />
+
+            <div className="space-y-4 text-[13px]">
+              <div className="flex items-start justify-between gap-3 bg-slate-50/50 dark:bg-slate-900/30 p-3 rounded-xl border border-slate-100/50 dark:border-slate-800/40">
+                <div className="space-y-1">
+                  <a 
+                    href={`https://${activeDetails.link}`} 
+                    target="_blank" 
+                    rel="noreferrer"
+                    className="text-slate-700 dark:text-slate-350 hover:underline font-bold text-[13.5px] leading-tight block"
+                  >
+                    {activeDetails.link}
+                  </a>
+                  <span className="text-[11px] text-slate-400 font-bold block uppercase tracking-wider">Link</span>
+                </div>
+                <button 
+                  onClick={() => toast.success("QR Code rendered for sharing!")}
+                  className="p-2 bg-white dark:bg-[#111421] rounded-lg border border-slate-100 dark:border-slate-800 text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors"
+                >
+                  <QrCode size={18} />
+                </button>
+              </div>
+
+              <div className="space-y-1 p-3 text-left">
+                <p className="text-slate-800 dark:text-slate-200 font-medium whitespace-pre-line leading-relaxed text-[13.5px]">
+                  {activeDetails.description}
+                </p>
+                <span className="text-[11px] text-slate-400 font-bold block uppercase tracking-wider pt-1.5">Description</span>
+              </div>
+            </div>
+
+            <hr className="border-slate-100 dark:border-slate-800/60" />
+
+            <div className="space-y-4 font-semibold text-slate-750 dark:text-slate-350 text-[13px]">
+              <div className="flex items-center gap-3.5 px-1 py-0.5 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer">
+                <Gift size={18} className="text-slate-400 shrink-0" />
+                <span className="text-[13.5px]">{activeDetails.giftsCount}</span>
+              </div>
+
+              <div className="flex items-center gap-3.5 px-1 py-0.5 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer">
+                <ImageIcon size={18} className="text-slate-400 shrink-0" />
+                <span className="text-[13.5px]">{activeDetails.photosCount}</span>
+              </div>
+
+              <div className="flex items-center gap-3.5 px-1 py-0.5 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer">
+                <Film size={18} className="text-slate-400 shrink-0" />
+                <span className="text-[13.5px]">{activeDetails.videosCount}</span>
+              </div>
+
+              <div className="flex items-center gap-3.5 px-1 py-0.5 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer">
+                <Folder size={18} className="text-slate-400 shrink-0" />
+                <span className="text-[13.5px]">{activeDetails.filesCount}</span>
+              </div>
+
+              <div className="flex items-center gap-3.5 px-1 py-0.5 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer">
+                <Link2 size={18} className="text-slate-400 shrink-0" />
+                <span className="text-[13.5px]">{activeDetails.linksCount}</span>
+              </div>
+
+              <div className="flex items-center gap-3.5 px-1 py-0.5 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer">
+                <BarChart2 size={18} className="text-slate-400 shrink-0" />
+                <span className="text-[13.5px]">{activeDetails.pollsCount}</span>
+              </div>
+
+              <div className="flex items-center gap-3.5 px-1 py-0.5 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer">
+                <Mic size={18} className="text-slate-400 shrink-0" />
+                <span className="text-[13.5px]">{activeDetails.voicesCount}</span>
+              </div>
+
+              <div className="flex items-center gap-3.5 px-1 py-0.5 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer">
+                <Bookmark size={18} className="text-slate-400 shrink-0" />
+                <span className="text-[13.5px]">{activeDetails.gifsCount}</span>
+              </div>
+
+              <div className="flex items-center gap-3.5 px-1 py-0.5 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer">
+                <Megaphone size={18} className="text-slate-400 shrink-0" />
+                <span className="text-[13.5px]">{activeDetails.similarCount}</span>
+              </div>
+            </div>
+
+            <hr className="border-slate-100 dark:border-slate-800/60" />
+
+            <div className="space-y-4 font-bold text-[13.5px]">
+              <button 
+                onClick={() => toast.error("Left channel requested")}
+                className="flex items-center gap-3.5 px-1 py-1 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors text-left w-full outline-none"
+              >
+                <LogOut size={18} className="text-slate-400 shrink-0" />
+                <span>Leave channel</span>
+              </button>
+
+              <button 
+                onClick={() => toast.error("Report dialog opened")}
+                className="flex items-center gap-3.5 px-1 py-1 text-rose-500 hover:text-rose-600 dark:text-rose-400 dark:hover:text-rose-500 transition-colors text-left w-full outline-none"
+              >
+                <AlertTriangle size={18} className="text-rose-500 dark:text-rose-400 shrink-0" />
+                <span>Report</span>
+              </button>
+            </div>
+              </>
+            )}
+          </div>
+        </div>
+
+      </div>
+
+      {/* Create Channel Modal */}
+      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+        <DialogContent className="sm:max-w-[425px] bg-white dark:bg-[#0E121E] border border-slate-200 dark:border-slate-800 rounded-[24px]">
+          <DialogHeader>
+            <DialogTitle className="text-[18px] font-bold text-slate-900 dark:text-white">
+                {createStep === 1 ? "Create New Channel" : "Invite Members"}
+            </DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleCreateChannel} className="space-y-6 pt-4">
+            {createStep === 1 ? (
+                <>
+                    <div className="space-y-2">
+                      <label className="text-[13px] font-bold text-slate-700 dark:text-slate-300">Channel Name <span className="text-red-500">*</span></label>
+                      <input 
+                        type="text" 
+                        required
+                        value={newChannelName}
+                        onChange={(e) => setNewChannelName(e.target.value)}
+                        placeholder="e.g. VIP Signals"
+                        className="w-full bg-slate-50 dark:bg-[#141414] border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-[13px] font-semibold text-slate-800 dark:text-white placeholder:text-slate-400 outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-[#111421] transition-all"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[13px] font-bold text-slate-700 dark:text-slate-300">Description</label>
+                      <textarea 
+                        value={newChannelDesc}
+                        onChange={(e) => setNewChannelDesc(e.target.value)}
+                        placeholder="What is this channel about?"
+                        rows={3}
+                        className="w-full bg-slate-50 dark:bg-[#141414] border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-[13px] font-medium text-slate-800 dark:text-white placeholder:text-slate-400 outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-[#111421] transition-all resize-none"
+                      />
+                    </div>
+                </>
+            ) : (
+                <div className="max-h-[300px] overflow-y-auto amazing-scrollbar space-y-2 pr-2">
+                    {followedUsers.length > 0 ? followedUsers.map(fUser => (
+                        <div key={fUser.id} className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/40 cursor-pointer" onClick={() => toggleInvite(fUser.id)}>
+                            <div className="flex items-center gap-3">
+                                <img src={fUser.avatar_url || "https://api.dicebear.com/7.x/avataaars/svg?seed="+fUser.username} alt={fUser.username} className="w-10 h-10 rounded-full object-cover" />
+                                <div>
+                                    <p className="text-[13px] font-bold text-slate-800 dark:text-white">{fUser.display_name || fUser.username}</p>
+                                    <p className="text-[11px] text-slate-500">@{fUser.username}</p>
+                                </div>
+                            </div>
+                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${selectedInvites[fUser.id] ? "bg-blue-600 border-blue-600" : "border-slate-300 dark:border-slate-600"}`}>
+                                {selectedInvites[fUser.id] && <CheckCircle2 size={12} className="text-white" />}
+                            </div>
+                        </div>
+                    )) : (
+                        <p className="text-center text-[13px] text-slate-400 py-6">You aren't following anyone yet.</p>
+                    )}
+                </div>
+            )}
+            
+            <DialogFooter className="pt-2">
+              <button 
+                type="button" 
+                onClick={() => createStep === 2 ? setCreateStep(1) : setIsCreateModalOpen(false)}
+                className="px-6 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 text-[13px] font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+              >
+                {createStep === 2 ? "Back" : "Cancel"}
+              </button>
+              <button 
+                type="submit" 
+                disabled={isCreating || (createStep === 1 && !newChannelName.trim())}
+                className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[13px] font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isCreating ? "Creating..." : (createStep === 1 ? "Next" : "Create Channel")}
+              </button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Manage Channel Modal */}
+      <Dialog open={isManageModalOpen} onOpenChange={setIsManageModalOpen}>
+        <DialogContent className="sm:max-w-[425px] bg-white dark:bg-[#0E121E] border border-slate-200 dark:border-slate-800 rounded-[24px]">
+          <DialogHeader>
+            <DialogTitle className="text-[18px] font-bold text-slate-900 dark:text-white">Manage Channel</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-6 pt-4">
+            <div className="space-y-3">
+              <label className="text-[13px] font-bold text-slate-700 dark:text-slate-300">Privacy Mode</label>
+              <div className="flex gap-3">
+                  <button 
+                    type="button"
+                    onClick={() => setManageType("public")}
+                    className={`flex-1 py-3 px-4 rounded-xl border text-[13px] font-bold transition-colors ${manageType === "public" ? "border-blue-600 bg-blue-50 text-blue-700 dark:bg-blue-600/10 dark:text-blue-400" : "border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-400 dark:hover:bg-slate-800"}`}
+                  >
+                      Public
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => setManageType("private")}
+                    className={`flex-1 py-3 px-4 rounded-xl border text-[13px] font-bold transition-colors ${manageType === "private" ? "border-blue-600 bg-blue-50 text-blue-700 dark:bg-blue-600/10 dark:text-blue-400" : "border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-400 dark:hover:bg-slate-800"}`}
+                  >
+                      Private
+                  </button>
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-[13px] font-bold text-slate-700 dark:text-slate-300">Messaging Permissions</label>
+              <div 
+                onClick={() => setManageMessages(!manageMessages)}
+                className="flex items-center justify-between p-4 rounded-xl border border-slate-200 dark:border-slate-800 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors"
+              >
+                  <div>
+                      <p className="text-[13px] font-bold text-slate-800 dark:text-white">Allow Direct Messages</p>
+                      <p className="text-[11px] text-slate-500">If disabled, only admins can send messages.</p>
+                  </div>
+                  <div className={`w-10 h-5 rounded-full relative transition-colors ${manageMessages ? "bg-blue-600" : "bg-slate-300 dark:bg-slate-700"}`}>
+                      <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${manageMessages ? "left-5.5" : "left-0.5"}`} />
+                  </div>
+              </div>
+            </div>
+            
+            <DialogFooter className="pt-4">
+              <button 
+                type="button" 
+                onClick={() => setIsManageModalOpen(false)}
+                className="px-6 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 text-[13px] font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                type="button" 
+                onClick={handleSaveSettings}
+                disabled={isSavingSettings}
+                className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[13px] font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSavingSettings ? "Saving..." : "Save Settings"}
+              </button>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </DashboardLayout>
+  );
+}

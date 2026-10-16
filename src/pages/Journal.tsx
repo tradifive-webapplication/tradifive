@@ -43,36 +43,28 @@ export default function Journal() {
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.35 }}
-              className="bg-gradient-to-b from-[#FFFBEB] to-[#FFFDF5] border-2 border-white rounded-[22px] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.08),0_0_0_2px_#FDE68A] dark:bg-none dark:bg-[#1E1912] dark:border-[1px] dark:border-amber-500/30 dark:shadow-[inset_0_1px_1px_rgba(251,191,36,0.05)]"
-              style={{ padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}
+              className="bg-gradient-to-b from-[#FFFBEB] to-[#FFFDF5] border-2 border-white rounded-[22px] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.08),0_0_0_2px_#FDE68A] dark:bg-none dark:bg-[#1E1912] dark:border-[1px] dark:border-amber-500/30 dark:shadow-[inset_0_1px_1px_rgba(251,191,36,0.05)] p-3.5 sm:p-4 md:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5"
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{
-                  width: 36, height: 36, borderRadius: 10, flexShrink: 0,
-                  background: 'rgba(251,191,36,0.15)',
-                  border: '1px solid rgba(251,191,36,0.3)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl flex-shrink-0 bg-amber-500/15 border border-amber-500/30 flex items-center justify-center">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
                   </svg>
                 </div>
                 <div>
-                  <p className="text-[13px] font-semibold text-amber-800 dark:text-amber-300" style={{ margin: 0, lineHeight: 1.3 }}>
+                  <p className="text-[13px] font-semibold text-amber-800 dark:text-amber-300 leading-tight">
                     You're viewing demo data
                   </p>
-                  <p className="text-[12px] text-amber-700/70 dark:text-slate-300" style={{ margin: 0, lineHeight: 1.4 }}>
+                  <p className="text-[11.5px] sm:text-[12px] text-amber-700/70 dark:text-slate-300 mt-0.5 leading-snug">
                     Connect your real broker account to see live trades, P&amp;L and risk metrics.
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => navigate('/settings?tab=trading')}
-                className="text-[13px] font-semibold text-white flex items-center gap-2 transition-all hover:scale-[1.03] active:scale-[0.98]"
+                className="w-full sm:w-auto justify-center text-[12.5px] sm:text-[13px] font-semibold text-white flex items-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] py-2 px-4 rounded-xl shadow-md cursor-pointer shrink-0"
                 style={{
                   background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-                  border: 'none', borderRadius: 12, padding: '9px 18px',
-                  cursor: 'pointer', flexShrink: 0,
                   boxShadow: '0 2px 10px rgba(245,158,11,0.3)',
                 }}
               >
@@ -91,23 +83,17 @@ export default function Journal() {
                 initial={{ opacity: 0, y: -8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.35 }}
-                className="bg-gradient-to-b from-[#EFF6FF] to-[#F8FAFC] border-2 border-white rounded-[22px] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.08),0_0_0_2px_#BFDBFE] dark:bg-none dark:bg-[#1A2332] dark:border-[1px] dark:border-blue-500/30 dark:shadow-[inset_0_1px_1px_rgba(59,130,246,0.05)]"
-                style={{ padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}
+                className="bg-gradient-to-b from-[#EFF6FF] to-[#F8FAFC] border-2 border-white rounded-[22px] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.08),0_0_0_2px_#BFDBFE] dark:bg-none dark:bg-[#1A2332] dark:border-[1px] dark:border-blue-500/30 dark:shadow-[inset_0_1px_1px_rgba(59,130,246,0.05)] p-3.5 sm:p-4 md:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5"
              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                   <div style={{
-                      width: 36, height: 36, borderRadius: 10, flexShrink: 0,
-                      background: 'rgba(59,130,246,0.15)',
-                      border: '1px solid rgba(59,130,246,0.3)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                   }}>
+                <div className="flex items-center gap-3">
+                   <div className="w-9 h-9 rounded-xl flex-shrink-0 bg-blue-500/15 border border-blue-500/30 flex items-center justify-center">
                       <ShieldCheck size={18} className="text-blue-600 dark:text-blue-400" />
                    </div>
                    <div>
-                      <p className="text-[13px] font-semibold text-blue-900 dark:text-blue-300" style={{ margin: 0, lineHeight: 1.3 }}>
+                      <p className="text-[13px] font-semibold text-blue-900 dark:text-blue-300 leading-tight">
                          SEBI Compliance: Daily Login Required
                       </p>
-                      <p className="text-[12px] text-blue-800/70 dark:text-slate-300" style={{ margin: 0, lineHeight: 1.4 }}>
+                      <p className="text-[11.5px] sm:text-[12px] text-blue-800/70 dark:text-slate-300 mt-0.5 leading-snug">
                          To pull live trades into your journal, you must authorize your Indian broker for today's session.
                       </p>
                    </div>
@@ -121,11 +107,9 @@ export default function Journal() {
                       setDailyTokenActive(true);
                       sessionStorage.setItem('indian_daily_token', 'active');
                    }}
-                   className="text-[13px] font-semibold text-white flex items-center gap-2 transition-all hover:scale-[1.03] active:scale-[0.98]"
+                   className="w-full sm:w-auto justify-center text-[12.5px] sm:text-[13px] font-semibold text-white flex items-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] py-2 px-4 rounded-xl shadow-md cursor-pointer shrink-0"
                    style={{
                       background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-                      border: 'none', borderRadius: 12, padding: '9px 18px',
-                      cursor: 'pointer', flexShrink: 0,
                       boxShadow: '0 2px 10px rgba(59,130,246,0.3)',
                    }}
                 >
