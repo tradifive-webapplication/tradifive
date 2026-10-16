@@ -500,12 +500,6 @@ export default function Login() {
             </p>
           </div>
 
-          {(window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && (
-            <div className="mb-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl text-[11px] text-blue-600 dark:text-blue-400 font-medium leading-relaxed">
-              💡 <strong>Local Development:</strong> Use <strong>Email &amp; Password</strong> below to log in directly on localhost. To use Google Login, add <code className="bg-blue-500/20 px-1 py-0.5 rounded font-mono text-[10px]">{window.location.origin}/**</code> to Supabase Redirect URLs.
-            </div>
-          )}
-
           <AnimatePresence mode="wait">
             {step === 'auth' ? (
               <motion.div
