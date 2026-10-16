@@ -465,81 +465,30 @@ export default function AITrading() {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            className="rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:bg-[#161618] dark:border-white/10 p-4 sm:p-6 space-y-4"
+            className="rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:bg-[#161618] dark:border-white/10 p-4 sm:p-6 space-y-5"
           >
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/5">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100 dark:border-white/5">
               <div>
-                <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
-                  Connect MT5 Account
-                </h2>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  Link an MT5 account under Vantage Partner IB <strong className="font-mono text-slate-900 dark:text-white">27863221</strong> (min. $500 deposit) to run FiAlgo.
+                <div className="flex items-center gap-2">
+                  <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+                    Connect MT5 Account
+                  </h2>
+                  <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20">
+                    Step 1 of 3
+                  </span>
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  Connect your MetaTrader 5 account (minimum <strong className="text-slate-800 dark:text-slate-200 font-semibold">$500 USD</strong> equity) to authorize and run FiAlgo V1.
                 </p>
               </div>
 
               {ibVerified && (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 shrink-0">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 shrink-0 self-start sm:self-auto">
                   <CheckCircle2 size={13} />
                   Connected
                 </span>
               )}
-            </div>
-
-            {/* 5-Step Activation Roadmap Banner */}
-            <div className="p-3.5 sm:p-4 rounded-xl bg-gradient-to-r from-blue-50/80 via-indigo-50/40 to-slate-50 dark:from-blue-950/20 dark:via-indigo-950/10 dark:to-white/[0.02] border border-blue-200/70 dark:border-blue-500/20 space-y-2.5">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="flex h-2 w-2 rounded-full bg-blue-600 animate-pulse" />
-                  <span className="text-[11px] font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-                    Official Partner Onboarding Plan
-                  </span>
-                </div>
-                <span className="text-[10px] font-extrabold text-amber-700 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20 flex items-center gap-1">
-                  <span>Min. $500 Required</span>
-                </span>
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5 text-[11px]">
-                <div className="p-2 rounded-lg bg-white/80 dark:bg-white/5 border border-slate-200/60 dark:border-white/5">
-                  <div className="font-bold text-blue-600 dark:text-blue-400">1. Open MT5</div>
-                  <div className="text-slate-500 dark:text-slate-400 text-[10px] mt-0.5 leading-tight">Vantage Partner link (Code: MCTDw2R6)</div>
-                </div>
-
-                <div className="p-2 rounded-lg bg-white/80 dark:bg-white/5 border border-slate-200/60 dark:border-white/5">
-                  <div className="font-bold text-slate-800 dark:text-slate-200">2. Verify KYC</div>
-                  <div className="text-slate-500 dark:text-slate-400 text-[10px] mt-0.5 leading-tight">Complete ID check on Vantage portal</div>
-                </div>
-
-                <div className="p-2 rounded-lg bg-amber-500/10 dark:bg-amber-500/10 border border-amber-500/30 col-span-2 sm:col-span-1">
-                  <div className="font-bold text-amber-700 dark:text-amber-400 flex items-center gap-1">
-                    <span>3. Deposit $500+</span>
-                  </div>
-                  <div className="text-slate-600 dark:text-slate-400 text-[10px] mt-0.5 leading-tight">Deposit min $500 &amp; place 1 test trade</div>
-                </div>
-
-                <div className="p-2 rounded-lg bg-white/80 dark:bg-white/5 border border-slate-200/60 dark:border-white/5">
-                  <div className="font-bold text-slate-800 dark:text-slate-200">4. Send MT5 ID</div>
-                  <div className="text-slate-500 dark:text-slate-400 text-[10px] mt-0.5 leading-tight">Submit MT5 number for fast desk verification</div>
-                </div>
-
-                <div className="p-2 rounded-lg bg-emerald-500/10 dark:bg-emerald-500/10 border border-emerald-500/20 col-span-2 sm:col-span-1">
-                  <div className="font-bold text-emerald-600 dark:text-emerald-400">5. Unlock Key</div>
-                  <div className="text-slate-600 dark:text-slate-400 text-[10px] mt-0.5 leading-tight">Get activation key &amp; start auto trading</div>
-                </div>
-              </div>
-            </div>
-
-            {/* $500 Minimum Deposit Requirement Callout */}
-            <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-2.5">
-              <AlertCircle size={16} className="text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-              <div className="text-xs space-y-0.5">
-                <div className="font-bold text-amber-800 dark:text-amber-300">
-                  Minimum $500 Account Balance Strictly Required
-                </div>
-                <p className="text-[11px] text-amber-700/90 dark:text-amber-300/80 leading-relaxed">
-                  FiAlgo V1 is an automated Gold (XAUUSD) algorithm. A minimum trading account equity of <strong>$500 USD</strong> is strictly required to handle margin requirements, calibrated 0.01 lot size scaling, and institutional drawdown buffers safely.
-                </p>
-              </div>
             </div>
 
             {/* STATE 1A: ALREADY VERIFIED */}
@@ -704,106 +653,148 @@ export default function AITrading() {
                 </div>
               </div>
             ) : (
-              /* STATE 1C: CLEAN 2-WAY CHOICE */
+              /* STATE 1C: SYSTEMIC ACCOUNT SETUP FLOW */
               <div className="space-y-4">
-                {/* 2-Option Segmented Control: Open New (Vantage) vs Transfer Existing IB */}
-                <div className="grid grid-cols-2 gap-1.5 p-1 bg-slate-100 dark:bg-white/5 rounded-xl text-xs font-bold">
+                {/* Segmented Switcher */}
+                <div className="grid grid-cols-2 gap-1.5 p-1 bg-slate-100 dark:bg-white/5 rounded-xl text-xs font-semibold">
                   <button
                     type="button"
                     onClick={() => {
                       setSetupPath("new");
                       setSelectedBroker("vantage");
                     }}
-                    className={`py-2 px-3 rounded-lg transition-all cursor-pointer text-center ${
+                    className={`py-2 px-3 rounded-lg transition-all text-center cursor-pointer flex items-center justify-center gap-1.5 ${
                       setupPath === "new"
-                        ? "bg-white dark:bg-[#1E1E22] text-slate-900 dark:text-white shadow-xs"
+                        ? "bg-white dark:bg-[#1E1E22] text-slate-900 dark:text-white font-bold shadow-xs"
                         : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                     }`}
                   >
-                    Open New Account
+                    <span>Open Vantage Account</span>
+                    <span className="hidden sm:inline-block text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-50 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400">
+                      Recommended
+                    </span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setSetupPath("transfer")}
-                    className={`py-2 px-3 rounded-lg transition-all cursor-pointer text-center ${
+                    className={`py-2 px-3 rounded-lg transition-all text-center cursor-pointer flex items-center justify-center gap-1.5 ${
                       setupPath === "transfer"
-                        ? "bg-white dark:bg-[#1E1E22] text-slate-900 dark:text-white shadow-xs"
+                        ? "bg-white dark:bg-[#1E1E22] text-slate-900 dark:text-white font-bold shadow-xs"
                         : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                     }`}
                   >
-                    Transfer Existing IB
+                    <span>Transfer Existing Broker</span>
                   </button>
                 </div>
 
                 {/* ── PATH A: OPEN NEW ACCOUNT (EXCLUSIVELY VANTAGE MARKETS) ── */}
                 {setupPath === "new" && (
-                  <div className="space-y-3.5">
-                    {/* Vantage Promotion Card */}
-                    <div className="p-3.5 sm:p-4 rounded-xl bg-blue-50/70 dark:bg-blue-950/20 border border-blue-200/80 dark:border-blue-500/20 space-y-3">
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-2.5">
-                          <BrokerLogo id="vantage" size={28} />
+                  <div className="space-y-4">
+                    {/* Vantage Partner Card */}
+                    <div className="rounded-xl border border-blue-200/80 bg-gradient-to-br from-blue-50/70 via-white to-slate-50/50 dark:from-blue-950/20 dark:via-[#161618] dark:to-white/[0.02] dark:border-blue-500/20 p-4 sm:p-5 space-y-4">
+                      {/* Partner Header */}
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          <BrokerLogo id="vantage" size={36} />
                           <div>
                             <div className="flex items-center gap-2">
-                              <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                              <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">
                                 Vantage Markets
                               </h3>
                               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-600 text-white">
-                                Recommended Partner
+                                Official Partner
                               </span>
                             </div>
-                            <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                               Raw ECN Spreads · Direct MT5 Execution · Institutional Liquidity
                             </p>
                           </div>
                         </div>
-                      </div>
 
-                      {/* Partner ID Copy Strip */}
-                      <div className="p-2.5 bg-white dark:bg-[#121214] border border-blue-200/60 dark:border-white/5 rounded-xl flex items-center justify-between gap-2 text-xs">
-                        <div>
-                          <span className="text-slate-400">Referral Code: </span>
-                          <strong className="font-mono text-slate-900 dark:text-white font-bold">MCTDw2R6</strong>
+                        {/* Referral Code Box */}
+                        <div className="flex items-center gap-2 self-start sm:self-auto bg-white dark:bg-[#121214] border border-blue-200/70 dark:border-white/10 px-3 py-1.5 rounded-xl text-xs">
+                          <span className="text-slate-400">Partner Code:</span>
+                          <strong className="font-mono font-bold text-slate-900 dark:text-white">MCTDw2R6</strong>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              handleCopy("MCTDw2R6", "Partner Code MCTDw2R6 copied!");
+                              setCopiedPartnerId(true);
+                              setTimeout(() => setCopiedPartnerId(false), 2000);
+                            }}
+                            className="ml-1 text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 cursor-pointer p-0.5"
+                            title="Copy Partner Code"
+                          >
+                            {copiedPartnerId ? <Check size={13} className="text-emerald-500" /> : <Copy size={13} />}
+                          </button>
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => handleCopy("MCTDw2R6", "Referral Code MCTDw2R6 copied!")}
-                          className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/15 text-slate-700 dark:text-slate-200 inline-flex items-center gap-1 cursor-pointer"
-                        >
-                          {copiedPartnerId ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
-                          <span>{copiedPartnerId ? "Copied" : "Copy Code"}</span>
-                        </button>
                       </div>
 
-                      {/* 1-Click Open Account CTA */}
+                      {/* Integrated 3-Step Onboarding Plan */}
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1 border-t border-blue-200/50 dark:border-white/5 text-xs">
+                        <div className="p-3 rounded-xl bg-white/80 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/5 space-y-1">
+                          <div className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                            <span className="w-4 h-4 rounded-full bg-blue-600 text-white text-[10px] flex items-center justify-center font-bold">1</span>
+                            <span>Open Free MT5</span>
+                          </div>
+                          <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                            Sign up via Vantage link with code <strong className="font-mono text-slate-700 dark:text-slate-300">MCTDw2R6</strong> &amp; complete KYC.
+                          </p>
+                        </div>
+
+                        <div className="p-3 rounded-xl bg-white/80 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/5 space-y-1">
+                          <div className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                            <span className="w-4 h-4 rounded-full bg-blue-600 text-white text-[10px] flex items-center justify-center font-bold">2</span>
+                            <span>Fund $500+ USD</span>
+                          </div>
+                          <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                            Deposit min. $500 required for institutional Gold margin &amp; safe drawdown buffer.
+                          </p>
+                        </div>
+
+                        <div className="p-3 rounded-xl bg-white/80 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/5 space-y-1">
+                          <div className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                            <span className="w-4 h-4 rounded-full bg-blue-600 text-white text-[10px] flex items-center justify-center font-bold">3</span>
+                            <span>Link MT5 Below</span>
+                          </div>
+                          <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                            Submit your MT5 account number below for instant activation desk approval.
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Open Account CTA */}
                       <a
                         href="https://vigco.co/la-com-inv/MCTDw2R6"
                         target="_blank"
                         rel="noreferrer"
-                        className="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center gap-2 shadow-xs transition-colors"
+                        className="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center gap-2 shadow-xs transition-colors cursor-pointer"
                       >
                         <span>Open Free MT5 Account on Vantage</span>
                         <ExternalLink size={13} />
                       </a>
                     </div>
 
-                    {/* Step to connect newly created MT5 account */}
-                    <div className="space-y-3 pt-1">
+                    {/* MT5 Account Submission Form */}
+                    <div className="p-4 sm:p-5 rounded-xl border border-slate-200/80 bg-slate-50/50 dark:bg-white/[0.02] dark:border-white/10 space-y-3.5">
                       <div className="space-y-1">
-                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
-                          Enter Your Vantage MT5 Account Number
-                        </label>
+                        <div className="flex items-center justify-between">
+                          <label className="block text-xs font-bold text-slate-800 dark:text-slate-200">
+                            Enter Your Vantage MT5 Account Number
+                          </label>
+                          <span className="text-[11px] text-slate-400">Found in your Vantage client portal</span>
+                        </div>
                         <input
                           type="text"
                           placeholder="e.g. 8492015"
                           value={mt5Account}
                           onChange={(e) => setMt5Account(e.target.value)}
-                          className="w-full bg-slate-50 dark:bg-[#121214] border border-slate-200/80 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white font-mono focus:outline-none focus:ring-1 focus:ring-slate-400"
+                          className="w-full bg-white dark:bg-[#121214] border border-slate-200/80 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white font-mono focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all placeholder:text-slate-400"
                         />
                       </div>
 
-                      {/* Minimum $500 Deposit Confirmation Checkbox */}
-                      <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs">
+                      {/* Clean Confirmation Checkbox */}
+                      <label className="flex items-start gap-2.5 p-3 rounded-xl bg-white dark:bg-[#121214] border border-slate-200/70 dark:border-white/5 cursor-pointer text-xs group hover:border-slate-300 dark:hover:border-white/15 transition-colors">
                         <input
                           type="checkbox"
                           id="min-deposit-check-new"
@@ -811,16 +802,29 @@ export default function AITrading() {
                           onChange={(e) => setDepositConfirmed(e.target.checked)}
                           className="mt-0.5 w-4 h-4 rounded text-blue-600 focus:ring-blue-500 cursor-pointer shrink-0"
                         />
-                        <label htmlFor="min-deposit-check-new" className="text-slate-800 dark:text-slate-200 cursor-pointer font-medium leading-relaxed">
-                          I confirm this MT5 account has a <strong>minimum balance of $500 USD</strong> (Essential for FiAlgo Gold grid calibration &amp; drawdown safety)
-                        </label>
-                      </div>
+                        <span className="text-slate-700 dark:text-slate-300 font-medium leading-relaxed">
+                          I confirm this MT5 account has a <strong>minimum balance of $500 USD</strong> (Essential for FiAlgo Gold grid calibration &amp; drawdown safety).
+                        </span>
+                      </label>
 
-                      <div className="space-y-1">
-                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
-                          Account Balance / Welcome Screenshot (Optional)
-                        </label>
-                        <div className="border border-dashed border-slate-300 dark:border-white/10 hover:border-slate-400 rounded-xl p-2.5 text-center cursor-pointer bg-slate-50 dark:bg-[#121214] relative flex items-center justify-center min-h-[42px]">
+                      {/* Compact Screenshot Upload */}
+                      <div className="p-3 rounded-xl bg-white dark:bg-[#121214] border border-slate-200/70 dark:border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-white/10 flex items-center justify-center shrink-0 text-slate-500 dark:text-slate-400">
+                            <ImageIcon size={15} />
+                          </div>
+                          <div>
+                            <div className="font-semibold text-slate-800 dark:text-slate-200">
+                              Deposit / Account Screenshot
+                              <span className="text-slate-400 font-normal ml-1">(Optional)</span>
+                            </div>
+                            <div className="text-[11px] text-slate-500 dark:text-slate-400">
+                              Helps fast-track verification desk review
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="relative shrink-0">
                           <input
                             type="file"
                             accept="image/*"
@@ -828,18 +832,20 @@ export default function AITrading() {
                             className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                           />
                           {proofFile ? (
-                            <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 truncate px-2">
-                              ✓ {proofFileName || "Screenshot Attached"}
-                            </span>
+                            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                              <Check size={12} />
+                              <span className="max-w-[140px] truncate">{proofFileName || "Attached"}</span>
+                            </div>
                           ) : (
-                            <span className="text-xs text-slate-500 flex items-center gap-1.5">
-                              <UploadCloud size={14} className="text-slate-400" />
-                              <span>Attach deposit confirmation or welcome portal screenshot</span>
-                            </span>
+                            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-white/10 hover:bg-slate-200 text-slate-700 dark:text-slate-300 transition-colors cursor-pointer">
+                              <UploadCloud size={13} />
+                              <span>Attach File</span>
+                            </div>
                           )}
                         </div>
                       </div>
 
+                      {/* Submit Button */}
                       <button
                         type="button"
                         onClick={handleSubmitProof}
@@ -866,12 +872,12 @@ export default function AITrading() {
                   </div>
                 )}
 
-                {/* ── PATH B: TRANSFER EXISTING IB (USER CAN CHOOSE OTHER BROKERS) ── */}
+                {/* ── PATH B: TRANSFER EXISTING IB ── */}
                 {setupPath === "transfer" && (
-                  <div className="space-y-3.5">
+                  <div className="space-y-4">
                     {/* Broker Selector */}
                     <div className="space-y-1">
-                      <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                      <label className="block text-xs font-bold text-slate-800 dark:text-slate-200">
                         Select Your Broker
                       </label>
                       <div className="relative">
@@ -893,27 +899,35 @@ export default function AITrading() {
                     </div>
 
                     {/* Change IB Instruction Box */}
-                    <div className="p-3 bg-slate-50 dark:bg-[#121214] border border-slate-200/80 dark:border-white/5 rounded-xl space-y-2 text-xs">
+                    <div className="p-4 rounded-xl border border-slate-200/80 bg-slate-50/50 dark:bg-white/[0.02] dark:border-white/10 space-y-3 text-xs">
                       <div className="flex items-center justify-between">
-                        <span className="text-slate-500 dark:text-slate-400">
-                          {selectedBroker === 'vantage' ? 'Rebate Account (IB Number):' : 'Partner IB to link:'}
+                        <span className="font-semibold text-slate-700 dark:text-slate-300">
+                          {selectedBroker === 'vantage' ? 'Rebate Account (IB Number):' : 'Partner IB to Link:'}
                         </span>
-                        <div className="flex items-center gap-1.5 font-mono font-bold text-slate-900 dark:text-white bg-slate-200/70 dark:bg-white/10 px-2 py-0.5 rounded">
+                        <div className="flex items-center gap-1.5 font-mono font-bold text-slate-900 dark:text-white bg-white dark:bg-white/10 border border-slate-200 dark:border-white/10 px-2.5 py-1 rounded-lg">
                           <span>{currentBroker.ibNumber || "27863221"}</span>
                           {selectedBroker === 'vantage' && (
-                            <span className="text-[10px] text-slate-500 font-normal">({currentBroker.referralCode || "MCTDw2R6"})</span>
+                            <span className="text-[10px] text-slate-400 font-normal">({currentBroker.referralCode || "MCTDw2R6"})</span>
                           )}
+                          <button
+                            type="button"
+                            onClick={() => handleCopy(currentBroker.ibNumber || "27863221", "IB Number copied!")}
+                            className="text-slate-400 hover:text-slate-700 dark:hover:text-white cursor-pointer ml-1"
+                            title="Copy IB Number"
+                          >
+                            <Copy size={12} />
+                          </button>
                         </div>
                       </div>
 
                       <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                        Send an email to {currentBroker.name} support (<span className="text-slate-700 dark:text-slate-300 font-mono">{currentBroker.supportEmail}</span>) to move your MT5 account under Partner IB / Rebate Account <strong>{currentBroker.ibNumber || "27863221"}</strong>.
+                        Send an email to {currentBroker.name} support (<span className="text-slate-700 dark:text-slate-300 font-mono">{currentBroker.supportEmail}</span>) to move your MT5 account under Partner IB <strong>{currentBroker.ibNumber || "27863221"}</strong>.
                       </p>
 
                       <div className="flex items-center gap-2 pt-1">
                         <a
                           href={mailtoLink}
-                          className="flex-1 py-1.5 px-3 rounded-lg text-xs font-semibold bg-slate-900 text-white dark:bg-white dark:text-slate-900 inline-flex items-center justify-center gap-1.5 shadow-xs"
+                          className="flex-1 py-2 px-3 rounded-xl text-xs font-semibold bg-slate-900 text-white dark:bg-white dark:text-slate-900 inline-flex items-center justify-center gap-1.5 shadow-xs transition-colors"
                         >
                           <Mail size={12} />
                           <span>Open Mail App</span>
@@ -921,18 +935,18 @@ export default function AITrading() {
                         <button
                           type="button"
                           onClick={() => handleCopy(emailTemplateText, "Email template copied!")}
-                          className="flex-1 py-1.5 px-3 rounded-lg text-xs font-semibold bg-white dark:bg-white/10 border border-slate-200 dark:border-white/10 hover:border-slate-300 text-slate-700 dark:text-slate-200 inline-flex items-center justify-center gap-1.5 cursor-pointer"
+                          className="flex-1 py-2 px-3 rounded-xl text-xs font-semibold bg-white dark:bg-white/10 border border-slate-200 dark:border-white/10 hover:border-slate-300 text-slate-700 dark:text-slate-200 inline-flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
                         >
                           <Copy size={12} />
-                          <span>Copy Email</span>
+                          <span>Copy Email Template</span>
                         </button>
                       </div>
                     </div>
 
                     {/* Inputs */}
-                    <div className="space-y-3 pt-1">
+                    <div className="p-4 sm:p-5 rounded-xl border border-slate-200/80 bg-slate-50/50 dark:bg-white/[0.02] dark:border-white/10 space-y-3.5">
                       <div className="space-y-1">
-                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                        <label className="block text-xs font-bold text-slate-800 dark:text-slate-200">
                           MT5 Account Number
                         </label>
                         <input
@@ -940,12 +954,12 @@ export default function AITrading() {
                           placeholder="e.g. 8492015"
                           value={mt5Account}
                           onChange={(e) => setMt5Account(e.target.value)}
-                          className="w-full bg-slate-50 dark:bg-[#121214] border border-slate-200/80 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white font-mono focus:outline-none focus:ring-1 focus:ring-slate-400"
+                          className="w-full bg-white dark:bg-[#121214] border border-slate-200/80 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white font-mono focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all placeholder:text-slate-400"
                         />
                       </div>
 
-                      {/* Minimum $500 Deposit Confirmation Checkbox */}
-                      <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs">
+                      {/* Confirmation Checkbox */}
+                      <label className="flex items-start gap-2.5 p-3 rounded-xl bg-white dark:bg-[#121214] border border-slate-200/70 dark:border-white/5 cursor-pointer text-xs group hover:border-slate-300 dark:hover:border-white/15 transition-colors">
                         <input
                           type="checkbox"
                           id="min-deposit-check-transfer"
@@ -953,16 +967,29 @@ export default function AITrading() {
                           onChange={(e) => setDepositConfirmed(e.target.checked)}
                           className="mt-0.5 w-4 h-4 rounded text-blue-600 focus:ring-blue-500 cursor-pointer shrink-0"
                         />
-                        <label htmlFor="min-deposit-check-transfer" className="text-slate-800 dark:text-slate-200 cursor-pointer font-medium leading-relaxed">
-                          I confirm this MT5 account has a <strong>minimum balance of $500 USD</strong> (Required for Gold algorithm risk &amp; margin safety)
-                        </label>
-                      </div>
+                        <span className="text-slate-700 dark:text-slate-300 font-medium leading-relaxed">
+                          I confirm this MT5 account has a <strong>minimum balance of $500 USD</strong> (Required for Gold algorithm risk &amp; margin safety).
+                        </span>
+                      </label>
 
-                      <div className="space-y-1">
-                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
-                          Screenshot Proof of Transfer Request
-                        </label>
-                        <div className="border border-dashed border-slate-300 dark:border-white/10 hover:border-slate-400 rounded-xl p-2.5 text-center cursor-pointer bg-slate-50 dark:bg-[#121214] relative flex items-center justify-center min-h-[42px]">
+                      {/* Screenshot Proof of Transfer Request */}
+                      <div className="p-3 rounded-xl bg-white dark:bg-[#121214] border border-slate-200/70 dark:border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-white/10 flex items-center justify-center shrink-0 text-slate-500 dark:text-slate-400">
+                            <ImageIcon size={15} />
+                          </div>
+                          <div>
+                            <div className="font-semibold text-slate-800 dark:text-slate-200">
+                              Screenshot Proof of Transfer Request
+                              <span className="text-rose-500 font-bold ml-1">*</span>
+                            </div>
+                            <div className="text-[11px] text-slate-500 dark:text-slate-400">
+                              Attach email sent or broker ticket screenshot
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="relative shrink-0">
                           <input
                             type="file"
                             accept="image/*"
@@ -970,14 +997,15 @@ export default function AITrading() {
                             className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                           />
                           {proofFile ? (
-                            <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 truncate px-2">
-                              ✓ {proofFileName || "Screenshot Attached"}
-                            </span>
+                            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                              <Check size={12} />
+                              <span className="max-w-[140px] truncate">{proofFileName || "Attached"}</span>
+                            </div>
                           ) : (
-                            <span className="text-xs text-slate-500 flex items-center gap-1.5">
-                              <UploadCloud size={14} className="text-slate-400" />
-                              <span>Attach email sent or ticket screenshot</span>
-                            </span>
+                            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-white/10 hover:bg-slate-200 text-slate-700 dark:text-slate-300 transition-colors cursor-pointer">
+                              <UploadCloud size={13} />
+                              <span>Attach Proof</span>
+                            </div>
                           )}
                         </div>
                       </div>
