@@ -543,7 +543,7 @@ MagicNumber=789104
                   Connect MT5 Account
                 </h2>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  Follow the 3 simple steps below to connect your account and unlock your FiAlgo V1 license key.
+                  Complete these 3 steps to connect your broker and unlock your FiAlgo V1 license.
                 </p>
               </div>
 
@@ -611,7 +611,7 @@ MagicNumber=789104
                           </h3>
                         </div>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">
-                          Confirming partner link under IB 27863221 &amp; verifying min. $500 balance with {currentBroker.name}.
+                          Verifying partner IB link and $500+ balance with {currentBroker.name}.
                         </p>
                       </div>
                     </div>
@@ -793,7 +793,7 @@ MagicNumber=789104
                         <div className="flex items-center gap-2.5 min-w-0">
                           <span className="w-6 h-6 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0">1</span>
                           <span className="text-xs font-bold text-slate-900 dark:text-white truncate">
-                            Open Free MT5 Account on Vantage
+                            Open Vantage MT5 Account
                           </span>
                         </div>
                         <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full border border-blue-500/20 shrink-0 whitespace-nowrap">
@@ -802,7 +802,7 @@ MagicNumber=789104
                       </div>
 
                       <p className="text-xs text-slate-500 dark:text-slate-400 pl-0 sm:pl-8.5 leading-relaxed">
-                        Register using our official link below. Our Partner IB (Rebate code: <strong className="font-mono text-slate-900 dark:text-white font-bold">MCTDw2R6</strong>) will be applied automatically.
+                        Register using our partner link below. Partner code <strong className="font-mono text-slate-900 dark:text-white font-bold">MCTDw2R6</strong> is applied automatically.
                       </p>
 
                       <div className="pl-0 sm:pl-8.5 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-0.5">
@@ -813,7 +813,7 @@ MagicNumber=789104
                           className="flex-1 py-2.5 px-3.5 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center gap-2 shadow-xs transition-colors"
                         >
                           <BrokerLogo id="vantage" size={16} />
-                          <span className="truncate">Open Free MT5 Account on Vantage</span>
+                          <span className="truncate">Open Vantage Account</span>
                           <ExternalLink size={13} className="shrink-0" />
                         </a>
                         <button
@@ -833,14 +833,14 @@ MagicNumber=789104
                       <div className="text-xs space-y-1 flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-2">
                           <span className="font-bold text-slate-900 dark:text-white leading-tight">
-                            Complete KYC &amp; Deposit Minimum $500 USD
+                            Complete KYC &amp; Deposit $500+
                           </span>
                           <span className="text-[10px] font-bold text-amber-700 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20 shrink-0 whitespace-nowrap">
                             Min. $500
                           </span>
                         </div>
                         <p className="text-[11.5px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                          Complete your quick ID check on Vantage portal and deposit at least <strong>$500 USD</strong>. A minimum of $500 is strictly required so the Gold (XAUUSD) algorithm can safely handle margin buffers.
+                          Complete ID verification and deposit at least <strong>$500 USD</strong> into your Vantage account.
                         </p>
                       </div>
                     </div>
@@ -850,7 +850,7 @@ MagicNumber=789104
                       <div className="flex items-center gap-2.5">
                         <span className="w-6 h-6 rounded-full bg-slate-800 dark:bg-white/20 text-white font-bold text-xs flex items-center justify-center shrink-0">3</span>
                         <h4 className="text-xs font-bold text-slate-900 dark:text-white">
-                          Submit Your Vantage MT5 Number
+                          Submit MT5 Account Number
                         </h4>
                       </div>
 
@@ -878,7 +878,7 @@ MagicNumber=789104
                             className="mt-0.5 w-4 h-4 rounded text-blue-600 focus:ring-blue-500 cursor-pointer shrink-0"
                           />
                           <span className="text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
-                            I confirm this MT5 account is funded with a <strong>minimum balance of $500 USD</strong>.
+                            I confirm this MT5 account has a <strong>minimum balance of $500 USD</strong>.
                           </span>
                         </label>
 
@@ -891,7 +891,7 @@ MagicNumber=789104
                           <div className="flex items-center gap-2 min-w-0 flex-1">
                             <UploadCloud size={15} className={`shrink-0 ${proofFile ? "text-emerald-500" : "text-slate-400"}`} />
                             <span className="text-slate-700 dark:text-slate-300 text-xs font-medium truncate">
-                              {proofFile ? (proofFileName || "Screenshot Attached") : "Attach deposit confirmation (Required)"}
+                              {proofFile ? (proofFileName || "Screenshot Attached") : "Upload deposit screenshot (Required)"}
                             </span>
                           </div>
                           <div className="relative shrink-0">
@@ -929,7 +929,7 @@ MagicNumber=789104
                           ) : (
                             <>
                               <Send size={13} />
-                              <span>Submit for Quick Verification &amp; Unlock Key →</span>
+                              <span>Submit &amp; Unlock Key →</span>
                             </>
                           )}
                         </button>
@@ -947,7 +947,7 @@ MagicNumber=789104
                         <div className="flex items-center gap-2.5">
                           <span className="w-6 h-6 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0">1</span>
                           <span className="text-xs font-bold text-slate-900 dark:text-white">
-                            Request IB Transfer to {currentBroker.ibNumber || "27863221"}
+                            Request IB Transfer
                           </span>
                         </div>
                         <span className="text-[10px] font-mono font-bold text-blue-600 dark:text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full border border-blue-500/20">
@@ -958,7 +958,7 @@ MagicNumber=789104
                       <div className="pl-0 sm:pl-8.5 space-y-2.5">
                         <div className="space-y-1">
                           <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
-                            Your Current Broker
+                            Select Current Broker
                           </label>
                           <div className="relative">
                             <select
@@ -979,7 +979,7 @@ MagicNumber=789104
                         </div>
 
                         <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                          Send an email to {currentBroker.name} support (<span className="text-slate-700 dark:text-slate-300 font-mono">{currentBroker.supportEmail}</span>) to move your MT5 account under Partner IB <strong>{currentBroker.ibNumber || "27863221"}</strong>.
+                          Email {currentBroker.name} support (<span className="text-slate-700 dark:text-slate-300 font-mono">{currentBroker.supportEmail}</span>) to transfer your account under Partner IB <strong>{targetIbNumber}</strong>.
                         </p>
 
                         <div className="flex items-center gap-2 pt-0.5">
@@ -996,7 +996,7 @@ MagicNumber=789104
                             className="flex-1 py-2 px-3 rounded-xl text-xs font-semibold bg-white dark:bg-white/10 border border-slate-200 dark:border-white/10 hover:border-slate-300 text-slate-700 dark:text-slate-200 inline-flex items-center justify-center gap-1.5 cursor-pointer"
                           >
                             <Copy size={12} />
-                            <span>Copy Template</span>
+                            <span>Copy Email Template</span>
                           </button>
                         </div>
                       </div>
@@ -1008,14 +1008,14 @@ MagicNumber=789104
                       <div className="text-xs space-y-1">
                         <div className="flex items-center gap-2">
                           <span className="font-bold text-slate-900 dark:text-white">
-                            Maintain Minimum $500 Account Balance
+                            Maintain $500+ Account Balance
                           </span>
                           <span className="text-[10px] font-bold text-amber-700 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
                             Min. $500
                           </span>
                         </div>
                         <p className="text-[11.5px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                          Your trading account must have at least <strong>$500 USD</strong> equity to run FiAlgo safely on Gold (XAUUSD).
+                          Maintain at least <strong>$500 USD</strong> balance in your trading account.
                         </p>
                       </div>
                     </div>
@@ -1025,7 +1025,7 @@ MagicNumber=789104
                       <div className="flex items-center gap-2.5">
                         <span className="w-6 h-6 rounded-full bg-slate-800 dark:bg-white/20 text-white font-bold text-xs flex items-center justify-center shrink-0">3</span>
                         <h4 className="text-xs font-bold text-slate-900 dark:text-white">
-                          Submit MT5 Number &amp; Transfer Proof
+                          Submit MT5 Account &amp; Proof
                         </h4>
                       </div>
 
@@ -1066,7 +1066,7 @@ MagicNumber=789104
                           <div className="flex items-center gap-2 min-w-0 flex-1">
                             <UploadCloud size={15} className={`shrink-0 ${proofFile ? "text-emerald-500" : "text-slate-400"}`} />
                             <span className="text-slate-700 dark:text-slate-300 text-xs font-medium truncate">
-                              {proofFile ? (proofFileName || "Screenshot Attached") : "Screenshot proof of transfer request (Required)"}
+                              {proofFile ? (proofFileName || "Screenshot Attached") : "Upload transfer email screenshot (Required)"}
                             </span>
                           </div>
                           <div className="relative shrink-0">
@@ -1132,7 +1132,7 @@ MagicNumber=789104
                   Download FiAlgo V1 Expert Advisor
                 </h2>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  Download the compiled binary (.ex5) and chart preset for MetaTrader 5.
+                  Download the EA file and chart preset for MetaTrader 5.
                 </p>
               </div>
 
@@ -1175,7 +1175,7 @@ MagicNumber=789104
 
                   {/* Algorithmic Purpose */}
                   <p className="text-[11.5px] sm:text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                    Tick-by-tick breakout algorithm engineered strictly for Gold (XAUUSD) market structure with hard drawdown protection.
+                    Precision Gold (XAUUSD) algorithm with automated risk management and capital protection.
                   </p>
                 </div>
 
@@ -1375,8 +1375,8 @@ MagicNumber=789104
                 </h2>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                   {ibVerified
-                    ? "Attach your activation key to FiAlgo V1 on MetaTrader 5."
-                    : "Account verification with minimum $500 deposit is required to unlock your key."}
+                    ? "Copy your license key and attach it to FiAlgo V1 in MT5."
+                    : "Verify your MT5 account with $500+ deposit to unlock your license."}
                 </p>
               </div>
 
@@ -1403,10 +1403,10 @@ MagicNumber=789104
                       <span>Verification Required</span>
                     </div>
                     <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
-                      FiAlgo V1 License Key is Locked
+                      FiAlgo V1 License Key Locked
                     </h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-xl">
-                      To protect traders from improper risk calibration, personal activation keys are generated exclusively for accounts verified under Vantage Partner IB <strong className="text-slate-800 dark:text-slate-200">27863221</strong> with a <strong className="text-slate-800 dark:text-slate-200">minimum deposit of $500</strong>.
+                      Your license key unlocks once your MT5 account is verified under Partner IB <strong className="text-slate-800 dark:text-slate-200">27863221</strong> with a <strong className="text-slate-800 dark:text-slate-200">minimum balance of $500 USD</strong>.
                     </p>
                   </div>
                 </div>
