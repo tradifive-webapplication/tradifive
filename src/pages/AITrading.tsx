@@ -767,7 +767,7 @@ MagicNumber=789104
                     }`}
                   >
                     <span>Open New <span className="hidden sm:inline">Account</span></span>
-                    <span className="text-[9.5px] uppercase tracking-wider px-1.5 py-0.5 bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300 rounded font-bold border border-blue-200/60 dark:border-blue-500/20 whitespace-nowrap">
+                    <span className="text-[8px] sm:text-[8.5px] font-semibold px-1 py-0.5 bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300 rounded border border-blue-200/60 dark:border-blue-500/20 whitespace-nowrap">
                       Recommended
                     </span>
                   </button>
