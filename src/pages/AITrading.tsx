@@ -110,9 +110,11 @@ export default function AITrading() {
   // Step 3: Lifetime License Payment State (₹99,999)
   const [paymentStatus, setPaymentStatus] = useState<"none" | "pending" | "approved">(() => {
     try {
+      const req = localStorage.getItem("tradifive_payment_request");
       const saved = localStorage.getItem("tradifive_payment_status");
-      if (saved === "approved" || localStorage.getItem("tradifive_auto_trade_setup") === "true") return "approved";
-      if (saved === "pending") return "pending";
+      // Only approved or pending if an actual payment request was submitted
+      if (saved === "approved" && req) return "approved";
+      if (saved === "pending" && req) return "pending";
       return "none";
     } catch (e) {
       return "none";
@@ -1579,6 +1581,17 @@ MagicNumber=789104
                       Your payment has been verified. Proceed to Step 4 to activate and view your MetaTrader 5 license key.
                     </p>
                   </div>
+                </div>
+
+                <div className="pt-2 border-t border-emerald-200/70 dark:border-emerald-500/20 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
+                  <span className="text-emerald-800 dark:text-emerald-300">Need to make another payment or view UPI / Bank details?</span>
+                  <button
+                    type="button"
+                    onClick={handleResetPayment}
+                    className="font-bold text-emerald-900 hover:underline dark:text-emerald-200 cursor-pointer bg-white/70 dark:bg-white/10 px-3 py-1 rounded-lg border border-emerald-300 dark:border-emerald-500/30"
+                  >
+                    View PhonePe / UPI &amp; Bank Details
+                  </button>
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-2.5 pt-2">
