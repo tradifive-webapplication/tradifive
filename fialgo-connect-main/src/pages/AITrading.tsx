@@ -248,8 +248,12 @@ export default function AITrading() {
       toast.error("Please confirm your MT5 account is funded with at least $500.");
       return;
     }
-    if (setupPath === "transfer" && !proofFile) {
-      toast.error("Please attach a screenshot of your transfer email or broker confirmation.");
+    if (!proofFile) {
+      toast.error(
+        setupPath === "transfer"
+          ? "Please attach a screenshot of your transfer email or broker confirmation."
+          : "Please attach a screenshot confirming your $500+ deposit."
+      );
       return;
     }
 
@@ -878,12 +882,16 @@ MagicNumber=789104
                           </span>
                         </label>
 
-                        {/* Optional screenshot upload */}
-                        <div className="flex items-center justify-between p-2.5 rounded-xl border border-dashed border-slate-300 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.02] text-xs">
+                        {/* Compulsory Screenshot Proof */}
+                        <div className={`flex items-center justify-between p-2.5 rounded-xl border border-dashed transition-colors text-xs ${
+                          proofFile
+                            ? "border-emerald-500/50 bg-emerald-50/30 dark:bg-emerald-500/5"
+                            : "border-slate-300 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.02]"
+                        }`}>
                           <div className="flex items-center gap-2">
-                            <UploadCloud size={14} className="text-slate-400" />
-                            <span className="text-slate-500 dark:text-slate-400 text-[11px]">
-                              {proofFile ? (proofFileName || "Screenshot Attached") : "Attach deposit confirmation (Optional)"}
+                            <UploadCloud size={14} className={proofFile ? "text-emerald-500" : "text-slate-400"} />
+                            <span className="text-slate-700 dark:text-slate-300 text-[11px] font-medium">
+                              {proofFile ? (proofFileName || "Screenshot Attached") : "Attach deposit confirmation (Required)"}
                             </span>
                           </div>
                           <div className="relative">
@@ -893,8 +901,12 @@ MagicNumber=789104
                               onChange={handlePhotoUpload}
                               className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                             />
-                            <span className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-white dark:bg-white/10 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-200 cursor-pointer">
-                              {proofFile ? "Change" : "Browse"}
+                            <span className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold border transition-all cursor-pointer ${
+                              proofFile
+                                ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/20"
+                                : "bg-white dark:bg-white/10 border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-200 hover:bg-slate-50"
+                            }`}>
+                              {proofFile ? "Change" : "Browse Proof"}
                             </span>
                           </div>
                         </div>
@@ -902,9 +914,9 @@ MagicNumber=789104
                         <button
                           type="button"
                           onClick={handleSubmitProof}
-                          disabled={isSubmittingProof || !mt5Account.trim() || !depositConfirmed}
+                          disabled={isSubmittingProof || !proofFile || !mt5Account.trim() || !depositConfirmed}
                           className={`w-full py-3 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
-                            mt5Account.trim() && depositConfirmed
+                            proofFile && mt5Account.trim() && depositConfirmed
                               ? "bg-blue-600 hover:bg-blue-700 text-white shadow-xs"
                               : "bg-slate-100 dark:bg-white/5 text-slate-400 cursor-not-allowed border border-slate-200/60 dark:border-white/5"
                           }`}
