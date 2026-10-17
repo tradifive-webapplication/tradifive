@@ -637,7 +637,317 @@ MagicNumber=789104
             </p>
           </div>
 
-          
+          <button
+            type="button"
+            onClick={() => setShowCalculator(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 text-xs font-semibold text-slate-700 dark:text-slate-200 transition-colors shrink-0 cursor-pointer"
+            title="Open Profit Calculator"
+          >
+            <Calculator size={13} className="text-blue-500" />
+            <span>Calculator</span>
+          </button>
+        </div>
+
+        {/* ── SLEEK PROGRESS BAR (MOBILE-OPTIMIZED) ── */}
+        <div className="px-1 sm:px-0 space-y-2">
+          {/* Progress Header Meta */}
+          <div className="flex items-center justify-between text-xs px-0.5">
+            <span className="font-semibold text-slate-700 dark:text-slate-300">
+              Step {activeStep} of 4: {activeStep === 1 ? "Connect MT5" : activeStep === 2 ? "Download FiAlgo" : activeStep === 3 ? "License Payment" : "Activate License"}
+            </span>
+            <span className="font-bold font-mono text-slate-900 dark:text-white text-xs">
+              {activeStep === 1 ? "25%" : activeStep === 2 ? "50%" : activeStep === 3 ? "75%" : "100%"}
+            </span>
+          </div>
+
+          {/* Progress Bar Track */}
+          <div className="relative w-full h-1.5 bg-slate-100 dark:bg-white/10 rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-blue-600 dark:bg-blue-500 rounded-full transition-all duration-300 ease-out"
+              style={{ width: activeStep === 1 ? "25%" : activeStep === 2 ? "50%" : activeStep === 3 ? "75%" : "100%" }}
+            />
+          </div>
+
+          {/* 4 Step Milestone Tabs (Clean & touch-friendly on mobile) */}
+          <div className="grid grid-cols-4 gap-1.5 pt-1 text-xs">
+            <button
+              type="button"
+              onClick={() => setActiveStep(1)}
+              className={`py-1.5 px-1 sm:px-2 rounded-xl font-semibold flex items-center justify-center gap-1 transition-all cursor-pointer text-center text-[11px] sm:text-xs truncate ${
+                activeStep === 1
+                  ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs"
+                  : ibVerified
+                    ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-500/20"
+                    : "bg-slate-100 text-slate-500 hover:text-slate-900 dark:bg-white/5 dark:text-slate-400"
+              }`}
+            >
+              <span>{ibVerified ? "✓" : "1."} Connect</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveStep(2)}
+              className={`py-1.5 px-1 sm:px-2 rounded-xl font-semibold flex items-center justify-center gap-1 transition-all cursor-pointer text-center text-[11px] sm:text-xs truncate ${
+                activeStep === 2
+                  ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs"
+                  : hasDownloaded
+                    ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-500/20"
+                    : "bg-slate-100 text-slate-500 hover:text-slate-900 dark:bg-white/5 dark:text-slate-400"
+              }`}
+            >
+              <span>{hasDownloaded ? "✓" : "2."} Download</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveStep(3)}
+              className={`py-1.5 px-1 sm:px-2 rounded-xl font-semibold flex items-center justify-center gap-1 transition-all cursor-pointer text-center text-[11px] sm:text-xs truncate ${
+                activeStep === 3
+                  ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs"
+                  : paymentStatus === "approved"
+                    ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-500/20"
+                    : paymentStatus === "pending"
+                      ? "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 border border-amber-500/20"
+                      : "bg-slate-100 text-slate-500 hover:text-slate-900 dark:bg-white/5 dark:text-slate-400"
+              }`}
+            >
+              <span>{paymentStatus === "approved" ? "✓" : paymentStatus === "pending" ? "⌛" : "3."} Pay ₹99k</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveStep(4)}
+              className={`py-1.5 px-1 sm:px-2 rounded-xl font-semibold flex items-center justify-center gap-1 transition-all cursor-pointer text-center text-[11px] sm:text-xs truncate ${
+                activeStep === 4
+                  ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs"
+                  : (hasPaid && ibVerified)
+                    ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-500/20"
+                    : "bg-slate-100 text-slate-500 hover:text-slate-900 dark:bg-white/5 dark:text-slate-400"
+              }`}
+            >
+              <span>{(hasPaid && ibVerified) ? "✓" : "4."} Activate</span>
+            </button>
+          </div>
+        </div>
+
+        {/* ── STEP 1: ONLY SHOWN WHEN activeStep === 1 ── */}
+        {activeStep === 1 && (
+          <motion.div
+            key="step1"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            className="rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:bg-[#161618] dark:border-white/10 p-3 sm:p-6 space-y-4"
+          >
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/5">
+              <div>
+                <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+                  Connect MT5 Account
+                </h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  Complete these 3 steps to connect your broker and unlock your FiAlgo V1 license.
+                </p>
+              </div>
+
+              {ibVerified && (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 shrink-0">
+                  <CheckCircle2 size={13} />
+                  Connected
+                </span>
+              )}
+            </div>
+
+            {/* STATE 1A: ALREADY VERIFIED */}
+            {ibVerified ? (
+              <div className="space-y-4">
+                <div className="p-3 sm:p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                      <CheckCircle2 size={22} />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-slate-900 dark:text-white">
+                        MT5 Account {displayAccountLabel} Connected &amp; Verified
+                      </h4>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                        Broker: <strong>{currentBroker.name}</strong> · Partner IB: <strong className="font-mono">{currentBroker.ibNumber || "27863221"}</strong> · Balance: <strong className="text-emerald-600 dark:text-emerald-400">$500+ Qualified</strong>
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleResetVerification}
+                    className="text-xs font-semibold text-slate-500 hover:text-rose-600 dark:text-slate-400 dark:hover:text-rose-400 transition-colors self-start sm:self-center cursor-pointer"
+                  >
+                    Change Account
+                  </button>
+                </div>
+
+                <div className="pt-1 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setActiveStep(2)}
+                    className="w-full sm:w-auto px-5 py-2.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:hover:bg-slate-200 dark:text-slate-900 inline-flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+                  >
+                    <span>Continue to Step 2: Download FiAlgo V1</span>
+                    <ArrowRight size={14} />
+                  </button>
+                </div>
+              </div>
+            ) : transferRequestStatus === "pending" ? (
+              /* STATE 1B: UNDER REVIEW - HUMAN-CRAFTED FINTECH DESIGN */
+              <div className="space-y-4">
+                <div className="p-3 sm:p-5 rounded-2xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 space-y-4">
+                  
+                  {/* Status Header */}
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-700 dark:text-amber-400 flex items-center justify-center shrink-0 mt-0.5 border border-amber-500/20">
+                        <Clock size={18} />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">
+                            Account {displayAccountLabel} Under Review
+                          </h3>
+                        </div>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">
+                          Verifying partner IB link and $500+ balance with {currentBroker.name}.
+                        </p>
+                      </div>
+                    </div>
+
+                    <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-200/80 dark:border-amber-500/25 shrink-0">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                      <span>~1–2 hours</span>
+                    </span>
+                  </div>
+
+                  {/* 3-Cell Parameter Row (Clean on Mobile, No awkward line wrapping) */}
+                  <div className="grid grid-cols-3 gap-2 p-2.5 sm:p-3 rounded-xl bg-white dark:bg-[#121214] border border-slate-200/70 dark:border-white/5 text-xs">
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 block tracking-wider">Broker</span>
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <BrokerLogo id={selectedBroker} size={14} />
+                        <strong className="text-xs text-slate-800 dark:text-slate-200 truncate">{currentBroker.name}</strong>
+                      </div>
+                    </div>
+
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 block tracking-wider">Partner IB</span>
+                      <strong className="font-mono text-xs text-slate-800 dark:text-slate-200 mt-1 block">
+                        {currentBroker.ibNumber || "27863221"}
+                      </strong>
+                    </div>
+
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 block tracking-wider">Required Min.</span>
+                      <strong className="text-xs text-slate-800 dark:text-slate-200 mt-1 block">
+                        $500 USD
+                      </strong>
+                    </div>
+                  </div>
+
+                  {/* Attached Proof thumbnail if available */}
+                  {proofFile && (
+                    <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-white dark:bg-[#121214] border border-slate-200/70 dark:border-white/5 text-xs">
+                      <div className="flex items-center gap-2 truncate">
+                        <ImageIcon size={13} className="text-slate-400 shrink-0" />
+                        <span className="text-slate-600 dark:text-slate-300 truncate text-[11.5px]">
+                          {proofFileName || "Deposit verification screenshot"}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowProofPreviewModal(true)}
+                        className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline shrink-0 cursor-pointer ml-2"
+                      >
+                        View Screenshot
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Fast-Track Support Desk - Human Symmetrical Pair */}
+                  <div className="p-3 sm:p-3.5 rounded-xl bg-white dark:bg-[#121214] border border-slate-200/70 dark:border-white/5 space-y-2.5 text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-slate-900 dark:text-white text-xs">
+                        Need instant verification?
+                      </span>
+                      <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-white/10 px-2 py-0.5 rounded-full">
+                        24/7 Priority
+                      </span>
+                    </div>
+                    <p className="text-[11.5px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                      Ping our desk on WhatsApp or Email with your MT5 ID to get approved within minutes:
+                    </p>
+                    <div className="grid grid-cols-2 gap-2 pt-0.5">
+                      <a
+                        href={`https://wa.me/?text=${encodeURIComponent(
+                          `Hello TradiFive Team! Please verify my Vantage MT5 account #${mt5Account} ($500+ deposit funded) under Partner IB 27863221 so I can activate FiAlgo V1.`
+                        )}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="py-2.5 px-3 rounded-xl text-xs font-bold bg-emerald-50 hover:bg-emerald-100/80 text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/20 border border-emerald-200/80 flex items-center justify-center gap-1.5 transition-all shadow-2xs"
+                      >
+                        <MessageCircle size={14} className="text-emerald-600 dark:text-emerald-400" />
+                        <span>WhatsApp Desk</span>
+                      </a>
+                      <a
+                        href={`mailto:support@tradifive.in?subject=Verify MT5 Account ${mt5Account}&body=Hello Support Team,%0D%0A%0D%0APlease verify my MT5 account %23${mt5Account} with minimum $500 balance under Partner IB 27863221.%0D%0A%0D%0AThank you!`}
+                        className="py-2.5 px-3 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-800 dark:bg-white/10 dark:hover:bg-white/15 dark:text-white border border-slate-200/90 dark:border-white/10 flex items-center justify-center gap-1.5 transition-all shadow-2xs"
+                      >
+                        <Mail size={14} className="text-slate-600 dark:text-slate-300" />
+                        <span>Email Desk</span>
+                      </a>
+                    </div>
+                  </div>
+
+                  {/* Informative Next Step Banner & Primary CTA */}
+                  <div className="p-3.5 sm:p-4 rounded-xl bg-blue-50/60 dark:bg-blue-950/20 border border-blue-200/70 dark:border-blue-500/20 space-y-3">
+                    <div className="flex items-start gap-2.5">
+                      <div className="w-6 h-6 rounded-lg bg-blue-600/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 mt-0.5">
+                        <Download size={13} />
+                      </div>
+                      <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
+                        You can download the <strong>FiAlgo V1</strong> MT5 EA and presets right now while our desk confirms your connection.
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setActiveStep(2)}
+                      className="w-full py-3 px-4 rounded-xl text-xs sm:text-sm font-bold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:hover:bg-slate-100 dark:text-slate-900 flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer active:scale-[0.99]"
+                    >
+                      <span>Continue to Step 2: Download FiAlgo V1</span>
+                      <ArrowRight size={14} />
+                    </button>
+                  </div>
+
+                  {/* Secondary Footers: Change Account & Discreet Dev Helper */}
+                  <div className="flex items-center justify-between gap-3 pt-1 border-t border-slate-200/60 dark:border-white/5 text-xs">
+                    <button
+                      type="button"
+                      onClick={handleResetVerification}
+                      className="text-xs font-medium text-slate-500 hover:text-rose-600 dark:text-slate-400 dark:hover:text-rose-400 transition-colors cursor-pointer"
+                    >
+                      ← Change MT5 Account
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIbVerified(true);
+                        setTransferRequestStatus("approved");
+                        toast.success("Account Approved & Verified!", {
+                          description: "Vantage MT5 account verified with $500 minimum balance."
+                        });
+                      }}
+                      className="text-[11px] font-medium text-slate-400 hover:text-slate-700 dark:text-slate-500 dark:hover:text-slate-300 underline cursor-pointer"
+                      title="Simulate instant broker approval for testing"
+                    >
+                      Simulate approval (Demo)
+                    </button>
                   </div>
                 </div>
               </div>
@@ -1945,7 +2255,18 @@ MagicNumber=789104
                     </a>
                   </div>
 
-                  
+                  {/* Discrete testing helper */}
+                  <div className="pt-2 border-t border-slate-200/60 dark:border-white/5 flex items-center justify-between text-[11px] text-slate-500">
+                    <span>Testing license key unlock?</span>
+                    <button
+                      type="button"
+                      onClick={handleApprovePaymentDemo}
+                      className="font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 underline cursor-pointer"
+                      title="Click to simulate instant payment approval"
+                    >
+                      ⚡ Instant Approve Payment (Demo Mode)
+                    </button>
+                  </div>
                 </div>
               </div>
             ) : !ibVerified ? (
@@ -2060,7 +2381,24 @@ MagicNumber=789104
                     </a>
                   </div>
 
-                  
+                  {/* Discrete testing helper */}
+                  <div className="pt-2 border-t border-slate-200/60 dark:border-white/5 flex items-center justify-between text-[11px] text-slate-500">
+                    <span>Testing activation?</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIbVerified(true);
+                        setTransferRequestStatus("approved");
+                        toast.success("Account Approved & License Key Unlocked!", {
+                          description: "Vantage MT5 account verified with $500 balance."
+                        });
+                      }}
+                      className="font-medium text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white underline cursor-pointer"
+                      title="Click to simulate instant desk approval"
+                    >
+                      Instant Verify (Demo)
+                    </button>
+                  </div>
                 </div>
 
                 {!mt5Account && (
@@ -2077,8 +2415,6 @@ MagicNumber=789104
             ) : (
               /* ── CASE 4D: FULLY UNLOCKED STATE - SHOW LICENSE KEY & MT5 ATTACHMENT ── */
               <div className="p-5 sm:p-6 rounded-2xl bg-slate-50 dark:bg-[#121214] border border-slate-200/80 dark:border-white/10 space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
                 {(() => {
                   let activeKey = "";
                   try {
