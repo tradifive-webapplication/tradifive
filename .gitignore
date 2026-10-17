@@ -7,29 +7,47 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
+# Dependencies
+node_modules/
+jspm_packages/
 
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+# Optional npm cache directory
+.npm/
 
+# Optional eslint cache
+.eslintcache
+.stylelintcache
+
+# Build outputs
+dist/
+dist-ssr/
+build/
+out/
+.next/
+.nuxt/
+ios/build/
+android/app/build/
 
 # Environment variables - NEVER commit these
 .env
 .env.*
 .env*.local
 
+# Vercel
 .vercel
+
+# IDEs and Editors
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.swp
+*.bak
+.DS_Store
 
 # Additional Secrets and API keys
 *.key
@@ -40,14 +58,12 @@ config.private.json
 
 # Cache and temp files
 .cache/
-.eslintcache
-.npm/
+.nyc_output/
+coverage/
 .temp/
 .tmp/
 temp/
 tmp/
-*.bak
-*.swp
 
 # Large Build Files & Installers
 release/

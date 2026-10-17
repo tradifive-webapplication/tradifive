@@ -1569,37 +1569,6 @@ MagicNumber=789104
                   </ol>
                 </div>
 
-                {/* Algo Power Switch Row */}
-                <div className="p-3 bg-white dark:bg-[#18181B] border border-slate-200/60 dark:border-white/5 rounded-xl flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${
-                      isBotRunning ? 'bg-emerald-500/10 text-emerald-600' : 'bg-amber-500/10 text-amber-600'
-                    }`}>
-                      <Power size={13} strokeWidth={2.5} />
-                    </div>
-                    <div>
-                      <h5 className="text-xs font-bold text-slate-800 dark:text-slate-200 leading-tight">
-                        {isBotRunning ? 'Live Algo Execution: ON' : 'Live Algo Execution: PAUSED'}
-                      </h5>
-                      <p className="text-[10px] text-slate-400">
-                        {isBotRunning ? 'Executing automated trades' : 'Trading paused'}
-                      </p>
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={handleToggleBot}
-                    className={`text-[10.5px] font-bold px-2.5 py-1 rounded-full border transition-all cursor-pointer flex items-center gap-1 ${
-                      isBotRunning
-                        ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30'
-                        : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
-                    }`}
-                  >
-                    {isBotRunning ? <Pause size={10} className="fill-current" /> : <Play size={10} className="fill-current" />}
-                    <span>{isBotRunning ? 'Pause Bot' : 'Turn ON'}</span>
-                  </button>
-                </div>
 
                 {/* Primary Dashboard CTA */}
                 <button
