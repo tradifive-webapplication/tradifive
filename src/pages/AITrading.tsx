@@ -327,12 +327,30 @@ export default function AITrading() {
     }
 
     setIsSubmittingPayment(true);
+    let userName = "Client Trader";
+    let userEmail = "client@tradifive.in";
+    try {
+      const uRaw = localStorage.getItem("tradifive_user") || localStorage.getItem("sb-pfejilmsrvvshdhhjbyz-auth-token");
+      if (uRaw) {
+        const parsed = JSON.parse(uRaw);
+        userName = parsed?.user?.user_metadata?.full_name || parsed?.full_name || parsed?.name || userName;
+        userEmail = parsed?.user?.email || parsed?.email || userEmail;
+      }
+    } catch (e) {}
+
     const newPaymentRequest = {
       id: `pay-${Date.now()}`,
+      user_name: userName,
+      user_email: userEmail,
+      mt5_account_number: mt5Account.trim() || "See Screenshot",
+      algo_id: "fialgo_v1",
+      algo_name: "FiAlgo V1 Lifetime License",
       amount: "99999",
       currency: "INR",
       method: paymentMethod,
-      upi_id: "9731980756@axisbank",
+      upi_id: paymentMethod === "upi" ? "9731980756@axisbank" : undefined,
+      bank_name: paymentMethod === "bank" ? "Axis Bank" : undefined,
+      account_number: paymentMethod === "bank" ? "924010072811588" : undefined,
       utr_number: paymentUtr.trim(),
       proof_file: paymentProofFile,
       proof_filename: paymentProofFileName || "payment_proof.png",

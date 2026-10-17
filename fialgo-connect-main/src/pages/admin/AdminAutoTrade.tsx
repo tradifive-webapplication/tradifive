@@ -32,7 +32,13 @@ import {
   CheckCheck,
   Clock,
   Inbox,
-  ExternalLink
+  ExternalLink,
+  CreditCard,
+  QrCode,
+  Landmark,
+  Building2,
+  Send,
+  MessageCircle
 } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
@@ -53,6 +59,32 @@ export interface IbTransferProofRequest {
   reviewed_at?: string;
   reviewer_name?: string;
   reviewer_notes?: string;
+}
+
+export interface LicensePaymentRequest {
+  id: string;
+  user_id?: string;
+  user_name: string;
+  user_email: string;
+  user_phone?: string;
+  mt5_account_number?: string;
+  algo_id: string;
+  algo_name: string;
+  amount: string; // "99999"
+  currency: string; // "INR"
+  method: "upi" | "bank";
+  upi_id?: string;
+  bank_name?: string;
+  account_number?: string;
+  utr_number: string;
+  proof_file?: string;
+  proof_filename?: string;
+  status: "pending" | "approved" | "rejected";
+  submitted_at: string;
+  reviewed_at?: string;
+  reviewer_name?: string;
+  rejection_reason?: string;
+  license_key?: string;
 }
 
 export interface AutoTradeRecord {
@@ -314,6 +346,51 @@ const SEED_IB_PROOFS: IbTransferProofRequest[] = [
   }
 ];
 
+const SEED_LICENSE_PAYMENTS: LicensePaymentRequest[] = [
+  {
+    id: "pay-seed-101",
+    user_id: "usr-9401",
+    user_name: "Mannthan Harake",
+    user_email: "mannthanharake@gmail.com",
+    user_phone: "+91 98450 12345",
+    mt5_account_number: "4820194",
+    algo_id: "fialgo_v1",
+    algo_name: "FiAlgo V1 Lifetime License",
+    amount: "99999",
+    currency: "INR",
+    method: "upi",
+    upi_id: "9731980756@axisbank",
+    utr_number: "428910482910",
+    proof_file: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?auto=format&fit=crop&w=1200&q=80",
+    proof_filename: "phonepe_upi_payment_99999.png",
+    status: "approved",
+    submitted_at: "2026-10-16T14:20:00Z",
+    reviewed_at: "2026-10-16T14:45:00Z",
+    reviewer_name: "TradiFive Admin Desk",
+    license_key: "FIALGO-V1-9401-8271-GOLD"
+  },
+  {
+    id: "pay-seed-102",
+    user_id: "usr-8812",
+    user_name: "Vikram Malhotra",
+    user_email: "v.malhotra.invest@gmail.com",
+    user_phone: "+91 98112 33499",
+    mt5_account_number: "8820194",
+    algo_id: "fialgo_v1",
+    algo_name: "FiAlgo V1 Lifetime License",
+    amount: "99999",
+    currency: "INR",
+    method: "bank",
+    bank_name: "Axis Bank",
+    account_number: "924010072811588",
+    utr_number: "AXIS262890192841",
+    proof_file: "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=1200&q=80",
+    proof_filename: "axis_bank_imps_receipt.pdf.png",
+    status: "pending",
+    submitted_at: "2026-10-17T11:15:00Z"
+  }
+];
+
 export default function AdminAutoTrade() {
   const [records, setRecords] = useState<AutoTradeRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -324,14 +401,25 @@ export default function AdminAutoTrade() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [drawerTab, setDrawerTab] = useState<"overview" | "ib_broker" | "algo_purchase" | "license" | "notes">("overview");
 
+  // Main Tab Navigation: accounts | proofs | payments
+  const [activeMainTab, setActiveMainTab] = useState<"accounts" | "proofs" | "payments">("accounts");
+
   // IB Proof Requests State
   const [proofRequests, setProofRequests] = useState<IbTransferProofRequest[]>([]);
-  const [activeMainTab, setActiveMainTab] = useState<"accounts" | "proofs">("accounts");
   const [proofFilter, setProofFilter] = useState<"all" | "pending" | "approved" | "rejected">("pending");
   const [proofSearchQuery, setProofSearchQuery] = useState("");
   const [previewModalProof, setPreviewModalProof] = useState<IbTransferProofRequest | null>(null);
   const [rejectModalProof, setRejectModalProof] = useState<IbTransferProofRequest | null>(null);
   const [rejectReasonInput, setRejectReasonInput] = useState("");
+
+  // ₹99,999 License Payments State
+  const [licensePayments, setLicensePayments] = useState<LicensePaymentRequest[]>([]);
+  const [paymentFilter, setPaymentFilter] = useState<"all" | "pending" | "approved" | "rejected">("pending");
+  const [paymentMethodFilter, setPaymentMethodFilter] = useState<"all" | "upi" | "bank">("all");
+  const [paymentSearchQuery, setPaymentSearchQuery] = useState("");
+  const [previewPaymentProof, setPreviewPaymentProof] = useState<LicensePaymentRequest | null>(null);
+  const [rejectModalPayment, setRejectModalPayment] = useState<LicensePaymentRequest | null>(null);
+  const [paymentRejectReason, setPaymentRejectReason] = useState("");
 
   const loadRecords = async () => {
     setLoading(true);
@@ -378,6 +466,42 @@ export default function AdminAutoTrade() {
         });
       }
       setProofRequests(proofs);
+
+      // 1.8 Fetch License Payment Requests (₹99,999 UPI / Bank)
+      const { data: licensePayData } = await supabase
+        .from("system_settings")
+        .select("*")
+        .eq("id", "license_payment_requests")
+        .maybeSingle();
+
+      let payments: LicensePaymentRequest[] = Array.isArray(licensePayData?.value) ? licensePayData.value : [];
+
+      // Check localStorage for any payment submitted in current browser
+      try {
+        const localPayRaw = localStorage.getItem("tradifive_payment_request");
+        if (localPayRaw) {
+          const localPay: LicensePaymentRequest = JSON.parse(localPayRaw);
+          if (localPay && localPay.id) {
+            const existsIdx = payments.findIndex(p => p.id === localPay.id || (localPay.utr_number && p.utr_number === localPay.utr_number));
+            if (existsIdx >= 0) {
+              payments[existsIdx] = { ...payments[existsIdx], ...localPay };
+            } else {
+              payments.unshift(localPay);
+            }
+          }
+        }
+      } catch (e) {}
+
+      if (payments.length === 0) {
+        payments = [...SEED_LICENSE_PAYMENTS];
+      } else {
+        SEED_LICENSE_PAYMENTS.forEach(seed => {
+          if (!payments.some(p => p.id === seed.id || p.utr_number === seed.utr_number)) {
+            payments.push(seed);
+          }
+        });
+      }
+      setLicensePayments(payments);
 
       const { data: profiles } = await supabase
         .from("profiles")
@@ -559,6 +683,115 @@ export default function AdminAutoTrade() {
     });
   };
 
+  // Approve ₹99,999 Lifetime Payment & Issue License Key
+  const handleApprovePayment = async (payment: LicensePaymentRequest) => {
+    const generatedKey = `FIALGO-V1-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(1000 + Math.random() * 9000)}-GOLD`;
+    const updatedPayment: LicensePaymentRequest = {
+      ...payment,
+      status: "approved",
+      reviewed_at: new Date().toISOString(),
+      reviewer_name: "TradiFive Finance Desk",
+      license_key: generatedKey
+    };
+
+    const updatedList = licensePayments.map(p => (p.id === payment.id ? updatedPayment : p));
+    setLicensePayments(updatedList);
+
+    await supabase.from("system_settings").upsert({
+      id: "license_payment_requests",
+      value: updatedList,
+      updated_at: new Date().toISOString()
+    });
+
+    try {
+      const localReq = localStorage.getItem("tradifive_payment_request");
+      if (localReq) {
+        const parsed = JSON.parse(localReq);
+        if (parsed.id === payment.id || (parsed.utr_number && parsed.utr_number === payment.utr_number)) {
+          parsed.status = "approved";
+          parsed.license_key = generatedKey;
+          parsed.reviewed_at = updatedPayment.reviewed_at;
+          localStorage.setItem("tradifive_payment_request", JSON.stringify(parsed));
+          localStorage.setItem("tradifive_payment_status", "approved");
+          localStorage.setItem("tradifive_auto_trade_setup", "true");
+        }
+      }
+    } catch (e) {}
+
+    const existingRec = records.find(r => 
+      (payment.mt5_account_number && r.mt5_account_number === payment.mt5_account_number) || 
+      (payment.user_email && r.user_email === payment.user_email)
+    );
+
+    if (existingRec) {
+      const updatedRec: AutoTradeRecord = {
+        ...existingRec,
+        has_purchased: true,
+        purchase_tier: "Lifetime License",
+        price_paid: 99999,
+        payment_status: "paid",
+        license_key: generatedKey,
+        license_status: "active",
+        license_expiry: "Lifetime",
+        algo_name: "FiAlgo V1 (Gold Scalper & Trend)",
+        algo_id: "fialgo_v1",
+        admin_notes: `₹99,999 Lifetime Payment verified via ${payment.method === "upi" ? "PhonePe/UPI" : "Bank Transfer"} (UTR: ${payment.utr_number}). Personal MT5 license key issued.`
+      };
+      await persistUpdate(updatedRec);
+    }
+
+    if (previewPaymentProof?.id === payment.id) {
+      setPreviewPaymentProof(updatedPayment);
+    }
+
+    toast.success(`Payment Verified! ₹99,999 License Key Issued`, {
+      description: `Key ${generatedKey} generated. User Step 4 is now active.`
+    });
+  };
+
+  // Reject ₹99,999 Payment
+  const handleRejectPayment = async (payment: LicensePaymentRequest, reason: string) => {
+    const updatedPayment: LicensePaymentRequest = {
+      ...payment,
+      status: "rejected",
+      reviewed_at: new Date().toISOString(),
+      reviewer_name: "TradiFive Finance Desk",
+      rejection_reason: reason || "Payment could not be verified in bank statement with UTR."
+    };
+
+    const updatedList = licensePayments.map(p => (p.id === payment.id ? updatedPayment : p));
+    setLicensePayments(updatedList);
+
+    await supabase.from("system_settings").upsert({
+      id: "license_payment_requests",
+      value: updatedList,
+      updated_at: new Date().toISOString()
+    });
+
+    try {
+      const localReq = localStorage.getItem("tradifive_payment_request");
+      if (localReq) {
+        const parsed = JSON.parse(localReq);
+        if (parsed.id === payment.id || (parsed.utr_number && parsed.utr_number === payment.utr_number)) {
+          parsed.status = "rejected";
+          parsed.rejection_reason = reason;
+          localStorage.setItem("tradifive_payment_request", JSON.stringify(parsed));
+          localStorage.setItem("tradifive_payment_status", "none");
+        }
+      }
+    } catch (e) {}
+
+    if (previewPaymentProof?.id === payment.id) {
+      setPreviewPaymentProof(updatedPayment);
+    }
+    setRejectModalPayment(null);
+    setPaymentRejectReason("");
+
+    toast.error(`Payment Request Rejected for UTR #${payment.utr_number}`, {
+      description: `Reason: ${reason}`
+    });
+  };
+
   useEffect(() => {
     loadRecords();
   }, []);
@@ -674,6 +907,38 @@ export default function AdminAutoTrade() {
     });
   }, [proofRequests, proofSearchQuery, proofFilter]);
 
+  // Payment Requests useMemo helpers
+  const pendingPaymentsCount = useMemo(() => {
+    return licensePayments.filter(p => p.status === "pending").length;
+  }, [licensePayments]);
+
+  const paymentStats = useMemo(() => {
+    const total = licensePayments.length;
+    const pending = licensePayments.filter(p => p.status === "pending").length;
+    const approved = licensePayments.filter(p => p.status === "approved").length;
+    const rejected = licensePayments.filter(p => p.status === "rejected").length;
+    const revenueInr = approved * 99999;
+    return { total, pending, approved, rejected, revenueInr };
+  }, [licensePayments]);
+
+  const filteredPayments = useMemo(() => {
+    return licensePayments.filter(p => {
+      const q = paymentSearchQuery.toLowerCase().trim();
+      const matchSearch =
+        !q ||
+        (p.utr_number && p.utr_number.toLowerCase().includes(q)) ||
+        (p.user_name && p.user_name.toLowerCase().includes(q)) ||
+        (p.user_email && p.user_email.toLowerCase().includes(q)) ||
+        (p.mt5_account_number && p.mt5_account_number.toLowerCase().includes(q));
+
+      if (!matchSearch) return false;
+      if (paymentFilter !== "all" && p.status !== paymentFilter) return false;
+      if (paymentMethodFilter !== "all" && p.method !== paymentMethodFilter) return false;
+
+      return true;
+    });
+  }, [licensePayments, paymentSearchQuery, paymentFilter, paymentMethodFilter]);
+
   return (
     <div className="space-y-8 select-none">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -694,6 +959,38 @@ export default function AdminAutoTrade() {
           <RefreshCcw size={14} className={loading ? "animate-spin" : ""} /> Refresh Live Data
         </button>
       </div>
+
+      {/* ── Pending Payment Review Alert Banner ── */}
+      {pendingPaymentsCount > 0 && activeMainTab !== "payments" && (
+        <motion.div
+          initial={{ opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-lg shadow-emerald-500/5"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center shrink-0">
+              <CreditCard size={20} className="animate-pulse" />
+            </div>
+            <div>
+              <h4 className="text-sm font-bold text-emerald-300 flex items-center gap-2">
+                <span>{pendingPaymentsCount} ₹99,999 License Payment{pendingPaymentsCount > 1 ? "s" : ""} Awaiting Verification</span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/30 text-emerald-200 uppercase font-black">
+                  Action Required
+                </span>
+              </h4>
+              <p className="text-xs text-neutral-400 mt-0.5">
+                Check 12-digit UTR numbers and payment receipts to issue personal FiAlgo V1 lifetime license keys.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => setActiveMainTab("payments")}
+            className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs rounded-xl transition-all shrink-0 flex items-center gap-2 shadow-md shadow-emerald-500/20"
+          >
+            <CreditCard size={14} /> Review Payments ({pendingPaymentsCount})
+          </button>
+        </motion.div>
+      )}
 
       {/* ── Pending IB Proof Review Alert Banner ── */}
       {pendingProofsCount > 0 && activeMainTab !== "proofs" && (
@@ -728,7 +1025,7 @@ export default function AdminAutoTrade() {
       )}
 
       {/* ── Top Navigation Tabs ── */}
-      <div className="flex items-center gap-3 border-b border-white/10 pb-3">
+      <div className="flex items-center gap-3 border-b border-white/10 pb-3 flex-wrap">
         <button
           onClick={() => setActiveMainTab("accounts")}
           className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2.5 ${
@@ -759,13 +1056,37 @@ export default function AdminAutoTrade() {
           {pendingProofsCount > 0 ? (
             <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-400 text-black flex items-center gap-1 animate-pulse">
               <span className="w-1.5 h-1.5 rounded-full bg-black" />
-              {pendingProofsCount} PENDING REVIEW
+              {pendingProofsCount} PENDING
             </span>
           ) : (
             <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
               activeMainTab === "proofs" ? "bg-white/20 text-white" : "bg-white/5 text-neutral-400"
             }`}>
               {proofRequests.length}
+            </span>
+          )}
+        </button>
+
+        <button
+          onClick={() => setActiveMainTab("payments")}
+          className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2.5 relative ${
+            activeMainTab === "payments"
+              ? "bg-emerald-600 text-white shadow-lg shadow-emerald-500/20"
+              : "bg-slate-900 text-neutral-400 hover:text-white hover:bg-slate-800 border border-white/5"
+          }`}
+        >
+          <CreditCard size={14} className={activeMainTab === "payments" ? "text-white" : "text-emerald-400"} />
+          <span>₹99,999 Payments</span>
+          {pendingPaymentsCount > 0 ? (
+            <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-400 text-black flex items-center gap-1 animate-pulse">
+              <span className="w-1.5 h-1.5 rounded-full bg-black" />
+              {pendingPaymentsCount} PENDING
+            </span>
+          ) : (
+            <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+              activeMainTab === "payments" ? "bg-white/20 text-white" : "bg-white/5 text-neutral-400"
+            }`}>
+              {licensePayments.length}
             </span>
           )}
         </button>
@@ -1308,6 +1629,448 @@ export default function AdminAutoTrade() {
         </div>
       )}
 
+      {/* ── TAB 3: ₹99,999 LICENSE PAYMENTS (UPI & BANK TRANSFER) ── */}
+      {activeMainTab === "payments" && (
+        <div className="space-y-6">
+          {/* ── Official Receiving Account Details Strip ── */}
+          <div className="bg-gradient-to-r from-emerald-950/40 via-slate-900 to-slate-950 border border-emerald-500/30 rounded-2xl p-4 sm:p-5 shadow-xl shadow-emerald-950/20">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+              <div className="flex items-center gap-3.5">
+                <div className="w-11 h-11 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
+                  <CreditCard size={22} />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-base font-black text-white">Official TradiFive Payment Accounts</h3>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                      Amount: ₹99,999 (Lifetime)
+                    </span>
+                  </div>
+                  <p className="text-xs text-neutral-400 mt-0.5">
+                    Traders pay to these official accounts via PhonePe/UPI QR or Axis Bank IMPS/NEFT, then submit their 12-digit UTR.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                {/* UPI Box */}
+                <div className="bg-black/40 border border-white/5 rounded-xl p-3 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <QrCode size={16} className="text-purple-400 shrink-0" />
+                    <div className="min-w-0">
+                      <div className="text-[10px] uppercase font-bold text-neutral-500 tracking-wider">PhonePe / UPI ID</div>
+                      <div className="font-mono font-bold text-white text-xs truncate select-all">9731980756@axisbank</div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText("9731980756@axisbank");
+                      toast.success("UPI ID Copied: 9731980756@axisbank");
+                    }}
+                    className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white"
+                    title="Copy UPI ID"
+                  >
+                    <Copy size={12} />
+                  </button>
+                </div>
+
+                {/* Bank Box */}
+                <div className="bg-black/40 border border-white/5 rounded-xl p-3 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Landmark size={16} className="text-blue-400 shrink-0" />
+                    <div className="min-w-0">
+                      <div className="text-[10px] uppercase font-bold text-neutral-500 tracking-wider">Axis Bank Transfer</div>
+                      <div className="font-mono font-bold text-white text-xs truncate">
+                        A/C: <span className="select-all">924010072811588</span> · IFSC: <span className="select-all">UTIB0001690</span>
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText("924010072811588");
+                      toast.success("Bank Account # Copied: 924010072811588");
+                    }}
+                    className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white"
+                    title="Copy Account Number"
+                  >
+                    <Copy size={12} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ── KPI Metric Cards ── */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-sm hover:border-slate-700 transition-all">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total ₹99k Revenue</span>
+                <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+                  <DollarSign size={16} />
+                </div>
+              </div>
+              <div className="text-2xl font-black text-white font-mono">
+                ₹{paymentStats.revenueInr.toLocaleString()}
+              </div>
+              <p className="text-[11px] text-slate-400 mt-1">
+                {paymentStats.approved} Verified Lifetime Licenses
+              </p>
+            </div>
+
+            <div
+              onClick={() => setPaymentFilter("pending")}
+              className={`bg-slate-900 border rounded-2xl p-4 shadow-sm transition-all cursor-pointer ${
+                paymentFilter === "pending"
+                  ? "border-amber-500/60 bg-amber-500/[0.04]"
+                  : "border-slate-800 hover:border-slate-700"
+              }`}
+            >
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-amber-400">Pending Review</span>
+                <div className="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center">
+                  <Clock size={16} />
+                </div>
+              </div>
+              <div className="flex items-baseline gap-2">
+                <div className="text-2xl font-black text-amber-300 font-mono">
+                  {paymentStats.pending}
+                </div>
+                {paymentStats.pending > 0 && (
+                  <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-500/20 text-amber-300 animate-pulse">
+                    Action Needed
+                  </span>
+                )}
+              </div>
+              <p className="text-[11px] text-slate-400 mt-1">Awaiting bank verification & key issuance</p>
+            </div>
+
+            <div
+              onClick={() => setPaymentFilter("approved")}
+              className={`bg-slate-900 border rounded-2xl p-4 shadow-sm transition-all cursor-pointer ${
+                paymentFilter === "approved"
+                  ? "border-emerald-500/60 bg-emerald-500/[0.04]"
+                  : "border-slate-800 hover:border-slate-700"
+              }`}
+            >
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-400">Verified & Issued</span>
+                <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+                  <CheckCircle2 size={16} />
+                </div>
+              </div>
+              <div className="text-2xl font-black text-white font-mono">
+                {paymentStats.approved}
+              </div>
+              <p className="text-[11px] text-slate-400 mt-1">Keys generated & Step 4 unlocked</p>
+            </div>
+
+            <div
+              onClick={() => setPaymentFilter("rejected")}
+              className={`bg-slate-900 border rounded-2xl p-4 shadow-sm transition-all cursor-pointer ${
+                paymentFilter === "rejected"
+                  ? "border-rose-500/60 bg-rose-500/[0.04]"
+                  : "border-slate-800 hover:border-slate-700"
+              }`}
+            >
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-rose-400">Rejected</span>
+                <div className="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-400 flex items-center justify-center">
+                  <XCircle size={16} />
+                </div>
+              </div>
+              <div className="text-2xl font-black text-rose-400 font-mono">
+                {paymentStats.rejected}
+              </div>
+              <p className="text-[11px] text-slate-400 mt-1">Invalid UTR or failed screenshot</p>
+            </div>
+          </div>
+
+          {/* ── Filter & Search Toolbar ── */}
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+              {/* Search */}
+              <div className="relative flex-1">
+                <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
+                <input
+                  type="text"
+                  placeholder="Search by 12-digit UTR, Client Name, Email, or MT5 Account..."
+                  value={paymentSearchQuery}
+                  onChange={(e) => setPaymentSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 bg-black/40 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              {/* Status Filter */}
+              <div className="flex items-center gap-1.5 p-1 bg-black/40 border border-slate-800 rounded-xl shrink-0 flex-wrap">
+                {(["all", "pending", "approved", "rejected"] as const).map((st) => (
+                  <button
+                    key={st}
+                    onClick={() => setPaymentFilter(st)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold capitalize transition-all ${
+                      paymentFilter === st
+                        ? "bg-blue-600 text-white shadow-sm"
+                        : "text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    {st === "all" ? "All Status" : st}
+                  </button>
+                ))}
+              </div>
+
+              {/* Method Filter */}
+              <div className="flex items-center gap-1.5 p-1 bg-black/40 border border-slate-800 rounded-xl shrink-0">
+                {(["all", "upi", "bank"] as const).map((m) => (
+                  <button
+                    key={m}
+                    onClick={() => setPaymentMethodFilter(m)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition-all ${
+                      paymentMethodFilter === m
+                        ? "bg-slate-800 text-white shadow-sm"
+                        : "text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    {m === "all" ? "All Methods" : m === "upi" ? "PhonePe / UPI" : "Bank"}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between text-xs text-slate-400 pt-1 border-t border-slate-800/60">
+              <div>
+                Showing <strong className="text-white font-mono">{filteredPayments.length}</strong> of{" "}
+                <strong className="text-white font-mono">{licensePayments.length}</strong> payment requests
+              </div>
+              <div className="text-[11px] text-slate-500">
+                Approving automatically generates <span className="text-emerald-400 font-mono font-bold">FIALGO-V1-XXXX-YYYY-GOLD</span> key & unlocks trader's Step 4.
+              </div>
+            </div>
+          </div>
+
+          {/* ── Payments Data Table ── */}
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-800 bg-slate-950/60 text-[11px] uppercase tracking-wider text-slate-400 font-bold">
+                    <th className="px-5 py-4">Client & MT5 Account</th>
+                    <th className="px-5 py-4">Algorithm & Plan</th>
+                    <th className="px-5 py-4">Payment Method & UTR</th>
+                    <th className="px-5 py-4">Amount</th>
+                    <th className="px-5 py-4">Proof Screenshot</th>
+                    <th className="px-5 py-4">Status & License</th>
+                    <th className="px-5 py-4">Submitted At</th>
+                    <th className="px-5 py-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800 text-xs">
+                  {filteredPayments.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} className="px-5 py-12 text-center text-slate-500">
+                        <CreditCard size={32} className="mx-auto mb-2 opacity-30" />
+                        <p className="text-sm font-semibold text-slate-400">No payment records found</p>
+                        <p className="text-xs text-slate-600 mt-0.5">
+                          {paymentSearchQuery || paymentFilter !== "all"
+                            ? "Try adjusting your filters or search query"
+                            : "New ₹99,999 PhonePe / UPI or Bank transfer requests will appear here in real-time."}
+                        </p>
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredPayments.map((payment) => (
+                      <tr key={payment.id} className="hover:bg-slate-800/40 transition-colors">
+                        {/* Client / MT5 */}
+                        <td className="px-5 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-xl bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center justify-center font-bold text-xs shrink-0">
+                              {payment.user_name?.charAt(0) || "U"}
+                            </div>
+                            <div className="min-w-0">
+                              <div className="font-bold text-white truncate">{payment.user_name}</div>
+                              <div className="text-[11px] text-slate-400 truncate">{payment.user_email}</div>
+                              <div className="text-[10.5px] text-slate-500 font-mono flex items-center gap-1 mt-0.5">
+                                <span>MT5:</span>
+                                <strong className="text-emerald-400 font-bold">{payment.mt5_account_number || "—"}</strong>
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* Algorithm */}
+                        <td className="px-5 py-4">
+                          <div className="space-y-1">
+                            <span className="font-bold text-white text-xs block">
+                              {payment.algo_name || "FiAlgo V1 Lifetime License"}
+                            </span>
+                            <span className="text-[10px] text-emerald-400 font-semibold px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 inline-block">
+                              Lifetime License
+                            </span>
+                          </div>
+                        </td>
+
+                        {/* Method & UTR */}
+                        <td className="px-5 py-4">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-1.5">
+                              {payment.method === "upi" ? (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[10px] font-bold bg-purple-500/15 text-purple-300 border border-purple-500/25">
+                                  <QrCode size={11} /> PhonePe / UPI
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[10px] font-bold bg-blue-500/15 text-blue-300 border border-blue-500/25">
+                                  <Landmark size={11} /> Bank Transfer
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-1.5 font-mono">
+                              <span className="text-xs font-bold text-white select-all">{payment.utr_number}</span>
+                              <button
+                                onClick={() => {
+                                  navigator.clipboard.writeText(payment.utr_number);
+                                  toast.success(`UTR Copied: ${payment.utr_number}`);
+                                }}
+                                className="text-slate-500 hover:text-white p-0.5"
+                                title="Copy UTR"
+                              >
+                                <Copy size={11} />
+                              </button>
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* Amount */}
+                        <td className="px-5 py-4">
+                          <div className="font-mono font-black text-white text-sm">
+                            ₹{Number(payment.amount || 99999).toLocaleString()}
+                          </div>
+                          <span className="text-[10px] text-slate-500 font-semibold uppercase">100% Paid</span>
+                        </td>
+
+                        {/* Proof Screenshot */}
+                        <td className="px-5 py-4">
+                          {payment.proof_file ? (
+                            <div
+                              onClick={() => setPreviewPaymentProof(payment)}
+                              className="relative w-16 h-12 rounded-lg overflow-hidden border border-slate-700 group cursor-pointer bg-black/40 shrink-0"
+                            >
+                              <img
+                                src={payment.proof_file}
+                                alt="Payment Proof"
+                                className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
+                              />
+                              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                                <ZoomIn size={14} className="text-white" />
+                              </div>
+                            </div>
+                          ) : (
+                            <span className="text-slate-500 text-[11px] italic">No image file</span>
+                          )}
+                        </td>
+
+                        {/* Status */}
+                        <td className="px-5 py-4">
+                          {payment.status === "pending" && (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                              Pending Review
+                            </span>
+                          )}
+                          {payment.status === "approved" && (
+                            <div className="space-y-1">
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                                <CheckCircle2 size={12} />
+                                Approved
+                              </span>
+                              {payment.license_key && (
+                                <div className="text-[10px] font-mono text-emerald-400/90 truncate max-w-[140px]" title={payment.license_key}>
+                                  {payment.license_key}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                          {payment.status === "rejected" && (
+                            <div className="space-y-1">
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-500/15 text-rose-300 border border-rose-500/30">
+                                <XCircle size={12} />
+                                Rejected
+                              </span>
+                              {payment.rejection_reason && (
+                                <p className="text-[10px] text-rose-400/80 truncate max-w-[130px]" title={payment.rejection_reason}>
+                                  {payment.rejection_reason}
+                                </p>
+                              )}
+                            </div>
+                          )}
+                        </td>
+
+                        {/* Submitted At */}
+                        <td className="px-5 py-4">
+                          <div className="text-[11px] text-slate-300">
+                            {new Date(payment.submitted_at).toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "numeric" })}
+                          </div>
+                          <div className="text-[10px] text-slate-500 font-mono">
+                            {new Date(payment.submitted_at).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}
+                          </div>
+                        </td>
+
+                        {/* Actions */}
+                        <td className="px-5 py-4 text-right">
+                          <div className="flex items-center justify-end gap-1.5">
+                            {payment.status === "pending" && (
+                              <>
+                                <button
+                                  onClick={() => handleApprovePayment(payment)}
+                                  className="h-8 px-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm"
+                                  title="Verify payment and issue MT5 license key"
+                                >
+                                  <Check size={13} /> Approve
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setRejectModalPayment(payment);
+                                    setPaymentRejectReason("");
+                                  }}
+                                  className="h-8 px-2.5 bg-rose-950/60 hover:bg-rose-900 text-rose-300 border border-rose-500/30 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all"
+                                  title="Reject payment"
+                                >
+                                  <X size={13} /> Reject
+                                </button>
+                              </>
+                            )}
+
+                            {payment.status === "approved" && (
+                              <button
+                                onClick={() => {
+                                  if (payment.license_key) {
+                                    navigator.clipboard.writeText(payment.license_key);
+                                    toast.success(`License Key Copied: ${payment.license_key}`);
+                                  }
+                                }}
+                                className="h-7 px-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 rounded text-[11px] font-mono flex items-center gap-1"
+                              >
+                                <Key size={11} className="text-emerald-400" /> Copy Key
+                              </button>
+                            )}
+
+                            {payment.status === "rejected" && (
+                              <button
+                                onClick={() => handleApprovePayment(payment)}
+                                className="h-7 px-2.5 bg-slate-800 hover:bg-emerald-600 text-slate-300 hover:text-white rounded text-[11px] font-semibold transition-all"
+                              >
+                                Re-Approve
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Drawer */}
       <AnimatePresence>
         {isDrawerOpen && selectedRecord && (
@@ -1718,6 +2481,169 @@ export default function AdminAutoTrade() {
                       return;
                     }
                     handleRejectProof(rejectModalProof, rejectReasonInput);
+                  }}
+                  className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-xs font-bold flex items-center gap-1.5"
+                >
+                  <X size={13} /> Confirm Rejection
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ── PREVIEW PAYMENT PROOF SCREENSHOT MODAL ── */}
+      <AnimatePresence>
+        {previewPaymentProof && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-slate-950 border border-slate-800 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]"
+            >
+              <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/60">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center">
+                    <CreditCard size={15} />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                      ₹99,999 Payment Proof · UTR #{previewPaymentProof.utr_number}
+                    </h3>
+                    <p className="text-[11px] text-neutral-400">
+                      Client: <strong className="text-white">{previewPaymentProof.user_name}</strong> ({previewPaymentProof.user_email}) · MT5: <strong className="font-mono text-emerald-400">{previewPaymentProof.mt5_account_number || "Unbound"}</strong>
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setPreviewPaymentProof(null)}
+                  className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white flex items-center justify-center transition-colors"
+                >
+                  <X size={15} />
+                </button>
+              </div>
+
+              <div className="p-4 overflow-y-auto flex-1 flex flex-col items-center justify-center bg-black/60">
+                {previewPaymentProof.proof_file ? (
+                  <img
+                    src={previewPaymentProof.proof_file}
+                    alt="Payment Proof Full"
+                    className="max-h-[55vh] w-auto object-contain rounded-xl border border-slate-800 shadow-lg"
+                  />
+                ) : (
+                  <div className="p-12 text-center text-neutral-500">No proof image available</div>
+                )}
+              </div>
+
+              <div className="p-4 border-t border-slate-800 bg-slate-900/60 flex items-center justify-between gap-3 flex-wrap">
+                <div className="text-xs">
+                  <span className="text-[10px] text-neutral-500 uppercase block font-semibold">Payment Method & Amount</span>
+                  <span className="font-bold text-white">
+                    {previewPaymentProof.method === "upi" ? "PhonePe / UPI" : "Bank Transfer"} · <strong className="font-mono text-emerald-400">₹99,999</strong>
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      setRejectModalPayment(previewPaymentProof);
+                      setPaymentRejectReason("");
+                    }}
+                    className="px-4 py-2 bg-rose-950/60 hover:bg-rose-900 border border-rose-500/30 text-rose-300 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all"
+                  >
+                    <X size={13} /> Reject Payment
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleApprovePayment(previewPaymentProof);
+                      setPreviewPaymentProof(null);
+                    }}
+                    className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all shadow-md"
+                  >
+                    <Check size={14} /> Approve & Issue License Key
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ── REJECTION PAYMENT MODAL ── */}
+      <AnimatePresence>
+        {rejectModalPayment && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-slate-950 border border-rose-500/30 rounded-2xl w-full max-w-md overflow-hidden p-5 space-y-4 shadow-2xl"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-rose-500/20 text-rose-400 border border-rose-500/30 flex items-center justify-center shrink-0">
+                  <XCircle size={20} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-white">Reject ₹99,999 Payment</h3>
+                  <p className="text-xs text-neutral-400">
+                    UTR: <strong className="text-white font-mono">{rejectModalPayment.utr_number}</strong> ({rejectModalPayment.user_name})
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-300 block">
+                  Quick Reason Presets:
+                </label>
+                <div className="space-y-1.5">
+                  {[
+                    "UTR / Reference number not found in Axis Bank / UPI statement.",
+                    "Transferred amount does not match ₹99,999 Lifetime fee.",
+                    "Payment screenshot is blurry or does not show completed transaction status.",
+                    "Duplicate UTR submitted."
+                  ].map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => setPaymentRejectReason(preset)}
+                      className="w-full text-left p-2 rounded-lg bg-black/40 hover:bg-white/5 border border-slate-800 text-[11px] text-slate-300 transition-colors"
+                    >
+                      • {preset}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-300 block">
+                  Rejection Reason / Guidance for Client:
+                </label>
+                <textarea
+                  rows={3}
+                  value={paymentRejectReason}
+                  onChange={(e) => setPaymentRejectReason(e.target.value)}
+                  placeholder="Explain why payment could not be confirmed so client can provide correct UTR..."
+                  className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-rose-500"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setRejectModalPayment(null)}
+                  className="px-4 py-2 bg-slate-800 text-slate-300 hover:text-white rounded-lg text-xs font-semibold"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!paymentRejectReason.trim()) {
+                      toast.error("Please provide or select a rejection reason.");
+                      return;
+                    }
+                    handleRejectPayment(rejectModalPayment, paymentRejectReason);
                   }}
                   className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-xs font-bold flex items-center gap-1.5"
                 >
