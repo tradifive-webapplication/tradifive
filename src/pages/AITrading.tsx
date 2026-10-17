@@ -332,7 +332,7 @@ export default function AITrading() {
       amount: "99999",
       currency: "INR",
       method: paymentMethod,
-      upi_id: "9731980756-2@ybl",
+      upi_id: "9731980756@axisbank",
       utr_number: paymentUtr.trim(),
       proof_file: paymentProofFile,
       proof_filename: paymentProofFileName || "payment_proof.png",
@@ -1649,7 +1649,7 @@ MagicNumber=789104
                   <div>
                     <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 block tracking-wider">UPI / Account</span>
                     <strong className="text-xs text-slate-900 dark:text-white mt-1 block font-mono truncate">
-                      {paymentMethod === "upi" ? "9731980756-2@ybl" : "000405019824"}
+                      {paymentMethod === "upi" ? "9731980756@axisbank" : "924010072811588"}
                     </strong>
                   </div>
                   <div>
@@ -1824,14 +1824,14 @@ MagicNumber=789104
                         {/* Official UPI ID Box with One-Click Copy */}
                         <div className="flex items-center justify-between bg-white dark:bg-[#161618] px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 max-w-sm mx-auto sm:mx-0 shadow-2xs">
                           <div>
-                            <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">TradiFive UPI ID</span>
+                            <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">TradiFive UPI ID (Nikhil Ravindra Harake)</span>
                             <code className="text-xs sm:text-sm font-mono font-bold text-slate-900 dark:text-white select-all">
-                              9731980756-2@ybl
+                              9731980756@axisbank
                             </code>
                           </div>
                           <button
                             type="button"
-                            onClick={() => handleCopy("9731980756-2@ybl", "UPI ID copied: 9731980756-2@ybl")}
+                            onClick={() => handleCopy("9731980756@axisbank", "UPI ID copied: 9731980756@axisbank")}
                             className="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-900 text-white hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200 cursor-pointer flex items-center gap-1.5 shadow-2xs transition-all ml-3 shrink-0"
                           >
                             <Copy size={12} />
@@ -1851,19 +1851,19 @@ MagicNumber=789104
                 {paymentMethod === "bank" && (
                   <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 space-y-3 text-xs">
                     <div className="text-xs text-slate-600 dark:text-slate-400 font-medium">
-                      Transfer ₹99,999 via NEFT, RTGS, IMPS, or Net Banking to TradiFive corporate bank account:
+                      Transfer ₹99,999 via NEFT, RTGS, IMPS, or Net Banking to bank account details below:
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                       <div className="p-3 rounded-xl bg-white dark:bg-[#161618] border border-slate-200/70 dark:border-white/5 flex items-center justify-between">
                         <div>
                           <span className="text-[10px] text-slate-400 uppercase font-semibold block">Account Name</span>
-                          <span className="font-bold text-slate-900 dark:text-white text-xs">TradiFive Tech Pvt Ltd</span>
+                          <span className="font-bold text-slate-900 dark:text-white text-xs">Nikhil Ravindra Harake</span>
                         </div>
                         <button
                           type="button"
-                          onClick={() => handleCopy("TradiFive Tech Pvt Ltd", "Account Name copied!")}
-                          className="text-slate-400 hover:text-slate-700 dark:hover:text-white p-1"
+                          onClick={() => handleCopy("Nikhil Ravindra Harake", "Account Name copied!")}
+                          className="text-slate-400 hover:text-slate-700 dark:hover:text-white p-1 cursor-pointer"
                         >
                           <Copy size={13} />
                         </button>
@@ -1872,19 +1872,19 @@ MagicNumber=789104
                       <div className="p-3 rounded-xl bg-white dark:bg-[#161618] border border-slate-200/70 dark:border-white/5 flex items-center justify-between">
                         <div>
                           <span className="text-[10px] text-slate-400 uppercase font-semibold block">Bank Name</span>
-                          <span className="font-bold text-slate-900 dark:text-white text-xs">ICICI Bank Limited</span>
+                          <span className="font-bold text-slate-900 dark:text-white text-xs">Axis Bank</span>
                         </div>
                       </div>
 
                       <div className="p-3 rounded-xl bg-white dark:bg-[#161618] border border-slate-200/70 dark:border-white/5 flex items-center justify-between">
                         <div>
                           <span className="text-[10px] text-slate-400 uppercase font-semibold block">Account Number</span>
-                          <span className="font-mono font-bold text-slate-900 dark:text-white text-xs">000405019824</span>
+                          <span className="font-mono font-bold text-slate-900 dark:text-white text-xs">924010072811588</span>
                         </div>
                         <button
                           type="button"
-                          onClick={() => handleCopy("000405019824", "Account Number copied!")}
-                          className="text-slate-400 hover:text-slate-700 dark:hover:text-white p-1"
+                          onClick={() => handleCopy("924010072811588", "Account Number copied!")}
+                          className="text-slate-400 hover:text-slate-700 dark:hover:text-white p-1 cursor-pointer"
                         >
                           <Copy size={13} />
                         </button>
@@ -1893,12 +1893,12 @@ MagicNumber=789104
                       <div className="p-3 rounded-xl bg-white dark:bg-[#161618] border border-slate-200/70 dark:border-white/5 flex items-center justify-between">
                         <div>
                           <span className="text-[10px] text-slate-400 uppercase font-semibold block">IFSC Code</span>
-                          <span className="font-mono font-bold text-blue-600 dark:text-blue-400 text-xs">ICIC0000004</span>
+                          <span className="font-mono font-bold text-blue-600 dark:text-blue-400 text-xs">UTIB0001690</span>
                         </div>
                         <button
                           type="button"
-                          onClick={() => handleCopy("ICIC0000004", "IFSC Code copied!")}
-                          className="text-slate-400 hover:text-slate-700 dark:hover:text-white p-1"
+                          onClick={() => handleCopy("UTIB0001690", "IFSC Code copied!")}
+                          className="text-slate-400 hover:text-slate-700 dark:hover:text-white p-1 cursor-pointer"
                         >
                           <Copy size={13} />
                         </button>
@@ -2091,7 +2091,7 @@ MagicNumber=789104
                       FiAlgo V1 License Key Locked
                     </h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-xl">
-                      Complete the one-time payment of ₹99,999 in Step 3 via PhonePe / UPI (<strong className="font-mono text-slate-800 dark:text-slate-200">9731980756-2@ybl</strong>) or Bank Transfer to request your license key.
+                      Complete the one-time payment of ₹99,999 in Step 3 via PhonePe / UPI (<strong className="font-mono text-slate-800 dark:text-slate-200">9731980756@axisbank</strong>) or Bank Transfer to request your license key.
                     </p>
                   </div>
                 </div>
