@@ -521,39 +521,31 @@ export default function AITrading() {
   };
 
   const handleDownloadEA = () => {
-    const content = `// ═══════════════════════════════════════════════════════════════════
-// FiAlgo V1 - OFFICIAL ENTERPRISE MT5 RELEASE
-// Product: FiAlgo V1 Algorithmic Execution Engine
-// Build Version: 1.0.4 Enterprise
-// Target Platform: MetaTrader 5 (MT5 Build 4150+)
-// Asset: XAUUSD (Gold Spot / US Dollar)
-// Architecture: Tick-by-tick breakout engine with dynamic basket & drawdown guard
-// 
-// Quick Setup Instructions:
-// 1. In MetaTrader 5, click File -> Open Data Folder.
-// 2. Navigate to MQL5/Experts and copy this file inside.
-// 3. Right-click Experts in MT5 Navigator and click "Refresh".
-// 4. Attach FiAlgo V1 to your XAUUSD M1 chart.
-// 5. In EA inputs, load XAUUSD_M1_Preset.set and paste your activation key.
-// 
-// Verified Checksum: SHA256-FA104-MT5-GOLD-BUILD
-// Support Desk: https://tradifive.in
-// ═══════════════════════════════════════════════════════════════════
-`;
-    const blob = new Blob([content], { type: "application/octet-stream" });
-    const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url;
+    a.href = "/FiAlgo_v1.0.4.ex5";
     a.download = "FiAlgo_v1.0.4.ex5";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    URL.revokeObjectURL(url);
 
-    toast.success("FiAlgo_v1.0.4.ex5 downloaded!", {
-      description: "Official compiled MT5 binary ready to install into MQL5/Experts."
-    });
     setHasDownloaded(true);
+    localStorage.setItem("tradifive_ea_downloaded", "true");
+    toast.success("FiAlgo_v1.0.4.ex5 downloaded! (Real 236 KB MT5 Binary)", {
+      description: "Official compiled Expert Advisor ready. Copy into your MetaTrader 5 MQL5/Experts folder."
+    });
+  };
+
+  const handleDownloadSourceMQ5 = () => {
+    const a = document.createElement("a");
+    a.href = "/FiAlgo_v1.0.4.mq5";
+    a.download = "Tradifive.mq5";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    toast.success("Tradifive.mq5 source code downloaded! (165 KB)", {
+      description: "Full MQL5 Expert Advisor source code ready for MetaEditor."
+    });
   };
 
   const handleDownloadPreset = () => {
@@ -1512,27 +1504,37 @@ MagicNumber=789104
                     </code>
                   </div>
                   <div className="text-[11px] text-slate-500 shrink-0 font-mono">
-                    <span>Size: <strong className="text-slate-700 dark:text-slate-300">4.2 MB</strong></span>
-                    <span className="hidden sm:inline"> · MQL5 Binary</span>
+                    <span>Size: <strong className="text-emerald-600 dark:text-emerald-400 font-bold">236 KB</strong></span>
+                    <span className="hidden sm:inline"> · Real Compiled MT5 Binary</span>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={handleDownloadEA}
+                    className="py-2.5 px-3 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white transition-all inline-flex items-center justify-center gap-1.5 shadow-xs hover:shadow-md active:scale-95 cursor-pointer"
+                    title="Download real compiled 236 KB binary for MetaTrader 5"
+                  >
+                    <Download size={14} />
+                    <span>Download (.ex5)</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleDownloadSourceMQ5}
+                    className="py-2.5 px-3 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 transition-all inline-flex items-center justify-center gap-1.5 shadow-xs active:scale-95 cursor-pointer"
+                    title="Download full 165 KB MQL5 Source Code with Account Security Lock"
+                  >
+                    <FileCode size={13} />
+                    <span>Source (.mq5)</span>
+                  </button>
                   <button
                     type="button"
                     onClick={handleDownloadPreset}
                     className="py-2.5 px-3 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-800 dark:bg-white/10 dark:hover:bg-white/15 dark:text-white border border-slate-200/90 dark:border-white/10 transition-all inline-flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs active:scale-95"
                   >
                     <Sliders size={13} />
-                    <span>Presets (.set)</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleDownloadEA}
-                    className="py-2.5 px-3 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 transition-all inline-flex items-center justify-center gap-1.5 shadow-xs hover:shadow-md active:scale-95 cursor-pointer"
-                  >
-                    <Download size={14} />
-                    <span>Download (.ex5)</span>
+                    <span>Preset (.set)</span>
                   </button>
                 </div>
               </div>
