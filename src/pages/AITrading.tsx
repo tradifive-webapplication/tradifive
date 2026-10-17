@@ -1726,28 +1726,48 @@ MagicNumber=789104
             ) : (
               /* STATE 3C: PAYMENT REQUIRED - FORM WITH PHONEPE / UPI & BANK TRANSFER */
               <div className="space-y-4">
-                {/* Product Summary Pricing Banner */}
-                <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 text-white dark:from-[#1A1A1E] dark:to-[#121214] border border-slate-800 dark:border-white/10 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                  <div>
-                    <div className="text-[10.5px] uppercase font-bold tracking-wider text-blue-400">
-                      Institutional Execution Engine
-                    </div>
-                    <h3 className="text-lg sm:text-xl font-black mt-0.5">
-                      FiAlgo V1 Lifetime License
-                    </h3>
-                    <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-slate-300">
-                      <span className="flex items-center gap-1"><Check size={13} className="text-emerald-400" /> Full EA Binary (.ex5)</span>
-                      <span className="flex items-center gap-1"><Check size={13} className="text-emerald-400" /> Bound to MT5 Account</span>
-                      <span className="flex items-center gap-1"><Check size={13} className="text-emerald-400" /> No Monthly Subscriptions</span>
-                    </div>
+                {/* Selected Algorithm & Price: FiAlgo V1 ₹99,999 Lifetime */}
+                <div className="p-3.5 sm:p-4 rounded-xl bg-slate-50/80 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 space-y-2.5">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-[10.5px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                      Selected Algorithm
+                    </span>
+                    <span className="text-[10.5px] font-bold text-emerald-600 dark:text-emerald-400">
+                      Lifetime License
+                    </span>
                   </div>
 
-                  <div className="sm:text-right shrink-0">
-                    <div className="text-xs text-slate-400">One-time payment</div>
-                    <div className="text-2xl sm:text-3xl font-extrabold text-white font-mono">₹99,999</div>
-                    <span className="inline-block mt-1 text-[10px] font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-full">
-                      Lifetime Access
-                    </span>
+                  <div className="p-3 rounded-xl bg-white dark:bg-[#161618] border-2 border-blue-600 dark:border-blue-500 flex items-center justify-between gap-3 shadow-2xs">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-10 h-10 rounded-xl bg-blue-600 text-white font-black text-sm flex items-center justify-center shrink-0">
+                        V1
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white truncate">
+                            FiAlgo V1
+                          </span>
+                          <span className="px-1.5 py-0.5 rounded text-[9.5px] font-bold bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300 border border-blue-200/60 dark:border-blue-500/20">
+                            Selected
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                          Gold (XAUUSD) Precision EA
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="text-right shrink-0">
+                      <div className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider">
+                        Price
+                      </div>
+                      <div className="text-base sm:text-xl font-mono font-black text-slate-900 dark:text-white leading-tight">
+                        ₹99,999
+                      </div>
+                      <span className="inline-block mt-0.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                        Lifetime
+                      </span>
+                    </div>
                   </div>
                 </div>
 
@@ -1784,30 +1804,18 @@ MagicNumber=789104
                 {paymentMethod === "upi" && (
                   <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 space-y-4">
                     <div className="flex flex-col sm:flex-row items-center gap-5">
-                      {/* Stylized QR Code container */}
-                      <div className="w-36 h-36 rounded-2xl bg-white p-2.5 border border-slate-200 shadow-sm flex flex-col items-center justify-center shrink-0 relative">
-                        <svg viewBox="0 0 100 100" className="w-full h-full">
-                          <rect width="100" height="100" fill="white" />
-                          <rect x="8" y="8" width="26" height="26" fill="#5f259f" rx="3" />
-                          <rect x="12" y="12" width="18" height="18" fill="white" rx="2" />
-                          <rect x="16" y="16" width="10" height="10" fill="#5f259f" rx="1.5" />
-                          <rect x="66" y="8" width="26" height="26" fill="#5f259f" rx="3" />
-                          <rect x="70" y="12" width="18" height="18" fill="white" rx="2" />
-                          <rect x="74" y="16" width="10" height="10" fill="#5f259f" rx="1.5" />
-                          <rect x="8" y="66" width="26" height="26" fill="#5f259f" rx="3" />
-                          <rect x="12" y="70" width="18" height="18" fill="white" rx="2" />
-                          <rect x="16" y="74" width="10" height="10" fill="#5f259f" rx="1.5" />
-                          <rect x="42" y="12" width="16" height="6" fill="#0f172a" />
-                          <rect x="42" y="24" width="16" height="6" fill="#0f172a" />
-                          <circle cx="50" cy="50" r="10" fill="#5f259f" />
-                          <text x="50" y="54" fontSize="11" fontWeight="bold" fill="white" textAnchor="middle">₹</text>
-                          <rect x="42" y="70" width="16" height="8" fill="#0f172a" />
-                          <rect x="68" y="44" width="20" height="8" fill="#0f172a" />
-                          <rect x="68" y="68" width="8" height="20" fill="#0f172a" />
-                          <rect x="82" y="78" width="8" height="8" fill="#5f259f" />
-                        </svg>
-                        <span className="absolute bottom-1 text-[8.5px] font-bold text-slate-500 uppercase tracking-tight">PhonePe · UPI</span>
+                      {/* Real Scannable UPI QR Code Image */}
+                      <div className="w-40 sm:w-44 rounded-2xl bg-white p-2.5 border border-slate-200 dark:border-white/10 shadow-sm flex flex-col items-center justify-center shrink-0">
+                        <img 
+                          src="/upi-qr-code.png" 
+                          alt="Scan with PhonePe, GPay, Paytm to pay 9731980756@axisbank" 
+                          className="w-full h-auto object-contain rounded-xl"
+                        />
+                        <span className="mt-1.5 text-[9.5px] font-bold text-slate-700 tracking-tight text-center">
+                          Scan to Pay · Any UPI App
+                        </span>
                       </div>
+
 
                       <div className="space-y-2.5 flex-1 text-center sm:text-left">
                         <div className="flex flex-wrap items-center justify-center sm:justify-start gap-1.5 text-[10.5px] font-bold">
