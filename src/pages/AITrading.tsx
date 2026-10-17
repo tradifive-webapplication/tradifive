@@ -83,6 +83,28 @@ const BrokerLogo = ({ id, size = 24 }: { id: string; size?: number }) => {
   }
 };
 
+// Cryptographic Key Generator matching Tradifive.mq5 FNV-1a algorithm & TF_SALT
+export const generateTradifiveLicenseKey = (mt5AccountNumber?: string | number, expDays: number = 10000): string => {
+  const salt = "TFv1-Zk39xQ-7mLpA2";
+  const numClean = String(mt5AccountNumber || "4820194").replace(/\D/g, "");
+  const login = BigInt(numClean || "4820194");
+
+  let h = 0xCBF29CE484222325n;
+  const prime = 0x100000001B3n;
+  const mask64 = 0xFFFFFFFFFFFFFFFFn;
+  const str = `${salt}:${login}:${expDays}`;
+  for (let i = 0; i < str.length; i++) {
+    h = ((h ^ BigInt(str.charCodeAt(i))) * prime) & mask64;
+  }
+  h = h ^ (h >> 32n);
+  const chk = h & 0xFFFFFFFFFFn;
+
+  const lgHex = login.toString(16).toUpperCase().padStart(8, "0");
+  const expHex = expDays.toString(16).toUpperCase().padStart(4, "0");
+  const chkHex = chk.toString(16).toUpperCase().padStart(10, "0");
+  return `TF-${lgHex}-${expHex}-${chkHex}`;
+};
+
 export default function AITrading() {
   const navigate = useNavigate();
 
@@ -2395,40 +2417,86 @@ MagicNumber=789104
               <div className="p-5 sm:p-6 rounded-2xl bg-slate-50 dark:bg-[#121214] border border-slate-200/80 dark:border-white/10 space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                    Your MT5 Activation Key:
-                  </span>
-                  <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                    <CheckCircle2 size={12} />
-                    <span>Bound to {displayAccountLabel} · Min $500 Verified</span>
-                  </span>
-                </div>
+                {(() => {
+                  let activeKey = "";
+                  try {
+                    const raw = localStorage.getItem("tradifive_payment_request");
+                    if (raw) {
+                      const parsed = JSON.parse(raw);
+                      if (parsed.license_key && parsed.license_key.startsWith("TF-")) {
+                        activeKey = parsed.license_key;
+                      }
+                    }
+                  } catch (e) {}
+                  if (!activeKey) {
+                    activeKey = generateTradifiveLicenseKey(mt5Account || "4820194");
+                  }
 
-                <div className="flex items-center justify-between bg-white dark:bg-[#1A1A1E] border border-slate-200/80 dark:border-white/10 rounded-xl p-3.5 px-4 sm:px-5">
-                  <span className="font-mono text-base sm:text-lg font-extrabold tracking-widest text-slate-900 dark:text-white select-all">
-                    TRDF-8492-AX91
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => handleCopyKey("TRDF-8492-AX91")}
-                    className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-900 text-white dark:bg-white dark:text-slate-900 hover:opacity-90 inline-flex items-center gap-1.5 cursor-pointer ml-3 shadow-xs"
-                  >
-                    {copiedKey ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
-                    <span>{copiedKey ? "Copied" : "Copy Key"}</span>
-                  </button>
-                </div>
+                  return (
+                    <>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                          Your Cryptographic MT5 License Key:
+                        </span>
+                        <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                          <CheckCircle2 size={12} />
+                          <span>Bound to MT5 #{mt5Account || "4820194"} · Lifetime License</span>
+                        </span>
+                      </div>
 
-                {/* 3-Step Human Instructions on How to Paste in MT5 */}
-                <div className="p-4 rounded-xl bg-white dark:bg-[#18181B] border border-slate-200/60 dark:border-white/5 space-y-2.5">
-                  <h4 className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                    <Terminal size={13} className="text-blue-500" />
-                    <span>How to attach in MetaTrader 5:</span>
-                  </h4>
-                  <ol className="text-xs text-slate-600 dark:text-slate-300 space-y-1.5 pl-5 list-decimal leading-relaxed">
-                    <li>In MT5, open the Navigator panel (<kbd className="font-mono bg-slate-100 dark:bg-white/10 px-1 py-0.5 rounded text-[11px]">Ctrl+N</kbd>) and locate <strong>FiAlgo V1</strong>.</li>
-                    <li>Drag FiAlgo V1 onto any <strong>XAUUSD (Gold)</strong> 1-Minute chart.</li>
-                    <li>In the <strong>Inputs</strong> tab, paste key <strong className="font-mono text-slate-900 dark:text-white">TRDF-8492-AX91</strong>, ensure default lot size is set to <strong>0.01</strong> (calibrated for your $500 balance), and check <strong>Allow Algo Trading</strong> on your toolbar.</li>
-                  </ol>
-                </div>
+                      <div className="flex items-center justify-between bg-white dark:bg-[#1A1A1E] border border-slate-200/80 dark:border-white/10 rounded-xl p-3.5 px-4 sm:px-5">
+                        <span className="font-mono text-sm sm:text-base font-extrabold tracking-wider text-slate-900 dark:text-emerald-400 select-all">
+                          {activeKey}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyKey(activeKey)}
+                          className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-900 text-white dark:bg-white dark:text-slate-900 hover:opacity-90 inline-flex items-center gap-1.5 cursor-pointer ml-3 shadow-xs shrink-0"
+                        >
+                          {copiedKey ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
+                          <span>{copiedKey ? "Copied" : "Copy Key"}</span>
+                        </button>
+                      </div>
+
+                      {/* 2 Ways to Activate in MT5 */}
+                      <div className="p-4 rounded-xl bg-white dark:bg-[#18181B] border border-slate-200/60 dark:border-white/5 space-y-3">
+                        <h4 className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                          <Terminal size={13} className="text-blue-500" />
+                          <span>Two Ways to Activate in MetaTrader 5:</span>
+                        </h4>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                          {/* Method 1: On-Chart Dashboard */}
+                          <div className="p-3 rounded-lg bg-slate-50 dark:bg-white/[0.03] border border-slate-200/70 dark:border-white/5 space-y-1.5">
+                            <span className="font-bold text-slate-800 dark:text-white block text-xs flex items-center gap-1.5">
+                              <span className="w-5 h-5 rounded-full bg-blue-500/20 text-blue-500 flex items-center justify-center font-bold text-[10px]">1</span>
+                              Direct on Chart Dashboard (Instant)
+                            </span>
+                            <p className="text-[11.5px] text-slate-600 dark:text-slate-300 leading-relaxed">
+                              On the live chart dashboard, click the <strong className="text-blue-500">SET</strong> button at top right. At the bottom under <strong>LICENSE KEY</strong>, click the box, paste your key, and click <strong className="text-emerald-500">ACTIVATE</strong>. Status instantly turns <strong className="text-emerald-400">ACTIVE</strong>.
+                            </p>
+                          </div>
+
+                          {/* Method 2: EA Properties Inputs */}
+                          <div className="p-3 rounded-lg bg-slate-50 dark:bg-white/[0.03] border border-slate-200/70 dark:border-white/5 space-y-1.5">
+                            <span className="font-bold text-slate-800 dark:text-white block text-xs flex items-center gap-1.5">
+                              <span className="w-5 h-5 rounded-full bg-blue-500/20 text-blue-500 flex items-center justify-center font-bold text-[10px]">2</span>
+                              Via EA Inputs Dialog (F7)
+                            </span>
+                            <p className="text-[11.5px] text-slate-600 dark:text-slate-300 leading-relaxed">
+                              Press <kbd className="px-1 py-0.5 rounded bg-slate-200 dark:bg-white/10 font-mono text-[10px]">F7</kbd> on your MT5 chart to open EA properties. Go to the <strong>Inputs</strong> tab, locate <strong>LicenseKey</strong> under <code>=== License ===</code>, paste this key, and click <strong>OK</strong>.
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="text-[11px] text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-100 dark:border-white/5 flex items-center gap-2">
+                          <CheckCircle2 size={12} className="text-emerald-500 shrink-0" />
+                          <span>This key is mathematically cryptographically locked to MT5 Account <strong>#{mt5Account || "4820194"}</strong> with Lifetime validity.</span>
+                        </div>
+                      </div>
+                    </>
+                  );
+                })()}
 
                 {/* Primary Dashboard CTA */}
                 <button

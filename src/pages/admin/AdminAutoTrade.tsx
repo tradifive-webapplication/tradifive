@@ -683,9 +683,31 @@ export default function AdminAutoTrade() {
     });
   };
 
+  // Cryptographic Key Generator matching Tradifive.mq5 FNV-1a algorithm & TF_SALT
+  const generateTradifiveLicenseKey = (mt5AccountNumber?: string | number, expDays: number = 10000): string => {
+    const salt = "TFv1-Zk39xQ-7mLpA2";
+    const numClean = String(mt5AccountNumber || "4820194").replace(/\D/g, "");
+    const login = BigInt(numClean || "4820194");
+
+    let h = 0xCBF29CE484222325n;
+    const prime = 0x100000001B3n;
+    const mask64 = 0xFFFFFFFFFFFFFFFFn;
+    const str = `${salt}:${login}:${expDays}`;
+    for (let i = 0; i < str.length; i++) {
+      h = ((h ^ BigInt(str.charCodeAt(i))) * prime) & mask64;
+    }
+    h = h ^ (h >> 32n);
+    const chk = h & 0xFFFFFFFFFFn;
+
+    const lgHex = login.toString(16).toUpperCase().padStart(8, "0");
+    const expHex = expDays.toString(16).toUpperCase().padStart(4, "0");
+    const chkHex = chk.toString(16).toUpperCase().padStart(10, "0");
+    return `TF-${lgHex}-${expHex}-${chkHex}`;
+  };
+
   // Approve ₹99,999 Lifetime Payment & Issue License Key
   const handleApprovePayment = async (payment: LicensePaymentRequest) => {
-    const generatedKey = `FIALGO-V1-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(1000 + Math.random() * 9000)}-GOLD`;
+    const generatedKey = generateTradifiveLicenseKey(payment.mt5_account_number);
     const updatedPayment: LicensePaymentRequest = {
       ...payment,
       status: "approved",
