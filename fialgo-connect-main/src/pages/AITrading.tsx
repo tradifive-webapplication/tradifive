@@ -5,7 +5,7 @@ import {
   Terminal, Camera, UploadCloud, Clock, Image as ImageIcon, 
   Headset, Send, RefreshCw, Calculator, Calendar, Sparkles, ChevronRight,
   AlertCircle, DollarSign, MessageCircle, AlertTriangle, Coins, Layers,
-  Sliders, FileCode, Cpu, Activity
+  Sliders, FileCode, Cpu, Activity, QrCode, Landmark, CreditCard, KeyRound
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
@@ -107,10 +107,15 @@ export default function AITrading() {
   // Bot State & Setup Flags
   const [hasDownloaded, setHasDownloaded] = useState(false);
   const [showCalculator, setShowCalculator] = useState(false);
-  const [isPaying, setIsPaying] = useState(false);
   const [hasPaid, setHasPaid] = useState<boolean>(() => {
     return typeof window !== 'undefined' && localStorage.getItem("tradifive_auto_trade_setup") === "true";
   });
+
+  // Step 3: Lifetime License Payment (₹99,999)
+  const [paymentMethod, setPaymentMethod] = useState<"upi" | "bank" | "instant">("upi");
+  const [paymentUtr, setPaymentUtr] = useState("");
+  const [paymentProofFile, setPaymentProofFile] = useState<string | null>(null);
+  const [isSubmittingPayment, setIsSubmittingPayment] = useState(false);
 
   const [isBotRunning, setIsBotRunning] = useState<boolean>(() => {
     try {
@@ -237,6 +242,50 @@ export default function AITrading() {
       toast.success("Screenshot attached!", { description: file.name });
     };
     reader.readAsDataURL(file);
+  };
+
+  const handlePaymentProofUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 8 * 1024 * 1024) {
+      toast.error("File is too large. Please select an image under 8MB.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setPaymentProofFile(reader.result as string);
+      toast.success("Payment screenshot attached!", { description: file.name });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleConfirmPayment = () => {
+    if (paymentMethod !== "instant" && !paymentUtr.trim() && !paymentProofFile) {
+      toast.error("Please enter your UTR / Reference number or attach payment proof.");
+      return;
+    }
+
+    setIsSubmittingPayment(true);
+    setTimeout(() => {
+      setIsSubmittingPayment(false);
+      setHasPaid(true);
+      localStorage.setItem("tradifive_auto_trade_setup", "true");
+      toast.success("Payment Confirmed! FiAlgo V1 License Unlocked", {
+        description: "Proceed to Step 4 to activate your license key."
+      });
+      setActiveStep(4);
+    }, 600);
+  };
+
+  const handleInstantPayDemo = () => {
+    setHasPaid(true);
+    localStorage.setItem("tradifive_auto_trade_setup", "true");
+    toast.success("Payment Confirmed (Demo)!", {
+      description: "Lifetime License for FiAlgo V1 unlocked."
+    });
+    setActiveStep(4);
   };
 
   const handleSubmitProof = async () => {
@@ -467,10 +516,10 @@ MagicNumber=789104
           {/* Progress Header Meta */}
           <div className="flex items-center justify-between text-xs px-0.5">
             <span className="font-semibold text-slate-700 dark:text-slate-300">
-              Step {activeStep} of 3: {activeStep === 1 ? "Connect MT5" : activeStep === 2 ? "Download FiAlgo" : "Activate License"}
+              Step {activeStep} of 4: {activeStep === 1 ? "Connect MT5" : activeStep === 2 ? "Download FiAlgo" : activeStep === 3 ? "License Payment" : "Activate License"}
             </span>
             <span className="font-bold font-mono text-slate-900 dark:text-white text-xs">
-              {activeStep === 1 ? "33%" : activeStep === 2 ? "66%" : "100%"}
+              {activeStep === 1 ? "25%" : activeStep === 2 ? "50%" : activeStep === 3 ? "75%" : "100%"}
             </span>
           </div>
 
@@ -478,16 +527,16 @@ MagicNumber=789104
           <div className="relative w-full h-1.5 bg-slate-100 dark:bg-white/10 rounded-full overflow-hidden">
             <div 
               className="h-full bg-blue-600 dark:bg-blue-500 rounded-full transition-all duration-300 ease-out"
-              style={{ width: activeStep === 1 ? "33%" : activeStep === 2 ? "66%" : "100%" }}
+              style={{ width: activeStep === 1 ? "25%" : activeStep === 2 ? "50%" : activeStep === 3 ? "75%" : "100%" }}
             />
           </div>
 
-          {/* 3 Step Milestone Tabs (Clean & touch-friendly on mobile) */}
-          <div className="grid grid-cols-3 gap-1.5 pt-1 text-xs">
+          {/* 4 Step Milestone Tabs (Clean & touch-friendly on mobile) */}
+          <div className="grid grid-cols-4 gap-1.5 pt-1 text-xs">
             <button
               type="button"
               onClick={() => setActiveStep(1)}
-              className={`py-1.5 px-2 rounded-xl font-semibold flex items-center justify-center gap-1 transition-all cursor-pointer text-center text-xs ${
+              className={`py-1.5 px-1 sm:px-2 rounded-xl font-semibold flex items-center justify-center gap-1 transition-all cursor-pointer text-center text-[11px] sm:text-xs truncate ${
                 activeStep === 1
                   ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs"
                   : ibVerified
@@ -501,29 +550,43 @@ MagicNumber=789104
             <button
               type="button"
               onClick={() => setActiveStep(2)}
-              className={`py-1.5 px-2 rounded-xl font-semibold flex items-center justify-center gap-1 transition-all cursor-pointer text-center text-xs ${
+              className={`py-1.5 px-1 sm:px-2 rounded-xl font-semibold flex items-center justify-center gap-1 transition-all cursor-pointer text-center text-[11px] sm:text-xs truncate ${
                 activeStep === 2
                   ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs"
-                  : (hasDownloaded && ibVerified)
+                  : hasDownloaded
                     ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-500/20"
                     : "bg-slate-100 text-slate-500 hover:text-slate-900 dark:bg-white/5 dark:text-slate-400"
               }`}
             >
-              <span>{(hasDownloaded && ibVerified) ? "✓" : "2."} Download</span>
+              <span>{hasDownloaded ? "✓" : "2."} Download</span>
             </button>
 
             <button
               type="button"
               onClick={() => setActiveStep(3)}
-              className={`py-1.5 px-2 rounded-xl font-semibold flex items-center justify-center gap-1 transition-all cursor-pointer text-center text-xs ${
+              className={`py-1.5 px-1 sm:px-2 rounded-xl font-semibold flex items-center justify-center gap-1 transition-all cursor-pointer text-center text-[11px] sm:text-xs truncate ${
                 activeStep === 3
                   ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs"
-                  : (hasPaid && ibVerified && hasDownloaded)
+                  : hasPaid
                     ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-500/20"
                     : "bg-slate-100 text-slate-500 hover:text-slate-900 dark:bg-white/5 dark:text-slate-400"
               }`}
             >
-              <span>{(hasPaid && ibVerified && hasDownloaded) ? "✓" : "3."} Activate</span>
+              <span>{hasPaid ? "✓" : "3."} Pay ₹99k</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveStep(4)}
+              className={`py-1.5 px-1 sm:px-2 rounded-xl font-semibold flex items-center justify-center gap-1 transition-all cursor-pointer text-center text-[11px] sm:text-xs truncate ${
+                activeStep === 4
+                  ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs"
+                  : (hasPaid && ibVerified)
+                    ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-500/20"
+                    : "bg-slate-100 text-slate-500 hover:text-slate-900 dark:bg-white/5 dark:text-slate-400"
+              }`}
+            >
+              <span>{(hasPaid && ibVerified) ? "✓" : "4."} Activate</span>
             </button>
           </div>
         </div>
@@ -1352,14 +1415,14 @@ MagicNumber=789104
                 onClick={() => setActiveStep(3)}
                 className="w-full sm:w-auto px-5 py-2.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:hover:bg-slate-200 dark:text-slate-900 inline-flex items-center justify-center gap-2 cursor-pointer shadow-xs"
               >
-                <span>Continue to Step 3: Activation Key</span>
+                <span>Continue to Step 3: License Payment</span>
                 <ArrowRight size={14} />
               </button>
             </div>
           </motion.div>
         )}
 
-        {/* ── STEP 3: ONLY SHOWN WHEN activeStep === 3 ── */}
+        {/* ── STEP 3: ONLY SHOWN WHEN activeStep === 3 (LIFETIME LICENSE PAYMENT ₹99,999) ── */}
         {activeStep === 3 && (
           <motion.div
             key="step3"
@@ -1371,26 +1434,359 @@ MagicNumber=789104
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/5">
               <div>
                 <h2 className="text-base sm:text-xl font-bold text-slate-900 dark:text-white">
-                  {ibVerified ? "Activation Key & Start Trading" : "Activation Key Verification"}
+                  Lifetime License Payment
                 </h2>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  {ibVerified
-                    ? "Copy your license key and attach it to FiAlgo V1 in MT5."
-                    : "Verify your MT5 account with $500+ deposit to unlock your license."}
+                  Complete the one-time fee of ₹99,999 to unlock your permanent MetaTrader 5 license key.
                 </p>
               </div>
 
               <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 ${
-                ibVerified
-                  ? "bg-slate-100 text-slate-800 dark:bg-white/10 dark:text-slate-200 border border-slate-200 dark:border-white/10"
-                  : "bg-slate-100 text-slate-700 dark:bg-white/10 dark:text-slate-300 border border-slate-200 dark:border-white/10"
+                hasPaid
+                  ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-500/20"
+                  : "bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 border border-blue-500/20"
               }`}>
-                {ibVerified ? <CheckCircle2 size={13} className="text-emerald-500" /> : <Lock size={12} className="text-slate-500" />}
-                <span>{ibVerified ? "Unlocked & Active" : "Key Locked"}</span>
+                {hasPaid ? <CheckCircle2 size={13} /> : <CreditCard size={13} />}
+                <span>{hasPaid ? "Payment Confirmed" : "₹99,999 / Lifetime"}</span>
               </span>
             </div>
 
-            {!ibVerified ? (
+            {hasPaid ? (
+              /* Already Paid State */
+              <div className="p-5 sm:p-6 rounded-2xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-500/20 space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center shrink-0">
+                    <CheckCircle2 size={22} />
+                  </div>
+                  <div>
+                    <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">
+                      Lifetime License Paid &amp; Confirmed
+                    </h3>
+                    <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5">
+                      Your ₹99,999 lifetime access is confirmed. Proceed to Step 4 to activate your license key.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-2.5 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setActiveStep(2)}
+                    className="w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 inline-flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <ArrowLeft size={13} />
+                    <span>Back to Step 2 (Download)</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setActiveStep(4)}
+                    className="w-full sm:w-auto px-6 py-3 rounded-xl text-xs sm:text-sm font-bold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer"
+                  >
+                    <span>Proceed to Step 4: Activate License Key</span>
+                    <ArrowRight size={14} />
+                  </button>
+                </div>
+              </div>
+            ) : (
+              /* Payment Interface */
+              <div className="space-y-4">
+                {/* Product Summary Pricing Banner */}
+                <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 text-white dark:from-[#1A1A1E] dark:to-[#121214] border border-slate-800 dark:border-white/10 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div>
+                    <div className="text-[10.5px] uppercase font-bold tracking-wider text-blue-400">
+                      Institutional Execution Engine
+                    </div>
+                    <h3 className="text-lg sm:text-xl font-black mt-0.5">
+                      FiAlgo V1 Lifetime License
+                    </h3>
+                    <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-slate-300">
+                      <span className="flex items-center gap-1"><Check size={13} className="text-emerald-400" /> Full EA Binary (.ex5)</span>
+                      <span className="flex items-center gap-1"><Check size={13} className="text-emerald-400" /> Bound to MT5 Account</span>
+                      <span className="flex items-center gap-1"><Check size={13} className="text-emerald-400" /> No Monthly Subscriptions</span>
+                    </div>
+                  </div>
+
+                  <div className="sm:text-right shrink-0">
+                    <div className="text-xs text-slate-400">One-time payment</div>
+                    <div className="text-2xl sm:text-3xl font-extrabold text-white font-mono">₹99,999</div>
+                    <span className="inline-block mt-1 text-[10px] font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-full">
+                      Lifetime Access
+                    </span>
+                  </div>
+                </div>
+
+                {/* Payment Method Selector */}
+                <div className="grid grid-cols-3 gap-1.5 p-1 bg-slate-100 dark:bg-white/5 rounded-xl text-xs font-semibold">
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod("upi")}
+                    className={`py-2 px-2 rounded-lg transition-all cursor-pointer text-center flex items-center justify-center gap-1.5 ${
+                      paymentMethod === "upi"
+                        ? "bg-white dark:bg-[#1E1E22] text-slate-900 dark:text-white shadow-xs font-bold"
+                        : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                    }`}
+                  >
+                    <QrCode size={13} />
+                    <span>UPI / QR</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod("bank")}
+                    className={`py-2 px-2 rounded-lg transition-all cursor-pointer text-center flex items-center justify-center gap-1.5 ${
+                      paymentMethod === "bank"
+                        ? "bg-white dark:bg-[#1E1E22] text-slate-900 dark:text-white shadow-xs font-bold"
+                        : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                    }`}
+                  >
+                    <Landmark size={13} />
+                    <span>Bank Transfer</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod("instant")}
+                    className={`py-2 px-2 rounded-lg transition-all cursor-pointer text-center flex items-center justify-center gap-1.5 ${
+                      paymentMethod === "instant"
+                        ? "bg-white dark:bg-[#1E1E22] text-slate-900 dark:text-white shadow-xs font-bold"
+                        : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                    }`}
+                  >
+                    <Sparkles size={13} />
+                    <span>Instant (Demo)</span>
+                  </button>
+                </div>
+
+                {/* Tab 1: UPI / QR Code */}
+                {paymentMethod === "upi" && (
+                  <div className="p-4 sm:p-5 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 space-y-4">
+                    <div className="flex flex-col sm:flex-row items-center gap-5">
+                      <div className="w-36 h-36 rounded-2xl bg-white p-2.5 border border-slate-200 shadow-sm flex items-center justify-center shrink-0">
+                        <svg viewBox="0 0 100 100" className="w-full h-full">
+                          <rect width="100" height="100" fill="white" />
+                          <rect x="10" y="10" width="25" height="25" fill="#0f172a" />
+                          <rect x="14" y="14" width="17" height="17" fill="white" />
+                          <rect x="18" y="18" width="9" height="9" fill="#0f172a" />
+                          <rect x="65" y="10" width="25" height="25" fill="#0f172a" />
+                          <rect x="69" y="14" width="17" height="17" fill="white" />
+                          <rect x="73" y="18" width="9" height="9" fill="#0f172a" />
+                          <rect x="10" y="65" width="25" height="25" fill="#0f172a" />
+                          <rect x="14" y="69" width="17" height="17" fill="white" />
+                          <rect x="18" y="73" width="9" height="9" fill="#0f172a" />
+                          <rect x="42" y="15" width="16" height="6" fill="#0f172a" />
+                          <rect x="45" y="45" width="12" height="12" fill="#2563eb" />
+                          <rect x="42" y="70" width="16" height="8" fill="#0f172a" />
+                          <rect x="68" y="45" width="20" height="8" fill="#0f172a" />
+                          <rect x="68" y="70" width="8" height="18" fill="#0f172a" />
+                          <rect x="80" y="80" width="8" height="8" fill="#0f172a" />
+                        </svg>
+                      </div>
+
+                      <div className="space-y-2 flex-1 text-center sm:text-left">
+                        <div className="text-xs text-slate-500 dark:text-slate-400">
+                          Scan with Google Pay, PhonePe, Paytm, or any BHIM UPI app
+                        </div>
+                        <div className="flex items-center justify-center sm:justify-start gap-2 bg-white dark:bg-[#161618] px-3.5 py-2 rounded-xl border border-slate-200 dark:border-white/10 w-fit mx-auto sm:mx-0">
+                          <code className="text-xs font-mono font-bold text-slate-900 dark:text-white">
+                            tradifive.algo@icici
+                          </code>
+                          <button
+                            type="button"
+                            onClick={() => handleCopy("tradifive.algo@icici", "UPI ID copied!")}
+                            className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer flex items-center gap-1"
+                          >
+                            <Copy size={11} />
+                            <span>Copy</span>
+                          </button>
+                        </div>
+                        <p className="text-[11.5px] text-slate-500 dark:text-slate-400">
+                          Amount: <strong className="text-slate-900 dark:text-white">₹99,999</strong> · Instant automated receipt
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1 pt-1">
+                      <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                        UPI UTR / Reference Number
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. 429184920192"
+                        value={paymentUtr}
+                        onChange={(e) => setPaymentUtr(e.target.value)}
+                        className="w-full bg-white dark:bg-[#121214] border border-slate-200/80 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white font-mono focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Tab 2: Bank Transfer */}
+                {paymentMethod === "bank" && (
+                  <div className="p-4 sm:p-5 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 space-y-3 text-xs">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      <div className="p-2.5 rounded-lg bg-white dark:bg-[#161618] border border-slate-200/70 dark:border-white/5 flex justify-between">
+                        <span className="text-slate-500">Account Name:</span>
+                        <span className="font-bold text-slate-900 dark:text-white">TradiFive Tech Pvt Ltd</span>
+                      </div>
+                      <div className="p-2.5 rounded-lg bg-white dark:bg-[#161618] border border-slate-200/70 dark:border-white/5 flex justify-between">
+                        <span className="text-slate-500">Bank Name:</span>
+                        <span className="font-bold text-slate-900 dark:text-white">ICICI Bank Limited</span>
+                      </div>
+                      <div className="p-2.5 rounded-lg bg-white dark:bg-[#161618] border border-slate-200/70 dark:border-white/5 flex justify-between">
+                        <span className="text-slate-500">Account Number:</span>
+                        <span className="font-mono font-bold text-slate-900 dark:text-white">000405019824</span>
+                      </div>
+                      <div className="p-2.5 rounded-lg bg-white dark:bg-[#161618] border border-slate-200/70 dark:border-white/5 flex justify-between">
+                        <span className="text-slate-500">IFSC Code:</span>
+                        <span className="font-mono font-bold text-blue-600 dark:text-blue-400">ICIC0000004</span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1 pt-1">
+                      <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                        Transaction Reference / UTR Number
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. ICIC4829104829"
+                        value={paymentUtr}
+                        onChange={(e) => setPaymentUtr(e.target.value)}
+                        className="w-full bg-white dark:bg-[#121214] border border-slate-200/80 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white font-mono focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Tab 3: Instant Demo Test Key */}
+                {paymentMethod === "instant" && (
+                  <div className="p-4 sm:p-5 rounded-xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-500/20 text-center space-y-2">
+                    <Sparkles size={24} className="text-blue-600 dark:text-blue-400 mx-auto" />
+                    <h4 className="text-xs font-bold text-slate-900 dark:text-white">Instant Sandbox Activation</h4>
+                    <p className="text-xs text-slate-600 dark:text-slate-300 max-w-md mx-auto">
+                      Test the complete end-to-end flow immediately with simulated instant confirmation.
+                    </p>
+                  </div>
+                )}
+
+                {/* Upload Payment Screenshot Proof (Optional / Helpful) */}
+                <div className="p-3 sm:p-3.5 rounded-xl border border-dashed border-slate-300 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.02] flex items-center justify-between gap-2.5 text-xs">
+                  <div className="flex items-center gap-2 min-w-0 flex-1">
+                    <UploadCloud size={15} className={`shrink-0 ${paymentProofFile ? "text-emerald-500" : "text-slate-400"}`} />
+                    <span className="text-slate-700 dark:text-slate-300 text-xs font-medium truncate">
+                      {paymentProofFile ? "Payment Screenshot Attached" : "Attach payment screenshot (Optional)"}
+                    </span>
+                  </div>
+                  <div className="relative shrink-0">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handlePaymentProofUpload}
+                      className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
+                    />
+                    <span className="px-3 py-1.5 rounded-lg text-xs font-semibold border bg-white dark:bg-white/10 border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-200 hover:bg-slate-50 cursor-pointer">
+                      {paymentProofFile ? "Change" : "Browse"}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Stepper Navigation: Back to Step 2 & Confirm Payment */}
+                <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => setActiveStep(2)}
+                    className="w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 inline-flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <ArrowLeft size={13} />
+                    <span>Back to Step 2 (Download)</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleConfirmPayment}
+                    disabled={isSubmittingPayment}
+                    className="w-full sm:w-auto px-6 py-3 rounded-xl text-xs sm:text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white inline-flex items-center justify-center gap-2 cursor-pointer shadow-xs transition-all active:scale-[0.99]"
+                  >
+                    {isSubmittingPayment ? (
+                      <>
+                        <RefreshCw size={14} className="animate-spin" />
+                        <span>Confirming Payment...</span>
+                      </>
+                    ) : (
+                      <>
+                        <KeyRound size={14} />
+                        <span>Confirm Payment &amp; Proceed to Step 4 →</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+          </motion.div>
+        )}
+
+        {/* ── STEP 4: ONLY SHOWN WHEN activeStep === 4 (ACTIVATION KEY & MT5 SETUP) ── */}
+        {activeStep === 4 && (
+          <motion.div
+            key="step4"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            className="rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:bg-[#161618] dark:border-white/10 p-3 sm:p-6 space-y-4 sm:space-y-6"
+          >
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/5">
+              <div>
+                <h2 className="text-base sm:text-xl font-bold text-slate-900 dark:text-white">
+                  {hasPaid && ibVerified ? "Activation Key & Start Trading" : "Activation Key Verification"}
+                </h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  {hasPaid && ibVerified
+                    ? "Copy your license key and attach it to FiAlgo V1 in MT5."
+                    : "Complete payment and broker verification to unlock your license."}
+                </p>
+              </div>
+
+              <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 ${
+                hasPaid && ibVerified
+                  ? "bg-slate-100 text-slate-800 dark:bg-white/10 dark:text-slate-200 border border-slate-200 dark:border-white/10"
+                  : "bg-slate-100 text-slate-700 dark:bg-white/10 dark:text-slate-300 border border-slate-200 dark:border-white/10"
+              }`}>
+                {hasPaid && ibVerified ? <CheckCircle2 size={13} className="text-emerald-500" /> : <Lock size={12} className="text-slate-500" />}
+                <span>{hasPaid && ibVerified ? "Unlocked & Active" : "Key Locked"}</span>
+              </span>
+            </div>
+
+            {!hasPaid ? (
+              /* LOCKED: PAYMENT IN STEP 3 REQUIRED FIRST */
+              <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#161618] border border-slate-200/80 dark:border-white/10 space-y-4 shadow-xs">
+                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center justify-center shrink-0">
+                    <Lock size={22} />
+                  </div>
+                  <div className="space-y-1 text-center sm:text-left">
+                    <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10.5px] font-semibold bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                      <span>Payment Required</span>
+                    </div>
+                    <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+                      FiAlgo V1 License Key Locked
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-xl">
+                      Complete the one-time payment of ₹99,999 in Step 3 to generate and unlock your personal license key.
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveStep(3)}
+                  className="w-full py-3 px-4 rounded-xl text-xs sm:text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center gap-2 cursor-pointer shadow-xs transition-all"
+                >
+                  <CreditCard size={14} />
+                  <span>Go to Step 3: Complete Payment (₹99,999) →</span>
+                </button>
+              </div>
+            ) : !ibVerified ? (
               /* ── LOCKED STATE: WAITING FOR VERIFICATION ($500+ & IB LINK) ── */
               <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#161618] border border-slate-200/80 dark:border-white/10 space-y-4 sm:space-y-5 shadow-xs">
                 <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
@@ -1421,6 +1817,14 @@ MagicNumber=789104
                     <div className="flex items-center justify-between p-2.5 rounded-lg bg-white dark:bg-[#18181B] border border-slate-200/70 dark:border-white/5">
                       <div className="flex items-center gap-2">
                         <span className="w-4 h-4 rounded-full bg-slate-100 dark:bg-white/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-[10px] font-bold shrink-0">✓</span>
+                        <span className="text-slate-600 dark:text-slate-400">License Payment:</span>
+                      </div>
+                      <span className="font-bold text-emerald-600 dark:text-emerald-400">₹99,999 Paid ✓</span>
+                    </div>
+
+                    <div className="flex items-center justify-between p-2.5 rounded-lg bg-white dark:bg-[#18181B] border border-slate-200/70 dark:border-white/5">
+                      <div className="flex items-center gap-2">
+                        <span className="w-4 h-4 rounded-full bg-slate-100 dark:bg-white/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-[10px] font-bold shrink-0">✓</span>
                         <span className="text-slate-600 dark:text-slate-400">Partner Link:</span>
                       </div>
                       <span className="font-bold text-slate-900 dark:text-white">Vantage (27863221)</span>
@@ -1447,18 +1851,6 @@ MagicNumber=789104
                       </div>
                       <span className="font-bold text-slate-900 dark:text-white font-mono">
                         $500.00 USD Required
-                      </span>
-                    </div>
-
-                    <div className="flex items-center justify-between p-2.5 rounded-lg bg-white dark:bg-[#18181B] border border-slate-200/70 dark:border-white/5">
-                      <div className="flex items-center gap-2">
-                        <span className="w-4 h-4 rounded-full bg-slate-100 dark:bg-white/10 text-slate-500 flex items-center justify-center text-[10px] font-bold shrink-0">
-                          {transferRequestStatus === "pending" ? "⌛" : "·"}
-                        </span>
-                        <span className="text-slate-600 dark:text-slate-400">Desk Status:</span>
-                      </div>
-                      <span className="font-bold text-slate-900 dark:text-white">
-                        {transferRequestStatus === "pending" ? "Under Review (~1-2 hrs)" : "Awaiting Submission"}
                       </span>
                     </div>
                   </div>
@@ -1590,15 +1982,15 @@ MagicNumber=789104
               </div>
             )}
 
-            {/* Stepper Navigation: Back to Step 2 */}
+            {/* Stepper Navigation: Back to Step 3 */}
             <div className="pt-2 flex justify-start">
               <button
                 type="button"
-                onClick={() => setActiveStep(2)}
+                onClick={() => setActiveStep(3)}
                 className="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 inline-flex items-center gap-1.5 cursor-pointer"
               >
                 <ArrowLeft size={13} />
-                <span>Back to Step 2 (Download)</span>
+                <span>Back to Step 3 (Payment)</span>
               </button>
             </div>
           </motion.div>
