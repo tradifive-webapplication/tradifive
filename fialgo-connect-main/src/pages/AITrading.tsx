@@ -749,32 +749,34 @@ MagicNumber=789104
               /* STATE 1C: SIMPLE 3-STEP FLOW */
               <div className="space-y-4">
                 {/* 2-Option Segmented Control */}
-                <div className="grid grid-cols-2 gap-1.5 p-1 bg-slate-100 dark:bg-white/5 rounded-xl text-xs font-bold">
+                <div className="grid grid-cols-2 gap-1.5 p-1 bg-slate-100 dark:bg-white/5 rounded-xl text-xs font-semibold">
                   <button
                     type="button"
                     onClick={() => {
                       setSetupPath("new");
                       setSelectedBroker("vantage");
                     }}
-                    className={`py-2 px-3 rounded-lg transition-all cursor-pointer text-center flex items-center justify-center gap-1.5 ${
+                    className={`py-2 px-2 rounded-lg transition-all cursor-pointer text-center flex items-center justify-center gap-1.5 min-h-[42px] ${
                       setupPath === "new"
-                        ? "bg-white dark:bg-[#1E1E22] text-blue-600 dark:text-blue-400 shadow-xs"
-                        : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                        ? "bg-white dark:bg-[#1E1E22] text-slate-900 dark:text-white shadow-xs font-bold"
+                        : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                     }`}
                   >
-                    <span>Open New Account</span>
-                    <span className="text-[10px] px-1.5 py-0.2 bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-md font-semibold">Recommended</span>
+                    <span>Open New <span className="hidden sm:inline">Account</span></span>
+                    <span className="text-[9.5px] uppercase tracking-wider px-1.5 py-0.5 bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300 rounded font-bold border border-blue-200/60 dark:border-blue-500/20 whitespace-nowrap">
+                      Recommended
+                    </span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setSetupPath("transfer")}
-                    className={`py-2 px-3 rounded-lg transition-all cursor-pointer text-center ${
+                    className={`py-2 px-2 rounded-lg transition-all cursor-pointer text-center flex items-center justify-center min-h-[42px] ${
                       setupPath === "transfer"
-                        ? "bg-white dark:bg-[#1E1E22] text-slate-900 dark:text-white shadow-xs"
-                        : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                        ? "bg-white dark:bg-[#1E1E22] text-slate-900 dark:text-white shadow-xs font-bold"
+                        : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                     }`}
                   >
-                    Transfer Existing Account
+                    <span>Transfer Existing <span className="hidden sm:inline">Account</span></span>
                   </button>
                 </div>
 
@@ -1124,30 +1126,25 @@ MagicNumber=789104
 
             {/* FiAlgo V1 Product Card - Systemic Institutional White Mode */}
             <div className="relative overflow-hidden rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#121215] p-4 sm:p-6 space-y-4 shadow-[0_4px_24px_-4px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.04)] dark:shadow-none transition-all">
-              {/* Subtle systemic top hairline */}
-              <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-blue-600 via-indigo-500 to-amber-500" />
+              {/* Subtle top hairline */}
+              <div className="absolute top-0 inset-x-0 h-0.5 bg-slate-900 dark:bg-white/20" />
 
               {/* Header: Institutional Telemetry & 3D Packaging */}
               <div className="flex flex-col sm:flex-row items-center sm:items-start justify-between gap-4 pt-1">
                 <div className="space-y-2.5 text-center sm:text-left max-w-lg">
-                  {/* Status & Badge Row */}
+                  {/* Status & Badge Row - Disciplined, No Rainbow */}
                   <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-50 text-amber-800 border border-amber-200/80 dark:bg-amber-500/10 dark:text-amber-300 dark:border-amber-500/20 shadow-2xs">
-                      <Shield size={11} className="text-amber-600 dark:text-amber-400" />
-                      <span>Gold Specialist · Institutional</span>
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-white/10 border border-slate-200/80 dark:border-white/10">
+                      <Shield size={11} className="text-slate-600 dark:text-slate-400" />
+                      <span>Gold Specialist · MT5 Native EA</span>
                     </span>
 
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200/80 dark:bg-blue-500/10 dark:text-blue-300 dark:border-blue-500/25">
-                      <Cpu size={11} className="text-blue-600 dark:text-blue-400" />
-                      <span>MT5 Native EA</span>
-                    </span>
-
-                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200/70 dark:border-emerald-500/20">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-semibold text-slate-700 dark:text-slate-300 bg-slate-100/70 dark:bg-white/5 border border-slate-200/60 dark:border-white/10">
                       <span className="relative flex h-1.5 w-1.5">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
                       </span>
-                      <span>Verified Build</span>
+                      <span>Verified Build v1.0.4</span>
                     </span>
                   </div>
 
@@ -1164,7 +1161,7 @@ MagicNumber=789104
 
                 {/* 3D Product Box in clean showcase pedestal */}
                 <div className="shrink-0 flex items-center justify-center">
-                  <div className="relative group p-2.5 sm:p-3 rounded-2xl bg-gradient-to-b from-slate-50 to-blue-50/40 dark:from-white/[0.02] dark:to-blue-500/[0.04] border border-slate-200/80 dark:border-white/5 shadow-2xs">
+                  <div className="relative group p-2.5 sm:p-3 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 shadow-2xs">
                     <img
                       src="/fialgo-v1-box.png"
                       alt="FiAlgo V1 3D Box"
@@ -1177,78 +1174,76 @@ MagicNumber=789104
                 </div>
               </div>
 
-              {/* Specifications Grid - Quantitative Precision Tiles */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-slate-100 dark:border-white/10 text-xs">
-                <div className="p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100/70 dark:bg-white/[0.03] dark:hover:bg-white/[0.05] border border-slate-200/80 dark:border-white/[0.08] transition-colors">
+              {/* Specifications Grid - Unified Institutional Tiles */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-slate-100 dark:border-white/5 text-xs">
+                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10">
                   <div className="flex items-center justify-between mb-0.5">
                     <span className="text-[10px] text-slate-500 dark:text-slate-400 block font-semibold uppercase tracking-wider">Asset Pair</span>
-                    <Coins size={12} className="text-amber-500" />
+                    <Coins size={12} className="text-slate-400" />
                   </div>
                   <strong className="text-slate-900 dark:text-white text-xs block font-bold">XAUUSD (Gold)</strong>
                   <span className="text-[10px] text-slate-500 dark:text-slate-400">Spot / USD Structure</span>
                 </div>
 
-                <div className="p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100/70 dark:bg-white/[0.03] dark:hover:bg-white/[0.05] border border-slate-200/80 dark:border-white/[0.08] transition-colors">
+                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10">
                   <div className="flex items-center justify-between mb-0.5">
                     <span className="text-[10px] text-slate-500 dark:text-slate-400 block font-semibold uppercase tracking-wider">Timeframe</span>
-                    <Clock size={12} className="text-blue-500" />
+                    <Clock size={12} className="text-slate-400" />
                   </div>
                   <strong className="text-slate-900 dark:text-white text-xs block font-bold">1-Min (M1)</strong>
                   <span className="text-[10px] text-slate-500 dark:text-slate-400">Tick-Level Accuracy</span>
                 </div>
 
-                <div className="p-2.5 rounded-xl bg-emerald-50/60 hover:bg-emerald-50/90 dark:bg-emerald-500/[0.04] dark:hover:bg-emerald-500/[0.07] border border-emerald-200/70 dark:border-emerald-500/20 transition-colors">
+                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10">
                   <div className="flex items-center justify-between mb-0.5">
-                    <span className="text-[10px] text-emerald-700 dark:text-emerald-400 block font-semibold uppercase tracking-wider">Execution</span>
-                    <Zap size={12} className="text-emerald-600 dark:text-emerald-400" />
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 block font-semibold uppercase tracking-wider">Execution</span>
+                    <Zap size={12} className="text-slate-400" />
                   </div>
-                  <strong className="text-emerald-700 dark:text-emerald-400 text-xs block font-bold flex items-center gap-1">
+                  <strong className="text-slate-900 dark:text-white text-xs block font-bold flex items-center gap-1.5">
                     <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                     &lt; 3ms Direct MT5
                   </strong>
-                  <span className="text-[10px] text-emerald-800/80 dark:text-emerald-400/80">Zero Broker Relay</span>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400">Zero Broker Relay</span>
                 </div>
 
-                <div className="p-2.5 rounded-xl bg-blue-50/60 hover:bg-blue-50/90 dark:bg-blue-500/[0.04] dark:hover:bg-blue-500/[0.07] border border-blue-200/70 dark:border-blue-500/20 transition-colors">
+                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10">
                   <div className="flex items-center justify-between mb-0.5">
-                    <span className="text-[10px] text-blue-700 dark:text-blue-400 block font-semibold uppercase tracking-wider">Engine</span>
-                    <Layers size={12} className="text-blue-600 dark:text-blue-400" />
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 block font-semibold uppercase tracking-wider">Engine</span>
+                    <Layers size={12} className="text-slate-400" />
                   </div>
-                  <strong className="text-blue-900 dark:text-blue-300 text-xs block font-bold">Dynamic Basket</strong>
-                  <span className="text-[10px] text-blue-800/80 dark:text-blue-300/80">Adaptive Risk Guard</span>
+                  <strong className="text-slate-900 dark:text-white text-xs block font-bold">Dynamic Basket</strong>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400">Adaptive Risk Guard</span>
                 </div>
               </div>
 
               {/* Account Size & Lot Sizing Recommendation Bar */}
-              <div className="p-3 rounded-xl bg-slate-50/90 dark:bg-[#161619] border border-slate-200/90 dark:border-white/10 flex flex-wrap items-center justify-between gap-2.5 text-xs">
+              <div className="p-3 rounded-xl bg-slate-50/90 dark:bg-[#161619] border border-slate-200/80 dark:border-white/10 flex flex-wrap items-center justify-between gap-2.5 text-xs">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <div className="w-5 h-5 rounded-md bg-amber-500/10 text-amber-700 dark:text-amber-400 flex items-center justify-center shrink-0">
-                    <Shield size={12} />
-                  </div>
+                  <Shield size={13} className="text-slate-500 shrink-0" />
                   <span className="text-[10.5px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider">Account Safety:</span>
-                  <span className="font-bold text-amber-800 dark:text-amber-300 bg-amber-100/60 dark:bg-amber-500/10 px-2 py-0.5 rounded border border-amber-300/60 dark:border-amber-500/25">Min. $500 Balance</span>
+                  <span className="font-bold text-slate-900 dark:text-white bg-slate-200/70 dark:bg-white/10 px-2 py-0.5 rounded text-[11px]">Min. $500 Balance</span>
                   <span className="text-slate-300 dark:text-slate-600">·</span>
                   <span className="text-slate-600 dark:text-slate-300">Base Lot Size: <strong className="text-slate-900 dark:text-white font-mono">0.01</strong></span>
                   <span className="text-slate-300 dark:text-slate-600">·</span>
                   <span className="text-slate-500 dark:text-slate-400">Leverage: <strong className="text-slate-800 dark:text-slate-200 font-mono">1:100+</strong></span>
                 </div>
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/25">
-                  <CheckCircle2 size={12} className="text-emerald-600 dark:text-emerald-400" />
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200 dark:bg-white/10 dark:text-slate-300 dark:border-white/10">
+                  <CheckCircle2 size={12} className="text-emerald-500" />
                   <span>Auto Stop-Loss &amp; Risk Guard Active</span>
                 </div>
               </div>
 
               {/* 3-Day Profit Guarantee */}
-              <div className="p-3 sm:p-3.5 rounded-xl bg-gradient-to-r from-blue-50/90 via-indigo-50/40 to-slate-50/60 dark:from-blue-950/20 dark:via-indigo-950/10 dark:to-transparent border border-blue-200/90 dark:border-blue-500/25 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+              <div className="p-3 sm:p-3.5 rounded-xl bg-slate-50/90 dark:bg-white/[0.02] border border-slate-200/90 dark:border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-blue-600 text-white dark:bg-blue-500 dark:text-white flex items-center justify-center shrink-0 shadow-xs">
-                    <Shield size={16} />
+                  <div className="w-8 h-8 rounded-xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 flex items-center justify-center shrink-0 shadow-xs">
+                    <Shield size={15} />
                   </div>
                   <div>
                     <div className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
                       3-Day Net Profit Guarantee &amp; 100% Refund
                     </div>
-                    <div className="text-[11px] text-slate-600 dark:text-slate-300 mt-0.5">
+                    <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
                       Zero risk trial. If your account shows no profit after 3 days, instant refund.
                     </div>
                   </div>
@@ -1257,9 +1252,9 @@ MagicNumber=789104
                 <button
                   type="button"
                   onClick={() => setShowCalculator(true)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-blue-700 hover:text-blue-800 bg-white hover:bg-blue-50/80 border border-blue-200/90 dark:bg-blue-500/20 dark:text-blue-300 dark:border-blue-500/30 dark:hover:bg-blue-500/30 transition-all cursor-pointer shadow-2xs shrink-0 self-start sm:self-center"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-100 border border-slate-200 dark:bg-white/10 dark:text-slate-200 dark:border-white/10 dark:hover:bg-white/15 transition-all cursor-pointer shadow-2xs shrink-0 self-start sm:self-center"
                 >
-                  <Calculator size={12} />
+                  <Calculator size={12} className="text-slate-500" />
                   <span>Calculator →</span>
                 </button>
               </div>
@@ -1345,96 +1340,114 @@ MagicNumber=789104
                 </p>
               </div>
 
-              <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold shrink-0 ${
+              <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 ${
                 ibVerified
-                  ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25"
-                  : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/25"
+                  ? "bg-slate-100 text-slate-800 dark:bg-white/10 dark:text-slate-200 border border-slate-200 dark:border-white/10"
+                  : "bg-slate-100 text-slate-700 dark:bg-white/10 dark:text-slate-300 border border-slate-200 dark:border-white/10"
               }`}>
-                {ibVerified ? <CheckCircle2 size={13} /> : <Lock size={13} />}
+                {ibVerified ? <CheckCircle2 size={13} className="text-emerald-500" /> : <Lock size={12} className="text-slate-500" />}
                 <span>{ibVerified ? "Unlocked & Active" : "Key Locked"}</span>
               </span>
             </div>
 
             {!ibVerified ? (
               /* ── LOCKED STATE: WAITING FOR VERIFICATION ($500+ & IB LINK) ── */
-              <div className="p-5 sm:p-6 rounded-2xl bg-slate-50 dark:bg-[#121214] border border-slate-200/80 dark:border-white/10 space-y-4">
+              <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#161618] border border-slate-200/80 dark:border-white/10 space-y-4 sm:space-y-5 shadow-xs">
                 <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
-                    <Lock size={24} />
+                  <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-white/10 border border-slate-200/80 dark:border-white/10 text-slate-700 dark:text-slate-300 flex items-center justify-center shrink-0">
+                    <Lock size={22} className="text-slate-600 dark:text-slate-300" />
                   </div>
                   <div className="space-y-1 text-center sm:text-left">
-                    <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/15 text-amber-700 dark:text-amber-300">
+                    <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10.5px] font-semibold bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-300 border border-slate-200/70 dark:border-white/10">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
                       <span>Verification Required</span>
                     </div>
                     <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
                       FiAlgo V1 License Key is Locked
                     </h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-xl">
-                      To protect traders from improper risk calibration, personal activation keys are generated exclusively for accounts verified under Vantage Partner IB <strong>27863221</strong> with a <strong>minimum deposit of $500</strong>.
+                      To protect traders from improper risk calibration, personal activation keys are generated exclusively for accounts verified under Vantage Partner IB <strong className="text-slate-800 dark:text-slate-200">27863221</strong> with a <strong className="text-slate-800 dark:text-slate-200">minimum deposit of $500</strong>.
                     </p>
                   </div>
                 </div>
 
                 {/* Requirements Checklist Card */}
-                <div className="p-3.5 bg-white dark:bg-[#18181B] border border-slate-200/70 dark:border-white/5 rounded-xl space-y-2.5 text-xs">
+                <div className="p-3.5 bg-slate-50/70 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/10 rounded-xl space-y-2.5 text-xs">
                   <div className="font-bold text-slate-800 dark:text-slate-200 text-xs">
                     Activation Requirements Checklist:
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11.5px]">
-                    <div className="flex items-center gap-2 p-2 rounded-lg bg-slate-50 dark:bg-white/[0.03]">
-                      <span className="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-[10px] font-bold shrink-0">✓</span>
-                      <span className="text-slate-700 dark:text-slate-300">Partner Link: <strong>Vantage (27863221)</strong></span>
+                    <div className="flex items-center justify-between p-2.5 rounded-lg bg-white dark:bg-[#18181B] border border-slate-200/70 dark:border-white/5">
+                      <div className="flex items-center gap-2">
+                        <span className="w-4 h-4 rounded-full bg-slate-100 dark:bg-white/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-[10px] font-bold shrink-0">✓</span>
+                        <span className="text-slate-600 dark:text-slate-400">Partner Link:</span>
+                      </div>
+                      <span className="font-bold text-slate-900 dark:text-white">Vantage (27863221)</span>
                     </div>
 
-                    <div className="flex items-center gap-2 p-2 rounded-lg bg-slate-50 dark:bg-white/[0.03]">
-                      {mt5Account ? (
-                        <span className="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-[10px] font-bold shrink-0">✓</span>
-                      ) : (
-                        <span className="w-4 h-4 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center text-[10px] font-bold shrink-0">!</span>
-                      )}
-                      <span className="text-slate-700 dark:text-slate-300 truncate">
-                        MT5 Account: <strong>{mt5Account ? `#${mt5Account}` : "Step 1 Pending"}</strong>
+                    <div className="flex items-center justify-between p-2.5 rounded-lg bg-white dark:bg-[#18181B] border border-slate-200/70 dark:border-white/5">
+                      <div className="flex items-center gap-2">
+                        {mt5Account ? (
+                          <span className="w-4 h-4 rounded-full bg-slate-100 dark:bg-white/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-[10px] font-bold shrink-0">✓</span>
+                        ) : (
+                          <span className="w-4 h-4 rounded-full bg-slate-100 dark:bg-white/10 text-slate-500 flex items-center justify-center text-[10px] font-bold shrink-0">·</span>
+                        )}
+                        <span className="text-slate-600 dark:text-slate-400">MT5 Account:</span>
+                      </div>
+                      <span className="font-bold text-slate-900 dark:text-white font-mono">
+                        {mt5Account ? `#${mt5Account}` : "Step 1 Pending"}
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-2 p-2 rounded-lg bg-amber-50 dark:bg-amber-500/10 border border-amber-500/20">
-                      <span className="w-4 h-4 rounded-full bg-amber-500 text-white flex items-center justify-center text-[10px] font-bold shrink-0">$</span>
-                      <span className="text-amber-800 dark:text-amber-300">
-                        Min. Deposit: <strong>$500.00 USD Required</strong>
+                    <div className="flex items-center justify-between p-2.5 rounded-lg bg-white dark:bg-[#18181B] border border-slate-200/70 dark:border-white/5">
+                      <div className="flex items-center gap-2">
+                        <span className="w-4 h-4 rounded-full bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 flex items-center justify-center text-[10px] font-bold shrink-0">$</span>
+                        <span className="text-slate-600 dark:text-slate-400">Min. Balance:</span>
+                      </div>
+                      <span className="font-bold text-slate-900 dark:text-white font-mono">
+                        $500.00 USD Required
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-2 p-2 rounded-lg bg-slate-50 dark:bg-white/[0.03]">
-                      <span className="w-4 h-4 rounded-full bg-slate-200 dark:bg-white/10 text-slate-500 flex items-center justify-center text-[10px] font-bold shrink-0">⌛</span>
-                      <span className="text-slate-700 dark:text-slate-300">
-                        Desk Status: <strong>{transferRequestStatus === "pending" ? "Under Review (~1-2 hrs)" : "Awaiting Submission"}</strong>
+                    <div className="flex items-center justify-between p-2.5 rounded-lg bg-white dark:bg-[#18181B] border border-slate-200/70 dark:border-white/5">
+                      <div className="flex items-center gap-2">
+                        <span className="w-4 h-4 rounded-full bg-slate-100 dark:bg-white/10 text-slate-500 flex items-center justify-center text-[10px] font-bold shrink-0">
+                          {transferRequestStatus === "pending" ? "⌛" : "·"}
+                        </span>
+                        <span className="text-slate-600 dark:text-slate-400">Desk Status:</span>
+                      </div>
+                      <span className="font-bold text-slate-900 dark:text-white">
+                        {transferRequestStatus === "pending" ? "Under Review (~1-2 hrs)" : "Awaiting Submission"}
                       </span>
                     </div>
                   </div>
                 </div>
 
-                {/* Quick Support & Test Helper */}
-                <div className="p-3 bg-blue-50/60 dark:bg-blue-950/20 border border-blue-200/70 dark:border-blue-500/20 rounded-xl space-y-2">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-bold text-blue-900 dark:text-blue-300">
+                {/* Quick Support & Test Helper - Clean, No Rainbow */}
+                <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#18181B] border border-slate-200/80 dark:border-white/10 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-900 dark:text-white">
                       Need Fast-Track Verification?
                     </span>
-                    <span className="text-[11px] text-blue-600 dark:text-blue-400 font-medium">
-                      Active Desk Support
+                    <span className="inline-flex items-center gap-1.5 text-[10.5px] font-semibold text-slate-600 dark:text-slate-400 bg-white dark:bg-white/10 px-2 py-0.5 rounded-md border border-slate-200/70 dark:border-white/10">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                      <span>Desk Online</span>
                     </span>
                   </div>
-                  <p className="text-[11px] text-blue-800/80 dark:text-blue-300/70 leading-relaxed">
-                    Send your MT5 account number and deposit screenshot directly to our verification team on WhatsApp or Email for priority review.
+
+                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                    Send your MT5 account number and deposit screenshot directly to our verification desk on WhatsApp or Email for priority review.
                   </p>
-                  <div className="flex flex-wrap items-center gap-2 pt-0.5">
+
+                  <div className="grid grid-cols-2 gap-2 pt-0.5">
                     <a
                       href={`https://wa.me/?text=${encodeURIComponent(
                         `Hello TradiFive Team! Please verify my Vantage MT5 account #${mt5Account || "[Your MT5 Account]"} (Deposit: $500+) under Partner IB 27863221 to unlock my FiAlgo V1 license key.`
                       )}`}
                       target="_blank"
                       rel="noreferrer"
-                      className="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white inline-flex items-center gap-1.5 transition-colors shadow-xs"
+                      className="py-2.5 px-3 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 flex items-center justify-center gap-1.5 transition-all shadow-2xs"
                     >
                       <MessageCircle size={13} />
                       <span>WhatsApp Desk</span>
@@ -1446,12 +1459,16 @@ MagicNumber=789104
                       )}&body=${encodeURIComponent(
                         `Hello Support Team,\n\nPlease verify my Vantage MT5 account #${mt5Account || ""}.\nPartner IB: 27863221\nDeposit: $500+ completed.\n\nPlease unlock my FiAlgo V1 license key.\n\nThank you!`
                       )}`}
-                      className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white dark:bg-white/10 hover:bg-slate-100 text-slate-800 dark:text-white border border-slate-200 dark:border-white/10 inline-flex items-center gap-1.5 transition-colors"
+                      className="py-2.5 px-3 rounded-xl text-xs font-semibold bg-white dark:bg-white/10 hover:bg-slate-100 text-slate-800 dark:text-white border border-slate-200 dark:border-white/10 flex items-center justify-center gap-1.5 transition-all shadow-2xs"
                     >
                       <Mail size={13} />
                       <span>Email Support</span>
                     </a>
+                  </div>
 
+                  {/* Discrete testing helper */}
+                  <div className="pt-2 border-t border-slate-200/60 dark:border-white/5 flex items-center justify-between text-[11px] text-slate-500">
+                    <span>Testing activation?</span>
                     <button
                       type="button"
                       onClick={() => {
@@ -1461,10 +1478,10 @@ MagicNumber=789104
                           description: "Vantage MT5 account verified with $500 balance."
                         });
                       }}
-                      className="ml-auto px-3 py-1.5 rounded-lg text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 border border-emerald-500/20 transition-colors cursor-pointer"
+                      className="font-medium text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white underline cursor-pointer"
                       title="Click to simulate instant desk approval"
                     >
-                      <span>Instant Verify (Demo)</span>
+                      Instant Verify (Demo)
                     </button>
                   </div>
                 </div>
