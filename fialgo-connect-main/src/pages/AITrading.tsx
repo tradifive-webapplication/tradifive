@@ -1540,30 +1540,17 @@ MagicNumber=789104
                 </p>
               </div>
 
-              <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 ${
-                paymentStatus === "approved"
-                  ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-500/20"
-                  : paymentStatus === "pending"
-                    ? "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 border border-amber-500/20"
-                    : "bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 border border-blue-500/20"
-              }`}>
-                {paymentStatus === "approved" ? (
-                  <>
-                    <CheckCircle2 size={13} />
-                    <span>Payment Confirmed</span>
-                  </>
-                ) : paymentStatus === "pending" ? (
-                  <>
-                    <Clock size={13} className="animate-spin" />
-                    <span>Under Review (~2 Hrs)</span>
-                  </>
-                ) : (
-                  <>
-                    <CreditCard size={13} />
-                    <span>₹99,999 / Lifetime</span>
-                  </>
-                )}
-              </span>
+              {paymentStatus === "approved" ? (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-500/20">
+                  <CheckCircle2 size={13} />
+                  <span>Payment Confirmed</span>
+                </span>
+              ) : paymentStatus === "pending" ? (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 border border-amber-500/20">
+                  <Clock size={13} className="animate-spin" />
+                  <span>Under Review (~2 Hrs)</span>
+                </span>
+              ) : null}
             </div>
 
             {/* STATE 3A: ALREADY PAID & CONFIRMED */}
@@ -1739,8 +1726,13 @@ MagicNumber=789104
 
                   <div className="p-3 rounded-xl bg-white dark:bg-[#161618] border-2 border-blue-600 dark:border-blue-500 flex items-center justify-between gap-3 shadow-2xs">
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-10 h-10 rounded-xl bg-blue-600 text-white font-black text-sm flex items-center justify-center shrink-0">
-                        V1
+                      {/* 3D Product Box Image */}
+                      <div className="h-12 w-10 sm:h-14 sm:w-11 shrink-0 flex items-center justify-center">
+                        <img
+                          src="/fialgo-v1-box.png"
+                          alt="FiAlgo V1 Product"
+                          className="h-full w-auto object-contain drop-shadow-md"
+                        />
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-1.5">
@@ -1807,7 +1799,7 @@ MagicNumber=789104
                       {/* Real Scannable UPI QR Code Image */}
                       <div className="w-40 sm:w-44 rounded-2xl bg-white p-2.5 border border-slate-200 dark:border-white/10 shadow-sm flex flex-col items-center justify-center shrink-0">
                         <img 
-                          src="/upi-qr-code.png" 
+                          src="/upi-qr-code.png?v=2" 
                           alt="Scan with PhonePe, GPay, Paytm to pay 9731980756@axisbank" 
                           className="w-full h-auto object-contain rounded-xl"
                         />
