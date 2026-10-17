@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from "react";
 import { 
   Download, Copy, CheckCircle2, Lock, Mail, Play, Pause, Power, 
   ExternalLink, ArrowRight, ArrowLeft, X, Zap, Package, Shield, Check, 
