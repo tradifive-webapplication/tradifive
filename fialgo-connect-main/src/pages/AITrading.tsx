@@ -438,10 +438,10 @@ MagicNumber=789104
 
   return (
     <DashboardLayout>
-      <div className="max-w-3xl mx-auto w-full px-3.5 sm:px-6 pt-3 pb-32 sm:py-6 space-y-4 sm:space-y-5">
+      <div className="max-w-3xl mx-auto w-full px-0 sm:px-6 pt-3 pb-32 sm:py-6 space-y-4 sm:space-y-5">
 
         {/* ── HEADER (CLEAN & COMPACT ON ALL SCREENS) ── */}
-        <div className="flex items-center justify-between gap-3 pb-3 border-b border-slate-200/80 dark:border-white/10">
+        <div className="px-1 sm:px-0 flex items-center justify-between gap-3 pb-3 border-b border-slate-200/80 dark:border-white/10">
           <div>
             <h1 className="text-lg sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
               AI Trading Setup
@@ -463,7 +463,7 @@ MagicNumber=789104
         </div>
 
         {/* ── SLEEK PROGRESS BAR (MOBILE-OPTIMIZED) ── */}
-        <div className="space-y-2">
+        <div className="px-1 sm:px-0 space-y-2">
           {/* Progress Header Meta */}
           <div className="flex items-center justify-between text-xs px-0.5">
             <span className="font-semibold text-slate-700 dark:text-slate-300">
@@ -535,7 +535,7 @@ MagicNumber=789104
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            className="rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:bg-[#161618] dark:border-white/10 p-4 sm:p-6 space-y-4"
+            className="rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:bg-[#161618] dark:border-white/10 p-3 sm:p-6 space-y-4"
           >
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/5">
               <div>
@@ -558,7 +558,7 @@ MagicNumber=789104
             {/* STATE 1A: ALREADY VERIFIED */}
             {ibVerified ? (
               <div className="space-y-4">
-                <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="p-3 sm:p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
                       <CheckCircle2 size={22} />
@@ -596,7 +596,7 @@ MagicNumber=789104
             ) : transferRequestStatus === "pending" ? (
               /* STATE 1B: UNDER REVIEW - HUMAN-CRAFTED FINTECH DESIGN */
               <div className="space-y-4">
-                <div className="p-4 sm:p-5 rounded-2xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 space-y-4">
+                <div className="p-3 sm:p-5 rounded-2xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 space-y-4">
                   
                   {/* Status Header */}
                   <div className="flex items-start justify-between gap-3">
@@ -788,7 +788,7 @@ MagicNumber=789104
                 {setupPath === "new" && (
                   <div className="space-y-3">
                     {/* STEP 1: OPEN ACCOUNT */}
-                    <div className="p-3.5 sm:p-4 rounded-xl border border-blue-200/80 bg-blue-50/30 dark:bg-blue-950/20 dark:border-blue-500/20 space-y-3">
+                    <div className="p-3 sm:p-4 rounded-xl border border-blue-200/80 bg-blue-50/30 dark:bg-blue-950/20 dark:border-blue-500/20 space-y-3">
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2.5 min-w-0">
                           <span className="w-6 h-6 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0">1</span>
@@ -828,7 +828,7 @@ MagicNumber=789104
                     </div>
 
                     {/* STEP 2: FUND $500 */}
-                    <div className="p-3.5 rounded-xl border border-slate-200/80 bg-slate-50/60 dark:bg-white/[0.02] dark:border-white/10 flex items-start gap-3">
+                    <div className="p-3 sm:p-3.5 rounded-xl border border-slate-200/80 bg-slate-50/60 dark:bg-white/[0.02] dark:border-white/10 flex items-start gap-3">
                       <span className="w-6 h-6 rounded-full bg-slate-800 dark:bg-white/20 text-white font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">2</span>
                       <div className="text-xs space-y-1 flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-2">
@@ -846,7 +846,7 @@ MagicNumber=789104
                     </div>
 
                     {/* STEP 3: SUBMIT MT5 NUMBER */}
-                    <div className="p-3.5 sm:p-4 rounded-xl border border-slate-200/80 bg-white dark:bg-[#161618] dark:border-white/10 space-y-3.5">
+                    <div className="p-3 sm:p-4 rounded-xl border border-slate-200/80 bg-white dark:bg-[#161618] dark:border-white/10 space-y-3.5">
                       <div className="flex items-center gap-2.5">
                         <span className="w-6 h-6 rounded-full bg-slate-800 dark:bg-white/20 text-white font-bold text-xs flex items-center justify-center shrink-0">3</span>
                         <h4 className="text-xs font-bold text-slate-900 dark:text-white">
@@ -942,7 +942,7 @@ MagicNumber=789104
                 {setupPath === "transfer" && (
                   <div className="space-y-3">
                     {/* STEP 1: REQUEST TRANSFER */}
-                    <div className="p-4 rounded-xl border border-blue-200/80 bg-blue-50/30 dark:bg-blue-950/20 dark:border-blue-500/20 space-y-3">
+                    <div className="p-3 sm:p-4 rounded-xl border border-blue-200/80 bg-blue-50/30 dark:bg-blue-950/20 dark:border-blue-500/20 space-y-3">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2.5">
                           <span className="w-6 h-6 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0">1</span>
@@ -1003,7 +1003,7 @@ MagicNumber=789104
                     </div>
 
                     {/* STEP 2: FUND $500 */}
-                    <div className="p-3.5 rounded-xl border border-slate-200/80 bg-slate-50/60 dark:bg-white/[0.02] dark:border-white/10 flex items-start gap-3">
+                    <div className="p-3 sm:p-3.5 rounded-xl border border-slate-200/80 bg-slate-50/60 dark:bg-white/[0.02] dark:border-white/10 flex items-start gap-3">
                       <span className="w-6 h-6 rounded-full bg-slate-800 dark:bg-white/20 text-white font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">2</span>
                       <div className="text-xs space-y-1">
                         <div className="flex items-center gap-2">
@@ -1021,7 +1021,7 @@ MagicNumber=789104
                     </div>
 
                     {/* STEP 3: SUBMIT MT5 NUMBER & PROOF */}
-                    <div className="p-4 rounded-xl border border-slate-200/80 bg-white dark:bg-[#161618] dark:border-white/10 space-y-3.5">
+                    <div className="p-3 sm:p-4 rounded-xl border border-slate-200/80 bg-white dark:bg-[#161618] dark:border-white/10 space-y-3.5">
                       <div className="flex items-center gap-2.5">
                         <span className="w-6 h-6 rounded-full bg-slate-800 dark:bg-white/20 text-white font-bold text-xs flex items-center justify-center shrink-0">3</span>
                         <h4 className="text-xs font-bold text-slate-900 dark:text-white">
@@ -1124,7 +1124,7 @@ MagicNumber=789104
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            className="rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:bg-[#161618] dark:border-white/10 p-4 sm:p-6 space-y-4 sm:space-y-6"
+            className="rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:bg-[#161618] dark:border-white/10 p-3 sm:p-6 space-y-4 sm:space-y-6"
           >
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/5">
               <div>
@@ -1145,7 +1145,7 @@ MagicNumber=789104
             </div>
 
             {/* FiAlgo V1 Product Card - Systemic Institutional White Mode */}
-            <div className="relative overflow-hidden rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#121215] p-3.5 sm:p-6 space-y-3 sm:space-y-4 shadow-[0_4px_24px_-4px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.04)] dark:shadow-none transition-all">
+            <div className="relative overflow-hidden rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#121215] p-3 sm:p-6 space-y-3 sm:space-y-4 shadow-[0_4px_24px_-4px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.04)] dark:shadow-none transition-all">
               {/* Subtle top hairline */}
               <div className="absolute top-0 inset-x-0 h-0.5 bg-slate-900 dark:bg-white/20" />
 
@@ -1366,7 +1366,7 @@ MagicNumber=789104
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            className="rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:bg-[#161618] dark:border-white/10 p-4 sm:p-6 space-y-4 sm:space-y-6"
+            className="rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:bg-[#161618] dark:border-white/10 p-3 sm:p-6 space-y-4 sm:space-y-6"
           >
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/5">
               <div>
