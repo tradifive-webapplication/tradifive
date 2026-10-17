@@ -438,7 +438,7 @@ MagicNumber=789104
 
   return (
     <DashboardLayout>
-      <div className="max-w-3xl mx-auto w-full px-3.5 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-5">
+      <div className="max-w-3xl mx-auto w-full px-3.5 sm:px-6 pt-3 pb-32 sm:py-6 space-y-4 sm:space-y-5">
 
         {/* ── HEADER (CLEAN & COMPACT ON ALL SCREENS) ── */}
         <div className="flex items-center justify-between gap-3 pb-3 border-b border-slate-200/80 dark:border-white/10">
@@ -788,15 +788,15 @@ MagicNumber=789104
                 {setupPath === "new" && (
                   <div className="space-y-3">
                     {/* STEP 1: OPEN ACCOUNT */}
-                    <div className="p-4 rounded-xl border border-blue-200/80 bg-blue-50/30 dark:bg-blue-950/20 dark:border-blue-500/20 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2.5">
+                    <div className="p-3.5 sm:p-4 rounded-xl border border-blue-200/80 bg-blue-50/30 dark:bg-blue-950/20 dark:border-blue-500/20 space-y-3">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2.5 min-w-0">
                           <span className="w-6 h-6 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0">1</span>
-                          <span className="text-xs font-bold text-slate-900 dark:text-white">
+                          <span className="text-xs font-bold text-slate-900 dark:text-white truncate">
                             Open Free MT5 Account on Vantage
                           </span>
                         </div>
-                        <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full border border-blue-500/20">
+                        <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full border border-blue-500/20 shrink-0 whitespace-nowrap">
                           Official Partner
                         </span>
                       </div>
@@ -810,19 +810,19 @@ MagicNumber=789104
                           href="https://vigco.co/la-com-inv/MCTDw2R6"
                           target="_blank"
                           rel="noreferrer"
-                          className="flex-1 py-2.5 px-4 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center gap-2 shadow-xs transition-colors"
+                          className="flex-1 py-2.5 px-3.5 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center gap-2 shadow-xs transition-colors"
                         >
                           <BrokerLogo id="vantage" size={16} />
-                          <span>Open Free MT5 Account on Vantage</span>
-                          <ExternalLink size={13} />
+                          <span className="truncate">Open Free MT5 Account on Vantage</span>
+                          <ExternalLink size={13} className="shrink-0" />
                         </a>
                         <button
                           type="button"
                           onClick={() => handleCopy("MCTDw2R6", "Referral Code MCTDw2R6 copied!")}
-                          className="py-2.5 px-3 rounded-xl text-xs font-semibold bg-white dark:bg-white/10 hover:bg-slate-100 dark:hover:bg-white/15 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-200 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                          className="py-2.5 px-3 rounded-xl text-xs font-semibold bg-white dark:bg-white/10 hover:bg-slate-100 dark:hover:bg-white/15 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-200 flex items-center justify-center gap-1.5 transition-colors cursor-pointer shrink-0"
                         >
-                          {copiedPartnerId ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
-                          <span>{copiedPartnerId ? "Copied" : "Copy Code"}</span>
+                          {copiedPartnerId ? <Check size={12} className="text-emerald-500 shrink-0" /> : <Copy size={12} className="shrink-0" />}
+                          <span className="whitespace-nowrap">{copiedPartnerId ? "Copied" : "Copy Code"}</span>
                         </button>
                       </div>
                     </div>
@@ -830,12 +830,12 @@ MagicNumber=789104
                     {/* STEP 2: FUND $500 */}
                     <div className="p-3.5 rounded-xl border border-slate-200/80 bg-slate-50/60 dark:bg-white/[0.02] dark:border-white/10 flex items-start gap-3">
                       <span className="w-6 h-6 rounded-full bg-slate-800 dark:bg-white/20 text-white font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">2</span>
-                      <div className="text-xs space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-slate-900 dark:text-white">
+                      <div className="text-xs space-y-1 flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2">
+                          <span className="font-bold text-slate-900 dark:text-white leading-tight">
                             Complete KYC &amp; Deposit Minimum $500 USD
                           </span>
-                          <span className="text-[10px] font-bold text-amber-700 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
+                          <span className="text-[10px] font-bold text-amber-700 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20 shrink-0 whitespace-nowrap">
                             Min. $500
                           </span>
                         </div>
@@ -846,7 +846,7 @@ MagicNumber=789104
                     </div>
 
                     {/* STEP 3: SUBMIT MT5 NUMBER */}
-                    <div className="p-4 rounded-xl border border-slate-200/80 bg-white dark:bg-[#161618] dark:border-white/10 space-y-3.5">
+                    <div className="p-3.5 sm:p-4 rounded-xl border border-slate-200/80 bg-white dark:bg-[#161618] dark:border-white/10 space-y-3.5">
                       <div className="flex items-center gap-2.5">
                         <span className="w-6 h-6 rounded-full bg-slate-800 dark:bg-white/20 text-white font-bold text-xs flex items-center justify-center shrink-0">3</span>
                         <h4 className="text-xs font-bold text-slate-900 dark:text-white">
@@ -883,25 +883,25 @@ MagicNumber=789104
                         </label>
 
                         {/* Compulsory Screenshot Proof */}
-                        <div className={`flex items-center justify-between p-2.5 rounded-xl border border-dashed transition-colors text-xs ${
+                        <div className={`flex items-center justify-between gap-2.5 p-3 rounded-xl border border-dashed transition-colors text-xs ${
                           proofFile
                             ? "border-emerald-500/50 bg-emerald-50/30 dark:bg-emerald-500/5"
                             : "border-slate-300 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.02]"
                         }`}>
-                          <div className="flex items-center gap-2">
-                            <UploadCloud size={14} className={proofFile ? "text-emerald-500" : "text-slate-400"} />
-                            <span className="text-slate-700 dark:text-slate-300 text-[11px] font-medium">
+                          <div className="flex items-center gap-2 min-w-0 flex-1">
+                            <UploadCloud size={15} className={`shrink-0 ${proofFile ? "text-emerald-500" : "text-slate-400"}`} />
+                            <span className="text-slate-700 dark:text-slate-300 text-xs font-medium truncate">
                               {proofFile ? (proofFileName || "Screenshot Attached") : "Attach deposit confirmation (Required)"}
                             </span>
                           </div>
-                          <div className="relative">
+                          <div className="relative shrink-0">
                             <input
                               type="file"
                               accept="image/*"
                               onChange={handlePhotoUpload}
-                              className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                              className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
                             />
-                            <span className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold border transition-all cursor-pointer ${
+                            <span className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer whitespace-nowrap inline-flex items-center justify-center shadow-xs ${
                               proofFile
                                 ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/20"
                                 : "bg-white dark:bg-white/10 border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-200 hover:bg-slate-50"
@@ -915,7 +915,7 @@ MagicNumber=789104
                           type="button"
                           onClick={handleSubmitProof}
                           disabled={isSubmittingProof || !proofFile || !mt5Account.trim() || !depositConfirmed}
-                          className={`w-full py-3 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                          className={`w-full py-3 px-4 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer text-center ${
                             proofFile && mt5Account.trim() && depositConfirmed
                               ? "bg-blue-600 hover:bg-blue-700 text-white shadow-xs"
                               : "bg-slate-100 dark:bg-white/5 text-slate-400 cursor-not-allowed border border-slate-200/60 dark:border-white/5"
@@ -1058,21 +1058,29 @@ MagicNumber=789104
                         </label>
 
                         {/* Screenshot Proof */}
-                        <div className="flex items-center justify-between p-2.5 rounded-xl border border-dashed border-slate-300 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.02] text-xs">
-                          <div className="flex items-center gap-2">
-                            <UploadCloud size={14} className="text-slate-400" />
-                            <span className="text-slate-500 dark:text-slate-400 text-[11px]">
+                        <div className={`flex items-center justify-between gap-2.5 p-3 rounded-xl border border-dashed transition-colors text-xs ${
+                          proofFile
+                            ? "border-emerald-500/50 bg-emerald-50/30 dark:bg-emerald-500/5"
+                            : "border-slate-300 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.02]"
+                        }`}>
+                          <div className="flex items-center gap-2 min-w-0 flex-1">
+                            <UploadCloud size={15} className={`shrink-0 ${proofFile ? "text-emerald-500" : "text-slate-400"}`} />
+                            <span className="text-slate-700 dark:text-slate-300 text-xs font-medium truncate">
                               {proofFile ? (proofFileName || "Screenshot Attached") : "Screenshot proof of transfer request (Required)"}
                             </span>
                           </div>
-                          <div className="relative">
+                          <div className="relative shrink-0">
                             <input
                               type="file"
                               accept="image/*"
                               onChange={handlePhotoUpload}
-                              className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                              className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
                             />
-                            <span className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-white dark:bg-white/10 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-200 cursor-pointer">
+                            <span className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer whitespace-nowrap inline-flex items-center justify-center shadow-xs ${
+                              proofFile
+                                ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/20"
+                                : "bg-white dark:bg-white/10 border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-200 hover:bg-slate-50"
+                            }`}>
                               {proofFile ? "Change" : "Browse Proof"}
                             </span>
                           </div>
@@ -1082,7 +1090,7 @@ MagicNumber=789104
                           type="button"
                           onClick={handleSubmitProof}
                           disabled={isSubmittingProof || !proofFile || !mt5Account.trim() || !depositConfirmed}
-                          className={`w-full py-3 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                          className={`w-full py-3 px-4 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer text-center ${
                             proofFile && mt5Account.trim() && depositConfirmed
                               ? "bg-blue-600 hover:bg-blue-700 text-white shadow-xs"
                               : "bg-slate-100 dark:bg-white/5 text-slate-400 cursor-not-allowed border border-slate-200/60 dark:border-white/5"
