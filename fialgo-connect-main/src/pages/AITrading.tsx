@@ -590,97 +590,142 @@ MagicNumber=789104
                 </div>
               </div>
             ) : transferRequestStatus === "pending" ? (
-              /* STATE 1B: UNDER REVIEW */
+              /* STATE 1B: UNDER REVIEW - HUMAN-CRAFTED FINTECH DESIGN */
               <div className="space-y-4">
-                <div className="p-4 rounded-xl bg-slate-50/90 dark:bg-[#1A1A1E] border border-slate-200/80 dark:border-white/10 space-y-3">
+                <div className="p-4 sm:p-5 rounded-2xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 space-y-4">
+                  
+                  {/* Status Header */}
                   <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-700 dark:text-amber-400 flex items-center justify-center shrink-0 mt-0.5 border border-amber-500/20">
                         <Clock size={18} />
                       </div>
                       <div>
-                        <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                          Account {displayAccountLabel} Under Review
-                        </h3>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">
+                            Account {displayAccountLabel} Under Review
+                          </h3>
+                        </div>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">
                           Confirming partner link under IB 27863221 &amp; verifying min. $500 balance with {currentBroker.name}.
                         </p>
                       </div>
                     </div>
 
-                    <span className="text-[11px] font-semibold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-200 dark:border-amber-500/20 shrink-0">
-                      ~1–2 hours
+                    <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-200/80 dark:border-amber-500/25 shrink-0">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                      <span>~1–2 hours</span>
                     </span>
                   </div>
 
-                  <div className="p-2.5 bg-white dark:bg-[#121214] border border-slate-200/70 dark:border-white/5 rounded-xl flex flex-wrap items-center justify-between gap-2 text-xs">
-                    <div className="flex items-center gap-2">
-                      <BrokerLogo id={selectedBroker} size={18} />
-                      <span className="text-slate-400">Broker:</span>
-                      <strong className="text-slate-800 dark:text-slate-200">{currentBroker.name}</strong>
-                      <span className="text-slate-300 dark:text-slate-600">·</span>
-                      <span className="text-slate-400">IB:</span>
-                      <strong className="font-mono text-slate-800 dark:text-slate-200">{currentBroker.ibNumber || "27863221"}</strong>
-                      <span className="text-slate-300 dark:text-slate-600">·</span>
-                      <span className="text-amber-600 dark:text-amber-400 font-semibold">$500 Min. Balance</span>
+                  {/* 3-Cell Parameter Row (Clean on Mobile, No awkward line wrapping) */}
+                  <div className="grid grid-cols-3 gap-2 p-2.5 sm:p-3 rounded-xl bg-white dark:bg-[#121214] border border-slate-200/70 dark:border-white/5 text-xs">
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 block tracking-wider">Broker</span>
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <BrokerLogo id={selectedBroker} size={14} />
+                        <strong className="text-xs text-slate-800 dark:text-slate-200 truncate">{currentBroker.name}</strong>
+                      </div>
                     </div>
 
-                    {proofFile && (
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 block tracking-wider">Partner IB</span>
+                      <strong className="font-mono text-xs text-slate-800 dark:text-slate-200 mt-1 block">
+                        {currentBroker.ibNumber || "27863221"}
+                      </strong>
+                    </div>
+
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 block tracking-wider">Required Min.</span>
+                      <strong className="text-xs text-slate-800 dark:text-slate-200 mt-1 block">
+                        $500 USD
+                      </strong>
+                    </div>
+                  </div>
+
+                  {/* Attached Proof thumbnail if available */}
+                  {proofFile && (
+                    <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-white dark:bg-[#121214] border border-slate-200/70 dark:border-white/5 text-xs">
+                      <div className="flex items-center gap-2 truncate">
+                        <ImageIcon size={13} className="text-slate-400 shrink-0" />
+                        <span className="text-slate-600 dark:text-slate-300 truncate text-[11.5px]">
+                          {proofFileName || "Deposit verification screenshot"}
+                        </span>
+                      </div>
                       <button
                         type="button"
                         onClick={() => setShowProofPreviewModal(true)}
-                        className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+                        className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline shrink-0 cursor-pointer ml-2"
                       >
-                        <ImageIcon size={12} />
-                        <span>View Proof</span>
+                        View Screenshot
                       </button>
-                    )}
-                  </div>
-
-                  {/* Fast track verification strip */}
-                  <div className="p-3 bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200/60 dark:border-blue-500/20 rounded-xl space-y-2 text-xs">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-slate-800 dark:text-slate-200">
-                        Need Instant Verification?
-                      </span>
-                      <span className="text-[10px] text-blue-600 dark:text-blue-400 font-semibold">Priority Desk</span>
                     </div>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                      Ping our desk on WhatsApp or Email with your MT5 ID and screenshot to get approved in minutes:
+                  )}
+
+                  {/* Fast-Track Support Desk - Human Symmetrical Pair */}
+                  <div className="p-3 sm:p-3.5 rounded-xl bg-white dark:bg-[#121214] border border-slate-200/70 dark:border-white/5 space-y-2.5 text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-slate-900 dark:text-white text-xs">
+                        Need instant verification?
+                      </span>
+                      <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-white/10 px-2 py-0.5 rounded-full">
+                        24/7 Priority
+                      </span>
+                    </div>
+                    <p className="text-[11.5px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                      Ping our desk on WhatsApp or Email with your MT5 ID to get approved within minutes:
                     </p>
-                    <div className="flex flex-wrap items-center gap-2 pt-0.5">
+                    <div className="grid grid-cols-2 gap-2 pt-0.5">
                       <a
                         href={`https://wa.me/?text=${encodeURIComponent(
                           `Hello TradiFive Team! Please verify my Vantage MT5 account #${mt5Account} ($500+ deposit funded) under Partner IB 27863221 so I can activate FiAlgo V1.`
                         )}`}
                         target="_blank"
                         rel="noreferrer"
-                        className="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white inline-flex items-center gap-1.5 shadow-xs transition-colors"
+                        className="py-2.5 px-3 rounded-xl text-xs font-bold bg-emerald-50 hover:bg-emerald-100/80 text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/20 border border-emerald-200/80 flex items-center justify-center gap-1.5 transition-all shadow-2xs"
                       >
-                        <MessageCircle size={13} />
+                        <MessageCircle size={14} className="text-emerald-600 dark:text-emerald-400" />
                         <span>WhatsApp Desk</span>
                       </a>
                       <a
                         href={`mailto:support@tradifive.in?subject=Verify MT5 Account ${mt5Account}&body=Hello Support Team,%0D%0A%0D%0APlease verify my MT5 account %23${mt5Account} with minimum $500 balance under Partner IB 27863221.%0D%0A%0D%0AThank you!`}
-                        className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white dark:bg-white/10 hover:bg-slate-100 text-slate-800 dark:text-white border border-slate-200 dark:border-white/10 inline-flex items-center gap-1.5 transition-colors"
+                        className="py-2.5 px-3 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-800 dark:bg-white/10 dark:hover:bg-white/15 dark:text-white border border-slate-200/90 dark:border-white/10 flex items-center justify-center gap-1.5 transition-all shadow-2xs"
                       >
-                        <Mail size={13} />
+                        <Mail size={14} className="text-slate-600 dark:text-slate-300" />
                         <span>Email Desk</span>
                       </a>
                     </div>
                   </div>
 
-                  <p className="text-[11.5px] text-slate-500 dark:text-slate-400">
-                    You can already proceed to download FiAlgo V1 while our desk confirms your connection and $500 balance.
-                  </p>
+                  {/* Informative Next Step Banner & Primary CTA */}
+                  <div className="p-3.5 sm:p-4 rounded-xl bg-blue-50/60 dark:bg-blue-950/20 border border-blue-200/70 dark:border-blue-500/20 space-y-3">
+                    <div className="flex items-start gap-2.5">
+                      <div className="w-6 h-6 rounded-lg bg-blue-600/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 mt-0.5">
+                        <Download size={13} />
+                      </div>
+                      <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
+                        You can download the <strong>FiAlgo V1</strong> MT5 EA and presets right now while our desk confirms your connection.
+                      </p>
+                    </div>
 
-                  <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-200/60 dark:border-white/5">
+                    <button
+                      type="button"
+                      onClick={() => setActiveStep(2)}
+                      className="w-full py-3 px-4 rounded-xl text-xs sm:text-sm font-bold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:hover:bg-slate-100 dark:text-slate-900 flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer active:scale-[0.99]"
+                    >
+                      <span>Continue to Step 2: Download FiAlgo V1</span>
+                      <ArrowRight size={14} />
+                    </button>
+                  </div>
+
+                  {/* Secondary Footers: Change Account & Discreet Dev Helper */}
+                  <div className="flex items-center justify-between gap-3 pt-1 border-t border-slate-200/60 dark:border-white/5 text-xs">
                     <button
                       type="button"
                       onClick={handleResetVerification}
-                      className="text-xs font-semibold text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
+                      className="text-xs font-medium text-slate-500 hover:text-rose-600 dark:text-slate-400 dark:hover:text-rose-400 transition-colors cursor-pointer"
                     >
-                      Change Account
+                      ← Change MT5 Account
                     </button>
 
                     <button
@@ -692,24 +737,12 @@ MagicNumber=789104
                           description: "Vantage MT5 account verified with $500 minimum balance."
                         });
                       }}
-                      className="px-2.5 py-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded border border-emerald-500/20 cursor-pointer"
-                      title="Test helper to simulate instant approval"
+                      className="text-[11px] font-medium text-slate-400 hover:text-slate-700 dark:text-slate-500 dark:hover:text-slate-300 underline cursor-pointer"
+                      title="Simulate instant broker approval for testing"
                     >
-                      Instant Verify (Demo)
+                      Simulate approval (Demo)
                     </button>
                   </div>
-                </div>
-
-                {/* Continue to Step 2 Button */}
-                <div className="pt-1 flex justify-end">
-                  <button
-                    type="button"
-                    onClick={() => setActiveStep(2)}
-                    className="w-full sm:w-auto px-5 py-2.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:hover:bg-slate-200 dark:text-slate-900 inline-flex items-center justify-center gap-2 cursor-pointer shadow-xs"
-                  >
-                    <span>Continue to Step 2: Download FiAlgo V1</span>
-                    <ArrowRight size={14} />
-                  </button>
                 </div>
               </div>
             ) : (
@@ -762,11 +795,11 @@ MagicNumber=789104
                         </span>
                       </div>
 
-                      <p className="text-xs text-slate-500 dark:text-slate-400 pl-8.5 leading-relaxed">
+                      <p className="text-xs text-slate-500 dark:text-slate-400 pl-0 sm:pl-8.5 leading-relaxed">
                         Register using our official link below. Our Partner IB (Rebate code: <strong className="font-mono text-slate-900 dark:text-white font-bold">MCTDw2R6</strong>) will be applied automatically.
                       </p>
 
-                      <div className="pl-8.5 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-0.5">
+                      <div className="pl-0 sm:pl-8.5 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-0.5">
                         <a
                           href="https://vigco.co/la-com-inv/MCTDw2R6"
                           target="_blank"
@@ -815,7 +848,7 @@ MagicNumber=789104
                         </h4>
                       </div>
 
-                      <div className="pl-8.5 space-y-3">
+                      <div className="pl-0 sm:pl-8.5 space-y-3">
                         <div className="space-y-1">
                           <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
                             MT5 Account Number
@@ -908,7 +941,7 @@ MagicNumber=789104
                         </span>
                       </div>
 
-                      <div className="pl-8.5 space-y-2.5">
+                      <div className="pl-0 sm:pl-8.5 space-y-2.5">
                         <div className="space-y-1">
                           <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
                             Your Current Broker
@@ -982,7 +1015,7 @@ MagicNumber=789104
                         </h4>
                       </div>
 
-                      <div className="pl-8.5 space-y-3">
+                      <div className="pl-0 sm:pl-8.5 space-y-3">
                         <div className="space-y-1">
                           <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
                             MT5 Account Number
