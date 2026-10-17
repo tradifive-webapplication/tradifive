@@ -139,257 +139,10 @@ export interface AutoTradeRecord {
   updated_at?: string;
 }
 
-const SEED_RECORDS: AutoTradeRecord[] = [
-  {
-    id: "rec-at-001",
-    user_id: "usr-9401",
-    user_name: "Mannthan Harake",
-    user_email: "mannthanharake@gmail.com",
-    user_phone: "+91 98450 12345",
-    created_at: "2026-07-16T10:56:17Z",
-    mt5_account_number: "4820194",
-    broker_name: "Exness",
-    broker_server: "Exness-Real19",
-    balance: 5420.50,
-    equity: 5612.80,
-    currency: "USD",
-    leverage: 500,
-    is_connected: true,
-    algo_execution_active: true,
-    is_under_tradifive: true,
-    ib_status: "verified",
-    ib_code: "TRDF940182",
-    transfer_path: "new_account",
-    last_ib_check_at: "2026-10-13T11:40:00Z",
-    has_purchased: true,
-    algo_id: "fialgo_v1",
-    algo_name: "FiAlgo V1 (Gold Scalper & Trend)",
-    algo_manifest: "FiAlgo_v1.0.4.ex5",
-    algo_pair: "XAUUSD · M15",
-    purchase_tier: "Lifetime License",
-    price_paid: 39,
-    payment_status: "paid",
-    purchase_date: "2026-07-18T14:22:00Z",
-    binary_downloaded: true,
-    backtest_downloaded: true,
-    license_key: "FIALGO-9401-8271-XAU1",
-    license_status: "active",
-    license_expiry: "Lifetime",
-    allowed_accounts: 1,
-    bound_account: "4820194",
-    admin_notes: "Account verified in Exness IB portal under Tradifive Partner ID TRDF940182."
-  },
-  {
-    id: "rec-at-002",
-    user_id: "usr-8192",
-    user_name: "Vikram Malhotra",
-    user_email: "vikram.trader@gmail.com",
-    user_phone: "+91 91234 56789",
-    created_at: "2026-08-04T09:12:00Z",
-    mt5_account_number: "2094182",
-    broker_name: "Vantage",
-    broker_server: "VantageFX-Live 2",
-    balance: 10250.00,
-    equity: 10180.20,
-    currency: "USD",
-    leverage: 400,
-    is_connected: true,
-    algo_execution_active: true,
-    is_under_tradifive: true,
-    ib_status: "verified",
-    ib_code: "TRDF940182",
-    transfer_path: "transfer_ib",
-    last_ib_check_at: "2026-10-12T16:15:00Z",
-    has_purchased: true,
-    algo_id: "fialgo_trend",
-    algo_name: "FiAlgo Trend Alpha",
-    algo_manifest: "FiAlgo_Trend_Alpha.ex5",
-    algo_pair: "EURUSD, GBPUSD · H1",
-    purchase_tier: "Lifetime License",
-    price_paid: 39,
-    payment_status: "paid",
-    purchase_date: "2026-08-05T11:00:00Z",
-    binary_downloaded: true,
-    backtest_downloaded: true,
-    license_key: "FIALGO-8192-3304-TRND",
-    license_status: "active",
-    license_expiry: "Lifetime",
-    allowed_accounts: 1,
-    bound_account: "2094182",
-    admin_notes: "Transferred from previous IB successfully."
-  },
-  {
-    id: "rec-at-003",
-    user_id: "usr-5541",
-    user_name: "Rahul Deshmukh",
-    user_email: "rahul.deshmukh@yahoo.com",
-    user_phone: "+91 98221 44091",
-    created_at: "2026-09-12T15:30:00Z",
-    mt5_account_number: "7741029",
-    broker_name: "XM Global",
-    broker_server: "XMGlobal-Real 48",
-    balance: 1200.00,
-    equity: 1200.00,
-    currency: "USD",
-    leverage: 500,
-    is_connected: false,
-    algo_execution_active: false,
-    is_under_tradifive: false,
-    ib_status: "outside_ib",
-    ib_code: "UNLINKED",
-    transfer_path: "transfer_ib",
-    last_ib_check_at: "2026-10-13T08:20:00Z",
-    has_purchased: false,
-    algo_id: "none",
-    algo_name: "Pending Setup",
-    algo_manifest: "N/A",
-    algo_pair: "N/A",
-    purchase_tier: "None",
-    price_paid: 0,
-    payment_status: "pending",
-    purchase_date: "—",
-    binary_downloaded: false,
-    backtest_downloaded: false,
-    license_key: "UNISSUED-NO-PURCHASE",
-    license_status: "unissued",
-    license_expiry: "N/A",
-    allowed_accounts: 0,
-    bound_account: "None",
-    admin_notes: "User checked MT5 account but has NOT transferred to Tradifive IB yet."
-  },
-  {
-    id: "rec-at-004",
-    user_id: "usr-3091",
-    user_name: "Ananya Sharma",
-    user_email: "ananya.sharma99@outlook.com",
-    user_phone: "+91 97110 99881",
-    created_at: "2026-09-28T18:45:00Z",
-    mt5_account_number: "6610924",
-    broker_name: "RoboForex",
-    broker_server: "RoboForex-Pro",
-    balance: 2850.00,
-    equity: 2894.10,
-    currency: "USD",
-    leverage: 300,
-    is_connected: true,
-    algo_execution_active: false,
-    is_under_tradifive: true,
-    ib_status: "verified",
-    ib_code: "TRDF940182",
-    transfer_path: "new_account",
-    last_ib_check_at: "2026-10-13T10:05:00Z",
-    has_purchased: true,
-    algo_id: "fialgo_scalper",
-    algo_name: "FiAlgo Scalper Pro",
-    algo_manifest: "FiAlgo_Scalper_Pro.ex5",
-    algo_pair: "US30, NAS100 · M5",
-    purchase_tier: "3-Day Free Trial",
-    price_paid: 0,
-    payment_status: "free_trial",
-    purchase_date: "2026-10-11T12:00:00Z",
-    binary_downloaded: true,
-    backtest_downloaded: false,
-    license_key: "FIALGO-3091-TRIAL-M5",
-    license_status: "expiring",
-    license_expiry: "2026-10-14T12:00:00Z (1 Day Left)",
-    allowed_accounts: 1,
-    bound_account: "6610924",
-    admin_notes: "Running 3-day risk-free trial."
-  }
-];
-
-const SEED_IB_PROOFS: IbTransferProofRequest[] = [
-  {
-    id: "req-seed-001",
-    user_id: "usr-6102",
-    user_name: "Devendra Patel",
-    user_email: "dpatel.fx@gmail.com",
-    user_phone: "+91 99099 22114",
-    mt5_account_number: "9910481",
-    broker_name: "HFM",
-    proof_image_url: "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=1200&q=80",
-    proof_filename: "hfm_ib_transfer_email_proof.png",
-    remarks: "Sent account migration request to HFM partner desk to link under partner ID TRDF940182.",
-    status: "pending",
-    submitted_at: "2026-10-13T09:30:00Z"
-  },
-  {
-    id: "req-seed-002",
-    user_id: "usr-5541",
-    user_name: "Rahul Deshmukh",
-    user_email: "rahul.deshmukh@yahoo.com",
-    user_phone: "+91 98221 44091",
-    mt5_account_number: "7741029",
-    broker_name: "XM Global",
-    proof_image_url: "https://images.unsplash.com/photo-1642543492481-44e81e3914a7?auto=format&fit=crop&w=1200&q=80",
-    proof_filename: "xm_partner_change_confirmation.jpg",
-    remarks: "XM live chat agent confirmed partner code TRDF940182 is assigned to my account 7741029.",
-    status: "pending",
-    submitted_at: "2026-10-13T10:15:00Z"
-  },
-  {
-    id: "req-seed-003",
-    user_id: "usr-9401",
-    user_name: "Mannthan Harake",
-    user_email: "mannthanharake@gmail.com",
-    user_phone: "+91 98450 12345",
-    mt5_account_number: "4820194",
-    broker_name: "Exness",
-    proof_image_url: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?auto=format&fit=crop&w=1200&q=80",
-    proof_filename: "exness_partner_change_approved.png",
-    remarks: "Exness account created under partner link TRDF940182.",
-    status: "approved",
-    submitted_at: "2026-10-12T16:20:00Z",
-    reviewed_at: "2026-10-12T16:45:00Z",
-    reviewer_name: "Tradifive Compliance Admin",
-    reviewer_notes: "Verified in Exness Partner Cabinet. Account is under TRDF940182."
-  }
-];
-
-const SEED_LICENSE_PAYMENTS: LicensePaymentRequest[] = [
-  {
-    id: "pay-seed-101",
-    user_id: "usr-9401",
-    user_name: "Mannthan Harake",
-    user_email: "mannthanharake@gmail.com",
-    user_phone: "+91 98450 12345",
-    mt5_account_number: "4820194",
-    algo_id: "fialgo_v1",
-    algo_name: "FiAlgo V1 Lifetime License",
-    amount: "99999",
-    currency: "INR",
-    method: "upi",
-    upi_id: "9731980756@axisbank",
-    utr_number: "428910482910",
-    proof_file: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?auto=format&fit=crop&w=1200&q=80",
-    proof_filename: "phonepe_upi_payment_99999.png",
-    status: "approved",
-    submitted_at: "2026-10-16T14:20:00Z",
-    reviewed_at: "2026-10-16T14:45:00Z",
-    reviewer_name: "TradiFive Admin Desk",
-    license_key: "FIALGO-V1-9401-8271-GOLD"
-  },
-  {
-    id: "pay-seed-102",
-    user_id: "usr-8812",
-    user_name: "Vikram Malhotra",
-    user_email: "v.malhotra.invest@gmail.com",
-    user_phone: "+91 98112 33499",
-    mt5_account_number: "8820194",
-    algo_id: "fialgo_v1",
-    algo_name: "FiAlgo V1 Lifetime License",
-    amount: "99999",
-    currency: "INR",
-    method: "bank",
-    bank_name: "Axis Bank",
-    account_number: "924010072811588",
-    utr_number: "AXIS262890192841",
-    proof_file: "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=1200&q=80",
-    proof_filename: "axis_bank_imps_receipt.pdf.png",
-    status: "pending",
-    submitted_at: "2026-10-17T11:15:00Z"
-  }
-];
+// Real Live Testing Mode: Demo seed records removed
+const SEED_RECORDS: AutoTradeRecord[] = [];
+const SEED_IB_PROOFS: IbTransferProofRequest[] = [];
+const SEED_LICENSE_PAYMENTS: LicensePaymentRequest[] = [];
 
 export default function AdminAutoTrade() {
   const [records, setRecords] = useState<AutoTradeRecord[]>([]);
@@ -456,15 +209,8 @@ export default function AdminAutoTrade() {
         }
       } catch (e) {}
 
-      if (proofs.length === 0) {
-        proofs = [...SEED_IB_PROOFS];
-      } else {
-        SEED_IB_PROOFS.forEach(seed => {
-          if (!proofs.some(p => p.id === seed.id || p.mt5_account_number === seed.mt5_account_number)) {
-            proofs.push(seed);
-          }
-        });
-      }
+      // Real live proofs only - filter out any leftover demo seeds
+      proofs = proofs.filter(p => !p.id.startsWith("req-seed-"));
       setProofRequests(proofs);
 
       // 1.8 Fetch License Payment Requests (₹99,999 UPI / Bank)
@@ -492,15 +238,8 @@ export default function AdminAutoTrade() {
         }
       } catch (e) {}
 
-      if (payments.length === 0) {
-        payments = [...SEED_LICENSE_PAYMENTS];
-      } else {
-        SEED_LICENSE_PAYMENTS.forEach(seed => {
-          if (!payments.some(p => p.id === seed.id || p.utr_number === seed.utr_number)) {
-            payments.push(seed);
-          }
-        });
-      }
+      // Real live payments only - filter out any leftover demo seeds
+      payments = payments.filter(p => !p.id.startsWith("pay-seed-"));
       setLicensePayments(payments);
 
       const { data: profiles } = await supabase
@@ -569,18 +308,12 @@ export default function AdminAutoTrade() {
         }
       });
 
-      const combined = [...liveRecords];
-      SEED_RECORDS.forEach(seed => {
-        if (!combined.some(c => c.user_email === seed.user_email)) {
-          const override = savedOverrides[seed.id];
-          combined.push(override ? { ...seed, ...override } : seed);
-        }
-      });
-
+      // Real live records only - filter out any legacy demo seeds
+      const combined = liveRecords.filter(r => !r.id.startsWith("rec-at-00"));
       setRecords(combined);
     } catch (err: any) {
       console.error("Error loading auto trade records:", err);
-      setRecords(SEED_RECORDS);
+      setRecords([]);
     } finally {
       setLoading(false);
     }
