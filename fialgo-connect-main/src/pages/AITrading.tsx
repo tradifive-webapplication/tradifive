@@ -1125,49 +1125,49 @@ MagicNumber=789104
             </div>
 
             {/* FiAlgo V1 Product Card - Systemic Institutional White Mode */}
-            <div className="relative overflow-hidden rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#121215] p-4 sm:p-6 space-y-4 shadow-[0_4px_24px_-4px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.04)] dark:shadow-none transition-all">
+            <div className="relative overflow-hidden rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#121215] p-3.5 sm:p-6 space-y-3 sm:space-y-4 shadow-[0_4px_24px_-4px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.04)] dark:shadow-none transition-all">
               {/* Subtle top hairline */}
               <div className="absolute top-0 inset-x-0 h-0.5 bg-slate-900 dark:bg-white/20" />
 
-              {/* Header: Institutional Telemetry & 3D Packaging */}
-              <div className="flex flex-col sm:flex-row items-center sm:items-start justify-between gap-4 pt-1">
-                <div className="space-y-2.5 text-center sm:text-left max-w-lg">
-                  {/* Status & Badge Row - Disciplined, No Rainbow */}
-                  <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-white/10 border border-slate-200/80 dark:border-white/10">
-                      <Shield size={11} className="text-slate-600 dark:text-slate-400" />
-                      <span>Gold Specialist · MT5 Native EA</span>
+              {/* Header: Compact Side-by-Side Telemetry & 3D Packaging on Mobile */}
+              <div className="flex items-start justify-between gap-3 pt-1">
+                <div className="space-y-1.5 text-left flex-1 min-w-0">
+                  {/* Status & Badge Row */}
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-white/10 border border-slate-200/80 dark:border-white/10">
+                      <Shield size={10} className="text-slate-600 dark:text-slate-400" />
+                      <span>Gold Specialist · MT5 EA</span>
                     </span>
 
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-semibold text-slate-700 dark:text-slate-300 bg-slate-100/70 dark:bg-white/5 border border-slate-200/60 dark:border-white/10">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold text-slate-700 dark:text-slate-300 bg-slate-100/70 dark:bg-white/5 border border-slate-200/60 dark:border-white/10">
                       <span className="relative flex h-1.5 w-1.5">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
                       </span>
-                      <span>Verified Build v1.0.4</span>
+                      <span>Verified v1.0.4</span>
                     </span>
                   </div>
 
                   {/* Title */}
-                  <h3 className="text-lg sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-                    FiAlgo V1 <span className="text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400 font-sans">(MetaTrader 5 Build)</span>
+                  <h3 className="text-base sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                    FiAlgo V1 <span className="text-[11px] sm:text-sm font-semibold text-slate-500 dark:text-slate-400 font-sans">(MetaTrader 5 Build)</span>
                   </h3>
 
                   {/* Algorithmic Purpose */}
-                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                  <p className="text-[11.5px] sm:text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
                     Tick-by-tick breakout algorithm engineered strictly for Gold (XAUUSD) market structure with hard drawdown protection.
                   </p>
                 </div>
 
                 {/* 3D Product Box in clean showcase pedestal */}
-                <div className="shrink-0 flex items-center justify-center">
-                  <div className="relative group p-2.5 sm:p-3 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 shadow-2xs">
+                <div className="shrink-0 self-center sm:self-start">
+                  <div className="relative group p-2 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 shadow-2xs">
                     <img
                       src="/fialgo-v1-box.png"
                       alt="FiAlgo V1 3D Box"
-                      className="h-24 sm:h-32 w-auto object-contain relative z-10 drop-shadow-[0_10px_16px_rgba(0,0,0,0.12)] dark:drop-shadow-[0_16px_24px_rgba(0,0,0,0.4)] transition-transform duration-300 group-hover:scale-105 group-hover:-translate-y-1"
+                      className="h-20 sm:h-28 w-auto object-contain drop-shadow-[0_8px_14px_rgba(0,0,0,0.12)] dark:drop-shadow-[0_12px_20px_rgba(0,0,0,0.4)] transition-transform duration-300 group-hover:scale-105"
                     />
-                    <span className="absolute bottom-1 right-1.5 text-[8.5px] font-mono font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 bg-white/90 dark:bg-black/70 px-1 py-0.2 rounded border border-slate-200/70 dark:border-white/10 shadow-2xs">
+                    <span className="absolute bottom-1 right-1 text-[7.5px] font-mono font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 bg-white/90 dark:bg-black/80 px-1 rounded border border-slate-200/70 dark:border-white/10">
                       v1.0.4
                     </span>
                   </div>
@@ -1175,111 +1175,131 @@ MagicNumber=789104
               </div>
 
               {/* Specifications Grid - Unified Institutional Tiles */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-slate-100 dark:border-white/5 text-xs">
-                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 border-t border-slate-100 dark:border-white/5 text-xs">
+                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 flex flex-col justify-between min-h-[68px]">
                   <div className="flex items-center justify-between mb-0.5">
                     <span className="text-[10px] text-slate-500 dark:text-slate-400 block font-semibold uppercase tracking-wider">Asset Pair</span>
                     <Coins size={12} className="text-slate-400" />
                   </div>
-                  <strong className="text-slate-900 dark:text-white text-xs block font-bold">XAUUSD (Gold)</strong>
-                  <span className="text-[10px] text-slate-500 dark:text-slate-400">Spot / USD Structure</span>
+                  <div>
+                    <strong className="text-slate-900 dark:text-white text-xs block font-bold leading-tight">XAUUSD (Gold)</strong>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400">Spot / USD Structure</span>
+                  </div>
                 </div>
 
-                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10">
+                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 flex flex-col justify-between min-h-[68px]">
                   <div className="flex items-center justify-between mb-0.5">
                     <span className="text-[10px] text-slate-500 dark:text-slate-400 block font-semibold uppercase tracking-wider">Timeframe</span>
                     <Clock size={12} className="text-slate-400" />
                   </div>
-                  <strong className="text-slate-900 dark:text-white text-xs block font-bold">1-Min (M1)</strong>
-                  <span className="text-[10px] text-slate-500 dark:text-slate-400">Tick-Level Accuracy</span>
+                  <div>
+                    <strong className="text-slate-900 dark:text-white text-xs block font-bold leading-tight">1-Min (M1)</strong>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400">Tick-Level Accuracy</span>
+                  </div>
                 </div>
 
-                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10">
+                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 flex flex-col justify-between min-h-[68px]">
                   <div className="flex items-center justify-between mb-0.5">
                     <span className="text-[10px] text-slate-500 dark:text-slate-400 block font-semibold uppercase tracking-wider">Execution</span>
                     <Zap size={12} className="text-slate-400" />
                   </div>
-                  <strong className="text-slate-900 dark:text-white text-xs block font-bold flex items-center gap-1.5">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    &lt; 3ms Direct MT5
-                  </strong>
-                  <span className="text-[10px] text-slate-500 dark:text-slate-400">Zero Broker Relay</span>
+                  <div>
+                    <strong className="text-slate-900 dark:text-white text-xs block font-bold flex items-center gap-1.5 leading-tight">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                      &lt; 3ms Direct MT5
+                    </strong>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400">Zero Broker Relay</span>
+                  </div>
                 </div>
 
-                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10">
+                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 flex flex-col justify-between min-h-[68px]">
                   <div className="flex items-center justify-between mb-0.5">
                     <span className="text-[10px] text-slate-500 dark:text-slate-400 block font-semibold uppercase tracking-wider">Engine</span>
                     <Layers size={12} className="text-slate-400" />
                   </div>
-                  <strong className="text-slate-900 dark:text-white text-xs block font-bold">Dynamic Basket</strong>
-                  <span className="text-[10px] text-slate-500 dark:text-slate-400">Adaptive Risk Guard</span>
+                  <div>
+                    <strong className="text-slate-900 dark:text-white text-xs block font-bold leading-tight">Dynamic Basket</strong>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400">Adaptive Risk Guard</span>
+                  </div>
                 </div>
               </div>
 
-              {/* Account Size & Lot Sizing Recommendation Bar */}
-              <div className="p-3 rounded-xl bg-slate-50/90 dark:bg-[#161619] border border-slate-200/80 dark:border-white/10 flex flex-wrap items-center justify-between gap-2.5 text-xs">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <Shield size={13} className="text-slate-500 shrink-0" />
-                  <span className="text-[10.5px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider">Account Safety:</span>
-                  <span className="font-bold text-slate-900 dark:text-white bg-slate-200/70 dark:bg-white/10 px-2 py-0.5 rounded text-[11px]">Min. $500 Balance</span>
-                  <span className="text-slate-300 dark:text-slate-600">·</span>
-                  <span className="text-slate-600 dark:text-slate-300">Base Lot Size: <strong className="text-slate-900 dark:text-white font-mono">0.01</strong></span>
-                  <span className="text-slate-300 dark:text-slate-600">·</span>
-                  <span className="text-slate-500 dark:text-slate-400">Leverage: <strong className="text-slate-800 dark:text-slate-200 font-mono">1:100+</strong></span>
+              {/* Account Size & Lot Sizing Recommendation - Systemic 3-Column Quant Matrix */}
+              <div className="rounded-xl bg-slate-50/90 dark:bg-[#161619] border border-slate-200/80 dark:border-white/10 p-3 space-y-2.5 text-xs">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 font-bold text-slate-800 dark:text-slate-200">
+                    <Shield size={13} className="text-slate-500" />
+                    <span className="text-[11px] uppercase tracking-wider text-slate-600 dark:text-slate-400">Safety Specifications</span>
+                  </div>
+                  <span className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-200/60 dark:border-emerald-500/20">
+                    <CheckCircle2 size={11} className="text-emerald-500" />
+                    <span>Risk Guard Active</span>
+                  </span>
                 </div>
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200 dark:bg-white/10 dark:text-slate-300 dark:border-white/10">
-                  <CheckCircle2 size={12} className="text-emerald-500" />
-                  <span>Auto Stop-Loss &amp; Risk Guard Active</span>
+
+                <div className="grid grid-cols-3 gap-1.5 sm:gap-2 pt-1 border-t border-slate-200/60 dark:border-white/5 text-center">
+                  <div className="p-2 rounded-lg bg-white dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/5">
+                    <span className="block text-[10px] text-slate-400 uppercase font-semibold">Min. Deposit</span>
+                    <strong className="text-xs font-bold text-slate-900 dark:text-white font-mono">$500 USD</strong>
+                  </div>
+                  <div className="p-2 rounded-lg bg-white dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/5">
+                    <span className="block text-[10px] text-slate-400 uppercase font-semibold">Base Lot</span>
+                    <strong className="text-xs font-bold text-slate-900 dark:text-white font-mono">0.01</strong>
+                  </div>
+                  <div className="p-2 rounded-lg bg-white dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/5">
+                    <span className="block text-[10px] text-slate-400 uppercase font-semibold">Leverage</span>
+                    <strong className="text-xs font-bold text-slate-900 dark:text-white font-mono">1:100+</strong>
+                  </div>
                 </div>
               </div>
 
-              {/* 3-Day Profit Guarantee */}
-              <div className="p-3 sm:p-3.5 rounded-xl bg-slate-50/90 dark:bg-white/[0.02] border border-slate-200/90 dark:border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 flex items-center justify-center shrink-0 shadow-xs">
+              {/* 3-Day Profit Guarantee - Systemic Responsive Card */}
+              <div className="p-3 sm:p-3.5 rounded-xl bg-slate-50/90 dark:bg-white/[0.02] border border-slate-200/90 dark:border-white/10 space-y-2.5 sm:space-y-0 sm:flex sm:items-center sm:justify-between sm:gap-3">
+                <div className="flex items-start gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 flex items-center justify-center shrink-0 shadow-xs mt-0.5 sm:mt-0">
                     <Shield size={15} />
                   </div>
-                  <div>
-                    <div className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
+                  <div className="space-y-0.5">
+                    <div className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white leading-tight">
                       3-Day Net Profit Guarantee &amp; 100% Refund
                     </div>
-                    <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                      Zero risk trial. If your account shows no profit after 3 days, instant refund.
-                    </div>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-normal">
+                      Zero-risk trial. If your account shows no profit after 3 days, instant refund.
+                    </p>
                   </div>
                 </div>
 
                 <button
                   type="button"
                   onClick={() => setShowCalculator(true)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-100 border border-slate-200 dark:bg-white/10 dark:text-slate-200 dark:border-white/10 dark:hover:bg-white/15 transition-all cursor-pointer shadow-2xs shrink-0 self-start sm:self-center"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-slate-800 hover:text-slate-900 bg-white hover:bg-slate-100 border border-slate-200 dark:bg-white/10 dark:text-slate-200 dark:border-white/10 dark:hover:bg-white/15 transition-all cursor-pointer shadow-2xs shrink-0"
                 >
                   <Calculator size={12} className="text-slate-500" />
-                  <span>Calculator →</span>
+                  <span>Profit Calculator →</span>
                 </button>
               </div>
 
-              {/* Action Buttons & Binary Manifest */}
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-1 border-t border-slate-100 dark:border-white/5">
-                <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-2 flex-wrap">
-                  <div className="flex items-center gap-1.5">
-                    <FileCode size={13} className="text-slate-400" />
-                    <span>File:</span>
-                    <code className="font-mono text-xs font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-white/10 px-2 py-0.5 rounded border border-slate-200/80 dark:border-white/5">
+              {/* Action Buttons & Binary Manifest - Ergonomic Mobile Grid */}
+              <div className="space-y-2.5 pt-1 border-t border-slate-100 dark:border-white/5">
+                <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <FileCode size={13} className="text-slate-400 shrink-0" />
+                    <span className="text-[11px]">File:</span>
+                    <code className="font-mono text-[11px] font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-white/10 px-2 py-0.5 rounded border border-slate-200/80 dark:border-white/5 truncate">
                       FiAlgo_v1.0.4.ex5
                     </code>
                   </div>
-                  <span>·</span>
-                  <span>Size: <strong className="text-slate-800 dark:text-slate-200 font-semibold">4.2 MB</strong></span>
-                  <span>·</span>
-                  <span className="hidden md:inline text-slate-400 dark:text-slate-500">MQL5 Binary</span>
+                  <div className="text-[11px] text-slate-500 shrink-0 font-mono">
+                    <span>Size: <strong className="text-slate-700 dark:text-slate-300">4.2 MB</strong></span>
+                    <span className="hidden sm:inline"> · MQL5 Binary</span>
+                  </div>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
                     onClick={handleDownloadPreset}
-                    className="flex-1 sm:flex-none px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-800 dark:bg-white/10 dark:hover:bg-white/15 dark:text-white border border-slate-200/90 dark:border-white/10 transition-all inline-flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs active:scale-95"
+                    className="py-2.5 px-3 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-800 dark:bg-white/10 dark:hover:bg-white/15 dark:text-white border border-slate-200/90 dark:border-white/10 transition-all inline-flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs active:scale-95"
                   >
                     <Sliders size={13} />
                     <span>Presets (.set)</span>
@@ -1287,7 +1307,7 @@ MagicNumber=789104
                   <button
                     type="button"
                     onClick={handleDownloadEA}
-                    className="flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 transition-all inline-flex items-center justify-center gap-1.5 shadow-xs hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
+                    className="py-2.5 px-3 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 transition-all inline-flex items-center justify-center gap-1.5 shadow-xs hover:shadow-md active:scale-95 cursor-pointer"
                   >
                     <Download size={14} />
                     <span>Download (.ex5)</span>
