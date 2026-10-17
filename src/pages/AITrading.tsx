@@ -1658,7 +1658,7 @@ MagicNumber=789104
       <AnimatePresence>
         {showCalculator && (
           <div 
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md overflow-y-auto"
+            className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-2.5 sm:p-6 bg-black/85 backdrop-blur-md overflow-y-auto"
             onClick={() => setShowCalculator(false)}
           >
             <motion.div
@@ -1666,7 +1666,7 @@ MagicNumber=789104
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
               onClick={(e) => e.stopPropagation()}
-              className="relative w-full max-w-5xl my-8"
+              className="relative w-full max-w-4xl my-auto py-4 sm:py-6"
             >
               <div className="flex justify-end mb-2">
                 <button
@@ -1677,8 +1677,12 @@ MagicNumber=789104
                   <X className="w-4 h-4" /> Close Simulator
                 </button>
               </div>
-              <div className="bg-[#0a0c14] p-4 sm:p-8 rounded-[32px] border border-white/10 shadow-2xl">
-                <AutoTradeProfitCalculator />
+              <div className="bg-[#0c0e14] p-3 sm:p-7 rounded-2xl sm:rounded-[28px] border border-white/10 shadow-2xl">
+                <AutoTradeProfitCalculator 
+                  onClose={() => setShowCalculator(false)}
+                  ctaText="Continue MT5 Setup →"
+                  onCtaClick={() => setShowCalculator(false)}
+                />
               </div>
             </motion.div>
           </div>

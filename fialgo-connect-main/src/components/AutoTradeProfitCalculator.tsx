@@ -3,8 +3,26 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, CheckCircle2, TrendingUp, Zap, ShieldCheck } from "lucide-react";
 
-export default function AutoTradeProfitCalculator() {
+interface AutoTradeProfitCalculatorProps {
+  onClose?: () => void;
+  ctaText?: string;
+  onCtaClick?: () => void;
+}
+
+export default function AutoTradeProfitCalculator({
+  onClose,
+  ctaText = "Start Auto Trading with Tradifive",
+  onCtaClick,
+}: AutoTradeProfitCalculatorProps = {}) {
   const navigate = useNavigate();
+
+  const handleCta = () => {
+    if (onCtaClick) {
+      onCtaClick();
+    } else {
+      navigate("/auto-trade/setup");
+    }
+  };
 
   // State in INR: Deposit 1 Lakh to 10 Lakh (Default ₹1,00,000)
   const [deposit, setDeposit] = useState<number>(100000);
@@ -54,28 +72,18 @@ export default function AutoTradeProfitCalculator() {
   return (
     <div id="profit-simulator" className="w-full max-w-4xl mx-auto font-sans">
       {/* Header */}
-      <div className="text-center mb-5 md:mb-7">
-        <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[11px] font-semibold tracking-wide uppercase mb-2">
+      <div className="text-center mb-3 sm:mb-6">
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] sm:text-[11px] font-semibold tracking-wide uppercase mb-1.5">
           <Zap className="w-3 h-3 text-blue-400" />
           Interactive Profit Simulator
         </div>
-        <h2
-          style={{
-            fontFamily: "'Outfit', sans-serif",
-            fontSize: "clamp(26px, 3vw, 40px)",
-            fontWeight: 800,
-            color: "#ffffff",
-            lineHeight: 1.2,
-            letterSpacing: "-0.02em",
-            marginBottom: 12,
-          }}
-        >
+        <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-white tracking-tight mb-1.5 leading-snug">
           See how much you will{" "}
           <span className="bg-gradient-to-r from-blue-400 via-indigo-300 to-emerald-400 bg-clip-text text-transparent">
             earn every month
           </span>
         </h2>
-        <p style={{ fontSize: 15, color: "rgba(255, 255, 255, 0.5)", lineHeight: 1.6, maxWidth: 520, margin: "0 auto" }}>
+        <p className="text-xs sm:text-sm text-slate-400 max-w-md mx-auto leading-relaxed px-2">
           Select your deposit capital and daily target (2% – 5%) to see your estimated monthly profit.
         </p>
       </div>
@@ -92,9 +100,9 @@ export default function AutoTradeProfitCalculator() {
           borderRadius: 20,
           border: "none",
         }}
-        className="text-white p-3.5 sm:p-5"
+        className="text-white p-2.5 sm:p-5"
       >
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 sm:gap-5 items-stretch">
           {/* ═══════════════════════════════════════════════════════════ */}
           {/* Card 1: Controls (Deposit & Daily Target) */}
           {/* ═══════════════════════════════════════════════════════════ */}
@@ -105,7 +113,7 @@ export default function AutoTradeProfitCalculator() {
               borderRadius: 16,
               border: "none",
             }}
-            className="lg:col-span-7 p-5 sm:p-6 flex flex-col justify-between space-y-6"
+            className="lg:col-span-7 p-3.5 sm:p-6 flex flex-col justify-between space-y-5 sm:space-y-6"
           >
             <div className="space-y-6">
               {/* Header */}
@@ -148,8 +156,8 @@ export default function AutoTradeProfitCalculator() {
                   />
                 </div>
 
-                {/* Clean Presets Row */}
-                <div className="grid grid-cols-6 gap-1.5 mt-2.5">
+                {/* Clean Presets Row: 3 cols on small mobile, 6 on sm+ */}
+                <div className="grid grid-cols-3 min-[440px]:grid-cols-6 gap-1.5 mt-2.5">
                   {depositPresets.map((item) => {
                     const isSelected = deposit === item.val;
                     return (
@@ -162,7 +170,7 @@ export default function AutoTradeProfitCalculator() {
                           border: isSelected ? "1px solid rgba(59, 130, 246, 0.4)" : "1px solid rgba(255, 255, 255, 0.06)",
                           color: isSelected ? "#93c5fd" : "rgba(255, 255, 255, 0.65)",
                         }}
-                        className="py-1.5 text-xs font-medium rounded-lg transition-all text-center tabular-nums hover:text-white"
+                        className="py-1.5 text-xs font-semibold rounded-lg transition-all text-center tabular-nums hover:text-white cursor-pointer active:scale-95"
                       >
                         {item.label}
                       </button>
@@ -173,19 +181,19 @@ export default function AutoTradeProfitCalculator() {
 
               {/* Control 2: Daily Profit Target */}
               <div>
-                <div className="flex items-baseline justify-between mb-2">
+                <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1 mb-2">
                   <label className="text-xs font-medium text-slate-300">
                     Daily Profit Target
                   </label>
                   <div className="flex items-center gap-2">
                     <span
-                      className="text-2xl font-semibold text-white tracking-normal tabular-nums"
+                      className="text-xl sm:text-2xl font-semibold text-white tracking-normal tabular-nums"
                       style={{ fontFamily: "'Inter', sans-serif" }}
                     >
                       {dailyRate.toFixed(1)}% / day
                     </span>
                     <span
-                      className="text-xs font-medium px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 tabular-nums"
+                      className="text-[11px] sm:text-xs font-medium px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 tabular-nums whitespace-nowrap"
                       style={{ fontFamily: "'Inter', sans-serif" }}
                     >
                       ~{formatINR(dailyProfit)} / day
@@ -223,7 +231,7 @@ export default function AutoTradeProfitCalculator() {
                           border: isSelected ? "1px solid rgba(59, 130, 246, 0.4)" : "1px solid rgba(255, 255, 255, 0.06)",
                           color: isSelected ? "#93c5fd" : "rgba(255, 255, 255, 0.65)",
                         }}
-                        className="py-1.5 text-xs font-medium rounded-lg transition-all text-center tabular-nums hover:text-white"
+                        className="py-1.5 text-xs font-semibold rounded-lg transition-all text-center tabular-nums hover:text-white cursor-pointer active:scale-95"
                       >
                         {val.toFixed(1)}%
                       </button>
@@ -250,9 +258,9 @@ export default function AutoTradeProfitCalculator() {
               borderRadius: 16,
               border: "none",
             }}
-            className="lg:col-span-5 p-5 sm:p-6 flex flex-col justify-between"
+            className="lg:col-span-5 p-3.5 sm:p-6 flex flex-col justify-between space-y-5"
           >
-            <div className="space-y-5">
+            <div className="space-y-4 sm:space-y-5">
               {/* Header */}
               <div className="flex items-center justify-between pb-3 border-b border-white/[0.06]">
                 <span className="text-xs font-semibold uppercase tracking-wider text-blue-400">
@@ -272,12 +280,12 @@ export default function AutoTradeProfitCalculator() {
                   Projected Monthly Profit
                 </span>
                 <h3
-                  className="text-3xl sm:text-[34px] font-semibold text-emerald-400 tracking-normal leading-tight tabular-nums"
+                  className="text-2xl sm:text-[32px] font-bold text-emerald-400 tracking-tight leading-tight tabular-nums"
                   style={{ fontFamily: "'Inter', sans-serif" }}
                 >
                   +{formatINR(monthlyProfit)}
                 </h3>
-                <p className="text-xs text-slate-400 mt-1 font-normal">
+                <p className="text-[11px] sm:text-xs text-slate-400 mt-1 font-normal">
                   Estimated pure profit earned in 30 days ({tradingDays} market trading days).
                 </p>
               </div>
@@ -289,7 +297,7 @@ export default function AutoTradeProfitCalculator() {
                   boxShadow: "inset 0 1px 0 0 rgba(255,255,255,0.04), 0 0 0 1px rgba(255,255,255,0.05)",
                   borderRadius: 12,
                 }}
-                className="p-3.5 space-y-2.5 text-xs"
+                className="p-3 sm:p-3.5 space-y-2 text-xs"
               >
                 <div className="flex justify-between items-center text-slate-300">
                   <span className="font-normal text-slate-400">Your Initial Deposit:</span>
@@ -312,10 +320,10 @@ export default function AutoTradeProfitCalculator() {
                 </div>
 
                 {/* Highlight Row: Total Ending Balance */}
-                <div className="pt-2.5 border-t border-white/[0.06] flex justify-between items-center text-white">
-                  <span className="font-medium">Total In Your MT5 Account:</span>
+                <div className="pt-2 border-t border-white/[0.06] flex justify-between items-center text-white">
+                  <span className="font-medium text-xs sm:text-sm">Total In Your MT5 Account:</span>
                   <span
-                    className="text-base font-semibold text-emerald-400 tabular-nums"
+                    className="text-sm sm:text-base font-semibold text-emerald-400 tabular-nums"
                     style={{ fontFamily: "'Inter', sans-serif" }}
                   >
                     {formatINR(endingBalance)}
@@ -323,44 +331,19 @@ export default function AutoTradeProfitCalculator() {
                 </div>
               </div>
 
-              {/* Main Action Button (Clean FAQ Card style with blue styling) */}
+              {/* Main Action Button */}
               <button
                 type="button"
-                onClick={() => navigate("/auto-trade/setup")}
-                style={{
-                  width: "100%",
-                  background: "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)",
-                  color: "#60a5fa",
-                  border: "none",
-                  borderRadius: 12,
-                  padding: "12px 18px",
-                  fontSize: 13.5,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 8,
-                  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.1), 0 2px 4px rgba(0,0,0,0.3)",
-                  transition: "all 0.2s ease",
-                  outline: "none",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = "linear-gradient(135deg, #253347 0%, #131c33 100%)";
-                  e.currentTarget.style.color = "#93c5fd";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)";
-                  e.currentTarget.style.color = "#60a5fa";
-                }}
+                onClick={handleCta}
+                className="w-full py-3 sm:py-3.5 px-4 rounded-xl text-xs sm:text-sm font-bold bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-600/25 flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-[0.99]"
               >
-                <span>Start Auto Trading with Tradifive</span>
-                <ArrowRight className="w-4 h-4" />
+                <span>{ctaText}</span>
+                <ArrowRight className="w-4 h-4 shrink-0" />
               </button>
             </div>
 
             {/* Reassurance Bullet Points */}
-            <div className="pt-3.5 border-t border-white/[0.06] space-y-1.5 text-[11px] text-slate-400 font-normal">
+            <div className="pt-3 border-t border-white/[0.06] space-y-1.5 text-[11px] text-slate-400 font-normal">
               <div className="flex items-center gap-1.5">
                 <ShieldCheck className="w-3.5 h-3.5 text-blue-400 shrink-0" />
                 <span>Funds stay in your own broker account • Withdraw anytime</span>
