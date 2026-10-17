@@ -535,18 +535,6 @@ export default function AITrading() {
     });
   };
 
-  const handleDownloadSourceMQ5 = () => {
-    const a = document.createElement("a");
-    a.href = "/FiAlgo_v1.0.4.mq5";
-    a.download = "Tradifive.mq5";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-
-    toast.success("Tradifive.mq5 source code downloaded! (165 KB)", {
-      description: "Full MQL5 Expert Advisor source code ready for MetaEditor."
-    });
-  };
 
   const handleDownloadPreset = () => {
     const setContent = `; ═══════════════════════════════════════════════════════════════════
@@ -1509,32 +1497,23 @@ MagicNumber=789104
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                  <button
-                    type="button"
-                    onClick={handleDownloadEA}
-                    className="py-2.5 px-3 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white transition-all inline-flex items-center justify-center gap-1.5 shadow-xs hover:shadow-md active:scale-95 cursor-pointer"
-                    title="Download real compiled 236 KB binary for MetaTrader 5"
-                  >
-                    <Download size={14} />
-                    <span>Download (.ex5)</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleDownloadSourceMQ5}
-                    className="py-2.5 px-3 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 transition-all inline-flex items-center justify-center gap-1.5 shadow-xs active:scale-95 cursor-pointer"
-                    title="Download full 165 KB MQL5 Source Code with Account Security Lock"
-                  >
-                    <FileCode size={13} />
-                    <span>Source (.mq5)</span>
-                  </button>
+                <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
                     onClick={handleDownloadPreset}
                     className="py-2.5 px-3 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-800 dark:bg-white/10 dark:hover:bg-white/15 dark:text-white border border-slate-200/90 dark:border-white/10 transition-all inline-flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs active:scale-95"
                   >
                     <Sliders size={13} />
-                    <span>Preset (.set)</span>
+                    <span>Presets (.set)</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleDownloadEA}
+                    className="py-2.5 px-3 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 transition-all inline-flex items-center justify-center gap-1.5 shadow-xs hover:shadow-md active:scale-95 cursor-pointer"
+                    title="Download real compiled 236 KB binary for MetaTrader 5"
+                  >
+                    <Download size={14} />
+                    <span>Download (.ex5)</span>
                   </button>
                 </div>
               </div>
