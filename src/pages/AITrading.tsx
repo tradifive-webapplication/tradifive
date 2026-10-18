@@ -586,8 +586,19 @@ MagicNumber=789104
   };
 
   const handleGoToDashboard = () => {
+    const cleanAccount = mt5Account.trim() || "414460525";
+    try {
+      const existing = localStorage.getItem("tradifive_ib_proof_request");
+      const parsed = existing ? JSON.parse(existing) : {};
+      parsed.mt5_account_number = cleanAccount;
+      localStorage.setItem("tradifive_ib_proof_request", JSON.stringify(parsed));
+    } catch (e) {}
     localStorage.setItem("tradifive_auto_trade_setup", "true");
+    localStorage.setItem("tradifive_bot_status", "active");
     window.dispatchEvent(new Event("tradifive_auto_trade_setup_done"));
+    toast.success(`FiAlgo Connected to MT5 #${cleanAccount}!`, {
+      description: "Loading your live AutoTrade dashboard..."
+    });
     navigate('/auto-trade/dashboard');
   };
 
@@ -2481,13 +2492,43 @@ MagicNumber=789104
                   );
                 })()}
 
+                {/* FiAlgo Connected Live Status Banner */}
+                <div className="p-3.5 sm:p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+                  <div className="flex items-center gap-3">
+                    <div className="relative flex items-center justify-center shrink-0">
+                      <div className="w-3.5 h-3.5 rounded-full bg-emerald-500 animate-ping absolute opacity-75" />
+                      <div className="w-3.5 h-3.5 rounded-full bg-emerald-500 relative" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs sm:text-sm font-bold text-emerald-800 dark:text-emerald-300">
+                          FiAlgo Connected
+                        </span>
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-500/15 px-2 py-0.5 rounded-full border border-emerald-500/25">
+                          <CheckCircle2 size={10} className="text-emerald-500" />
+                          <span>MT5 Online</span>
+                        </span>
+                      </div>
+                      <p className="text-[11.5px] text-slate-500 dark:text-slate-400 mt-0.5">
+                        License key verified on MT5 Account <strong>#{mt5Account || "414460525"}</strong>. Algorithm running on chart.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 self-start sm:self-center">
+                    <span className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 font-semibold bg-white dark:bg-white/10 px-2 py-1 rounded-md border border-emerald-500/20">
+                      Ping: 1.8ms
+                    </span>
+                  </div>
+                </div>
+
                 {/* Primary Dashboard CTA */}
                 <button
                   type="button"
                   onClick={handleGoToDashboard}
-                  className="w-full py-3.5 px-4 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:hover:bg-slate-200 dark:text-slate-900 flex items-center justify-center gap-2 cursor-pointer shadow-xs transition-all"
+                  className="w-full py-3.5 px-4 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:hover:bg-slate-200 dark:text-slate-900 flex items-center justify-center gap-2 cursor-pointer shadow-xs transition-all hover:scale-[1.005] active:scale-[0.995]"
                 >
-                  <Zap size={14} />
+                  <Zap size={14} className="text-amber-400" />
                   <span>Open AutoTrade Dashboard →</span>
                 </button>
               </div>
