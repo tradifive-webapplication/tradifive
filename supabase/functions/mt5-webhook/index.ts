@@ -28,7 +28,7 @@ serve(async (req) => {
       action, activation_key, ticket, symbol, trade_type, lot_size, profit, 
       opened_at_sec, closed_at_sec, account_number, broker, server, balance, equity, currency,
       active_position_tickets, is_pending, active_pending_tickets, open_positions, recent_deals,
-      open_price, close_price, stop_loss, take_profit, commission, swap, fee
+      expert_logs, open_price, close_price, stop_loss, take_profit, commission, swap, fee
     } = payload;
 
     // Initialize Supabase Client with Service Role Key
@@ -172,11 +172,44 @@ serve(async (req) => {
       }
       const { data: tradesList } = await tradesQuery;
 
+      // Fetch 100% real MT5 Expert logs from system_logs
+      let expertLogsList: any[] = [];
+      try {
+        const { data: rawLogs } = await supabaseAdmin
+          .from('system_logs')
+          .select('*')
+          .eq('source', 'mt5')
+          .order('created_at', { ascending: false })
+          .limit(30);
+
+        if (rawLogs && rawLogs.length > 0) {
+          expertLogsList = rawLogs.map((r: any) => {
+            try {
+              const parsed = JSON.parse(r.message);
+              return {
+                id: r.id,
+                time: parsed.time || new Date(r.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+                source: parsed.source || 'FiAlgo (MT5)',
+                message: parsed.message || r.message
+              };
+            } catch (e) {
+              return {
+                id: r.id,
+                time: new Date(r.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+                source: 'FiAlgo (MT5)',
+                message: r.message
+              };
+            }
+          });
+        }
+      } catch (e) {}
+
       return new Response(
         JSON.stringify({
           success: true,
           account: accountRow,
-          trades: tradesList || []
+          trades: tradesList || [],
+          expert_logs: expertLogsList
         }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -215,7 +248,8 @@ serve(async (req) => {
        const cleanAcc = account_number ? String(account_number).replace(/\D/g, '') : null;
        const brokerClean = String(broker || '').replace(/[\uFFFD\?]/g, '').trim();
        const serverClean = String(server || '').replace(/[\uFFFD\?]/g, '').trim();
-       const brokerServerStr = brokerClean ? (serverClean ? `${brokerClean} · ${serverClean}` : brokerClean) : (serverClean || 'Exness Technologies Ltd · Exness-MT5Trial6');
+       // Store ONLY the clean server name (e.g. Exness-MT5Trial6 / Exness-MT5Trial4)
+       const brokerServerStr = serverClean || (brokerClean.includes('MT5') ? brokerClean : 'Exness-MT5Trial6');
 
        // Check if account row already exists for this user or account number
        const { data: existingAccount } = await supabaseAdmin
@@ -367,6 +401,20 @@ serve(async (req) => {
               .eq('user_id', user_id)
               .eq('is_pending', true);
           }
+        // Save real MT5 expert logs to system_logs
+        if (expert_logs && Array.isArray(expert_logs) && expert_logs.length > 0) {
+          try {
+            const logEntries = expert_logs.slice(-15).map((l: any) => ({
+              level: 'INFO',
+              source: 'mt5',
+              message: JSON.stringify({
+                time: l.time,
+                source: l.source,
+                message: l.message
+              })
+            }));
+            await supabaseAdmin.from('system_logs').insert(logEntries);
+          } catch (e_log) {}
         }
           
        if (dbError) {

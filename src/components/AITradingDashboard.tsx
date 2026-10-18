@@ -3,7 +3,8 @@ import {
   ArrowLeft, TrendingUp, TrendingDown, Activity, Wallet, Clock, 
   CheckCircle2, ShieldCheck, Play, Pause, AlertTriangle, RefreshCw, 
   Copy, Download, Terminal, Check, Sliders, ExternalLink, Zap, 
-  ArrowUpRight, ArrowDownRight, Filter, Calendar, Shield, X, Power, Layers, Radio
+  ArrowUpRight, ArrowDownRight, Filter, Calendar, Shield, X, Power, Layers, Radio,
+  ChevronUp, ChevronDown
 } from "lucide-react";
 import { 
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, 
@@ -52,6 +53,8 @@ export interface BotLog {
   type: 'status' | 'trade' | 'system';
   event: string;
   details: string;
+  source?: string;
+  message?: string;
 }
 
 interface Props {
@@ -102,13 +105,29 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
       const stored = localStorage.getItem("tradifive_ib_proof_request");
       if (stored) {
         const parsed = JSON.parse(stored);
+        if (parsed.server) return parsed.server;
+        if (parsed.broker_server) return parsed.broker_server;
         if (parsed.broker_name && !parsed.broker_name.includes("Vantage")) {
-          return `${parsed.broker_name} · Partner IB 27863221`;
+          return parsed.broker_name;
         }
       }
     } catch (e) {}
-    return "Exness Technologies Ltd · Exness-MT5Trial6 · Partner IB 27863221";
+    return "Exness-MT5Trial6";
   });
+
+  // Server Name formatting strictly (e.g. Exness-MT5Trial6 / Exness-MT5Trial4)
+  const cleanServerName = useMemo(() => {
+    const raw = brokerGatewayName || "Exness-MT5Trial6";
+    const m = raw.match(/([a-zA-Z0-9_\-]+MT[45][a-zA-Z0-9_\-]+)/i);
+    if (m) return m[1];
+    if (raw.includes('·')) {
+      const parts = raw.split('·').map(p => p.trim());
+      const s = parts.find(p => !p.toLowerCase().includes('partner') && !p.toLowerCase().includes('technologies') && !p.toLowerCase().includes('ltd'));
+      if (s) return s;
+    }
+    return raw.replace(/[\uFFFD\?]/g, '-').trim();
+  }, [brokerGatewayName]);
+
   const [activeLicenseKey, setActiveLicenseKey] = useState<string>("TF-18B42A6D-2710-30307601B9");
   const [copiedKey, setCopiedKey] = useState<boolean>(false);
 
@@ -134,7 +153,7 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
   const [tempTargetRate, setTempTargetRate] = useState<number>(2.0);
   const [tempTargetDeposit, setTempTargetDeposit] = useState<number>(100000);
 
-  // Real Account & Financial Data (Initialized cleanly from MT5 account #414460525)
+  // 100% Real Account & Financial Data (Streamed live from MT5 account #414460525)
   const [totalDeposits, setTotalDeposits] = useState<number>(() => {
     try {
       const storedPay = localStorage.getItem("tradifive_payment_request");
@@ -147,44 +166,49 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
         const parsed = JSON.parse(storedProof);
         if (parsed.initial_deposit && Number(parsed.initial_deposit) > 0) return Number(parsed.initial_deposit);
       }
+      const savedBal = localStorage.getItem("tradifive_account_balance");
+      if (savedBal && Number(savedBal) > 0) return Number(savedBal);
     } catch (e) {}
     return 100000.00;
   });
 
-  const [accountBalance, setAccountBalance] = useState<number>(() => 99983.26);
-  const [accountEquity, setAccountEquity] = useState<number>(() => 99983.26);
+  const [accountBalance, setAccountBalance] = useState<number>(() => {
+    try {
+      const savedBal = localStorage.getItem("tradifive_account_balance");
+      return savedBal && Number(savedBal) > 0 ? Number(savedBal) : 0;
+    } catch (e) {
+      return 0;
+    }
+  });
 
-  // 100% Real Live Positions and Trades (Empty initially, populated ONLY by real Supabase data)
+  const [accountEquity, setAccountEquity] = useState<number>(() => {
+    try {
+      const savedEq = localStorage.getItem("tradifive_account_equity");
+      return savedEq && Number(savedEq) > 0 ? Number(savedEq) : 0;
+    } catch (e) {
+      return 0;
+    }
+  });
+
+  // 100% Real Live Positions and Trades (Populated ONLY by real Supabase / MT5 data)
   const [openPositions, setOpenPositions] = useState<OpenPosition[]>([]);
   const [closedTrades, setClosedTrades] = useState<ClosedTrade[]>([]);
 
-  // Logs list initialized with authentic system events for this specific account
-  const [logsList, setLogsList] = useState<BotLog[]>(() => {
-    const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    return [
-      {
-        id: 'log-init-1',
-        time: timeStr,
-        type: 'system',
-        event: 'Handshake Established',
-        details: `Connected to MT5 Terminal #${cleanAccount || "414460525"} via broker bridge.`
-      },
-      {
-        id: 'log-init-2',
-        time: timeStr,
-        type: 'system',
-        event: 'License Authenticated',
-        details: `Institutional License TF-18B42A6D-2710-30307601B9 bound to MT5 #${cleanAccount || "414460525"}.`
-      },
-      {
-        id: 'log-init-3',
-        time: timeStr,
-        type: 'status',
-        event: 'Bot Online (Monitoring)',
-        details: `FiAlgo V1 (Gold Specialist) scanning XAUUSD on M1 timeframe for institutional setup.`
-      }
-    ];
-  });
+  // Slider container ref & controls for max 5-6 visible positions
+  const openPosScrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollPositions, setCanScrollPositions] = useState<boolean>(false);
+
+  const handleSlidePositions = (direction: 'up' | 'down') => {
+    if (openPosScrollRef.current) {
+      openPosScrollRef.current.scrollBy({
+        top: direction === 'up' ? -160 : 160,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  // 100% Real MT5 Terminal & Expert Advisor Logs (Streamed live from terminal)
+  const [logsList, setLogsList] = useState<BotLog[]>([]);
 
   // Live latency ping measurement (calculated on each 1-second fetch)
   const [terminalPing, setTerminalPing] = useState<number>(1.8);
@@ -308,35 +332,22 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
         if (activeAccountRow.balance !== null && activeAccountRow.balance !== undefined) {
           const bal = Number(activeAccountRow.balance);
           setAccountBalance(bal);
-          if (bal > 500 && (totalDeposits === 500 || totalDeposits < bal)) {
+          try { localStorage.setItem("tradifive_account_balance", String(bal)); } catch (e) {}
+          if (bal > 0 && (totalDeposits === 0 || totalDeposits < bal)) {
             setTotalDeposits(bal);
           }
         }
         if (activeAccountRow.equity !== null && activeAccountRow.equity !== undefined) {
           const eq = Number(activeAccountRow.equity);
           setAccountEquity(eq);
-
-          if (lastLoggedEquityRef.current !== null && Math.abs(lastLoggedEquityRef.current - eq) >= 0.01) {
-            const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            const currSym = activeAccountRow.currency === 'INR' ? '₹' : '$';
-            setLogsList(prev => [
-              {
-                id: `log-eq-${Date.now()}`,
-                time: timeStr,
-                type: 'status',
-                event: 'Live Telemetry Update',
-                details: `Equity updated: ${currSym}${eq.toFixed(2)} (Balance: ${currSym}${Number(activeAccountRow.balance || eq).toFixed(2)})`
-              },
-              ...prev.slice(0, 49)
-            ]);
-          }
+          try { localStorage.setItem("tradifive_account_equity", String(eq)); } catch (e) {}
           lastLoggedEquityRef.current = eq;
         }
         if (activeAccountRow.broker_server) {
           const cleanB = String(activeAccountRow.broker_server).replace(/[\uFFFD\?]/g, '-').trim();
-          setBrokerGatewayName(`${cleanB} · Partner IB 27863221`);
+          setBrokerGatewayName(cleanB);
         } else {
-          setBrokerGatewayName("Exness Technologies Ltd · Exness-MT5Trial6 · Partner IB 27863221");
+          setBrokerGatewayName("Exness-MT5Trial6");
         }
         if (activeAccountRow.algo_status !== undefined && activeAccountRow.algo_status !== null) {
           setIsBotRunning(Boolean(activeAccountRow.algo_status));
@@ -420,6 +431,59 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
         setClosedTrades(realClosed);
       }
 
+      // 3. Fetch 100% Real MT5 Terminal & Expert Advisor Logs
+      try {
+        const { data: rawLogs } = await supabase
+          .from('system_logs')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(30);
+
+        if (rawLogs && rawLogs.length > 0) {
+          const mappedLogs: BotLog[] = rawLogs.map((r: any) => {
+            let t = new Date(r.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            let src = 'FiAlgo_v1.0.4 (6) (BTCUSD,M1)';
+            let msg = r.message || '';
+            if (r.metadata && typeof r.metadata === 'object') {
+              if (r.metadata.time) t = r.metadata.time;
+              if (r.metadata.source) src = r.metadata.source;
+            }
+            let eventTitle = 'MT5 Expert Event';
+            let lType: 'status' | 'trade' | 'system' = 'status';
+            if (msg.includes('SELL grid') || msg.includes('BUY grid')) {
+              eventTitle = msg.includes('SELL') ? 'SELL Grid Level' : 'BUY Grid Level';
+              lType = 'trade';
+            } else if (msg.includes('level') && msg.includes('triggered')) {
+              eventTitle = 'Grid Level Triggered';
+              lType = 'trade';
+            } else if (msg.includes('basket TP') || msg.includes('completely closed')) {
+              eventTitle = 'Basket TP Reached';
+              lType = 'status';
+            } else if (msg.includes('Weighted average')) {
+              eventTitle = 'Weighted Average';
+              lType = 'system';
+            } else if (msg.includes('Basket TP =')) {
+              eventTitle = 'Dynamic Basket TP';
+              lType = 'system';
+            } else if (msg.includes('order executed') || msg.includes('basket started')) {
+              eventTitle = 'Basket Initiated';
+              lType = 'trade';
+            }
+
+            return {
+              id: r.id,
+              time: t,
+              type: lType,
+              event: eventTitle,
+              details: msg,
+              source: src,
+              message: msg
+            };
+          });
+          setLogsList(mappedLogs);
+        }
+      } catch (e) {}
+
       // Compute round-trip latency
       const elapsed = Math.max(1, Math.round(performance.now() - pingStart));
       const realisticPing = elapsed <= 10 ? +(1.4 + Math.random() * 0.8).toFixed(1) : elapsed;
@@ -484,6 +548,53 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
         { event: '*', schema: 'public', table: 'trades' },
         () => {
           fetchMT5Telemetry(false);
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'system_logs' },
+        (payload) => {
+          if (payload.new) {
+            const r = payload.new;
+            let t = new Date(r.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            let src = 'FiAlgo_v1.0.4 (6) (BTCUSD,M1)';
+            let msg = r.message || '';
+            if (r.metadata && typeof r.metadata === 'object') {
+              if (r.metadata.time) t = r.metadata.time;
+              if (r.metadata.source) src = r.metadata.source;
+            }
+            let eventTitle = 'MT5 Expert Event';
+            let lType: 'status' | 'trade' | 'system' = 'status';
+            if (msg.includes('SELL grid') || msg.includes('BUY grid')) {
+              eventTitle = msg.includes('SELL') ? 'SELL Grid Level' : 'BUY Grid Level';
+              lType = 'trade';
+            } else if (msg.includes('level') && msg.includes('triggered')) {
+              eventTitle = 'Grid Level Triggered';
+              lType = 'trade';
+            } else if (msg.includes('basket TP') || msg.includes('completely closed')) {
+              eventTitle = 'Basket TP Reached';
+              lType = 'status';
+            } else if (msg.includes('Weighted average')) {
+              eventTitle = 'Weighted Average';
+              lType = 'system';
+            } else if (msg.includes('Basket TP =')) {
+              eventTitle = 'Dynamic Basket TP';
+              lType = 'system';
+            }
+
+            setLogsList(prev => [
+              {
+                id: r.id || `log-${Date.now()}`,
+                time: t,
+                type: lType,
+                event: eventTitle,
+                details: msg,
+                source: src,
+                message: msg
+              },
+              ...prev.filter(x => x.id !== r.id).slice(0, 49)
+            ]);
+          }
         }
       )
       .subscribe();
@@ -1346,66 +1457,98 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
                     </p>
                   </div>
                 ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse text-xs">
-                      <thead>
-                        <tr className="border-b border-slate-100 dark:border-white/5 text-[10.5px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-400">
-                          <th className="py-3 px-3">Pair</th>
-                          <th className="py-3 px-3">Type</th>
-                          <th className="py-3 px-3">Lots</th>
-                          <th className="py-3 px-3">Open Price</th>
-                          <th className="py-3 px-3">Current</th>
-                          <th className="py-3 px-3">SL / TP</th>
-                          <th className="py-3 px-3 text-right">Floating PnL</th>
-                          <th className="py-3 px-3 text-right">Action</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100 dark:divide-white/5 whitespace-nowrap">
-                        {openPositions.map(pos => (
-                          <tr key={pos.id} className="hover:bg-slate-50/60 dark:hover:bg-white/[0.02] transition-colors">
-                            <td className="py-3.5 px-3 text-[13px] font-bold text-slate-900 dark:text-white">
-                              {pos.pair}
-                            </td>
-                            <td className="py-3.5 px-3">
-                              <span className={`text-[10.5px] font-bold px-2 py-0.5 rounded-md border ${
-                                pos.type === 'BUY' 
-                                  ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' 
-                                  : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20'
-                              }`}>
-                                {pos.type}
-                              </span>
-                            </td>
-                            <td className="py-3.5 px-3 text-[13px] font-medium text-slate-700 dark:text-slate-300 tabular-nums" style={{ fontFamily: "'Inter', sans-serif" }}>
-                              {pos.lot.toFixed(2)}
-                            </td>
-                            <td className="py-3.5 px-3 text-[12.5px] font-medium text-slate-500 dark:text-slate-400 tabular-nums" style={{ fontFamily: "'Inter', sans-serif" }}>
-                              {pos.openPrice}
-                            </td>
-                            <td className="py-3.5 px-3 text-[12.5px] font-medium text-slate-800 dark:text-slate-200 tabular-nums" style={{ fontFamily: "'Inter', sans-serif" }}>
-                              {pos.currentPrice}
-                            </td>
-                            <td className="py-3.5 px-3 text-[11px] font-mono text-slate-400">
-                              {pos.sl} / {pos.tp}
-                            </td>
-                            <td className={`py-3.5 px-3 text-[13px] font-medium tabular-nums text-right ${
-                              pos.floatingPnl >= 0 ? 'text-[#10B981]' : 'text-[#F06363]'
-                            }`} style={{ fontFamily: "'Inter', sans-serif" }}>
-                              {pos.floatingPnl >= 0 ? '+' : '-'}{currencySymbol}{Math.abs(pos.floatingPnl).toFixed(2)}
-                            </td>
-                            <td className="py-3.5 px-3 text-right">
-                              <button
-                                type="button"
-                                onClick={() => handleClosePosition(pos.id, pos.pair, pos.floatingPnl)}
-                                className="px-2.5 py-1 text-[11px] font-bold text-slate-600 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg border border-slate-200/60 dark:border-white/5 transition-colors cursor-pointer"
-                                title="Close position on MT5"
-                              >
-                                Close
-                              </button>
-                            </td>
+                  <div>
+                    {openPositions.length > 5 && (
+                      <div className="flex items-center justify-between pb-2 mb-2 text-xs border-b border-slate-100 dark:border-white/5">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                          <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+                          Slider Active: Showing 5-6 visible ({openPositions.length} active trades)
+                        </span>
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => handleSlidePositions('up')}
+                            className="p-1.5 rounded-lg border border-slate-200/80 dark:border-white/10 text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                            title="Slide Up"
+                          >
+                            <ChevronUp size={14} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleSlidePositions('down')}
+                            className="p-1.5 rounded-lg border border-slate-200/80 dark:border-white/10 text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                            title="Slide Down"
+                          >
+                            <ChevronDown size={14} />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    <div 
+                      ref={openPosScrollRef}
+                      className="max-h-[300px] overflow-y-auto overflow-x-auto rounded-xl border border-slate-100 dark:border-white/5 scroll-smooth"
+                    >
+                      <table className="w-full text-left border-collapse text-xs">
+                        <thead className="sticky top-0 bg-[#F8F9FC] dark:bg-[#191B1E] z-10 shadow-sm border-b border-slate-200/80 dark:border-white/10">
+                          <tr className="text-[10.5px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-400">
+                            <th className="py-2.5 px-3">Pair</th>
+                            <th className="py-2.5 px-3">Type</th>
+                            <th className="py-2.5 px-3">Lots</th>
+                            <th className="py-2.5 px-3">Open Price</th>
+                            <th className="py-2.5 px-3">Current</th>
+                            <th className="py-2.5 px-3">SL / TP</th>
+                            <th className="py-2.5 px-3 text-right">Floating PnL</th>
+                            <th className="py-2.5 px-3 text-right">Action</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 dark:divide-white/5 whitespace-nowrap">
+                          {openPositions.map(pos => (
+                            <tr key={pos.id} className="hover:bg-slate-50/60 dark:hover:bg-white/[0.02] transition-colors">
+                              <td className="py-3 px-3 text-[13px] font-bold text-slate-900 dark:text-white">
+                                {pos.pair}
+                              </td>
+                              <td className="py-3 px-3">
+                                <span className={`text-[10.5px] font-bold px-2 py-0.5 rounded-md border ${
+                                  pos.type === 'BUY' 
+                                    ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' 
+                                    : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20'
+                                }`}>
+                                  {pos.type}
+                                </span>
+                              </td>
+                              <td className="py-3 px-3 text-[13px] font-medium text-slate-700 dark:text-slate-300 tabular-nums" style={{ fontFamily: "'Inter', sans-serif" }}>
+                                {pos.lot.toFixed(2)}
+                              </td>
+                              <td className="py-3 px-3 text-[12.5px] font-medium text-slate-500 dark:text-slate-400 tabular-nums" style={{ fontFamily: "'Inter', sans-serif" }}>
+                                {pos.openPrice}
+                              </td>
+                              <td className="py-3 px-3 text-[12.5px] font-medium text-slate-800 dark:text-slate-200 tabular-nums" style={{ fontFamily: "'Inter', sans-serif" }}>
+                                {pos.currentPrice}
+                              </td>
+                              <td className="py-3 px-3 text-[11px] font-mono text-slate-400">
+                                {pos.sl} / {pos.tp}
+                              </td>
+                              <td className={`py-3 px-3 text-[13px] font-medium tabular-nums text-right ${
+                                pos.floatingPnl >= 0 ? 'text-[#10B981]' : 'text-[#F06363]'
+                              }`} style={{ fontFamily: "'Inter', sans-serif" }}>
+                                {pos.floatingPnl >= 0 ? '+' : '-'}{currencySymbol}{Math.abs(pos.floatingPnl).toFixed(2)}
+                              </td>
+                              <td className="py-3 px-3 text-right">
+                                <button
+                                  type="button"
+                                  onClick={() => handleClosePosition(pos.id, pos.pair, pos.floatingPnl)}
+                                  className="px-2.5 py-1 text-[11px] font-bold text-slate-600 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg border border-slate-200/60 dark:border-white/5 transition-colors cursor-pointer"
+                                  title="Close position on MT5"
+                                >
+                                  Close
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 )}
               </div>
@@ -1518,7 +1661,7 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-[12px] font-medium text-slate-400 dark:text-[#778396]">Broker Gateway</span>
-                <span className="text-[13px] font-semibold text-slate-800 dark:text-[#E2E7EE]">{brokerGatewayName}</span>
+                <span className="text-[13px] font-mono font-semibold text-slate-800 dark:text-[#E2E7EE]">{cleanServerName}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-[12px] font-medium text-slate-400 dark:text-[#778396]">Risk Profile</span>
@@ -1615,32 +1758,40 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
 
             {/* Mini Activity Logs Feed */}
             <div className="space-y-2 text-xs">
-              <p className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-400 mb-2">
-                Recent Bot &amp; Telemetry Events:
-              </p>
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-400">
+                  MT5 Expert Events ({logsList.length})
+                </p>
+                <span className="flex items-center gap-1 text-[10.5px] font-medium text-emerald-500">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  Live Feed
+                </span>
+              </div>
               <div className="space-y-2 max-h-[170px] overflow-y-auto pr-1">
-                {logsList.slice(0, 4).map(log => (
-                  <div key={log.id} className="flex items-start gap-2.5 p-2.5 rounded-[14px] bg-slate-50/70 dark:bg-white/[0.02] border border-slate-100 dark:border-white/5">
-                    <span className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${
-                      log.type === 'status' 
-                        ? (log.event.includes('ON') ? 'bg-[#10B981]' : 'bg-amber-500')
-                        : log.type === 'trade' ? 'bg-blue-500' : 'bg-slate-400'
-                    }`}></span>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between gap-1">
-                        <span className="font-bold text-[11.5px] text-slate-800 dark:text-[#E2E7EE] truncate">
-                          {log.event}
-                        </span>
-                        <span className="text-[10.5px] text-slate-400 shrink-0 font-mono tabular-nums">
-                          {log.time}
-                        </span>
-                      </div>
-                      <p className="text-[11px] font-normal text-slate-400 dark:text-[#778396] truncate mt-0.5">
-                        {log.details}
-                      </p>
-                    </div>
+                {logsList.length === 0 ? (
+                  <div className="p-3 text-center text-slate-400 text-xs">
+                    Connecting to live MT5 terminal expert logs...
                   </div>
-                ))}
+                ) : (
+                  logsList.slice(0, 4).map(log => (
+                    <div key={log.id} className="flex items-start gap-2.5 p-2.5 rounded-[14px] bg-slate-50/70 dark:bg-white/[0.02] border border-slate-100 dark:border-white/5">
+                      <span className="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 bg-blue-500"></span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-1">
+                          <span className="font-bold text-[11.5px] text-slate-800 dark:text-[#E2E7EE] truncate font-mono">
+                            {log.event}
+                          </span>
+                          <span className="text-[10.5px] text-slate-400 shrink-0 font-mono tabular-nums">
+                            {log.time}
+                          </span>
+                        </div>
+                        <p className="text-[11px] font-mono text-slate-500 dark:text-[#778396] truncate mt-0.5">
+                          {log.details || log.message}
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           </div>
@@ -1679,7 +1830,7 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
 
       </div>
 
-      {/* ── VPS & EXECUTION LOGS MODAL ── */}
+      {/* ── VPS & EXECUTION LOGS MODAL (MT5 EXPERTS TOOLBOX) ── */}
       <AnimatePresence>
         {showLogsModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
@@ -1687,7 +1838,7 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="rounded-[22px] border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-2xl dark:bg-none dark:bg-[#191B1E] dark:border-[1px] dark:border-[#2B2F35] max-w-2xl w-full p-6 space-y-4 text-slate-900 dark:text-white"
+              className="rounded-[22px] border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-2xl dark:bg-none dark:bg-[#191B1E] dark:border-[1px] dark:border-[#2B2F35] max-w-4xl w-full p-6 space-y-4 text-slate-900 dark:text-white"
             >
               <div className="flex items-center justify-between pb-3.5 border-b border-slate-100 dark:border-white/5">
                 <div className="flex items-center gap-3">
@@ -1695,11 +1846,17 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
                     <Terminal size={18} strokeWidth={2} />
                   </div>
                   <div>
-                    <h3 className="text-[15px] font-bold text-slate-900 dark:text-white">
-                      MT5 Terminal &amp; Bot Execution Logs
-                    </h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-[15px] font-bold text-slate-900 dark:text-white">
+                        MT5 Terminal · Experts Toolbox Logs
+                      </h3>
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        LIVE STREAM
+                      </span>
+                    </div>
                     <p className="text-[11.5px] text-slate-400 dark:text-slate-400">
-                      Live timeline of Bot activations, pauses, trades &amp; pings
+                      Real-time Expert Advisor logs directly streamed from MetaTrader 5 Terminal #{cleanAccount || '414460525'}
                     </p>
                   </div>
                 </div>
@@ -1712,34 +1869,57 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
                 </button>
               </div>
 
-              {/* Terminal View Container */}
-              <div className="bg-slate-950 dark:bg-black/80 rounded-[16px] border border-slate-800 dark:border-white/5 p-4 max-h-[340px] overflow-y-auto space-y-2 font-mono text-xs text-slate-200">
-                {logsList.map(log => (
-                  <div key={log.id} className="flex items-start gap-2.5 py-1 border-b border-white/[0.04] last:border-0">
-                    <span className="text-slate-500 text-[11px] shrink-0 tabular-nums">
-                      [{log.time}]
-                    </span>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded shrink-0 ${
-                      log.type === 'status' 
-                        ? (log.event.includes('ON') ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-400 border border-amber-500/30')
-                        : log.type === 'trade' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' : 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
-                    }`}>
-                      {log.event}
-                    </span>
-                    <span className="text-slate-300 text-[11.5px] min-w-0 flex-1 leading-snug">
-                      {log.details}
-                    </span>
-                  </div>
-                ))}
+              {/* Terminal View Container matching MT5 Experts toolbox */}
+              <div className="bg-[#0D1117] dark:bg-black/90 rounded-[16px] border border-slate-800 dark:border-white/10 p-3 max-h-[380px] overflow-y-auto overflow-x-auto font-mono text-xs">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-white/10 text-[11px] font-bold text-slate-400">
+                      <th className="py-2 px-2.5 w-[140px]">Time</th>
+                      <th className="py-2 px-2.5 w-[220px]">Source</th>
+                      <th className="py-2 px-2.5">Message</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/[0.04] text-[11.5px]">
+                    {logsList.length === 0 ? (
+                      <tr>
+                        <td colSpan={3} className="py-8 text-center text-slate-500">
+                          Waiting for live MT5 Expert logs from terminal...
+                        </td>
+                      </tr>
+                    ) : (
+                      logsList.map(log => (
+                        <tr key={log.id} className="hover:bg-white/[0.03] transition-colors">
+                          <td className="py-1.5 px-2.5 text-slate-400 tabular-nums whitespace-nowrap">
+                            {log.time}
+                          </td>
+                          <td className="py-1.5 px-2.5 text-blue-400 font-semibold truncate max-w-[220px]">
+                            {log.source || 'FiAlgo_v1.0.4 (6) (BTCUSD,M1)'}
+                          </td>
+                          <td className="py-1.5 px-2.5 text-slate-200">
+                            {log.message || log.details}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
               </div>
 
               <div className="flex items-center justify-between pt-2 text-xs text-slate-400">
-                <span className="text-[11.5px]">VPS Gateway: 185.220.101.44 · Latency: {typeof terminalPing === 'number' ? `${terminalPing.toFixed(1)}ms` : `${terminalPing}`}</span>
+                <span className="text-[11.5px]">Server: {cleanServerName} · Latency: {typeof terminalPing === 'number' ? `${terminalPing.toFixed(1)}ms` : `${terminalPing}`}</span>
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={() => {
-                      toast.success("Logs downloaded as MT5_Audit_Log.txt");
+                      const text = logsList.map(l => `${l.time}\t${l.source || 'FiAlgo'}\t${l.message || l.details}`).join('\n');
+                      const blob = new Blob([text], { type: 'text/plain' });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `MT5_Experts_${cleanAccount}.log`;
+                      a.click();
+                      URL.revokeObjectURL(url);
+                      toast.success(`Exported ${logsList.length} MT5 Expert log entries`);
                     }}
                     className="inline-flex items-center gap-1.5 h-[34px] px-3.5 rounded-[12px] border-2 border-white bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:bg-none dark:bg-[#191B1E] dark:border-[1px] dark:border-[#2B2F35] text-slate-600 dark:text-slate-300 text-xs font-bold transition-all cursor-pointer"
                   >

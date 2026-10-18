@@ -18,6 +18,8 @@ headers = {
     "apikey": ANON_KEY
 }
 
+seen_log_signatures = set()
+
 def sync_once():
     if not mt5.initialize():
         print(f"[{datetime.now().strftime('%H:%M:%S')}] MT5 initialization failed: {mt5.last_error()}")
@@ -68,6 +70,57 @@ def sync_once():
                     "closed_at": datetime.fromtimestamp(dict_d["time"]).isoformat()
                 })
 
+    # 3. Read 100% Real MT5 Expert Logs from Terminal MQL5/Logs
+    expert_logs = []
+    try:
+        import glob
+        appdata = os.environ.get('APPDATA', '')
+        pattern = os.path.join(appdata, 'MetaQuotes', 'Terminal', '*', 'MQL5', 'Logs', '*.log')
+        log_files = glob.glob(pattern)
+        if log_files:
+            log_files.sort(key=os.path.getmtime, reverse=True)
+            latest_file = log_files[0]
+            with open(latest_file, 'r', encoding='utf-16', errors='replace') as lf:
+                lines = lf.readlines()
+            for line in lines[-25:]:
+                parts = line.strip().split('\t')
+                if len(parts) >= 5:
+                    expert_logs.append({
+                        "time": parts[2],
+                        "source": parts[3],
+                        "message": parts[4]
+                    })
+                elif len(parts) >= 4:
+                    expert_logs.append({
+                        "time": parts[1],
+                        "source": parts[2],
+                        "message": parts[3]
+                    })
+    except Exception as e_log:
+        pass
+
+    # Push new expert logs directly to system_logs table for immediate real-time display
+    if expert_logs:
+        new_entries = []
+        for el in expert_logs[-12:]:
+            sig = f"{el.get('time')}_{el.get('message')}"
+            if sig not in seen_log_signatures:
+                seen_log_signatures.add(sig)
+                new_entries.append({
+                    "level": "info",
+                    "message": el.get("message"),
+                    "metadata": {
+                        "time": el.get("time"),
+                        "source": el.get("source"),
+                        "account": str(acc.login)
+                    }
+                })
+        if new_entries:
+            try:
+                requests.post("https://rylwyxhupwpwsdbvuoej.supabase.co/rest/v1/system_logs", json=new_entries, headers=headers, timeout=5)
+            except Exception:
+                pass
+
     payload = {
         "action": "metrics_sync",
         "activation_key": ACTIVATION_KEY,
@@ -78,20 +131,21 @@ def sync_once():
         "equity": acc.equity,
         "currency": acc.currency,
         "open_positions": pos_list,
-        "recent_deals": deals_list
+        "recent_deals": deals_list,
+        "expert_logs": expert_logs
     }
 
     try:
         res = requests.post(WEBHOOK_URL, json=payload, headers=headers, timeout=8)
         if res.status_code == 200:
             sym = "₹" if acc.currency == "INR" else ("$" if acc.currency == "USD" else acc.currency)
-            print(f"[{datetime.now().strftime('%H:%M:%S')}] SYNC OK -> MT5 #{acc.login} ({acc.company}) | Bal: {sym}{acc.balance:,.2f} ({acc.currency}) | Eq: {sym}{acc.equity:,.2f} | Open: {len(pos_list)} | Deals: {len(deals_list)}")
+            print(f"[{datetime.now().strftime('%H:%M:%S')}] SYNC OK -> Server: {acc.server} | MT5 #{acc.login} | Bal: {sym}{acc.balance:,.2f} | Eq: {sym}{acc.equity:,.2f} | Open: {len(pos_list)} | Logs: {len(expert_logs)}", flush=True)
             return True
         else:
-            print(f"[{datetime.now().strftime('%H:%M:%S')}] Webhook returned {res.status_code}: {res.text}")
+            print(f"[{datetime.now().strftime('%H:%M:%S')}] Webhook returned {res.status_code}: {res.text}", flush=True)
             return False
     except Exception as e:
-        print(f"[{datetime.now().strftime('%H:%M:%S')}] Sync exception: {e}")
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] Sync exception: {e}", flush=True)
         return False
 
 def run_loop():
