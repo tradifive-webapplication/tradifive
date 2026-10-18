@@ -1054,7 +1054,7 @@ void TFLicEval()
       if(!TFParseKey(g_licKey,lg,ed,ck) || ck!=TFLicHash(lg,ed))
          g_licKeyMsg="Invalid license key";
       else if(lg!=0 && lg!=(ulong)AccountInfoInteger(ACCOUNT_LOGIN))
-         g_licKeyMsg="This key belongs to another account";
+         g_licKeyMsg="Account number didn't match";
       else
       {
          keyOK=true;
@@ -3869,9 +3869,9 @@ int OnInit()
          }
          else if(licAccount != 0 && licAccount != currentAccount)
          {
-            Alert("TRADIFIVE SECURITY VIOLATION: This algorithm is cryptographically locked to MT5 Account #", licAccount,
-                  ". Current logged in account is #", currentAccount,
-                  ". Sharing or copying to other accounts is prohibited! EA is detaching.");
+            Alert("Account number didn't match! Your license is for MT5 Account #", licAccount,
+                  ", but your MT5 is currently logged into Account #", currentAccount,
+                  ". Connection blocked.");
             Print("TRADIFIVE: Account mismatch! Bound account: ", licAccount, " vs Current account: ", currentAccount);
             ExpertRemove();
             return INIT_FAILED;
@@ -3881,8 +3881,8 @@ int OnInit()
       {
          if(TrialDays <= 0)
          {
-            Alert("TRADIFIVE SECURITY LOCK: License Key required for MT5 Account #", currentAccount,
-                  ". Please paste your account-bound license key in EA Inputs (F7) -> LicenseKey field.");
+            Alert("Account number didn't match or License Key missing! Please enter your license key for MT5 Account #", currentAccount,
+                  " in EA Settings (press F7).");
             Print("TRADIFIVE: No license key provided for Account #", currentAccount);
             ExpertRemove();
             return INIT_FAILED;
@@ -3894,7 +3894,7 @@ int OnInit()
    if(mm!=ACCOUNT_MARGIN_MODE_RETAIL_HEDGING)
    {
       Print("TRADIFIVE: This EA requires a HEDGING account. Current margin mode does not allow multiple positions per symbol. EA stopped.");
-      Alert("Tradifive requires a MetaTrader 5 HEDGING account.");
+      Alert("Cannot connect: MetaTrader 5 HEDGING account required! Your current account is Netting. Please switch to or open a Hedging account with your broker.");
       return INIT_FAILED;
    }
 
