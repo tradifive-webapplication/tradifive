@@ -95,7 +95,7 @@ def sync_once():
         return False
 
 def run_loop():
-    print(f"Starting FiAlgo Real-Time MT5 Bridge (1-Second Heartbeat)...")
+    print(f"Starting FiAlgo Real-Time MT5 Bridge (1-Second Heartbeat)...", flush=True)
     while True:
         try:
             sync_once()

@@ -4029,12 +4029,41 @@ void PushCloudTelemetry()
    string broker = AccountInfoString(ACCOUNT_COMPANY);
    double bal = AccountInfoDouble(ACCOUNT_BALANCE);
    double eq = AccountInfoDouble(ACCOUNT_EQUITY);
+   string curr = AccountInfoString(ACCOUNT_CURRENCY);
    string lic = (g_licKey != "") ? g_licKey : TFNormKey(LicenseKey);
+
+   // 1. Serialize all active open positions in MT5 directly
+   string openPositionsJson = "[";
+   int totalPos = PositionsTotal();
+   int openCount = 0;
+   for(int i = 0; i < totalPos; i++)
+   {
+      ulong ticket = PositionGetTicket(i);
+      if(ticket > 0)
+      {
+         string sym = PositionGetString(POSITION_SYMBOL);
+         long posType = PositionGetInteger(POSITION_TYPE);
+         string sType = (posType == POSITION_TYPE_BUY) ? "BUY" : "SELL";
+         double vol = PositionGetDouble(POSITION_VOLUME);
+         double openP = PositionGetDouble(POSITION_PRICE_OPEN);
+         double curP = PositionGetDouble(POSITION_PRICE_CURRENT);
+         double sl = PositionGetDouble(POSITION_SL);
+         double tp = PositionGetDouble(POSITION_TP);
+         double profit = PositionGetDouble(POSITION_PROFIT);
+         long timeSec = PositionGetInteger(POSITION_TIME);
+
+         if(openCount > 0) openPositionsJson += ",";
+         openPositionsJson += StringFormat("{\"ticket\":%llu,\"symbol\":\"%s\",\"type\":\"%s\",\"lot\":%.2f,\"open_price\":%.5f,\"current_price\":%.5f,\"sl\":%.5f,\"tp\":%.5f,\"profit\":%.2f,\"time\":%I64d}",
+                                          ticket, sym, sType, vol, openP, curP, sl, tp, profit, timeSec);
+         openCount++;
+      }
+   }
+   openPositionsJson += "]";
 
    string headers = "Content-Type: application/json\r\nAuthorization: Bearer " + TF_ANON_KEY + "\r\napikey: " + TF_ANON_KEY + "\r\n";
 
-   string jsonPayload = StringFormat("{\"action\":\"metrics_sync\",\"activation_key\":\"%s\",\"account_number\":\"%I64d\",\"broker\":\"%s\",\"balance\":%.2f,\"equity\":%.2f}",
-                                     lic, login, broker, bal, eq);
+   string jsonPayload = StringFormat("{\"action\":\"metrics_sync\",\"activation_key\":\"%s\",\"account_number\":\"%I64d\",\"broker\":\"%s\",\"balance\":%.2f,\"equity\":%.2f,\"currency\":\"%s\",\"open_positions\":%s}",
+                                     lic, login, broker, bal, eq, curr, openPositionsJson);
    char postData[];
    StringToCharArray(jsonPayload, postData, 0, WHOLE_ARRAY, CP_UTF8);
    int dataSize = ArraySize(postData) - 1;

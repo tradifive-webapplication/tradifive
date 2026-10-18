@@ -4015,6 +4015,7 @@ void OnDeinit(const int reason)
 //| Tradifive Cloud Telemetry & Master Switch                        |
 //+------------------------------------------------------------------+
 const string TF_WEBHOOK_URL = "https://rylwyxhupwpwsdbvuoej.supabase.co/functions/v1/mt5-webhook";
+const string TF_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ5bHd5eGh1cHdwd3NkYnZ1b2VqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0MzI1NTcsImV4cCI6MjA5MjAwODU1N30.xuRj9PZgZys2b64pNnjhXOVyDjtGVFlBno2o9hiisHA";
 
 void PushCloudTelemetry()
 {
@@ -4028,10 +4029,41 @@ void PushCloudTelemetry()
    string broker = AccountInfoString(ACCOUNT_COMPANY);
    double bal = AccountInfoDouble(ACCOUNT_BALANCE);
    double eq = AccountInfoDouble(ACCOUNT_EQUITY);
+   string curr = AccountInfoString(ACCOUNT_CURRENCY);
    string lic = (g_licKey != "") ? g_licKey : TFNormKey(LicenseKey);
 
-   string jsonPayload = StringFormat("{\"action\":\"metrics_sync\",\"activation_key\":\"%s\",\"account_number\":\"%I64d\",\"broker\":\"%s\",\"balance\":%.2f,\"equity\":%.2f}",
-                                     lic, login, broker, bal, eq);
+   // 1. Serialize all active open positions in MT5 directly
+   string openPositionsJson = "[";
+   int totalPos = PositionsTotal();
+   int openCount = 0;
+   for(int i = 0; i < totalPos; i++)
+   {
+      ulong ticket = PositionGetTicket(i);
+      if(ticket > 0)
+      {
+         string sym = PositionGetString(POSITION_SYMBOL);
+         long posType = PositionGetInteger(POSITION_TYPE);
+         string sType = (posType == POSITION_TYPE_BUY) ? "BUY" : "SELL";
+         double vol = PositionGetDouble(POSITION_VOLUME);
+         double openP = PositionGetDouble(POSITION_PRICE_OPEN);
+         double curP = PositionGetDouble(POSITION_PRICE_CURRENT);
+         double sl = PositionGetDouble(POSITION_SL);
+         double tp = PositionGetDouble(POSITION_TP);
+         double profit = PositionGetDouble(POSITION_PROFIT);
+         long timeSec = PositionGetInteger(POSITION_TIME);
+
+         if(openCount > 0) openPositionsJson += ",";
+         openPositionsJson += StringFormat("{\"ticket\":%llu,\"symbol\":\"%s\",\"type\":\"%s\",\"lot\":%.2f,\"open_price\":%.5f,\"current_price\":%.5f,\"sl\":%.5f,\"tp\":%.5f,\"profit\":%.2f,\"time\":%I64d}",
+                                          ticket, sym, sType, vol, openP, curP, sl, tp, profit, timeSec);
+         openCount++;
+      }
+   }
+   openPositionsJson += "]";
+
+   string headers = "Content-Type: application/json\r\nAuthorization: Bearer " + TF_ANON_KEY + "\r\napikey: " + TF_ANON_KEY + "\r\n";
+
+   string jsonPayload = StringFormat("{\"action\":\"metrics_sync\",\"activation_key\":\"%s\",\"account_number\":\"%I64d\",\"broker\":\"%s\",\"balance\":%.2f,\"equity\":%.2f,\"currency\":\"%s\",\"open_positions\":%s}",
+                                     lic, login, broker, bal, eq, curr, openPositionsJson);
    char postData[];
    StringToCharArray(jsonPayload, postData, 0, WHOLE_ARRAY, CP_UTF8);
    int dataSize = ArraySize(postData) - 1;
@@ -4042,7 +4074,6 @@ void PushCloudTelemetry()
       ArrayCopy(cleanPostData, postData, 0, 0, dataSize);
       char result[];
       string resultHeaders;
-      string headers = "Content-Type: application/json\r\n";
       WebRequest("POST", TF_WEBHOOK_URL, headers, 3000, cleanPostData, result, resultHeaders);
    }
 
@@ -4057,7 +4088,7 @@ void PushCloudTelemetry()
       ArrayCopy(cleanStatus, statusPostData, 0, 0, statusSize);
       char statusResult[];
       string statusHeaders;
-      int res = WebRequest("POST", TF_WEBHOOK_URL, "Content-Type: application/json\r\n", 3000, cleanStatus, statusResult, statusHeaders);
+      int res = WebRequest("POST", TF_WEBHOOK_URL, headers, 3000, cleanStatus, statusResult, statusHeaders);
       if(res == 200 || res == 201)
       {
          string responseStr = CharArrayToString(statusResult);
@@ -4108,7 +4139,8 @@ void OnTradeTransaction(const MqlTradeTransaction &trans,
                ArrayResize(cleanPostData, dataSize);
                ArrayCopy(cleanPostData, postData, 0, 0, dataSize);
                char resArr[]; string resHdr;
-               WebRequest("POST", TF_WEBHOOK_URL, "Content-Type: application/json\r\n", 5000, cleanPostData, resArr, resHdr);
+               string headers = "Content-Type: application/json\r\nAuthorization: Bearer " + TF_ANON_KEY + "\r\napikey: " + TF_ANON_KEY + "\r\n";
+               WebRequest("POST", TF_WEBHOOK_URL, headers, 5000, cleanPostData, resArr, resHdr);
             }
          }
       }

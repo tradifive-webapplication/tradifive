@@ -282,7 +282,7 @@ serve(async (req) => {
              profit: Number(pos.profit || 0),
              stop_loss: pos.sl ? Number(pos.sl) : null,
              take_profit: pos.tp ? Number(pos.tp) : null,
-             opened_at: pos.opened_at ? new Date(pos.opened_at).toISOString() : new Date().toISOString(),
+             opened_at: pos.opened_at ? new Date(pos.opened_at).toISOString() : (pos.time ? new Date(Number(pos.time) * 1000).toISOString() : new Date().toISOString()),
              closed_at: null,
              is_pending: false
            };
@@ -295,7 +295,7 @@ serve(async (req) => {
            .delete()
            .eq('user_id', user_id)
            .is('closed_at', null)
-           .not('ticket', 'in', activeTickets);
+           .not('ticket', 'in', `(${activeTickets.join(',')})`);
        } else if (open_positions && Array.isArray(open_positions) && open_positions.length === 0) {
          await supabaseAdmin
            .from('trades')

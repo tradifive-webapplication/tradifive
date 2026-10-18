@@ -112,6 +112,28 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
   const [activeLicenseKey, setActiveLicenseKey] = useState<string>("TF-18B42A6D-2710-30307601B9");
   const [copiedKey, setCopiedKey] = useState<boolean>(false);
 
+  // User Selected Daily Profit Target (Synced with AutoTrade Profit Calculator)
+  const [dailyTargetRate, setDailyTargetRate] = useState<number>(() => {
+    try {
+      const saved = localStorage.getItem("tradifive_daily_target_rate");
+      return saved && Number(saved) > 0 ? Number(saved) : 2.0;
+    } catch (e) {
+      return 2.0;
+    }
+  });
+
+  const [dailyTargetDeposit, setDailyTargetDeposit] = useState<number>(() => {
+    try {
+      const saved = localStorage.getItem("tradifive_selected_deposit");
+      if (saved && Number(saved) > 0) return Number(saved);
+    } catch (e) {}
+    return 100000.00;
+  });
+
+  const [showTargetModal, setShowTargetModal] = useState<boolean>(false);
+  const [tempTargetRate, setTempTargetRate] = useState<number>(2.0);
+  const [tempTargetDeposit, setTempTargetDeposit] = useState<number>(100000);
+
   // Real Account & Financial Data (Initialized cleanly from MT5 account #414460525)
   const [totalDeposits, setTotalDeposits] = useState<number>(() => {
     try {
@@ -489,7 +511,17 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
     };
 
     window.addEventListener("tradifive_bot_status_changed", handleStatusSync);
-    return () => window.removeEventListener("tradifive_bot_status_changed", handleStatusSync);
+
+    const handleTargetSync = (e: any) => {
+      if (e.detail?.dailyRate) setDailyTargetRate(Number(e.detail.dailyRate));
+      if (e.detail?.deposit) setDailyTargetDeposit(Number(e.detail.deposit));
+    };
+    window.addEventListener("tradifive_target_settings_changed", handleTargetSync);
+
+    return () => {
+      window.removeEventListener("tradifive_bot_status_changed", handleStatusSync);
+      window.removeEventListener("tradifive_target_settings_changed", handleTargetSync);
+    };
   }, []);
 
   // 100% REAL DYNAMIC FINANCIAL METRICS
@@ -552,6 +584,25 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
       todayLosses: losses
     };
   }, [closedTrades]);
+
+  // Dynamic Daily Target Math
+  const dailyTargetProfit = useMemo(() => {
+    const base = dailyTargetDeposit > 0 ? dailyTargetDeposit : (accountBalance > 0 ? accountBalance : 100000);
+    return Number(((base * dailyTargetRate) / 100).toFixed(2));
+  }, [dailyTargetDeposit, dailyTargetRate, accountBalance]);
+
+  const monthlyTargetProfit = useMemo(() => {
+    return Number((dailyTargetProfit * 22).toFixed(2));
+  }, [dailyTargetProfit]);
+
+  const targetProgressPct = useMemo(() => {
+    if (dailyTargetProfit <= 0) return 0;
+    return Number(Math.max(0, (todayPnl / dailyTargetProfit) * 100).toFixed(1));
+  }, [todayPnl, dailyTargetProfit]);
+
+  const isTargetAchieved = useMemo(() => {
+    return todayPnl >= dailyTargetProfit && dailyTargetProfit > 0;
+  }, [todayPnl, dailyTargetProfit]);
 
   // Real Win Rate & Profit Factor
   const { winRatePct, profitFactor } = useMemo(() => {
@@ -873,6 +924,81 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
         )}
       </AnimatePresence>
 
+      {/* ── DAILY TARGET & GOAL TRACKER BANNER ── */}
+      <div className="p-4 sm:p-5 rounded-[22px] border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:bg-none dark:bg-[#191B1E] dark:border-[1px] dark:border-[#2B2F35] dark:shadow-none mb-4 transition-all duration-300">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          {/* Target Info */}
+          <div className="flex-1">
+            <div className="flex flex-wrap items-center gap-2 mb-2">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 uppercase tracking-wider">
+                <Zap className="w-3 h-3 text-blue-500" />
+                Selected Daily Target · {dailyTargetRate.toFixed(1)}% / day
+              </span>
+              {isTargetAchieved ? (
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                  <CheckCircle2 className="w-3 h-3" />
+                  Target Hit! (+{currencySymbol}{todayPnl.toFixed(2)})
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                  <Activity className="w-3 h-3 animate-pulse" />
+                  {targetProgressPct.toFixed(1)}% of Goal · {currencySymbol}{Math.max(0, dailyTargetProfit - todayPnl).toFixed(2)} Remaining
+                </span>
+              )}
+            </div>
+
+            <div className="flex flex-wrap items-baseline gap-3">
+              <h3 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight" style={{ fontFamily: "'Inter', sans-serif" }}>
+                Goal: {currencySymbol}{dailyTargetProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </h3>
+              <span className="text-xs text-slate-500 dark:text-slate-400">
+                on {currencySymbol}{dailyTargetDeposit.toLocaleString(undefined, { minimumFractionDigits: 0 })} capital
+              </span>
+              <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                (Today: {todayPnl >= 0 ? '+' : ''}{currencySymbol}{todayPnl.toFixed(2)})
+              </span>
+            </div>
+
+            {/* Smooth Progress Bar */}
+            <div className="mt-3 relative w-full h-2.5 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden border border-slate-200/60 dark:border-white/5">
+              <div
+                className={`h-full rounded-full transition-all duration-500 ${
+                  isTargetAchieved 
+                    ? 'bg-gradient-to-r from-emerald-500 to-teal-400 shadow-[0_0_12px_rgba(16,185,129,0.5)]' 
+                    : 'bg-gradient-to-r from-blue-500 via-indigo-400 to-emerald-500'
+                }`}
+                style={{ width: `${Math.min(100, targetProgressPct)}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Monthly projection & Adjust button */}
+          <div className="flex items-center justify-between lg:justify-end gap-3 pt-3 lg:pt-0 border-t lg:border-t-0 border-slate-100 dark:border-white/5 shrink-0">
+            <div className="text-left lg:text-right">
+              <span className="text-[10px] sm:text-[10.5px] font-extrabold uppercase tracking-wider text-slate-400 block">
+                Monthly Target (22 Trading Days)
+              </span>
+              <span className="text-[15px] sm:text-[17px] font-bold text-emerald-600 dark:text-emerald-400 font-mono" style={{ fontFamily: "'Inter', sans-serif" }}>
+                +{currencySymbol}{monthlyTargetProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </span>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                setTempTargetRate(dailyTargetRate);
+                setTempTargetDeposit(dailyTargetDeposit);
+                setShowTargetModal(true);
+              }}
+              className="h-[38px] px-3.5 rounded-[14px] border-2 border-white bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:bg-none dark:bg-[#191B1E] dark:border-[1px] dark:border-[#2B2F35] dark:shadow-none text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15)]"
+            >
+              <Sliders className="w-3.5 h-3.5" />
+              <span>Adjust Target</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* ── METRICS GRID (6 TOP-LEVEL 100% REAL KPI CARDS) ── */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3.5 mb-4">
         {/* Realized Net Profit */}
@@ -944,18 +1070,26 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
         {/* Today's PnL */}
         <div className={boxStyle}>
           <div>
-            <p className="text-[10.5px] sm:text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-wider mb-2">
-              Today's PnL
-            </p>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-[10.5px] sm:text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-wider">
+                Today's PnL
+              </p>
+              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                {dailyTargetRate.toFixed(1)}% Goal
+              </span>
+            </div>
             <h3 className={`text-[22px] sm:text-[26px] font-medium tracking-tight leading-none ${
               todayPnl > 0 ? 'text-emerald-500' : todayPnl < 0 ? 'text-rose-500' : 'text-slate-900 dark:text-white'
             }`} style={{ fontFamily: "'Inter', sans-serif" }}>
               {todayPnl > 0 ? '+' : todayPnl < 0 ? '-' : ''}{currencySymbol}{Math.abs(todayPnl).toFixed(2)}
             </h3>
           </div>
-          <p className="text-[11.5px] sm:text-[12px] font-medium text-slate-400 dark:text-[#778396] flex items-center gap-1 mt-3">
-            <Check size={12} strokeWidth={2.5} /> {todayWins} Win{todayWins === 1 ? '' : 's'} / {todayLosses} Loss{todayLosses === 1 ? '' : 'es'}
-          </p>
+          <div className="text-[11.5px] sm:text-[12px] font-medium text-slate-400 dark:text-[#778396] flex items-center justify-between gap-1 mt-3">
+            <span>Target: {currencySymbol}{dailyTargetProfit.toFixed(0)}</span>
+            <span className={todayPnl >= dailyTargetProfit ? 'text-emerald-500 font-bold' : 'text-blue-500 font-semibold'}>
+              {targetProgressPct.toFixed(0)}%
+            </span>
+          </div>
         </div>
 
         {/* Win Rate */}
@@ -1208,7 +1342,7 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
                       No Open Positions
                     </h4>
                     <p className="text-[12px] text-slate-400 dark:text-slate-400 max-w-md leading-relaxed">
-                      FiAlgo V1 is actively scanning XAUUSD (Gold) on M1 timeframe for institutional entry signals. Orders opened by the algorithm will stream here automatically.
+                      FiAlgo algorithm is actively scanning BTCUSD & XAUUSD on MT5 for institutional entry setups. Active orders opened by the algorithm will automatically stream here every second.
                     </p>
                   </div>
                 ) : (
@@ -1624,6 +1758,152 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
             </motion.div>
           </div>
         )}
+
+        {/* ── MODAL: ADJUST DAILY TARGET ── */}
+        {showTargetModal && (
+          <div 
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+            onClick={() => setShowTargetModal(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-lg p-5 sm:p-6 rounded-[24px] bg-[#141414] border border-white/10 shadow-2xl text-white space-y-5"
+            >
+              <div className="flex items-center justify-between pb-3 border-b border-white/10">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center">
+                    <Sliders className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-white leading-none">
+                      Adjust Daily Target
+                    </h3>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      Configure your daily profit rate & capital target
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowTargetModal(false)}
+                  className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Capital Input */}
+              <div>
+                <div className="flex justify-between items-center mb-1.5">
+                  <label className="text-xs font-semibold text-slate-300">
+                    Deposit Capital
+                  </label>
+                  <span className="text-sm font-bold text-white font-mono">
+                    {currencySymbol}{tempTargetDeposit.toLocaleString()}
+                  </span>
+                </div>
+                <div className="grid grid-cols-4 gap-1.5">
+                  {[100000, 200000, 500000, 1000000].map(val => (
+                    <button
+                      key={val}
+                      type="button"
+                      onClick={() => setTempTargetDeposit(val)}
+                      className={`py-1.5 text-xs font-bold rounded-lg border transition-all ${
+                        tempTargetDeposit === val
+                          ? 'bg-blue-600 border-blue-500 text-white'
+                          : 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10'
+                      }`}
+                    >
+                      {val >= 100000 ? `₹${val / 100000}L` : `₹${val}`}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Target Rate Slider & Presets */}
+              <div>
+                <div className="flex justify-between items-center mb-1.5">
+                  <label className="text-xs font-semibold text-slate-300">
+                    Daily Profit Target
+                  </label>
+                  <span className="text-sm font-bold text-emerald-400 font-mono">
+                    {tempTargetRate.toFixed(1)}% / day (~{currencySymbol}{((tempTargetDeposit * tempTargetRate) / 100).toFixed(0)})
+                  </span>
+                </div>
+                <div className="grid grid-cols-5 gap-1.5 mb-2">
+                  {[2.0, 2.5, 3.0, 4.0, 5.0].map(rate => (
+                    <button
+                      key={rate}
+                      type="button"
+                      onClick={() => setTempTargetRate(rate)}
+                      className={`py-1.5 text-xs font-bold rounded-lg border transition-all ${
+                        tempTargetRate === rate
+                          ? 'bg-emerald-600 border-emerald-500 text-white'
+                          : 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10'
+                      }`}
+                    >
+                      {rate.toFixed(1)}%
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Summary Box */}
+              <div className="p-3 rounded-xl bg-white/[0.03] border border-white/5 space-y-2 text-xs">
+                <div className="flex justify-between text-slate-300">
+                  <span>Projected Daily Profit:</span>
+                  <span className="font-bold text-emerald-400 font-mono">
+                    +{currencySymbol}{((tempTargetDeposit * tempTargetRate) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
+                <div className="flex justify-between text-slate-300">
+                  <span>Projected Monthly Profit (22 Days):</span>
+                  <span className="font-bold text-emerald-400 font-mono">
+                    +{currencySymbol}{(((tempTargetDeposit * tempTargetRate) / 100) * 22).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowTargetModal(false)}
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-300 hover:bg-white/10 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDailyTargetRate(tempTargetRate);
+                    setDailyTargetDeposit(tempTargetDeposit);
+                    try {
+                      localStorage.setItem("tradifive_daily_target_rate", String(tempTargetRate));
+                      localStorage.setItem("tradifive_selected_deposit", String(tempTargetDeposit));
+                      localStorage.setItem("tradifive_daily_target_amount", String((tempTargetDeposit * tempTargetRate) / 100));
+                      localStorage.setItem("tradifive_monthly_target_amount", String(((tempTargetDeposit * tempTargetRate) / 100) * 22));
+                      window.dispatchEvent(new CustomEvent("tradifive_target_settings_changed", {
+                        detail: { dailyRate: tempTargetRate, deposit: tempTargetDeposit }
+                      }));
+                    } catch (e) {}
+                    setShowTargetModal(false);
+                    toast.success("Daily Target Updated!", {
+                      description: `Set to ${tempTargetRate.toFixed(1)}% / day (${currencySymbol}${((tempTargetDeposit * tempTargetRate) / 100).toFixed(0)} daily goal).`
+                    });
+                  }}
+                  className="px-5 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white transition-all shadow-lg shadow-blue-600/30"
+                >
+                  Save Target
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
       </AnimatePresence>
     </div>
   );

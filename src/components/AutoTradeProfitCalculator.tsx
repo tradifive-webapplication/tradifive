@@ -16,7 +16,20 @@ export default function AutoTradeProfitCalculator({
 }: AutoTradeProfitCalculatorProps = {}) {
   const navigate = useNavigate();
 
+  const saveTargets = (dep: number, rate: number, dailyP: number, monthP: number) => {
+    try {
+      localStorage.setItem("tradifive_selected_deposit", String(dep));
+      localStorage.setItem("tradifive_daily_target_rate", String(rate));
+      localStorage.setItem("tradifive_daily_target_amount", String(dailyP));
+      localStorage.setItem("tradifive_monthly_target_amount", String(monthP));
+      window.dispatchEvent(new CustomEvent("tradifive_target_settings_changed", {
+        detail: { deposit: dep, dailyRate: rate, dailyProfit: dailyP, monthlyProfit: monthP }
+      }));
+    } catch (e) {}
+  };
+
   const handleCta = () => {
+    saveTargets(deposit, dailyRate, dailyProfit, monthlyProfit);
     if (onCtaClick) {
       onCtaClick();
     } else {
@@ -25,9 +38,23 @@ export default function AutoTradeProfitCalculator({
   };
 
   // State in INR: Deposit 1 Lakh to 10 Lakh (Default ₹1,00,000)
-  const [deposit, setDeposit] = useState<number>(100000);
+  const [deposit, setDeposit] = useState<number>(() => {
+    try {
+      const saved = localStorage.getItem("tradifive_selected_deposit");
+      return saved && Number(saved) > 0 ? Number(saved) : 100000;
+    } catch (e) {
+      return 100000;
+    }
+  });
   // Daily target rate: 2% to 5% (Default 2.0%)
-  const [dailyRate, setDailyRate] = useState<number>(2.0);
+  const [dailyRate, setDailyRate] = useState<number>(() => {
+    try {
+      const saved = localStorage.getItem("tradifive_daily_target_rate");
+      return saved && Number(saved) > 0 ? Number(saved) : 2.0;
+    } catch (e) {
+      return 2.0;
+    }
+  });
 
   // Standard market trading days in a month (22 days)
   const tradingDays = 22;
@@ -55,6 +82,18 @@ export default function AutoTradeProfitCalculator({
       roiPercent: roi,
     };
   }, [deposit, dailyRate]);
+
+  React.useEffect(() => {
+    try {
+      localStorage.setItem("tradifive_selected_deposit", String(deposit));
+      localStorage.setItem("tradifive_daily_target_rate", String(dailyRate));
+      localStorage.setItem("tradifive_daily_target_amount", String(dailyProfit));
+      localStorage.setItem("tradifive_monthly_target_amount", String(monthlyProfit));
+      window.dispatchEvent(new CustomEvent("tradifive_target_settings_changed", {
+        detail: { deposit, dailyRate, dailyProfit, monthlyProfit }
+      }));
+    } catch (e) {}
+  }, [deposit, dailyRate, dailyProfit, monthlyProfit]);
 
   // Investment presets: 1 Lakh to 10 Lakh
   const depositPresets = [
