@@ -1048,10 +1048,6 @@ MagicNumber=789104
                             onChange={(e) => setMt5Account(e.target.value)}
                             className="w-full bg-slate-50 dark:bg-[#121214] border border-slate-200/80 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white font-mono focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all placeholder:text-slate-400"
                           />
-                          <p className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1 mt-1">
-                            <span className="font-semibold text-amber-600 dark:text-amber-400">Important:</span>
-                            <span>Must be an MT5 <strong>Hedging</strong> account (Netting accounts not supported).</span>
-                          </p>
                         </div>
 
                         {/* Confirmation Checkbox */}
@@ -1447,7 +1443,7 @@ MagicNumber=789104
                   </span>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-2 pt-1 border-t border-slate-200/60 dark:border-white/5 text-center">
+                <div className="grid grid-cols-3 gap-1.5 sm:gap-2 pt-1 border-t border-slate-200/60 dark:border-white/5 text-center">
                   <div className="p-2 rounded-lg bg-white dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/5">
                     <span className="block text-[10px] text-slate-400 uppercase font-semibold">Min. Deposit</span>
                     <strong className="text-xs font-bold text-slate-900 dark:text-white font-mono">$500 USD</strong>
@@ -1459,10 +1455,6 @@ MagicNumber=789104
                   <div className="p-2 rounded-lg bg-white dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/5">
                     <span className="block text-[10px] text-slate-400 uppercase font-semibold">Leverage</span>
                     <strong className="text-xs font-bold text-slate-900 dark:text-white font-mono">1:100+</strong>
-                  </div>
-                  <div className="p-2 rounded-lg bg-white dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/5">
-                    <span className="block text-[10px] text-slate-400 uppercase font-semibold">Account Type</span>
-                    <strong className="text-xs font-bold text-blue-600 dark:text-blue-400 font-mono">HEDGING</strong>
                   </div>
                 </div>
               </div>
@@ -2483,22 +2475,6 @@ MagicNumber=789104
                         <div className="text-[11px] text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-100 dark:border-white/5 flex items-center gap-2">
                           <CheckCircle2 size={12} className="text-emerald-500 shrink-0" />
                           <span>This key is mathematically cryptographically locked to MT5 Account <strong>#{mt5Account || "4820194"}</strong> with Lifetime validity.</span>
-                        </div>
-
-                        {/* Hedging Account & Account Match Reminder */}
-                        <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-800 dark:text-amber-300 text-xs space-y-1.5">
-                          <div className="font-bold flex items-center gap-1.5">
-                            <AlertTriangle size={13} className="text-amber-500 shrink-0" />
-                            <span>Connection &amp; Verification Notice:</span>
-                          </div>
-                          <ul className="list-disc pl-4 space-y-1 text-[11.5px] leading-relaxed">
-                            <li>
-                              <strong>Account Match:</strong> Your MT5 must be logged into Account <strong>#{mt5Account || "4820194"}</strong>. If you log into another account, FiAlgo will show: <em>"Account number didn't match"</em>.
-                            </li>
-                            <li>
-                              <strong>Hedging Mode:</strong> Your MT5 account mode must be <strong>Hedging</strong> (not Netting). If your account is Netting, MT5 will show: <em>"Cannot connect: MetaTrader 5 HEDGING account required"</em>.
-                            </li>
-                          </ul>
                         </div>
                       </div>
                     </>
