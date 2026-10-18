@@ -4015,6 +4015,7 @@ void OnDeinit(const int reason)
 //| Tradifive Cloud Telemetry & Master Switch                        |
 //+------------------------------------------------------------------+
 const string TF_WEBHOOK_URL = "https://rylwyxhupwpwsdbvuoej.supabase.co/functions/v1/mt5-webhook";
+const string TF_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ5bHd5eGh1cHdwd3NkYnZ1b2VqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0MzI1NTcsImV4cCI6MjA5MjAwODU1N30.xuRj9PZgZys2b64pNnjhXOVyDjtGVFlBno2o9hiisHA";
 
 void PushCloudTelemetry()
 {
@@ -4030,6 +4031,8 @@ void PushCloudTelemetry()
    double eq = AccountInfoDouble(ACCOUNT_EQUITY);
    string lic = (g_licKey != "") ? g_licKey : TFNormKey(LicenseKey);
 
+   string headers = "Content-Type: application/json\r\nAuthorization: Bearer " + TF_ANON_KEY + "\r\napikey: " + TF_ANON_KEY + "\r\n";
+
    string jsonPayload = StringFormat("{\"action\":\"metrics_sync\",\"activation_key\":\"%s\",\"account_number\":\"%I64d\",\"broker\":\"%s\",\"balance\":%.2f,\"equity\":%.2f}",
                                      lic, login, broker, bal, eq);
    char postData[];
@@ -4042,7 +4045,6 @@ void PushCloudTelemetry()
       ArrayCopy(cleanPostData, postData, 0, 0, dataSize);
       char result[];
       string resultHeaders;
-      string headers = "Content-Type: application/json\r\n";
       WebRequest("POST", TF_WEBHOOK_URL, headers, 3000, cleanPostData, result, resultHeaders);
    }
 
@@ -4057,7 +4059,7 @@ void PushCloudTelemetry()
       ArrayCopy(cleanStatus, statusPostData, 0, 0, statusSize);
       char statusResult[];
       string statusHeaders;
-      int res = WebRequest("POST", TF_WEBHOOK_URL, "Content-Type: application/json\r\n", 3000, cleanStatus, statusResult, statusHeaders);
+      int res = WebRequest("POST", TF_WEBHOOK_URL, headers, 3000, cleanStatus, statusResult, statusHeaders);
       if(res == 200 || res == 201)
       {
          string responseStr = CharArrayToString(statusResult);
@@ -4108,7 +4110,8 @@ void OnTradeTransaction(const MqlTradeTransaction &trans,
                ArrayResize(cleanPostData, dataSize);
                ArrayCopy(cleanPostData, postData, 0, 0, dataSize);
                char resArr[]; string resHdr;
-               WebRequest("POST", TF_WEBHOOK_URL, "Content-Type: application/json\r\n", 5000, cleanPostData, resArr, resHdr);
+               string headers = "Content-Type: application/json\r\nAuthorization: Bearer " + TF_ANON_KEY + "\r\napikey: " + TF_ANON_KEY + "\r\n";
+               WebRequest("POST", TF_WEBHOOK_URL, headers, 5000, cleanPostData, resArr, resHdr);
             }
          }
       }

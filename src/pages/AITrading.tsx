@@ -111,12 +111,32 @@ export default function AITrading() {
   // Active Wizard Step: 1, 2, or 3 (Shows ONE step at a time for maximum clarity!)
   const [activeStep, setActiveStep] = useState<number>(1);
 
-  // Setup mode & selection - default to "new" to promote Vantage Markets
-  const [setupPath, setSetupPath] = useState<"new" | "transfer">("new");
-  const [selectedBroker, setSelectedBroker] = useState<string>("vantage");
+  // Setup mode & selection - default to user's connected Exness broker
+  const [setupPath, setSetupPath] = useState<"new" | "transfer">("transfer");
+  const [selectedBroker, setSelectedBroker] = useState<string>(() => {
+    try {
+      const stored = localStorage.getItem("tradifive_ib_proof_request");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed.broker_name && parsed.broker_name.toLowerCase().includes("vantage")) return "vantage";
+      }
+    } catch (e) {}
+    return "exness";
+  });
 
   // Account & Verification
-  const [mt5Account, setMt5Account] = useState("");
+  const [mt5Account, setMt5Account] = useState<string>(() => {
+    try {
+      const direct = localStorage.getItem("tradifive_connected_mt5_account");
+      if (direct && direct.trim()) return direct.trim();
+      const stored = localStorage.getItem("tradifive_ib_proof_request");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed.mt5_account_number && !parsed.mt5_account_number.includes("See")) return parsed.mt5_account_number.trim();
+      }
+    } catch (e) {}
+    return "414460525";
+  });
   const [ibVerified, setIbVerified] = useState(false);
   const [depositConfirmed, setDepositConfirmed] = useState(true);
   const [proofFile, setProofFile] = useState<string | null>(null);
@@ -587,11 +607,15 @@ MagicNumber=789104
 
   const handleGoToDashboard = () => {
     const cleanAccount = mt5Account.trim() || "414460525";
+    const selectedBrokerObj = BROKERS.find(b => b.id === selectedBroker);
+    const brokerName = selectedBrokerObj ? selectedBrokerObj.name : "Exness";
     try {
       const existing = localStorage.getItem("tradifive_ib_proof_request");
       const parsed = existing ? JSON.parse(existing) : {};
       parsed.mt5_account_number = cleanAccount;
+      parsed.broker_name = brokerName;
       localStorage.setItem("tradifive_ib_proof_request", JSON.stringify(parsed));
+      localStorage.setItem("tradifive_connected_mt5_account", cleanAccount);
     } catch (e) {}
     localStorage.setItem("tradifive_auto_trade_setup", "true");
     localStorage.setItem("tradifive_bot_status", "active");

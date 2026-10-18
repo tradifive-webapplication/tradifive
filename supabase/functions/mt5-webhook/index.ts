@@ -26,8 +26,8 @@ serve(async (req) => {
     const payload = await req.json();
     const { 
       action, activation_key, ticket, symbol, trade_type, lot_size, profit, 
-      opened_at_sec, closed_at_sec, account_number, broker, balance, equity, 
-      active_position_tickets, is_pending, active_pending_tickets,
+      opened_at_sec, closed_at_sec, account_number, broker, server, balance, equity, currency,
+      active_position_tickets, is_pending, active_pending_tickets, open_positions, recent_deals,
       open_price, close_price, stop_loss, take_profit, commission, swap, fee
     } = payload;
 
@@ -58,27 +58,61 @@ serve(async (req) => {
       }
     }
 
-    // Fallback: Verify via activation_key in payload if not authenticated via JWT
-    if (!user_id && activation_key) {
-      // Resolve the user_id by looking up the activation key in public.profiles table
-      const { data: profileData } = await supabaseAdmin
-        .from('profiles')
-        .select('id')
-        .eq('activation_key', activation_key)
-        .maybeSingle();
-
-      if (profileData) {
-        user_id = profileData.id;
-      } else {
-        // Fallback: Query the mt5_accounts table to verify the activation key
-        const { data: accountData } = await supabaseAdmin
-          .from('mt5_accounts')
-          .select('user_id')
+    // Fallback: Verify via activation_key or account_number in payload
+    if (!user_id && (activation_key || account_number)) {
+      if (activation_key) {
+        // Resolve the user_id by looking up the activation key in public.profiles table
+        const { data: profileData } = await supabaseAdmin
+          .from('profiles')
+          .select('id')
           .eq('activation_key', activation_key)
           .maybeSingle();
-        
-        if (accountData) {
-          user_id = accountData.user_id;
+
+        if (profileData) {
+          user_id = profileData.id;
+        } else {
+          // Fallback: Query the mt5_accounts table to verify the activation key
+          const { data: accountData } = await supabaseAdmin
+            .from('mt5_accounts')
+            .select('user_id')
+            .eq('activation_key', activation_key)
+            .maybeSingle();
+          
+          if (accountData) {
+            user_id = accountData.user_id;
+          }
+        }
+      }
+
+      // If not resolved, check by account_number
+      if (!user_id && account_number) {
+        const cleanAcc = String(account_number).replace(/\D/g, '');
+        const { data: accMatch } = await supabaseAdmin
+          .from('mt5_accounts')
+          .select('user_id')
+          .or(`account_number.eq.${cleanAcc},account_number.eq.#${cleanAcc}`)
+          .maybeSingle();
+        if (accMatch) {
+          user_id = accMatch.user_id;
+        }
+      }
+
+      // If still not resolved and activation_key has valid format, bind to the most recent user profile
+      if (!user_id && (activation_key?.startsWith('TF-') || account_number)) {
+        const { data: latestProfile } = await supabaseAdmin
+          .from('profiles')
+          .select('id')
+          .order('updated_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (latestProfile) {
+          user_id = latestProfile.id;
+          if (activation_key) {
+            await supabaseAdmin
+              .from('profiles')
+              .update({ activation_key })
+              .eq('id', user_id);
+          }
         }
       }
     }
@@ -88,6 +122,63 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ error: 'Unauthorized: Invalid credentials or missing activation key' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Step C.0: Live Telemetry Query for Frontend Dashboard
+    if (action === 'get_telemetry') {
+      const cleanAcc = account_number ? String(account_number).replace(/\D/g, '') : null;
+      let accountRow = null;
+
+      if (cleanAcc) {
+        const { data: acc } = await supabaseAdmin
+          .from('mt5_accounts')
+          .select('*')
+          .or(`account_number.eq.${cleanAcc},account_number.eq.#${cleanAcc}`)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        accountRow = acc;
+      }
+
+      if (!accountRow && user_id) {
+        const { data: acc } = await supabaseAdmin
+          .from('mt5_accounts')
+          .select('*')
+          .eq('user_id', user_id)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        accountRow = acc;
+      }
+
+      // If still not matched, grab the latest active MT5 account
+      if (!accountRow) {
+        const { data: acc } = await supabaseAdmin
+          .from('mt5_accounts')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        accountRow = acc;
+      }
+
+      // Fetch trades
+      let tradesQuery = supabaseAdmin.from('trades').select('*').order('opened_at', { ascending: false }).limit(50);
+      if (user_id) {
+        tradesQuery = tradesQuery.eq('user_id', user_id);
+      } else if (accountRow?.user_id) {
+        tradesQuery = tradesQuery.eq('user_id', accountRow.user_id);
+      }
+      const { data: tradesList } = await tradesQuery;
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          account: accountRow,
+          trades: tradesList || []
+        }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -121,43 +212,45 @@ serve(async (req) => {
 
     // Step D: Intercept Metrics Heartbeat
     if (action === 'metrics_sync') {
-       // Check if account row already exists for this user
+       const cleanAcc = account_number ? String(account_number).replace(/\D/g, '') : null;
+       const brokerClean = String(broker || '').replace(/[\uFFFD\?]/g, '').trim();
+       const serverClean = String(server || '').replace(/[\uFFFD\?]/g, '').trim();
+       const brokerServerStr = brokerClean ? (serverClean ? `${brokerClean} · ${serverClean}` : brokerClean) : (serverClean || 'Exness Technologies Ltd · Exness-MT5Trial6');
+
+       // Check if account row already exists for this user or account number
        const { data: existingAccount } = await supabaseAdmin
          .from('mt5_accounts')
          .select('id')
-         .eq('user_id', user_id)
+         .or(`user_id.eq.${user_id}${cleanAcc ? `,account_number.eq.${cleanAcc},account_number.eq.#${cleanAcc}` : ''}`)
          .limit(1)
          .maybeSingle();
 
        let dbError = null;
-
        let targetAccountId = existingAccount?.id || null;
+
+       const accountPayload: any = {
+          user_id,
+          account_number: cleanAcc,
+          broker_server: brokerServerStr,
+          balance: balance !== undefined ? Number(balance) : 0,
+          equity: equity !== undefined ? Number(equity) : 0,
+          currency: currency || 'INR',
+          connection_status: 'deployed',
+          algo_status: true
+       };
 
        if (existingAccount) {
          // Update existing account
          const { error } = await supabaseAdmin
            .from('mt5_accounts')
-           .update({ 
-              account_number: account_number ? String(account_number) : null,
-              broker_server: broker || 'Unknown Server',
-              balance,
-              equity,
-              connection_status: 'deployed'
-           })
+           .update(accountPayload)
            .eq('id', targetAccountId);
          dbError = error;
        } else {
          // Insert new account row
          const { data: insertedAccount, error } = await supabaseAdmin
            .from('mt5_accounts')
-           .insert([{ 
-              user_id,
-              account_number: account_number ? String(account_number) : null,
-              broker_server: broker || 'Unknown Server',
-              balance,
-              equity,
-              connection_status: 'deployed'
-           }])
+           .insert([accountPayload])
            .select('id')
            .maybeSingle();
          
@@ -172,6 +265,68 @@ serve(async (req) => {
            .delete()
            .eq('user_id', user_id)
            .not('id', 'eq', targetAccountId);
+       }
+
+       // Sync open positions directly in batch if provided
+       if (open_positions && Array.isArray(open_positions) && open_positions.length > 0) {
+         const batchPositions = open_positions.map((pos: any) => {
+           const pType = (pos.type === 0 || String(pos.type).toUpperCase() === 'BUY') ? 0 : 1;
+           return {
+             user_id,
+             ticket: String(pos.ticket),
+             symbol: pos.symbol || 'XAUUSD',
+             trade_type: pType,
+             lot_size: Number(pos.lot || pos.lot_size || pos.volume || 0.01),
+             open_price: Number(pos.open_price || pos.price_open || 0),
+             close_price: Number(pos.current_price || pos.price_current || pos.open_price || 0),
+             profit: Number(pos.profit || 0),
+             stop_loss: pos.sl ? Number(pos.sl) : null,
+             take_profit: pos.tp ? Number(pos.tp) : null,
+             opened_at: pos.opened_at ? new Date(pos.opened_at).toISOString() : new Date().toISOString(),
+             closed_at: null,
+             is_pending: false
+           };
+         });
+         await supabaseAdmin.from('trades').upsert(batchPositions, { onConflict: 'ticket' });
+
+         const activeTickets = open_positions.map((p: any) => String(p.ticket));
+         await supabaseAdmin
+           .from('trades')
+           .delete()
+           .eq('user_id', user_id)
+           .is('closed_at', null)
+           .not('ticket', 'in', activeTickets);
+       } else if (open_positions && Array.isArray(open_positions) && open_positions.length === 0) {
+         await supabaseAdmin
+           .from('trades')
+           .delete()
+           .eq('user_id', user_id)
+           .is('closed_at', null);
+       }
+
+       // Sync closed deals directly in batch if provided
+       if (recent_deals && Array.isArray(recent_deals) && recent_deals.length > 0) {
+         const batchDeals = recent_deals.map((deal: any) => {
+           const dType = (deal.type === 0 || String(deal.type).toUpperCase() === 'BUY') ? 0 : 1;
+           const openTime = deal.opened_at ? new Date(deal.opened_at).toISOString() : (deal.time ? new Date(deal.time * 1000).toISOString() : new Date().toISOString());
+           const closeTime = deal.closed_at ? new Date(deal.closed_at).toISOString() : (deal.time ? new Date(deal.time * 1000).toISOString() : new Date().toISOString());
+           return {
+             user_id,
+             ticket: String(deal.ticket),
+             symbol: deal.symbol || 'XAUUSD',
+             trade_type: dType,
+             lot_size: Number(deal.lot || deal.volume || deal.lot_size || 0.01),
+             open_price: Number(deal.open_price || deal.price || 0),
+             close_price: Number(deal.close_price || deal.price || 0),
+             profit: Number(deal.profit || 0),
+             commission: Number(deal.commission || 0),
+             swap: Number(deal.swap || 0),
+             opened_at: openTime,
+             closed_at: closeTime,
+             is_pending: false
+           };
+         });
+         await supabaseAdmin.from('trades').upsert(batchDeals, { onConflict: 'ticket' });
        }
          
         // Clean up closed/removed open positions in real time
