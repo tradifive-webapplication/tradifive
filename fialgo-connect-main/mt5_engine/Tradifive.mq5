@@ -4011,9 +4011,114 @@ void OnDeinit(const int reason)
 //+------------------------------------------------------------------+
 //| Timer / chart events (dashboard animation + clicks)              |
 //+------------------------------------------------------------------+
+//+------------------------------------------------------------------+
+//| Tradifive Cloud Telemetry & Master Switch                        |
+//+------------------------------------------------------------------+
+const string TF_WEBHOOK_URL = "https://rylwyxhupwpwsdbvuoej.supabase.co/functions/v1/mt5-webhook";
+
+void PushCloudTelemetry()
+{
+   if(MQLInfoInteger(MQL_TESTER)) return;
+   static ulong lastPulse = 0;
+   ulong now = GetTickCount64();
+   if(now - lastPulse < 1000) return; // 1-second pulse for real-time live telemetry
+   lastPulse = now;
+
+   long login = AccountInfoInteger(ACCOUNT_LOGIN);
+   string broker = AccountInfoString(ACCOUNT_COMPANY);
+   double bal = AccountInfoDouble(ACCOUNT_BALANCE);
+   double eq = AccountInfoDouble(ACCOUNT_EQUITY);
+   string lic = (g_licKey != "") ? g_licKey : TFNormKey(LicenseKey);
+
+   string jsonPayload = StringFormat("{\"action\":\"metrics_sync\",\"activation_key\":\"%s\",\"account_number\":\"%I64d\",\"broker\":\"%s\",\"balance\":%.2f,\"equity\":%.2f}",
+                                     lic, login, broker, bal, eq);
+   char postData[];
+   StringToCharArray(jsonPayload, postData, 0, WHOLE_ARRAY, CP_UTF8);
+   int dataSize = ArraySize(postData) - 1;
+   if(dataSize > 0)
+   {
+      char cleanPostData[];
+      ArrayResize(cleanPostData, dataSize);
+      ArrayCopy(cleanPostData, postData, 0, 0, dataSize);
+      char result[];
+      string resultHeaders;
+      string headers = "Content-Type: application/json\r\n";
+      WebRequest("POST", TF_WEBHOOK_URL, headers, 3000, cleanPostData, result, resultHeaders);
+   }
+
+   string statusPayload = StringFormat("{\"action\":\"get_status\",\"activation_key\":\"%s\"}", lic);
+   char statusPostData[];
+   StringToCharArray(statusPayload, statusPostData, 0, WHOLE_ARRAY, CP_UTF8);
+   int statusSize = ArraySize(statusPostData) - 1;
+   if(statusSize > 0)
+   {
+      char cleanStatus[];
+      ArrayResize(cleanStatus, statusSize);
+      ArrayCopy(cleanStatus, statusPostData, 0, 0, statusSize);
+      char statusResult[];
+      string statusHeaders;
+      int res = WebRequest("POST", TF_WEBHOOK_URL, "Content-Type: application/json\r\n", 3000, cleanStatus, statusResult, statusHeaders);
+      if(res == 200 || res == 201)
+      {
+         string responseStr = CharArrayToString(statusResult);
+         if(StringFind(responseStr, "\"algo_status\":true") >= 0 || StringFind(responseStr, "\"algo_status\": true") >= 0)
+         {
+            if(!GlobalVariableCheck("TRADIFIVE_MASTER_SWITCH") || GlobalVariableGet("TRADIFIVE_MASTER_SWITCH") == 0)
+               GlobalVariableSet("TRADIFIVE_MASTER_SWITCH", 1);
+         }
+         else if(StringFind(responseStr, "\"algo_status\":false") >= 0 || StringFind(responseStr, "\"algo_status\": false") >= 0)
+         {
+            if(!GlobalVariableCheck("TRADIFIVE_MASTER_SWITCH") || GlobalVariableGet("TRADIFIVE_MASTER_SWITCH") == 1)
+               GlobalVariableSet("TRADIFIVE_MASTER_SWITCH", 0);
+         }
+      }
+   }
+}
+
+void OnTradeTransaction(const MqlTradeTransaction &trans,
+                        const MqlTradeRequest &request,
+                        const MqlTradeResult &result)
+{
+   if(trans.type == TRADE_TRANSACTION_DEAL_ADD)
+   {
+      if(HistoryDealSelect(trans.deal))
+      {
+         long entry = HistoryDealGetInteger(trans.deal, DEAL_ENTRY);
+         if(entry == DEAL_ENTRY_OUT || entry == DEAL_ENTRY_INOUT)
+         {
+            ulong ticket = trans.deal;
+            string symbol = HistoryDealGetString(ticket, DEAL_SYMBOL);
+            double volume = HistoryDealGetDouble(ticket, DEAL_VOLUME);
+            double profit = HistoryDealGetDouble(ticket, DEAL_PROFIT);
+            double swap = HistoryDealGetDouble(ticket, DEAL_SWAP);
+            double comm = HistoryDealGetDouble(ticket, DEAL_COMMISSION);
+            long dealType = HistoryDealGetInteger(ticket, DEAL_TYPE);
+            string sType = (dealType == DEAL_TYPE_BUY) ? "BUY" : "SELL";
+            long timeClosed = HistoryDealGetInteger(ticket, DEAL_TIME);
+            string lic = (g_licKey != "") ? g_licKey : TFNormKey(LicenseKey);
+
+            string jsonPayload = StringFormat("{\"activation_key\":\"%s\",\"ticket\":\"%llu\",\"symbol\":\"%s\",\"trade_type\":\"%s\",\"lot_size\":%f,\"profit\":%f,\"closed_at_sec\":%I64d}",
+                                              lic, ticket, symbol, sType, volume, profit + swap + comm, timeClosed);
+            char postData[];
+            StringToCharArray(jsonPayload, postData, 0, WHOLE_ARRAY, CP_UTF8);
+            int dataSize = ArraySize(postData) - 1;
+            if(dataSize > 0)
+            {
+               char cleanPostData[];
+               ArrayResize(cleanPostData, dataSize);
+               ArrayCopy(cleanPostData, postData, 0, 0, dataSize);
+               char resArr[]; string resHdr;
+               WebRequest("POST", TF_WEBHOOK_URL, "Content-Type: application/json\r\n", 5000, cleanPostData, resArr, resHdr);
+            }
+         }
+      }
+   }
+}
+
 void OnTimer()
 {
    g_dash.Timer();
+   PushCloudTelemetry();
 }
 
 void OnChartEvent(const int id,const long &lparam,const double &dparam,const string &sparam)
