@@ -10,16 +10,21 @@ export default function AutoTradeDashboardPage() {
     algoName: "FiAlgo V1 (Gold Specialist)",
     risk: "Low Risk · Dynamic Basket",
     deposit: 500,
-    mt5Account: "8492018"
+    mt5Account: "414460525"
   });
 
   useEffect(() => {
     try {
+      const direct = localStorage.getItem("tradifive_connected_mt5_account");
+      if (direct && direct.trim()) {
+        setAccountData(prev => ({ ...prev, mt5Account: direct.trim() }));
+        return;
+      }
       const stored = localStorage.getItem("tradifive_ib_proof_request");
       if (stored) {
         const parsed = JSON.parse(stored);
         if (parsed.mt5_account_number && !parsed.mt5_account_number.includes("See")) {
-          setAccountData(prev => ({ ...prev, mt5Account: parsed.mt5_account_number }));
+          setAccountData(prev => ({ ...prev, mt5Account: parsed.mt5_account_number.trim() }));
         }
       }
     } catch (e) {}
