@@ -2749,7 +2749,7 @@ MagicNumber=789104
               </div>
             ) : (
               /* ── CASE 4D: FULLY UNLOCKED STATE - SHOW LICENSE KEY & MT5 ATTACHMENT ── */
-              <div className="p-5 sm:p-6 rounded-2xl bg-slate-50 dark:bg-[#121214] border border-slate-200/80 dark:border-white/10 space-y-4">
+              <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 dark:bg-[#121214] border border-slate-200/80 dark:border-white/10 space-y-3.5">
                 {(() => {
                   // Always generate key from the verified mt5Account for THIS user
                   const effectiveAccount = mt5Account || localStorage.getItem("tradifive_connected_mt5_account") || "";
@@ -2759,192 +2759,145 @@ MagicNumber=789104
 
                   return (
                     <>
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                          Your Cryptographic MT5 License Key:
-                        </span>
-                        <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                          <CheckCircle2 size={12} />
-                          <span>Bound to MT5 #{effectiveAccount || "4820194"} · Lifetime License</span>
-                        </span>
-                      </div>
-
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-[#1A1A1E] border border-slate-200/80 dark:border-white/10 rounded-xl p-3.5 px-4 sm:px-5">
-                        <span className="font-mono text-sm sm:text-base font-extrabold tracking-wider text-slate-900 dark:text-emerald-400 select-all break-all">
-                          {activeKey}
-                        </span>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <button
-                            type="button"
-                            onClick={() => handleCopyKey(activeKey)}
-                            className="px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-900 text-white dark:bg-white dark:text-slate-900 hover:opacity-90 inline-flex items-center gap-1.5 cursor-pointer shadow-xs"
-                          >
-                            {copiedKey ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
-                            <span>{copiedKey ? "Copied" : "Copy Key"}</span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={handleDownloadPreset}
-                            className="px-3 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white inline-flex items-center gap-1.5 cursor-pointer shadow-xs"
-                            title="Download MT5 Preset with this license key pre-filled"
-                          >
-                            <Download size={13} />
-                            <span>Download .set</span>
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* MT5 Account Alert Warning Callout */}
-                      <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/25 text-xs space-y-1.5">
-                        <div className="flex items-center gap-1.5 font-bold text-amber-800 dark:text-amber-300">
-                          <AlertTriangle size={14} className="text-amber-500 shrink-0" />
-                          <span>Fix for "Account number didn't match" Alert in MT5:</span>
-                        </div>
-                        <p className="text-[11.5px] text-slate-600 dark:text-slate-300 leading-relaxed">
-                          If your MT5 chart displays an alert saying <em>"Account number didn't match! Your license is for MT5 Account #..."</em>, your chart is still holding an old license key from another account. Press <kbd className="px-1 py-0.5 rounded bg-slate-200 dark:bg-white/10 font-mono text-[10px]">F7</kbd> on your MT5 chart, go to <strong>Inputs</strong>, click <strong>LicenseKey</strong>, replace it with your current key <strong className="font-mono text-slate-900 dark:text-white select-all">{activeKey}</strong>, and click <strong>OK</strong>. Or simply click <strong>Download .set</strong> above and click <strong>Load</strong> in the F7 Inputs window.
-                        </p>
-                      </div>
-
-                      {/* MT5 WebRequest URL Whitelist Prerequisite */}
-                      <div className="p-4 rounded-xl bg-blue-50/70 dark:bg-blue-950/20 border border-blue-200/80 dark:border-blue-500/20 space-y-2.5">
-                        <div className="flex items-center justify-between">
-                          <span className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5 text-xs">
-                            <Zap size={14} className="text-blue-600 dark:text-blue-400" />
-                            <span>Step 1: Allow MT5 WebRequest (Required for Real-Time Sync)</span>
-                          </span>
-                          <span className="text-[10px] font-bold text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-500/20 px-2 py-0.5 rounded-full">
-                            1-Time MT5 Setting
+                      {/* Compact License Key Card */}
+                      <div className="p-3.5 sm:p-4 rounded-xl bg-white dark:bg-[#1A1A1E] border border-slate-200/80 dark:border-white/10 shadow-xs space-y-2.5">
+                        <div className="flex items-center justify-between flex-wrap gap-2">
+                          <div className="flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                            <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                              MT5 License Key
+                            </span>
+                            <span className="text-[11px] font-mono font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-white/5 px-2 py-0.5 rounded border border-slate-200/60 dark:border-white/10">
+                              #{effectiveAccount}
+                            </span>
+                          </div>
+                          <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+                            Lifetime Active
                           </span>
                         </div>
-                        <p className="text-[11.5px] text-slate-600 dark:text-slate-300 leading-relaxed">
-                          In MetaTrader 5, go to <strong>Tools → Options → Experts</strong> (Ctrl+O). Check <strong>"Allow WebRequest for listed URL"</strong> and add this TradiFive Cloud URL so your bot can stream live metrics:
-                        </p>
-                        <div className="flex items-center justify-between bg-white dark:bg-[#161618] border border-blue-200/70 dark:border-blue-500/30 rounded-lg p-2.5 px-3">
-                          <code className="text-xs font-mono font-bold text-blue-600 dark:text-blue-400 select-all truncate">
-                            https://rylwyxhupwpwsdbvuoej.supabase.co
+
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-slate-50 dark:bg-black/30 border border-slate-200/70 dark:border-white/5 rounded-lg p-2.5 px-3.5">
+                          <code className="font-mono text-xs sm:text-sm font-extrabold tracking-wider text-slate-900 dark:text-emerald-400 select-all break-all">
+                            {activeKey}
                           </code>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              navigator.clipboard.writeText("https://rylwyxhupwpwsdbvuoej.supabase.co");
-                              toast.success("Webhook URL Copied!", {
-                                description: "Paste into MT5 Tools → Options → Experts → WebRequest"
-                              });
-                            }}
-                            className="px-3 py-1 rounded-md text-[11px] font-bold bg-blue-600 hover:bg-blue-700 text-white inline-flex items-center gap-1 ml-2 shrink-0 cursor-pointer"
-                          >
-                            <Copy size={12} />
-                            <span>Copy URL</span>
-                          </button>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => handleCopyKey(activeKey)}
+                              className="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-900 text-white dark:bg-white dark:text-slate-900 hover:opacity-90 inline-flex items-center gap-1.5 cursor-pointer shadow-xs"
+                            >
+                              {copiedKey ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
+                              <span>{copiedKey ? "Copied" : "Copy Key"}</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleDownloadPreset}
+                              className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white inline-flex items-center gap-1.5 cursor-pointer shadow-xs"
+                              title="Download pre-configured .set preset"
+                            >
+                              <Download size={13} />
+                              <span>Download .set</span>
+                            </button>
+                          </div>
                         </div>
                       </div>
 
-                      {/* 2 Ways to Activate in MT5 */}
-                      <div className="p-4 rounded-xl bg-white dark:bg-[#18181B] border border-slate-200/60 dark:border-white/5 space-y-3">
-                        <h4 className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                          <Terminal size={13} className="text-blue-500" />
-                          <span>Step 2: Two Ways to Attach License Key in MetaTrader 5:</span>
-                        </h4>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-                          {/* Method 1: On-Chart Dashboard */}
-                          <div className="p-3 rounded-lg bg-slate-50 dark:bg-white/[0.03] border border-slate-200/70 dark:border-white/5 space-y-1.5">
-                            <span className="font-bold text-slate-800 dark:text-white block text-xs flex items-center gap-1.5">
-                              <span className="w-5 h-5 rounded-full bg-blue-500/20 text-blue-500 flex items-center justify-center font-bold text-[10px]">1</span>
-                              Direct on Chart Dashboard (Instant)
+                      {/* Compact 2-Step Quick Guide */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                        {/* Step 1: WebRequest */}
+                        <div className="p-3.5 rounded-xl bg-white dark:bg-[#18181B] border border-slate-200/80 dark:border-white/10 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5 text-xs">
+                              <span className="w-5 h-5 rounded-full bg-blue-500/15 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-[11px]">1</span>
+                              <span>Allow MT5 WebRequest</span>
                             </span>
-                            <p className="text-[11.5px] text-slate-600 dark:text-slate-300 leading-relaxed">
-                              On the live chart dashboard, click the <strong className="text-blue-500">SET</strong> button at top right. At the bottom under <strong>LICENSE KEY</strong>, click the box, paste your key, and click <strong className="text-emerald-500">ACTIVATE</strong>. Status instantly turns <strong className="text-emerald-400">ACTIVE</strong>.
-                            </p>
+                            <span className="text-[10px] text-slate-400 font-mono">Ctrl+O</span>
                           </div>
-
-                          {/* Method 2: EA Properties Inputs */}
-                          <div className="p-3 rounded-lg bg-slate-50 dark:bg-white/[0.03] border border-slate-200/70 dark:border-white/5 space-y-1.5">
-                            <span className="font-bold text-slate-800 dark:text-white block text-xs flex items-center gap-1.5">
-                              <span className="w-5 h-5 rounded-full bg-blue-500/20 text-blue-500 flex items-center justify-center font-bold text-[10px]">2</span>
-                              Via EA Inputs Dialog (F7)
+                          <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                            In MT5: <strong>Tools → Options → Experts</strong>. Check <em>"Allow WebRequest for listed URL"</em> and add:
+                          </p>
+                          <div className="flex items-center justify-between bg-slate-50 dark:bg-black/30 border border-slate-200/60 dark:border-white/5 rounded-md p-1.5 px-2.5">
+                            <span className="font-mono text-[10.5px] text-blue-600 dark:text-blue-400 truncate select-all">
+                              https://rylwyxhupwpwsdbvuoej.supabase.co
                             </span>
-                            <p className="text-[11.5px] text-slate-600 dark:text-slate-300 leading-relaxed">
-                              Press <kbd className="px-1 py-0.5 rounded bg-slate-200 dark:bg-white/10 font-mono text-[10px]">F7</kbd> on your MT5 chart to open EA properties. Go to the <strong>Inputs</strong> tab, locate <strong>LicenseKey</strong> under <code>=== License ===</code>, paste this key, and click <strong>OK</strong>.
-                            </p>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                navigator.clipboard.writeText("https://rylwyxhupwpwsdbvuoej.supabase.co");
+                                toast.success("Webhook URL copied!");
+                              }}
+                              className="text-slate-400 hover:text-slate-700 dark:hover:text-white p-1 cursor-pointer shrink-0 ml-1.5"
+                              title="Copy URL"
+                            >
+                              <Copy size={12} />
+                            </button>
                           </div>
                         </div>
 
-                        <div className="text-[11px] text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-100 dark:border-white/5 flex items-center gap-2">
-                          <CheckCircle2 size={12} className="text-emerald-500 shrink-0" />
-                          <span>This key is mathematically cryptographically locked to MT5 Account <strong>#{effectiveAccount || "4820194"}</strong> with Lifetime validity.</span>
+                        {/* Step 2: Attach to Chart */}
+                        <div className="p-3.5 rounded-xl bg-white dark:bg-[#18181B] border border-slate-200/80 dark:border-white/10 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5 text-xs">
+                              <span className="w-5 h-5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-[11px]">2</span>
+                              <span>Attach FiAlgo to Chart</span>
+                            </span>
+                            <span className="text-[10px] text-slate-400 font-mono">Press F7</span>
+                          </div>
+                          <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                            Drag <strong>FiAlgo</strong> onto any <kbd className="px-1 py-0.5 rounded bg-slate-100 dark:bg-white/10 font-mono text-[10px]">XAUUSD, M1</kbd> chart.
+                          </p>
+                          <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
+                            Press <kbd className="px-1 py-0.5 rounded bg-slate-100 dark:bg-white/10 font-mono text-[10px]">F7</kbd> → <strong>Inputs</strong> → paste your License Key (or click <strong>Load</strong> .set) → click <strong>OK</strong>.
+                          </p>
                         </div>
                       </div>
                     </>
                   );
                 })()}
 
-                {/* FiAlgo Live Status Banner: Checks real MT5 connection */}
+                {/* Real-Time Connection Status */}
                 {isMt5Connected ? (
-                  <div className="p-3.5 sm:p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
-                    <div className="flex items-center gap-3">
+                  <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-between gap-3 text-xs">
+                    <div className="flex items-center gap-2.5">
                       <div className="relative flex items-center justify-center shrink-0">
-                        <div className="w-3.5 h-3.5 rounded-full bg-emerald-500 animate-ping absolute opacity-75" />
-                        <div className="w-3.5 h-3.5 rounded-full bg-emerald-500 relative" />
+                        <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping absolute opacity-75" />
+                        <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 relative" />
                       </div>
                       <div>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-xs sm:text-sm font-bold text-emerald-800 dark:text-emerald-300">
-                            FiAlgo Connected &amp; Live
-                          </span>
-                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-500/15 px-2 py-0.5 rounded-full border border-emerald-500/25">
-                            <CheckCircle2 size={10} className="text-emerald-500" />
-                            <span>MT5 Online</span>
-                          </span>
-                        </div>
-                        <p className="text-[11.5px] text-slate-500 dark:text-slate-400 mt-0.5">
-                          License key verified on MT5 Account <strong>#{mt5Account}</strong>. Algorithm running on chart.
-                        </p>
+                        <span className="font-bold text-emerald-800 dark:text-emerald-300">
+                          FiAlgo Connected &amp; Live
+                        </span>
+                        <span className="text-slate-500 dark:text-slate-400 ml-2 text-[11px] hidden sm:inline">
+                          MT5 #{mt5Account} · Algorithm active
+                        </span>
                       </div>
                     </div>
-
-                    <div className="flex items-center gap-2 self-start sm:self-center">
-                      <span className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 font-semibold bg-white dark:bg-white/10 px-2 py-1 rounded-md border border-emerald-500/20">
-                        Ping: 1.8ms
-                      </span>
-                    </div>
+                    <span className="text-[10.5px] font-mono text-emerald-600 dark:text-emerald-400 font-semibold bg-white dark:bg-white/10 px-2.5 py-1 rounded border border-emerald-500/20">
+                      Online · 1.8ms
+                    </span>
                   </div>
                 ) : (
-                  <div className="p-3.5 sm:p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
-                    <div className="flex items-center gap-3">
-                      <div className="relative flex items-center justify-center shrink-0">
-                        <div className="w-3.5 h-3.5 rounded-full bg-amber-500/30 animate-pulse absolute" />
-                        <div className="w-3.5 h-3.5 rounded-full bg-amber-500 relative flex items-center justify-center">
-                          <div className="w-1.5 h-1.5 rounded-full bg-white" />
-                        </div>
-                      </div>
+                  <div className="p-3 rounded-xl bg-slate-100 dark:bg-white/[0.04] border border-slate-200/80 dark:border-white/10 flex items-center justify-between gap-3 text-xs">
+                    <div className="flex items-center gap-2.5">
+                      <Clock size={15} className="text-amber-500 shrink-0" />
                       <div>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-xs sm:text-sm font-bold text-amber-800 dark:text-amber-300">
-                            Waiting for MT5 EA Activation
-                          </span>
-                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 dark:text-amber-400 bg-amber-500/15 px-2 py-0.5 rounded-full border border-amber-500/25">
-                            <Clock size={10} className="text-amber-500" />
-                            <span>Awaiting MT5 Chart</span>
-                          </span>
-                        </div>
-                        <p className="text-[11.5px] text-slate-600 dark:text-slate-300 mt-0.5">
-                          License key issued for MT5 Account <strong>#{mt5Account || "Active"}</strong>. Attach FiAlgo to your chart to go live.
-                        </p>
+                        <span className="font-bold text-slate-800 dark:text-slate-200">
+                          Awaiting MT5 Chart Connection
+                        </span>
+                        <span className="text-slate-500 dark:text-slate-400 ml-2 text-[11px] hidden sm:inline">
+                          Attach FiAlgo to chart with your key to start
+                        </span>
                       </div>
                     </div>
-
-                    <div className="flex items-center gap-2 self-start sm:self-center">
-                      <button
-                        type="button"
-                        onClick={() => checkLiveMt5Connection()}
-                        disabled={isCheckingConnection}
-                        className="text-[11px] font-semibold text-amber-700 dark:text-amber-300 bg-white dark:bg-white/10 px-2.5 py-1.5 rounded-lg border border-amber-500/20 hover:bg-amber-50 dark:hover:bg-white/15 inline-flex items-center gap-1.5 cursor-pointer transition-all"
-                      >
-                        <RefreshCw size={11} className={isCheckingConnection ? "animate-spin" : ""} />
-                        <span>{isCheckingConnection ? "Checking..." : "Check Status"}</span>
-                      </button>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => checkLiveMt5Connection()}
+                      disabled={isCheckingConnection}
+                      className="text-[11px] font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-white/10 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/15 inline-flex items-center gap-1.5 cursor-pointer shrink-0 transition-all"
+                    >
+                      <RefreshCw size={11} className={isCheckingConnection ? "animate-spin" : ""} />
+                      <span>{isCheckingConnection ? "Checking..." : "Refresh Status"}</span>
+                    </button>
                   </div>
                 )}
 
@@ -2952,7 +2905,7 @@ MagicNumber=789104
                 <button
                   type="button"
                   onClick={handleGoToDashboard}
-                  className="w-full py-3.5 px-4 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:hover:bg-slate-200 dark:text-slate-900 flex items-center justify-center gap-2 cursor-pointer shadow-xs transition-all hover:scale-[1.005] active:scale-[0.995]"
+                  className="w-full py-3 px-4 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:hover:bg-slate-200 dark:text-slate-900 flex items-center justify-center gap-2 cursor-pointer shadow-xs transition-all hover:scale-[1.005] active:scale-[0.995]"
                 >
                   <Zap size={14} className="text-amber-400" />
                   <span>Open AutoTrade Dashboard →</span>
