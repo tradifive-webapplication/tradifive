@@ -12,6 +12,14 @@
     --radius: 0.5rem;
   }
 
+  html, body, #root {
+    height: 100%;
+    max-height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+
   body {
     @apply bg-[#0F0F11] text-[#E5E5E5] antialiased overflow-hidden font-sans;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";

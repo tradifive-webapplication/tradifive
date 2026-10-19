@@ -267,28 +267,35 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       )}
 
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Topbar - Stealth Minimal & Mobile Ready */}
+        {/* Topbar - Sleek Minimal & Ergonomic */}
         {!isEmbed && (
-          <header className="h-[56px] flex items-center justify-between px-3 sm:px-6 md:px-8 bg-[#121212] border-b border-zinc-900/80 relative z-50">
+          <header className="h-14 sm:h-15 flex items-center justify-between px-4 sm:px-6 md:px-8 bg-[#121214]/95 backdrop-blur-md border-b border-white/[0.08] relative z-40 select-none shrink-0">
             {/* Left: Hamburger (Mobile) + Breadcrumb */}
-            <div className="flex items-center gap-2 sm:gap-3 shrink-0 min-w-0">
+            <div className="flex items-center gap-2.5 sm:gap-3 shrink-0 min-w-0">
               <button
                 onClick={() => setMobileMenuOpen(true)}
-                className="lg:hidden p-1.5 -ml-1 text-neutral-400 hover:text-white rounded-lg hover:bg-white/5 active:bg-white/10 transition-colors mr-1"
+                className="lg:hidden p-1.5 -ml-1 text-neutral-400 hover:text-white rounded-lg hover:bg-white/5 active:bg-white/10 transition-colors mr-1 cursor-pointer"
                 aria-label="Open Navigation Menu"
               >
-                <Menu size={20} />
+                <Menu size={19} />
               </button>
 
-              <span className="text-neutral-700 font-bold uppercase tracking-widest text-[9px] sm:text-[10px] hidden xs:inline">Terminal</span>
-              <ChevronRight size={12} className="text-neutral-800 hidden xs:inline" />
-              <h2 className="text-[11px] sm:text-[12px] font-bold text-white uppercase tracking-widest truncate max-w-[130px] sm:max-w-xs">{pageName}</h2>
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-bold tracking-wider uppercase shrink-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+                  Tradifive
+                </span>
+                <ChevronRight size={13} className="text-neutral-600 shrink-0" />
+                <h2 className="text-xs sm:text-sm font-semibold text-white tracking-wide truncate max-w-[160px] sm:max-w-xs">
+                  {pageName === "Auto Trade Admin" ? "Auto Trade Registry" : pageName}
+                </h2>
+              </div>
             </div>
 
             {/* Desktop Global Search Bar */}
             <div className="flex-1 max-w-xl px-4 sm:px-8 hidden md:block relative">
               <div className="relative group flex items-center">
-                <Search size={14} className="absolute left-3 text-neutral-500 group-focus-within:text-neutral-300 transition-colors pointer-events-none" />
+                <Search size={14} className="absolute left-3.5 text-neutral-500 group-focus-within:text-blue-400 transition-colors pointer-events-none" />
                 <input
                   ref={inputRef}
                   type="text"
@@ -298,10 +305,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   onBlur={() => setTimeout(() => setShowTopSearch(false), 250)}
                   onKeyDown={handleKeyDown}
                   placeholder="Search pages, employees, clients..."
-                  className="w-full bg-[#1A1A1A] border border-neutral-800 focus:border-neutral-700 rounded flex items-center pl-9 pr-12 py-1.5 text-[12px] text-white outline-none transition-all placeholder:text-neutral-600 focus:bg-[#222] focus:shadow-[0_0_25px_rgba(0,0,0,0.4)]"
+                  className="w-full bg-[#18181A] hover:bg-[#1D1D20] focus:bg-[#202024] border border-white/10 focus:border-blue-500/50 rounded-lg flex items-center pl-10 pr-12 py-2 text-xs text-white outline-none transition-all placeholder:text-neutral-500 focus:shadow-[0_0_20px_rgba(59,130,246,0.15)]"
                 />
-                <div className="absolute right-2 flex items-center gap-1 opacity-50">
-                  <kbd className="text-[9px] font-bold text-neutral-400 bg-white/5 px-1.5 py-0.5 rounded border border-white/10 uppercase">/ </kbd>
+                <div className="absolute right-2.5 flex items-center gap-1 pointer-events-none">
+                  <kbd className="text-[10px] font-medium text-neutral-400 bg-white/5 px-1.5 py-0.5 rounded border border-white/10 font-mono">/ </kbd>
                 </div>
 
                 {/* Suggestions dropdown helper (Empty query) */}

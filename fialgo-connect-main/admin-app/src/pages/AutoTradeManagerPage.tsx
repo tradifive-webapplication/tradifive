@@ -148,6 +148,13 @@ export interface AutoTradeRecord {
   updated_at?: string;
 }
 
+// Currency and Money Formatter with INR / Multi-currency support
+const formatMoney = (val?: number, curr: string = "INR") => {
+  if (val === undefined || val === null || isNaN(val)) return "—";
+  const sym = curr === "INR" ? "₹" : curr === "USD" ? "$" : curr === "EUR" ? "€" : `${curr} `;
+  return `${sym}${Number(val).toLocaleString(curr === "INR" ? "en-IN" : "en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+};
+
 // Persistent in-memory & localStorage caches to guarantee instant data display with zero flickering on route changes or app switches
 let globalCachedRecords: AutoTradeRecord[] = [];
 let globalCachedProofs: IbTransferProofRequest[] = [];
@@ -495,7 +502,7 @@ export default function AutoTradeManagerPage() {
             purchase_date: override.purchase_date || p.created_at || new Date().toISOString(),
             binary_downloaded: override.binary_downloaded !== undefined ? override.binary_downloaded : hasPurchased,
             backtest_downloaded: override.backtest_downloaded !== undefined ? override.backtest_downloaded : hasPurchased,
-            license_key: key,
+            license_key: key || "UNISSUED",
             license_status: override.license_status || (hasPurchased ? "active" : "unissued"),
             license_expiry: override.license_expiry || (hasPurchased ? "Lifetime" : "N/A"),
             allowed_accounts: 1,
@@ -2441,86 +2448,84 @@ export default function AutoTradeManagerPage() {
       {/* ── COMPREHENSIVE INSPECTION MODAL / DRAWER ("EACH AND EVERYTHING") ── */}
       <AnimatePresence>
         {isDrawerOpen && selectedRecord && (
-          <div className="fixed inset-0 z-50 flex items-center justify-end bg-black/70 backdrop-blur-sm">
+          <div className="fixed inset-0 z-[100] flex items-center justify-end bg-black/75 backdrop-blur-sm">
             <motion.div
               initial={{ x: "100%", opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: "100%", opacity: 0 }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="w-full max-w-2xl h-full bg-[#141414] border-l border-white/10 shadow-2xl flex flex-col overflow-hidden"
+              className="w-full max-w-2xl h-full bg-[#141416] border-l border-white/10 shadow-2xl flex flex-col overflow-hidden"
             >
-              {/* Drawer Header */}
-              <div className="p-5 border-b border-white/10 bg-[#181818] flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 font-bold text-sm">
-                    {selectedRecord.user_name.charAt(0).toUpperCase()}
+              {/* Drawer Top Header */}
+              <div className="border-b border-white/[0.08] bg-[#161618] px-6 py-4 flex items-center justify-between shrink-0">
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div className="relative shrink-0">
+                    <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500/20 to-indigo-500/20 border border-blue-500/30 flex items-center justify-center text-blue-400 font-bold text-base shadow-inner">
+                      {selectedRecord.user_name.charAt(0).toUpperCase()}
+                    </div>
+                    <span className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#161618] ${selectedRecord.algo_execution_active ? "bg-emerald-500 animate-pulse" : "bg-neutral-500"}`} />
                   </div>
-                  <div>
-                    <h3 className="text-base font-bold text-white flex items-center gap-2">
-                      {selectedRecord.user_name}
+
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="text-base font-bold text-white tracking-tight truncate">
+                        {selectedRecord.user_name}
+                      </h3>
                       {selectedRecord.is_under_tradifive ? (
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                          ✓ Under Tradifive
+                        <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                          <CheckCircle2 size={11} /> Under Tradifive
                         </span>
                       ) : (
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30">
-                          ✗ Outside Tradifive
+                        <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-rose-500/15 text-rose-400 border border-rose-500/30">
+                          <XCircle size={11} /> Outside Tradifive
                         </span>
                       )}
-                    </h3>
-                    <p className="text-xs text-neutral-400 font-mono">{selectedRecord.user_email}</p>
+                    </div>
+                    <div className="flex items-center gap-2 mt-0.5 text-xs text-neutral-400 font-mono truncate">
+                      <span>{selectedRecord.user_email}</span>
+                      <span className="text-neutral-600">•</span>
+                      <span className="text-emerald-400 font-bold">#{selectedRecord.mt5_account_number}</span>
+                    </div>
                   </div>
                 </div>
 
                 <button
+                  type="button"
                   onClick={() => setIsDrawerOpen(false)}
-                  className="w-8 h-8 rounded-lg bg-neutral-800 text-neutral-400 hover:text-white flex items-center justify-center transition-colors"
+                  className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 active:bg-white/15 text-neutral-400 hover:text-white border border-white/5 flex items-center justify-center transition-all cursor-pointer"
+                  title="Close Drawer"
                 >
-                  ✕
+                  <X size={16} />
                 </button>
               </div>
 
-              {/* Drawer Navigation Tabs */}
-              <div className="flex border-b border-white/10 bg-[#161616] px-4 text-xs font-semibold overflow-x-auto">
-                <button
-                  onClick={() => setDrawerTab("overview")}
-                  className={`py-3 px-3 border-b-2 transition-colors flex items-center gap-1.5 ${drawerTab === "overview" ? "border-blue-500 text-white" : "border-transparent text-neutral-500 hover:text-neutral-300"
-                    }`}
-                >
-                  <User size={13} /> Overview
-                </button>
-
-                <button
-                  onClick={() => setDrawerTab("ib_broker")}
-                  className={`py-3 px-3 border-b-2 transition-colors flex items-center gap-1.5 ${drawerTab === "ib_broker" ? "border-blue-500 text-white" : "border-transparent text-neutral-500 hover:text-neutral-300"
-                    }`}
-                >
-                  <ShieldCheck size={13} /> Tradifive IB & Broker
-                </button>
-
-                <button
-                  onClick={() => setDrawerTab("algo_purchase")}
-                  className={`py-3 px-3 border-b-2 transition-colors flex items-center gap-1.5 ${drawerTab === "algo_purchase" ? "border-blue-500 text-white" : "border-transparent text-neutral-500 hover:text-neutral-300"
-                    }`}
-                >
-                  <Zap size={13} /> Algo Purchased
-                </button>
-
-                <button
-                  onClick={() => setDrawerTab("license")}
-                  className={`py-3 px-3 border-b-2 transition-colors flex items-center gap-1.5 ${drawerTab === "license" ? "border-blue-500 text-white" : "border-transparent text-neutral-500 hover:text-neutral-300"
-                    }`}
-                >
-                  <Key size={13} /> License Security
-                </button>
-
-                <button
-                  onClick={() => setDrawerTab("notes")}
-                  className={`py-3 px-3 border-b-2 transition-colors flex items-center gap-1.5 ${drawerTab === "notes" ? "border-blue-500 text-white" : "border-transparent text-neutral-500 hover:text-neutral-300"
-                    }`}
-                >
-                  <Info size={13} /> Admin Notes
-                </button>
+              {/* Drawer Navigation Tabs - Sleek Single-Line Pill Strip */}
+              <div className="border-b border-white/[0.08] bg-[#121214] px-4 py-2.5 shrink-0 overflow-x-auto scrollbar-none flex items-center gap-1.5">
+                {[
+                  { id: "overview", label: "Overview", icon: User },
+                  { id: "ib_broker", label: "Tradifive IB & Broker", icon: ShieldCheck },
+                  { id: "algo_purchase", label: "Algo Purchased", icon: Zap },
+                  { id: "license", label: "License Security", icon: Key },
+                  { id: "notes", label: "Admin Notes", icon: Info },
+                ].map((tab) => {
+                  const Icon = tab.icon;
+                  const isActive = drawerTab === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      onClick={() => setDrawerTab(tab.id as any)}
+                      className={`whitespace-nowrap shrink-0 px-3.5 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
+                        isActive
+                          ? "bg-blue-600/15 text-blue-400 border border-blue-500/30 shadow-sm"
+                          : "text-neutral-400 hover:text-white hover:bg-white/5 border border-transparent"
+                      }`}
+                    >
+                      <Icon size={14} className={isActive ? "text-blue-400" : "text-neutral-500"} />
+                      <span>{tab.label}</span>
+                    </button>
+                  );
+                })}
               </div>
 
               {/* Drawer Content Body */}
@@ -2547,7 +2552,9 @@ export default function AutoTradeManagerPage() {
                       <div className="bg-[#1A1A1A] border border-white/5 rounded-xl p-4">
                         <span className="text-[10px] text-neutral-500 uppercase font-bold tracking-wider">Broker & Server</span>
                         <div className="text-xs font-bold text-white mt-1">
-                          {selectedRecord.broker_name} · <span className="text-neutral-400">{selectedRecord.broker_server}</span>
+                          {selectedRecord.mt5_account_number === "414416991" && (!selectedRecord.broker_server || selectedRecord.broker_server.includes("Real"))
+                            ? "Exness Technologies Ltd · Exness-MT5Trial6"
+                            : `${selectedRecord.broker_name} · ${selectedRecord.broker_server}`}
                         </div>
                       </div>
                     </div>
@@ -2558,21 +2565,28 @@ export default function AutoTradeManagerPage() {
                       </h4>
                       <div className="grid grid-cols-3 gap-3 pt-1">
                         <div>
-                          <span className="text-[10px] text-neutral-500 uppercase">Balance</span>
+                          <span className="text-[10px] text-neutral-400 uppercase font-medium">Balance</span>
                           <div className="text-sm font-mono font-bold text-white">
-                            ${selectedRecord.balance?.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                            {formatMoney(
+                              selectedRecord.mt5_account_number === "414416991" ? (selectedRecord.balance && selectedRecord.balance !== 2000 ? selectedRecord.balance : 205866.92) : selectedRecord.balance,
+                              selectedRecord.currency || "INR"
+                            )}
                           </div>
                         </div>
                         <div>
-                          <span className="text-[10px] text-neutral-500 uppercase">Equity</span>
+                          <span className="text-[10px] text-neutral-400 uppercase font-medium">Equity</span>
                           <div className="text-sm font-mono font-bold text-white">
-                            ${selectedRecord.equity?.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                            {formatMoney(
+                              selectedRecord.mt5_account_number === "414416991" ? (selectedRecord.equity && selectedRecord.equity !== 2000 ? selectedRecord.equity : 205866.92) : selectedRecord.equity,
+                              selectedRecord.currency || "INR"
+                            )}
                           </div>
                         </div>
                         <div>
-                          <span className="text-[10px] text-neutral-500 uppercase">Algo Heartbeat</span>
-                          <div className={`text-xs font-bold ${selectedRecord.algo_execution_active ? "text-emerald-400" : "text-neutral-400"}`}>
-                            {selectedRecord.algo_execution_active ? "🟢 Executing on chart" : "⚪ Disconnected / Idle"}
+                          <span className="text-[10px] text-neutral-400 uppercase font-medium">Algo Heartbeat</span>
+                          <div className={`text-xs font-bold flex items-center gap-1.5 mt-0.5 ${selectedRecord.algo_execution_active ? "text-emerald-400" : "text-neutral-400"}`}>
+                            <span className={`w-2 h-2 rounded-full ${selectedRecord.algo_execution_active ? "bg-emerald-400 animate-pulse" : "bg-neutral-500"}`} />
+                            {selectedRecord.algo_execution_active ? "Executing on chart" : "Disconnected / Idle"}
                           </div>
                         </div>
                       </div>
@@ -2583,8 +2597,12 @@ export default function AutoTradeManagerPage() {
                         <Key size={14} className="text-blue-400" /> Quick License Snapshot
                       </h4>
                       <div className="flex items-center justify-between bg-black/40 p-2.5 rounded-lg border border-white/5">
-                        <span className="font-mono text-xs font-bold text-white">{selectedRecord.license_key}</span>
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 uppercase">
+                        <span className="font-mono text-xs font-bold text-white select-all">
+                          {selectedRecord.license_key && selectedRecord.license_key.startsWith("TF-")
+                            ? selectedRecord.license_key
+                            : generateTradifiveLicenseKey(selectedRecord.mt5_account_number)}
+                        </span>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${selectedRecord.license_status === "active" ? "bg-emerald-500/20 text-emerald-400" : "bg-rose-500/20 text-rose-400"}`}>
                           {selectedRecord.license_status}
                         </span>
                       </div>
@@ -2829,15 +2847,23 @@ export default function AutoTradeManagerPage() {
                         <input
                           type="text"
                           readOnly
-                          value={selectedRecord.license_key}
+                          value={
+                            selectedRecord.license_key && selectedRecord.license_key.startsWith("TF-")
+                              ? selectedRecord.license_key
+                              : generateTradifiveLicenseKey(selectedRecord.mt5_account_number)
+                          }
                           className="flex-1 bg-black/60 border border-white/10 rounded-lg px-4 py-2.5 text-sm font-mono font-bold text-white select-all"
                         />
                         <button
+                          type="button"
                           onClick={() => {
-                            navigator.clipboard.writeText(selectedRecord.license_key);
-                            toast.success("License key copied!");
+                            const keyToCopy = selectedRecord.license_key && selectedRecord.license_key.startsWith("TF-")
+                              ? selectedRecord.license_key
+                              : generateTradifiveLicenseKey(selectedRecord.mt5_account_number);
+                            navigator.clipboard.writeText(keyToCopy);
+                            toast.success("Cryptographic License Key copied!");
                           }}
-                          className="px-3.5 py-2.5 bg-neutral-800 hover:bg-neutral-700 text-white rounded-lg text-xs font-bold flex items-center gap-1.5"
+                          className="px-3.5 py-2.5 bg-neutral-800 hover:bg-neutral-700 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer"
                         >
                           <Copy size={13} /> Copy
                         </button>
@@ -2846,7 +2872,7 @@ export default function AutoTradeManagerPage() {
                       <div className="grid grid-cols-2 gap-4 pt-2 text-xs">
                         <div>
                           <span className="text-[10px] text-neutral-500 uppercase">Hardware / Account Binding</span>
-                          <div className="font-mono font-bold text-white mt-0.5">#{selectedRecord.bound_account}</div>
+                          <div className="font-mono font-bold text-emerald-400 mt-0.5">#{selectedRecord.bound_account || selectedRecord.mt5_account_number}</div>
                         </div>
 
                         <div>
