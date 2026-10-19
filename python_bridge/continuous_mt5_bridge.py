@@ -10,7 +10,7 @@ if hasattr(sys.stdout, 'reconfigure'):
 
 WEBHOOK_URL = "https://rylwyxhupwpwsdbvuoej.supabase.co/functions/v1/mt5-webhook"
 ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ5bHd5eGh1cHdwd3NkYnZ1b2VqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0MzI1NTcsImV4cCI6MjA5MjAwODU1N30.xuRj9PZgZys2b64pNnjhXOVyDjtGVFlBno2o9hiisHA"
-ACTIVATION_KEY = "TF-18B42A6D-2710-30307601B9"
+ACTIVATION_KEY = os.environ.get("TRADIFIVE_ACTIVATION_KEY", "")
 
 headers = {
     "Content-Type": "application/json",
