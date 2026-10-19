@@ -2499,19 +2499,11 @@ MagicNumber=789104
               /* ── CASE 4D: FULLY UNLOCKED STATE - SHOW LICENSE KEY & MT5 ATTACHMENT ── */
               <div className="p-5 sm:p-6 rounded-2xl bg-slate-50 dark:bg-[#121214] border border-slate-200/80 dark:border-white/10 space-y-4">
                 {(() => {
-                  let activeKey = "";
-                  try {
-                    const raw = localStorage.getItem("tradifive_payment_request");
-                    if (raw) {
-                      const parsed = JSON.parse(raw);
-                      if (parsed.license_key && parsed.license_key.startsWith("TF-")) {
-                        activeKey = parsed.license_key;
-                      }
-                    }
-                  } catch (e) {}
-                  if (!activeKey) {
-                    activeKey = generateTradifiveLicenseKey(mt5Account || "4820194");
-                  }
+                  // Always generate key from the Supabase-verified mt5Account for THIS user.
+                  // Never read from localStorage payment_request which may belong to a previous user/session.
+                  const activeKey = mt5Account
+                    ? generateTradifiveLicenseKey(mt5Account)
+                    : "";
 
                   return (
                     <>

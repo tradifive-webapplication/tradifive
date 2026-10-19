@@ -95,6 +95,7 @@ const BrokerAuth = lazy(() => import("./pages/BrokerAuth"));
 import { MarketProvider } from "@/contexts/MarketContext";
 import { PresenceProvider } from "@/contexts/PresenceContext";
 import { initGlobalHaptics } from "@/utils/haptics";
+import { supabase } from "@/lib/supabase";
 
 const queryClient = new QueryClient();
 
@@ -104,6 +105,29 @@ const AppRouter = isElectron ? HashRouter : BrowserRouter;
 const App = () => {
   useEffect(() => {
     return initGlobalHaptics();
+  }, []);
+
+  // Cross-user session isolation: if a DIFFERENT user logs in on the same browser,
+  // purge all tradifive_* localStorage keys so stale account/license data doesn't leak.
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session?.user) {
+        const newUserId = session.user.id;
+        const lastUserId = localStorage.getItem('tradifive_last_user_id');
+        if (lastUserId && lastUserId !== newUserId) {
+          // Different user — wipe all stale tradifive_ keys
+          Object.keys(localStorage).forEach((k) => {
+            if (k.startsWith('tradifive_')) localStorage.removeItem(k);
+          });
+        }
+        localStorage.setItem('tradifive_last_user_id', newUserId);
+      }
+      if (event === 'SIGNED_OUT') {
+        // On sign-out also record null so next login always fresh
+        localStorage.removeItem('tradifive_last_user_id');
+      }
+    });
+    return () => subscription.unsubscribe();
   }, []);
 
   return (
