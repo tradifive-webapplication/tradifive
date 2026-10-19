@@ -44,8 +44,43 @@ export default function AutoTradeDashboardPage() {
           .eq('id', userId)
           .maybeSingle();
 
-        // If user has NO connected MT5 account and NO activation key, their setup was revoked or never done!
-        if (!userAcc && !userProfile?.activation_key) {
+        // 3. Fallback: Check auto_trade_admin_records in system_settings
+        let adminRecVerified: any = null;
+        try {
+          const { data: adminSettings } = await supabase
+            .from('system_settings')
+            .select('value')
+            .eq('id', 'auto_trade_admin_records')
+            .maybeSingle();
+          if (adminSettings?.value && typeof adminSettings.value === 'object') {
+            const recordsList = Object.values(adminSettings.value) as any[];
+            adminRecVerified = recordsList.find(
+              r => (r.user_id === userId || (session.user.email && r.user_email === session.user.email)) &&
+                   (r.is_under_tradifive === true || r.ib_status === 'verified')
+            );
+          }
+        } catch (e) {}
+
+        // 4. Fallback: Check ib_transfer_requests in system_settings
+        let proofApproved: any = null;
+        try {
+          const { data: proofSettings } = await supabase
+            .from('system_settings')
+            .select('value')
+            .eq('id', 'ib_transfer_requests')
+            .maybeSingle();
+          if (proofSettings?.value && Array.isArray(proofSettings.value)) {
+            proofApproved = proofSettings.value.find(
+              r => (r.user_id === userId || (session.user.email && r.user_email === session.user.email)) &&
+                   r.status === 'approved'
+            );
+          }
+        } catch (e) {}
+
+        const hasAccess = !!userAcc || !!userProfile?.activation_key || !!adminRecVerified || !!proofApproved;
+
+        // If user has NO connected MT5 account, NO activation key, and NO admin approval, redirect to setup
+        if (!hasAccess) {
           // Clear stale credentials from local storage
           localStorage.removeItem("tradifive_auto_trade_setup");
           localStorage.removeItem("tradifive_connected_mt5_account");
@@ -59,10 +94,24 @@ export default function AutoTradeDashboardPage() {
           return;
         }
 
-        // Active account found for this user!
+        // Active account found or verified for this user!
         if (isMounted) {
-          const accNumber = userAcc?.account_number ? String(userAcc.account_number).replace(/\D/g, '') : "414460525";
-          const depVal = Number(userAcc?.balance || 500);
+          const accNumber = String(
+            userAcc?.account_number ||
+            adminRecVerified?.bound_account ||
+            adminRecVerified?.mt5_account_number ||
+            proofApproved?.mt5_account_number ||
+            localStorage.getItem("tradifive_connected_mt5_account") ||
+            ""
+          ).replace(/\D/g, '');
+
+          const depVal = Number(userAcc?.balance || adminRecVerified?.balance || 500);
+
+          localStorage.setItem("tradifive_auto_trade_setup", "true");
+          if (accNumber) {
+            localStorage.setItem("tradifive_connected_mt5_account", accNumber);
+          }
+          window.dispatchEvent(new Event("tradifive_auto_trade_setup_done"));
 
           setAccountData(prev => ({
             ...prev,

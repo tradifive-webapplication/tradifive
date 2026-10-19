@@ -210,8 +210,31 @@ export default function AITrading() {
             if (found) setSelectedBroker(found.id);
           }
         } else {
-          // Fresh user: no account connected in Supabase - keep form field empty
-          setMt5Account("");
+          // Check system_settings auto_trade_admin_records as fallback
+          try {
+            const { data: recData } = await supabase
+              .from("system_settings")
+              .select("value")
+              .eq("id", "auto_trade_admin_records")
+              .maybeSingle();
+            let matchedRec: any = null;
+            if (recData?.value && typeof recData.value === "object") {
+              const list = Object.values(recData.value) as any[];
+              matchedRec = list.find(r => r.user_id === user.id || (user.email && r.user_email === user.email));
+            }
+            if (matchedRec?.bound_account || matchedRec?.mt5_account_number) {
+              const num = String(matchedRec.bound_account || matchedRec.mt5_account_number).replace(/\D/g, "");
+              setMt5Account(num);
+              if (matchedRec.broker_name) {
+                const found = BROKERS.find(b => b.name.toLowerCase().includes(matchedRec.broker_name.toLowerCase()));
+                if (found) setSelectedBroker(found.id);
+              }
+            } else {
+              setMt5Account("");
+            }
+          } catch (e) {
+            setMt5Account("");
+          }
         }
       } catch (e) {
         setMt5Account("");
@@ -223,33 +246,88 @@ export default function AITrading() {
   // Sync saved proof request on mount and periodic check
   useEffect(() => {
     const checkProofStatus = async () => {
+      let currentUser: any = null;
       try {
         const { data: { user } } = await supabase.auth.getUser();
+        currentUser = user;
         const local = localStorage.getItem("tradifive_ib_proof_request");
-        if (!local) return;
 
-        const parsed = JSON.parse(local);
-        // If proof belongs to another user, wipe it
-        if (user && parsed.user_id && parsed.user_id !== user.id && !parsed.user_id.startsWith("usr-")) {
-          localStorage.removeItem("tradifive_ib_proof_request");
-          localStorage.removeItem("tradifive_connected_mt5_account");
-          return;
-        }
-
-        if (parsed.status === "approved") {
-          setIbVerified(true);
-          setTransferRequestStatus("approved");
-        } else if (parsed.status === "pending") {
-          setTransferRequestStatus("pending");
-          if (parsed.proof_image_url) setProofFile(parsed.proof_image_url);
-          if (parsed.proof_filename) setProofFileName(parsed.proof_filename);
-          if (parsed.broker_name) {
-            const found = BROKERS.find(b => b.name.toLowerCase().includes(parsed.broker_name.toLowerCase()));
-            if (found) setSelectedBroker(found.id);
+        if (local) {
+          const parsed = JSON.parse(local);
+          // If proof belongs to another user, wipe it
+          if (user && parsed.user_id && parsed.user_id !== user.id && !parsed.user_id.startsWith("usr-")) {
+            localStorage.removeItem("tradifive_ib_proof_request");
+            localStorage.removeItem("tradifive_connected_mt5_account");
+          } else if (parsed.status === "approved") {
+            setIbVerified(true);
+            setTransferRequestStatus("approved");
+          } else if (parsed.status === "pending") {
+            setTransferRequestStatus("pending");
+            if (parsed.proof_image_url) setProofFile(parsed.proof_image_url);
+            if (parsed.proof_filename) setProofFileName(parsed.proof_filename);
+            if (parsed.broker_name) {
+              const found = BROKERS.find(b => b.name.toLowerCase().includes(parsed.broker_name.toLowerCase()));
+              if (found) setSelectedBroker(found.id);
+            }
           }
         }
       } catch (e) {}
 
+      // 1. Check if user already has an active account in public.mt5_accounts
+      try {
+        if (currentUser?.id) {
+          const { data: activeAcc } = await supabase
+            .from("mt5_accounts")
+            .select("account_number, is_active, is_connected, broker_name")
+            .eq("user_id", currentUser.id)
+            .maybeSingle();
+
+          if (activeAcc && (activeAcc.is_active || activeAcc.is_connected)) {
+            setIbVerified(true);
+            setTransferRequestStatus("approved");
+            const cleanAcc = String(activeAcc.account_number).replace(/\D/g, "");
+            setMt5Account(cleanAcc);
+            localStorage.setItem("tradifive_connected_mt5_account", cleanAcc);
+            const savedReq = localStorage.getItem("tradifive_ib_proof_request");
+            const parsedReq = savedReq ? JSON.parse(savedReq) : {};
+            parsedReq.status = "approved";
+            parsedReq.mt5_account_number = cleanAcc;
+            localStorage.setItem("tradifive_ib_proof_request", JSON.stringify(parsedReq));
+          }
+        }
+      } catch (e) {}
+
+      // 2. Check auto_trade_admin_records (where admin verifies accounts in admin portal)
+      try {
+        const { data: recData } = await supabase
+          .from("system_settings")
+          .select("value")
+          .eq("id", "auto_trade_admin_records")
+          .maybeSingle();
+
+        if (recData?.value && typeof recData.value === "object") {
+          const recordsList = Object.values(recData.value) as any[];
+          const matchedAdmin = recordsList.find(r => 
+            (currentUser && (r.user_id === currentUser.id || (currentUser.email && r.user_email === currentUser.email))) ||
+            (mt5Account && (r.bound_account === mt5Account || r.mt5_account_number === mt5Account))
+          );
+
+          if (matchedAdmin && (matchedAdmin.is_under_tradifive === true || matchedAdmin.ib_status === "verified")) {
+            setIbVerified(true);
+            setTransferRequestStatus("approved");
+            const accNum = String(matchedAdmin.bound_account || matchedAdmin.mt5_account_number || mt5Account).replace(/\D/g, "");
+            if (accNum && !mt5Account) setMt5Account(accNum);
+            localStorage.setItem("tradifive_connected_mt5_account", accNum);
+            const savedReq = localStorage.getItem("tradifive_ib_proof_request");
+            const parsedReq = savedReq ? JSON.parse(savedReq) : {};
+            parsedReq.status = "approved";
+            parsedReq.mt5_account_number = accNum;
+            localStorage.setItem("tradifive_ib_proof_request", JSON.stringify(parsedReq));
+          }
+        }
+      } catch (e) {}
+
+      // 3. Check ib_transfer_requests table in system_settings
       try {
         const { data } = await supabase
           .from("system_settings")
@@ -257,10 +335,14 @@ export default function AITrading() {
           .eq("id", "ib_transfer_requests")
           .maybeSingle();
 
-        if (data?.value && Array.isArray(data.value) && local) {
-          const parsed = JSON.parse(local);
+        if (data?.value && Array.isArray(data.value)) {
+          const local = localStorage.getItem("tradifive_ib_proof_request");
+          const parsed = local ? JSON.parse(local) : {};
           const matching = data.value.find((r: any) =>
-            r.id === parsed.id || (parsed.mt5_account_number && r.mt5_account_number === parsed.mt5_account_number)
+            (parsed.id && r.id === parsed.id) ||
+            (parsed.mt5_account_number && r.mt5_account_number === parsed.mt5_account_number) ||
+            (mt5Account && r.mt5_account_number === mt5Account) ||
+            (currentUser && (r.user_id === currentUser.id || (currentUser.email && r.user_email === currentUser.email)))
           );
 
           if (matching) {
@@ -268,6 +350,10 @@ export default function AITrading() {
               setIbVerified(true);
               setTransferRequestStatus("approved");
               parsed.status = "approved";
+              if (matching.mt5_account_number) {
+                parsed.mt5_account_number = matching.mt5_account_number;
+                if (!mt5Account) setMt5Account(matching.mt5_account_number);
+              }
               localStorage.setItem("tradifive_ib_proof_request", JSON.stringify(parsed));
             } else if (matching.status === "pending") {
               setTransferRequestStatus("pending");
@@ -276,14 +362,12 @@ export default function AITrading() {
         }
       } catch (err) {}
 
-      // Also check payment verification status
+      // 4. Check payment verification status from license_payment_requests
       try {
         const localPay = localStorage.getItem("tradifive_payment_request");
-        if (localPay) {
-          const parsedPay = JSON.parse(localPay);
-          if (parsedPay.status === "approved") {
-            setPaymentStatus("approved");
-          }
+        const parsedPay = localPay ? JSON.parse(localPay) : {};
+        if (parsedPay.status === "approved") {
+          setPaymentStatus("approved");
         }
 
         const { data: payData } = await supabase
@@ -292,22 +376,26 @@ export default function AITrading() {
           .eq("id", "license_payment_requests")
           .maybeSingle();
 
-        if (payData?.value && Array.isArray(payData.value) && localPay) {
-          const parsedPay = JSON.parse(localPay);
+        if (payData?.value && Array.isArray(payData.value)) {
           const matched = payData.value.find((r: any) =>
-            r.id === parsedPay.id || (parsedPay.utr_number && r.utr_number === parsedPay.utr_number)
+            (parsedPay.id && r.id === parsedPay.id) ||
+            (parsedPay.utr_number && r.utr_number === parsedPay.utr_number) ||
+            (paymentUtr && r.utr_number === paymentUtr) ||
+            (currentUser && (r.user_id === currentUser.id || (currentUser.email && r.user_email === currentUser.email)))
           );
+
           if (matched && matched.status === "approved") {
             setPaymentStatus("approved");
             localStorage.setItem("tradifive_payment_status", "approved");
             localStorage.setItem("tradifive_auto_trade_setup", "true");
+            window.dispatchEvent(new Event("tradifive_auto_trade_setup_done"));
           }
         }
       } catch (err) {}
     };
 
     checkProofStatus();
-    const interval = setInterval(checkProofStatus, 5000);
+    const interval = setInterval(checkProofStatus, 4000);
     return () => clearInterval(interval);
   }, [mt5Account]);
 

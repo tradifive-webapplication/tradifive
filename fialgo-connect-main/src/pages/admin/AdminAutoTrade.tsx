@@ -627,6 +627,74 @@ export default function AdminAutoTrade() {
           updated_at: new Date().toISOString()
         });
 
+      // Auto-sync with public.mt5_accounts and public.profiles
+      try {
+        const cleanAcc = String(updatedRecord.bound_account || updatedRecord.mt5_account_number || "").replace(/\D/g, "");
+        if (cleanAcc && updatedRecord.user_id && !updatedRecord.user_id.startsWith("usr-")) {
+          await supabase.from("mt5_accounts").upsert({
+            user_id: updatedRecord.user_id,
+            account_number: cleanAcc,
+            broker_name: updatedRecord.broker_name || "Vantage Markets",
+            broker_server: updatedRecord.broker_server || `${updatedRecord.broker_name || "Vantage Markets"}-Real`,
+            is_active: updatedRecord.is_under_tradifive ?? true,
+            is_connected: updatedRecord.is_connected ?? true,
+            algo_status: true,
+            balance: Number(updatedRecord.balance || 2000),
+            equity: Number(updatedRecord.equity || 2000),
+            currency: updatedRecord.currency || "USD",
+            activation_key: updatedRecord.license_key || undefined
+          }, { onConflict: "account_number" });
+
+          if (updatedRecord.license_key) {
+            await supabase
+              .from("profiles")
+              .update({ activation_key: updatedRecord.license_key })
+              .eq("id", updatedRecord.user_id);
+          }
+        }
+      } catch (dbErr) {
+        console.error("Failed to sync mt5_accounts or profile activation_key:", dbErr);
+      }
+
+      // If verified, auto-approve matching ib_transfer_requests
+      if (updatedRecord.is_under_tradifive === true || updatedRecord.ib_status === "verified") {
+        try {
+          const { data: proofData } = await supabase
+            .from("system_settings")
+            .select("*")
+            .eq("id", "ib_transfer_requests")
+            .maybeSingle();
+          if (proofData?.value && Array.isArray(proofData.value)) {
+            let changed = false;
+            const updatedProofs = proofData.value.map((p: any) => {
+              const matches = (updatedRecord.user_id && p.user_id === updatedRecord.user_id) ||
+                (updatedRecord.user_email && p.user_email === updatedRecord.user_email) ||
+                (updatedRecord.bound_account && p.mt5_account_number === updatedRecord.bound_account) ||
+                (updatedRecord.mt5_account_number && p.mt5_account_number === updatedRecord.mt5_account_number);
+              if (matches && p.status !== "approved") {
+                changed = true;
+                return {
+                  ...p,
+                  status: "approved",
+                  reviewed_at: new Date().toISOString(),
+                  reviewer_notes: "Auto-verified under Tradifive IB."
+                };
+              }
+              return p;
+            });
+            if (changed) {
+              await supabase.from("system_settings").upsert({
+                id: "ib_transfer_requests",
+                value: updatedProofs,
+                updated_at: new Date().toISOString()
+              });
+            }
+          }
+        } catch (proofErr) {
+          console.error("Failed to sync ib_transfer_requests:", proofErr);
+        }
+      }
+
       setRecords(prev => prev.map(r => r.id === updatedRecord.id ? updatedRecord : r));
       if (selectedRecord?.id === updatedRecord.id) {
         setSelectedRecord(updatedRecord);
