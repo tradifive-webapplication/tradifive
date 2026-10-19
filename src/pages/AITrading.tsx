@@ -398,19 +398,58 @@ export default function AITrading() {
     }
 
     setIsSubmittingPayment(true);
-    let userName = "Client Trader";
-    let userEmail = "client@tradifive.in";
+    let userName = "";
+    let userEmail = "";
+    let userId = "";
+
     try {
-      const uRaw = localStorage.getItem("tradifive_user") || localStorage.getItem("sb-pfejilmsrvvshdhhjbyz-auth-token");
-      if (uRaw) {
-        const parsed = JSON.parse(uRaw);
-        userName = parsed?.user?.user_metadata?.full_name || parsed?.full_name || parsed?.name || userName;
-        userEmail = parsed?.user?.email || parsed?.email || userEmail;
+      const { data: authData } = await supabase.auth.getUser();
+      const authUser = authData?.user;
+      if (authUser) {
+        userId = authUser.id;
+        userEmail = authUser.email || "";
+        userName = authUser.user_metadata?.full_name || authUser.user_metadata?.name || "";
+
+        const { data: prof } = await supabase
+          .from("profiles")
+          .select("full_name, email, username")
+          .eq("id", authUser.id)
+          .maybeSingle();
+
+        if (prof) {
+          if (prof.full_name) userName = prof.full_name;
+          else if (prof.username && !userName) userName = prof.username;
+          if (prof.email) userEmail = prof.email;
+        }
       }
-    } catch (e) {}
+    } catch (e) {
+      console.warn("Could not fetch user profile:", e);
+    }
+
+    if (!userName) {
+      try {
+        const uRaw = localStorage.getItem("tradifive_user");
+        if (uRaw) {
+          const parsed = JSON.parse(uRaw);
+          userName = parsed?.user?.user_metadata?.full_name || parsed?.full_name || parsed?.name || "";
+          if (!userEmail) userEmail = parsed?.user?.email || parsed?.email || "";
+        }
+      } catch (e) {}
+    }
+
+    if (!userName) {
+      userName = localStorage.getItem("tradifive_cached_display_name") || "";
+    }
+    if (!userName || userName === "Client Trader" || userName === "Trader") {
+      userName = userEmail ? userEmail.split("@")[0] : "Client Trader";
+    }
+    if (!userEmail) {
+      userEmail = "client@tradifive.in";
+    }
 
     const newPaymentRequest = {
       id: `pay-${Date.now()}`,
+      user_id: userId || undefined,
       user_name: userName,
       user_email: userEmail,
       mt5_account_number: mt5Account.trim() || "See Screenshot",
@@ -493,15 +532,53 @@ export default function AITrading() {
     }
 
     setIsSubmittingProof(true);
+    let userName = "";
+    let userEmail = "";
+    let userId = "";
+
+    try {
+      const { data: authData } = await supabase.auth.getUser();
+      const authUser = authData?.user;
+      if (authUser) {
+        userId = authUser.id;
+        userEmail = authUser.email || "";
+        userName = authUser.user_metadata?.full_name || authUser.user_metadata?.name || "";
+
+        const { data: prof } = await supabase
+          .from("profiles")
+          .select("full_name, email, username")
+          .eq("id", authUser.id)
+          .maybeSingle();
+
+        if (prof) {
+          if (prof.full_name) userName = prof.full_name;
+          else if (prof.username && !userName) userName = prof.username;
+          if (prof.email) userEmail = prof.email;
+        }
+      }
+    } catch (e) {
+      console.warn("Could not fetch user profile:", e);
+    }
+
+    if (!userName) {
+      userName = localStorage.getItem("tradifive_cached_display_name") || "";
+    }
+    if (!userName || userName === "Trader" || userName === "Client Trader") {
+      userName = userEmail ? userEmail.split("@")[0] : "Trader";
+    }
+    if (!userEmail) {
+      userEmail = "trader@fialgo.com";
+    }
+
     const currentBrokerObj = BROKERS.find(b => b.id === selectedBroker);
     const brokerLabel = currentBrokerObj ? currentBrokerObj.name : "Vantage Markets";
     const cleanAccount = mt5Account.trim();
 
     const newRequest = {
       id: `req-${Date.now()}`,
-      user_id: "usr-" + Math.floor(1000 + Math.random() * 9000),
-      user_name: "Trader",
-      user_email: "trader@fialgo.com",
+      user_id: userId || ("usr-" + Math.floor(1000 + Math.random() * 9000)),
+      user_name: userName,
+      user_email: userEmail,
       mt5_account_number: cleanAccount,
       broker_name: brokerLabel,
       proof_image_url: proofFile,

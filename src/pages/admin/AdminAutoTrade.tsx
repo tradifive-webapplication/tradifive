@@ -256,6 +256,63 @@ export default function AdminAutoTrade() {
       const mt5Map = new Map();
       (mt5Accounts || []).forEach(acc => mt5Map.set(acc.user_id, acc));
 
+      // Enrich payments with real client name & email from profiles if dummy/placeholder
+      const enrichedPayments = payments.map(pay => {
+        let name = pay.user_name;
+        let email = pay.user_email;
+
+        const matchedProfile = (profiles || []).find(p => 
+          (pay.user_id && p.id === pay.user_id) ||
+          (pay.license_key && p.activation_key && p.activation_key === pay.license_key) ||
+          (pay.mt5_account_number && mt5Map.get(p.id)?.account_number?.toString() === pay.mt5_account_number?.toString()) ||
+          (pay.user_email && p.email && p.email.toLowerCase() === pay.user_email.toLowerCase())
+        );
+
+        if (matchedProfile) {
+          if (!name || name === "Client Trader" || name === "Trader") {
+            name = matchedProfile.full_name || matchedProfile.email?.split("@")[0] || name;
+          }
+          if (!email || email === "client@tradifive.in" || email === "trader@fialgo.com") {
+            email = matchedProfile.email || email;
+          }
+        }
+
+        return {
+          ...pay,
+          user_name: name,
+          user_email: email
+        };
+      });
+      setLicensePayments(enrichedPayments);
+
+      // Also enrich proofs with real client name & email from profiles if dummy/placeholder
+      const enrichedProofs = proofs.map(proof => {
+        let name = proof.user_name;
+        let email = proof.user_email;
+
+        const matchedProfile = (profiles || []).find(p => 
+          (proof.user_id && p.id === proof.user_id) ||
+          (proof.mt5_account_number && mt5Map.get(p.id)?.account_number?.toString() === proof.mt5_account_number?.toString()) ||
+          (proof.user_email && p.email && p.email.toLowerCase() === proof.user_email.toLowerCase())
+        );
+
+        if (matchedProfile) {
+          if (!name || name === "Trader" || name === "Client Trader") {
+            name = matchedProfile.full_name || matchedProfile.email?.split("@")[0] || name;
+          }
+          if (!email || email === "trader@fialgo.com" || email === "client@tradifive.in") {
+            email = matchedProfile.email || email;
+          }
+        }
+
+        return {
+          ...proof,
+          user_name: name,
+          user_email: email
+        };
+      });
+      setProofRequests(enrichedProofs);
+
       (profiles || []).forEach(p => {
         const mt5 = mt5Map.get(p.id);
         const override = savedOverrides[p.id] || {};
