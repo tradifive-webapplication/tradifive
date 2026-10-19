@@ -270,8 +270,8 @@ serve(async (req) => {
        let dbError = null;
        let targetAccountId = existingAccount?.id || null;
 
-       const total_deposits = reqBody.total_deposits !== undefined ? Number(reqBody.total_deposits) : null;
-       const total_withdrawals = reqBody.total_withdrawals !== undefined ? Number(reqBody.total_withdrawals) : null;
+       const total_deposits = payload.total_deposits !== undefined ? Number(payload.total_deposits) : null;
+       const total_withdrawals = payload.total_withdrawals !== undefined ? Number(payload.total_withdrawals) : null;
 
        const accountPayload: any = {
           user_id,
