@@ -135,7 +135,7 @@ export default function AITrading() {
         if (parsed.mt5_account_number && !parsed.mt5_account_number.includes("See")) return parsed.mt5_account_number.trim();
       }
     } catch (e) {}
-    return "414460525";
+    return ""; // No hardcoded fallback – will be loaded from Supabase
   });
   const [ibVerified, setIbVerified] = useState(false);
   const [depositConfirmed, setDepositConfirmed] = useState(true);
@@ -195,6 +195,35 @@ export default function AITrading() {
 
   const [copiedKey, setCopiedKey] = useState(false);
   const [copiedPartnerId, setCopiedPartnerId] = useState(false);
+
+  // On mount: fetch the authenticated user's own MT5 account number from Supabase
+  // This prevents showing old account numbers when a new user logs in
+  useEffect(() => {
+    const fetchUserMt5Account = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { data: acc } = await supabase
+          .from("mt5_accounts")
+          .select("account_number, broker_name")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        if (acc?.account_number) {
+          const accStr = String(acc.account_number).replace(/\D/g, "");
+          // Always override localStorage with Supabase truth for this user
+          setMt5Account(accStr);
+          localStorage.setItem("tradifive_connected_mt5_account", accStr);
+          if (acc.broker_name) {
+            const found = BROKERS.find(b => b.name.toLowerCase().includes(acc.broker_name!.toLowerCase()));
+            if (found) setSelectedBroker(found.id);
+          }
+        }
+      } catch (e) {}
+    };
+    fetchUserMt5Account();
+  }, []);
 
   // Sync saved proof request on mount and periodic check
   useEffect(() => {
@@ -606,7 +635,7 @@ MagicNumber=789104
   };
 
   const handleGoToDashboard = () => {
-    const cleanAccount = mt5Account.trim() || "414460525";
+    const cleanAccount = mt5Account.trim();
     const selectedBrokerObj = BROKERS.find(b => b.id === selectedBroker);
     const brokerName = selectedBrokerObj ? selectedBrokerObj.name : "Exness";
     try {
@@ -2602,7 +2631,7 @@ MagicNumber=789104
                         </span>
                       </div>
                       <p className="text-[11.5px] text-slate-500 dark:text-slate-400 mt-0.5">
-                        License key verified on MT5 Account <strong>#{mt5Account || "414460525"}</strong>. Algorithm running on chart.
+                        License key verified on MT5 Account <strong>#{mt5Account}</strong>. Algorithm running on chart.
                       </p>
                     </div>
                   </div>

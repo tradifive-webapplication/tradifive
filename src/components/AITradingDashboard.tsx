@@ -65,7 +65,7 @@ interface Props {
 
 export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) {
   const cleanAccount = useMemo(() => {
-    return (mt5Account || "414460525").replace(/\D/g, "");
+    return (mt5Account || "").replace(/\D/g, "");
   }, [mt5Account]);
 
   // State for live bot toggle (Active / Paused) - synced with localStorage
@@ -1084,7 +1084,7 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
                 Live Feed Connected:
               </span>
               <span>
-                MT5 Terminal <strong className="font-mono text-slate-900 dark:text-white">#{cleanAccount || "414460525"}</strong> is streaming live ticks.
+                MT5 Terminal <strong className="font-mono text-slate-900 dark:text-white">#{cleanAccount}</strong> is streaming live ticks.
               </span>
             </div>
             <div className="flex items-center gap-3 font-mono text-[11px]">
@@ -1734,7 +1734,7 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-[12px] font-medium text-slate-400 dark:text-[#778396]">Bound MT5 Account</span>
-                <span className="text-[13px] font-mono font-semibold text-slate-800 dark:text-[#E2E7EE] tabular-nums">#{cleanAccount || '414460525'}</span>
+                <span className="text-[13px] font-mono font-semibold text-slate-800 dark:text-[#E2E7EE] tabular-nums">#{cleanAccount}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-[12px] font-medium text-slate-400 dark:text-[#778396]">Broker Gateway</span>
@@ -1933,7 +1933,7 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
                       </span>
                     </div>
                     <p className="text-[11.5px] text-slate-400 dark:text-slate-400">
-                      Real-time Expert Advisor logs directly streamed from MetaTrader 5 Terminal #{cleanAccount || '414460525'}
+                      Real-time Expert Advisor logs directly streamed from MetaTrader 5 Terminal #{cleanAccount}
                     </p>
                   </div>
                 </div>

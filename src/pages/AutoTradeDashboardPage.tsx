@@ -61,7 +61,7 @@ export default function AutoTradeDashboardPage() {
 
         // Active account found for this user!
         if (isMounted) {
-          const accNumber = userAcc?.account_number ? String(userAcc.account_number).replace(/\D/g, '') : "414460525";
+          const accNumber = userAcc?.account_number ? String(userAcc.account_number).replace(/\D/g, '') : "";
           const depVal = Number(userAcc?.balance || 500);
 
           setAccountData(prev => ({
