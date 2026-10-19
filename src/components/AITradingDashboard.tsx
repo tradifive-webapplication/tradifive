@@ -195,6 +195,7 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
   const [accountMarginFree, setAccountMarginFree] = useState<number>(0);
   const [accountMarginLevel, setAccountMarginLevel] = useState<number>(0);
   const [accountLeverage, setAccountLeverage] = useState<number>(100);
+  const [totalWithdrawals, setTotalWithdrawals] = useState<number>(0.00);
 
   // 100% Real Live Positions and Trades (Populated ONLY by real Supabase / MT5 data)
   const [openPositions, setOpenPositions] = useState<OpenPosition[]>([]);
@@ -361,6 +362,14 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
         }
         if (activeAccountRow.leverage !== null && activeAccountRow.leverage !== undefined) {
           setAccountLeverage(Number(activeAccountRow.leverage));
+        }
+        if (activeAccountRow.total_deposits !== null && activeAccountRow.total_deposits !== undefined) {
+          const dep = Number(activeAccountRow.total_deposits);
+          if (dep > 0) setTotalDeposits(dep);
+        }
+        if (activeAccountRow.total_withdrawals !== null && activeAccountRow.total_withdrawals !== undefined) {
+          const wdr = Number(activeAccountRow.total_withdrawals);
+          setTotalWithdrawals(wdr);
         }
         if (activeAccountRow.broker_server) {
           const cleanB = String(activeAccountRow.broker_server).replace(/[\uFFFD\?]/g, '-').trim();
@@ -668,16 +677,26 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
     return Number((currentBalance + runningFloatingPnl).toFixed(2));
   }, [accountEquity, currentBalance, runningFloatingPnl]);
 
-  // Realized net profit from account balance vs starting capital (or closed trades sum)
-  const totalNetProfit = useMemo(() => {
-    if (currentBalance > 0 && totalDeposits > 0 && currentBalance >= totalDeposits) {
-      return Number((currentBalance - totalDeposits).toFixed(2));
-    }
-    const sumDeals = closedTrades.reduce((acc, t) => acc + (t.pnl || 0), 0);
-    return Number(sumDeals.toFixed(2));
-  }, [currentBalance, totalDeposits, closedTrades]);
+  // Filter closed trades strictly for real bot trades (Gold/XAU), excluding manual test trades
+  const validClosedTrades = useMemo(() => {
+    return closedTrades.filter(t => {
+      const sym = String(t.pair || '').toUpperCase();
+      return (sym.includes('XAU') || sym.includes('GOLD')) && !sym.includes('BTC') && (t.lot === undefined || t.lot > 0);
+    });
+  }, [closedTrades]);
 
-  const totalWithdrawals = 0.00;
+  // Realized net profit from all completed bot trades (All-Time Cumulative)
+  const totalNetProfit = useMemo(() => {
+    if (validClosedTrades.length > 0) {
+      const sumDeals = validClosedTrades.reduce((acc, t) => acc + (t.pnl || 0), 0);
+      return Number(sumDeals.toFixed(2));
+    }
+    const netDeposits = Math.max(0, totalDeposits - totalWithdrawals);
+    if (currentBalance > 0 && netDeposits > 0) {
+      return Number((currentBalance - netDeposits).toFixed(2));
+    }
+    return 0.00;
+  }, [validClosedTrades, currentBalance, totalDeposits, totalWithdrawals]);
 
   // Real Used Margin based on MT5 Account Telemetry or Institutional Gold/Forex specifications
   const usedMargin = useMemo(() => {
@@ -706,10 +725,10 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
     return Number(((runningEquity / usedMargin) * 100).toFixed(0));
   }, [openPositions.length, accountMarginLevel, runningEquity, usedMargin]);
 
-  // Real Today's PnL & Wins/Losses
+  // Real Today's PnL & Wins/Losses (Strictly closed today from 00:00:00)
   const { todayPnl, todayWins, todayLosses } = useMemo(() => {
     const today = new Date();
-    const todayTrades = closedTrades.filter(t => {
+    const todayTrades = validClosedTrades.filter(t => {
       if (!t.closeTimeRaw) return false;
       const d = new Date(t.closeTimeRaw);
       return (
@@ -719,15 +738,15 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
       );
     });
 
-    const pnl = todayTrades.reduce((acc, t) => acc + t.pnl, 0);
-    const wins = todayTrades.filter(t => t.pnl > 0).length;
-    const losses = todayTrades.filter(t => t.pnl < 0).length;
+    const pnl = todayTrades.reduce((acc, t) => acc + (t.pnl || 0), 0);
+    const wins = todayTrades.filter(t => (t.pnl || 0) > 0).length;
+    const losses = todayTrades.filter(t => (t.pnl || 0) < 0).length;
     return {
       todayPnl: Number(pnl.toFixed(2)),
       todayWins: wins,
       todayLosses: losses
     };
-  }, [closedTrades]);
+  }, [validClosedTrades]);
 
   // Dynamic Daily Target Math
   const dailyTargetProfit = useMemo(() => {
@@ -748,33 +767,34 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
     return todayPnl >= dailyTargetProfit && dailyTargetProfit > 0;
   }, [todayPnl, dailyTargetProfit]);
 
-  // Real Win Rate & Profit Factor
+  // Real Win Rate & Profit Factor based on valid bot trades
   const { winRatePct, profitFactor } = useMemo(() => {
-    if (closedTrades.length === 0) {
+    if (validClosedTrades.length === 0) {
       return { winRatePct: "0.0", profitFactor: "0.00" };
     }
-    const wins = closedTrades.filter(t => t.pnl > 0);
-    const losses = closedTrades.filter(t => t.pnl < 0);
-    const wr = ((wins.length / closedTrades.length) * 100).toFixed(1);
+    const wins = validClosedTrades.filter(t => (t.pnl || 0) > 0);
+    const losses = validClosedTrades.filter(t => (t.pnl || 0) < 0);
+    const wr = ((wins.length / validClosedTrades.length) * 100).toFixed(1);
 
-    const grossProfit = wins.reduce((acc, t) => acc + t.pnl, 0);
-    const grossLoss = Math.abs(losses.reduce((acc, t) => acc + t.pnl, 0));
+    const grossProfit = wins.reduce((acc, t) => acc + (t.pnl || 0), 0);
+    const grossLoss = Math.abs(losses.reduce((acc, t) => acc + (t.pnl || 0), 0));
     const pf = grossLoss > 0 
       ? (grossProfit / grossLoss).toFixed(2) 
       : (grossProfit > 0 ? "MAX" : "0.00");
 
     return { winRatePct: wr, profitFactor: pf };
-  }, [closedTrades]);
+  }, [validClosedTrades]);
 
   // Real Max Drawdown calculation (combines closed deals history + live floating drawdown)
   const maxDrawdownPct = useMemo(() => {
     let maxDd = 0;
-    if (closedTrades.length > 0) {
-      let peak = totalDeposits;
-      let running = totalDeposits;
-      const sortedChrono = [...closedTrades].reverse();
+    const baseCap = totalDeposits > 0 ? totalDeposits : (accountBalance > 0 ? accountBalance : 100000);
+    if (validClosedTrades.length > 0) {
+      let peak = baseCap;
+      let running = baseCap;
+      const sortedChrono = [...validClosedTrades].reverse();
       for (const t of sortedChrono) {
-        running += t.pnl;
+        running += (t.pnl || 0);
         if (running > peak) peak = running;
         const dd = peak > 0 ? ((peak - running) / peak) * 100 : 0;
         if (dd > maxDd) maxDd = dd;
@@ -785,8 +805,8 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
       const liveDd = (Math.abs(runningFloatingPnl) / runningEquity) * 100;
       if (liveDd > maxDd) maxDd = liveDd;
     }
-    return Number(maxDd.toFixed(1));
-  }, [closedTrades, totalDeposits, runningFloatingPnl, runningEquity]);
+    return Number(Math.min(99.9, Math.max(0, maxDd)).toFixed(1));
+  }, [validClosedTrades, totalDeposits, accountBalance, runningFloatingPnl, runningEquity]);
 
   // 100% REAL Dynamic Performance Chart Data (Continuous Institutional Progression)
   const chartData = useMemo(() => {
@@ -1255,7 +1275,7 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
             </h3>
           </div>
           <p className="text-[11.5px] sm:text-[12px] font-medium text-slate-400 dark:text-[#778396] mt-3">
-            PF: {profitFactor} · {closedTrades.length} Trade{closedTrades.length === 1 ? '' : 's'}
+            PF: {profitFactor} · {validClosedTrades.length} Trade{validClosedTrades.length === 1 ? '' : 's'}
           </p>
         </div>
 
@@ -1270,8 +1290,14 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
             </h3>
           </div>
           <div className="mt-3">
-            <span className="text-[10.5px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20 uppercase tracking-wider inline-block">
-              Low Risk Guard
+            <span className={`text-[10.5px] font-bold px-2.5 py-0.5 rounded-full border uppercase tracking-wider inline-block ${
+              maxDrawdownPct <= 5
+                ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20'
+                : maxDrawdownPct <= 15
+                  ? 'text-blue-600 dark:text-blue-400 bg-blue-500/10 border-blue-500/20'
+                  : 'text-rose-600 dark:text-rose-400 bg-rose-500/10 border-rose-500/20'
+            }`}>
+              {maxDrawdownPct <= 5 ? 'Low Risk Guard' : maxDrawdownPct <= 15 ? 'Moderate Guard' : 'High Drawdown'}
             </span>
           </div>
         </div>
@@ -1289,7 +1315,7 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
           <div className="sm:px-3">
             <span className="text-[10px] sm:text-[10.5px] font-extrabold uppercase tracking-wider text-slate-400 block mb-1">Total Withdrawals</span>
             <span className="font-mono font-semibold text-slate-900 dark:text-white text-[15px] sm:text-[16px] block" style={{ fontFamily: "'Inter', sans-serif" }}>
-              {currencySymbol}{totalWithdrawals.toFixed(2)}
+              {currencySymbol}{totalWithdrawals.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           </div>
           <div className="sm:px-3 pt-2.5 sm:pt-0 border-t border-slate-100 dark:border-white/5 sm:border-t-0">

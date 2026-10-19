@@ -2,51 +2,100 @@ import React, { useEffect, useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import AITradingDashboard from "@/components/AITradingDashboard";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/lib/supabase";
 
 export default function AutoTradeDashboardPage() {
   const navigate = useNavigate();
+  const [isVerifying, setIsVerifying] = useState(true);
   
   const [accountData, setAccountData] = useState({
     algoName: "FiAlgo V1 (Gold Specialist)",
     risk: "Low Risk · Dynamic Basket",
     deposit: 500,
-    mt5Account: "414460525"
+    mt5Account: ""
   });
 
   useEffect(() => {
-    try {
-      const direct = localStorage.getItem("tradifive_connected_mt5_account");
-      if (direct && direct.trim()) {
-        setAccountData(prev => ({ ...prev, mt5Account: direct.trim() }));
-      } else {
-        const stored = localStorage.getItem("tradifive_ib_proof_request");
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          if (parsed.mt5_account_number && !parsed.mt5_account_number.includes("See")) {
-            setAccountData(prev => ({ ...prev, mt5Account: parsed.mt5_account_number.trim() }));
-          }
-        }
-      }
+    let isMounted = true;
 
-      const storedPay = localStorage.getItem("tradifive_payment_request");
-      if (storedPay) {
-        const parsed = JSON.parse(storedPay);
-        if (parsed.deposit_amount) {
-          const dep = Number(parsed.deposit_amount);
-          if (dep > 0) setAccountData(prev => ({ ...prev, deposit: dep }));
+    async function verifyUserAccess() {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.user?.id) {
+          navigate('/login');
+          return;
         }
-      }
 
-      const storedProof = localStorage.getItem("tradifive_ib_proof_request");
-      if (storedProof) {
-        const parsed = JSON.parse(storedProof);
-        if (parsed.initial_deposit) {
-          const dep = Number(parsed.initial_deposit);
-          if (dep > 0) setAccountData(prev => ({ ...prev, deposit: dep }));
+        const userId = session.user.id;
+
+        // 1. Check if user has an active MT5 account in Supabase
+        const { data: userAcc } = await supabase
+          .from('mt5_accounts')
+          .select('*')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        // 2. Check if user has an activation key in profiles
+        const { data: userProfile } = await supabase
+          .from('profiles')
+          .select('activation_key')
+          .eq('id', userId)
+          .maybeSingle();
+
+        // If user has NO connected MT5 account and NO activation key, their setup was revoked or never done!
+        if (!userAcc && !userProfile?.activation_key) {
+          // Clear stale credentials from local storage
+          localStorage.removeItem("tradifive_auto_trade_setup");
+          localStorage.removeItem("tradifive_connected_mt5_account");
+          localStorage.removeItem("tradifive_ib_proof_request");
+          localStorage.removeItem("tradifive_payment_request");
+          localStorage.removeItem("tradifive_payment_status");
+          window.dispatchEvent(new Event("tradifive_auto_trade_setup_done"));
+
+          // Redirect to setup page so user can pay & connect
+          navigate('/auto-trade/setup');
+          return;
         }
+
+        // Active account found for this user!
+        if (isMounted) {
+          const accNumber = userAcc?.account_number ? String(userAcc.account_number).replace(/\D/g, '') : "414460525";
+          const depVal = Number(userAcc?.balance || 500);
+
+          setAccountData(prev => ({
+            ...prev,
+            mt5Account: accNumber,
+            deposit: depVal
+          }));
+          setIsVerifying(false);
+        }
+      } catch (err) {
+        console.error("AutoTrade access check error:", err);
+        if (isMounted) setIsVerifying(false);
       }
-    } catch (e) {}
-  }, []);
+    }
+
+    verifyUserAccess();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [navigate]);
+
+  if (isVerifying) {
+    return (
+      <DashboardLayout>
+        <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
+          <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+          <p className="text-xs font-mono text-slate-400 uppercase tracking-widest">
+            Verifying AI Trading Access...
+          </p>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>

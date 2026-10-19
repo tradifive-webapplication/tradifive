@@ -59,14 +59,28 @@ def sync_once():
                 "opened_at": datetime.fromtimestamp(d["time"]).isoformat()
             })
 
-    # 2. Closed Deals (last 30 days)
+    # 2. Extract MT5 Financials: Balance operations (Deposits & Withdrawals) and Closed Bot Deals
     deals_list = []
-    deals = mt5.history_deals_get(datetime.now() - timedelta(days=30), datetime.now())
+    total_deposits = 0.0
+    total_withdrawals = 0.0
+
+    deals = mt5.history_deals_get(datetime.now() - timedelta(days=60), datetime.now() + timedelta(days=1))
     if deals:
+        balance_deals = []
         for d in deals:
             dict_d = d._asdict()
-            # Only record closed trades / exits (entry == 1) or non-zero profit deals
-            if dict_d.get("entry") == 1 or dict_d.get("profit") != 0:
+            deal_type = dict_d.get("type")
+            profit = float(dict_d.get("profit", 0.0))
+
+            # Deal type 2 = Balance operations (Deposit / Withdrawal)
+            if deal_type == 2:
+                balance_deals.append(dict_d)
+                continue
+
+            # Bot trading deals: BUY=0 or SELL=1, entry OUT/INOUT (entry in (1, 2, 3))
+            # Filter for Gold/XAU symbols (which Tradifive trades) to prevent non-bot manual trades
+            sym = str(dict_d.get("symbol", "")).upper()
+            if deal_type in (0, 1) and dict_d.get("entry") in (1, 2, 3) and ("XAU" in sym or "GOLD" in sym):
                 deals_list.append({
                     "ticket": dict_d["ticket"],
                     "symbol": dict_d["symbol"],
@@ -79,6 +93,13 @@ def sync_once():
                     "time": dict_d["time"],
                     "closed_at": datetime.fromtimestamp(dict_d["time"]).isoformat()
                 })
+
+        # Calculate exact total withdrawals & active deposits from balance deals
+        total_withdrawals = sum(abs(float(d['profit'])) for d in balance_deals if float(d['profit']) < 0)
+        today = datetime.now().date()
+        today_dep = sum(float(d['profit']) for d in balance_deals if float(d['profit']) > 0 and datetime.fromtimestamp(d['time']).date() == today)
+        all_dep = sum(float(d['profit']) for d in balance_deals if float(d['profit']) > 0)
+        total_deposits = today_dep if today_dep > 0 else all_dep
 
     # 3. Read 100% Real MT5 Expert Logs from Terminal MQL5/Logs
     expert_logs = []
@@ -144,6 +165,8 @@ def sync_once():
         "margin_free": float(acc.margin_free) if acc.margin_free is not None else float(eq),
         "margin_level": float(acc.margin_level) if acc.margin_level is not None else 0.0,
         "leverage": int(acc.leverage) if acc.leverage is not None else 100,
+        "total_deposits": total_deposits,
+        "total_withdrawals": total_withdrawals,
         "open_positions": pos_list,
         "recent_deals": deals_list,
         "expert_logs": expert_logs
@@ -154,7 +177,7 @@ def sync_once():
         if res.status_code == 200:
             sym = "₹" if acc.currency == "INR" else ("$" if acc.currency == "USD" else acc.currency)
             m_str = f" | Mgn: {sym}{acc.margin:,.2f}" if acc.margin else ""
-            print(f"[{datetime.now().strftime('%H:%M:%S')}] SYNC OK -> Server: {acc.server} | MT5 #{acc.login} | Bal: {sym}{bal:,.2f} | Eq: {sym}{eq:,.2f}{m_str} | Open: {len(pos_list)} | Logs: {len(expert_logs)}", flush=True)
+            print(f"[{datetime.now().strftime('%H:%M:%S')}] SYNC OK -> Server: {acc.server} | MT5 #{acc.login} | Bal: {sym}{bal:,.2f} | Eq: {sym}{eq:,.2f} | Dep: {sym}{total_deposits:,.2f} | Wdr: {sym}{total_withdrawals:,.2f}{m_str} | Open: {len(pos_list)} | Deals: {len(deals_list)} | Logs: {len(expert_logs)}", flush=True)
             return True
         else:
             print(f"[{datetime.now().strftime('%H:%M:%S')}] Webhook returned {res.status_code}: {res.text}", flush=True)

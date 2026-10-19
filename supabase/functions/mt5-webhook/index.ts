@@ -130,7 +130,17 @@ serve(async (req) => {
       const cleanAcc = account_number ? String(account_number).replace(/\D/g, '') : null;
       let accountRow = null;
 
-      if (cleanAcc) {
+      if (user_id) {
+        let q = supabaseAdmin
+          .from('mt5_accounts')
+          .select('*')
+          .eq('user_id', user_id);
+        if (cleanAcc) {
+          q = q.or(`account_number.eq.${cleanAcc},account_number.eq.#${cleanAcc}`);
+        }
+        const { data: acc } = await q.order('created_at', { ascending: false }).limit(1).maybeSingle();
+        accountRow = acc;
+      } else if (cleanAcc) {
         const { data: acc } = await supabaseAdmin
           .from('mt5_accounts')
           .select('*')
@@ -141,30 +151,14 @@ serve(async (req) => {
         accountRow = acc;
       }
 
-      if (!accountRow && user_id) {
-        const { data: acc } = await supabaseAdmin
-          .from('mt5_accounts')
-          .select('*')
-          .eq('user_id', user_id)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        accountRow = acc;
-      }
+      // Fetch trades strictly for this user/account, excluding manual BTC tests
+      let tradesQuery = supabaseAdmin
+        .from('trades')
+        .select('*')
+        .neq('symbol', 'BTCUSD')
+        .order('opened_at', { ascending: false })
+        .limit(100);
 
-      // If still not matched, grab the latest active MT5 account
-      if (!accountRow) {
-        const { data: acc } = await supabaseAdmin
-          .from('mt5_accounts')
-          .select('*')
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        accountRow = acc;
-      }
-
-      // Fetch trades
-      let tradesQuery = supabaseAdmin.from('trades').select('*').order('opened_at', { ascending: false }).limit(50);
       if (user_id) {
         tradesQuery = tradesQuery.eq('user_id', user_id);
       } else if (accountRow?.user_id) {
@@ -276,6 +270,9 @@ serve(async (req) => {
        let dbError = null;
        let targetAccountId = existingAccount?.id || null;
 
+       const total_deposits = reqBody.total_deposits !== undefined ? Number(reqBody.total_deposits) : null;
+       const total_withdrawals = reqBody.total_withdrawals !== undefined ? Number(reqBody.total_withdrawals) : null;
+
        const accountPayload: any = {
           user_id,
           account_number: cleanAcc,
@@ -286,6 +283,8 @@ serve(async (req) => {
           connection_status: 'deployed',
           algo_status: true
        };
+       if (total_deposits !== null) accountPayload.total_deposits = total_deposits;
+       if (total_withdrawals !== null) accountPayload.total_withdrawals = total_withdrawals;
 
        if (existingAccount) {
          // Update existing account
@@ -429,15 +428,19 @@ serve(async (req) => {
             }));
         // Cache live margin, leverage and account metrics
         try {
+          const liveCacheObj: any = {
+            margin: reqBody.margin !== undefined ? Number(reqBody.margin) : 0,
+            margin_free: reqBody.margin_free !== undefined ? Number(reqBody.margin_free) : Number(equity || 0),
+            margin_level: reqBody.margin_level !== undefined ? Number(reqBody.margin_level) : 0,
+            leverage: reqBody.leverage !== undefined ? Number(reqBody.leverage) : 100,
+            updated_at: new Date().toISOString()
+          };
+          if (total_deposits !== null) liveCacheObj.total_deposits = total_deposits;
+          if (total_withdrawals !== null) liveCacheObj.total_withdrawals = total_withdrawals;
+
           await supabaseAdmin.from('system_settings').upsert({
             id: 'mt5_telemetry_live',
-            value: {
-              margin: reqBody.margin !== undefined ? Number(reqBody.margin) : 0,
-              margin_free: reqBody.margin_free !== undefined ? Number(reqBody.margin_free) : Number(equity || 0),
-              margin_level: reqBody.margin_level !== undefined ? Number(reqBody.margin_level) : 0,
-              leverage: reqBody.leverage !== undefined ? Number(reqBody.leverage) : 100,
-              updated_at: new Date().toISOString()
-            }
+            value: liveCacheObj
           });
         } catch (e_mgn) {}
 

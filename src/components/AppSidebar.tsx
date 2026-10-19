@@ -641,13 +641,11 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
     setSelectedQuote(MOTIVATIONAL_MESSAGES[randomIndex]);
     setIsLoggingOut(true);
     await new Promise((resolve) => setTimeout(resolve, 4000));
-    localStorage.removeItem("tradifive_cached_display_name");
-    localStorage.removeItem("tradifive_cached_username");
-    localStorage.removeItem("tradifive_cached_avatar_url");
-    localStorage.removeItem("tradifive_cached_banner_url");
-    localStorage.removeItem("tradifive_cached_mt5_acc");
-    localStorage.removeItem("tradifive_cached_plan");
-    localStorage.removeItem("tradifive_user_status");
+    Object.keys(localStorage).forEach((k) => {
+      if (k.startsWith("tradifive_")) {
+        localStorage.removeItem(k);
+      }
+    });
     await supabase.auth.signOut();
     setIsLoggingOut(false);
     navigate("/login");

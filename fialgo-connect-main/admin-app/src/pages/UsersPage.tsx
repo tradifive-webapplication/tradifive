@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "../lib/supabase";
 import { useAdminAuth } from "../contexts/AdminAuthContext";
-import { Users, ShieldAlert, Search, Filter, Mail, Calendar, UserCheck, UserX, ScanEye, Ban, Trash2 } from "lucide-react";
+import { Users, ShieldAlert, Search, Filter, Mail, Calendar, UserCheck, UserX, ScanEye, Ban, Trash2, BotOff } from "lucide-react";
 import UserDeepScan from "../components/UserDeepScan";
 import { createNotification } from "../lib/notifications";
 import { logAdminAction } from "../lib/audit";
@@ -244,6 +244,59 @@ export default function UsersPage() {
     document.body.removeChild(link);
   };
 
+  const handleRevokeAISetup = async (e: React.MouseEvent, user: any) => {
+    e.stopPropagation();
+    const userName = user.full_name || user.email || "this user";
+    if (!window.confirm(`Are you sure you want to revoke the AI Trading setup for ${userName}?\n\nThis will:\n1. Disconnect their MT5 trading account.\n2. Invalidate their activation license key.\n3. Wipe their AutoTrade configuration.\n\nThe user will be required to pay and set up a new account if they wish to reconnect.`)) {
+      return;
+    }
+
+    try {
+      // 1. Delete MT5 accounts for this user
+      await supabase.from("mt5_accounts").delete().eq("user_id", user.id);
+
+      // 2. Clear activation key in profiles
+      await supabase.from("profiles").update({ activation_key: null }).eq("id", user.id);
+
+      // 3. Delete any active IB proof requests for this user
+      await supabase.from("ib_proof_requests").delete().eq("user_id", user.id);
+
+      // 4. Remove approved license payment request if tracked in system_settings
+      try {
+        const { data: sysSet } = await supabase.from("system_settings").select("*").eq("id", "license_payment_requests").maybeSingle();
+        if (sysSet?.value && Array.isArray(sysSet.value)) {
+          const filtered = sysSet.value.filter((r: any) => r.user_id !== user.id && r.userId !== user.id);
+          await supabase.from("system_settings").upsert({ id: "license_payment_requests", value: filtered });
+        }
+      } catch (ePay) {}
+
+      // 5. Send notification to the user
+      try {
+        await createNotification(
+          user.id,
+          "SYSTEM",
+          "AI Trading Setup Revoked",
+          "Your AI Trading connection has been revoked by administration. To connect a new account, please visit the AI Trading Setup page and complete activation."
+        );
+      } catch (eNotif) {}
+
+      // 6. Audit log
+      try {
+        await logAdminAction(
+          "REVOKE_AI_TRADING_SETUP",
+          user.id,
+          { targetEmail: user.email, adminRole: activeRole }
+        );
+      } catch (eAudit) {}
+
+      alert(`AI Trading setup successfully revoked for ${userName}. If the user logs in, they will be required to pay and connect a new account.`);
+      fetchUsers();
+    } catch (err: any) {
+      console.error("Failed to revoke AI Trading setup:", err);
+      alert(`Error revoking AI setup: ${err.message || err}`);
+    }
+  };
+
   const totalPages = Math.ceil(totalCount / itemsPerPage) || 1;
   const paginatedUsers = users;
 
@@ -259,42 +312,41 @@ export default function UsersPage() {
         />
       )}
 
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">Surgical User Registry</h1>
-          <p className="text-xs text-neutral-400 mt-0.5">
-            Real-time individual account intervention, identity dossiers & compliance governance
+          <h1 className="text-xl font-bold tracking-widest text-white uppercase">Surgical User Registry</h1>
+          <p className="text-neutral-600 text-[9px] font-bold uppercase tracking-[0.2em] mt-1">
+            Real-time individual account intervention & governance
           </p>
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-2.5 flex-wrap">
-          <div className="relative flex-1 sm:flex-none min-w-[220px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" size={14} />
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" size={14} />
             <input 
               type="text" 
-              placeholder="Search traders by name, email, ID..."
+              placeholder="SEARCH TRADERS..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="h-10 w-full sm:w-64 bg-[#1C1C20] border border-white/[0.08] focus:border-blue-500/60 rounded-lg pl-9 pr-4 text-xs text-neutral-200 placeholder-neutral-500 outline-none transition-colors"
+              className="bg-[#1E1E1E] border border-white/5 rounded pl-9 pr-4 py-2 text-[10px] font-mono text-white outline-none focus:border-white/20 transition-all w-64"
             />
           </div>
           <button 
             onClick={() => setShowFilters(!showFilters)}
-            className={`h-10 w-10 border rounded-lg flex items-center justify-center transition-all ${showFilters ? 'bg-blue-500/15 border-blue-500/30 text-blue-400' : 'bg-[#1C1C20] border-white/[0.08] text-neutral-400 hover:text-white'}`}
-            title="Toggle Filter Options"
+            className={`p-2 border rounded transition-all ${showFilters ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' : 'bg-[#1E1E1E] border-white/5 text-neutral-500 hover:text-white'}`}
           >
-            <Filter size={15} />
+            <Filter size={16} />
           </button>
           <button 
             onClick={handleCleanOrphanedData}
-            className="h-10 px-3.5 bg-rose-500/10 border border-rose-500/20 rounded-lg text-rose-400 hover:bg-rose-500/20 transition-all font-semibold text-xs shrink-0"
+            className="p-2 bg-rose-500/10 border border-rose-500/20 rounded text-rose-500 hover:bg-rose-500/20 transition-all font-bold text-[10px] uppercase"
             title="Delete posts from deleted users"
           >
-            Clean Posts
+            Clean Orphaned Posts
           </button>
           <button 
             onClick={exportCSV}
-            className="h-10 px-3.5 bg-[#1C1C20] border border-white/[0.08] hover:border-white/20 rounded-lg text-neutral-200 hover:text-emerald-400 transition-all text-xs font-semibold shrink-0"
+            className="p-2 bg-[#1E1E1E] border border-white/5 rounded text-neutral-500 hover:text-emerald-400 transition-all text-[10px] uppercase font-bold"
             title="Export to CSV"
           >
             Export CSV
@@ -303,11 +355,11 @@ export default function UsersPage() {
       </div>
 
       {showFilters && (
-        <div className="flex flex-wrap items-center gap-4 p-4 bg-[#161618] border border-white/[0.08] rounded-xl animate-in fade-in zoom-in-95 duration-200">
+        <div className="flex items-center gap-4 p-4 bg-[#1E1E1E] border border-white/5 rounded-lg animate-in fade-in zoom-in-95 duration-200">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-neutral-400">Subscription:</span>
-            <select value={filterSub} onChange={(e) => setFilterSub(e.target.value)} className="h-9 bg-[#1C1C20] border border-white/[0.08] rounded-lg px-3 text-xs text-neutral-200 outline-none focus:border-blue-500/60">
-              <option value="all">All Subscriptions</option>
+            <span className="text-[10px] font-bold text-neutral-500 uppercase">Subscription:</span>
+            <select value={filterSub} onChange={(e) => setFilterSub(e.target.value)} className="bg-[#121212] border border-white/5 rounded px-2 py-1 text-[10px] text-white outline-none focus:border-white/20">
+              <option value="all">All</option>
               <option value="free">Free</option>
               <option value="trial">Pro Trial (7d)</option>
               <option value="pro">Pro</option>
@@ -316,38 +368,37 @@ export default function UsersPage() {
             </select>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-neutral-400">Status:</span>
-            <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="h-9 bg-[#1C1C20] border border-white/[0.08] rounded-lg px-3 text-xs text-neutral-200 outline-none focus:border-blue-500/60">
-              <option value="all">All Status</option>
-              <option value="active">Active Only</option>
-              <option value="frozen">Frozen / Restricted</option>
+            <span className="text-[10px] font-bold text-neutral-500 uppercase">Status:</span>
+            <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="bg-[#121212] border border-white/5 rounded px-2 py-1 text-[10px] text-white outline-none focus:border-white/20">
+              <option value="all">All</option>
+              <option value="active">Active</option>
+              <option value="frozen">Frozen/Banned</option>
             </select>
           </div>
         </div>
       )}
 
-      <div className="bg-[#161618] border border-white/[0.08] rounded-xl overflow-hidden shadow-xl">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[720px] text-left border-collapse">
+      <div className="bg-[#1E1E1E] border border-white/5 rounded overflow-hidden">
+        <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="bg-white/[0.02] border-b border-white/[0.08]">
-              <th className="p-4 text-[11px] font-semibold text-neutral-400 uppercase tracking-wider">Trader Identity</th>
-              <th className="p-4 text-[11px] font-semibold text-neutral-400 uppercase tracking-wider">Subscription</th>
-              <th className="p-4 text-[11px] font-semibold text-neutral-400 uppercase tracking-wider">Discipline</th>
-              <th className="p-4 text-[11px] font-semibold text-neutral-400 uppercase tracking-wider">XP / Streak</th>
-              <th className="p-4 text-[11px] font-semibold text-neutral-400 uppercase tracking-wider">Linked Since</th>
-              <th className="p-4 text-[11px] font-semibold text-neutral-400 uppercase tracking-wider text-right">Account Governance</th>
+            <tr className="bg-white/[0.02] border-b border-white/5">
+              <th className="p-4 text-[9px] font-bold text-neutral-500 uppercase tracking-widest">Trader Identity</th>
+              <th className="p-4 text-[9px] font-bold text-neutral-500 uppercase tracking-widest">Subscription</th>
+              <th className="p-4 text-[9px] font-bold text-neutral-500 uppercase tracking-widest">Discipline</th>
+              <th className="p-4 text-[9px] font-bold text-neutral-500 uppercase tracking-widest">XP / Streak</th>
+              <th className="p-4 text-[9px] font-bold text-neutral-500 uppercase tracking-widest">Linked Since</th>
+              <th className="p-4 text-[9px] font-bold text-neutral-500 uppercase tracking-widest text-right">Account Governance</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-white/[0.04]">
+          <tbody className="divide-y divide-white/[0.02]">
             {loading ? (
-              <tr><td colSpan={6} className="p-12 text-center text-neutral-400 text-xs animate-pulse">Loading trader accounts...</td></tr>
+              <tr><td colSpan={6} className="p-8 text-center text-neutral-600 text-[10px] uppercase font-mono tracking-widest animate-pulse">Scanning Bio-Grid...</td></tr>
             ) : paginatedUsers.length === 0 ? (
               <tr>
-                <td colSpan={6} className="p-16 text-center">
-                   <div className="flex flex-col items-center gap-2.5">
-                     <Users size={28} className="text-neutral-600" />
-                     <p className="text-neutral-400 text-xs font-medium">No traders match your search criteria</p>
+                <td colSpan={6} className="p-20 text-center">
+                   <div className="flex flex-col items-center gap-3">
+                     <Users size={30} className="text-neutral-800" />
+                     <p className="text-neutral-500 text-[10px] uppercase font-bold tracking-widest leading-relaxed"> No Traders Detected in Sector </p>
                    </div>
                 </td>
               </tr>
@@ -355,81 +406,91 @@ export default function UsersPage() {
               <tr 
                 key={user.id} 
                 onClick={() => setSelectedUserId(user.id)}
-                className="hover:bg-white/[0.02] cursor-pointer transition-colors group"
+                className="hover:bg-white/[0.01] cursor-pointer transition-colors group"
               >
                 <td className="p-4">
                   <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold transition-all ${user.is_frozen ? 'bg-red-500/10 border border-red-500/40 text-red-400 shadow-sm' : 'bg-gradient-to-tr from-blue-600 to-indigo-600 text-white'}`}>
+                    <div className={`w-9 h-9 rounded bg-[#121212] border flex items-center justify-center text-[10px] font-bold transition-all ${user.is_frozen ? 'border-red-500/50 text-red-500 shadow-lg shadow-red-500/10' : 'border-white/5 text-neutral-400'}`}>
                       {user.full_name?.charAt(0) || "U"}
                     </div>
                     <div>
-                      <div className="flex items-center gap-1.5">
-                         <p className="text-xs font-semibold text-white">{user.full_name || "Unidentified Trader"}</p>
-                         <ScanEye size={12} className="text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <div className="flex items-center gap-2">
+                         <p className="text-[11px] font-bold text-white uppercase">{user.full_name || "Unidentified Trader"}</p>
+                         <ScanEye size={10} className="text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity" />
                       </div>
-                      <div className="text-xs text-neutral-400 mt-0.5">
-                        {user.email}
+                      <div className="flex items-center gap-2 text-[9px] text-neutral-500 mt-0.5">
+                        <Mail size={10} />
+                        <span className="font-mono">{user.email}</span>
                       </div>
                     </div>
                   </div>
                 </td>
                 <td className="p-4">
-                  <div className={`inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-semibold ${
-                    user.subscription_status === 'elite' ? 'bg-purple-500/10 border border-purple-500/20 text-purple-400' :
-                    user.subscription_status === 'pro' ? 'bg-blue-500/10 border border-blue-500/20 text-blue-400' :
-                    user.subscription_status === 'trial' ? 'bg-amber-500/10 border border-amber-500/20 text-amber-400' :
-                    'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
+                  <div className={`inline-flex items-center px-2 py-0.5 rounded border ${
+                    user.subscription_status === 'elite' ? 'bg-purple-500/10 border-purple-500/20 text-purple-500' :
+                    user.subscription_status === 'pro' ? 'bg-blue-500/10 border-blue-500/20 text-blue-500' :
+                    user.subscription_status === 'trial' ? 'bg-amber-500/10 border-amber-500/20 text-amber-500' :
+                    'bg-emerald-500/10 border-emerald-500/20 text-emerald-500'
                   }`}>
-                    {user.subscription_status === 'trial' ? "Pro Trial (7d)" : (user.subscription_status || "Free")}
+                    <span className="text-[9px] font-bold uppercase tracking-tighter">
+                      {user.subscription_status === 'trial' ? "Pro Trial (7d)" : (user.subscription_status || "Free")}
+                    </span>
                   </div>
                 </td>
                 <td className="p-4">
-                  <span className="text-xs font-semibold text-amber-400">Lvl {user.discipline_level || 1}</span>
+                  <span className="text-[11px] font-bold text-amber-500">Lvl {user.discipline_level || 1}</span>
                 </td>
                 <td className="p-4">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-mono text-neutral-300">{(user.xp || 0).toLocaleString()} XP</span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-[10px] font-mono text-neutral-400">{(user.xp || 0).toLocaleString()} XP</span>
                     {(user.streak_days || 0) > 0 && (
-                      <span className="text-[10px] font-semibold text-orange-400 bg-orange-500/10 px-1.5 py-0.5 rounded border border-orange-500/20">{user.streak_days}d 🔥</span>
+                      <span className="text-[9px] font-bold text-orange-500 bg-orange-500/10 px-1.5 py-0.5 rounded border border-orange-500/20">{user.streak_days}d 🔥</span>
                     )}
                   </div>
                 </td>
                 <td className="p-4">
-                  <div className="flex items-center gap-1.5 text-xs text-neutral-400">
-                    <Calendar size={13} className="text-neutral-500" />
-                    <span>{new Date(user.created_at).toLocaleDateString()}</span>
+                  <div className="flex items-center gap-2 text-neutral-500">
+                    <Calendar size={12} />
+                    <span className="text-[9px] font-mono">{new Date(user.created_at).toLocaleDateString()}</span>
                   </div>
                 </td>
                 <td className="p-4 text-right">
-                  <div className="flex items-center justify-end gap-3">
+                  <div className="flex items-center justify-end gap-6">
                     {(user.is_frozen || user.is_banned) && (
-                      <div className="flex items-center gap-1.5 animate-pulse">
-                         <ShieldAlert size={13} className="text-red-400" />
-                         <span className="text-[10px] font-semibold text-red-400 uppercase tracking-wide">Restricted</span>
+                      <div className="flex items-center gap-2 animate-pulse">
+                         <ShieldAlert size={12} className="text-red-500" />
+                         <span className="text-[8px] font-bold text-red-500 uppercase tracking-[0.2em]">Restricted</span>
                       </div>
                     )}
                     
-                    <div className="flex items-center gap-1.5 bg-[#1C1C20] p-1 rounded-lg border border-white/[0.08]" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex items-center gap-2 bg-[#121212] p-1 rounded-full border border-white/5">
+                      <button 
+                         onClick={(e) => handleRevokeAISetup(e, user)}
+                         className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-bold uppercase transition-all hover:bg-amber-500/10 text-amber-500 border border-amber-500/20"
+                         title="Revoke AI Trading setup (disconnects MT5 & requires user to pay to reconnect)"
+                      >
+                         <BotOff size={12} /> Revoke AI
+                      </button>
                       <button 
                          onClick={(e) => handleDeleteUserContent(e, user.id)}
-                         className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium transition-all hover:bg-rose-500/15 text-rose-400"
+                         className="flex items-center gap-2 px-3 py-1 rounded-full text-[9px] font-bold uppercase transition-all hover:bg-rose-500/10 text-rose-500"
                          title="Wipe User Content"
                       >
                          <Trash2 size={12} /> Wipe
                       </button>
                       <button 
                          onClick={(e) => handleDeleteUser(e, user.id)}
-                         className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium transition-all hover:bg-red-600/15 text-red-400"
+                         className="flex items-center gap-2 px-3 py-1 rounded-full text-[9px] font-bold uppercase transition-all hover:bg-red-600/10 text-red-600"
                          title="Permanently Delete User"
                       >
                          <Ban size={12} /> Delete
                       </button>
                       <button 
                          onClick={(e) => toggleUserFreeze(e, user.id, (user.is_frozen || user.is_banned))}
-                         className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all ${(user.is_frozen || user.is_banned) ? 'bg-red-500/20 text-red-400' : 'hover:bg-white/5 text-neutral-300'}`}
+                         className={`flex items-center gap-2 px-3 py-1 rounded-full text-[9px] font-bold uppercase transition-all ${(user.is_frozen || user.is_banned) ? 'bg-red-500/10 text-red-500 shadow-inner shadow-red-500/20' : 'hover:bg-white/5 text-neutral-600'}`}
                       >
                          {(user.is_frozen || user.is_banned) ? <UserX size={12} /> : <UserCheck size={12} />}
-                         {(user.is_frozen || user.is_banned) ? "Restore" : "Freeze"}
+                         {(user.is_frozen || user.is_banned) ? "Restore Account" : "Freeze Account"}
                       </button>
                     </div>
                   </div>
@@ -438,27 +499,26 @@ export default function UsersPage() {
             ))}
           </tbody>
         </table>
-        </div>
       </div>
 
       {totalPages > 1 && (
-        <div className="flex items-center justify-between bg-[#161618] border border-white/[0.08] rounded-xl p-4">
-          <span className="text-xs text-neutral-400">
+        <div className="flex items-center justify-between bg-[#1E1E1E] border border-white/5 rounded p-4">
+          <span className="text-[10px] font-mono text-neutral-500">
             Showing {totalCount > 0 ? (page - 1) * itemsPerPage + 1 : 0} to {Math.min(page * itemsPerPage, totalCount)} of {totalCount}
           </span>
           <div className="flex items-center gap-2">
             <button 
               disabled={page === 1}
               onClick={() => setPage(page - 1)}
-              className="h-8 px-3 bg-[#1C1C20] hover:bg-[#25252B] border border-white/[0.08] rounded-lg text-xs font-semibold text-neutral-200 disabled:opacity-40 transition-all"
+              className="px-3 py-1 bg-white/5 rounded text-[10px] font-bold text-white hover:bg-white/10 disabled:opacity-50"
             >
               PREV
             </button>
-            <span className="text-xs font-semibold text-neutral-300">Page {page} of {totalPages}</span>
+            <span className="text-[10px] font-bold text-neutral-400">Page {page} of {totalPages}</span>
             <button 
               disabled={page === totalPages}
               onClick={() => setPage(page + 1)}
-              className="h-8 px-3 bg-[#1C1C20] hover:bg-[#25252B] border border-white/[0.08] rounded-lg text-xs font-semibold text-neutral-200 disabled:opacity-40 transition-all"
+              className="px-3 py-1 bg-white/5 rounded text-[10px] font-bold text-white hover:bg-white/10 disabled:opacity-50"
             >
               NEXT
             </button>

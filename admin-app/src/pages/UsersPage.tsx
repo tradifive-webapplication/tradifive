@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "../lib/supabase";
 import { useAdminAuth } from "../contexts/AdminAuthContext";
-import { Users, ShieldAlert, Search, Filter, Mail, Calendar, UserCheck, UserX, ScanEye, Ban, Trash2 } from "lucide-react";
+import { Users, ShieldAlert, Search, Filter, Mail, Calendar, UserCheck, UserX, ScanEye, Ban, Trash2, BotOff } from "lucide-react";
 import UserDeepScan from "../components/UserDeepScan";
 import { createNotification } from "../lib/notifications";
 import { logAdminAction } from "../lib/audit";
@@ -244,6 +244,59 @@ export default function UsersPage() {
     document.body.removeChild(link);
   };
 
+  const handleRevokeAISetup = async (e: React.MouseEvent, user: any) => {
+    e.stopPropagation();
+    const userName = user.full_name || user.email || "this user";
+    if (!window.confirm(`Are you sure you want to revoke the AI Trading setup for ${userName}?\n\nThis will:\n1. Disconnect their MT5 trading account.\n2. Invalidate their activation license key.\n3. Wipe their AutoTrade configuration.\n\nThe user will be required to pay and set up a new account if they wish to reconnect.`)) {
+      return;
+    }
+
+    try {
+      // 1. Delete MT5 accounts for this user
+      await supabase.from("mt5_accounts").delete().eq("user_id", user.id);
+
+      // 2. Clear activation key in profiles
+      await supabase.from("profiles").update({ activation_key: null }).eq("id", user.id);
+
+      // 3. Delete any active IB proof requests for this user
+      await supabase.from("ib_proof_requests").delete().eq("user_id", user.id);
+
+      // 4. Remove approved license payment request if tracked in system_settings
+      try {
+        const { data: sysSet } = await supabase.from("system_settings").select("*").eq("id", "license_payment_requests").maybeSingle();
+        if (sysSet?.value && Array.isArray(sysSet.value)) {
+          const filtered = sysSet.value.filter((r: any) => r.user_id !== user.id && r.userId !== user.id);
+          await supabase.from("system_settings").upsert({ id: "license_payment_requests", value: filtered });
+        }
+      } catch (ePay) {}
+
+      // 5. Send notification to the user
+      try {
+        await createNotification(
+          user.id,
+          "SYSTEM",
+          "AI Trading Setup Revoked",
+          "Your AI Trading connection has been revoked by administration. To connect a new account, please visit the AI Trading Setup page and complete activation."
+        );
+      } catch (eNotif) {}
+
+      // 6. Audit log
+      try {
+        await logAdminAction(
+          "REVOKE_AI_TRADING_SETUP",
+          user.id,
+          { targetEmail: user.email, adminRole: activeRole }
+        );
+      } catch (eAudit) {}
+
+      alert(`AI Trading setup successfully revoked for ${userName}. If the user logs in, they will be required to pay and connect a new account.`);
+      fetchUsers();
+    } catch (err: any) {
+      console.error("Failed to revoke AI Trading setup:", err);
+      alert(`Error revoking AI setup: ${err.message || err}`);
+    }
+  };
+
   const totalPages = Math.ceil(totalCount / itemsPerPage) || 1;
   const paginatedUsers = users;
 
@@ -411,6 +464,13 @@ export default function UsersPage() {
                     )}
                     
                     <div className="flex items-center gap-2 bg-[#121212] p-1 rounded-full border border-white/5">
+                      <button 
+                         onClick={(e) => handleRevokeAISetup(e, user)}
+                         className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-bold uppercase transition-all hover:bg-amber-500/10 text-amber-500 border border-amber-500/20"
+                         title="Revoke AI Trading setup (disconnects MT5 & requires user to pay to reconnect)"
+                      >
+                         <BotOff size={12} /> Revoke AI
+                      </button>
                       <button 
                          onClick={(e) => handleDeleteUserContent(e, user.id)}
                          className="flex items-center gap-2 px-3 py-1 rounded-full text-[9px] font-bold uppercase transition-all hover:bg-rose-500/10 text-rose-500"
