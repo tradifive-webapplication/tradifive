@@ -399,6 +399,78 @@ export default function AITrading() {
     return () => clearInterval(interval);
   }, [mt5Account]);
 
+  const [isMt5Connected, setIsMt5Connected] = useState<boolean>(false);
+  const [isCheckingConnection, setIsCheckingConnection] = useState<boolean>(false);
+
+  const checkLiveMt5Connection = async (overrideAcc?: string) => {
+    const accToTest = String(overrideAcc || mt5Account || localStorage.getItem("tradifive_connected_mt5_account") || "").replace(/\D/g, "");
+    if (!accToTest) {
+      setIsMt5Connected(false);
+      return;
+    }
+    setIsCheckingConnection(true);
+    try {
+      // 1. Direct Edge function check
+      const res = await fetch("https://rylwyxhupwpwsdbvuoej.supabase.co/functions/v1/mt5-webhook", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
+        },
+        body: JSON.stringify({
+          action: "get_dashboard_data",
+          account_number: accToTest
+        })
+      });
+
+      if (res.ok) {
+        const d = await res.json();
+        if (d?.account && (d.account.connection_status === "deployed" || d.account.is_connected === true)) {
+          const lastUpdate = d.account.updated_at ? new Date(d.account.updated_at).getTime() : 0;
+          const tenMinAgo = Date.now() - 10 * 60 * 1000;
+          if (lastUpdate > tenMinAgo || (d.trades && d.trades.length > 0)) {
+            setIsMt5Connected(true);
+            setIsCheckingConnection(false);
+            return;
+          }
+        }
+      }
+
+      // 2. Fallback check system_settings auto_trade_admin_records
+      const { data: recData } = await supabase
+        .from("system_settings")
+        .select("value")
+        .eq("id", "auto_trade_admin_records")
+        .maybeSingle();
+
+      if (recData?.value && typeof recData.value === "object") {
+        const rec = Object.values(recData.value).find((r: any) => 
+          r.bound_account === accToTest || r.mt5_account_number === accToTest
+        );
+        if (rec && rec.algo_execution_active === true && rec.is_connected === true) {
+          setIsMt5Connected(true);
+          setIsCheckingConnection(false);
+          return;
+        }
+      }
+
+      setIsMt5Connected(false);
+    } catch (e) {
+      setIsMt5Connected(false);
+    } finally {
+      setIsCheckingConnection(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeStep === 4) {
+      checkLiveMt5Connection();
+      const interval = setInterval(() => checkLiveMt5Connection(), 15000);
+      return () => clearInterval(interval);
+    }
+  }, [activeStep, mt5Account]);
+
   const handleToggleBot = () => {
     const nextState = !isBotRunning;
     setIsBotRunning(nextState);
@@ -532,12 +604,21 @@ export default function AITrading() {
       userEmail = "client@tradifive.in";
     }
 
+    const accountForPayment = mt5Account.trim() || 
+      localStorage.getItem("tradifive_connected_mt5_account") || 
+      (() => {
+        try {
+          const s = localStorage.getItem("tradifive_ib_proof_request");
+          return s ? JSON.parse(s).mt5_account_number || "" : "";
+        } catch (e) { return ""; }
+      })() || "See Screenshot";
+
     const newPaymentRequest = {
       id: `pay-${Date.now()}`,
       user_id: userId || undefined,
       user_name: userName,
       user_email: userEmail,
-      mt5_account_number: mt5Account.trim() || "See Screenshot",
+      mt5_account_number: accountForPayment,
       algo_id: "fialgo_v1",
       algo_name: "FiAlgo V1 Lifetime License",
       amount: "99999",
@@ -748,11 +829,18 @@ export default function AITrading() {
 
 
   const handleDownloadPreset = () => {
+    const cleanAccount = String(mt5Account || localStorage.getItem("tradifive_connected_mt5_account") || "").replace(/\D/g, "");
+    const activeKey = cleanAccount
+      ? generateTradifiveLicenseKey(cleanAccount)
+      : "";
+
     const setContent = `; ═══════════════════════════════════════════════════════════════════
 ; FiAlgo V1 - OFFICIAL INSTITUTIONAL PRESET (.set)
 ; Asset: XAUUSD (Gold) | Timeframe: M1 (1-Minute)
 ; Build: 1.0.4 Enterprise
+; Bound MT5 Account: #${cleanAccount || "All Accounts"}
 ; ═══════════════════════════════════════════════════════════════════
+LicenseKey=${activeKey}
 Symbol=XAUUSD
 TimeFrame=PERIOD_M1
 TradingStyle=DynamicBasket
@@ -772,14 +860,16 @@ MagicNumber=789104
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "XAUUSD_M1_Preset.set";
+    a.download = cleanAccount ? `XAUUSD_M1_Preset_${cleanAccount}.set` : "XAUUSD_M1_Preset.set";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 
     toast.success("XAUUSD_M1_Preset.set downloaded!", {
-      description: "Optimized chart inputs preset ready to load into FiAlgo inputs."
+      description: activeKey
+        ? `Pre-configured with License Key for MT5 Account #${cleanAccount}.`
+        : "Optimized chart inputs preset ready to load into FiAlgo inputs."
     });
   };
 
@@ -2661,10 +2751,10 @@ MagicNumber=789104
               /* ── CASE 4D: FULLY UNLOCKED STATE - SHOW LICENSE KEY & MT5 ATTACHMENT ── */
               <div className="p-5 sm:p-6 rounded-2xl bg-slate-50 dark:bg-[#121214] border border-slate-200/80 dark:border-white/10 space-y-4">
                 {(() => {
-                  // Always generate key from the Supabase-verified mt5Account for THIS user.
-                  // Never read from localStorage payment_request which may belong to a previous user/session.
-                  const activeKey = mt5Account
-                    ? generateTradifiveLicenseKey(mt5Account)
+                  // Always generate key from the verified mt5Account for THIS user
+                  const effectiveAccount = mt5Account || localStorage.getItem("tradifive_connected_mt5_account") || "";
+                  const activeKey = effectiveAccount
+                    ? generateTradifiveLicenseKey(effectiveAccount)
                     : "";
 
                   return (
@@ -2675,22 +2765,44 @@ MagicNumber=789104
                         </span>
                         <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
                           <CheckCircle2 size={12} />
-                          <span>Bound to MT5 #{mt5Account || "4820194"} · Lifetime License</span>
+                          <span>Bound to MT5 #{effectiveAccount || "4820194"} · Lifetime License</span>
                         </span>
                       </div>
 
-                      <div className="flex items-center justify-between bg-white dark:bg-[#1A1A1E] border border-slate-200/80 dark:border-white/10 rounded-xl p-3.5 px-4 sm:px-5">
-                        <span className="font-mono text-sm sm:text-base font-extrabold tracking-wider text-slate-900 dark:text-emerald-400 select-all">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-[#1A1A1E] border border-slate-200/80 dark:border-white/10 rounded-xl p-3.5 px-4 sm:px-5">
+                        <span className="font-mono text-sm sm:text-base font-extrabold tracking-wider text-slate-900 dark:text-emerald-400 select-all break-all">
                           {activeKey}
                         </span>
-                        <button
-                          type="button"
-                          onClick={() => handleCopyKey(activeKey)}
-                          className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-900 text-white dark:bg-white dark:text-slate-900 hover:opacity-90 inline-flex items-center gap-1.5 cursor-pointer ml-3 shadow-xs shrink-0"
-                        >
-                          {copiedKey ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
-                          <span>{copiedKey ? "Copied" : "Copy Key"}</span>
-                        </button>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => handleCopyKey(activeKey)}
+                            className="px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-900 text-white dark:bg-white dark:text-slate-900 hover:opacity-90 inline-flex items-center gap-1.5 cursor-pointer shadow-xs"
+                          >
+                            {copiedKey ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
+                            <span>{copiedKey ? "Copied" : "Copy Key"}</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleDownloadPreset}
+                            className="px-3 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white inline-flex items-center gap-1.5 cursor-pointer shadow-xs"
+                            title="Download MT5 Preset with this license key pre-filled"
+                          >
+                            <Download size={13} />
+                            <span>Download .set</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* MT5 Account Alert Warning Callout */}
+                      <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/25 text-xs space-y-1.5">
+                        <div className="flex items-center gap-1.5 font-bold text-amber-800 dark:text-amber-300">
+                          <AlertTriangle size={14} className="text-amber-500 shrink-0" />
+                          <span>Fix for "Account number didn't match" Alert in MT5:</span>
+                        </div>
+                        <p className="text-[11.5px] text-slate-600 dark:text-slate-300 leading-relaxed">
+                          If your MT5 chart displays an alert saying <em>"Account number didn't match! Your license is for MT5 Account #..."</em>, your chart is still holding an old license key from another account. Press <kbd className="px-1 py-0.5 rounded bg-slate-200 dark:bg-white/10 font-mono text-[10px]">F7</kbd> on your MT5 chart, go to <strong>Inputs</strong>, click <strong>LicenseKey</strong>, replace it with your current key <strong className="font-mono text-slate-900 dark:text-white select-all">{activeKey}</strong>, and click <strong>OK</strong>. Or simply click <strong>Download .set</strong> above and click <strong>Load</strong> in the F7 Inputs window.
+                        </p>
                       </div>
 
                       {/* MT5 WebRequest URL Whitelist Prerequisite */}
@@ -2760,42 +2872,81 @@ MagicNumber=789104
 
                         <div className="text-[11px] text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-100 dark:border-white/5 flex items-center gap-2">
                           <CheckCircle2 size={12} className="text-emerald-500 shrink-0" />
-                          <span>This key is mathematically cryptographically locked to MT5 Account <strong>#{mt5Account || "4820194"}</strong> with Lifetime validity.</span>
+                          <span>This key is mathematically cryptographically locked to MT5 Account <strong>#{effectiveAccount || "4820194"}</strong> with Lifetime validity.</span>
                         </div>
                       </div>
                     </>
                   );
                 })()}
 
-                {/* FiAlgo Connected Live Status Banner */}
-                <div className="p-3.5 sm:p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
-                  <div className="flex items-center gap-3">
-                    <div className="relative flex items-center justify-center shrink-0">
-                      <div className="w-3.5 h-3.5 rounded-full bg-emerald-500 animate-ping absolute opacity-75" />
-                      <div className="w-3.5 h-3.5 rounded-full bg-emerald-500 relative" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-xs sm:text-sm font-bold text-emerald-800 dark:text-emerald-300">
-                          FiAlgo Connected
-                        </span>
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-500/15 px-2 py-0.5 rounded-full border border-emerald-500/25">
-                          <CheckCircle2 size={10} className="text-emerald-500" />
-                          <span>MT5 Online</span>
-                        </span>
+                {/* FiAlgo Live Status Banner: Checks real MT5 connection */}
+                {isMt5Connected ? (
+                  <div className="p-3.5 sm:p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+                    <div className="flex items-center gap-3">
+                      <div className="relative flex items-center justify-center shrink-0">
+                        <div className="w-3.5 h-3.5 rounded-full bg-emerald-500 animate-ping absolute opacity-75" />
+                        <div className="w-3.5 h-3.5 rounded-full bg-emerald-500 relative" />
                       </div>
-                      <p className="text-[11.5px] text-slate-500 dark:text-slate-400 mt-0.5">
-                        License key verified on MT5 Account <strong>#{mt5Account}</strong>. Algorithm running on chart.
-                      </p>
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-xs sm:text-sm font-bold text-emerald-800 dark:text-emerald-300">
+                            FiAlgo Connected &amp; Live
+                          </span>
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-500/15 px-2 py-0.5 rounded-full border border-emerald-500/25">
+                            <CheckCircle2 size={10} className="text-emerald-500" />
+                            <span>MT5 Online</span>
+                          </span>
+                        </div>
+                        <p className="text-[11.5px] text-slate-500 dark:text-slate-400 mt-0.5">
+                          License key verified on MT5 Account <strong>#{mt5Account}</strong>. Algorithm running on chart.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 self-start sm:self-center">
+                      <span className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 font-semibold bg-white dark:bg-white/10 px-2 py-1 rounded-md border border-emerald-500/20">
+                        Ping: 1.8ms
+                      </span>
                     </div>
                   </div>
+                ) : (
+                  <div className="p-3.5 sm:p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+                    <div className="flex items-center gap-3">
+                      <div className="relative flex items-center justify-center shrink-0">
+                        <div className="w-3.5 h-3.5 rounded-full bg-amber-500/30 animate-pulse absolute" />
+                        <div className="w-3.5 h-3.5 rounded-full bg-amber-500 relative flex items-center justify-center">
+                          <div className="w-1.5 h-1.5 rounded-full bg-white" />
+                        </div>
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-xs sm:text-sm font-bold text-amber-800 dark:text-amber-300">
+                            Waiting for MT5 EA Activation
+                          </span>
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 dark:text-amber-400 bg-amber-500/15 px-2 py-0.5 rounded-full border border-amber-500/25">
+                            <Clock size={10} className="text-amber-500" />
+                            <span>Awaiting MT5 Chart</span>
+                          </span>
+                        </div>
+                        <p className="text-[11.5px] text-slate-600 dark:text-slate-300 mt-0.5">
+                          License key issued for MT5 Account <strong>#{mt5Account || "Active"}</strong>. Attach FiAlgo to your chart to go live.
+                        </p>
+                      </div>
+                    </div>
 
-                  <div className="flex items-center gap-2 self-start sm:self-center">
-                    <span className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 font-semibold bg-white dark:bg-white/10 px-2 py-1 rounded-md border border-emerald-500/20">
-                      Ping: 1.8ms
-                    </span>
+                    <div className="flex items-center gap-2 self-start sm:self-center">
+                      <button
+                        type="button"
+                        onClick={() => checkLiveMt5Connection()}
+                        disabled={isCheckingConnection}
+                        className="text-[11px] font-semibold text-amber-700 dark:text-amber-300 bg-white dark:bg-white/10 px-2.5 py-1.5 rounded-lg border border-amber-500/20 hover:bg-amber-50 dark:hover:bg-white/15 inline-flex items-center gap-1.5 cursor-pointer transition-all"
+                      >
+                        <RefreshCw size={11} className={isCheckingConnection ? "animate-spin" : ""} />
+                        <span>{isCheckingConnection ? "Checking..." : "Check Status"}</span>
+                      </button>
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Primary Dashboard CTA */}
                 <button

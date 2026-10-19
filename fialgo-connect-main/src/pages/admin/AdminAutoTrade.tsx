@@ -497,9 +497,17 @@ export default function AdminAutoTrade() {
 
   // Approve ₹99,999 Lifetime Payment & Issue License Key
   const handleApprovePayment = async (payment: LicensePaymentRequest) => {
-    const generatedKey = generateTradifiveLicenseKey(payment.mt5_account_number);
+    const cleanAccount = String(payment.mt5_account_number || "").replace(/\D/g, "");
+    const existingRec = records.find(r => 
+      (cleanAccount && (r.bound_account === cleanAccount || r.mt5_account_number === cleanAccount)) || 
+      (payment.user_email && r.user_email === payment.user_email) ||
+      (payment.user_id && r.user_id === payment.user_id)
+    );
+    const targetAccountNum = cleanAccount || String(existingRec?.bound_account || existingRec?.mt5_account_number || "").replace(/\D/g, "");
+    const generatedKey = generateTradifiveLicenseKey(targetAccountNum);
     const updatedPayment: LicensePaymentRequest = {
       ...payment,
+      mt5_account_number: targetAccountNum || payment.mt5_account_number,
       status: "approved",
       reviewed_at: new Date().toISOString(),
       reviewer_name: "TradiFive Finance Desk",
@@ -522,6 +530,7 @@ export default function AdminAutoTrade() {
         if (parsed.id === payment.id || (parsed.utr_number && parsed.utr_number === payment.utr_number)) {
           parsed.status = "approved";
           parsed.license_key = generatedKey;
+          parsed.mt5_account_number = targetAccountNum || parsed.mt5_account_number;
           parsed.reviewed_at = updatedPayment.reviewed_at;
           localStorage.setItem("tradifive_payment_request", JSON.stringify(parsed));
           localStorage.setItem("tradifive_payment_status", "approved");
@@ -530,14 +539,11 @@ export default function AdminAutoTrade() {
       }
     } catch (e) {}
 
-    const existingRec = records.find(r => 
-      (payment.mt5_account_number && r.mt5_account_number === payment.mt5_account_number) || 
-      (payment.user_email && r.user_email === payment.user_email)
-    );
-
     if (existingRec) {
       const updatedRec: AutoTradeRecord = {
         ...existingRec,
+        bound_account: targetAccountNum || existingRec.bound_account,
+        mt5_account_number: targetAccountNum || existingRec.mt5_account_number,
         has_purchased: true,
         purchase_tier: "Lifetime License",
         price_paid: 99999,
@@ -552,12 +558,21 @@ export default function AdminAutoTrade() {
       await persistUpdate(updatedRec);
     }
 
+    if (payment.user_id || existingRec?.user_id) {
+      try {
+        await supabase
+          .from("profiles")
+          .update({ activation_key: generatedKey })
+          .eq("id", payment.user_id || existingRec?.user_id);
+      } catch (e) {}
+    }
+
     if (previewPaymentProof?.id === payment.id) {
       setPreviewPaymentProof(updatedPayment);
     }
 
     toast.success(`Payment Verified! ₹99,999 License Key Issued`, {
-      description: `Key ${generatedKey} generated. User Step 4 is now active.`
+      description: `Key ${generatedKey} generated for MT5 #${targetAccountNum}. User Step 4 is now active.`
     });
   };
 
