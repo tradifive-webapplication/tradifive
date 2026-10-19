@@ -124,19 +124,8 @@ export default function AITrading() {
     return "exness";
   });
 
-  // Account & Verification
-  const [mt5Account, setMt5Account] = useState<string>(() => {
-    try {
-      const direct = localStorage.getItem("tradifive_connected_mt5_account");
-      if (direct && direct.trim()) return direct.trim();
-      const stored = localStorage.getItem("tradifive_ib_proof_request");
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (parsed.mt5_account_number && !parsed.mt5_account_number.includes("See")) return parsed.mt5_account_number.trim();
-      }
-    } catch (e) {}
-    return ""; // No hardcoded fallback – will be loaded from Supabase
-  });
+  // Account & Verification - clean and empty by default for all new accounts
+  const [mt5Account, setMt5Account] = useState<string>("");
   const [ibVerified, setIbVerified] = useState(false);
   const [depositConfirmed, setDepositConfirmed] = useState(true);
   const [proofFile, setProofFile] = useState<string | null>(null);
@@ -202,7 +191,10 @@ export default function AITrading() {
     const fetchUserMt5Account = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
+        if (!user) {
+          setMt5Account("");
+          return;
+        }
 
         const { data: acc } = await supabase
           .from("mt5_accounts")
@@ -212,15 +204,18 @@ export default function AITrading() {
 
         if (acc?.account_number) {
           const accStr = String(acc.account_number).replace(/\D/g, "");
-          // Always override localStorage with Supabase truth for this user
           setMt5Account(accStr);
-          localStorage.setItem("tradifive_connected_mt5_account", accStr);
           if (acc.broker_name) {
             const found = BROKERS.find(b => b.name.toLowerCase().includes(acc.broker_name!.toLowerCase()));
             if (found) setSelectedBroker(found.id);
           }
+        } else {
+          // Fresh user: no account connected in Supabase - keep form field empty
+          setMt5Account("");
         }
-      } catch (e) {}
+      } catch (e) {
+        setMt5Account("");
+      }
     };
     fetchUserMt5Account();
   }, []);
@@ -228,24 +223,26 @@ export default function AITrading() {
   // Sync saved proof request on mount and periodic check
   useEffect(() => {
     const checkProofStatus = async () => {
-      const local = localStorage.getItem("tradifive_ib_proof_request");
-      if (!local) return;
-
       try {
+        const { data: { user } } = await supabase.auth.getUser();
+        const local = localStorage.getItem("tradifive_ib_proof_request");
+        if (!local) return;
+
         const parsed = JSON.parse(local);
+        // If proof belongs to another user, wipe it
+        if (user && parsed.user_id && parsed.user_id !== user.id && !parsed.user_id.startsWith("usr-")) {
+          localStorage.removeItem("tradifive_ib_proof_request");
+          localStorage.removeItem("tradifive_connected_mt5_account");
+          return;
+        }
+
         if (parsed.status === "approved") {
           setIbVerified(true);
           setTransferRequestStatus("approved");
-          if (parsed.mt5_account_number && !mt5Account && parsed.mt5_account_number !== "See Proof Screenshot") {
-            setMt5Account(parsed.mt5_account_number);
-          }
         } else if (parsed.status === "pending") {
           setTransferRequestStatus("pending");
           if (parsed.proof_image_url) setProofFile(parsed.proof_image_url);
           if (parsed.proof_filename) setProofFileName(parsed.proof_filename);
-          if (parsed.mt5_account_number && !mt5Account && parsed.mt5_account_number !== "See Proof Screenshot") {
-            setMt5Account(parsed.mt5_account_number);
-          }
           if (parsed.broker_name) {
             const found = BROKERS.find(b => b.name.toLowerCase().includes(parsed.broker_name.toLowerCase()));
             if (found) setSelectedBroker(found.id);

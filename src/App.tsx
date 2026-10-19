@@ -107,24 +107,30 @@ const App = () => {
     return initGlobalHaptics();
   }, []);
 
-  // Cross-user session isolation: if a DIFFERENT user logs in on the same browser,
-  // purge all tradifive_* localStorage keys so stale account/license data doesn't leak.
+  // Cross-user session isolation: if a DIFFERENT user logs in or on logout,
+  // purge all auto-trade keys so stale account numbers and license data never leak to other accounts.
   useEffect(() => {
+    const autoTradeKeys = [
+      'tradifive_connected_mt5_account',
+      'tradifive_ib_proof_request',
+      'tradifive_payment_request',
+      'tradifive_payment_status',
+      'tradifive_auto_trade_setup'
+    ];
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session?.user) {
         const newUserId = session.user.id;
         const lastUserId = localStorage.getItem('tradifive_last_user_id');
-        if (lastUserId && lastUserId !== newUserId) {
-          // Different user — wipe all stale tradifive_ keys
-          Object.keys(localStorage).forEach((k) => {
-            if (k.startsWith('tradifive_')) localStorage.removeItem(k);
-          });
+        if (lastUserId !== newUserId) {
+          // Different user or new login — wipe stale auto-trade keys
+          autoTradeKeys.forEach((k) => localStorage.removeItem(k));
         }
         localStorage.setItem('tradifive_last_user_id', newUserId);
       }
       if (event === 'SIGNED_OUT') {
-        // On sign-out also record null so next login always fresh
         localStorage.removeItem('tradifive_last_user_id');
+        autoTradeKeys.forEach((k) => localStorage.removeItem(k));
       }
     });
     return () => subscription.unsubscribe();

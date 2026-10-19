@@ -124,19 +124,8 @@ export default function AITrading() {
     return "exness";
   });
 
-  // Account & Verification
-  const [mt5Account, setMt5Account] = useState<string>(() => {
-    try {
-      const direct = localStorage.getItem("tradifive_connected_mt5_account");
-      if (direct && direct.trim()) return direct.trim();
-      const stored = localStorage.getItem("tradifive_ib_proof_request");
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (parsed.mt5_account_number && !parsed.mt5_account_number.includes("See")) return parsed.mt5_account_number.trim();
-      }
-    } catch (e) {}
-    return "414460525";
-  });
+  // Account & Verification - clean and empty by default for all new accounts
+  const [mt5Account, setMt5Account] = useState<string>("");
   const [ibVerified, setIbVerified] = useState(false);
   const [depositConfirmed, setDepositConfirmed] = useState(true);
   const [proofFile, setProofFile] = useState<string | null>(null);
@@ -196,27 +185,64 @@ export default function AITrading() {
   const [copiedKey, setCopiedKey] = useState(false);
   const [copiedPartnerId, setCopiedPartnerId] = useState(false);
 
+  // On mount: fetch the authenticated user's own MT5 account number from Supabase
+  // This prevents showing old account numbers when a new user logs in
+  useEffect(() => {
+    const fetchUserMt5Account = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          setMt5Account("");
+          return;
+        }
+
+        const { data: acc } = await supabase
+          .from("mt5_accounts")
+          .select("account_number, broker_name")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        if (acc?.account_number) {
+          const accStr = String(acc.account_number).replace(/\D/g, "");
+          setMt5Account(accStr);
+          if (acc.broker_name) {
+            const found = BROKERS.find(b => b.name.toLowerCase().includes(acc.broker_name!.toLowerCase()));
+            if (found) setSelectedBroker(found.id);
+          }
+        } else {
+          // Fresh user: no account connected in Supabase - keep form field empty
+          setMt5Account("");
+        }
+      } catch (e) {
+        setMt5Account("");
+      }
+    };
+    fetchUserMt5Account();
+  }, []);
+
   // Sync saved proof request on mount and periodic check
   useEffect(() => {
     const checkProofStatus = async () => {
-      const local = localStorage.getItem("tradifive_ib_proof_request");
-      if (!local) return;
-
       try {
+        const { data: { user } } = await supabase.auth.getUser();
+        const local = localStorage.getItem("tradifive_ib_proof_request");
+        if (!local) return;
+
         const parsed = JSON.parse(local);
+        // If proof belongs to another user, wipe it
+        if (user && parsed.user_id && parsed.user_id !== user.id && !parsed.user_id.startsWith("usr-")) {
+          localStorage.removeItem("tradifive_ib_proof_request");
+          localStorage.removeItem("tradifive_connected_mt5_account");
+          return;
+        }
+
         if (parsed.status === "approved") {
           setIbVerified(true);
           setTransferRequestStatus("approved");
-          if (parsed.mt5_account_number && !mt5Account && parsed.mt5_account_number !== "See Proof Screenshot") {
-            setMt5Account(parsed.mt5_account_number);
-          }
         } else if (parsed.status === "pending") {
           setTransferRequestStatus("pending");
           if (parsed.proof_image_url) setProofFile(parsed.proof_image_url);
           if (parsed.proof_filename) setProofFileName(parsed.proof_filename);
-          if (parsed.mt5_account_number && !mt5Account && parsed.mt5_account_number !== "See Proof Screenshot") {
-            setMt5Account(parsed.mt5_account_number);
-          }
           if (parsed.broker_name) {
             const found = BROKERS.find(b => b.name.toLowerCase().includes(parsed.broker_name.toLowerCase()));
             if (found) setSelectedBroker(found.id);
@@ -369,19 +395,58 @@ export default function AITrading() {
     }
 
     setIsSubmittingPayment(true);
-    let userName = "Client Trader";
-    let userEmail = "client@tradifive.in";
+    let userName = "";
+    let userEmail = "";
+    let userId = "";
+
     try {
-      const uRaw = localStorage.getItem("tradifive_user") || localStorage.getItem("sb-pfejilmsrvvshdhhjbyz-auth-token");
-      if (uRaw) {
-        const parsed = JSON.parse(uRaw);
-        userName = parsed?.user?.user_metadata?.full_name || parsed?.full_name || parsed?.name || userName;
-        userEmail = parsed?.user?.email || parsed?.email || userEmail;
+      const { data: authData } = await supabase.auth.getUser();
+      const authUser = authData?.user;
+      if (authUser) {
+        userId = authUser.id;
+        userEmail = authUser.email || "";
+        userName = authUser.user_metadata?.full_name || authUser.user_metadata?.name || "";
+
+        const { data: prof } = await supabase
+          .from("profiles")
+          .select("full_name, email, username")
+          .eq("id", authUser.id)
+          .maybeSingle();
+
+        if (prof) {
+          if (prof.full_name) userName = prof.full_name;
+          else if (prof.username && !userName) userName = prof.username;
+          if (prof.email) userEmail = prof.email;
+        }
       }
-    } catch (e) {}
+    } catch (e) {
+      console.warn("Could not fetch user profile:", e);
+    }
+
+    if (!userName) {
+      try {
+        const uRaw = localStorage.getItem("tradifive_user");
+        if (uRaw) {
+          const parsed = JSON.parse(uRaw);
+          userName = parsed?.user?.user_metadata?.full_name || parsed?.full_name || parsed?.name || "";
+          if (!userEmail) userEmail = parsed?.user?.email || parsed?.email || "";
+        }
+      } catch (e) {}
+    }
+
+    if (!userName) {
+      userName = localStorage.getItem("tradifive_cached_display_name") || "";
+    }
+    if (!userName || userName === "Client Trader" || userName === "Trader") {
+      userName = userEmail ? userEmail.split("@")[0] : "Client Trader";
+    }
+    if (!userEmail) {
+      userEmail = "client@tradifive.in";
+    }
 
     const newPaymentRequest = {
       id: `pay-${Date.now()}`,
+      user_id: userId || undefined,
       user_name: userName,
       user_email: userEmail,
       mt5_account_number: mt5Account.trim() || "See Screenshot",
@@ -464,15 +529,53 @@ export default function AITrading() {
     }
 
     setIsSubmittingProof(true);
+    let userName = "";
+    let userEmail = "";
+    let userId = "";
+
+    try {
+      const { data: authData } = await supabase.auth.getUser();
+      const authUser = authData?.user;
+      if (authUser) {
+        userId = authUser.id;
+        userEmail = authUser.email || "";
+        userName = authUser.user_metadata?.full_name || authUser.user_metadata?.name || "";
+
+        const { data: prof } = await supabase
+          .from("profiles")
+          .select("full_name, email, username")
+          .eq("id", authUser.id)
+          .maybeSingle();
+
+        if (prof) {
+          if (prof.full_name) userName = prof.full_name;
+          else if (prof.username && !userName) userName = prof.username;
+          if (prof.email) userEmail = prof.email;
+        }
+      }
+    } catch (e) {
+      console.warn("Could not fetch user profile:", e);
+    }
+
+    if (!userName) {
+      userName = localStorage.getItem("tradifive_cached_display_name") || "";
+    }
+    if (!userName || userName === "Trader" || userName === "Client Trader") {
+      userName = userEmail ? userEmail.split("@")[0] : "Trader";
+    }
+    if (!userEmail) {
+      userEmail = "trader@fialgo.com";
+    }
+
     const currentBrokerObj = BROKERS.find(b => b.id === selectedBroker);
     const brokerLabel = currentBrokerObj ? currentBrokerObj.name : "Vantage Markets";
     const cleanAccount = mt5Account.trim();
 
     const newRequest = {
       id: `req-${Date.now()}`,
-      user_id: "usr-" + Math.floor(1000 + Math.random() * 9000),
-      user_name: "Trader",
-      user_email: "trader@fialgo.com",
+      user_id: userId || ("usr-" + Math.floor(1000 + Math.random() * 9000)),
+      user_name: userName,
+      user_email: userEmail,
       mt5_account_number: cleanAccount,
       broker_name: brokerLabel,
       proof_image_url: proofFile,
@@ -606,7 +709,7 @@ MagicNumber=789104
   };
 
   const handleGoToDashboard = () => {
-    const cleanAccount = mt5Account.trim() || "414460525";
+    const cleanAccount = mt5Account.trim();
     const selectedBrokerObj = BROKERS.find(b => b.id === selectedBroker);
     const brokerName = selectedBrokerObj ? selectedBrokerObj.name : "Exness";
     try {
@@ -2470,19 +2573,11 @@ MagicNumber=789104
               /* ── CASE 4D: FULLY UNLOCKED STATE - SHOW LICENSE KEY & MT5 ATTACHMENT ── */
               <div className="p-5 sm:p-6 rounded-2xl bg-slate-50 dark:bg-[#121214] border border-slate-200/80 dark:border-white/10 space-y-4">
                 {(() => {
-                  let activeKey = "";
-                  try {
-                    const raw = localStorage.getItem("tradifive_payment_request");
-                    if (raw) {
-                      const parsed = JSON.parse(raw);
-                      if (parsed.license_key && parsed.license_key.startsWith("TF-")) {
-                        activeKey = parsed.license_key;
-                      }
-                    }
-                  } catch (e) {}
-                  if (!activeKey) {
-                    activeKey = generateTradifiveLicenseKey(mt5Account || "4820194");
-                  }
+                  // Always generate key from the Supabase-verified mt5Account for THIS user.
+                  // Never read from localStorage payment_request which may belong to a previous user/session.
+                  const activeKey = mt5Account
+                    ? generateTradifiveLicenseKey(mt5Account)
+                    : "";
 
                   return (
                     <>
@@ -2602,7 +2697,7 @@ MagicNumber=789104
                         </span>
                       </div>
                       <p className="text-[11.5px] text-slate-500 dark:text-slate-400 mt-0.5">
-                        License key verified on MT5 Account <strong>#{mt5Account || "414460525"}</strong>. Algorithm running on chart.
+                        License key verified on MT5 Account <strong>#{mt5Account}</strong>. Algorithm running on chart.
                       </p>
                     </div>
                   </div>
