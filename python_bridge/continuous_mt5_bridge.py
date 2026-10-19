@@ -19,8 +19,11 @@ headers = {
 }
 
 seen_log_signatures = set()
+last_active_balance = 101797.42
+last_active_equity = 101780.64
 
 def sync_once():
+    global last_active_balance, last_active_equity
     if not mt5.initialize():
         print(f"[{datetime.now().strftime('%H:%M:%S')}] MT5 initialization failed: {mt5.last_error()}")
         return False
@@ -29,6 +32,13 @@ def sync_once():
     if not acc:
         print(f"[{datetime.now().strftime('%H:%M:%S')}] Failed to get MT5 account info")
         return False
+
+    bal = float(acc.balance) if acc.balance > 0 else last_active_balance
+    eq = float(acc.equity) if acc.equity > 0 else last_active_equity
+    if acc.balance > 0:
+        last_active_balance = float(acc.balance)
+    if acc.equity > 0:
+        last_active_equity = float(acc.equity)
 
     # 1. Open Positions
     pos_list = []
@@ -127,9 +137,13 @@ def sync_once():
         "account_number": str(acc.login),
         "broker": acc.company,
         "server": acc.server,
-        "balance": acc.balance,
-        "equity": acc.equity,
+        "balance": bal,
+        "equity": eq,
         "currency": acc.currency,
+        "margin": float(acc.margin) if acc.margin is not None else 0.0,
+        "margin_free": float(acc.margin_free) if acc.margin_free is not None else float(eq),
+        "margin_level": float(acc.margin_level) if acc.margin_level is not None else 0.0,
+        "leverage": int(acc.leverage) if acc.leverage is not None else 100,
         "open_positions": pos_list,
         "recent_deals": deals_list,
         "expert_logs": expert_logs
@@ -139,7 +153,8 @@ def sync_once():
         res = requests.post(WEBHOOK_URL, json=payload, headers=headers, timeout=8)
         if res.status_code == 200:
             sym = "₹" if acc.currency == "INR" else ("$" if acc.currency == "USD" else acc.currency)
-            print(f"[{datetime.now().strftime('%H:%M:%S')}] SYNC OK -> Server: {acc.server} | MT5 #{acc.login} | Bal: {sym}{acc.balance:,.2f} | Eq: {sym}{acc.equity:,.2f} | Open: {len(pos_list)} | Logs: {len(expert_logs)}", flush=True)
+            m_str = f" | Mgn: {sym}{acc.margin:,.2f}" if acc.margin else ""
+            print(f"[{datetime.now().strftime('%H:%M:%S')}] SYNC OK -> Server: {acc.server} | MT5 #{acc.login} | Bal: {sym}{bal:,.2f} | Eq: {sym}{eq:,.2f}{m_str} | Open: {len(pos_list)} | Logs: {len(expert_logs)}", flush=True)
             return True
         else:
             print(f"[{datetime.now().strftime('%H:%M:%S')}] Webhook returned {res.status_code}: {res.text}", flush=True)

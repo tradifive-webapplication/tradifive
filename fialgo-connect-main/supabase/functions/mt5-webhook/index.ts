@@ -204,6 +204,20 @@ serve(async (req) => {
         }
       } catch (e) {}
 
+      // Merge live telemetry cache if available (real margin, margin_free, margin_level, leverage)
+      if (accountRow) {
+        try {
+          const { data: liveCache } = await supabaseAdmin
+            .from('system_settings')
+            .select('value')
+            .eq('id', 'mt5_telemetry_live')
+            .maybeSingle();
+          if (liveCache?.value && typeof liveCache.value === 'object') {
+            accountRow = { ...accountRow, ...liveCache.value };
+          }
+        } catch (e) {}
+      }
+
       return new Response(
         JSON.stringify({
           success: true,
@@ -413,15 +427,25 @@ serve(async (req) => {
                 message: l.message
               })
             }));
-            await supabaseAdmin.from('system_logs').insert(logEntries);
-          } catch (e_log) {}
+        // Cache live margin, leverage and account metrics
+        try {
+          await supabaseAdmin.from('system_settings').upsert({
+            id: 'mt5_telemetry_live',
+            value: {
+              margin: reqBody.margin !== undefined ? Number(reqBody.margin) : 0,
+              margin_free: reqBody.margin_free !== undefined ? Number(reqBody.margin_free) : Number(equity || 0),
+              margin_level: reqBody.margin_level !== undefined ? Number(reqBody.margin_level) : 0,
+              leverage: reqBody.leverage !== undefined ? Number(reqBody.leverage) : 100,
+              updated_at: new Date().toISOString()
+            }
+          });
+        } catch (e_mgn) {}
+
+        if (dbError) {
+          console.error('Metrics Sync Error:', dbError);
+          return new Response(JSON.stringify({ error: dbError.message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
         }
-          
-       if (dbError) {
-         console.error('Metrics Sync Error:', dbError);
-         return new Response(JSON.stringify({ error: dbError.message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-       }
-       return new Response(JSON.stringify({ success: true }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        return new Response(JSON.stringify({ success: true }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     // Step E: Normalize trade_type (supporting "BUY"/"SELL" strings, "0"/"1" strings, or 0/1 numbers)
