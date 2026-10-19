@@ -62,6 +62,9 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const adminUserRef = React.useRef<AdminProfile | null>(null);
+  adminUserRef.current = adminUser;
+
   useEffect(() => {
     let mounted = true;
 
@@ -90,8 +93,17 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
+      // Background token refresh or tab focus should never trigger a page unmount or reload
+      if (event === "TOKEN_REFRESHED") {
+        return;
+      }
+
       if (session?.user) {
-        setLoading(true);
+        // Only set global blocking loading if we do not already have an active admin session.
+        // This ensures opening another app or tab never flickers or reloads the active screen!
+        if (!adminUserRef.current) {
+          setLoading(true);
+        }
         loadProfile(session.user.id, session.user.email ?? "").finally(() => {
           if (mounted) setLoading(false);
         });

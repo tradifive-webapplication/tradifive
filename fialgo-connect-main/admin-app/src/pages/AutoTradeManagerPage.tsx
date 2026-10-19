@@ -148,15 +148,61 @@ export interface AutoTradeRecord {
   updated_at?: string;
 }
 
-// Real Live Testing Mode: Demo seed records removed
-const SEED_AUTO_TRADE_RECORDS: AutoTradeRecord[] = [];
-const SEED_IB_PROOFS: IbTransferProofRequest[] = [];
-const SEED_LICENSE_PAYMENTS: LicensePaymentRequest[] = [];
+// Persistent in-memory & localStorage caches to guarantee instant data display with zero flickering on route changes or app switches
+let globalCachedRecords: AutoTradeRecord[] = [];
+let globalCachedProofs: IbTransferProofRequest[] = [];
+let globalCachedPayments: LicensePaymentRequest[] = [];
+
+function getInitialRecords(): AutoTradeRecord[] {
+  if (globalCachedRecords.length > 0) return globalCachedRecords;
+  try {
+    const raw = localStorage.getItem("tradifive_cached_admin_records");
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        globalCachedRecords = parsed;
+        return parsed;
+      }
+    }
+  } catch (e) {}
+  return [];
+}
+
+function getInitialProofs(): IbTransferProofRequest[] {
+  if (globalCachedProofs.length > 0) return globalCachedProofs;
+  try {
+    const raw = localStorage.getItem("tradifive_cached_ib_proofs");
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        globalCachedProofs = parsed;
+        return parsed;
+      }
+    }
+  } catch (e) {}
+  return [];
+}
+
+function getInitialPayments(): LicensePaymentRequest[] {
+  if (globalCachedPayments.length > 0) return globalCachedPayments;
+  try {
+    const raw = localStorage.getItem("tradifive_cached_license_payments");
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        globalCachedPayments = parsed;
+        return parsed;
+      }
+    }
+  } catch (e) {}
+  return [];
+}
 
 export default function AutoTradeManagerPage() {
   const { adminUser } = useAdminAuth();
-  const [records, setRecords] = useState<AutoTradeRecord[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [records, setRecords] = useState<AutoTradeRecord[]>(getInitialRecords);
+  const [loading, setLoading] = useState(() => getInitialRecords().length === 0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterIbStatus, setFilterIbStatus] = useState<"all" | "under_tradifive" | "outside_tradifive" | "pending">("all");
   const [filterAlgo, setFilterAlgo] = useState<string>("all");
@@ -167,7 +213,7 @@ export default function AutoTradeManagerPage() {
   const [activeMainTab, setActiveMainTab] = useState<"accounts" | "proofs" | "payments">("accounts");
 
   // IB Proof Requests State
-  const [proofRequests, setProofRequests] = useState<IbTransferProofRequest[]>([]);
+  const [proofRequests, setProofRequests] = useState<IbTransferProofRequest[]>(getInitialProofs);
   const [proofFilter, setProofFilter] = useState<"all" | "pending" | "approved" | "rejected">("pending");
   const [proofSearchQuery, setProofSearchQuery] = useState("");
   const [previewModalProof, setPreviewModalProof] = useState<IbTransferProofRequest | null>(null);
@@ -175,7 +221,7 @@ export default function AutoTradeManagerPage() {
   const [rejectReasonInput, setRejectReasonInput] = useState("");
 
   // ₹99,999 License Payments State
-  const [licensePayments, setLicensePayments] = useState<LicensePaymentRequest[]>([]);
+  const [licensePayments, setLicensePayments] = useState<LicensePaymentRequest[]>(getInitialPayments);
   const [paymentFilter, setPaymentFilter] = useState<"all" | "pending" | "approved" | "rejected">("pending");
   const [paymentMethodFilter, setPaymentMethodFilter] = useState<"all" | "upi" | "bank">("all");
   const [paymentSearchQuery, setPaymentSearchQuery] = useState("");
@@ -203,8 +249,11 @@ export default function AutoTradeManagerPage() {
   });
 
   // Load records from Supabase merged with seed state
-  const loadRecords = async () => {
-    setLoading(true);
+  const loadRecords = async (silent: boolean = false) => {
+    if (!silent && records.length === 0 && globalCachedRecords.length === 0) {
+      setLoading(true);
+    }
+    setIsRefreshing(true);
     try {
       // 1. Fetch saved overrides from system_settings
       const { data: settingsData } = await supabase
@@ -251,6 +300,10 @@ export default function AutoTradeManagerPage() {
       // Real live proofs only - filter out any leftover demo seeds
       proofs = proofs.filter(p => !p.id.startsWith("req-seed-"));
       setProofRequests(proofs);
+      globalCachedProofs = proofs;
+      try {
+        localStorage.setItem("tradifive_cached_ib_proofs", JSON.stringify(proofs));
+      } catch (e) {}
 
       // 1.8 Fetch License Payment Requests (₹99,999 UPI / Bank)
       const { data: licensePayData } = await supabase
@@ -280,6 +333,10 @@ export default function AutoTradeManagerPage() {
       // Real live payments only - filter out any leftover demo seeds
       payments = payments.filter(p => !p.id.startsWith("pay-seed-"));
       setLicensePayments(payments);
+      globalCachedPayments = payments;
+      try {
+        localStorage.setItem("tradifive_cached_license_payments", JSON.stringify(payments));
+      } catch (e) {}
 
       // 2. Fetch live profiles & MT5 accounts from Supabase
       const { data: profiles } = await supabase
@@ -451,11 +508,15 @@ export default function AutoTradeManagerPage() {
       // Real live records only - filter out any legacy demo seeds
       const combined = liveRecords.filter(r => !r.id.startsWith("rec-at-00"));
       setRecords(combined);
+      globalCachedRecords = combined;
+      try {
+        localStorage.setItem("tradifive_cached_admin_records", JSON.stringify(combined));
+      } catch (e) {}
     } catch (err: any) {
       console.error("Error loading auto trade records:", err);
-      setRecords([]);
     } finally {
       setLoading(false);
+      setIsRefreshing(false);
     }
   };
 
@@ -845,8 +906,15 @@ export default function AutoTradeManagerPage() {
         }
       }
 
-      // Also update local state
-      setRecords(prev => prev.map(r => r.id === updatedRecord.id ? updatedRecord : r));
+      // Also update local state & persistent cache
+      setRecords(prev => {
+        const next = prev.map(r => r.id === updatedRecord.id ? updatedRecord : r);
+        globalCachedRecords = next;
+        try {
+          localStorage.setItem("tradifive_cached_admin_records", JSON.stringify(next));
+        } catch (e) {}
+        return next;
+      });
       if (selectedRecord?.id === updatedRecord.id) {
         setSelectedRecord(updatedRecord);
       }
@@ -1135,10 +1203,10 @@ export default function AutoTradeManagerPage() {
 
         <div className="flex items-center gap-2.5 flex-wrap">
           <button
-            onClick={loadRecords}
-            className="h-9 px-3.5 bg-[#1E1E1E] hover:bg-white/[0.05] border border-white/5 hover:border-white/10 rounded-lg text-xs font-semibold text-neutral-300 transition-none flex items-center gap-2"
+            onClick={() => loadRecords(false)}
+            className="h-9 px-3.5 bg-[#1E1E1E] hover:bg-white/[0.05] border border-white/5 hover:border-white/10 rounded-lg text-xs font-semibold text-neutral-300 transition-none flex items-center gap-2 cursor-pointer"
           >
-            <RefreshCcw size={13} className={loading ? "animate-spin" : ""} /> Sync
+            <RefreshCcw size={13} className={isRefreshing ? "animate-spin" : ""} /> Sync
           </button>
 
           <button
@@ -1423,14 +1491,14 @@ export default function AutoTradeManagerPage() {
                 <button
                   type="button"
                   onClick={() => {
-                    loadRecords();
+                    loadRecords(false);
                     toast.success("Live MT5 telemetry synced!");
                   }}
-                  disabled={loading}
+                  disabled={isRefreshing}
                   className="px-3 py-1.5 rounded-lg bg-blue-600/15 hover:bg-blue-600/25 text-blue-400 border border-blue-500/25 text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-all"
                   title="Force refresh live MT5 telemetry and balances"
                 >
-                  <RefreshCcw size={12} className={loading ? "animate-spin" : ""} />
+                  <RefreshCcw size={12} className={isRefreshing ? "animate-spin" : ""} />
                   <span>Sync Real MT5 Data</span>
                 </button>
                 <span className="text-[9px] font-bold text-neutral-600 uppercase tracking-widest hidden sm:inline ml-1">
@@ -1453,7 +1521,7 @@ export default function AutoTradeManagerPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/[0.02] text-xs">
-                  {loading ? (
+                  {loading && records.length === 0 ? (
                     <tr>
                       <td colSpan={7} className="px-4 py-12 text-center text-neutral-400">
                         <RefreshCcw size={18} className="animate-spin mx-auto mb-2 text-blue-400" />

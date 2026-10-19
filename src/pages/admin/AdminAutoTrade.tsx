@@ -144,9 +144,60 @@ const SEED_RECORDS: AutoTradeRecord[] = [];
 const SEED_IB_PROOFS: IbTransferProofRequest[] = [];
 const SEED_LICENSE_PAYMENTS: LicensePaymentRequest[] = [];
 
+// Persistent in-memory & localStorage caches to guarantee instant data display with zero flickering on route changes or app switches
+let globalCachedRecords: AutoTradeRecord[] = [];
+let globalCachedProofs: IbTransferProofRequest[] = [];
+let globalCachedPayments: LicensePaymentRequest[] = [];
+
+function getInitialRecords(): AutoTradeRecord[] {
+  if (globalCachedRecords.length > 0) return globalCachedRecords;
+  try {
+    const raw = localStorage.getItem("tradifive_cached_admin_records");
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        globalCachedRecords = parsed;
+        return parsed;
+      }
+    }
+  } catch (e) {}
+  return [];
+}
+
+function getInitialProofs(): IbTransferProofRequest[] {
+  if (globalCachedProofs.length > 0) return globalCachedProofs;
+  try {
+    const raw = localStorage.getItem("tradifive_cached_ib_proofs");
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        globalCachedProofs = parsed;
+        return parsed;
+      }
+    }
+  } catch (e) {}
+  return [];
+}
+
+function getInitialPayments(): LicensePaymentRequest[] {
+  if (globalCachedPayments.length > 0) return globalCachedPayments;
+  try {
+    const raw = localStorage.getItem("tradifive_cached_license_payments");
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        globalCachedPayments = parsed;
+        return parsed;
+      }
+    }
+  } catch (e) {}
+  return [];
+}
+
 export default function AdminAutoTrade() {
-  const [records, setRecords] = useState<AutoTradeRecord[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [records, setRecords] = useState<AutoTradeRecord[]>(getInitialRecords);
+  const [loading, setLoading] = useState(() => getInitialRecords().length === 0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterIbStatus, setFilterIbStatus] = useState<"all" | "under_tradifive" | "outside_tradifive">("all");
   const [filterAlgo, setFilterAlgo] = useState<string>("all");
@@ -158,7 +209,7 @@ export default function AdminAutoTrade() {
   const [activeMainTab, setActiveMainTab] = useState<"accounts" | "proofs" | "payments">("accounts");
 
   // IB Proof Requests State
-  const [proofRequests, setProofRequests] = useState<IbTransferProofRequest[]>([]);
+  const [proofRequests, setProofRequests] = useState<IbTransferProofRequest[]>(getInitialProofs);
   const [proofFilter, setProofFilter] = useState<"all" | "pending" | "approved" | "rejected">("pending");
   const [proofSearchQuery, setProofSearchQuery] = useState("");
   const [previewModalProof, setPreviewModalProof] = useState<IbTransferProofRequest | null>(null);
@@ -166,7 +217,7 @@ export default function AdminAutoTrade() {
   const [rejectReasonInput, setRejectReasonInput] = useState("");
 
   // ₹99,999 License Payments State
-  const [licensePayments, setLicensePayments] = useState<LicensePaymentRequest[]>([]);
+  const [licensePayments, setLicensePayments] = useState<LicensePaymentRequest[]>(getInitialPayments);
   const [paymentFilter, setPaymentFilter] = useState<"all" | "pending" | "approved" | "rejected">("pending");
   const [paymentMethodFilter, setPaymentMethodFilter] = useState<"all" | "upi" | "bank">("all");
   const [paymentSearchQuery, setPaymentSearchQuery] = useState("");
@@ -174,8 +225,11 @@ export default function AdminAutoTrade() {
   const [rejectModalPayment, setRejectModalPayment] = useState<LicensePaymentRequest | null>(null);
   const [paymentRejectReason, setPaymentRejectReason] = useState("");
 
-  const loadRecords = async () => {
-    setLoading(true);
+  const loadRecords = async (silent: boolean = false) => {
+    if (!silent && records.length === 0 && globalCachedRecords.length === 0) {
+      setLoading(true);
+    }
+    setIsRefreshing(true);
     try {
       const { data: settingsData } = await supabase
         .from("system_settings")
@@ -220,6 +274,10 @@ export default function AdminAutoTrade() {
       // Real live proofs only - filter out any leftover demo seeds
       proofs = proofs.filter(p => !p.id.startsWith("req-seed-"));
       setProofRequests(proofs);
+      globalCachedProofs = proofs;
+      try {
+        localStorage.setItem("tradifive_cached_ib_proofs", JSON.stringify(proofs));
+      } catch (e) {}
 
       // 1.8 Fetch License Payment Requests (₹99,999 UPI / Bank)
       const { data: licensePayData } = await supabase
@@ -249,6 +307,10 @@ export default function AdminAutoTrade() {
       // Real live payments only - filter out any leftover demo seeds
       payments = payments.filter(p => !p.id.startsWith("pay-seed-"));
       setLicensePayments(payments);
+      globalCachedPayments = payments;
+      try {
+        localStorage.setItem("tradifive_cached_license_payments", JSON.stringify(payments));
+      } catch (e) {}
 
       const { data: profiles } = await supabase
         .from("profiles")
@@ -416,11 +478,15 @@ export default function AdminAutoTrade() {
       // Real live records only - filter out any legacy demo seeds
       const combined = liveRecords.filter(r => !r.id.startsWith("rec-at-00"));
       setRecords(combined);
+      globalCachedRecords = combined;
+      try {
+        localStorage.setItem("tradifive_cached_admin_records", JSON.stringify(combined));
+      } catch (e) {}
     } catch (err: any) {
       console.error("Error loading auto trade records:", err);
-      setRecords([]);
     } finally {
       setLoading(false);
+      setIsRefreshing(false);
     }
   };
 
@@ -758,7 +824,15 @@ export default function AdminAutoTrade() {
         }
       }
 
-      setRecords(prev => prev.map(r => r.id === updatedRecord.id ? updatedRecord : r));
+      // Also update local state & persistent cache
+      setRecords(prev => {
+        const next = prev.map(r => r.id === updatedRecord.id ? updatedRecord : r);
+        globalCachedRecords = next;
+        try {
+          localStorage.setItem("tradifive_cached_admin_records", JSON.stringify(next));
+        } catch (e) {}
+        return next;
+      });
       if (selectedRecord?.id === updatedRecord.id) {
         setSelectedRecord(updatedRecord);
       }
@@ -937,10 +1011,10 @@ export default function AdminAutoTrade() {
         </div>
 
         <button
-          onClick={loadRecords}
-          className="px-4 py-2 bg-slate-900 border border-slate-800 hover:border-slate-700 text-white rounded-xl text-xs font-semibold flex items-center gap-2 self-start md:self-auto"
+          onClick={() => loadRecords(false)}
+          className="px-4 py-2 bg-slate-900 border border-slate-800 hover:border-slate-700 text-white rounded-xl text-xs font-semibold flex items-center gap-2 self-start md:self-auto cursor-pointer"
         >
-          <RefreshCcw size={14} className={loading ? "animate-spin" : ""} /> Refresh Live Data
+          <RefreshCcw size={14} className={isRefreshing ? "animate-spin" : ""} /> Refresh Live Data
         </button>
       </div>
 
@@ -1176,7 +1250,7 @@ export default function AdminAutoTrade() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60 text-xs">
-              {loading ? (
+              {loading && records.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-5 py-12 text-center text-slate-500">
                     Loading records...
