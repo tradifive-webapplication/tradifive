@@ -933,7 +933,7 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                       }
                     }}
                   >
-                    <span style={{ fontSize: 11.5, fontWeight: 800 }}>👑 Lifetime VIP</span>
+                    <span style={{ fontSize: 11.5, fontWeight: 800 }}>👑 Lifetime</span>
                     <span
                       style={{
                         fontSize: 9.5,
@@ -988,7 +988,7 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                       }
                     }}
                   >
-                    <span style={{ fontSize: 11.5, fontWeight: 800 }}>⚡ Daily 50% Share</span>
+                    <span style={{ fontSize: 11.5, fontWeight: 800 }}>⚡ Performance</span>
                     <span
                       style={{
                         fontSize: 9.5,
@@ -1005,9 +1005,9 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
                   <span
                     style={{
-                      background: selectedTier === "lifetime" ? "rgba(168, 85, 247, 0.15)" : "rgba(59, 130, 246, 0.15)",
-                      border: selectedTier === "lifetime" ? "1px solid rgba(168, 85, 247, 0.3)" : "1px solid rgba(59, 130, 246, 0.3)",
-                      color: selectedTier === "lifetime" ? "#d8b4fe" : "#93c5fd",
+                      background: "rgba(59, 130, 246, 0.12)",
+                      border: "1px solid rgba(59, 130, 246, 0.25)",
+                      color: "#93c5fd",
                       fontSize: 10,
                       fontWeight: 700,
                       padding: "3px 10px",
@@ -1016,10 +1016,10 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                       textTransform: "uppercase",
                     }}
                   >
-                    {selectedTier === "lifetime" ? "VIP LIFETIME · 0% PROFIT CUT" : "PERFORMANCE · PAY ONLY ON PROFITS"}
+                    {selectedTier === "lifetime" ? "LIFETIME · 0% PROFIT CUT" : "PERFORMANCE · 50% DAILY SHARE"}
                   </span>
-                  <span style={{ fontSize: 11, color: selectedTier === "lifetime" ? "#c084fc" : "#4ade80", fontWeight: 700 }}>
-                    {selectedTier === "lifetime" ? "100% Profits Kept" : "Low Risk Entry"}
+                  <span style={{ fontSize: 11, color: "#60a5fa", fontWeight: 700 }}>
+                    {selectedTier === "lifetime" ? "100% Profits Kept" : "Pay On Green Days"}
                   </span>
                 </div>
 
@@ -1032,12 +1032,12 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                     fontFamily: "'Outfit', sans-serif",
                   }}
                 >
-                  {selectedTier === "lifetime" ? "FiAlgo V1 Lifetime VIP" : "FiAlgo V1 Performance Partner"}
+                  {selectedTier === "lifetime" ? "FiAlgo V1 Lifetime" : "FiAlgo V1 Performance"}
                 </h3>
                 <p style={{ fontSize: 12.5, color: "rgba(255, 255, 255, 0.55)", margin: "0 0 14px", lineHeight: 1.5 }}>
                   {selectedTier === "lifetime"
-                    ? "Deploy the complete algorithmic system directly on any MT5 account with 0% profit cuts and lifetime updates."
-                    : "Deploy the complete algorithmic system with an ultra-low ₹5,000 setup fee. You share 50% only on green days. Zero profit = ₹0 cut."}
+                    ? "Full algorithmic engine on MT5 with 0% profit cut forever. You keep 100% of all profits."
+                    : "Full algorithmic engine on MT5 with ₹5,000 setup fee. Share 50% profit only on green days."}
                 </p>
 
                 {/* Price Tag */}
@@ -1135,14 +1135,14 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                 {/* What is Included List */}
                 <div style={{ marginBottom: 20 }}>
                   <div style={{ fontSize: 11, fontWeight: 700, color: "rgba(255, 255, 255, 0.4)", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 10 }}>
-                    {selectedTier === "lifetime" ? "VIP LIFETIME INCLUDES:" : "PERFORMANCE PLAN INCLUDES:"}
+                    {selectedTier === "lifetime" ? "LIFETIME INCLUDES:" : "PERFORMANCE INCLUDES:"}
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
                     {(selectedTier === "lifetime" ? lifetimeIncludes : performanceIncludes).map((item, i) => (
                       <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 9, fontSize: 12 }}>
                         <CheckCircle2
                           size={14}
-                          color={selectedTier === "lifetime" ? "#c084fc" : "#4ade80"}
+                          color="#60a5fa"
                           style={{ marginTop: 2, flexShrink: 0 }}
                         />
                         <span style={{ color: "rgba(255, 255, 255, 0.8)", lineHeight: 1.4 }}>{item}</span>
@@ -1188,8 +1188,8 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                   <Zap size={15} />
                   <span>
                     {selectedTier === "lifetime"
-                      ? "Get Lifetime VIP Key (₹99,999)"
-                      : "Start with ₹5,000 Setup (50% Share)"}
+                      ? "Get FiAlgo V1 Lifetime (₹99,999)"
+                      : "Get FiAlgo V1 Performance (₹5,000)"}
                   </span>
                   <ArrowRight size={15} />
                 </button>
