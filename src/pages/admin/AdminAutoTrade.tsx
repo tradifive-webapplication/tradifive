@@ -1236,17 +1236,17 @@ export default function AdminAutoTrade() {
 
       {/* Main Table */}
       <div className="bg-slate-900/50 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[1300px] text-left border-collapse">
+        <div className="overflow-hidden">
+          <table className="w-full text-left border-collapse table-fixed">
             <thead>
-              <tr className="border-b border-slate-800 bg-slate-950/40 text-[11px] font-bold uppercase tracking-wider text-slate-400 whitespace-nowrap select-none">
-                <th className="px-5 py-4 min-w-[210px]">User</th>
-                <th className="px-5 py-4 min-w-[200px]">MT5 Account & Broker</th>
-                <th className="px-5 py-4 min-w-[180px]">Under Tradifive?</th>
-                <th className="px-5 py-4 min-w-[210px]">Algo Purchased</th>
-                <th className="px-5 py-4 min-w-[280px]">License Key</th>
-                <th className="px-5 py-4 min-w-[150px]">Balance</th>
-                <th className="px-5 py-4 min-w-[240px] text-right">Actions</th>
+              <tr className="border-b border-slate-800 bg-slate-950/40 text-[10px] font-bold uppercase tracking-wider text-slate-400 select-none">
+                <th className="px-3.5 py-3.5 w-[18%]">User</th>
+                <th className="px-3.5 py-3.5 w-[17%]">MT5 Account & Broker</th>
+                <th className="px-3.5 py-3.5 w-[12%]">Under Tradifive?</th>
+                <th className="px-3.5 py-3.5 w-[17%]">Algo Purchased</th>
+                <th className="px-3.5 py-3.5 w-[17%]">License Key</th>
+                <th className="px-3.5 py-3.5 w-[10%]">Balance</th>
+                <th className="px-3.5 py-3.5 w-[9%] text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60 text-xs">
