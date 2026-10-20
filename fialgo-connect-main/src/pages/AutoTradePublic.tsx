@@ -31,8 +31,8 @@ const fialgoFaqItems = [
     answer: "FiAlgo V1 is a fully automated Expert Advisor (.ex5) engineered specifically for MetaTrader 5 (MT5). It automates trade analysis, entry execution, stop loss placement, and trailing profit management primarily on Gold (XAUUSD) and major currency pairs without requiring manual intervention.",
   },
   {
-    question: "How does the 3-Day Risk-Free Trial and Profit Guarantee work?",
-    answer: "You can download and run FiAlgo V1 on MT5 risk-free. If within 3 days of trading with recommended settings your account does not achieve profit, you receive a full 100% refund — zero questions asked.",
+    question: "What are the two pricing options for FiAlgo V1?",
+    answer: "We offer two transparent pricing models: (1) Lifetime VIP License at ₹99,999 one-time with 0% profit share forever (keep 100% of all profits with zero recurring fees), and (2) Performance Partner at ₹5,000 initial setup fee + 50% daily profit share on net green trading days (zero commission on red days). For Performance accounts, the daily 50% profit share is settled daily via UPI; unpaid keys are automatically suspended until cleared.",
   },
   {
     question: "Do I need a VPS to run FiAlgo V1?",
@@ -157,7 +157,10 @@ export default function AutoTradePublic() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [showWaitlist, setShowWaitlist] = useState(false);
-  const handleStart = () => setShowWaitlist(true);
+  const handleStart = (tier?: string) => {
+    const chosenTier = tier || localStorage.getItem("tradifive_selected_tier") || "lifetime";
+    navigate(`/auto-trade/setup?tier=${chosenTier}`);
+  };
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   return (
@@ -262,7 +265,7 @@ export default function AutoTradePublic() {
                   maxWidth: 340,
                 }}
               >
-                Let the FiAlgo bot trade Gold for you automatically on MT5. Zero trading experience needed — easy 60-second setup and a 3-Day 100% Profit Guarantee.
+                Let the FiAlgo bot trade Gold for you automatically on MT5. Zero trading experience needed — easy 60-second setup and automated risk protection.
               </motion.p>
 
               {/* CTA Button */}
@@ -313,7 +316,7 @@ export default function AutoTradePublic() {
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
                   <span style={{ color: "#4ade80", fontWeight: 700 }}>✓</span>
-                  <span>3-Day Profit Guarantee</span>
+                  <span>Automated Risk Protection</span>
                 </div>
               </div>
             </div>
@@ -472,7 +475,7 @@ export default function AutoTradePublic() {
                         fontWeight: 400,
                       }}
                     >
-                      Let the FiAlgo bot trade Gold for you automatically on MetaTrader 5. Zero trading experience required — simple 60-second setup, built-in safety protection for your account, and an unconditional 3-Day 100% Profit Guarantee.
+                      Let the FiAlgo bot trade Gold for you automatically on MetaTrader 5. Zero trading experience required — simple 60-second setup, built-in safety protection for your account, and automated news & risk protections.
                     </motion.p>
 
                     {/* CTA Buttons */}

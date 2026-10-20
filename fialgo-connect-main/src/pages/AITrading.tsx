@@ -10,7 +10,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import AutoTradeProfitCalculator from "@/components/AutoTradeProfitCalculator";
 import { supabase } from "@/lib/supabase";
 
@@ -153,7 +153,25 @@ export default function AITrading() {
   });
 
   const hasPaid = paymentStatus === "approved";
-  const [selectedTier, setSelectedTier] = useState<"lifetime" | "profit_share_50">("profit_share_50");
+  const [searchParams] = useSearchParams();
+  const [selectedTier, setSelectedTier] = useState<"lifetime" | "profit_share_50">(() => {
+    try {
+      const q = new URLSearchParams(window.location.search).get("tier");
+      if (q === "lifetime") return "lifetime";
+      if (q === "performance" || q === "profit_share_50") return "profit_share_50";
+      const saved = localStorage.getItem("tradifive_selected_tier");
+      if (saved === "lifetime") return "lifetime";
+      return "profit_share_50";
+    } catch (e) {
+      return "profit_share_50";
+    }
+  });
+
+  useEffect(() => {
+    const q = searchParams.get("tier");
+    if (q === "lifetime") setSelectedTier("lifetime");
+    else if (q === "performance" || q === "profit_share_50") setSelectedTier("profit_share_50");
+  }, [searchParams]);
   const [paymentMethod, setPaymentMethod] = useState<"upi" | "bank">("upi");
   const [paymentUtr, setPaymentUtr] = useState<string>(() => {
     try {
@@ -1786,10 +1804,10 @@ MagicNumber=789104
                   </div>
                   <div className="space-y-0.5">
                     <div className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white leading-tight">
-                      3-Day Net Profit Guarantee &amp; 100% Refund
+                      Automated Risk Guard &amp; Profit Discipline
                     </div>
                     <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-normal">
-                      Zero-risk trial. If your account shows no profit after 3 days, instant refund.
+                      Pre-configured stops, news filter, and daily drawdown protection.
                     </p>
                   </div>
                 </div>
