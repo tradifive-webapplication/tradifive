@@ -1498,21 +1498,9 @@ export default function AutoTradeManagerPage() {
                 </h2>
               </div>
               <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    loadRecords(false);
-                    toast.success("Live MT5 telemetry synced!");
-                  }}
-                  disabled={isRefreshing}
-                  className="px-3 py-1.5 rounded-lg bg-blue-600/15 hover:bg-blue-600/25 text-blue-400 border border-blue-500/25 text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-all"
-                  title="Force refresh live MT5 telemetry and balances"
-                >
-                  <RefreshCcw size={12} className={isRefreshing ? "animate-spin" : ""} />
-                  <span>Sync Real MT5 Data</span>
-                </button>
-                <span className="text-[9px] font-bold text-neutral-600 uppercase tracking-widest hidden sm:inline ml-1">
-                  Click any row to open the complete deep inspection dossier
+                <span className="text-[10px] font-medium text-neutral-500 hidden sm:flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/50" />
+                  Click any row to open deep inspection dossier
                 </span>
               </div>
             </div>
@@ -1633,13 +1621,13 @@ export default function AutoTradeManagerPage() {
               <table className="w-full text-left border-collapse table-fixed">
                 <thead>
                   <tr className="border-b border-white/10 bg-[#161618] text-[9.5px] font-bold uppercase tracking-[0.14em] text-neutral-400 select-none">
-                    <th className="px-3.5 py-3 w-[18%]">User Identity</th>
-                    <th className="px-3 py-3 w-[17%]">MT5 Terminal & Broker</th>
-                    <th className="px-3 py-3 w-[12%]">Tradifive Status</th>
-                    <th className="px-3 py-3 w-[17%]">Algo Purchased</th>
-                    <th className="px-3 py-3 w-[17%]">License Key & Status</th>
-                    <th className="px-3 py-3 w-[10%]">Balance / Equity</th>
-                    <th className="px-3 py-3 w-[9%] text-right">Actions</th>
+                    <th className="px-4 py-3.5 w-[16%]">User Identity</th>
+                    <th className="px-3.5 py-3.5 w-[16%]">MT5 Terminal & Broker</th>
+                    <th className="px-3 py-3.5 w-[10%]">Tradifive Status</th>
+                    <th className="px-3.5 py-3.5 w-[15%]">Algo Purchased</th>
+                    <th className="px-3.5 py-3.5 w-[16%]">License Key & Status</th>
+                    <th className="px-3.5 py-3.5 w-[11%]">Balance / Equity</th>
+                    <th className="px-4 py-3.5 w-[16%] text-right pr-6">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/[0.04] text-xs">
@@ -1668,7 +1656,7 @@ export default function AutoTradeManagerPage() {
                         }}
                       >
                         {/* User Identity */}
-                        <td className="px-3.5 py-3 align-middle">
+                        <td className="px-4 py-3.5 align-middle">
                           <div className="flex items-center gap-2.5 min-w-0">
                             <div className="w-7 h-7 rounded-md bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-bold text-white text-[11px] shrink-0 shadow-sm ring-1 ring-white/15">
                               {record.user_name ? record.user_name.charAt(0).toUpperCase() : "U"}
@@ -1685,7 +1673,7 @@ export default function AutoTradeManagerPage() {
                         </td>
 
                         {/* MT5 Terminal & Broker */}
-                        <td className="px-3 py-3 align-middle">
+                        <td className="px-3.5 py-3.5 align-middle">
                           <div className="space-y-0.5 min-w-0">
                             <div className="font-mono font-semibold text-neutral-200 text-xs flex items-center gap-1.5">
                               <Server size={11} className="text-neutral-500 shrink-0" />
@@ -1700,7 +1688,7 @@ export default function AutoTradeManagerPage() {
                         </td>
 
                         {/* Under Tradifive Status */}
-                        <td className="px-3 py-3 align-middle" onClick={(e) => e.stopPropagation()}>
+                        <td className="px-3 py-3.5 align-middle" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center gap-1.5">
                             {record.is_under_tradifive ? (
                               <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10.5px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shrink-0">
@@ -1731,7 +1719,7 @@ export default function AutoTradeManagerPage() {
                         </td>
 
                         {/* Algo Purchased */}
-                        <td className="px-3 py-3 align-middle">
+                        <td className="px-3.5 py-3.5 align-middle">
                           <div className="min-w-0">
                             <div className="font-semibold text-white text-xs flex items-center gap-1.5">
                               <span className="truncate" title={record.algo_name}>{record.algo_name}</span>
@@ -1750,7 +1738,7 @@ export default function AutoTradeManagerPage() {
                         </td>
 
                         {/* License Key & Status */}
-                        <td className="px-3 py-3 align-middle" onClick={(e) => e.stopPropagation()}>
+                        <td className="px-3.5 py-3.5 align-middle" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center gap-1.5 min-w-0">
                             <div
                               className="font-mono text-[10.5px] text-neutral-200 bg-[#1A1A1E] border border-white/10 px-1.5 py-0.5 rounded select-all truncate max-w-[130px] font-medium tracking-tight cursor-pointer hover:border-white/20 transition-colors"
@@ -1794,7 +1782,7 @@ export default function AutoTradeManagerPage() {
                         </td>
 
                         {/* Balance / Equity */}
-                        <td className="px-3 py-3 align-middle font-mono">
+                        <td className="px-3.5 py-3.5 align-middle font-mono">
                           <div className="space-y-0.5 min-w-0">
                             <div className="text-white font-bold text-xs truncate">
                               {(record.currency === "INR" || record.currency === "₹") ? "₹" : "$"}{record.balance?.toLocaleString(undefined, { minimumFractionDigits: 2 })}
@@ -1806,27 +1794,27 @@ export default function AutoTradeManagerPage() {
                         </td>
 
                         {/* Actions */}
-                        <td className="px-3 py-3 text-right align-middle" onClick={(e) => e.stopPropagation()}>
-                          <div className="inline-flex items-center justify-end gap-1 shrink-0">
+                        <td className="px-4 py-3.5 text-right align-middle pr-6" onClick={(e) => e.stopPropagation()}>
+                          <div className="inline-flex items-center justify-end gap-1.5 shrink-0">
                             {/* Suspend / Reactivate Quick Toggle Button */}
                             <button
                               type="button"
                               onClick={() => toggleLicenseStatus(record)}
-                              className={`h-6 px-1.5 rounded text-[10px] font-semibold inline-flex items-center gap-1 border transition-all cursor-pointer shrink-0 ${
+                              className={`h-7 px-2.5 rounded-lg text-[11px] font-semibold inline-flex items-center gap-1.5 border transition-all cursor-pointer shadow-sm shrink-0 ${
                                 record.license_status === "active"
-                                  ? "bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border-rose-500/25"
-                                  : "bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border-emerald-500/25"
+                                  ? "bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border-rose-500/25 hover:border-rose-500/40"
+                                  : "bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border-emerald-500/25 hover:border-emerald-500/40"
                               }`}
                               title={record.license_status === "active" ? "Suspend License" : "Activate License"}
                             >
                               {record.license_status === "active" ? (
                                 <>
-                                  <Lock size={10} />
+                                  <Lock size={11} />
                                   <span>Suspend</span>
                                 </>
                               ) : (
                                 <>
-                                  <Unlock size={10} />
+                                  <Unlock size={11} />
                                   <span>Activate</span>
                                 </>
                               )}
@@ -1836,10 +1824,10 @@ export default function AutoTradeManagerPage() {
                             <button
                               type="button"
                               onClick={() => regenerateLicenseKey(record)}
-                              className="w-6 h-6 bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white border border-white/10 rounded flex items-center justify-center transition-all cursor-pointer shrink-0"
-                              title="Regenerate License Key"
+                              className="h-7 w-7 bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white border border-white/10 rounded-lg flex items-center justify-center transition-all cursor-pointer shrink-0"
+                              title="Regenerate Cryptographic License Key"
                             >
-                              <Key size={11} />
+                              <Key size={12} />
                             </button>
 
                             {/* Inspect Drawer Button */}
@@ -1849,10 +1837,11 @@ export default function AutoTradeManagerPage() {
                                 setSelectedRecord(record);
                                 setIsDrawerOpen(true);
                               }}
-                              className="w-6 h-6 bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white border border-white/10 rounded flex items-center justify-center transition-colors cursor-pointer shrink-0"
+                              className="h-7 px-2.5 bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white border border-white/10 rounded-lg text-[11px] font-medium transition-colors inline-flex items-center gap-1.5 cursor-pointer shrink-0"
                               title="Inspect Full Details"
                             >
-                              <Eye size={11} />
+                              <Eye size={12} />
+                              <span>Inspect</span>
                             </button>
                           </div>
                         </td>
