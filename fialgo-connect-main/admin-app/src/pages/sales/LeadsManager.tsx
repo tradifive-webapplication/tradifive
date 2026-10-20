@@ -62,24 +62,24 @@ export default function LeadsManager() {
   });
 
   return (
-    <div className="space-y-6 h-full flex flex-col">
-      <div className="flex items-center justify-between shrink-0">
+    <div className="space-y-4 sm:space-y-6 flex flex-col">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
         <div>
-          <h1 className="text-xl font-bold tracking-widest text-white uppercase">Leads & Pipeline</h1>
-          <p className="text-neutral-600 text-[9px] font-bold uppercase tracking-[0.2em] mt-1">CRM Management</p>
+          <h1 className="text-lg sm:text-xl font-bold tracking-widest text-white uppercase">Leads & Pipeline</h1>
+          <p className="text-neutral-500 text-[9px] font-bold uppercase tracking-[0.2em] mt-0.5 sm:mt-1">CRM Management</p>
         </div>
         <button 
           onClick={() => {
             setFormData({ id: "", name: "", email: "", phone: "", status: "New", value: 0, notes: "" });
             setShowModal(true);
           }}
-          className="flex items-center gap-2 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-bold uppercase tracking-widest rounded transition-colors"
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-bold uppercase tracking-widest rounded transition-colors w-fit"
         >
           <Plus size={13} /> New Lead
         </button>
       </div>
 
-      <div className="flex items-center gap-4 bg-[#1E1E1E] p-4 rounded-lg border border-white/5 shrink-0">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 bg-[#1E1E1E] p-3 sm:p-4 rounded-xl border border-white/5 shrink-0">
         <div className="flex-1 relative">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
           <input 
@@ -87,13 +87,13 @@ export default function LeadsManager() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="SEARCH LEADS..." 
-            className="w-full bg-[#121212] border border-white/5 rounded px-3 py-2 pl-9 text-[11px] font-bold text-white uppercase tracking-wider outline-none focus:border-indigo-500/50 transition-colors"
+            className="w-full bg-[#121212] border border-white/5 rounded-lg px-3 py-2 pl-9 text-[11px] font-bold text-white uppercase tracking-wider outline-none focus:border-indigo-500/50 transition-colors"
           />
         </div>
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="bg-[#121212] border border-white/5 rounded px-3 py-2 text-[11px] font-bold text-white uppercase tracking-wider outline-none w-48"
+          className="w-full sm:w-48 bg-[#121212] border border-white/5 rounded-lg px-3 py-2 text-[11px] font-bold text-white uppercase tracking-wider outline-none"
         >
           <option value="All">All Statuses</option>
           <option value="New">New</option>
@@ -105,65 +105,117 @@ export default function LeadsManager() {
         </select>
       </div>
 
-      <div className="bg-[#1E1E1E] border border-white/5 rounded-lg overflow-y-auto flex-1 min-h-0">
+      <div className="bg-[#1E1E1E] border border-white/5 rounded-xl overflow-hidden flex-1 min-h-0">
         {loading ? (
           <div className="p-8 flex justify-center"><Loader2 className="animate-spin text-indigo-500" size={24} /></div>
         ) : (
-          <table className="w-full text-left border-collapse">
-            <thead className="bg-[#121212] sticky top-0 z-10 border-b border-white/5">
-              <tr>
-                <th className="px-4 py-3 text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Lead Info</th>
-                <th className="px-4 py-3 text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Contact</th>
-                <th className="px-4 py-3 text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Pipeline Stage</th>
-                <th className="px-4 py-3 text-[10px] font-bold text-neutral-500 uppercase tracking-widest text-right">Value</th>
-                <th className="px-4 py-3 text-[10px] font-bold text-neutral-500 uppercase tracking-widest text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/5">
-              {filtered.map(lead => (
-                <tr key={lead.id} className="hover:bg-white/[0.02] transition-colors">
-                  <td className="px-4 py-3">
-                    <p className="text-sm font-bold text-white">{lead.name}</p>
-                    <p className="text-[10px] text-neutral-500 mt-0.5 truncate max-w-[200px]">{lead.notes || "No notes"}</p>
-                  </td>
-                  <td className="px-4 py-3">
-                    <p className="text-[11px] text-neutral-300">{lead.email || "-"}</p>
-                    <p className="text-[11px] text-neutral-500">{lead.phone || "-"}</p>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className={`inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
-                      lead.status === 'Closed Won' ? 'bg-emerald-500/20 text-emerald-400' :
-                      lead.status === 'Closed Lost' ? 'bg-red-500/20 text-red-400' :
-                      lead.status === 'New' ? 'bg-amber-500/20 text-amber-400' :
-                      'bg-blue-500/20 text-blue-400'
-                    }`}>
-                      {lead.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <p className="text-sm font-bold text-emerald-400">${Number(lead.value).toLocaleString()}</p>
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="flex justify-end gap-2">
-                      <button onClick={() => { setFormData(lead); setShowModal(true); }} className="p-1.5 text-neutral-400 hover:text-indigo-400 hover:bg-indigo-500/10 rounded">
-                        <Edit2 size={14} />
-                      </button>
-                      <button onClick={() => handleDelete(lead.id)} className="p-1.5 text-neutral-400 hover:text-red-400 hover:bg-red-500/10 rounded">
-                        <Trash2 size={14} />
-                      </button>
+          <>
+            {/* Mobile Touch Cards */}
+            <div className="md:hidden divide-y divide-white/5 overflow-y-auto max-h-[600px]">
+              {filtered.length === 0 ? (
+                <div className="p-8 text-center text-neutral-500 text-sm">No leads found matching your criteria.</div>
+              ) : (
+                filtered.map(lead => (
+                  <div key={lead.id} className="p-3.5 space-y-2.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-bold text-white truncate">{lead.name}</p>
+                        <p className="text-[10px] text-neutral-500 mt-0.5 truncate">{lead.notes || "No notes"}</p>
+                      </div>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <button onClick={() => { setFormData(lead); setShowModal(true); }} className="p-1.5 text-neutral-400 hover:text-indigo-400 hover:bg-indigo-500/10 rounded">
+                          <Edit2 size={13} />
+                        </button>
+                        <button onClick={() => handleDelete(lead.id)} className="p-1.5 text-neutral-400 hover:text-red-400 hover:bg-red-500/10 rounded">
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
                     </div>
-                  </td>
-                </tr>
-              ))}
-              {filtered.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="p-8 text-center text-neutral-500 text-sm">No leads found matching your criteria.</td>
-                </tr>
+
+                    <div className="grid grid-cols-2 gap-2 text-[10px] bg-black/20 p-2.5 rounded-lg border border-white/5">
+                      <div>
+                        <span className="text-neutral-500 block text-[9px] uppercase tracking-wider">Contact</span>
+                        <span className="text-neutral-300 truncate block">{lead.email || "-"}</span>
+                        <span className="text-neutral-500 font-mono text-[9px] block">{lead.phone || "-"}</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-neutral-500 block text-[9px] uppercase tracking-wider">Stage & Value</span>
+                        <span className={`inline-block px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider mb-1 ${
+                          lead.status === 'Closed Won' ? 'bg-emerald-500/20 text-emerald-400' :
+                          lead.status === 'Closed Lost' ? 'bg-red-500/20 text-red-400' :
+                          lead.status === 'New' ? 'bg-amber-500/20 text-amber-400' :
+                          'bg-blue-500/20 text-blue-400'
+                        }`}>
+                          {lead.status}
+                        </span>
+                        <p className="text-xs font-bold text-emerald-400 font-mono">${Number(lead.value).toLocaleString()}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))
               )}
-            </tbody>
-          </table>
+            </div>
+
+            {/* Desktop Table */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead className="bg-[#121212] sticky top-0 z-10 border-b border-white/5">
+                  <tr>
+                    <th className="px-4 py-3 text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Lead Info</th>
+                    <th className="px-4 py-3 text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Contact</th>
+                    <th className="px-4 py-3 text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Pipeline Stage</th>
+                    <th className="px-4 py-3 text-[10px] font-bold text-neutral-500 uppercase tracking-widest text-right">Value</th>
+                    <th className="px-4 py-3 text-[10px] font-bold text-neutral-500 uppercase tracking-widest text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {filtered.map(lead => (
+                    <tr key={lead.id} className="hover:bg-white/[0.02] transition-colors">
+                      <td className="px-4 py-3">
+                        <p className="text-sm font-bold text-white">{lead.name}</p>
+                        <p className="text-[10px] text-neutral-500 mt-0.5 truncate max-w-[200px]">{lead.notes || "No notes"}</p>
+                      </td>
+                      <td className="px-4 py-3">
+                        <p className="text-[11px] text-neutral-300">{lead.email || "-"}</p>
+                        <p className="text-[11px] text-neutral-500">{lead.phone || "-"}</p>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
+                          lead.status === 'Closed Won' ? 'bg-emerald-500/20 text-emerald-400' :
+                          lead.status === 'Closed Lost' ? 'bg-red-500/20 text-red-400' :
+                          lead.status === 'New' ? 'bg-amber-500/20 text-amber-400' :
+                          'bg-blue-500/20 text-blue-400'
+                        }`}>
+                          {lead.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <p className="text-sm font-bold text-emerald-400 font-mono">${Number(lead.value).toLocaleString()}</p>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex justify-end gap-2">
+                          <button onClick={() => { setFormData(lead); setShowModal(true); }} className="p-1.5 text-neutral-400 hover:text-indigo-400 hover:bg-indigo-500/10 rounded">
+                            <Edit2 size={14} />
+                          </button>
+                          <button onClick={() => handleDelete(lead.id)} className="p-1.5 text-neutral-400 hover:text-red-400 hover:bg-red-500/10 rounded">
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                  {filtered.length === 0 && (
+                    <tr>
+                      <td colSpan={5} className="p-8 text-center text-neutral-500 text-sm">No leads found matching your criteria.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
+
 
       {/* Editor Modal */}
       {showModal && (

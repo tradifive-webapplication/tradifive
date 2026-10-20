@@ -252,51 +252,51 @@ export default function AddEmployeeModal({ onClose, onSuccess }: AddEmployeeModa
               </button>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="p-6 overflow-y-auto max-h-[70vh] space-y-6">
+            <form onSubmit={handleSubmit} className="p-4 sm:p-6 overflow-y-auto max-h-[75vh] space-y-4 sm:space-y-6">
               {error && (
                 <div className="p-3 bg-red-500/10 border border-red-500/20 rounded text-red-400 text-[12px] font-medium">
                   {error}
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-6">
+              <div className="space-y-6">
                 {/* Personal Details */}
-                <div className="col-span-2 space-y-4">
+                <div className="space-y-4">
                   <h3 className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest border-b border-white/5 pb-2">Personal Information</h3>
                   
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div className="space-y-1.5">
                       <label className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
                         <User size={12} /> Full Name *
                       </label>
-                      <input required name="full_name" value={formData.full_name} onChange={handleChange} className="w-full bg-[#1A1A1A] border border-white/10 rounded p-2.5 text-[13px] text-white outline-none focus:border-indigo-500 transition-colors" placeholder="e.g. Jane Doe" />
+                      <input required name="full_name" value={formData.full_name} onChange={handleChange} className="w-full bg-[#1A1A1A] border border-white/10 rounded-lg p-2.5 text-[13px] text-white outline-none focus:border-indigo-500 transition-colors" placeholder="e.g. Jane Doe" />
                     </div>
                     <div className="space-y-1.5">
                       <label className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
                         <Mail size={12} /> Email Address *
                       </label>
-                      <input required type="email" name="email" value={formData.email} onChange={handleChange} className="w-full bg-[#1A1A1A] border border-white/10 rounded p-2.5 text-[13px] text-white outline-none focus:border-indigo-500 transition-colors" placeholder="jane@tradifive.in" />
+                      <input required type="email" name="email" value={formData.email} onChange={handleChange} className="w-full bg-[#1A1A1A] border border-white/10 rounded-lg p-2.5 text-[13px] text-white outline-none focus:border-indigo-500 transition-colors" placeholder="jane@tradifive.in" />
                     </div>
                     <div className="space-y-1.5">
                       <label className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
                         <Phone size={12} /> Phone Number
                       </label>
-                      <input name="phone" value={formData.phone} onChange={handleChange} className="w-full bg-[#1A1A1A] border border-white/10 rounded p-2.5 text-[13px] text-white outline-none focus:border-indigo-500 transition-colors" placeholder="+1 (555) 000-0000" />
+                      <input name="phone" value={formData.phone} onChange={handleChange} className="w-full bg-[#1A1A1A] border border-white/10 rounded-lg p-2.5 text-[13px] text-white outline-none focus:border-indigo-500 transition-colors" placeholder="+1 (555) 000-0000" />
                     </div>
                     <div className="space-y-1.5">
                       <label className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
                         <MapPin size={12} /> Location
                       </label>
-                      <input name="location" value={formData.location} onChange={handleChange} className="w-full bg-[#1A1A1A] border border-white/10 rounded p-2.5 text-[13px] text-white outline-none focus:border-indigo-500 transition-colors" placeholder="e.g. New York, USA" />
+                      <input name="location" value={formData.location} onChange={handleChange} className="w-full bg-[#1A1A1A] border border-white/10 rounded-lg p-2.5 text-[13px] text-white outline-none focus:border-indigo-500 transition-colors" placeholder="e.g. New York, USA" />
                     </div>
                   </div>
                 </div>
 
                 {/* Corporate Details */}
-                <div className="col-span-2 space-y-4">
+                <div className="space-y-4">
                   <h3 className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest border-b border-white/5 pb-2">Corporate Placement</h3>
                   
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div className="space-y-1.5">
                       <label className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
                         <Building2 size={12} /> Department *
@@ -313,7 +313,7 @@ export default function AddEmployeeModal({ onClose, onSuccess }: AddEmployeeModa
                       <label className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
                         <Briefcase size={12} /> Role Title *
                       </label>
-                      <input required name="role_title" value={formData.role_title} onChange={handleChange} className="w-full bg-[#1A1A1A] border border-white/10 rounded p-2.5 text-[13px] text-white outline-none focus:border-indigo-500 transition-colors" placeholder="e.g. Senior Frontend Engineer" />
+                      <input required name="role_title" value={formData.role_title} onChange={handleChange} className="w-full bg-[#1A1A1A] border border-white/10 rounded-lg p-2.5 text-[13px] text-white outline-none focus:border-indigo-500 transition-colors" placeholder="e.g. Senior Frontend Engineer" />
                     </div>
                     <div className="space-y-1.5">
                       <label className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
@@ -337,7 +337,7 @@ export default function AddEmployeeModal({ onClose, onSuccess }: AddEmployeeModa
                       <label className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
                         <DollarSign size={12} /> Base Salary (Annual)
                       </label>
-                      <input type="number" name="salary" value={formData.salary} onChange={handleChange} className="w-full bg-[#1A1A1A] border border-white/10 rounded p-2.5 text-[13px] text-white outline-none focus:border-indigo-500 transition-colors" placeholder="120000" />
+                      <input type="number" name="salary" value={formData.salary} onChange={handleChange} className="w-full bg-[#1A1A1A] border border-white/10 rounded-lg p-2.5 text-[13px] text-white outline-none focus:border-indigo-500 transition-colors" placeholder="120000" />
                     </div>
                   </div>
                 </div>

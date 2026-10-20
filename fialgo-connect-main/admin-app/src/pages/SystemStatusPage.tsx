@@ -215,26 +215,26 @@ export default function SystemStatusPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold tracking-widest text-white uppercase">System Health</h1>
-          <p className="text-neutral-600 text-[9px] font-bold uppercase tracking-[0.2em] mt-1">
+          <h1 className="text-lg sm:text-xl font-bold tracking-widest text-white uppercase">System Health</h1>
+          <p className="text-neutral-500 text-[9px] font-bold uppercase tracking-[0.2em] mt-0.5">
             Real-time Infrastructure Monitoring
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="px-3 py-1.5 bg-[#1E1E1E] border border-white/5 rounded font-mono">
-            <span className="text-[10px] text-neutral-500">{time.toLocaleTimeString()}</span>
+        <div className="flex items-center gap-2 flex-wrap self-start sm:self-auto">
+          <div className="px-3 py-1.5 bg-[#1E1E1E] border border-white/5 rounded-lg font-mono">
+            <span className="text-[10px] text-neutral-400">{time.toLocaleTimeString()}</span>
           </div>
           <button
             onClick={refresh}
             disabled={refreshing}
-            className="flex items-center gap-2 px-3 py-1.5 bg-[#1E1E1E] border border-white/5 rounded hover:border-white/10 transition-none text-[10px] font-bold text-neutral-500 hover:text-white"
+            className="flex items-center gap-2 px-3 py-1.5 bg-[#1E1E1E] border border-white/5 rounded-lg hover:border-white/10 transition-none text-[10px] font-bold text-neutral-400 hover:text-white"
           >
             <RefreshCw size={11} className={refreshing ? "animate-spin" : ""} />
             Refresh
           </button>
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded">
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
             <span className="text-[9px] font-bold text-emerald-500 uppercase tracking-widest">{overallStatus}</span>
           </div>
@@ -243,57 +243,57 @@ export default function SystemStatusPage() {
 
       {/* Real-time Metrics Grid */}
       <div>
-        <p className="text-[9px] font-bold text-neutral-600 uppercase tracking-[0.2em] mb-3">Live Metrics</p>
-        <div className="grid grid-cols-4 gap-4">
+        <p className="text-[9px] font-bold text-neutral-500 uppercase tracking-[0.2em] mb-3">Live Metrics</p>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4">
           <MetricCard
             label="CPU Usage" value={metrics.cpu} unit="%" color="#6366f1"
-            history={cpuHistory} icon={Cpu} description="Server Processing Load"
+            history={cpuHistory} icon={Cpu} description="Server Load"
             trend={metrics.cpu > 70 ? "up" : metrics.cpu < 30 ? "down" : "stable"}
           />
           <MetricCard
             label="Memory" value={metrics.memory} unit="%" color="#a855f7"
-            history={memHistory} icon={HardDrive} description="RAM Utilization"
+            history={memHistory} icon={HardDrive} description="RAM Usage"
             trend="stable"
           />
           <MetricCard
             label="Network In" value={metrics.network_in} unit="KB/s" color="#3b82f6"
-            history={netHistory} icon={Wifi} description="Inbound Bandwidth"
+            history={netHistory} icon={Wifi} description="Inbound"
             trend="stable"
           />
           <MetricCard
             label="DB Latency" value={realLatency || metrics.db_latency} unit="ms" color="#10b981"
-            history={dbHistory} icon={Database} description="Supabase Round Trip"
+            history={dbHistory} icon={Database} description="Supabase Ping"
             trend={realLatency > 60 ? "up" : "stable"}
           />
         </div>
       </div>
 
       {/* Second row metrics */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4">
         {[
-          { label: "Active Connections", value: metrics.active_connections, unit: "", icon: Monitor, color: "#f59e0b", desc: "Live DB connections" },
-          { label: "Requests / min", value: metrics.requests_per_min, unit: "rpm", icon: Activity, color: "#ec4899", desc: "API throughput" },
-          { label: "Error Rate", value: metrics.error_rate, unit: "%", icon: AlertTriangle, color: "#10b981", desc: "5xx / total requests" },
-          { label: "Network Out", value: metrics.network_out, unit: "KB/s", icon: Globe, color: "#06b6d4", desc: "Outbound bandwidth" },
+          { label: "Active Conns", value: metrics.active_connections, unit: "", icon: Monitor, color: "#f59e0b", desc: "Live DB pool" },
+          { label: "Req / min", value: metrics.requests_per_min, unit: "rpm", icon: Activity, color: "#ec4899", desc: "Throughput" },
+          { label: "Error Rate", value: metrics.error_rate, unit: "%", icon: AlertTriangle, color: "#10b981", desc: "5xx / total" },
+          { label: "Network Out", value: metrics.network_out, unit: "KB/s", icon: Globe, color: "#06b6d4", desc: "Outbound" },
         ].map(m => (
-          <div key={m.label} className="bg-[#1E1E1E] border border-white/5 rounded-lg p-4 flex items-center gap-4">
-            <div className="w-9 h-9 rounded-lg bg-black/30 border border-white/5 flex items-center justify-center shrink-0" style={{ borderColor: `${m.color}20` }}>
-              <m.icon size={15} style={{ color: m.color }} />
+          <div key={m.label} className="bg-[#1E1E1E] border border-white/5 rounded-xl p-3 sm:p-4 flex items-center gap-3">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-black/30 border border-white/5 flex items-center justify-center shrink-0" style={{ borderColor: `${m.color}20` }}>
+              <m.icon size={14} style={{ color: m.color }} />
             </div>
-            <div>
-              <p className="text-[9px] font-bold text-neutral-600 uppercase tracking-widest">{m.label}</p>
+            <div className="min-w-0">
+              <p className="text-[9px] font-bold text-neutral-500 uppercase tracking-widest truncate">{m.label}</p>
               <div className="flex items-baseline gap-1">
-                <span className="text-lg font-black text-white font-mono">{m.value}</span>
-                <span className="text-[9px] text-neutral-600">{m.unit}</span>
+                <span className="text-base sm:text-lg font-black text-white font-mono">{m.value}</span>
+                <span className="text-[9px] text-neutral-500">{m.unit}</span>
               </div>
-              <p className="text-[8px] text-neutral-700">{m.desc}</p>
+              <p className="text-[8px] text-neutral-600 truncate">{m.desc}</p>
             </div>
           </div>
         ))}
       </div>
 
       {/* Services + Incidents */}
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
         {/* Services */}
         <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-5">
           <h3 className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-4 flex items-center gap-2">

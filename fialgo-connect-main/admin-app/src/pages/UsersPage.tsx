@@ -312,50 +312,51 @@ export default function UsersPage() {
         />
       )}
 
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold tracking-widest text-white uppercase">Surgical User Registry</h1>
-          <p className="text-neutral-600 text-[9px] font-bold uppercase tracking-[0.2em] mt-1">
+          <h1 className="text-lg sm:text-xl font-bold tracking-widest text-white uppercase">Surgical User Registry</h1>
+          <p className="text-neutral-500 text-[9px] font-bold uppercase tracking-[0.2em] mt-0.5">
             Real-time individual account intervention & governance
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="relative">
+        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap w-full sm:w-auto">
+          <div className="relative flex-1 sm:flex-none">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" size={14} />
             <input 
               type="text" 
               placeholder="SEARCH TRADERS..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="bg-[#1E1E1E] border border-white/5 rounded pl-9 pr-4 py-2 text-[10px] font-mono text-white outline-none focus:border-white/20 transition-all w-64"
+              className="bg-[#1E1E1E] border border-white/5 rounded pl-9 pr-4 py-2 text-[10px] font-mono text-white outline-none focus:border-white/20 transition-all w-full sm:w-60"
             />
           </div>
           <button 
             onClick={() => setShowFilters(!showFilters)}
-            className={`p-2 border rounded transition-all ${showFilters ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' : 'bg-[#1E1E1E] border-white/5 text-neutral-500 hover:text-white'}`}
+            className={`p-2 border rounded transition-all shrink-0 ${showFilters ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' : 'bg-[#1E1E1E] border-white/5 text-neutral-500 hover:text-white'}`}
+            title="Toggle Filters"
           >
             <Filter size={16} />
           </button>
           <button 
             onClick={handleCleanOrphanedData}
-            className="p-2 bg-rose-500/10 border border-rose-500/20 rounded text-rose-500 hover:bg-rose-500/20 transition-all font-bold text-[10px] uppercase"
+            className="px-2.5 py-2 bg-rose-500/10 border border-rose-500/20 rounded text-rose-500 hover:bg-rose-500/20 transition-all font-bold text-[9px] sm:text-[10px] uppercase shrink-0"
             title="Delete posts from deleted users"
           >
-            Clean Orphaned Posts
+            Clean Posts
           </button>
           <button 
             onClick={exportCSV}
-            className="p-2 bg-[#1E1E1E] border border-white/5 rounded text-neutral-500 hover:text-emerald-400 transition-all text-[10px] uppercase font-bold"
+            className="px-2.5 py-2 bg-[#1E1E1E] border border-white/5 rounded text-neutral-400 hover:text-emerald-400 transition-all text-[9px] sm:text-[10px] uppercase font-bold shrink-0"
             title="Export to CSV"
           >
-            Export CSV
+            CSV
           </button>
         </div>
       </div>
 
       {showFilters && (
-        <div className="flex items-center gap-4 p-4 bg-[#1E1E1E] border border-white/5 rounded-lg animate-in fade-in zoom-in-95 duration-200">
+        <div className="flex flex-wrap items-center gap-3 sm:gap-4 p-3.5 sm:p-4 bg-[#1E1E1E] border border-white/5 rounded-lg animate-in fade-in zoom-in-95 duration-200">
           <div className="flex items-center gap-2">
             <span className="text-[10px] font-bold text-neutral-500 uppercase">Subscription:</span>
             <select value={filterSub} onChange={(e) => setFilterSub(e.target.value)} className="bg-[#121212] border border-white/5 rounded px-2 py-1 text-[10px] text-white outline-none focus:border-white/20">
@@ -378,132 +379,250 @@ export default function UsersPage() {
         </div>
       )}
 
-      <div className="bg-[#1E1E1E] border border-white/5 rounded overflow-hidden">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-white/[0.02] border-b border-white/5">
-              <th className="p-4 text-[9px] font-bold text-neutral-500 uppercase tracking-widest">Trader Identity</th>
-              <th className="p-4 text-[9px] font-bold text-neutral-500 uppercase tracking-widest">Subscription</th>
-              <th className="p-4 text-[9px] font-bold text-neutral-500 uppercase tracking-widest">Discipline</th>
-              <th className="p-4 text-[9px] font-bold text-neutral-500 uppercase tracking-widest">XP / Streak</th>
-              <th className="p-4 text-[9px] font-bold text-neutral-500 uppercase tracking-widest">Linked Since</th>
-              <th className="p-4 text-[9px] font-bold text-neutral-500 uppercase tracking-widest text-right">Account Governance</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-white/[0.02]">
-            {loading ? (
-              <tr><td colSpan={6} className="p-8 text-center text-neutral-600 text-[10px] uppercase font-mono tracking-widest animate-pulse">Scanning Bio-Grid...</td></tr>
-            ) : paginatedUsers.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="p-20 text-center">
-                   <div className="flex flex-col items-center gap-3">
-                     <Users size={30} className="text-neutral-800" />
-                     <p className="text-neutral-500 text-[10px] uppercase font-bold tracking-widest leading-relaxed"> No Traders Detected in Sector </p>
-                   </div>
-                </td>
-              </tr>
-            ) : paginatedUsers.map(user => (
-              <tr 
-                key={user.id} 
+      {/* Main Container */}
+      <div className="bg-[#1E1E1E] border border-white/5 rounded-xl overflow-hidden shadow-xl">
+        {/* Mobile View: Touch-Friendly Cards */}
+        <div className="md:hidden divide-y divide-white/5">
+          {loading ? (
+            <div className="p-8 text-center text-neutral-600 text-[10px] uppercase font-mono tracking-widest animate-pulse">
+              Scanning Bio-Grid...
+            </div>
+          ) : paginatedUsers.length === 0 ? (
+            <div className="p-12 text-center flex flex-col items-center gap-3">
+              <Users size={28} className="text-neutral-700" />
+              <p className="text-neutral-500 text-[10px] uppercase font-bold tracking-widest">No Traders Detected</p>
+            </div>
+          ) : (
+            paginatedUsers.map((user) => (
+              <div 
+                key={user.id}
                 onClick={() => setSelectedUserId(user.id)}
-                className="hover:bg-white/[0.01] cursor-pointer transition-colors group"
+                className="p-3.5 space-y-3 hover:bg-white/[0.01] active:bg-white/[0.02] transition-colors cursor-pointer"
               >
-                <td className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-9 h-9 rounded bg-[#121212] border flex items-center justify-center text-[10px] font-bold transition-all ${user.is_frozen ? 'border-red-500/50 text-red-500 shadow-lg shadow-red-500/10' : 'border-white/5 text-neutral-400'}`}>
+                {/* Header Row */}
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className={`w-9 h-9 rounded-lg bg-[#121212] border flex items-center justify-center text-[11px] font-bold shrink-0 ${
+                      user.is_frozen ? 'border-red-500/50 text-red-500 shadow-md shadow-red-500/10' : 'border-white/10 text-neutral-300'
+                    }`}>
                       {user.full_name?.charAt(0) || "U"}
                     </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                         <p className="text-[11px] font-bold text-white uppercase">{user.full_name || "Unidentified Trader"}</p>
-                         <ScanEye size={10} className="text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-xs font-bold text-white uppercase truncate">{user.full_name || "Unidentified Trader"}</p>
+                        <ScanEye size={12} className="text-blue-400 shrink-0" />
                       </div>
-                      <div className="flex items-center gap-2 text-[9px] text-neutral-500 mt-0.5">
-                        <Mail size={10} />
-                        <span className="font-mono">{user.email}</span>
-                      </div>
+                      <p className="text-[10px] text-neutral-400 font-mono truncate">{user.email}</p>
                     </div>
                   </div>
-                </td>
-                <td className="p-4">
-                  <div className={`inline-flex items-center px-2 py-0.5 rounded border ${
-                    user.subscription_status === 'elite' ? 'bg-purple-500/10 border-purple-500/20 text-purple-500' :
-                    user.subscription_status === 'pro' ? 'bg-blue-500/10 border-blue-500/20 text-blue-500' :
-                    user.subscription_status === 'trial' ? 'bg-amber-500/10 border-amber-500/20 text-amber-500' :
-                    'bg-emerald-500/10 border-emerald-500/20 text-emerald-500'
+
+                  <div className={`inline-flex items-center px-2 py-0.5 rounded text-[8.5px] font-bold uppercase tracking-wider shrink-0 border ${
+                    user.subscription_status === 'elite' ? 'bg-purple-500/10 border-purple-500/20 text-purple-400' :
+                    user.subscription_status === 'pro' ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' :
+                    user.subscription_status === 'trial' ? 'bg-amber-500/10 border-amber-500/20 text-amber-400' :
+                    'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
                   }`}>
-                    <span className="text-[9px] font-bold uppercase tracking-tighter">
-                      {user.subscription_status === 'trial' ? "Pro Trial (7d)" : (user.subscription_status || "Free")}
+                    {user.subscription_status === 'trial' ? "Pro Trial" : (user.subscription_status || "Free")}
+                  </div>
+                </div>
+
+                {/* Metrics Badges */}
+                <div className="flex items-center gap-2 flex-wrap text-[10px]">
+                  <span className="px-2 py-0.5 rounded bg-white/[0.03] border border-white/5 font-bold text-amber-400">
+                    Lvl {user.discipline_level || 1}
+                  </span>
+                  <span className="px-2 py-0.5 rounded bg-white/[0.03] border border-white/5 font-mono text-neutral-300">
+                    {(user.xp || 0).toLocaleString()} XP
+                  </span>
+                  {(user.streak_days || 0) > 0 && (
+                    <span className="px-2 py-0.5 rounded bg-orange-500/10 border border-orange-500/20 text-orange-400 font-bold">
+                      {user.streak_days}d 🔥
                     </span>
+                  )}
+                  <span className="text-[9px] text-neutral-500 font-mono ml-auto">
+                    {new Date(user.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
+                  </span>
+                </div>
+
+                {/* Restrictions */}
+                {(user.is_frozen || user.is_banned) && (
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 bg-red-500/10 border border-red-500/20 rounded text-red-400 text-[9px] font-bold uppercase tracking-wider">
+                    <ShieldAlert size={12} className="text-red-400" />
+                    <span>Account Restricted / Frozen</span>
                   </div>
-                </td>
-                <td className="p-4">
-                  <span className="text-[11px] font-bold text-amber-500">Lvl {user.discipline_level || 1}</span>
-                </td>
-                <td className="p-4">
-                  <div className="flex items-center gap-3">
-                    <span className="text-[10px] font-mono text-neutral-400">{(user.xp || 0).toLocaleString()} XP</span>
-                    {(user.streak_days || 0) > 0 && (
-                      <span className="text-[9px] font-bold text-orange-500 bg-orange-500/10 px-1.5 py-0.5 rounded border border-orange-500/20">{user.streak_days}d 🔥</span>
-                    )}
-                  </div>
-                </td>
-                <td className="p-4">
-                  <div className="flex items-center gap-2 text-neutral-500">
-                    <Calendar size={12} />
-                    <span className="text-[9px] font-mono">{new Date(user.created_at).toLocaleDateString()}</span>
-                  </div>
-                </td>
-                <td className="p-4 text-right">
-                  <div className="flex items-center justify-end gap-6">
-                    {(user.is_frozen || user.is_banned) && (
-                      <div className="flex items-center gap-2 animate-pulse">
-                         <ShieldAlert size={12} className="text-red-500" />
-                         <span className="text-[8px] font-bold text-red-500 uppercase tracking-[0.2em]">Restricted</span>
-                      </div>
-                    )}
-                    
-                    <div className="flex items-center gap-2 bg-[#121212] p-1 rounded-full border border-white/5">
-                      <button 
-                         onClick={(e) => handleRevokeAISetup(e, user)}
-                         className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-bold uppercase transition-all hover:bg-amber-500/10 text-amber-500 border border-amber-500/20"
-                         title="Revoke AI Trading setup (disconnects MT5 & requires user to pay to reconnect)"
-                      >
-                         <BotOff size={12} /> Revoke AI
-                      </button>
-                      <button 
-                         onClick={(e) => handleDeleteUserContent(e, user.id)}
-                         className="flex items-center gap-2 px-3 py-1 rounded-full text-[9px] font-bold uppercase transition-all hover:bg-rose-500/10 text-rose-500"
-                         title="Wipe User Content"
-                      >
-                         <Trash2 size={12} /> Wipe
-                      </button>
-                      <button 
-                         onClick={(e) => handleDeleteUser(e, user.id)}
-                         className="flex items-center gap-2 px-3 py-1 rounded-full text-[9px] font-bold uppercase transition-all hover:bg-red-600/10 text-red-600"
-                         title="Permanently Delete User"
-                      >
-                         <Ban size={12} /> Delete
-                      </button>
-                      <button 
-                         onClick={(e) => toggleUserFreeze(e, user.id, (user.is_frozen || user.is_banned))}
-                         className={`flex items-center gap-2 px-3 py-1 rounded-full text-[9px] font-bold uppercase transition-all ${(user.is_frozen || user.is_banned) ? 'bg-red-500/10 text-red-500 shadow-inner shadow-red-500/20' : 'hover:bg-white/5 text-neutral-600'}`}
-                      >
-                         {(user.is_frozen || user.is_banned) ? <UserX size={12} /> : <UserCheck size={12} />}
-                         {(user.is_frozen || user.is_banned) ? "Restore Account" : "Freeze Account"}
-                      </button>
-                    </div>
-                  </div>
-                </td>
+                )}
+
+                {/* Governance Actions Strip */}
+                <div 
+                  className="flex items-center gap-1.5 pt-1 overflow-x-auto scrollbar-none pb-0.5"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <button 
+                    onClick={(e) => handleRevokeAISetup(e, user)}
+                    className="flex items-center gap-1 px-2.5 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 rounded-md text-[9px] font-bold uppercase whitespace-nowrap"
+                    title="Revoke AI Trading setup"
+                  >
+                    <BotOff size={11} /> Revoke AI
+                  </button>
+                  <button 
+                    onClick={(e) => handleDeleteUserContent(e, user.id)}
+                    className="flex items-center gap-1 px-2.5 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 rounded-md text-[9px] font-bold uppercase whitespace-nowrap"
+                    title="Wipe User Content"
+                  >
+                    <Trash2 size={11} /> Wipe
+                  </button>
+                  <button 
+                    onClick={(e) => handleDeleteUser(e, user.id)}
+                    className="flex items-center gap-1 px-2.5 py-1 bg-red-600/10 hover:bg-red-600/20 text-red-400 border border-red-500/20 rounded-md text-[9px] font-bold uppercase whitespace-nowrap"
+                    title="Permanently Delete User"
+                  >
+                    <Ban size={11} /> Delete
+                  </button>
+                  <button 
+                    onClick={(e) => toggleUserFreeze(e, user.id, (user.is_frozen || user.is_banned))}
+                    className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[9px] font-bold uppercase whitespace-nowrap border ${
+                      (user.is_frozen || user.is_banned) 
+                        ? 'bg-red-500/20 border-red-500/30 text-red-400' 
+                        : 'bg-white/5 hover:bg-white/10 border-white/10 text-neutral-300'
+                    }`}
+                  >
+                    {(user.is_frozen || user.is_banned) ? <UserX size={11} /> : <UserCheck size={11} />}
+                    {(user.is_frozen || user.is_banned) ? "Restore" : "Freeze"}
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Desktop View: Full Data Table */}
+        <div className="hidden md:block overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-white/[0.02] border-b border-white/5">
+                <th className="p-4 text-[9px] font-bold text-neutral-500 uppercase tracking-widest">Trader Identity</th>
+                <th className="p-4 text-[9px] font-bold text-neutral-500 uppercase tracking-widest">Subscription</th>
+                <th className="p-4 text-[9px] font-bold text-neutral-500 uppercase tracking-widest">Discipline</th>
+                <th className="p-4 text-[9px] font-bold text-neutral-500 uppercase tracking-widest">XP / Streak</th>
+                <th className="p-4 text-[9px] font-bold text-neutral-500 uppercase tracking-widest">Linked Since</th>
+                <th className="p-4 text-[9px] font-bold text-neutral-500 uppercase tracking-widest text-right">Account Governance</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-white/[0.02]">
+              {loading ? (
+                <tr><td colSpan={6} className="p-8 text-center text-neutral-600 text-[10px] uppercase font-mono tracking-widest animate-pulse">Scanning Bio-Grid...</td></tr>
+              ) : paginatedUsers.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="p-20 text-center">
+                     <div className="flex flex-col items-center gap-3">
+                       <Users size={30} className="text-neutral-800" />
+                       <p className="text-neutral-500 text-[10px] uppercase font-bold tracking-widest leading-relaxed"> No Traders Detected in Sector </p>
+                     </div>
+                  </td>
+                </tr>
+              ) : paginatedUsers.map(user => (
+                <tr 
+                  key={user.id} 
+                  onClick={() => setSelectedUserId(user.id)}
+                  className="hover:bg-white/[0.01] cursor-pointer transition-colors group"
+                >
+                  <td className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-9 h-9 rounded bg-[#121212] border flex items-center justify-center text-[10px] font-bold transition-all ${user.is_frozen ? 'border-red-500/50 text-red-500 shadow-lg shadow-red-500/10' : 'border-white/5 text-neutral-400'}`}>
+                        {user.full_name?.charAt(0) || "U"}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                           <p className="text-[11px] font-bold text-white uppercase">{user.full_name || "Unidentified Trader"}</p>
+                           <ScanEye size={10} className="text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </div>
+                        <div className="flex items-center gap-2 text-[9px] text-neutral-500 mt-0.5">
+                          <Mail size={10} />
+                          <span className="font-mono">{user.email}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="p-4">
+                    <div className={`inline-flex items-center px-2 py-0.5 rounded border ${
+                      user.subscription_status === 'elite' ? 'bg-purple-500/10 border-purple-500/20 text-purple-500' :
+                      user.subscription_status === 'pro' ? 'bg-blue-500/10 border-blue-500/20 text-blue-500' :
+                      user.subscription_status === 'trial' ? 'bg-amber-500/10 border-amber-500/20 text-amber-500' :
+                      'bg-emerald-500/10 border-emerald-500/20 text-emerald-500'
+                    }`}>
+                      <span className="text-[9px] font-bold uppercase tracking-tighter">
+                        {user.subscription_status === 'trial' ? "Pro Trial (7d)" : (user.subscription_status || "Free")}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="p-4">
+                    <span className="text-[11px] font-bold text-amber-500">Lvl {user.discipline_level || 1}</span>
+                  </td>
+                  <td className="p-4">
+                    <div className="flex items-center gap-3">
+                      <span className="text-[10px] font-mono text-neutral-400">{(user.xp || 0).toLocaleString()} XP</span>
+                      {(user.streak_days || 0) > 0 && (
+                        <span className="text-[9px] font-bold text-orange-500 bg-orange-500/10 px-1.5 py-0.5 rounded border border-orange-500/20">{user.streak_days}d 🔥</span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="p-4">
+                    <div className="flex items-center gap-2 text-neutral-500">
+                      <Calendar size={12} />
+                      <span className="text-[9px] font-mono">{new Date(user.created_at).toLocaleDateString()}</span>
+                    </div>
+                  </td>
+                  <td className="p-4 text-right">
+                    <div className="flex items-center justify-end gap-6">
+                      {(user.is_frozen || user.is_banned) && (
+                        <div className="flex items-center gap-2 animate-pulse">
+                           <ShieldAlert size={12} className="text-red-500" />
+                           <span className="text-[8px] font-bold text-red-500 uppercase tracking-[0.2em]">Restricted</span>
+                        </div>
+                      )}
+                      
+                      <div className="flex items-center gap-2 bg-[#121212] p-1 rounded-full border border-white/5">
+                        <button 
+                           onClick={(e) => handleRevokeAISetup(e, user)}
+                           className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-bold uppercase transition-all hover:bg-amber-500/10 text-amber-500 border border-amber-500/20"
+                           title="Revoke AI Trading setup (disconnects MT5 & requires user to pay to reconnect)"
+                        >
+                           <BotOff size={12} /> Revoke AI
+                        </button>
+                        <button 
+                           onClick={(e) => handleDeleteUserContent(e, user.id)}
+                           className="flex items-center gap-2 px-3 py-1 rounded-full text-[9px] font-bold uppercase transition-all hover:bg-rose-500/10 text-rose-500"
+                           title="Wipe User Content"
+                        >
+                           <Trash2 size={12} /> Wipe
+                        </button>
+                        <button 
+                           onClick={(e) => handleDeleteUser(e, user.id)}
+                           className="flex items-center gap-2 px-3 py-1 rounded-full text-[9px] font-bold uppercase transition-all hover:bg-red-600/10 text-red-600"
+                           title="Permanently Delete User"
+                        >
+                           <Ban size={12} /> Delete
+                        </button>
+                        <button 
+                           onClick={(e) => toggleUserFreeze(e, user.id, (user.is_frozen || user.is_banned))}
+                           className={`flex items-center gap-2 px-3 py-1 rounded-full text-[9px] font-bold uppercase transition-all ${(user.is_frozen || user.is_banned) ? 'bg-red-500/10 text-red-500 shadow-inner shadow-red-500/20' : 'hover:bg-white/5 text-neutral-600'}`}
+                        >
+                           {(user.is_frozen || user.is_banned) ? <UserX size={12} /> : <UserCheck size={12} />}
+                           {(user.is_frozen || user.is_banned) ? "Restore Account" : "Freeze Account"}
+                        </button>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {totalPages > 1 && (
-        <div className="flex items-center justify-between bg-[#1E1E1E] border border-white/5 rounded p-4">
-          <span className="text-[10px] font-mono text-neutral-500">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-[#1E1E1E] border border-white/5 rounded-xl p-3.5 sm:p-4">
+          <span className="text-[10px] font-mono text-neutral-500 text-center sm:text-left">
             Showing {totalCount > 0 ? (page - 1) * itemsPerPage + 1 : 0} to {Math.min(page * itemsPerPage, totalCount)} of {totalCount}
           </span>
           <div className="flex items-center gap-2">

@@ -173,113 +173,163 @@ export default function SupportTicketsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold tracking-widest text-white uppercase">Support & Resolution Center</h1>
-          <p className="text-neutral-600 text-[9px] font-bold uppercase tracking-[0.2em] mt-1">Live Ticket Management // User Escalation Protocol</p>
+          <h1 className="text-lg sm:text-xl font-bold tracking-widest text-white uppercase">Support & Resolution Center</h1>
+          <p className="text-neutral-500 text-[9px] font-bold uppercase tracking-[0.2em] mt-0.5">Live Ticket Management // User Escalation Protocol</p>
         </div>
-        <button onClick={fetchTickets} className="px-4 py-2 bg-[#1E1E1E] border border-white/5 rounded text-[10px] font-bold text-neutral-500 hover:text-white transition-none uppercase tracking-widest flex items-center gap-2">
-          <RefreshCcw size={12} /> Sync
+        <button onClick={fetchTickets} className="self-start sm:self-auto px-4 py-2 bg-[#1E1E1E] border border-white/5 rounded-lg text-[10px] font-bold text-neutral-400 hover:text-white transition-none uppercase tracking-widest flex items-center gap-2">
+          <RefreshCcw size={12} className={loading ? "animate-spin" : ""} /> Sync
         </button>
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4">
         {[
           { label: "Total Tickets", value: tickets.length },
           { label: "Open", value: openCount },
           { label: "In Progress", value: inProgressCount },
           { label: "Resolved", value: resolvedCount },
         ].map(s => (
-          <div key={s.label} className="bg-[#1E1E1E] border border-white/5 rounded p-4">
-            <p className="text-[9px] text-neutral-600 font-bold uppercase tracking-widest mb-1">{s.label}</p>
-            <p className="text-lg font-bold text-white">{loading ? "..." : s.value}</p>
+          <div key={s.label} className="bg-[#1E1E1E] border border-white/5 rounded-xl p-3.5 sm:p-4">
+            <p className="text-[9px] text-neutral-500 font-bold uppercase tracking-widest mb-1 truncate">{s.label}</p>
+            <p className="text-base sm:text-lg font-bold text-white">{loading ? "..." : s.value}</p>
           </div>
         ))}
       </div>
 
       {/* Urgent Alert */}
       {openCount > 0 && (
-        <div className="bg-red-500/[0.03] border border-red-500/10 rounded p-4 flex items-center gap-3">
-          <AlertCircle size={16} className="text-red-500 animate-pulse" />
+        <div className="bg-red-500/[0.04] border border-red-500/20 rounded-xl p-3.5 sm:p-4 flex items-center gap-3">
+          <AlertCircle size={16} className="text-red-500 animate-pulse shrink-0" />
           <span className="text-[10px] font-bold text-red-500 uppercase tracking-widest">{openCount} unresolved ticket(s) need attention</span>
         </div>
       )}
 
       {/* Filter */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 max-w-full scrollbar-none">
         {(["all", "open", "in_progress", "resolved"] as const).map(f => (
           <button key={f} onClick={() => setFilter(f)}
-            className={`px-3 py-1.5 rounded text-[9px] font-bold uppercase tracking-widest border transition-none ${filter === f ? "bg-white/10 border-white/10 text-white" : "bg-[#1E1E1E] border-white/5 text-neutral-600 hover:text-neutral-300"}`}>
+            className={`px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-widest border transition-none shrink-0 ${filter === f ? "bg-white/10 border-white/10 text-white" : "bg-[#1E1E1E] border-white/5 text-neutral-500 hover:text-neutral-300"}`}>
             {f.replace("_", " ")}
           </button>
         ))}
       </div>
 
       {/* Ticket Table */}
-      <div className="bg-[#1E1E1E] border border-white/5 rounded overflow-hidden">
-        <table className="w-full text-left whitespace-nowrap">
-          <thead className="text-[9px] font-bold text-neutral-600 uppercase tracking-[0.2em] bg-white/[0.02] border-b border-white/5">
-            <tr>
-              <th className="px-5 py-3.5">User</th>
-              <th className="px-5 py-3.5">Subject</th>
-              <th className="px-5 py-3.5">Priority</th>
-              <th className="px-5 py-3.5">Status</th>
-              <th className="px-5 py-3.5">Created</th>
-              <th className="px-5 py-3.5 text-right">Action</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-white/5">
-            {loading ? (
-              <tr><td colSpan={6} className="px-5 py-12 text-center text-neutral-700 text-[10px] uppercase tracking-widest">Scanning support queue...</td></tr>
-            ) : filtered.length === 0 ? (
-              <tr><td colSpan={6} className="px-5 py-12 text-center text-neutral-700 text-[10px] uppercase tracking-widest">No tickets found</td></tr>
-            ) : filtered.map(ticket => (
-              <tr key={ticket.id} className="hover:bg-white/[0.01] transition-none cursor-pointer" onClick={() => setSelectedTicket(ticket)}>
-                <td className="px-5 py-3">
-                  <p className="text-[11px] font-bold text-neutral-300 uppercase">{ticket.profiles?.full_name || "User"}</p>
-                  <p className="text-[9px] text-neutral-700 font-mono">{ticket.profiles?.email}</p>
-                </td>
-                <td className="px-5 py-3 text-[11px] text-neutral-400 max-w-[200px] truncate">{ticket.subject}</td>
-                <td className="px-5 py-3">
+      <div className="bg-[#1E1E1E] border border-white/5 rounded-xl overflow-hidden shadow-xl">
+        {/* Mobile View: Cards */}
+        <div className="md:hidden divide-y divide-white/5">
+          {loading ? (
+            <div className="px-4 py-8 text-center text-neutral-500 text-[10px] uppercase tracking-widest">Scanning support queue...</div>
+          ) : filtered.length === 0 ? (
+            <div className="px-4 py-8 text-center text-neutral-500 text-[10px] uppercase tracking-widest">No tickets found</div>
+          ) : filtered.map(ticket => (
+            <div 
+              key={ticket.id} 
+              className="p-3.5 space-y-2.5 hover:bg-white/[0.01] active:bg-white/[0.02] cursor-pointer"
+              onClick={() => setSelectedTicket(ticket)}
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-white uppercase truncate">{ticket.profiles?.full_name || "User"}</p>
+                  <p className="text-[10px] text-neutral-500 font-mono truncate">{ticket.profiles?.email}</p>
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0">
                   <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-widest border ${priorityColor(ticket.priority)}`}>
                     {ticket.priority || "medium"}
                   </span>
-                </td>
-                <td className="px-5 py-3">
                   <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-widest border ${statusColor(ticket.status)}`}>
                     {ticket.status?.replace("_", " ")}
                   </span>
-                </td>
-                <td className="px-5 py-3 text-[10px] text-neutral-500">{new Date(ticket.created_at).toLocaleDateString()}</td>
-                <td className="px-5 py-3 text-right">
-                  {ticket.status !== "resolved" && (
-                    <button onClick={e => { e.stopPropagation(); updateTicketStatus(ticket.id, ticket.user_id, "resolved"); }}
-                      className="px-3 py-1 text-[9px] font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded uppercase flex items-center gap-1 ml-auto">
-                      <CheckCircle2 size={10} /> Resolve
-                    </button>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      {/* Ticket Detail Modal ... */}
-      {selectedTicket && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm" onClick={() => setSelectedTicket(null)}>
-          <div className="bg-[#121212] border border-white/10 rounded-xl w-full max-w-[600px] shadow-2xl max-h-[85vh] flex flex-col" onClick={e => e.stopPropagation()}>
-            <div className="p-6 border-b border-white/5 flex items-center justify-between">
-              <div>
-                <h2 className="text-[14px] font-bold text-white uppercase tracking-tight">{selectedTicket.subject}</h2>
-                <p className="text-[10px] text-neutral-500 mt-1">By {selectedTicket.profiles?.full_name || "User"} • {new Date(selectedTicket.created_at).toLocaleString()}</p>
+                </div>
               </div>
-              <button onClick={() => setSelectedTicket(null)} className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-neutral-500 hover:text-white"><X size={16} /></button>
+
+              <p className="text-xs text-neutral-300 font-medium line-clamp-2">
+                {ticket.subject}
+              </p>
+
+              <div className="flex items-center justify-between pt-1 border-t border-white/5 text-[9px] text-neutral-500">
+                <span>{new Date(ticket.created_at).toLocaleDateString()}</span>
+                {ticket.status !== "resolved" && (
+                  <button 
+                    onClick={e => { e.stopPropagation(); updateTicketStatus(ticket.id, ticket.user_id, "resolved"); }}
+                    className="px-2.5 py-1 text-[9px] font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded uppercase flex items-center gap-1 ml-auto"
+                  >
+                    <CheckCircle2 size={10} /> Resolve
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop View: Table */}
+        <div className="hidden md:block overflow-x-auto">
+          <table className="w-full text-left whitespace-nowrap">
+            <thead className="text-[9px] font-bold text-neutral-500 uppercase tracking-[0.2em] bg-white/[0.02] border-b border-white/5">
+              <tr>
+                <th className="px-5 py-3.5">User</th>
+                <th className="px-5 py-3.5">Subject</th>
+                <th className="px-5 py-3.5">Priority</th>
+                <th className="px-5 py-3.5">Status</th>
+                <th className="px-5 py-3.5">Created</th>
+                <th className="px-5 py-3.5 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5">
+              {loading ? (
+                <tr><td colSpan={6} className="px-5 py-12 text-center text-neutral-700 text-[10px] uppercase tracking-widest">Scanning support queue...</td></tr>
+              ) : filtered.length === 0 ? (
+                <tr><td colSpan={6} className="px-5 py-12 text-center text-neutral-700 text-[10px] uppercase tracking-widest">No tickets found</td></tr>
+              ) : filtered.map(ticket => (
+                <tr key={ticket.id} className="hover:bg-white/[0.01] transition-none cursor-pointer" onClick={() => setSelectedTicket(ticket)}>
+                  <td className="px-5 py-3">
+                    <p className="text-[11px] font-bold text-neutral-300 uppercase">{ticket.profiles?.full_name || "User"}</p>
+                    <p className="text-[9px] text-neutral-500 font-mono">{ticket.profiles?.email}</p>
+                  </td>
+                  <td className="px-5 py-3 text-[11px] text-neutral-400 max-w-[200px] truncate">{ticket.subject}</td>
+                  <td className="px-5 py-3">
+                    <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-widest border ${priorityColor(ticket.priority)}`}>
+                      {ticket.priority || "medium"}
+                    </span>
+                  </td>
+                  <td className="px-5 py-3">
+                    <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-widest border ${statusColor(ticket.status)}`}>
+                      {ticket.status?.replace("_", " ")}
+                    </span>
+                  </td>
+                  <td className="px-5 py-3 text-[10px] text-neutral-500">{new Date(ticket.created_at).toLocaleDateString()}</td>
+                  <td className="px-5 py-3 text-right">
+                    {ticket.status !== "resolved" && (
+                      <button onClick={e => { e.stopPropagation(); updateTicketStatus(ticket.id, ticket.user_id, "resolved"); }}
+                        className="px-3 py-1 text-[9px] font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded uppercase flex items-center gap-1 ml-auto">
+                        <CheckCircle2 size={10} /> Resolve
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Ticket Detail Modal */}
+      {selectedTicket && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-3 sm:p-4" onClick={() => setSelectedTicket(null)}>
+          <div className="bg-[#121212] border border-white/10 rounded-xl sm:rounded-2xl w-full max-w-[620px] shadow-2xl max-h-[90vh] flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
+            <div className="p-4 sm:p-5 border-b border-white/5 flex items-center justify-between">
+              <div className="min-w-0 pr-2">
+                <h2 className="text-xs sm:text-[14px] font-bold text-white uppercase tracking-tight truncate">{selectedTicket.subject}</h2>
+                <p className="text-[9px] sm:text-[10px] text-neutral-500 mt-0.5 truncate">By {selectedTicket.profiles?.full_name || "User"} • {new Date(selectedTicket.created_at).toLocaleString()}</p>
+              </div>
+              <button onClick={() => setSelectedTicket(null)} className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-neutral-400 hover:text-white shrink-0"><X size={16} /></button>
             </div>
 
-            <div className="p-6 flex-1 overflow-y-auto space-y-4">
-              <div className="bg-white/[0.02] border border-white/5 rounded-xl p-5 mb-6">
-                <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-widest border mb-3 inline-block ${statusColor(selectedTicket.status)}`}>{selectedTicket.status?.replace("_", " ")}</span>
+            <div className="p-3.5 sm:p-5 flex-1 overflow-y-auto space-y-4">
+              <div className="bg-white/[0.02] border border-white/5 rounded-xl p-3.5 sm:p-4 mb-4">
+                <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-widest border mb-2.5 inline-block ${statusColor(selectedTicket.status)}`}>{selectedTicket.status?.replace("_", " ")}</span>
                 <RenderTicketDescription description={selectedTicket.description} />
               </div>
 
@@ -287,39 +337,39 @@ export default function SupportTicketsPage() {
               <div className="space-y-3">
                 {replies.map(r => (
                   <div key={r.id} className={`flex flex-col ${r.admin_id ? 'items-end' : 'items-start'}`}>
-                    <div className={`p-3 rounded-xl max-w-[85%] text-[11px] ${r.admin_id ? 'bg-blue-600 text-white rounded-br-sm' : 'bg-[#1E1E1E] text-neutral-300 border border-white/5 rounded-bl-sm'}`}>
+                    <div className={`p-2.5 sm:p-3 rounded-xl max-w-[85%] text-xs ${r.admin_id ? 'bg-blue-600 text-white rounded-br-sm' : 'bg-[#1E1E1E] text-neutral-300 border border-white/5 rounded-bl-sm'}`}>
                       {r.message}
                     </div>
-                    <span className="text-[8px] text-neutral-600 mt-1 px-1 uppercase">{r.admin_id ? 'Support Desk' : 'Client'} • {new Date(r.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                    <span className="text-[8px] text-neutral-500 mt-1 px-1 uppercase">{r.admin_id ? 'Support Desk' : 'Client'} • {new Date(r.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="px-6 pb-2 pt-4">
-              <div className="flex items-center gap-2 mb-4">
-                <span className="text-[9px] uppercase tracking-widest text-neutral-500 font-bold">Action:</span>
+            <div className="px-4 sm:px-5 pb-2 pt-3 border-t border-white/5">
+              <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-none pb-1">
+                <span className="text-[9px] uppercase tracking-widest text-neutral-500 font-bold shrink-0">Action:</span>
                 {["open", "in_progress", "resolved"].map(s => (
                   <button key={s} onClick={() => updateTicketStatus(selectedTicket.id, selectedTicket.user_id, s)}
-                    className={`px-3 py-1.5 rounded text-[9px] font-bold uppercase tracking-widest border transition-none ${selectedTicket.status === s ? "bg-white/10 border-white/10 text-white" : "bg-[#1E1E1E] border-white/5 text-neutral-600 hover:text-neutral-300"}`}>
+                    className={`px-2.5 sm:px-3 py-1 rounded text-[8.5px] sm:text-[9px] font-bold uppercase tracking-widest border transition-none shrink-0 ${selectedTicket.status === s ? "bg-white/10 border-white/10 text-white" : "bg-[#1E1E1E] border-white/5 text-neutral-500 hover:text-neutral-300"}`}>
                     {s.replace("_", " ")}
                   </button>
                 ))}
               </div>
             </div>
 
-            <div className="p-6 border-t border-white/5">
-              <div className="flex items-center gap-3">
+            <div className="p-3.5 sm:p-4 border-t border-white/5">
+              <div className="flex items-center gap-2 sm:gap-3">
                 <input
                   type="text"
                   value={replyText}
                   onChange={e => setReplyText(e.target.value)}
                   onKeyDown={e => e.key === "Enter" && sendReply()}
                   placeholder="TYPE REPLY TO USER..."
-                  className="flex-1 bg-[#1E1E1E] border border-white/5 rounded px-4 py-2.5 text-[11px] text-white outline-none focus:border-white/20"
+                  className="flex-1 bg-[#1E1E1E] border border-white/5 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-xs text-white outline-none focus:border-white/20"
                 />
                 <button onClick={sendReply} disabled={sending || !replyText.trim()}
-                  className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold uppercase tracking-widest rounded flex items-center gap-2 disabled:opacity-50 transition-colors">
+                  className="px-3 sm:px-4 py-2 sm:py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-[9.5px] sm:text-[10px] font-bold uppercase tracking-widest rounded-lg flex items-center gap-1.5 disabled:opacity-50 transition-colors shrink-0">
                   <Send size={12} /> {sending ? "Sending..." : "Reply"}
                 </button>
               </div>

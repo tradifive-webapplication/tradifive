@@ -78,16 +78,16 @@ export default function HRDashboardPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold tracking-widest text-white uppercase">HR Dashboard</h1>
+          <h1 className="text-lg sm:text-xl font-bold tracking-widest text-white uppercase">HR Dashboard</h1>
           <p className="text-neutral-600 text-[9px] font-bold uppercase tracking-[0.2em] mt-1">
             People & Talent Operations
           </p>
         </div>
         <button
           onClick={() => navigate("/hr/hiring")}
-          className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white text-[11px] font-bold uppercase tracking-widest rounded transition-none"
+          className="self-start sm:self-auto flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white text-[11px] font-bold uppercase tracking-widest rounded-lg transition-none shadow-lg shadow-purple-500/20"
         >
           <UserPlus size={13} />
           Add Candidate
@@ -95,34 +95,34 @@ export default function HRDashboardPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4">
         {stats.map((s, i) => (
           <motion.div
             key={s.label}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.05 }}
-            className="bg-[#1E1E1E] border border-white/5 rounded-lg p-5 hover:border-white/8 transition-none"
+            className="bg-[#1E1E1E] border border-white/5 rounded-xl p-3.5 sm:p-5 hover:border-white/10 transition-none"
           >
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-9 h-9 rounded-lg bg-black/30 border border-white/5 flex items-center justify-center" style={{ borderColor: `${s.color}20` }}>
-                <s.icon size={16} style={{ color: s.color }} />
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-black/30 border border-white/5 flex items-center justify-center shrink-0" style={{ borderColor: `${s.color}20` }}>
+                <s.icon size={15} style={{ color: s.color }} />
               </div>
             </div>
-            <p className="text-2xl font-black text-white mb-1">{s.value}</p>
-            <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest">{s.label}</p>
-            <p className="text-[9px] text-neutral-700 mt-1">{s.sub}</p>
+            <p className="text-xl sm:text-2xl font-black text-white mb-1">{s.value}</p>
+            <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest truncate">{s.label}</p>
+            <p className="text-[9px] text-neutral-500 mt-1 truncate">{s.sub}</p>
           </motion.div>
         ))}
       </div>
 
       {/* Main content */}
-      <div className="grid grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
         {/* Department breakdown */}
-        <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-5">
-          <div className="flex items-center justify-between mb-5">
+        <div className="bg-[#1E1E1E] border border-white/5 rounded-xl p-4 sm:p-5">
+          <div className="flex items-center justify-between mb-4 sm:mb-5">
             <h3 className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest flex items-center gap-2">
-              <Building2 size={13} className="text-neutral-700" /> By Department
+              <Building2 size={13} className="text-neutral-600" /> By Department
             </h3>
           </div>
           <div className="space-y-3">

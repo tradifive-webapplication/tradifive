@@ -51,92 +51,136 @@ export default function FeedbackInboxPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold tracking-widest text-white uppercase">Feedback Inbox</h1>
-          <p className="text-neutral-600 text-[9px] font-bold uppercase tracking-[0.2em] mt-1">Product Intelligence & User Reports</p>
+          <h1 className="text-lg sm:text-xl font-bold tracking-widest text-white uppercase">Feedback Inbox</h1>
+          <p className="text-neutral-500 text-[9px] font-bold uppercase tracking-[0.2em] mt-0.5">Product Intelligence & User Reports</p>
         </div>
-        <button onClick={fetchFeedback} className="px-4 py-2 bg-[#1E1E1E] border border-white/5 rounded text-[10px] font-bold text-neutral-500 hover:text-white transition-none uppercase tracking-widest flex items-center gap-2">
-          <RefreshCcw size={12} /> Refresh
+        <button onClick={fetchFeedback} className="self-start sm:self-auto px-4 py-2 bg-[#1E1E1E] border border-white/5 rounded-lg text-[10px] font-bold text-neutral-400 hover:text-white transition-none uppercase tracking-widest flex items-center gap-2">
+          <RefreshCcw size={12} className={loading ? "animate-spin" : ""} /> Refresh
         </button>
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4">
         {[
           { label: "Total Submissions", value: feedback.length },
           { label: "Average Rating", value: `${avgRating} / 5` },
           { label: "Bug Reports", value: bugCount },
           { label: "This Week", value: feedback.filter(f => new Date(f.created_at) > new Date(Date.now() - 7 * 86400000)).length },
         ].map(s => (
-          <div key={s.label} className="bg-[#1E1E1E] border border-white/5 rounded p-4">
-            <p className="text-[9px] text-neutral-600 font-bold uppercase tracking-widest mb-1">{s.label}</p>
-            <p className="text-lg font-bold text-white uppercase">{loading ? "..." : s.value}</p>
+          <div key={s.label} className="bg-[#1E1E1E] border border-white/5 rounded-xl p-3.5 sm:p-4">
+            <p className="text-[9px] text-neutral-500 font-bold uppercase tracking-widest mb-1 truncate">{s.label}</p>
+            <p className="text-base sm:text-lg font-bold text-white uppercase truncate">{loading ? "..." : s.value}</p>
           </div>
         ))}
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 max-w-full scrollbar-none">
         {(["all", "ratings", "bugs"] as const).map(f => (
           <button key={f} onClick={() => setFilter(f)}
-            className={`px-3 py-1.5 rounded text-[9px] font-bold uppercase tracking-widest border transition-none ${filter === f ? "bg-white/10 border-white/10 text-white" : "bg-[#1E1E1E] border-white/5 text-neutral-600 hover:text-neutral-300"}`}>
+            className={`px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-widest border transition-none shrink-0 ${filter === f ? "bg-white/10 border-white/10 text-white" : "bg-[#1E1E1E] border-white/5 text-neutral-500 hover:text-neutral-300"}`}>
             {f}
           </button>
         ))}
       </div>
 
-      {/* Feedback Table */}
-      <div className="bg-[#1E1E1E] border border-white/5 rounded overflow-hidden">
-        <table className="w-full text-left whitespace-nowrap">
-          <thead className="text-[9px] font-bold text-neutral-600 uppercase tracking-[0.2em] bg-white/[0.02] border-b border-white/5">
-            <tr>
-              <th className="px-5 py-3.5">User</th>
-              <th className="px-5 py-3.5">Rating</th>
-              <th className="px-5 py-3.5">Category</th>
-              <th className="px-5 py-3.5">Description</th>
-              <th className="px-5 py-3.5">Date</th>
-              <th className="px-5 py-3.5 text-right">Action</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-white/5">
-            {loading ? (
-              <tr><td colSpan={6} className="px-5 py-12 text-center text-neutral-700 text-[10px] uppercase tracking-widest">Scanning feedback database...</td></tr>
-            ) : filtered.length === 0 ? (
-              <tr><td colSpan={6} className="px-5 py-12 text-center text-neutral-700 text-[10px] uppercase tracking-widest">No feedback found</td></tr>
-            ) : filtered.map((f, i) => (
-              <tr key={i} className="hover:bg-white/[0.01] transition-none group">
-                <td className="px-5 py-3">
-                  <p className="text-[11px] font-bold text-neutral-400 uppercase">{f.profiles?.full_name || "User"}</p>
-                  <p className="text-[9px] text-neutral-700 font-mono">{f.profiles?.email || ""}</p>
-                </td>
-                <td className="px-5 py-3">
-                  <div className="flex gap-0.5">
-                    {[1, 2, 3, 4, 5].map(star => (
-                      <Star key={star} size={12} className={`${(f.rating || 0) >= star ? 'fill-yellow-500 text-yellow-500' : 'text-neutral-800'}`} />
-                    ))}
-                  </div>
-                </td>
-                <td className="px-5 py-3">
-                  <span className="text-[9px] font-bold text-neutral-500 uppercase tracking-widest bg-white/5 px-2 py-0.5 rounded">
+      {/* Feedback Container */}
+      <div className="bg-[#1E1E1E] border border-white/5 rounded-xl overflow-hidden shadow-xl">
+        {/* Mobile View: Cards */}
+        <div className="md:hidden divide-y divide-white/5">
+          {loading ? (
+            <div className="px-4 py-8 text-center text-neutral-500 text-[10px] uppercase tracking-widest">Scanning feedback database...</div>
+          ) : filtered.length === 0 ? (
+            <div className="px-4 py-8 text-center text-neutral-500 text-[10px] uppercase tracking-widest">No feedback found</div>
+          ) : filtered.map((f, i) => (
+            <div key={i} className="p-3.5 space-y-2.5">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-neutral-200 uppercase truncate">{f.profiles?.full_name || "User"}</p>
+                  <p className="text-[10px] text-neutral-500 font-mono truncate mt-0.5">{f.profiles?.email || ""}</p>
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <span className="text-[9px] font-bold text-neutral-400 uppercase tracking-widest bg-white/5 px-2 py-0.5 rounded border border-white/5">
                     {f.category || "General"}
                   </span>
-                </td>
-                <td className="px-5 py-3 max-w-[300px]">
-                  <p className="text-[11px] text-neutral-400 truncate">{f.description || "Rating only"}</p>
-                </td>
-                <td className="px-5 py-3 text-[10px] text-neutral-500">
-                  {new Date(f.created_at).toLocaleDateString()}
-                </td>
-                <td className="px-5 py-3 text-right">
-                  <button onClick={() => deleteFeedback(f.id)} className="px-3 py-1 text-[9px] font-bold bg-neutral-800 hover:bg-red-900/50 text-neutral-400 hover:text-red-400 border border-white/5 rounded uppercase transition-colors">
-                    Dismiss
-                  </button>
-                </td>
+                  <div className="flex gap-0.5">
+                    {[1, 2, 3, 4, 5].map(star => (
+                      <Star key={star} size={10} className={`${(f.rating || 0) >= star ? 'fill-yellow-500 text-yellow-500' : 'text-neutral-800'}`} />
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {f.description && (
+                <p className="text-[11px] text-neutral-300 bg-white/[0.02] border border-white/5 rounded p-2.5 leading-relaxed">
+                  {f.description}
+                </p>
+              )}
+
+              <div className="flex items-center justify-between text-[9px] text-neutral-500 pt-1">
+                <span>{new Date(f.created_at).toLocaleDateString()}</span>
+                <button onClick={() => deleteFeedback(f.id)} className="px-2.5 py-1 text-[9px] font-bold bg-neutral-800 hover:bg-red-950/50 text-neutral-400 hover:text-red-400 border border-white/5 rounded uppercase">
+                  Dismiss
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop View: Table */}
+        <div className="hidden md:block overflow-x-auto">
+          <table className="w-full text-left whitespace-nowrap">
+            <thead className="text-[9px] font-bold text-neutral-500 uppercase tracking-[0.2em] bg-white/[0.02] border-b border-white/5">
+              <tr>
+                <th className="px-5 py-3.5">User</th>
+                <th className="px-5 py-3.5">Rating</th>
+                <th className="px-5 py-3.5">Category</th>
+                <th className="px-5 py-3.5">Description</th>
+                <th className="px-5 py-3.5">Date</th>
+                <th className="px-5 py-3.5 text-right">Action</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-white/5">
+              {loading ? (
+                <tr><td colSpan={6} className="px-5 py-12 text-center text-neutral-700 text-[10px] uppercase tracking-widest">Scanning feedback database...</td></tr>
+              ) : filtered.length === 0 ? (
+                <tr><td colSpan={6} className="px-5 py-12 text-center text-neutral-700 text-[10px] uppercase tracking-widest">No feedback found</td></tr>
+              ) : filtered.map((f, i) => (
+                <tr key={i} className="hover:bg-white/[0.01] transition-none group">
+                  <td className="px-5 py-3">
+                    <p className="text-[11px] font-bold text-neutral-300 uppercase">{f.profiles?.full_name || "User"}</p>
+                    <p className="text-[9px] text-neutral-500 font-mono">{f.profiles?.email || ""}</p>
+                  </td>
+                  <td className="px-5 py-3">
+                    <div className="flex gap-0.5">
+                      {[1, 2, 3, 4, 5].map(star => (
+                        <Star key={star} size={12} className={`${(f.rating || 0) >= star ? 'fill-yellow-500 text-yellow-500' : 'text-neutral-800'}`} />
+                      ))}
+                    </div>
+                  </td>
+                  <td className="px-5 py-3">
+                    <span className="text-[9px] font-bold text-neutral-400 uppercase tracking-widest bg-white/5 px-2 py-0.5 rounded border border-white/5">
+                      {f.category || "General"}
+                    </span>
+                  </td>
+                  <td className="px-5 py-3 max-w-[300px]">
+                    <p className="text-[11px] text-neutral-400 truncate">{f.description || "Rating only"}</p>
+                  </td>
+                  <td className="px-5 py-3 text-[10px] text-neutral-500">
+                    {new Date(f.created_at).toLocaleDateString()}
+                  </td>
+                  <td className="px-5 py-3 text-right">
+                    <button onClick={() => deleteFeedback(f.id)} className="px-3 py-1 text-[9px] font-bold bg-neutral-800 hover:bg-red-900/50 text-neutral-400 hover:text-red-400 border border-white/5 rounded uppercase transition-colors">
+                      Dismiss
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

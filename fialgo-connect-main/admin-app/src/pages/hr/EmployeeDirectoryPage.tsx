@@ -100,29 +100,29 @@ export default function EmployeeDirectoryPage() {
 
   return (
     <>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
+      <div className="space-y-4 sm:space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold tracking-widest text-white uppercase">Employee Directory</h1>
-          <p className="text-neutral-600 text-[9px] font-bold uppercase tracking-[0.2em] mt-1">
+          <h1 className="text-lg sm:text-xl font-bold tracking-widest text-white uppercase">Employee Directory</h1>
+          <p className="text-neutral-500 text-[9px] font-bold uppercase tracking-[0.2em] mt-0.5 sm:mt-1">
             Personnel Records & Contact Info
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <button onClick={() => setShowAddModal(true)} className="flex items-center gap-2 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-bold uppercase tracking-widest rounded transition-colors shadow-lg shadow-indigo-500/20">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <button onClick={() => setShowAddModal(true)} className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-bold uppercase tracking-widest rounded transition-colors shadow-lg shadow-indigo-500/20">
             <UserPlus size={13} /> Add Employee
           </button>
-          <div className="w-px h-4 bg-white/10 mx-1" />
-          <button onClick={handleExportPDF} className="flex items-center gap-2 px-3 py-1.5 bg-[#1E1E1E] border border-white/5 hover:bg-white/[0.04] text-white text-[10px] font-bold uppercase tracking-widest rounded transition-none">
+          <div className="w-px h-4 bg-white/10 hidden sm:block mx-1" />
+          <button onClick={handleExportPDF} className="flex items-center gap-1.5 px-2.5 py-1.5 bg-[#1E1E1E] border border-white/5 hover:bg-white/[0.04] text-white text-[10px] font-bold uppercase tracking-widest rounded transition-none">
             <Download size={13} /> PDF
           </button>
-          <button onClick={handleExportExcel} className="flex items-center gap-2 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold uppercase tracking-widest rounded transition-none">
+          <button onClick={handleExportExcel} className="flex items-center gap-1.5 px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold uppercase tracking-widest rounded transition-none">
             <Download size={13} /> Excel
           </button>
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-4 p-4 bg-[#1E1E1E] border border-white/5 rounded-lg">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 sm:p-4 bg-[#1E1E1E] border border-white/5 rounded-xl">
         <div className="flex-1 relative">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
           <input
@@ -130,15 +130,15 @@ export default function EmployeeDirectoryPage() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search employees by name or role..."
-            className="w-full bg-[#121212] border border-white/5 rounded pl-9 pr-4 py-2 text-[12px] text-white outline-none focus:border-indigo-500/50"
+            className="w-full bg-[#121212] border border-white/5 rounded-lg pl-9 pr-4 py-2 text-[12px] text-white outline-none focus:border-indigo-500/50"
           />
         </div>
         <div className="flex items-center gap-2">
-          <Filter size={14} className="text-neutral-500" />
+          <Filter size={14} className="text-neutral-500 shrink-0" />
           <select
             value={deptFilter}
             onChange={(e) => setDeptFilter(e.target.value)}
-            className="bg-[#121212] border border-white/5 rounded px-3 py-2 text-[11px] font-bold text-white uppercase tracking-wider outline-none"
+            className="w-full sm:w-auto bg-[#121212] border border-white/5 rounded-lg px-3 py-2 text-[11px] font-bold text-white uppercase tracking-wider outline-none"
           >
             {depts.map(d => <option key={d} value={d}>{d}</option>)}
           </select>
@@ -152,7 +152,7 @@ export default function EmployeeDirectoryPage() {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         {filtered.map(emp => (
           <div 
             key={emp.id} 

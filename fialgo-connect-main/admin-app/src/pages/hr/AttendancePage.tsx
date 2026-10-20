@@ -100,60 +100,60 @@ export default function AttendancePage() {
   };
 
   return (
-    <div className="space-y-6 h-full flex flex-col">
-      <div className="flex items-center justify-between shrink-0">
+    <div className="space-y-4 sm:space-y-6 flex flex-col">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
         <div>
-          <h1 className="text-xl font-bold tracking-widest text-white uppercase">Attendance Log</h1>
-          <p className="text-neutral-600 text-[9px] font-bold uppercase tracking-[0.2em] mt-1">
+          <h1 className="text-lg sm:text-xl font-bold tracking-widest text-white uppercase">Attendance Log</h1>
+          <p className="text-neutral-500 text-[9px] font-bold uppercase tracking-[0.2em] mt-0.5 sm:mt-1">
             Time Tracking & Presence
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <button onClick={() => setShowLogModal(true)} className="flex items-center gap-2 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-bold uppercase tracking-widest rounded transition-colors shadow-lg shadow-indigo-500/20">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <button onClick={() => setShowLogModal(true)} className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-bold uppercase tracking-widest rounded transition-colors shadow-lg shadow-indigo-500/20">
             <Plus size={13} /> Log Record
           </button>
-          <div className="w-px h-4 bg-white/10 mx-1" />
-          <button onClick={handleExportExcel} className="flex items-center gap-2 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold uppercase tracking-widest rounded transition-none">
+          <div className="w-px h-4 bg-white/10 hidden sm:block mx-1" />
+          <button onClick={handleExportExcel} className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold uppercase tracking-widest rounded transition-none">
             <Download size={13} /> Export Report
           </button>
         </div>
       </div>
 
-      <div className="flex items-center gap-2 border-b border-white/5 pb-2">
+      <div className="flex items-center gap-2 border-b border-white/5 pb-2 overflow-x-auto">
         <button 
           onClick={() => setViewTab("daily")}
-          className={`flex items-center gap-2 px-4 py-2 rounded text-[11px] font-bold uppercase tracking-widest transition-colors ${viewTab === "daily" ? "bg-indigo-500/20 text-indigo-400" : "bg-white/5 text-neutral-400 hover:bg-white/10"}`}
+          className={`flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded text-[10px] sm:text-[11px] font-bold uppercase tracking-widest transition-colors shrink-0 ${viewTab === "daily" ? "bg-indigo-500/20 text-indigo-400" : "bg-white/5 text-neutral-400 hover:bg-white/10"}`}
         >
           <CalendarDays size={14} /> Daily Status
         </button>
         <button 
           onClick={() => setViewTab("sessions")}
-          className={`flex items-center gap-2 px-4 py-2 rounded text-[11px] font-bold uppercase tracking-widest transition-colors ${viewTab === "sessions" ? "bg-indigo-500/20 text-indigo-400" : "bg-white/5 text-neutral-400 hover:bg-white/10"}`}
+          className={`flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded text-[10px] sm:text-[11px] font-bold uppercase tracking-widest transition-colors shrink-0 ${viewTab === "sessions" ? "bg-indigo-500/20 text-indigo-400" : "bg-white/5 text-neutral-400 hover:bg-white/10"}`}
         >
           <Clock size={14} /> Session Logs
         </button>
       </div>
 
       {/* Filters & Legend */}
-      <div className="flex items-center justify-between p-4 bg-[#1E1E1E] border border-white/5 rounded-lg shrink-0">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <Filter size={14} className="text-neutral-500" />
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-3 sm:p-4 bg-[#1E1E1E] border border-white/5 rounded-xl shrink-0">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-4">
+          <div className="flex items-center gap-2 flex-1 sm:flex-initial">
+            <Filter size={14} className="text-neutral-500 shrink-0" />
             <select
               value={deptFilter}
               onChange={(e) => setDeptFilter(e.target.value)}
-              className="bg-[#121212] border border-white/5 rounded px-3 py-1.5 text-[11px] font-bold text-white uppercase tracking-wider outline-none"
+              className="w-full sm:w-auto bg-[#121212] border border-white/5 rounded-lg px-2.5 sm:px-3 py-1.5 text-[11px] font-bold text-white uppercase tracking-wider outline-none"
             >
               {depts.map(d => <option key={d} value={d}>{d}</option>)}
             </select>
           </div>
           {viewTab === "daily" && (
-            <div className="flex items-center gap-2">
-              <CalIcon size={14} className="text-neutral-500" />
+            <div className="flex items-center gap-2 flex-1 sm:flex-initial">
+              <CalIcon size={14} className="text-neutral-500 shrink-0" />
               <select
                 value={monthFilter}
                 onChange={(e) => setMonthFilter(e.target.value)}
-                className="bg-[#121212] border border-white/5 rounded px-3 py-1.5 text-[11px] font-bold text-white uppercase tracking-wider outline-none"
+                className="w-full sm:w-auto bg-[#121212] border border-white/5 rounded-lg px-2.5 sm:px-3 py-1.5 text-[11px] font-bold text-white uppercase tracking-wider outline-none"
               >
                 <option value="current">Last 15 Days</option>
                 <option value="prev">Previous Month</option>
@@ -163,8 +163,8 @@ export default function AttendancePage() {
         </div>
 
         {viewTab === "daily" && (
-          <div className="flex items-center gap-3">
-            <span className="text-[10px] text-neutral-500 uppercase tracking-widest mr-2">Legend:</span>
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 pt-2 md:pt-0 border-t md:border-t-0 border-white/5">
+            <span className="text-[9px] text-neutral-500 uppercase tracking-widest mr-1">Legend:</span>
             {[
               { label: "Present", color: "bg-emerald-500/20 text-emerald-400 border-emerald-500/50" },
               { label: "Late", color: "bg-amber-500/20 text-amber-400 border-amber-500/50" },
@@ -241,53 +241,31 @@ export default function AttendancePage() {
           )}
 
           {viewTab === "sessions" && (
-            <div className="bg-[#1E1E1E] border border-white/5 rounded-lg overflow-y-auto flex-1 min-h-0">
-              <table className="w-full text-left border-collapse">
-                <thead className="bg-[#121212] sticky top-0 z-10 border-b border-white/5">
-                  <tr>
-                    <th className="px-4 py-3 text-[10px] font-bold text-neutral-500 uppercase tracking-widest border-r border-white/5">User</th>
-                    <th className="px-4 py-3 text-[10px] font-bold text-neutral-500 uppercase tracking-widest border-r border-white/5">Login Time</th>
-                    <th className="px-4 py-3 text-[10px] font-bold text-neutral-500 uppercase tracking-widest border-r border-white/5">Logout Time</th>
-                    <th className="px-4 py-3 text-[10px] font-bold text-neutral-500 uppercase tracking-widest border-r border-white/5">Total Duration</th>
-                    <th className="px-4 py-3 text-[10px] font-bold text-neutral-500 uppercase tracking-widest border-r border-white/5">Status</th>
-                    <th className="px-4 py-3 text-[10px] font-bold text-neutral-500 uppercase tracking-widest text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-white/5">
-                  {sessionData.filter(s => deptFilter === "All" || s.department === deptFilter).length === 0 ? (
-                    <tr>
-                      <td colSpan={5} className="text-center py-10 text-neutral-500 text-[11px] font-bold uppercase tracking-widest">
-                        No session logs found
-                      </td>
-                    </tr>
-                  ) : (
-                    sessionData.filter(s => deptFilter === "All" || s.department === deptFilter).map(session => {
-                      const isActive = !session.logout_time;
-                      return (
-                        <tr key={session.id} className="hover:bg-white/[0.01]">
-                          <td className="px-4 py-3 border-r border-white/5">
-                            <p className="text-[11px] font-bold text-white">{session.full_name}</p>
+            <div className="bg-[#1E1E1E] border border-white/5 rounded-xl overflow-hidden flex-1 min-h-0">
+              {/* Mobile Touch Cards */}
+              <div className="md:hidden divide-y divide-white/5 overflow-y-auto max-h-[600px]">
+                {sessionData.filter(s => deptFilter === "All" || s.department === deptFilter).length === 0 ? (
+                  <div className="p-8 text-center text-neutral-500 text-[11px] font-bold uppercase tracking-widest">
+                    No session logs found
+                  </div>
+                ) : (
+                  sessionData.filter(s => deptFilter === "All" || s.department === deptFilter).map(session => {
+                    const isActive = !session.logout_time;
+                    return (
+                      <div key={session.id} className="p-3.5 space-y-2.5">
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <p className="text-[12px] font-bold text-white">{session.full_name}</p>
                             <p className="text-[9px] text-neutral-500 uppercase tracking-wider">{session.department}</p>
-                          </td>
-                          <td className="px-4 py-3 border-r border-white/5 text-[11px] text-neutral-300 font-medium">
-                            {new Date(session.login_time).toLocaleString()}
-                          </td>
-                          <td className="px-4 py-3 border-r border-white/5 text-[11px] text-neutral-500">
-                            {session.logout_time ? new Date(session.logout_time).toLocaleString() : "-"}
-                          </td>
-                          <td className="px-4 py-3 border-r border-white/5 text-[11px] font-bold text-white">
-                            {session.duration_minutes !== null ? `${Math.floor(session.duration_minutes / 60)}h ${session.duration_minutes % 60}m` : "-"}
-                          </td>
-                          <td className="px-4 py-3 border-r border-white/5">
+                          </div>
+                          <div className="flex items-center gap-2">
                             {isActive ? (
-                              <span className="flex items-center gap-1.5 text-[9px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-1 rounded w-fit uppercase tracking-wider">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Active Session
+                              <span className="flex items-center gap-1.5 text-[8px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded uppercase tracking-wider">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Active
                               </span>
                             ) : (
-                              <span className="text-[9px] font-bold text-neutral-500 uppercase tracking-wider">Completed</span>
+                              <span className="text-[8px] font-bold text-neutral-500 bg-white/5 px-2 py-0.5 rounded uppercase tracking-wider">Completed</span>
                             )}
-                          </td>
-                          <td className="px-4 py-3 text-right">
                             <button
                               type="button"
                               onClick={(e) => {
@@ -298,15 +276,95 @@ export default function AttendancePage() {
                               className="p-1.5 text-neutral-500 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"
                               title="Delete Session"
                             >
-                              <Trash2 size={14} />
+                              <Trash2 size={13} />
                             </button>
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2 text-[10px] bg-black/20 p-2.5 rounded-lg border border-white/5 font-mono">
+                          <div>
+                            <span className="text-neutral-500 block text-[9px] uppercase tracking-wider font-sans">Login</span>
+                            <span className="text-neutral-300 text-[10px]">{new Date(session.login_time).toLocaleString()}</span>
+                          </div>
+                          <div>
+                            <span className="text-neutral-500 block text-[9px] uppercase tracking-wider font-sans">Duration</span>
+                            <span className="text-white font-bold">{session.duration_minutes !== null ? `${Math.floor(session.duration_minutes / 60)}h ${session.duration_minutes % 60}m` : "-"}</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+
+              {/* Desktop Table */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead className="bg-[#121212] sticky top-0 z-10 border-b border-white/5">
+                    <tr>
+                      <th className="px-4 py-3 text-[10px] font-bold text-neutral-500 uppercase tracking-widest border-r border-white/5">User</th>
+                      <th className="px-4 py-3 text-[10px] font-bold text-neutral-500 uppercase tracking-widest border-r border-white/5">Login Time</th>
+                      <th className="px-4 py-3 text-[10px] font-bold text-neutral-500 uppercase tracking-widest border-r border-white/5">Logout Time</th>
+                      <th className="px-4 py-3 text-[10px] font-bold text-neutral-500 uppercase tracking-widest border-r border-white/5">Total Duration</th>
+                      <th className="px-4 py-3 text-[10px] font-bold text-neutral-500 uppercase tracking-widest border-r border-white/5">Status</th>
+                      <th className="px-4 py-3 text-[10px] font-bold text-neutral-500 uppercase tracking-widest text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5">
+                    {sessionData.filter(s => deptFilter === "All" || s.department === deptFilter).length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="text-center py-10 text-neutral-500 text-[11px] font-bold uppercase tracking-widest">
+                          No session logs found
+                        </td>
+                      </tr>
+                    ) : (
+                      sessionData.filter(s => deptFilter === "All" || s.department === deptFilter).map(session => {
+                        const isActive = !session.logout_time;
+                        return (
+                          <tr key={session.id} className="hover:bg-white/[0.01]">
+                            <td className="px-4 py-3 border-r border-white/5">
+                              <p className="text-[11px] font-bold text-white">{session.full_name}</p>
+                              <p className="text-[9px] text-neutral-500 uppercase tracking-wider">{session.department}</p>
+                            </td>
+                            <td className="px-4 py-3 border-r border-white/5 text-[11px] text-neutral-300 font-medium">
+                              {new Date(session.login_time).toLocaleString()}
+                            </td>
+                            <td className="px-4 py-3 border-r border-white/5 text-[11px] text-neutral-500">
+                              {session.logout_time ? new Date(session.logout_time).toLocaleString() : "-"}
+                            </td>
+                            <td className="px-4 py-3 border-r border-white/5 text-[11px] font-bold text-white">
+                              {session.duration_minutes !== null ? `${Math.floor(session.duration_minutes / 60)}h ${session.duration_minutes % 60}m` : "-"}
+                            </td>
+                            <td className="px-4 py-3 border-r border-white/5">
+                              {isActive ? (
+                                <span className="flex items-center gap-1.5 text-[9px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-1 rounded w-fit uppercase tracking-wider">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Active Session
+                                </span>
+                              ) : (
+                                <span className="text-[9px] font-bold text-neutral-500 uppercase tracking-wider">Completed</span>
+                              )}
+                            </td>
+                            <td className="px-4 py-3 text-right">
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  handleDeleteSession(session.id);
+                                }}
+                                className="p-1.5 text-neutral-500 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"
+                                title="Delete Session"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </>

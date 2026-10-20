@@ -99,43 +99,43 @@ export default function WaitlistPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold tracking-widest text-white uppercase">Waitlist Registry</h1>
-          <p className="text-neutral-600 text-[9px] font-bold uppercase tracking-[0.2em] mt-1">Pre-launch User Acquisition & Sign-ups</p>
+          <h1 className="text-lg sm:text-xl font-bold tracking-widest text-white uppercase">Waitlist Registry</h1>
+          <p className="text-neutral-500 text-[9px] font-bold uppercase tracking-[0.2em] mt-0.5">Pre-launch User Acquisition & Sign-ups</p>
         </div>
         <button 
           onClick={fetchWaitlist} 
-          className="px-4 py-2 bg-[#1E1E1E] border border-white/5 rounded text-[10px] font-bold text-neutral-500 hover:text-white transition-none uppercase tracking-widest flex items-center gap-2"
+          className="self-start sm:self-auto px-4 py-2 bg-[#1E1E1E] border border-white/5 rounded-lg text-[10px] font-bold text-neutral-400 hover:text-white transition-none uppercase tracking-widest flex items-center gap-2"
         >
           <RefreshCcw size={12} className={loading ? "animate-spin" : ""} /> Refresh
         </button>
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4">
         {[
           { label: "Total Sign-ups", value: totalCount, border: "border-white/5" },
           { label: "Pending Review", value: pendingCount, border: "border-amber-500/20 text-amber-500" },
           { label: "Invited Users", value: invitedCount, border: "border-emerald-500/20 text-emerald-500" },
           { label: "Rejected/Archived", value: rejectedCount, border: "border-rose-500/20 text-rose-500" },
         ].map(s => (
-          <div key={s.label} className={`bg-[#1E1E1E] border rounded p-4 ${s.border}`}>
-            <p className="text-[9px] text-neutral-600 font-bold uppercase tracking-widest mb-1">{s.label}</p>
-            <p className="text-lg font-bold text-white uppercase">{loading ? "..." : s.value}</p>
+          <div key={s.label} className={`bg-[#1E1E1E] border rounded-xl p-3.5 sm:p-4 ${s.border}`}>
+            <p className="text-[9px] text-neutral-500 font-bold uppercase tracking-widest mb-1 truncate">{s.label}</p>
+            <p className="text-base sm:text-lg font-bold text-white uppercase truncate">{loading ? "..." : s.value}</p>
           </div>
         ))}
       </div>
 
       {/* Filter and Search Panel */}
-      <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-[#1E1E1E] border border-white/5 rounded p-4">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-[#1E1E1E] border border-white/5 rounded-xl p-3.5 sm:p-4">
         {/* Status Tabs */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
           {(["all", "pending", "invited", "rejected"] as const).map(f => (
             <button 
               key={f} 
               onClick={() => setStatusFilter(f)}
-              className={`px-3 py-1.5 rounded text-[9px] font-bold uppercase tracking-widest border transition-none ${
+              className={`px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-widest border transition-none shrink-0 ${
                 statusFilter === f 
                   ? "bg-white/10 border-white/10 text-white" 
                   : "bg-transparent border-transparent text-neutral-500 hover:text-neutral-300"
@@ -147,116 +147,191 @@ export default function WaitlistPage() {
         </div>
 
         {/* Search Input */}
-        <div className="relative w-full md:w-80">
+        <div className="relative w-full sm:w-72">
           <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-neutral-500">
             <Search size={14} />
           </span>
           <input
             type="text"
-            placeholder="Search by name, email or feedback..."
+            placeholder="Search name, email, feedback..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-[#121212] border border-white/5 rounded pl-9 pr-4 py-2 text-[11px] text-white placeholder-neutral-600 outline-none focus:border-white/10"
+            className="w-full bg-[#121212] border border-white/5 rounded-lg pl-9 pr-4 py-2 text-[11px] text-white placeholder-neutral-600 outline-none focus:border-white/10"
           />
         </div>
       </div>
 
-      {/* Waitlist Table */}
-      <div className="bg-[#1E1E1E] border border-white/5 rounded overflow-hidden">
-        <table className="w-full text-left whitespace-nowrap">
-          <thead className="text-[9px] font-bold text-neutral-600 uppercase tracking-[0.2em] bg-white/[0.02] border-b border-white/5">
-            <tr>
-              <th className="px-5 py-3.5">User</th>
-              <th className="px-5 py-3.5">Status</th>
-              <th className="px-5 py-3.5">Excited About / Feedback</th>
-              <th className="px-5 py-3.5">Date Registered</th>
-              <th className="px-5 py-3.5 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-white/5">
-            {loading ? (
-              <tr>
-                <td colSpan={5} className="px-5 py-12 text-center text-neutral-700 text-[10px] uppercase tracking-widest">
-                  Scanning waitlist database...
-                </td>
-              </tr>
-            ) : filteredWaitlist.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="px-5 py-12 text-center text-neutral-700 text-[10px] uppercase tracking-widest">
-                  No waitlist entries found
-                </td>
-              </tr>
-            ) : (
-              filteredWaitlist.map((item) => (
-                <tr key={item.id} className="hover:bg-white/[0.01] transition-none group">
-                  <td className="px-5 py-4">
-                    <p className="text-[11px] font-bold text-neutral-300 uppercase">{item.name || "Anonymous"}</p>
-                    <p className="text-[9px] text-neutral-600 font-mono flex items-center gap-1.5 mt-0.5">
-                      <Mail size={10} /> {item.email}
-                    </p>
-                  </td>
-                  <td className="px-5 py-4">
-                    <span className={`text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full border ${
-                      item.status === "invited"
-                        ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                        : item.status === "rejected"
-                        ? "bg-rose-500/10 text-rose-400 border-rose-500/20"
-                        : "bg-amber-500/10 text-amber-400 border-amber-500/20"
-                    }`}>
-                      {item.status || "pending"}
-                    </span>
-                  </td>
-                  <td className="px-5 py-4 max-w-[300px] overflow-hidden">
-                    <p className="text-[11px] text-neutral-400 truncate whitespace-normal leading-normal max-h-12 overflow-y-auto" title={item.feedback}>
-                      {item.feedback || <span className="text-neutral-700 italic">None provided</span>}
-                    </p>
-                  </td>
-                  <td className="px-5 py-4 text-[10px] text-neutral-500">
-                    {new Date(item.created_at).toLocaleString()}
-                  </td>
-                  <td className="px-5 py-4 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      {item.status !== "invited" && (
-                        <button 
-                          onClick={() => updateStatus(item.id, "invited")} 
-                          className="px-2.5 py-1 text-[9px] font-bold bg-emerald-950/20 hover:bg-emerald-900/40 text-emerald-400 border border-emerald-500/20 rounded uppercase transition-colors flex items-center gap-1"
-                          title="Send Invite"
-                        >
-                          <MailCheck size={10} /> Invite
-                        </button>
-                      )}
-                      {item.status === "pending" && (
-                        <button 
-                          onClick={() => updateStatus(item.id, "rejected")} 
-                          className="px-2.5 py-1 text-[9px] font-bold bg-rose-950/20 hover:bg-rose-900/40 text-rose-400 border border-rose-500/20 rounded uppercase transition-colors"
-                          title="Reject User"
-                        >
-                          Reject
-                        </button>
-                      )}
-                      {item.status !== "pending" && (
-                        <button 
-                          onClick={() => updateStatus(item.id, "pending")} 
-                          className="px-2.5 py-1 text-[9px] font-bold bg-neutral-800 hover:bg-neutral-700 text-neutral-400 border border-white/5 rounded uppercase transition-colors"
-                          title="Reset status to Pending"
-                        >
-                          Reset
-                        </button>
-                      )}
+      {/* Waitlist Container */}
+      <div className="bg-[#1E1E1E] border border-white/5 rounded-xl overflow-hidden shadow-xl">
+        {/* Mobile View: Cards */}
+        <div className="md:hidden divide-y divide-white/5">
+          {loading ? (
+            <div className="px-4 py-8 text-center text-neutral-500 text-[10px] uppercase tracking-widest">Scanning waitlist database...</div>
+          ) : filteredWaitlist.length === 0 ? (
+            <div className="px-4 py-8 text-center text-neutral-500 text-[10px] uppercase tracking-widest">No waitlist entries found</div>
+          ) : (
+            filteredWaitlist.map((item) => (
+              <div key={item.id} className="p-3.5 space-y-2.5">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-neutral-200 uppercase truncate">{item.name || "Anonymous"}</p>
+                    <p className="text-[10px] text-neutral-500 font-mono truncate mt-0.5">{item.email}</p>
+                  </div>
+                  <span className={`text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full border shrink-0 ${
+                    item.status === "invited"
+                      ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                      : item.status === "rejected"
+                      ? "bg-rose-500/10 text-rose-400 border-rose-500/20"
+                      : "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                  }`}>
+                    {item.status || "pending"}
+                  </span>
+                </div>
+
+                {item.feedback && (
+                  <p className="text-[10px] text-neutral-400 bg-white/[0.02] border border-white/5 rounded p-2 leading-relaxed">
+                    "{item.feedback}"
+                  </p>
+                )}
+
+                <div className="flex items-center justify-between text-[9px] text-neutral-500 pt-1">
+                  <span>{new Date(item.created_at).toLocaleDateString()}</span>
+                  <div className="flex items-center gap-1.5">
+                    {item.status !== "invited" && (
                       <button 
-                        onClick={() => deleteEntry(item.id)} 
-                        className="p-1 text-[9px] font-bold bg-neutral-800 hover:bg-rose-950/50 text-neutral-500 hover:text-rose-400 border border-white/5 rounded transition-colors"
-                        title="Delete Entry"
+                        onClick={() => updateStatus(item.id, "invited")} 
+                        className="px-2 py-1 text-[9px] font-bold bg-emerald-950/30 text-emerald-400 border border-emerald-500/30 rounded uppercase flex items-center gap-1"
                       >
-                        <Trash2 size={12} />
+                        <MailCheck size={10} /> Invite
                       </button>
-                    </div>
+                    )}
+                    {item.status === "pending" && (
+                      <button 
+                        onClick={() => updateStatus(item.id, "rejected")} 
+                        className="px-2 py-1 text-[9px] font-bold bg-rose-950/30 text-rose-400 border border-rose-500/30 rounded uppercase"
+                      >
+                        Reject
+                      </button>
+                    )}
+                    {item.status !== "pending" && (
+                      <button 
+                        onClick={() => updateStatus(item.id, "pending")} 
+                        className="px-2 py-1 text-[9px] font-bold bg-neutral-800 text-neutral-400 border border-white/5 rounded uppercase"
+                      >
+                        Reset
+                      </button>
+                    )}
+                    <button 
+                      onClick={() => deleteEntry(item.id)} 
+                      className="p-1 text-neutral-500 hover:text-rose-400 bg-neutral-800 border border-white/5 rounded"
+                      title="Delete Entry"
+                    >
+                      <Trash2 size={11} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Desktop View: Table */}
+        <div className="hidden md:block overflow-x-auto">
+          <table className="w-full text-left whitespace-nowrap">
+            <thead className="text-[9px] font-bold text-neutral-500 uppercase tracking-[0.2em] bg-white/[0.02] border-b border-white/5">
+              <tr>
+                <th className="px-5 py-3.5">User</th>
+                <th className="px-5 py-3.5">Status</th>
+                <th className="px-5 py-3.5">Excited About / Feedback</th>
+                <th className="px-5 py-3.5">Date Registered</th>
+                <th className="px-5 py-3.5 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5">
+              {loading ? (
+                <tr>
+                  <td colSpan={5} className="px-5 py-12 text-center text-neutral-700 text-[10px] uppercase tracking-widest">
+                    Scanning waitlist database...
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : filteredWaitlist.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-5 py-12 text-center text-neutral-700 text-[10px] uppercase tracking-widest">
+                    No waitlist entries found
+                  </td>
+                </tr>
+              ) : (
+                filteredWaitlist.map((item) => (
+                  <tr key={item.id} className="hover:bg-white/[0.01] transition-none group">
+                    <td className="px-5 py-4">
+                      <p className="text-[11px] font-bold text-neutral-300 uppercase">{item.name || "Anonymous"}</p>
+                      <p className="text-[9px] text-neutral-500 font-mono flex items-center gap-1.5 mt-0.5">
+                        <Mail size={10} /> {item.email}
+                      </p>
+                    </td>
+                    <td className="px-5 py-4">
+                      <span className={`text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full border ${
+                        item.status === "invited"
+                          ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                          : item.status === "rejected"
+                          ? "bg-rose-500/10 text-rose-400 border-rose-500/20"
+                          : "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                      }`}>
+                        {item.status || "pending"}
+                      </span>
+                    </td>
+                    <td className="px-5 py-4 max-w-[300px] overflow-hidden">
+                      <p className="text-[11px] text-neutral-400 truncate whitespace-normal leading-normal max-h-12 overflow-y-auto" title={item.feedback}>
+                        {item.feedback || <span className="text-neutral-700 italic">None provided</span>}
+                      </p>
+                    </td>
+                    <td className="px-5 py-4 text-[10px] text-neutral-500">
+                      {new Date(item.created_at).toLocaleString()}
+                    </td>
+                    <td className="px-5 py-4 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        {item.status !== "invited" && (
+                          <button 
+                            onClick={() => updateStatus(item.id, "invited")} 
+                            className="px-2.5 py-1 text-[9px] font-bold bg-emerald-950/20 hover:bg-emerald-900/40 text-emerald-400 border border-emerald-500/20 rounded uppercase transition-colors flex items-center gap-1"
+                            title="Send Invite"
+                          >
+                            <MailCheck size={10} /> Invite
+                          </button>
+                        )}
+                        {item.status === "pending" && (
+                          <button 
+                            onClick={() => updateStatus(item.id, "rejected")} 
+                            className="px-2.5 py-1 text-[9px] font-bold bg-rose-950/20 hover:bg-rose-900/40 text-rose-400 border border-rose-500/20 rounded uppercase transition-colors"
+                            title="Reject User"
+                          >
+                            Reject
+                          </button>
+                        )}
+                        {item.status !== "pending" && (
+                          <button 
+                            onClick={() => updateStatus(item.id, "pending")} 
+                            className="px-2.5 py-1 text-[9px] font-bold bg-neutral-800 hover:bg-neutral-700 text-neutral-400 border border-white/5 rounded uppercase transition-colors"
+                            title="Reset status to Pending"
+                          >
+                            Reset
+                          </button>
+                        )}
+                        <button 
+                          onClick={() => deleteEntry(item.id)} 
+                          className="p-1 text-[9px] font-bold bg-neutral-800 hover:bg-rose-950/50 text-neutral-500 hover:text-rose-400 border border-white/5 rounded transition-colors"
+                          title="Delete Entry"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

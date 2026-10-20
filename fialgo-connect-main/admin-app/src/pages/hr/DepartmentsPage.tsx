@@ -235,12 +235,12 @@ export default function DepartmentsPage() {
   );
 
   return (
-    <div className="space-y-6 max-w-[1200px] mx-auto relative">
+    <div className="space-y-4 sm:space-y-6 max-w-[1200px] mx-auto relative">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold tracking-widest text-white uppercase">Departments</h1>
-          <p className="text-neutral-600 text-[9px] font-bold uppercase tracking-[0.2em] mt-1">
+          <h1 className="text-lg sm:text-xl font-bold tracking-widest text-white uppercase">Departments</h1>
+          <p className="text-neutral-500 text-[9px] font-bold uppercase tracking-[0.2em] mt-0.5 sm:mt-1">
             Organization Structure
           </p>
         </div>
@@ -249,7 +249,7 @@ export default function DepartmentsPage() {
             setCreatedKey(null);
             setIsModalOpen(true);
           }}
-          className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-bold uppercase tracking-widest rounded transition-none"
+          className="flex items-center justify-center gap-1.5 px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] sm:text-[11px] font-bold uppercase tracking-widest rounded transition-none w-fit"
         >
           <Plus size={13} />
           New Department
@@ -257,15 +257,15 @@ export default function DepartmentsPage() {
       </div>
 
       {/* Toolbar */}
-      <div className="flex items-center justify-between bg-[#1E1E1E] p-3 rounded-lg border border-white/5">
-        <div className="relative w-64">
+      <div className="flex items-center justify-between bg-[#1E1E1E] p-3 rounded-xl border border-white/5">
+        <div className="relative w-full sm:w-64">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
           <input
             type="text"
             placeholder="Search departments..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-[#121212] border border-white/10 rounded px-9 py-2 text-[11px] text-white focus:outline-none focus:border-indigo-500 transition-none"
+            className="w-full bg-[#121212] border border-white/10 rounded-lg pl-9 pr-3 py-2 text-[11px] text-white focus:outline-none focus:border-indigo-500 transition-none"
           />
         </div>
       </div>
@@ -276,7 +276,7 @@ export default function DepartmentsPage() {
           Loading Departments...
         </div>
       ) : (
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {filteredDepts.map((dept, i) => (
             <motion.div
               key={dept.id}

@@ -31,39 +31,70 @@ export default function MT5MonitorPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold tracking-widest text-white uppercase">Network Monitor</h1>
-          <p className="text-neutral-600 text-[9px] font-bold uppercase tracking-[0.2em] mt-1">Infrastructure & Broker Telemetry</p>
+          <h1 className="text-lg sm:text-xl font-bold tracking-widest text-white uppercase">Network Monitor</h1>
+          <p className="text-neutral-500 text-[9px] font-bold uppercase tracking-[0.2em] mt-0.5">Infrastructure & Broker Telemetry</p>
         </div>
-        <button onClick={() => window.location.reload()} className="px-4 py-2 bg-[#1E1E1E] border border-white/5 rounded text-[10px] font-bold text-neutral-500 hover:text-white transition-none uppercase tracking-widest flex items-center gap-2">
+        <button onClick={() => window.location.reload()} className="self-start sm:self-auto px-4 py-2 bg-[#1E1E1E] border border-white/5 rounded-lg text-[10px] font-bold text-neutral-400 hover:text-white transition-none uppercase tracking-widest flex items-center gap-2">
           <RefreshCcw size={12} /> Sync
         </button>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-4">
         {[
           { label: "Total Handled", value: accounts.length },
           { label: "Active Bridges", value: connectedCount },
           { label: "Terminal Disconnects", value: accounts.length - connectedCount },
         ].map(s => (
-          <div key={s.label} className="bg-[#1E1E1E] border border-white/5 rounded p-4">
-            <p className="text-[9px] text-neutral-600 font-bold uppercase tracking-widest mb-1">{s.label}</p>
-            <p className="text-lg font-bold text-white uppercase">{loading ? "..." : s.value}</p>
+          <div key={s.label} className="bg-[#1E1E1E] border border-white/5 rounded-xl p-3.5 sm:p-4">
+            <p className="text-[9px] text-neutral-500 font-bold uppercase tracking-widest mb-1">{s.label}</p>
+            <p className="text-base sm:text-lg font-bold text-white uppercase">{loading ? "..." : s.value}</p>
           </div>
         ))}
       </div>
 
       <div className="bg-[#161618] border border-white/[0.08] rounded-xl overflow-hidden shadow-xl">
-        <div className="p-4 border-b border-white/[0.08] bg-white/[0.01] flex items-center justify-between">
+        <div className="p-3.5 sm:p-4 border-b border-white/[0.08] bg-white/[0.01] flex items-center justify-between">
           <h2 className="text-xs font-semibold text-neutral-300 uppercase tracking-wider flex items-center gap-2">
             <Server size={14} className="text-blue-400" /> MT5 Active Links
           </h2>
-          <span className="text-[10px] font-semibold text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full border border-blue-500/20">
-            {connectedCount} LIVE BRIDGES
+          <span className="text-[9.5px] sm:text-[10px] font-semibold text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-500/20">
+            {connectedCount} LIVE
           </span>
         </div>
-        <div className="overflow-x-auto">
+
+        {/* Mobile View: Cards */}
+        <div className="md:hidden divide-y divide-white/[0.04]">
+          {loading ? (
+            <div className="p-8 text-center text-neutral-400 text-xs animate-pulse">Scanning network nodes...</div>
+          ) : accounts.length === 0 ? (
+            <div className="p-8 text-center text-neutral-400 text-xs">No terminals detected</div>
+          ) : (
+            accounts.map((acc) => (
+              <div key={acc.id} className="p-3.5 space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-xs font-semibold text-white truncate">{acc.profiles?.full_name || "LINK"}</p>
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded text-[8.5px] font-semibold uppercase tracking-wider shrink-0 ${
+                    acc.algo_status ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-neutral-800 text-neutral-400 border border-white/5"
+                  }`}>
+                    {acc.algo_status ? "STABLE" : "DISCONNECT"}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-xs font-mono text-neutral-400">
+                  <span>Acc: {acc.account_number || "—"}</span>
+                  <span className="text-white font-bold">${acc.balance?.toFixed(0) || "0"}</span>
+                </div>
+                <div className="text-[9px] text-neutral-500 font-mono text-right">
+                  Heartbeat: {acc.updated_at ? new Date(acc.updated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "—"}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Desktop View: Table */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left whitespace-nowrap border-collapse">
             <thead className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wider bg-white/[0.02] border-b border-white/[0.08]">
               <tr>

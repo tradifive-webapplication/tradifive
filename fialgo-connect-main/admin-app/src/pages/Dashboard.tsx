@@ -167,40 +167,40 @@ export default function Dashboard() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold tracking-widest text-white uppercase">{ROLE_LABELS[activeRole].split(' ')[0]} Dashboard</h1>
-          <p className="text-neutral-600 text-[9px] font-bold uppercase tracking-[0.2em] mt-1">
-            Real-Time System Metrics
+          <h1 className="text-lg sm:text-xl font-bold tracking-widest text-white uppercase">{ROLE_LABELS[activeRole].split(' ')[0]} Dashboard</h1>
+          <p className="text-neutral-500 text-[9px] font-bold uppercase tracking-[0.2em] mt-0.5">
+            Real-Time System Metrics & Pulse
           </p>
         </div>
-        <div className="px-3 py-1.5 bg-[#1E1E1E] border border-white/5 rounded">
+        <div className="self-start sm:self-auto px-3 py-1.5 bg-[#1E1E1E] border border-white/5 rounded-lg">
           <span className="text-[11px] font-mono text-neutral-400">{systemTime.toLocaleTimeString()}</span>
         </div>
       </div>
 
       {/* KPI Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2.5 sm:gap-4">
         {kpis.map((kpi) => (
-          <div key={kpi.label} className="bg-[#1E1E1E] border border-white/5 p-4 rounded hover:border-white/10 transition-colors">
-            <div className="flex items-center justify-between mb-3">
-              <kpi.icon size={16} className="text-neutral-500" />
+          <div key={kpi.label} className="bg-[#1E1E1E] border border-white/5 p-3.5 sm:p-4 rounded-xl hover:border-white/10 transition-colors">
+            <div className="flex items-center justify-between mb-2 sm:mb-3">
+              <kpi.icon size={15} className="text-neutral-400" />
             </div>
-            <p className="text-neutral-600 text-[9px] font-bold uppercase tracking-widest mb-1">{kpi.label}</p>
-            <p className="text-xl font-bold text-white">{loading ? "..." : kpi.value}</p>
+            <p className="text-neutral-500 text-[8.5px] sm:text-[9px] font-bold uppercase tracking-widest mb-1 truncate">{kpi.label}</p>
+            <p className="text-base sm:text-xl font-bold text-white tracking-tight truncate">{loading ? "..." : kpi.value}</p>
           </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Revenue Chart */}
-        <div className="lg:col-span-2 bg-[#1E1E1E] border border-white/5 rounded-lg p-5">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest flex items-center gap-2">
+        <div className="lg:col-span-2 bg-[#1E1E1E] border border-white/5 rounded-xl p-3.5 sm:p-5">
+          <div className="flex items-center justify-between mb-4 sm:mb-6">
+            <h3 className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest flex items-center gap-2">
               <TrendingUp size={13} className="text-emerald-500" /> 7-Day Revenue Trend
             </h3>
           </div>
-          <div className="h-64 w-full">
+          <div className="h-52 sm:h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={revenueData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
@@ -223,19 +223,19 @@ export default function Dashboard() {
         </div>
 
         {/* Subscription Distribution */}
-        <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-5 flex flex-col">
-          <h3 className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest flex items-center gap-2 mb-6">
+        <div className="bg-[#1E1E1E] border border-white/5 rounded-xl p-3.5 sm:p-5 flex flex-col">
+          <h3 className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest flex items-center gap-2 mb-4 sm:mb-6">
             <Users size={13} className="text-indigo-400" /> Subscription Tiers
           </h3>
-          <div className="flex-1 min-h-[200px] relative">
+          <div className="flex-1 min-h-[190px] sm:min-h-[200px] relative">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
                   data={subData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
+                  innerRadius={55}
+                  outerRadius={75}
                   paddingAngle={5}
                   dataKey="value"
                   stroke="none"
@@ -251,7 +251,7 @@ export default function Dashboard() {
               </PieChart>
             </ResponsiveContainer>
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <span className="text-2xl font-black text-white">{stats.subsPro + stats.subsElite + stats.subsTrial + stats.creatorCounts}</span>
+              <span className="text-xl sm:text-2xl font-black text-white">{stats.subsPro + stats.subsElite + stats.subsTrial + stats.creatorCounts}</span>
               <span className="text-[8px] font-bold text-neutral-500 uppercase tracking-widest">Active</span>
             </div>
           </div>

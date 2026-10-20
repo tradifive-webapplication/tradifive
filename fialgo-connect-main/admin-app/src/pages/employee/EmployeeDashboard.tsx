@@ -120,51 +120,51 @@ export default function EmployeeDashboard() {
   const firstName = displayName.split(" ")[0];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold tracking-widest text-white uppercase">My Workspace</h1>
-          <p className="text-neutral-600 text-[9px] font-bold uppercase tracking-[0.2em] mt-1">Welcome back, {firstName}</p>
+          <h1 className="text-lg sm:text-xl font-bold tracking-widest text-white uppercase">My Workspace</h1>
+          <p className="text-neutral-500 text-[9px] font-bold uppercase tracking-[0.2em] mt-0.5 sm:mt-1">Welcome back, {firstName}</p>
         </div>
       </div>
 
       {/* Profile Card */}
-      <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-5 flex items-center gap-4">
-        <div className="w-12 h-12 rounded-lg bg-indigo-500/20 border border-indigo-500/20 flex items-center justify-center text-lg font-bold text-indigo-400">
+      <div className="bg-[#1E1E1E] border border-white/5 rounded-xl p-3.5 sm:p-5 flex items-center gap-3 sm:gap-4">
+        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-indigo-500/20 border border-indigo-500/20 flex items-center justify-center text-base sm:text-lg font-bold text-indigo-400 shrink-0">
           {displayName.charAt(0).toUpperCase()}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-[14px] font-bold text-white truncate">{displayName}</p>
-          <div className="flex items-center gap-3 mt-0.5">
-            <span className="flex items-center gap-1 text-[10px] text-neutral-500"><Mail size={10} />{adminUser?.email}</span>
-            <span className="flex items-center gap-1 text-[10px] text-indigo-400 uppercase font-bold tracking-widest"><Shield size={10} />{adminUser?.role}</span>
+          <p className="text-[13px] sm:text-[14px] font-bold text-white truncate">{displayName}</p>
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-0.5">
+            <span className="flex items-center gap-1 text-[9px] sm:text-[10px] text-neutral-400 truncate max-w-[180px] sm:max-w-none"><Mail size={10} className="shrink-0" /><span className="truncate">{adminUser?.email}</span></span>
+            <span className="flex items-center gap-1 text-[9px] sm:text-[10px] text-indigo-400 uppercase font-bold tracking-widest shrink-0"><Shield size={10} />{adminUser?.role}</span>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Timer */}
-        <div className="lg:col-span-1 space-y-6">
-          <div className={`border rounded-lg p-6 relative overflow-hidden ${activeLogId ? "bg-indigo-500/10 border-indigo-500/30" : "bg-[#1E1E1E] border-white/5"}`}>
+        <div className="lg:col-span-1 space-y-4 sm:space-y-6">
+          <div className={`border rounded-xl p-4 sm:p-6 relative overflow-hidden ${activeLogId ? "bg-indigo-500/10 border-indigo-500/30" : "bg-[#1E1E1E] border-white/5"}`}>
             <h2 className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-4 flex items-center gap-2">
               <TimerReset size={14} className={activeLogId ? "text-indigo-400" : "text-neutral-500"} />
               Current Session
             </h2>
             <div className="text-center mb-6">
-              <div className="text-4xl font-black font-mono text-white tracking-widest">{formatStopwatch(elapsedSeconds)}</div>
+              <div className="text-3xl sm:text-4xl font-black font-mono text-white tracking-widest">{formatStopwatch(elapsedSeconds)}</div>
               <p className="text-[9px] text-neutral-400 uppercase tracking-widest font-bold mt-2">Hours : Minutes : Seconds</p>
             </div>
             {activeLogId ? (
               <button
                 onClick={() => setShowEODModal(true)}
-                className="w-full bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 flex items-center justify-center gap-2 py-3 rounded text-[11px] font-bold uppercase tracking-widest transition-colors"
+                className="w-full bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 flex items-center justify-center gap-2 py-3 rounded-lg text-[11px] font-bold uppercase tracking-widest transition-colors"
               >
                 <LogOut size={16} /> Check Out & Report
               </button>
             ) : (
               <button
                 onClick={handleCheckIn}
-                className="w-full bg-emerald-600 hover:bg-emerald-500 text-white flex items-center justify-center gap-2 py-3 rounded text-[11px] font-bold uppercase tracking-widest transition-colors"
+                className="w-full bg-emerald-600 hover:bg-emerald-500 text-white flex items-center justify-center gap-2 py-3 rounded-lg text-[11px] font-bold uppercase tracking-widest transition-colors"
               >
                 <Clock size={16} /> Check In (Start Timer)
               </button>
@@ -172,7 +172,7 @@ export default function EmployeeDashboard() {
           </div>
 
           {/* Quick Links */}
-          <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-6">
+          <div className="bg-[#1E1E1E] border border-white/5 rounded-xl p-4 sm:p-6">
             <h2 className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-4 flex items-center gap-2">
               <ExternalLink size={14} className="text-emerald-400" /> Web Testing Links
             </h2>

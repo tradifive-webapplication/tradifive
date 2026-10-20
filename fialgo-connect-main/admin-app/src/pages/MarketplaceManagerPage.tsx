@@ -301,25 +301,25 @@ export default function MarketplaceManagerPage() {
       </div>
 
       {/* ── Top Metric KPI Cards ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
         {kpis.map((kpi) => (
           <div
             key={kpi.label}
-            className="bg-[#1E1E1E] border border-white/5 rounded-lg p-5 hover:border-white/10 transition-none group cursor-pointer"
+            className="bg-[#1E1E1E] border border-white/5 rounded-xl p-3.5 sm:p-5 hover:border-white/10 transition-none group cursor-pointer"
           >
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
               <div
-                className="w-9 h-9 rounded-lg bg-black/30 border border-white/5 flex items-center justify-center group-hover:bg-white/[0.05] transition-none"
+                className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-black/30 border border-white/5 flex items-center justify-center group-hover:bg-white/[0.05] transition-none shrink-0"
                 style={{ borderColor: `${kpi.color}20` }}
               >
-                <kpi.icon size={16} style={{ color: kpi.color }} />
+                <kpi.icon size={15} style={{ color: kpi.color }} />
               </div>
-              <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest">
+              <span className="text-[9px] font-bold text-neutral-500 uppercase tracking-widest truncate">
                 {kpi.badge}
               </span>
             </div>
-            <p className="text-2xl font-black text-white mb-1">{kpi.value}</p>
-            <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest">
+            <p className="text-lg sm:text-2xl font-black text-white mb-1 truncate">{kpi.value}</p>
+            <p className="text-[9px] sm:text-[10px] font-bold text-neutral-500 uppercase tracking-widest truncate">
               {kpi.label}
             </p>
           </div>
@@ -671,84 +671,148 @@ export default function MarketplaceManagerPage() {
             </button>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left whitespace-nowrap border-collapse">
-              <thead className="bg-white/[0.02] border-b border-white/5">
-                <tr>
-                  <th className="p-4 text-[10px] font-bold text-neutral-600 uppercase tracking-widest">Algorithm</th>
-                  <th className="p-4 text-[10px] font-bold text-neutral-600 uppercase tracking-widest">Category</th>
-                  <th className="p-4 text-[10px] font-bold text-neutral-600 uppercase tracking-widest">Pairs & TF</th>
-                  <th className="p-4 text-[10px] font-bold text-neutral-600 uppercase tracking-widest">Performance</th>
-                  <th className="p-4 text-[10px] font-bold text-neutral-600 uppercase tracking-widest">Price</th>
-                  <th className="p-4 text-[10px] font-bold text-neutral-600 uppercase tracking-widest">Status</th>
-                  <th className="p-4 text-[10px] font-bold text-neutral-600 uppercase tracking-widest text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/[0.02] text-xs">
-                {filteredItems.map((item) => {
-                  const isLive = item.status === "approved";
-                  return (
-                    <tr key={item.id} className="border-b border-white/[0.02] hover:bg-white/[0.01] transition-colors group">
-                      <td className="p-4">
-                        <div className="font-bold text-white text-[12px]">{item.name}</div>
-                        <div className="text-[9px] text-neutral-500 uppercase tracking-widest mt-0.5">
-                          {item.version || "v1.0"}
+          <>
+            {/* Mobile View: Cards */}
+            <div className="md:hidden divide-y divide-white/5">
+              {filteredItems.map((item) => {
+                const isLive = item.status === "approved";
+                return (
+                  <div key={item.id} className="p-3.5 space-y-2.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <p className="text-xs font-bold text-white uppercase truncate">{item.name}</p>
+                          <span className="text-[8px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded bg-white/5 text-neutral-400 border border-white/5">
+                            {item.type || "Algo"}
+                          </span>
                         </div>
-                      </td>
-                      <td className="p-4">
-                        <span className="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded bg-white/[0.04] text-neutral-400 border border-white/5">
-                          {item.type || "Algo"}
-                        </span>
-                      </td>
-                      <td className="p-4">
-                        <div className="font-mono text-xs font-bold text-neutral-200">{item.pairs || "All Pairs"}</div>
-                        <div className="font-mono text-[10px] text-neutral-500 mt-0.5">{item.timeframe || "M15"}</div>
-                      </td>
-                      <td className="p-4">
-                        <div className="font-mono text-xs font-bold text-emerald-400">WR: {item.win_rate || "N/A"}</div>
-                        <div className="font-mono text-[10px] text-neutral-500 mt-0.5">DD: {item.drawdown || "N/A"}</div>
-                      </td>
-                      <td className="p-4">
-                        <span className="font-mono text-sm font-black text-white">
-                          ₹{Number(item.price || 0).toLocaleString("en-IN")}
-                        </span>
-                      </td>
-                      <td className="p-4">
+                        <p className="text-[10px] text-neutral-500 font-mono mt-0.5">{item.pairs || "All Pairs"} • {item.timeframe || "M15"}</p>
+                      </div>
+                      <span className="font-mono text-sm font-black text-white shrink-0">
+                        ₹{Number(item.price || 0).toLocaleString("en-IN")}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between text-[10px] font-mono text-neutral-400 pt-1 border-t border-white/5">
+                      <div className="flex items-center gap-2">
+                        <span className="text-emerald-400 font-bold">WR: {item.win_rate || "N/A"}</span>
+                        <span>•</span>
+                        <span className="text-neutral-500">DD: {item.drawdown || "N/A"}</span>
+                      </div>
+                      <button
+                        onClick={() => handleToggleStatus(item.id, item.status)}
+                        className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-widest border transition-none ${
+                          isLive
+                            ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+                            : "bg-amber-500/10 border-amber-500/20 text-amber-400"
+                        }`}
+                      >
+                        {isLive ? "Live" : "Paused"}
+                      </button>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-1">
+                      <span className="text-[9px] text-neutral-500 uppercase">{item.version || "v1.0"}</span>
+                      <div className="flex items-center gap-1.5">
                         <button
-                          onClick={() => handleToggleStatus(item.id, item.status)}
-                          className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest border transition-none ${
-                            isLive
-                              ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20"
-                              : "bg-amber-500/10 border-amber-500/20 text-amber-400 hover:bg-amber-500/20"
-                          }`}
+                          onClick={() => handleEdit(item)}
+                          className="px-2.5 py-1 rounded bg-[#121212] border border-white/5 text-neutral-300 hover:text-white text-[9px] font-bold uppercase flex items-center gap-1"
                         >
-                          {isLive ? "Live in Store" : "Paused"}
+                          <Edit3 size={11} /> Edit
                         </button>
-                      </td>
-                      <td className="p-4 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
+                        <button
+                          onClick={() => handleDelete(item.id, item.name)}
+                          className="p-1 rounded bg-[#121212] border border-white/5 text-neutral-500 hover:text-rose-400"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Desktop View: Table */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left whitespace-nowrap border-collapse">
+                <thead className="bg-white/[0.02] border-b border-white/5">
+                  <tr>
+                    <th className="p-4 text-[10px] font-bold text-neutral-600 uppercase tracking-widest">Algorithm</th>
+                    <th className="p-4 text-[10px] font-bold text-neutral-600 uppercase tracking-widest">Category</th>
+                    <th className="p-4 text-[10px] font-bold text-neutral-600 uppercase tracking-widest">Pairs & TF</th>
+                    <th className="p-4 text-[10px] font-bold text-neutral-600 uppercase tracking-widest">Performance</th>
+                    <th className="p-4 text-[10px] font-bold text-neutral-600 uppercase tracking-widest">Price</th>
+                    <th className="p-4 text-[10px] font-bold text-neutral-600 uppercase tracking-widest">Status</th>
+                    <th className="p-4 text-[10px] font-bold text-neutral-600 uppercase tracking-widest text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/[0.02] text-xs">
+                  {filteredItems.map((item) => {
+                    const isLive = item.status === "approved";
+                    return (
+                      <tr key={item.id} className="border-b border-white/[0.02] hover:bg-white/[0.01] transition-colors group">
+                        <td className="p-4">
+                          <div className="font-bold text-white text-[12px]">{item.name}</div>
+                          <div className="text-[9px] text-neutral-500 uppercase tracking-widest mt-0.5">
+                            {item.version || "v1.0"}
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          <span className="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded bg-white/[0.04] text-neutral-400 border border-white/5">
+                            {item.type || "Algo"}
+                          </span>
+                        </td>
+                        <td className="p-4">
+                          <div className="font-mono text-xs font-bold text-neutral-200">{item.pairs || "All Pairs"}</div>
+                          <div className="font-mono text-[10px] text-neutral-500 mt-0.5">{item.timeframe || "M15"}</div>
+                        </td>
+                        <td className="p-4">
+                          <div className="font-mono text-xs font-bold text-emerald-400">WR: {item.win_rate || "N/A"}</div>
+                          <div className="font-mono text-[10px] text-neutral-500 mt-0.5">DD: {item.drawdown || "N/A"}</div>
+                        </td>
+                        <td className="p-4">
+                          <span className="font-mono text-sm font-black text-white">
+                            ₹{Number(item.price || 0).toLocaleString("en-IN")}
+                          </span>
+                        </td>
+                        <td className="p-4">
                           <button
-                            onClick={() => handleEdit(item)}
-                            title="Edit"
-                            className="p-1.5 rounded bg-[#121212] border border-white/5 text-neutral-400 hover:text-white hover:border-white/10 transition-none"
+                            onClick={() => handleToggleStatus(item.id, item.status)}
+                            className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest border transition-none ${
+                              isLive
+                                ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20"
+                                : "bg-amber-500/10 border-amber-500/20 text-amber-400 hover:bg-amber-500/20"
+                            }`}
                           >
-                            <Edit3 size={13} />
+                            {isLive ? "Live in Store" : "Paused"}
                           </button>
-                          <button
-                            onClick={() => handleDelete(item.id, item.name)}
-                            title="Delete"
-                            className="p-1.5 rounded bg-[#121212] border border-white/5 text-neutral-400 hover:text-rose-400 hover:border-rose-500/20 hover:bg-rose-500/10 transition-none"
-                          >
-                            <Trash2 size={13} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                        </td>
+                        <td className="p-4 text-right">
+                          <div className="flex items-center justify-end gap-1.5">
+                            <button
+                              onClick={() => handleEdit(item)}
+                              title="Edit"
+                              className="p-1.5 rounded bg-[#121212] border border-white/5 text-neutral-400 hover:text-white hover:border-white/10 transition-none"
+                            >
+                              <Edit3 size={13} />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(item.id, item.name)}
+                              title="Delete"
+                              className="p-1.5 rounded bg-[#121212] border border-white/5 text-neutral-400 hover:text-rose-400 hover:border-rose-500/20 hover:bg-rose-500/10 transition-none"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
     </div>

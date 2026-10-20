@@ -62,24 +62,24 @@ export default function CampaignsPage() {
   );
 
   return (
-    <div className="space-y-6 h-full flex flex-col">
-      <div className="flex items-center justify-between shrink-0">
+    <div className="space-y-4 sm:space-y-6 flex flex-col">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
         <div>
-          <h1 className="text-xl font-bold tracking-widest text-white uppercase">Outreach Campaigns</h1>
-          <p className="text-neutral-600 text-[9px] font-bold uppercase tracking-[0.2em] mt-1">Marketing & Sales Automation</p>
+          <h1 className="text-lg sm:text-xl font-bold tracking-widest text-white uppercase">Outreach Campaigns</h1>
+          <p className="text-neutral-500 text-[9px] font-bold uppercase tracking-[0.2em] mt-0.5 sm:mt-1">Marketing & Sales Automation</p>
         </div>
         <button 
           onClick={() => {
             setFormData({ id: "", campaign_name: "", type: "Email", status: "Draft" });
             setShowModal(true);
           }}
-          className="flex items-center gap-2 px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white text-[10px] font-bold uppercase tracking-widest rounded transition-colors"
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white text-[10px] font-bold uppercase tracking-widest rounded transition-colors w-fit"
         >
           <Plus size={13} /> New Campaign
         </button>
       </div>
 
-      <div className="flex items-center gap-4 bg-[#1E1E1E] p-4 rounded-lg border border-white/5 shrink-0">
+      <div className="flex items-center gap-4 bg-[#1E1E1E] p-3 sm:p-4 rounded-xl border border-white/5 shrink-0">
         <div className="flex-1 relative">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
           <input 
@@ -87,83 +87,142 @@ export default function CampaignsPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="SEARCH CAMPAIGNS..." 
-            className="w-full bg-[#121212] border border-white/5 rounded px-3 py-2 pl-9 text-[11px] font-bold text-white uppercase tracking-wider outline-none focus:border-amber-500/50 transition-colors"
+            className="w-full bg-[#121212] border border-white/5 rounded-lg px-3 py-2 pl-9 text-[11px] font-bold text-white uppercase tracking-wider outline-none focus:border-amber-500/50 transition-colors"
           />
         </div>
       </div>
 
-      <div className="bg-[#1E1E1E] border border-white/5 rounded-lg overflow-y-auto flex-1 min-h-0">
+      <div className="bg-[#1E1E1E] border border-white/5 rounded-xl overflow-hidden flex-1 min-h-0">
         {loading ? (
           <div className="p-8 flex justify-center"><Loader2 className="animate-spin text-amber-500" size={24} /></div>
         ) : (
-          <table className="w-full text-left border-collapse">
-            <thead className="bg-[#121212] sticky top-0 z-10 border-b border-white/5">
-              <tr>
-                <th className="px-4 py-3 text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Campaign Name</th>
-                <th className="px-4 py-3 text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Type</th>
-                <th className="px-4 py-3 text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Status</th>
-                <th className="px-4 py-3 text-[10px] font-bold text-neutral-500 uppercase tracking-widest text-right">Sent Count</th>
-                <th className="px-4 py-3 text-[10px] font-bold text-neutral-500 uppercase tracking-widest text-right">Metrics</th>
-                <th className="px-4 py-3 text-[10px] font-bold text-neutral-500 uppercase tracking-widest text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/5">
-              {filtered.map(campaign => (
-                <tr key={campaign.id} className="hover:bg-white/[0.02] transition-colors">
-                  <td className="px-4 py-3">
-                    <p className="text-sm font-bold text-white">{campaign.campaign_name}</p>
-                    <p className="text-[9px] text-neutral-500 uppercase tracking-widest mt-1">
-                      Created: {new Date(campaign.created_at).toLocaleDateString()}
-                    </p>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className="text-[11px] font-bold text-neutral-300 px-2 py-0.5 rounded border border-white/10 bg-white/5">
-                      {campaign.type}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
-                      campaign.status === 'Active' ? 'bg-amber-500/20 text-amber-400' :
-                      campaign.status === 'Completed' ? 'bg-emerald-500/20 text-emerald-400' :
-                      'bg-white/10 text-neutral-400'
-                    }`}>
-                      {campaign.status === 'Active' && <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />}
-                      {campaign.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <p className="text-sm font-bold text-white">{Number(campaign.sent_count).toLocaleString()}</p>
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="flex flex-col items-end gap-1">
-                      <p className="text-[10px] text-neutral-400"><span className="text-neutral-500">Open:</span> {campaign.open_rate}%</p>
-                      <p className="text-[10px] text-emerald-400"><span className="text-emerald-500/50">Conv:</span> {campaign.conversion_rate}%</p>
+          <>
+            {/* Mobile Touch Cards */}
+            <div className="md:hidden divide-y divide-white/5 overflow-y-auto max-h-[600px]">
+              {filtered.length === 0 ? (
+                <div className="p-8 text-center text-neutral-500 text-sm">No campaigns found.</div>
+              ) : (
+                filtered.map(campaign => (
+                  <div key={campaign.id} className="p-3.5 space-y-2.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-bold text-white truncate">{campaign.campaign_name}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-[10px] font-bold text-neutral-300 px-1.5 py-0.5 rounded border border-white/10 bg-white/5">
+                            {campaign.type}
+                          </span>
+                          <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${
+                            campaign.status === 'Active' ? 'bg-amber-500/20 text-amber-400' :
+                            campaign.status === 'Completed' ? 'bg-emerald-500/20 text-emerald-400' :
+                            'bg-white/10 text-neutral-400'
+                          }`}>
+                            {campaign.status === 'Active' && <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />}
+                            {campaign.status}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button onClick={() => toggleStatus(campaign.id, campaign.status)} className="p-1.5 text-neutral-400 hover:text-amber-400 hover:bg-amber-500/10 rounded" title={campaign.status === 'Active' ? 'Pause' : 'Start'}>
+                          {campaign.status === 'Active' ? <PauseCircle size={14} /> : <PlayCircle size={14} />}
+                        </button>
+                        <button onClick={() => { setFormData(campaign); setShowModal(true); }} className="p-1.5 text-neutral-400 hover:text-indigo-400 hover:bg-indigo-500/10 rounded">
+                          <Edit2 size={13} />
+                        </button>
+                        <button onClick={() => handleDelete(campaign.id)} className="p-1.5 text-neutral-400 hover:text-red-400 hover:bg-red-500/10 rounded">
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
                     </div>
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="flex justify-end gap-2">
-                      <button onClick={() => toggleStatus(campaign.id, campaign.status)} className="p-1.5 text-neutral-400 hover:text-amber-400 hover:bg-amber-500/10 rounded" title={campaign.status === 'Active' ? 'Pause' : 'Start'}>
-                        {campaign.status === 'Active' ? <PauseCircle size={14} /> : <PlayCircle size={14} />}
-                      </button>
-                      <button onClick={() => { setFormData(campaign); setShowModal(true); }} className="p-1.5 text-neutral-400 hover:text-indigo-400 hover:bg-indigo-500/10 rounded">
-                        <Edit2 size={14} />
-                      </button>
-                      <button onClick={() => handleDelete(campaign.id)} className="p-1.5 text-neutral-400 hover:text-red-400 hover:bg-red-500/10 rounded">
-                        <Trash2 size={14} />
-                      </button>
+
+                    <div className="grid grid-cols-2 gap-2 text-[10px] bg-black/20 p-2.5 rounded-lg border border-white/5">
+                      <div>
+                        <span className="text-neutral-500 block text-[9px] uppercase tracking-wider">Sent Volume</span>
+                        <p className="text-sm font-bold text-white font-mono">{Number(campaign.sent_count).toLocaleString()}</p>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-neutral-500 block text-[9px] uppercase tracking-wider">Performance</span>
+                        <p className="text-[10px] text-neutral-300 font-mono">Open: {campaign.open_rate}%</p>
+                        <p className="text-[10px] text-emerald-400 font-mono font-bold">Conv: {campaign.conversion_rate}%</p>
+                      </div>
                     </div>
-                  </td>
-                </tr>
-              ))}
-              {filtered.length === 0 && (
-                <tr>
-                  <td colSpan={6} className="p-8 text-center text-neutral-500 text-sm">No campaigns found.</td>
-                </tr>
+                  </div>
+                ))
               )}
-            </tbody>
-          </table>
+            </div>
+
+            {/* Desktop Table */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead className="bg-[#121212] sticky top-0 z-10 border-b border-white/5">
+                  <tr>
+                    <th className="px-4 py-3 text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Campaign Name</th>
+                    <th className="px-4 py-3 text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Type</th>
+                    <th className="px-4 py-3 text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Status</th>
+                    <th className="px-4 py-3 text-[10px] font-bold text-neutral-500 uppercase tracking-widest text-right">Sent Count</th>
+                    <th className="px-4 py-3 text-[10px] font-bold text-neutral-500 uppercase tracking-widest text-right">Metrics</th>
+                    <th className="px-4 py-3 text-[10px] font-bold text-neutral-500 uppercase tracking-widest text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {filtered.map(campaign => (
+                    <tr key={campaign.id} className="hover:bg-white/[0.02] transition-colors">
+                      <td className="px-4 py-3">
+                        <p className="text-sm font-bold text-white">{campaign.campaign_name}</p>
+                        <p className="text-[9px] text-neutral-500 uppercase tracking-widest mt-1">
+                          Created: {new Date(campaign.created_at).toLocaleDateString()}
+                        </p>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="text-[11px] font-bold text-neutral-300 px-2 py-0.5 rounded border border-white/10 bg-white/5">
+                          {campaign.type}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
+                          campaign.status === 'Active' ? 'bg-amber-500/20 text-amber-400' :
+                          campaign.status === 'Completed' ? 'bg-emerald-500/20 text-emerald-400' :
+                          'bg-white/10 text-neutral-400'
+                        }`}>
+                          {campaign.status === 'Active' && <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />}
+                          {campaign.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <p className="text-sm font-bold text-white font-mono">{Number(campaign.sent_count).toLocaleString()}</p>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex flex-col items-end gap-1">
+                          <p className="text-[10px] text-neutral-400"><span className="text-neutral-500">Open:</span> {campaign.open_rate}%</p>
+                          <p className="text-[10px] text-emerald-400"><span className="text-emerald-500/50">Conv:</span> {campaign.conversion_rate}%</p>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex justify-end gap-2">
+                          <button onClick={() => toggleStatus(campaign.id, campaign.status)} className="p-1.5 text-neutral-400 hover:text-amber-400 hover:bg-amber-500/10 rounded" title={campaign.status === 'Active' ? 'Pause' : 'Start'}>
+                            {campaign.status === 'Active' ? <PauseCircle size={14} /> : <PlayCircle size={14} />}
+                          </button>
+                          <button onClick={() => { setFormData(campaign); setShowModal(true); }} className="p-1.5 text-neutral-400 hover:text-indigo-400 hover:bg-indigo-500/10 rounded">
+                            <Edit2 size={14} />
+                          </button>
+                          <button onClick={() => handleDelete(campaign.id)} className="p-1.5 text-neutral-400 hover:text-red-400 hover:bg-red-500/10 rounded">
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                  {filtered.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="p-8 text-center text-neutral-500 text-sm">No campaigns found.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
+
 
       {/* Editor Modal */}
       {showModal && (

@@ -75,24 +75,24 @@ export default function TaskAssignment() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold tracking-widest text-white uppercase">Task Assignment</h1>
-          <p className="text-neutral-600 text-[9px] font-bold uppercase tracking-[0.2em] mt-1">
+          <h1 className="text-lg sm:text-xl font-bold tracking-widest text-white uppercase">Task Assignment</h1>
+          <p className="text-neutral-500 text-[9px] font-bold uppercase tracking-[0.2em] mt-0.5 sm:mt-1">
             Assign and monitor team objectives
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         
         {/* Assign Form */}
-        <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-6 lg:col-span-1 h-fit">
-          <h2 className="text-[12px] font-bold text-white uppercase tracking-widest mb-4 flex items-center gap-2">
+        <div className="bg-[#1E1E1E] border border-white/5 rounded-xl p-4 sm:p-6 lg:col-span-1 h-fit">
+          <h2 className="text-[11px] sm:text-[12px] font-bold text-white uppercase tracking-widest mb-4 flex items-center gap-2">
             <Plus size={14} className="text-indigo-400" /> New Task
           </h2>
-          <form onSubmit={handleAssign} className="space-y-4">
+          <form onSubmit={handleAssign} className="space-y-3.5 sm:space-y-4">
             <div>
               <label className="block text-[9px] font-bold text-neutral-500 uppercase tracking-widest mb-1">Task Title *</label>
               <input
@@ -100,7 +100,7 @@ export default function TaskAssignment() {
                 value={title}
                 onChange={e => setTitle(e.target.value)}
                 placeholder="e.g. Update Hero Section"
-                className="w-full bg-black/20 border border-white/10 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500"
+                className="w-full bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500"
               />
             </div>
             
@@ -109,7 +109,7 @@ export default function TaskAssignment() {
               <select
                 value={assigneeEmail}
                 onChange={e => setAssigneeEmail(e.target.value)}
-                className="w-full bg-black/20 border border-white/10 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500 appearance-none"
+                className="w-full bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500 appearance-none"
               >
                 <option value="" disabled>Select a team member...</option>
                 {users.map(u => (
@@ -126,7 +126,7 @@ export default function TaskAssignment() {
                 type="datetime-local"
                 value={dueDate}
                 onChange={e => setDueDate(e.target.value)}
-                className="w-full bg-black/20 border border-white/10 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500 [color-scheme:dark]"
+                className="w-full bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500 [color-scheme:dark]"
               />
             </div>
 
@@ -137,7 +137,7 @@ export default function TaskAssignment() {
                 onChange={e => setDescription(e.target.value)}
                 rows={3}
                 placeholder="Add context or instructions..."
-                className="w-full bg-black/20 border border-white/10 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500 resize-none"
+                className="w-full bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500 resize-none"
               />
             </div>
 
@@ -148,13 +148,13 @@ export default function TaskAssignment() {
                 value={mediaUrl}
                 onChange={e => setMediaUrl(e.target.value)}
                 placeholder="https://example.com/image.png"
-                className="w-full bg-black/20 border border-white/10 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500 mb-4"
+                className="w-full bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500 mb-2 sm:mb-4"
               />
             </div>
 
             <button
               type="submit"
-              className="w-full bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-bold uppercase tracking-widest py-3 rounded transition-colors"
+              className="w-full bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-bold uppercase tracking-widest py-3 rounded-lg transition-colors shadow-lg shadow-indigo-500/20"
             >
               Assign Task
             </button>
@@ -162,8 +162,8 @@ export default function TaskAssignment() {
         </div>
 
         {/* Task List */}
-        <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-6 lg:col-span-2">
-           <h2 className="text-[12px] font-bold text-white uppercase tracking-widest mb-4 flex items-center gap-2">
+        <div className="bg-[#1E1E1E] border border-white/5 rounded-xl p-4 sm:p-6 lg:col-span-2">
+           <h2 className="text-[11px] sm:text-[12px] font-bold text-white uppercase tracking-widest mb-4 flex items-center gap-2">
             <CheckCircle2 size={14} className="text-emerald-400" /> Active & Recent Tasks
           </h2>
 
@@ -178,7 +178,7 @@ export default function TaskAssignment() {
                   initial={{ opacity: 0, y: 5 }}
                   animate={{ opacity: 1, y: 0 }}
                   key={task.id} 
-                  className="bg-black/30 border border-white/5 rounded-lg p-4 flex flex-col md:flex-row gap-4 justify-between"
+                  className="bg-black/30 border border-white/5 rounded-xl p-3.5 sm:p-4 flex flex-col md:flex-row gap-3 sm:gap-4 justify-between"
                 >
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">

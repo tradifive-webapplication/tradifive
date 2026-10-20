@@ -109,16 +109,16 @@ export default function RiskControlPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold tracking-widest text-white uppercase">Risk Control Center</h1>
-          <p className="text-neutral-600 text-[9px] font-bold uppercase tracking-[0.2em] mt-1">Global Enforcement & Liquidations</p>
+          <h1 className="text-lg sm:text-xl font-bold tracking-widest text-white uppercase">Risk Control Center</h1>
+          <p className="text-neutral-500 text-[9px] font-bold uppercase tracking-[0.2em] mt-0.5">Global Enforcement & Liquidations</p>
         </div>
         {canPerformAction(adminUser!.role, "kill_switch") && (
           <button 
             onClick={toggleKillSwitch}
             disabled={actionLoading === "kill_switch"}
-            className={`px-5 py-2 text-[10px] font-bold uppercase tracking-[0.2em] rounded border transition-all flex items-center gap-2 ${
+            className={`self-start sm:self-auto px-4 sm:px-5 py-2 text-[9.5px] sm:text-[10px] font-bold uppercase tracking-[0.2em] rounded-lg border transition-all flex items-center gap-2 ${
               killSwitchActive 
                 ? 'bg-red-500/20 text-red-500 border-red-500/50 animate-pulse' 
                 : 'bg-neutral-800 hover:bg-neutral-700 text-white border-white/5'
@@ -131,10 +131,10 @@ export default function RiskControlPage() {
       </div>
 
       {killSwitchActive && (
-        <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-6 flex flex-col items-center justify-center text-center">
-          <Skull size={48} className="text-red-500 mb-4 animate-pulse" />
-          <h2 className="text-2xl font-black text-red-500 uppercase tracking-widest mb-2">GLOBAL TRADING HALT ENGAGED</h2>
-          <p className="text-red-400/80 text-sm font-mono max-w-lg">
+        <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 sm:p-6 flex flex-col items-center justify-center text-center">
+          <Skull size={40} className="text-red-500 mb-3 animate-pulse" />
+          <h2 className="text-lg sm:text-2xl font-black text-red-500 uppercase tracking-widest mb-1.5">GLOBAL TRADING HALT ENGAGED</h2>
+          <p className="text-red-400/80 text-xs sm:text-sm font-mono max-w-lg">
             All algorithmic trading execution has been suspended. MT5 accounts are locked. 
             User trades will not be placed. Resolve the anomaly before disengaging.
           </p>
@@ -142,30 +142,92 @@ export default function RiskControlPage() {
       )}
 
       {/* Risk Summary */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4">
         {[
           { label: "Active Connections", value: accounts.filter(a => a.algo_status).length },
           { label: "Halted Algorithms", value: accounts.filter(a => !a.algo_status).length },
           { label: "Recent Breaches", value: breaches.length, color: breaches.length > 0 ? "text-amber-500" : "text-white" },
-          { label: "Total Equity at Risk", value: `$${accounts.reduce((sum, a) => sum + (a.equity || 0), 0).toLocaleString(undefined, {minimumFractionDigits: 2})}` },
+          { label: "Equity at Risk", value: `$${accounts.reduce((sum, a) => sum + (a.equity || 0), 0).toLocaleString(undefined, {minimumFractionDigits: 2})}` },
         ].map(s => (
-          <div key={s.label} className="bg-[#1E1E1E] border border-white/5 rounded p-4">
-            <p className="text-[9px] text-neutral-600 font-bold uppercase tracking-widest mb-1">{s.label}</p>
-            <p className={`text-lg font-bold uppercase ${s.color || "text-white"}`}>{loading ? "..." : s.value}</p>
+          <div key={s.label} className="bg-[#1E1E1E] border border-white/5 rounded-xl p-3.5 sm:p-4">
+            <p className="text-[9px] text-neutral-500 font-bold uppercase tracking-widest mb-1 truncate">{s.label}</p>
+            <p className={`text-base sm:text-lg font-bold uppercase truncate ${s.color || "text-white"}`}>{loading ? "..." : s.value}</p>
           </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* MT5 Accounts List */}
-        <div className="lg:col-span-2 bg-[#1E1E1E] border border-white/5 rounded overflow-hidden">
-          <div className="p-4 border-b border-white/5 bg-white/[0.02] flex items-center justify-between">
-            <h2 className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest flex items-center gap-2">
+        <div className="lg:col-span-2 bg-[#1E1E1E] border border-white/5 rounded-xl overflow-hidden shadow-xl">
+          <div className="p-3.5 sm:p-4 border-b border-white/5 bg-white/[0.02] flex items-center justify-between">
+            <h2 className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest flex items-center gap-2">
               <Activity size={14} className="text-blue-500" /> Connected Accounts Matrix
             </h2>
             <span className="text-[9px] text-neutral-500">{accounts.length} Total</span>
           </div>
-          <div className="max-h-[500px] overflow-y-auto">
+
+          {/* Mobile View: Cards */}
+          <div className="md:hidden divide-y divide-white/5 max-h-[500px] overflow-y-auto">
+            {loading ? (
+              <div className="px-4 py-8 text-center text-neutral-500 text-[10px] uppercase tracking-widest">Scanning MT5 Nodes...</div>
+            ) : accounts.length === 0 ? (
+              <div className="px-4 py-8 text-center text-neutral-500 text-[10px] uppercase tracking-widest">No Active Connections</div>
+            ) : accounts.map(account => (
+              <div key={account.id} className="p-3.5 space-y-2.5 hover:bg-white/[0.01]">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-white uppercase truncate">{account.profiles?.full_name || "Unknown User"}</p>
+                    <p className="text-[10px] text-neutral-500 font-mono truncate">Broker: {account.broker_server}</p>
+                  </div>
+                  {account.algo_status ? (
+                    <span className="px-2 py-0.5 rounded border border-emerald-500/20 bg-emerald-500/10 text-emerald-400 text-[8.5px] font-bold uppercase tracking-widest shrink-0">Running</span>
+                  ) : (
+                    <span className="px-2 py-0.5 rounded border border-red-500/20 bg-red-500/10 text-red-400 text-[8.5px] font-bold uppercase tracking-widest shrink-0">Halted</span>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between text-xs font-mono">
+                  <div>
+                    <span className="text-[9px] text-neutral-500 uppercase tracking-wider block">Balance</span>
+                    <span className="text-white font-bold">${account.balance?.toFixed(2) || "0.00"}</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-[9px] text-neutral-500 uppercase tracking-wider block">Equity</span>
+                    <span className="text-neutral-300 font-bold">${account.equity?.toFixed(2) || "0.00"}</span>
+                  </div>
+                </div>
+
+                {canPerformAction(adminUser!.role, "freeze_trading") && (
+                  <div className="flex items-center justify-end gap-2 pt-1 border-t border-white/5">
+                    <button
+                      onClick={() => enforceLiquidation(account.id, account.user_id)}
+                      disabled={actionLoading === `liquidate_${account.id}` || killSwitchActive}
+                      className="px-2.5 py-1 text-xs text-orange-400 hover:bg-orange-500/10 rounded-md border border-orange-500/20 flex items-center gap-1 font-bold uppercase text-[9px] disabled:opacity-50"
+                      title="Enforce Liquidation"
+                    >
+                      <AlertTriangle size={12} /> Liquidate
+                    </button>
+                    
+                    <button
+                      onClick={() => toggleFreeze(account.id, account.user_id, account.algo_status)}
+                      disabled={actionLoading === `freeze_${account.id}` || killSwitchActive}
+                      className={`flex items-center gap-1.5 px-3 py-1 text-[9px] font-bold uppercase rounded-md border transition-all disabled:opacity-50 ${
+                        account.algo_status 
+                          ? "bg-red-500/10 hover:bg-red-500/20 text-red-400 border-red-500/30" 
+                          : "bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
+                      }`}
+                    >
+                      {account.algo_status ? <Lock size={11} /> : <Unlock size={11} />}
+                      {account.algo_status ? "Freeze" : "Unfreeze"}
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop View: Table */}
+          <div className="hidden md:block max-h-[500px] overflow-y-auto">
             <table className="w-full text-left whitespace-nowrap">
               <thead className="text-[9px] font-bold text-neutral-600 uppercase tracking-[0.2em] bg-black/40 border-b border-white/5 sticky top-0 backdrop-blur-md">
                 <tr>
@@ -232,9 +294,9 @@ export default function RiskControlPage() {
         </div>
 
         {/* Risk Breaches Feed */}
-        <div className="bg-[#1E1E1E] border border-white/5 rounded flex flex-col overflow-hidden">
-          <div className="p-4 border-b border-white/5 bg-white/[0.02]">
-            <h2 className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest flex items-center gap-2">
+        <div className="bg-[#1E1E1E] border border-white/5 rounded-xl flex flex-col overflow-hidden shadow-xl">
+          <div className="p-3.5 sm:p-4 border-b border-white/5 bg-white/[0.02]">
+            <h2 className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest flex items-center gap-2">
               <ShieldAlert size={14} className="text-amber-500" />
               Risk Breach Logs
             </h2>

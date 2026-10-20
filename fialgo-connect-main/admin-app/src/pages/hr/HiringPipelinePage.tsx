@@ -75,25 +75,25 @@ export default function HiringPipelinePage() {
   };
 
   return (
-    <div className="space-y-6 flex flex-col h-full overflow-hidden">
-      <div className="flex items-center justify-between shrink-0">
+    <div className="space-y-4 sm:space-y-6 flex flex-col">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
         <div>
-          <h1 className="text-xl font-bold tracking-widest text-white uppercase">Hiring Pipeline</h1>
-          <p className="text-neutral-600 text-[9px] font-bold uppercase tracking-[0.2em] mt-1">
+          <h1 className="text-lg sm:text-xl font-bold tracking-widest text-white uppercase">Hiring Pipeline</h1>
+          <p className="text-neutral-500 text-[9px] font-bold uppercase tracking-[0.2em] mt-0.5 sm:mt-1">
             Candidate Tracking & Recruitment
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <button onClick={handleExportExcel} className="flex items-center gap-2 px-3 py-1.5 bg-[#1E1E1E] border border-white/5 hover:bg-white/[0.04] text-white text-[10px] font-bold uppercase tracking-widest rounded transition-none">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <button onClick={handleExportExcel} className="flex items-center gap-1.5 px-2.5 py-1.5 bg-[#1E1E1E] border border-white/5 hover:bg-white/[0.04] text-white text-[10px] font-bold uppercase tracking-widest rounded transition-none">
             <Download size={13} /> Export
           </button>
-          <button onClick={() => setShowAddModal(true)} className="flex items-center gap-2 px-3 py-1.5 bg-purple-600 hover:bg-purple-500 text-white text-[10px] font-bold uppercase tracking-widest rounded transition-none shadow-lg shadow-purple-500/20">
+          <button onClick={() => setShowAddModal(true)} className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-600 hover:bg-purple-500 text-white text-[10px] font-bold uppercase tracking-widest rounded transition-none shadow-lg shadow-purple-500/20">
             <Plus size={13} /> New Candidate
           </button>
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-4 p-4 bg-[#1E1E1E] border border-white/5 rounded-lg shrink-0">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 sm:p-4 bg-[#1E1E1E] border border-white/5 rounded-xl shrink-0">
         <div className="flex-1 relative">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
           <input
@@ -101,15 +101,15 @@ export default function HiringPipelinePage() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search candidates..."
-            className="w-full bg-[#121212] border border-white/5 rounded pl-9 pr-4 py-2 text-[12px] text-white outline-none focus:border-indigo-500/50"
+            className="w-full bg-[#121212] border border-white/5 rounded-lg pl-9 pr-4 py-2 text-[12px] text-white outline-none focus:border-indigo-500/50"
           />
         </div>
         <div className="flex items-center gap-2">
-          <Filter size={14} className="text-neutral-500" />
+          <Filter size={14} className="text-neutral-500 shrink-0" />
           <select
             value={deptFilter}
             onChange={(e) => setDeptFilter(e.target.value)}
-            className="bg-[#121212] border border-white/5 rounded px-3 py-2 text-[11px] font-bold text-white uppercase tracking-wider outline-none"
+            className="w-full sm:w-auto bg-[#121212] border border-white/5 rounded-lg px-3 py-2 text-[11px] font-bold text-white uppercase tracking-wider outline-none"
           >
             {depts.map(d => <option key={d} value={d}>{d}</option>)}
           </select>
@@ -117,16 +117,16 @@ export default function HiringPipelinePage() {
       </div>
 
       {loading ? (
-        <div className="flex-1 flex flex-col items-center justify-center min-h-[400px]">
+        <div className="flex-1 flex flex-col items-center justify-center min-h-[300px]">
           <Loader2 className="animate-spin text-indigo-500 mb-4" size={32} />
           <p className="text-[12px] font-bold text-white uppercase tracking-widest">Loading Candidates...</p>
         </div>
       ) : (
-        <div className="flex gap-4 overflow-x-auto pb-4 flex-1 items-start min-h-0">
+        <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-4 items-start snap-x snap-mandatory">
           {STAGES.map(stage => {
             const candidates = getCandidatesInStage(stage.id);
             return (
-              <div key={stage.id} className="w-[320px] flex-shrink-0 flex flex-col max-h-full">
+              <div key={stage.id} className="w-[280px] sm:w-[320px] flex-shrink-0 flex flex-col snap-start">
                 <div className={`px-3 py-2 rounded-t-lg border-t-2 border-x border-x-white/5 bg-[#1E1E1E] flex justify-between items-center ${stage.color.split(' ')[0]}`}>
                   <h3 className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 text-white">
                     {stage.label}

@@ -160,14 +160,14 @@ export default function AdminTrading() {
 
   return (
     <div className="space-y-6 animate-fade-in-up pb-12">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold tracking-widest text-white uppercase">Kimi AI & Control Center</h1>
-          <p className="text-neutral-600 text-[9px] font-bold uppercase tracking-[0.2em] mt-1">
+          <h1 className="text-lg sm:text-xl font-bold tracking-widest text-white uppercase">Kimi AI & Control Center</h1>
+          <p className="text-neutral-500 text-[9px] font-bold uppercase tracking-[0.2em] mt-0.5">
             System Resource Management & Neural Protocol Intervention
           </p>
         </div>
-        <div className="flex items-center gap-4 px-4 py-2 bg-[#1E1E1E] border border-white/5 rounded">
+        <div className="self-start sm:self-auto flex items-center gap-4 px-3.5 py-1.5 bg-[#1E1E1E] border border-white/5 rounded-lg">
           <div className="flex items-center gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
             <span className="text-[10px] text-neutral-400 font-bold uppercase tracking-widest">{activeUsers} Active Traders</span>
@@ -177,24 +177,24 @@ export default function AdminTrading() {
 
       <div className="grid grid-cols-1 gap-6">
         {/* Dedicated Emergency System Halt Header */}
-        <div className={`bg-[#121212] border border-white/5 rounded-xl px-10 py-5 transition-all duration-500 relative overflow-hidden ${globalKillSwitch ? 'border-rose-500/30 bg-rose-950/10' : ''
+        <div className={`bg-[#121212] border border-white/5 rounded-xl px-4 sm:px-8 py-4 sm:py-5 transition-all duration-500 relative overflow-hidden ${globalKillSwitch ? 'border-rose-500/30 bg-rose-950/10' : ''
           }`}>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-8">
-              <div className={`w-12 h-12 rounded-lg bg-[#1E1E1E] border flex items-center justify-center transition-all ${globalKillSwitch ? 'border-rose-500/50 text-rose-500 shadow-[0_0_20px_rgba(244,63,94,0.1)]' : 'border-white/10 text-neutral-600'
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3 sm:gap-6 min-w-0">
+              <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-[#1E1E1E] border flex items-center justify-center shrink-0 transition-all ${globalKillSwitch ? 'border-rose-500/50 text-rose-500 shadow-[0_0_20px_rgba(244,63,94,0.1)]' : 'border-white/10 text-neutral-500'
                 }`}>
-                <Zap size={24} />
+                <Zap size={22} />
               </div>
-              <div>
-                <h2 className="text-[15px] font-black text-white uppercase tracking-[0.1em]">Emergency System Halt</h2>
-                <p className="text-[9px] text-neutral-600 font-bold uppercase tracking-widest mt-1">
+              <div className="min-w-0">
+                <h2 className="text-sm sm:text-[15px] font-black text-white uppercase tracking-[0.1em] truncate">Emergency System Halt</h2>
+                <p className="text-[9px] text-neutral-500 font-bold uppercase tracking-widest mt-0.5 truncate">
                   Institutional authority to suspend all platform activities
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-6">
-              <div className="flex flex-col items-end">
-                <span className="text-[9px] text-neutral-500 font-bold uppercase tracking-widest">Master Execution Halt</span>
+            <div className="flex items-center justify-between sm:justify-end gap-4 border-t border-white/5 sm:border-t-0 pt-3 sm:pt-0">
+              <div className="flex flex-col sm:items-end">
+                <span className="text-[9px] text-neutral-400 font-bold uppercase tracking-widest">Master Execution Halt</span>
                 {globalKillSwitch && <span className="text-[7px] text-rose-500 font-black uppercase mt-0.5 animate-pulse">Platform Frozen</span>}
               </div>
               <div className="tactical-switch">
@@ -211,22 +211,22 @@ export default function AdminTrading() {
         </div>
 
         {/* Global Maintenance Command Center */}
-        <div className={`bg-[#1E1E1E] border border-white/5 rounded transition-all duration-700 relative overflow-hidden ${maintenance.active ? 'border-amber-500/30 shadow-[0_0_80px_rgba(245,158,11,0.05)]' : ''
+        <div className={`bg-[#1E1E1E] border border-white/5 rounded-xl transition-all duration-700 relative overflow-hidden ${maintenance.active ? 'border-amber-500/30 shadow-[0_0_80px_rgba(245,158,11,0.05)]' : ''
           }`}>
           {/* Header Bar */}
-          <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/[0.01]">
-            <div className="flex items-center gap-4">
-              <div className={`p-3 rounded-lg ${maintenance.active ? 'bg-amber-600 text-white' : 'bg-[#121212] text-neutral-600'}`}>
-                <Wrench size={20} />
+          <div className="p-4 sm:p-6 border-b border-white/5 flex items-center justify-between bg-white/[0.01]">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className={`p-2.5 sm:p-3 rounded-lg ${maintenance.active ? 'bg-amber-600 text-white' : 'bg-[#121212] text-neutral-500'}`}>
+                <Wrench size={18} />
               </div>
               <div>
                 <h3 className="text-[12px] font-bold text-white uppercase tracking-widest">Maintenance Command Center</h3>
-                <p className="text-[9px] text-neutral-600 font-bold uppercase mt-0.5">Configure platform locks & broadcast schedules</p>
+                <p className="text-[9px] text-neutral-500 font-bold uppercase mt-0.5">Configure platform locks & broadcast schedules</p>
               </div>
             </div>
           </div>
 
-          <div className="p-8 grid grid-cols-1 xl:grid-cols-3 gap-12">
+          <div className="p-4 sm:p-8 grid grid-cols-1 xl:grid-cols-3 gap-6 sm:gap-12">
             {/* Column 1: Configuration */}
             <div className="space-y-8">
               <div className="space-y-4">

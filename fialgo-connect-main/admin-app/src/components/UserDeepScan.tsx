@@ -336,20 +336,20 @@ export default function UserDeepScan({ userId, onClose }: UserDeepScanProps) {
             {/* ── OVERVIEW ── */}
             {activeTab === "overview" && (
               <motion.div key="overview" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} className="space-y-6">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4">
                   {[
                     { label: "Account Balance", value: `$${data.account?.balance?.toLocaleString() || "0"}`, icon: DollarSign, color: "text-blue-400" },
                     { label: "Equity", value: `$${data.account?.equity?.toLocaleString() || "0"}`, icon: Activity, color: "text-emerald-400" },
                     { label: "Net P&L", value: `$${netPnl.toFixed(2)}`, icon: TrendingUp, color: netPnl >= 0 ? "text-emerald-500" : "text-red-500" },
                     { label: "Win Rate", value: `${winRate}%`, icon: BarChart3, color: "text-amber-400" },
                   ].map((m, i) => (
-                    <div key={i} className="bg-[#1a1a1a] border border-white/5 p-5 rounded-xl">
-                      <div className="flex items-center justify-between mb-3">
-                        <m.icon size={14} className="text-neutral-600" />
+                    <div key={i} className="bg-[#1a1a1a] border border-white/5 p-3.5 sm:p-5 rounded-xl">
+                      <div className="flex items-center justify-between mb-2 sm:mb-3">
+                        <m.icon size={14} className="text-neutral-500" />
                         <div className="w-1.5 h-1.5 rounded-full bg-neutral-800" />
                       </div>
-                      <p className="text-[9px] text-neutral-600 font-bold uppercase tracking-widest mb-1">{m.label}</p>
-                      <p className={`text-xl font-bold ${m.color}`}>{m.value}</p>
+                      <p className="text-[9px] text-neutral-500 font-bold uppercase tracking-widest mb-1 truncate">{m.label}</p>
+                      <p className={`text-base sm:text-xl font-bold truncate ${m.color}`}>{m.value}</p>
                     </div>
                   ))}
                 </div>
@@ -429,16 +429,16 @@ export default function UserDeepScan({ userId, onClose }: UserDeepScanProps) {
             {/* ── TRADES ── */}
             {activeTab === "trades" && (
               <motion.div key="trades" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-4">
-                <div className="grid grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4">
                   {[
                     { label: "Total Trades", value: data.trades.length },
                     { label: "Win Rate", value: `${winRate}%` },
                     { label: "Net P&L", value: `$${netPnl.toFixed(2)}` },
                     { label: "Avg Trade", value: data.trades.length > 0 ? `$${(netPnl / data.trades.length).toFixed(2)}` : "₹0" },
                   ].map(s => (
-                    <div key={s.label} className="bg-[#1a1a1a] border border-white/5 rounded-xl p-4">
-                      <p className="text-[9px] text-neutral-600 font-bold uppercase tracking-widest mb-1">{s.label}</p>
-                      <p className="text-lg font-bold text-white">{s.value}</p>
+                    <div key={s.label} className="bg-[#1a1a1a] border border-white/5 rounded-xl p-3.5 sm:p-4">
+                      <p className="text-[9px] text-neutral-500 font-bold uppercase tracking-widest mb-1 truncate">{s.label}</p>
+                      <p className="text-base sm:text-lg font-bold text-white truncate">{s.value}</p>
                     </div>
                   ))}
                 </div>
@@ -480,16 +480,16 @@ export default function UserDeepScan({ userId, onClose }: UserDeepScanProps) {
             {/* ── DISCIPLINE ── */}
             {activeTab === "discipline" && (
               <motion.div key="discipline" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} className="space-y-6">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4">
                   {[
                     { label: "Discipline Level", value: `Lvl ${data.profile?.discipline_level || 1}` },
                     { label: "Total XP", value: `${(data.profile?.xp || 0).toLocaleString()} XP` },
                     { label: "Streak", value: `${data.profile?.streak_days || 0} days 🔥` },
                     { label: "Journal Entries", value: data.journals.length },
                   ].map(s => (
-                    <div key={s.label} className="bg-[#1a1a1a] border border-white/5 p-4 rounded-xl">
-                      <p className="text-[9px] text-neutral-600 font-bold uppercase tracking-widest mb-1">{s.label}</p>
-                      <p className="text-lg font-bold text-white">{s.value}</p>
+                    <div key={s.label} className="bg-[#1a1a1a] border border-white/5 p-3.5 sm:p-4 rounded-xl">
+                      <p className="text-[9px] text-neutral-500 font-bold uppercase tracking-widest mb-1 truncate">{s.label}</p>
+                      <p className="text-base sm:text-lg font-bold text-white truncate">{s.value}</p>
                     </div>
                   ))}
                 </div>

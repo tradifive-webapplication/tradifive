@@ -50,35 +50,35 @@ export default function AdminGlobalRadarPage() {
 
 
   return (
-    <div className="h-full bg-[#03070c] text-cyan-500 font-mono overflow-hidden relative flex flex-col p-4 border-2 border-cyan-500/20" style={{ height: "calc(100vh - 56px)" }}>
+    <div className="min-h-[calc(100dvh-120px)] lg:h-[calc(100vh-56px)] bg-[#03070c] text-cyan-500 font-mono overflow-y-auto lg:overflow-hidden relative flex flex-col p-3 sm:p-4 rounded-xl border border-cyan-500/20">
       {/* Background CRT scanline effect */}
       <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_4px,3px_100%] z-50 opacity-20 mix-blend-overlay"></div>
 
       {/* HEADER SECTION */}
-      <header className="flex items-end justify-between border-b border-cyan-500/30 pb-2 mb-4 shrink-0">
-        <div className="flex gap-8 items-end">
+      <header className="flex flex-col sm:flex-row sm:items-end justify-between border-b border-cyan-500/30 pb-3 mb-4 shrink-0 gap-3">
+        <div className="flex gap-4 sm:gap-8 items-end">
           <div>
-            <div className="text-[10px] text-cyan-700 tracking-widest mb-1">LOCAL SYSTEM TIME</div>
-            <div className="text-4xl font-bold text-cyan-400 tracking-tighter leading-none glow-text">
+            <div className="text-[9px] sm:text-[10px] text-cyan-700 tracking-widest mb-1">LOCAL SYSTEM TIME</div>
+            <div className="text-2xl sm:text-4xl font-bold text-cyan-400 tracking-tighter leading-none glow-text">
               {currentTime.toLocaleTimeString('en-US', { hour12: false })}
             </div>
-            <div className="text-[10px] text-cyan-600 mt-1">NODE: ROOT_CLI</div>
+            <div className="text-[9px] sm:text-[10px] text-cyan-600 mt-1">NODE: ROOT_CLI</div>
           </div>
         </div>
 
-        <div className="text-right">
-          <div className="text-[10px] text-cyan-700 tracking-widest mb-1">AUTHORIZATION</div>
-          <div className="text-sm font-bold text-emerald-400 flex items-center justify-end gap-2 uppercase">
-            <ShieldCheck size={14} /> CLEARANCE LEVEL: {adminUser?.role}
+        <div className="text-left sm:text-right">
+          <div className="text-[9px] sm:text-[10px] text-cyan-700 tracking-widest mb-1">AUTHORIZATION</div>
+          <div className="text-xs sm:text-sm font-bold text-emerald-400 flex items-center sm:justify-end gap-2 uppercase">
+            <ShieldCheck size={14} /> CLEARANCE: {adminUser?.role}
           </div>
         </div>
       </header>
 
       {/* MAIN GRID */}
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-4 overflow-hidden">
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-4 overflow-visible lg:overflow-hidden">
         
         {/* LEFT COLUMN: Referrals & Users */}
-        <div className="col-span-1 border border-cyan-500/20 bg-[#001420]/30 flex flex-col relative overflow-hidden backdrop-blur-sm">
+        <div className="col-span-1 border border-cyan-500/20 bg-[#001420]/30 flex flex-col relative overflow-hidden backdrop-blur-sm min-h-[280px] lg:min-h-0 rounded-lg">
           <div className="bg-cyan-500/10 px-3 py-1.5 border-b border-cyan-500/20 text-[10px] font-bold tracking-widest flex justify-between">
             <span>NETWORK STATUS</span>
             <span className="text-cyan-700">SYS.01</span>

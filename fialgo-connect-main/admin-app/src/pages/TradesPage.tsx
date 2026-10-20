@@ -89,23 +89,52 @@ export default function TradesPage() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-4">
         {[
           { label: "Total Executions", value: loading ? "..." : totalCount },
           { label: "Net P&L (Page)", value: `$${totalPnl.toFixed(2)}` },
           { label: "Win Rate (Page)", value: trades.length > 0 ? `${Math.round((trades.filter(t => t.profit > 0).length / trades.length) * 100)}%` : "0%" },
         ].map(s => (
-          <div key={s.label} className="bg-[#161618] border border-white/[0.08] hover:border-white/20 rounded-xl p-4 sm:p-5 flex flex-col justify-between transition-all">
-            <p className="text-[11px] text-neutral-400 font-semibold uppercase tracking-wider mb-2">{s.label}</p>
-            <p className="text-2xl font-extrabold text-white tracking-tight">{s.value}</p>
+          <div key={s.label} className="bg-[#161618] border border-white/[0.08] hover:border-white/20 rounded-xl p-3.5 sm:p-5 flex flex-col justify-between transition-all">
+            <p className="text-[10px] sm:text-[11px] text-neutral-400 font-semibold uppercase tracking-wider mb-1.5">{s.label}</p>
+            <p className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">{s.value}</p>
           </div>
         ))}
       </div>
 
-      {/* Table Container */}
+      {/* Main Container */}
       <div className="bg-[#161618] border border-white/[0.08] rounded-xl overflow-hidden shadow-xl">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[500px] text-left whitespace-nowrap border-collapse">
+        {/* Mobile View: Touch-Friendly Execution Stream */}
+        <div className="md:hidden divide-y divide-white/[0.04]">
+          {loading ? (
+            <div className="p-8 text-center text-neutral-400 text-xs animate-pulse">Loading execution stream...</div>
+          ) : trades.length === 0 ? (
+            <div className="p-12 text-center text-neutral-400 text-xs">No trade executions found</div>
+          ) : (
+            trades.map((t, i) => (
+              <div key={i} className="p-3.5 space-y-2 hover:bg-white/[0.02] transition-colors">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs font-semibold text-white truncate">{t.profiles?.full_name || "Trader"}</span>
+                  <span className={`font-mono text-xs font-bold shrink-0 ${(t.profit || 0) >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                    {(t.profit || 0) >= 0 ? "+" : "-"}${Math.abs(t.profit || 0).toFixed(2)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="font-mono font-bold text-neutral-300 uppercase">{t.symbol}</span>
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded text-[9px] font-semibold uppercase tracking-wider ${
+                    t.trade_type?.toLowerCase() === "buy" ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-rose-500/10 text-rose-400 border border-rose-500/20"
+                  }`}>
+                    {t.trade_type}
+                  </span>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Desktop View: Full Table */}
+        <div className="hidden md:block overflow-x-auto">
+          <table className="w-full text-left whitespace-nowrap border-collapse">
             <thead className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wider bg-white/[0.02] border-b border-white/[0.08]">
               <tr>
                 <th className="px-5 py-3.5">Trader</th>
@@ -145,8 +174,8 @@ export default function TradesPage() {
       </div>
 
       {totalPages > 1 && (
-        <div className="flex items-center justify-between bg-[#161618] border border-white/[0.08] rounded-xl p-4">
-          <span className="text-xs text-neutral-400">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-[#161618] border border-white/[0.08] rounded-xl p-3.5 sm:p-4">
+          <span className="text-xs text-neutral-400 text-center sm:text-left">
             Showing {totalCount > 0 ? (page - 1) * itemsPerPage + 1 : 0} to {Math.min(page * itemsPerPage, totalCount)} of {totalCount}
           </span>
           <div className="flex items-center gap-2">

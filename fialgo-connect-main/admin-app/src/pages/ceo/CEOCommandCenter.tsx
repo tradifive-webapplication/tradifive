@@ -152,17 +152,17 @@ export default function CEOCommandCenter() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold tracking-widest text-white uppercase">Command Center</h1>
-          <p className="text-neutral-600 text-[9px] font-bold uppercase tracking-[0.2em] mt-1">
+          <h1 className="text-lg sm:text-xl font-bold tracking-widest text-white uppercase">Command Center</h1>
+          <p className="text-neutral-500 text-[9px] font-bold uppercase tracking-[0.2em] mt-0.5 sm:mt-1">
             Global Operations Overview
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded">
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
             <span className="text-[9px] font-bold text-emerald-500 uppercase tracking-widest">Global Stable</span>
           </div>
@@ -170,7 +170,7 @@ export default function CEOCommandCenter() {
       </div>
 
       {/* Top Stats */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4">
         {stats.map((s, i) => (
           <motion.div
             key={s.label}
@@ -178,20 +178,20 @@ export default function CEOCommandCenter() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.05 }}
             onClick={() => navigate(s.path)}
-            className="bg-[#1E1E1E] border border-white/5 rounded-lg p-5 hover:border-white/10 transition-none cursor-pointer group"
+            className="bg-[#1E1E1E] border border-white/5 rounded-xl p-3.5 sm:p-5 hover:border-white/10 transition-none cursor-pointer group"
           >
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-9 h-9 rounded-lg bg-black/30 border border-white/5 flex items-center justify-center group-hover:bg-white/[0.05] transition-none" style={{ borderColor: `${s.color}20` }}>
-                <s.icon size={16} style={{ color: s.color }} />
+            <div className="flex items-center justify-between mb-2 sm:mb-4">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-black/30 border border-white/5 flex items-center justify-center group-hover:bg-white/[0.05] transition-none" style={{ borderColor: `${s.color}20` }}>
+                <s.icon size={15} style={{ color: s.color }} />
               </div>
-              <div className={`flex items-center gap-1 text-[10px] font-bold ${
+              <div className={`flex items-center gap-1 text-[9px] sm:text-[10px] font-bold ${
                 s.trend === 'up' ? 'text-emerald-500' : s.trend === 'down' ? 'text-red-500' : 'text-neutral-500'
               }`}>
                 {s.change}
               </div>
             </div>
-            <p className="text-2xl font-black text-white mb-1">{s.value}</p>
-            <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest">{s.label}</p>
+            <p className="text-lg sm:text-2xl font-black text-white mb-0.5 sm:mb-1 truncate">{s.value}</p>
+            <p className="text-[9px] sm:text-[10px] font-bold text-neutral-500 uppercase tracking-widest truncate">{s.label}</p>
           </motion.div>
         ))}
       </div>
@@ -281,35 +281,35 @@ export default function CEOCommandCenter() {
 
       </div>
 
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Department Status */}
-        <div className="col-span-2 bg-[#1E1E1E] border border-white/5 rounded-lg p-5">
-          <div className="flex items-center justify-between mb-6">
+        <div className="lg:col-span-2 bg-[#1E1E1E] border border-white/5 rounded-xl p-4 sm:p-5">
+          <div className="flex items-center justify-between mb-4 sm:mb-6">
             <h3 className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest flex items-center gap-2">
-              <Building2 size={13} className="text-neutral-700" /> Department Readiness
+              <Building2 size={13} className="text-neutral-500" /> Department Readiness
             </h3>
             <button onClick={() => navigate("/hr/employees")} className="text-[9px] font-bold text-indigo-400 hover:text-indigo-300 uppercase tracking-widest flex items-center gap-1">
               View Directory <ArrowRight size={10} />
             </button>
           </div>
           
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             {depts.map(d => (
-              <div key={d.name} className="bg-black/20 border border-white/5 rounded p-4">
-                <div className="flex items-center justify-between mb-3">
+              <div key={d.name} className="bg-black/20 border border-white/5 rounded-lg p-3 sm:p-4">
+                <div className="flex items-center justify-between mb-2 sm:mb-3">
                   <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full" style={{ background: d.color }} />
-                    <p className="text-[11px] font-bold text-white uppercase tracking-wider">{d.name}</p>
+                    <div className="w-2 h-2 rounded-full shrink-0" style={{ background: d.color }} />
+                    <p className="text-[11px] font-bold text-white uppercase tracking-wider truncate">{d.name}</p>
                   </div>
-                  <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded uppercase tracking-widest ${
+                  <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded uppercase tracking-widest shrink-0 ${
                     d.issues > 0 ? 'bg-amber-500/20 text-amber-500' : 'bg-emerald-500/20 text-emerald-500'
                   }`}>
                     {d.status}
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-[10px]">
-                  <span className="text-neutral-500">Head: <span className="text-white font-bold">{d.head}</span></span>
-                  <span className="text-neutral-500">Active: <span className="text-white font-mono">{d.active}</span></span>
+                  <span className="text-neutral-500 truncate mr-2">Head: <span className="text-white font-bold">{d.head}</span></span>
+                  <span className="text-neutral-500 shrink-0">Active: <span className="text-white font-mono">{d.active}</span></span>
                 </div>
               </div>
             ))}
@@ -317,10 +317,10 @@ export default function CEOCommandCenter() {
         </div>
 
         {/* Global Feed */}
-        <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-5 flex flex-col">
-          <div className="flex items-center justify-between mb-5">
+        <div className="bg-[#1E1E1E] border border-white/5 rounded-xl p-4 sm:p-5 flex flex-col">
+          <div className="flex items-center justify-between mb-4 sm:mb-5">
             <h3 className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest flex items-center gap-2">
-              <Activity size={13} className="text-neutral-700" /> Global Feed
+              <Activity size={13} className="text-neutral-500" /> Global Feed
             </h3>
           </div>
           

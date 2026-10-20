@@ -144,24 +144,24 @@ export default function AdminSignup() {
   };
 
   return (
-    <div className="min-h-screen bg-[#121212] flex items-center justify-center p-6 selection:bg-white/10">
+    <div className="min-h-screen bg-[#121212] flex items-center justify-center p-4 sm:p-6 selection:bg-white/10">
       <div className="w-full max-w-[420px]">
-        <div className="text-center mb-8">
-          <div className="w-10 h-10 bg-[#1E1E1E] border border-white/5 rounded-lg flex items-center justify-center mx-auto mb-4">
+        <div className="text-center mb-6 sm:mb-8">
+          <div className="w-10 h-10 bg-[#1E1E1E] border border-white/5 rounded-lg flex items-center justify-center mx-auto mb-3 sm:mb-4">
             <LayoutGrid className="text-neutral-500" size={20} />
           </div>
-          <h1 className="text-lg font-bold tracking-[0.2em] text-white uppercase">Personnel Request</h1>
-          <p className="text-neutral-700 text-[9px] font-bold uppercase tracking-[0.3em] mt-2">Registration for Master Control</p>
+          <h1 className="text-base sm:text-lg font-bold tracking-[0.2em] text-white uppercase">Personnel Request</h1>
+          <p className="text-neutral-500 text-[9px] font-bold uppercase tracking-[0.3em] mt-1.5 sm:mt-2">Registration for Master Control</p>
         </div>
 
         {/* Progress Bar */}
-        <div className="flex items-center justify-center gap-2 mb-6">
+        <div className="flex items-center justify-center gap-2 mb-4 sm:mb-6">
           {[1, 2, 3, 4].map(s => (
             <div key={s} className={`h-1 flex-1 rounded-full ${step >= s ? 'bg-neutral-500' : 'bg-white/5'}`} />
           ))}
         </div>
 
-        <div className="bg-[#1E1E1E] border border-white/5 rounded p-8 shadow-2xl">
+        <div className="bg-[#1E1E1E] border border-white/5 rounded-xl p-5 sm:p-8 shadow-2xl">
           {step === 1 && (
             <form onSubmit={handleStep1} className="space-y-4" autoComplete="off">
               <input type="text" className="hidden" autoComplete="off" aria-hidden="true" />

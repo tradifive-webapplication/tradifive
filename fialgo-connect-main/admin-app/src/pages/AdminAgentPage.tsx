@@ -452,10 +452,33 @@ export default function AdminAgentPage() {
   const suggestions = SUGGESTED_PROMPTS[selectedAgent.id] || [];
 
   return (
-    <div className="flex flex-col bg-[#09090B] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-neutral-900/40 via-[#09090B] to-[#09090B]" style={{ height: "calc(100vh - 56px)" }}>
+    <div className="flex flex-col bg-[#09090B] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-neutral-900/40 via-[#09090B] to-[#09090B] h-[calc(100dvh-120px)] md:h-[calc(100vh-56px)] rounded-xl overflow-hidden border border-zinc-800/60">
+      
+      {/* ─── MOBILE AGENT HORIZONTAL SELECTOR ─── */}
+      <div className="flex md:hidden overflow-x-auto gap-1.5 p-2 bg-[#121212] border-b border-zinc-800/60 shrink-0 custom-scrollbar">
+        {visibleAgents.map(agent => {
+          const Icon = agent.icon;
+          const isSelected = selectedAgent.id === agent.id;
+          return (
+            <button
+              key={agent.id}
+              onClick={() => setSelectedAgent(agent)}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg shrink-0 text-left border transition-all ${
+                isSelected
+                  ? "bg-zinc-800 border-zinc-700 text-white shadow-sm"
+                  : "bg-zinc-900/40 border-zinc-800/40 text-neutral-400 hover:text-neutral-200"
+              }`}
+            >
+              <Icon size={13} className={isSelected ? agent.accent : "text-neutral-500"} />
+              <span className="text-[11px] font-bold whitespace-nowrap">{agent.name}</span>
+            </button>
+          );
+        })}
+      </div>
+
       <div className="flex flex-1 overflow-hidden">
-        {/* ─── SIDEBAR: Agent Selector ─── */}
-        <div className="w-72 border-r border-zinc-800/60 bg-[#121212]/95 backdrop-blur-md flex flex-col shrink-0 overflow-y-auto">
+        {/* ─── DESKTOP SIDEBAR: Agent Selector ─── */}
+        <div className="hidden md:flex w-72 border-r border-zinc-800/60 bg-[#121212]/95 backdrop-blur-md flex-col shrink-0 overflow-y-auto">
           <div className="p-4">
             <p className="text-[10px] text-neutral-500 font-bold uppercase tracking-[0.2em] mb-4 pl-1">Command Nodes</p>
             <div className="space-y-1.5">
@@ -502,32 +525,32 @@ export default function AdminAgentPage() {
         {/* ─── MAIN CHAT AREA ─── */}
         <div className="flex-1 flex flex-col overflow-hidden bg-transparent">
           {/* Agent Header */}
-          <div className="px-6 py-4 border-b border-zinc-900/60 bg-[#121212]/60 backdrop-blur-md flex items-center justify-between shrink-0 z-10 shadow-sm">
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center shadow-lg">
-                <selectedAgent.icon size={16} className={selectedAgent.accent} />
+          <div className="px-3 sm:px-6 py-3 sm:py-4 border-b border-zinc-900/60 bg-[#121212]/60 backdrop-blur-md flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shrink-0 z-10 shadow-sm">
+            <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center shadow-lg shrink-0">
+                <selectedAgent.icon size={15} className={selectedAgent.accent} />
               </div>
-              <div>
+              <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <h2 className="text-[14px] font-bold text-white tracking-wide">{selectedAgent.name}</h2>
-                  <span className="px-2 py-0.5 rounded text-[9px] font-mono font-bold bg-zinc-900 border border-zinc-800 text-zinc-350 uppercase tracking-wider">{selectedAgent.badge}</span>
+                  <h2 className="text-[13px] sm:text-[14px] font-bold text-white tracking-wide truncate">{selectedAgent.name}</h2>
+                  <span className="px-1.5 py-0.5 rounded text-[8px] sm:text-[9px] font-mono font-bold bg-zinc-900 border border-zinc-800 text-zinc-350 uppercase tracking-wider shrink-0">{selectedAgent.badge}</span>
                 </div>
-                <p className="text-[11px] text-neutral-400 mt-0.5">{selectedAgent.description}</p>
+                <p className="text-[10px] sm:text-[11px] text-neutral-400 mt-0.5 truncate">{selectedAgent.description}</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <button onClick={clearChat} className="px-3 py-1.5 rounded-lg bg-zinc-900/60 border border-zinc-800 text-[10px] font-bold text-neutral-400 hover:text-white hover:bg-zinc-800/80 uppercase tracking-wider transition-all flex items-center gap-1.5">
+            <div className="flex items-center gap-2.5 self-end sm:self-auto shrink-0">
+              <button onClick={clearChat} className="px-2.5 sm:px-3 py-1.5 rounded-lg bg-zinc-900/60 border border-zinc-800 text-[9px] sm:text-[10px] font-bold text-neutral-400 hover:text-white hover:bg-zinc-800/80 uppercase tracking-wider transition-all flex items-center gap-1.5">
                 <RefreshCcw size={11} /> Reset Node
               </button>
-              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/5 border border-emerald-500/20 rounded-lg">
+              <div className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 bg-emerald-500/5 border border-emerald-500/20 rounded-lg">
                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-                <span className="text-[9px] font-mono text-emerald-400 font-bold uppercase tracking-widest">Active</span>
+                <span className="text-[8px] sm:text-[9px] font-mono text-emerald-400 font-bold uppercase tracking-widest">Active</span>
               </div>
             </div>
           </div>
 
           {/* Messages */}
-          <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 md:px-12 space-y-6 scrollbar-thin scrollbar-thumb-white/5">
+          <div ref={scrollRef} className="flex-1 overflow-y-auto p-3 sm:p-6 md:px-12 space-y-4 sm:space-y-6 scrollbar-thin scrollbar-thumb-white/5">
             <AnimatePresence>
               {messages.filter(m => m.role !== "tool_result").map(msg => (
                 <motion.div key={msg.id}
@@ -602,17 +625,17 @@ export default function AdminAgentPage() {
 
           {/* Suggested Prompts Grid */}
           {messages.length <= 1 && (
-            <div className="px-6 md:px-12 pb-4 max-w-4xl mx-auto w-full">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="px-3 sm:px-6 md:px-12 pb-3 max-w-4xl mx-auto w-full">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                 {suggestions.map(s => (
                   <button 
                     key={s} 
                     onClick={() => { setInput(s); inputRef.current?.focus(); }}
-                    className="group text-left px-4 py-3 rounded-xl border border-zinc-800 bg-zinc-900/40 hover:bg-zinc-900/85 hover:border-zinc-700/60 transition-all duration-300 flex items-center justify-between"
+                    className="group text-left px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl border border-zinc-800 bg-zinc-900/40 hover:bg-zinc-900/85 hover:border-zinc-700/60 transition-all duration-300 flex items-center justify-between"
                   >
-                    <div className="flex flex-col">
-                      <span className="text-[12px] font-semibold text-neutral-300 group-hover:text-white transition-colors">{s}</span>
-                      <span className="text-[10px] text-neutral-500 mt-0.5">Click to fill command</span>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-[11px] sm:text-[12px] font-semibold text-neutral-300 group-hover:text-white transition-colors truncate">{s}</span>
+                      <span className="text-[9px] text-neutral-500 mt-0.5">Click to fill command</span>
                     </div>
                     <Zap size={12} className="text-neutral-600 group-hover:text-zinc-400 transition-colors shrink-0 ml-2" />
                   </button>
@@ -622,7 +645,7 @@ export default function AdminAgentPage() {
           )}
 
           {/* Input Area */}
-          <div className="px-6 md:px-12 pb-6 pt-2 shrink-0 max-w-4xl mx-auto w-full">
+          <div className="px-3 sm:px-6 md:px-12 pb-3 sm:pb-6 pt-2 shrink-0 max-w-4xl mx-auto w-full">
             <div className="relative group">
               <div className="absolute -inset-0.5 bg-gradient-to-r from-zinc-700/20 to-zinc-800/10 rounded-2xl opacity-0 group-focus-within:opacity-100 transition duration-500 blur-md"></div>
               <div className="relative flex items-end gap-3 bg-zinc-900/90 backdrop-blur-xl border border-zinc-800 group-focus-within:border-zinc-700 rounded-2xl p-3 pr-2.5 shadow-2xl transition-all duration-300">

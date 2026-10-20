@@ -88,56 +88,56 @@ export default function TaskProtocolPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold tracking-widest text-white uppercase">Daily Protocol</h1>
+          <h1 className="text-lg sm:text-xl font-bold tracking-widest text-white uppercase">Daily Protocol</h1>
           <p className="text-neutral-600 text-[9px] font-bold uppercase tracking-[0.2em] mt-1">
             {ROLE_LABELS[activeRole]} Morning Directives
           </p>
         </div>
-        <div className="flex items-center gap-2 px-4 py-2 bg-[#1E1E1E] border border-white/5 rounded">
-          <Calendar size={14} className="text-neutral-600" />
+        <div className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-[#1E1E1E] border border-white/5 rounded-lg self-start sm:self-auto">
+          <Calendar size={14} className="text-neutral-500" />
           <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">
             {new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}
           </span>
         </div>
       </div>
 
-      <div className="grid grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
         {/* Left Sidebar - Navigation & Stats */}
-        <div className="space-y-6">
-          <div className="bg-[#1E1E1E] border border-white/5 rounded p-4">
-            <h3 className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-4 flex items-center gap-2">
-              <History size={14} className="text-neutral-700" /> Task Status
+        <div className="space-y-4 sm:space-y-6 col-span-1">
+          <div className="bg-[#1E1E1E] border border-white/5 rounded-xl p-4">
+            <h3 className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-3 sm:mb-4 flex items-center gap-2">
+              <History size={14} className="text-neutral-600" /> Task Status
             </h3>
-            <div className="space-y-2">
+            <div className="grid grid-cols-2 lg:grid-cols-1 gap-2">
               <button
                 onClick={() => setActiveTab("pending")}
-                className={`w-full flex items-center justify-between p-3 rounded transition-none ${activeTab === "pending" ? "bg-white/5 border border-white/10" : "hover:bg-white/[0.02]"}`}
+                className={`w-full flex items-center justify-between p-2.5 sm:p-3 rounded-lg transition-none ${activeTab === "pending" ? "bg-white/5 border border-white/10" : "hover:bg-white/[0.02]"}`}
               >
-                <div className="flex items-center gap-3">
-                  <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                  <span className={`text-[11px] font-bold uppercase ${activeTab === "pending" ? "text-white" : "text-neutral-500"}`}>Pending Actions</span>
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                  <div className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+                  <span className={`text-[10px] sm:text-[11px] font-bold uppercase truncate ${activeTab === "pending" ? "text-white" : "text-neutral-400"}`}>Pending Actions</span>
                 </div>
-                <span className="text-[10px] font-mono text-neutral-600">{stats.pending}</span>
+                <span className="text-[10px] font-mono text-neutral-500 ml-2">{stats.pending}</span>
               </button>
               <button
                 onClick={() => setActiveTab("completed")}
-                className={`w-full flex items-center justify-between p-3 rounded transition-none ${activeTab === "completed" ? "bg-white/5 border border-white/10" : "hover:bg-white/[0.02]"}`}
+                className={`w-full flex items-center justify-between p-2.5 sm:p-3 rounded-lg transition-none ${activeTab === "completed" ? "bg-white/5 border border-white/10" : "hover:bg-white/[0.02]"}`}
               >
-                <div className="flex items-center gap-3">
-                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                  <span className={`text-[11px] font-bold uppercase ${activeTab === "completed" ? "text-white" : "text-neutral-500"}`}>Completed Log</span>
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                  <span className={`text-[10px] sm:text-[11px] font-bold uppercase truncate ${activeTab === "completed" ? "text-white" : "text-neutral-400"}`}>Completed Log</span>
                 </div>
-                <span className="text-[10px] font-mono text-neutral-600">{stats.completed}</span>
+                <span className="text-[10px] font-mono text-neutral-500 ml-2">{stats.completed}</span>
               </button>
             </div>
           </div>
 
-          <div className="bg-amber-500/[0.02] border border-amber-500/10 rounded p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <AlertCircle size={14} className="text-amber-600" />
-              <span className="text-[10px] font-bold text-amber-600 uppercase tracking-widest">Priority Alert</span>
+          <div className="bg-amber-500/[0.02] border border-amber-500/10 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <AlertCircle size={14} className="text-amber-500" />
+              <span className="text-[10px] font-bold text-amber-500 uppercase tracking-widest">Priority Alert</span>
             </div>
             <p className="text-[9px] text-neutral-500 uppercase leading-relaxed">
               All 'Critical' priority directives must be resolved before the 11:00 AM system audit.
@@ -146,7 +146,7 @@ export default function TaskProtocolPage() {
         </div>
 
         {/* Main Task List */}
-        <div className="col-span-3 space-y-4">
+        <div className="col-span-1 lg:col-span-3 space-y-4">
           <AnimatePresence mode="wait">
             {filteredTasks.length > 0 ? (
               <motion.div
@@ -154,14 +154,14 @@ export default function TaskProtocolPage() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="space-y-4"
+                className="space-y-3 sm:space-y-4"
               >
                 {loading ? (
-                   <div className="p-8 text-center text-neutral-700 text-[10px] uppercase tracking-widest">Syncing Protocols...</div>
+                   <div className="p-8 text-center text-neutral-600 text-[10px] uppercase tracking-widest">Syncing Protocols...</div>
                 ) : filteredTasks.map((task) => (
                   <div
                     key={task.id}
-                    className="group bg-[#1E1E1E] border border-white/5 p-4 rounded transition-none flex gap-6"
+                    className="group bg-[#1E1E1E] border border-white/5 p-3.5 sm:p-4 rounded-xl transition-none flex gap-3 sm:gap-6"
                   >
                     <div className="shrink-0 pt-1 cursor-pointer" onClick={() => handleToggleClick(task)}>
                       {task.status === 'completed' ? (

@@ -97,56 +97,56 @@ export default function AddCandidateModal({ onClose, onSuccess }: AddCandidateMo
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="p-6 overflow-y-auto max-h-[70vh] space-y-6">
+          <form onSubmit={handleSubmit} className="p-4 sm:p-6 overflow-y-auto max-h-[75vh] space-y-4 sm:space-y-6">
             {error && (
               <div className="p-3 bg-red-500/10 border border-red-500/20 rounded text-red-400 text-[12px] font-medium">
                 {error}
               </div>
             )}
 
-            <div className="grid grid-cols-2 gap-6">
+            <div className="space-y-6">
               {/* Personal Details */}
-              <div className="col-span-2 space-y-4">
+              <div className="space-y-4">
                 <h3 className="text-[10px] font-bold text-purple-400 uppercase tracking-widest border-b border-white/5 pb-2">Candidate Information</h3>
                 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div className="space-y-1.5">
                     <label className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
                       <User size={12} /> Full Name *
                     </label>
-                    <input required name="name" value={formData.name} onChange={handleChange} className="w-full bg-[#1A1A1A] border border-white/10 rounded p-2.5 text-[13px] text-white outline-none focus:border-purple-500 transition-colors" placeholder="e.g. John Smith" />
+                    <input required name="name" value={formData.name} onChange={handleChange} className="w-full bg-[#1A1A1A] border border-white/10 rounded-lg p-2.5 text-[13px] text-white outline-none focus:border-purple-500 transition-colors" placeholder="e.g. John Smith" />
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
                       <Mail size={12} /> Email Address *
                     </label>
-                    <input required type="email" name="email" value={formData.email} onChange={handleChange} className="w-full bg-[#1A1A1A] border border-white/10 rounded p-2.5 text-[13px] text-white outline-none focus:border-purple-500 transition-colors" placeholder="john@example.com" />
+                    <input required type="email" name="email" value={formData.email} onChange={handleChange} className="w-full bg-[#1A1A1A] border border-white/10 rounded-lg p-2.5 text-[13px] text-white outline-none focus:border-purple-500 transition-colors" placeholder="john@example.com" />
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
                       <Phone size={12} /> Phone Number
                     </label>
-                    <input name="phone" value={formData.phone} onChange={handleChange} className="w-full bg-[#1A1A1A] border border-white/10 rounded p-2.5 text-[13px] text-white outline-none focus:border-purple-500 transition-colors" placeholder="+1 (555) 000-0000" />
+                    <input name="phone" value={formData.phone} onChange={handleChange} className="w-full bg-[#1A1A1A] border border-white/10 rounded-lg p-2.5 text-[13px] text-white outline-none focus:border-purple-500 transition-colors" placeholder="+1 (555) 000-0000" />
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
                       <FileText size={12} /> Years of Experience
                     </label>
-                    <input required type="number" name="experience_years" value={formData.experience_years} onChange={handleChange} className="w-full bg-[#1A1A1A] border border-white/10 rounded p-2.5 text-[13px] text-white outline-none focus:border-purple-500 transition-colors" placeholder="e.g. 5" />
+                    <input required type="number" name="experience_years" value={formData.experience_years} onChange={handleChange} className="w-full bg-[#1A1A1A] border border-white/10 rounded-lg p-2.5 text-[13px] text-white outline-none focus:border-purple-500 transition-colors" placeholder="e.g. 5" />
                   </div>
                 </div>
               </div>
 
               {/* Role Details */}
-              <div className="col-span-2 space-y-4">
+              <div className="space-y-4">
                 <h3 className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest border-b border-white/5 pb-2">Target Role</h3>
                 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div className="space-y-1.5">
                     <label className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
                       <Building2 size={12} /> Department *
                     </label>
-                    <select required name="department" value={formData.department} onChange={handleChange} className="w-full bg-[#1A1A1A] border border-white/10 rounded p-2.5 text-[13px] text-white outline-none focus:border-purple-500 transition-colors">
+                    <select required name="department" value={formData.department} onChange={handleChange} className="w-full bg-[#1A1A1A] border border-white/10 rounded-lg p-2.5 text-[13px] text-white outline-none focus:border-purple-500 transition-colors">
                       <option value="">Select Department</option>
                       {departments.map(dept => (
                         <option key={dept} value={dept}>{dept}</option>
@@ -157,10 +157,10 @@ export default function AddCandidateModal({ onClose, onSuccess }: AddCandidateMo
                     <label className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
                       <Briefcase size={12} /> Role Applied For *
                     </label>
-                    <input required name="role_applied" value={formData.role_applied} onChange={handleChange} className="w-full bg-[#1A1A1A] border border-white/10 rounded p-2.5 text-[13px] text-white outline-none focus:border-purple-500 transition-colors" placeholder="e.g. Senior Frontend Engineer" />
+                    <input required name="role_applied" value={formData.role_applied} onChange={handleChange} className="w-full bg-[#1A1A1A] border border-white/10 rounded-lg p-2.5 text-[13px] text-white outline-none focus:border-purple-500 transition-colors" placeholder="e.g. Senior Frontend Engineer" />
                   </div>
                   
-                  <div className="col-span-2 space-y-1.5">
+                  <div className="col-span-1 sm:col-span-2 space-y-1.5">
                     <label className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
                       <FileText size={12} /> Interviewer Notes
                     </label>
@@ -169,7 +169,7 @@ export default function AddCandidateModal({ onClose, onSuccess }: AddCandidateMo
                       value={formData.notes} 
                       onChange={handleChange} 
                       rows={3}
-                      className="w-full bg-[#1A1A1A] border border-white/10 rounded p-2.5 text-[13px] text-white outline-none focus:border-purple-500 transition-colors resize-none" 
+                      className="w-full bg-[#1A1A1A] border border-white/10 rounded-lg p-2.5 text-[13px] text-white outline-none focus:border-purple-500 transition-colors resize-none" 
                       placeholder="Add initial screening notes or resume highlights..." 
                     />
                   </div>

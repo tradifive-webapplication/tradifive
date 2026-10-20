@@ -74,22 +74,22 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold tracking-widest text-white uppercase">Control Center</h1>
+          <h1 className="text-lg sm:text-xl font-bold tracking-widest text-white uppercase">Control Center</h1>
           <p className="text-neutral-600 text-[9px] font-bold uppercase tracking-[0.2em] mt-1">Global System Parameters</p>
         </div>
-        <button onClick={saveSettings} disabled={saving} className={`flex items-center gap-2 px-6 py-2.5 ${saving ? "bg-emerald-600 border-emerald-600" : "bg-neutral-800 hover:bg-neutral-700 border-white/5"} text-white text-[10px] font-bold uppercase tracking-widest border transition-none`}>
+        <button onClick={saveSettings} disabled={saving} className={`self-start sm:self-auto flex items-center gap-2 px-5 py-2.5 rounded-lg ${saving ? "bg-emerald-600 border-emerald-600" : "bg-neutral-800 hover:bg-neutral-700 border-white/5"} text-white text-[10px] font-bold uppercase tracking-widest border transition-none`}>
           <Save size={14} /> {saving ? "Saved" : "Commit Changes"}
         </button>
       </div>
 
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Left Column */}
-        <div className="space-y-6">
-          <div className="bg-[#1E1E1E] border border-white/5 rounded p-6">
-            <h3 className="text-[10px] font-bold text-neutral-500 flex items-center gap-2 mb-6 uppercase tracking-widest">
-              <Globe size={14} className="text-neutral-700" /> Platform Instance
+        <div className="space-y-4 sm:space-y-6">
+          <div className="bg-[#1E1E1E] border border-white/5 rounded-xl p-4 sm:p-6">
+            <h3 className="text-[10px] font-bold text-neutral-500 flex items-center gap-2 mb-4 sm:mb-6 uppercase tracking-widest">
+              <Globe size={14} className="text-neutral-600" /> Platform Instance
             </h3>
             <div className="space-y-4">
               <div>
