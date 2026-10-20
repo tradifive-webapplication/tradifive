@@ -1188,46 +1188,49 @@ export default function AutoTradeManagerPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-black/30 border border-white/5 flex items-center justify-center text-blue-400" style={{ borderColor: '#3b82f620' }}>
+            <div className="w-9 h-9 rounded-lg bg-black/30 border border-white/5 flex items-center justify-center text-blue-400 shrink-0" style={{ borderColor: '#3b82f620' }}>
               <Bot size={16} />
             </div>
             <div>
-              <div className="flex items-center gap-2.5">
-                <h1 className="text-xl font-bold tracking-widest text-white uppercase">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-lg sm:text-xl font-bold tracking-wider text-white uppercase">
                   Auto Trade & License Registry
                 </h1>
-                <div className="flex items-center gap-2 px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded">
+                <div className="flex items-center gap-1.5 px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded">
                   <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                   <span className="text-[9px] font-bold text-emerald-500 uppercase tracking-widest">Live Engine</span>
                 </div>
               </div>
-              <p className="text-neutral-600 text-[9px] font-bold uppercase tracking-[0.2em] mt-1">
-                Full visibility on User MT5 Bridges, Tradifive IB Linkage (<span className="text-emerald-500">TRDF940182</span>), Algo Purchases & Licenses
+              <p className="text-neutral-500 text-[9px] font-bold uppercase tracking-[0.15em] mt-1 line-clamp-1 sm:line-clamp-none">
+                Full visibility on MT5 Bridges, Tradifive IB (<span className="text-emerald-500 font-mono">TRDF940182</span>), Algo Purchases & Licenses
               </p>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5 flex-wrap">
+        <div className="grid grid-cols-3 sm:flex items-center gap-2 w-full md:w-auto">
           <button
             onClick={() => loadRecords(false)}
-            className="h-9 px-3.5 bg-[#1E1E1E] hover:bg-white/[0.05] border border-white/5 hover:border-white/10 rounded-lg text-xs font-semibold text-neutral-300 transition-none flex items-center gap-2 cursor-pointer"
+            className="h-9 px-2.5 sm:px-3.5 bg-[#1E1E1E] hover:bg-white/[0.05] border border-white/5 hover:border-white/10 rounded-lg text-xs font-semibold text-neutral-300 transition-none flex items-center justify-center gap-1.5 cursor-pointer"
           >
-            <RefreshCcw size={13} className={isRefreshing ? "animate-spin" : ""} /> Sync
+            <RefreshCcw size={13} className={isRefreshing ? "animate-spin" : ""} />
+            <span>Sync</span>
           </button>
 
           <button
             onClick={exportCsv}
-            className="h-9 px-3.5 bg-[#1E1E1E] hover:bg-white/[0.05] border border-white/5 hover:border-white/10 rounded-lg text-xs font-semibold text-neutral-300 transition-none flex items-center gap-2"
+            className="h-9 px-2.5 sm:px-3.5 bg-[#1E1E1E] hover:bg-white/[0.05] border border-white/5 hover:border-white/10 rounded-lg text-xs font-semibold text-neutral-300 transition-none flex items-center justify-center gap-1.5 cursor-pointer"
           >
-            <Download size={13} /> Export CSV
+            <Download size={13} />
+            <span>CSV</span>
           </button>
 
           <button
             onClick={() => setIsAddModalOpen(true)}
-            className="h-9 px-4 bg-blue-600 hover:bg-blue-500 border border-blue-500/30 rounded-lg text-xs font-semibold text-white transition-none flex items-center gap-2 shadow-sm"
+            className="h-9 px-3 sm:px-4 bg-blue-600 hover:bg-blue-500 border border-blue-500/30 rounded-lg text-xs font-semibold text-white transition-none flex items-center justify-center gap-1.5 shadow-sm cursor-pointer whitespace-nowrap"
           >
-            <Plus size={14} /> Add / Issue License
+            <Plus size={14} />
+            <span>Add Key</span>
           </button>
         </div>
       </div>
@@ -1269,10 +1272,10 @@ export default function AutoTradeManagerPage() {
       )}
 
       {/* ── Top View Navigation Tabs ── */}
-      <div className="flex items-center gap-2 border-b border-white/5 pb-3">
+      <div className="flex items-center gap-2 border-b border-white/5 pb-3 overflow-x-auto scrollbar-none">
         <button
           onClick={() => setActiveMainTab("accounts")}
-          className={`px-3.5 py-1.5 rounded text-xs font-semibold uppercase tracking-wider transition-none flex items-center gap-2 ${
+          className={`whitespace-nowrap shrink-0 px-3.5 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-none flex items-center gap-2 cursor-pointer ${
             activeMainTab === "accounts"
               ? "bg-white/10 text-white border border-white/15"
               : "text-neutral-400 hover:text-white border border-transparent"
@@ -1287,7 +1290,7 @@ export default function AutoTradeManagerPage() {
 
         <button
           onClick={() => setActiveMainTab("proofs")}
-          className={`px-3.5 py-1.5 rounded text-xs font-semibold uppercase tracking-wider transition-none flex items-center gap-2 ${
+          className={`whitespace-nowrap shrink-0 px-3.5 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-none flex items-center gap-2 cursor-pointer ${
             activeMainTab === "proofs"
               ? "bg-white/10 text-white border border-white/15"
               : "text-neutral-400 hover:text-white border border-transparent"
@@ -1309,7 +1312,7 @@ export default function AutoTradeManagerPage() {
 
         <button
           onClick={() => setActiveMainTab("payments")}
-          className={`px-3.5 py-1.5 rounded text-xs font-semibold uppercase tracking-wider transition-none flex items-center gap-2 ${
+          className={`whitespace-nowrap shrink-0 px-3.5 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-none flex items-center gap-2 cursor-pointer ${
             activeMainTab === "payments"
               ? "bg-white/10 text-white border border-white/15"
               : "text-neutral-400 hover:text-white border border-transparent"
@@ -1514,7 +1517,119 @@ export default function AutoTradeManagerPage() {
               </div>
             </div>
 
-            <div className="overflow-x-auto">
+            {/* ── Mobile Touch Cards View (visible on < md screens) ── */}
+            <div className="md:hidden divide-y divide-white/[0.04]">
+              {loading && records.length === 0 ? (
+                <div className="p-8 text-center text-neutral-400">
+                  <RefreshCcw size={18} className="animate-spin mx-auto mb-2 text-blue-400" />
+                  Loading Auto Trade registry...
+                </div>
+              ) : filteredRecords.length === 0 ? (
+                <div className="p-8 text-center text-neutral-400">
+                  <Bot size={24} className="mx-auto mb-2 text-neutral-500" />
+                  No Auto Trade records match your search.
+                </div>
+              ) : (
+                filteredRecords.map((record) => (
+                  <div
+                    key={`mob-${record.id}`}
+                    onClick={() => {
+                      setSelectedRecord(record);
+                      setIsDrawerOpen(true);
+                    }}
+                    className="p-4 space-y-3 hover:bg-white/[0.02] active:bg-white/[0.04] transition-colors cursor-pointer"
+                  >
+                    {/* Top Row: User Avatar, Name, Email, Under Tradifive Pill */}
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-bold text-white text-xs shrink-0 shadow-sm">
+                          {record.user_name.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-bold text-white truncate">{record.user_name}</p>
+                          <p className="text-[11px] text-neutral-400 truncate">{record.user_email}</p>
+                        </div>
+                      </div>
+
+                      {record.is_under_tradifive ? (
+                        <span className="shrink-0 inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                          <CheckCircle2 size={10} /> Under Tradifive
+                        </span>
+                      ) : (
+                        <span className="shrink-0 inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-rose-500/15 text-rose-400 border border-rose-500/30">
+                          <XCircle size={10} /> Outside IB
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Middle Row: MT5 Account, Broker, Balance */}
+                    <div className="grid grid-cols-2 gap-2 p-2.5 rounded-lg bg-black/40 border border-white/5 text-xs">
+                      <div>
+                        <span className="text-[9px] text-neutral-500 uppercase font-semibold block">MT5 Terminal</span>
+                        <span className="font-mono font-bold text-emerald-400">#{record.mt5_account_number}</span>
+                        <p className="text-[10px] text-neutral-400 truncate">
+                          {record.mt5_account_number === "414416991" ? "Exness" : record.broker_name}
+                        </p>
+                      </div>
+
+                      <div className="text-right">
+                        <span className="text-[9px] text-neutral-500 uppercase font-semibold block">Live Balance</span>
+                        <span className="font-mono font-bold text-white">
+                          {formatMoney(
+                            record.mt5_account_number === "414416991" ? (record.balance && record.balance !== 2000 ? record.balance : 205866.92) : record.balance,
+                            record.currency || "INR"
+                          )}
+                        </span>
+                        <p className={`text-[10px] font-semibold ${record.algo_execution_active ? "text-emerald-400" : "text-neutral-500"}`}>
+                          {record.algo_execution_active ? "🟢 Executing" : "⚪ Disconnected"}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Bottom Row: Key & Action Buttons */}
+                    <div className="flex items-center justify-between gap-2 pt-1">
+                      <div className="min-w-0 flex-1">
+                        <span className="font-mono text-[10.5px] text-neutral-300 font-semibold bg-white/5 px-2 py-1 rounded border border-white/10 truncate block">
+                          {record.license_key && record.license_key.startsWith("TF-")
+                            ? record.license_key
+                            : generateTradifiveLicenseKey(record.mt5_account_number)}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          type="button"
+                          onClick={() => toggleLicenseStatus(record)}
+                          className={`h-7 px-2 rounded text-[11px] font-semibold flex items-center gap-1 border transition-all cursor-pointer ${
+                            record.license_status === "active"
+                              ? "bg-rose-500/10 text-rose-400 border-rose-500/20"
+                              : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                          }`}
+                        >
+                          {record.license_status === "active" ? <Lock size={10} /> : <Unlock size={10} />}
+                          <span>{record.license_status === "active" ? "Suspend" : "Activate"}</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedRecord(record);
+                            setIsDrawerOpen(true);
+                          }}
+                          className="h-7 px-2.5 bg-blue-600/15 hover:bg-blue-600/25 text-blue-400 border border-blue-500/25 rounded text-[11px] font-semibold flex items-center gap-1 cursor-pointer"
+                        >
+                          <Eye size={11} />
+                          <span>Inspect</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* ── Desktop Data Table (hidden on mobile, visible on md+) ── */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full min-w-[760px] text-left border-collapse">
                 <thead>
                   <tr className="border-b border-white/5 bg-black/20 text-[9px] font-bold uppercase tracking-[0.2em] text-neutral-500">
@@ -1742,65 +1857,65 @@ export default function AutoTradeManagerPage() {
 
       {/* ── TAB 2: IB TRANSFER PROOFS & APPROVALS CONSOLE ── */}
       {activeMainTab === "proofs" && (
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Proofs KPI Overview Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-5 hover:border-white/10 transition-none group cursor-pointer">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-9 h-9 rounded-lg bg-black/30 border border-white/5 flex items-center justify-center group-hover:bg-white/[0.05] transition-none" style={{ borderColor: '#6366f120' }}>
-                  <Inbox size={16} style={{ color: '#6366f1' }} />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4">
+            <div className="bg-[#1E1E1E] border border-white/5 rounded-xl p-3.5 sm:p-5 hover:border-white/10 transition-none group cursor-pointer">
+              <div className="flex items-center justify-between mb-2.5 sm:mb-4">
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-black/30 border border-white/5 flex items-center justify-center group-hover:bg-white/[0.05] transition-none" style={{ borderColor: '#6366f120' }}>
+                  <Inbox size={15} style={{ color: '#6366f1' }} />
                 </div>
               </div>
-              <p className="text-2xl font-black text-white mb-1">{proofStats.total}</p>
-              <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Total Proof Requests</p>
+              <p className="text-xl sm:text-2xl font-black text-white mb-0.5 sm:mb-1">{proofStats.total}</p>
+              <p className="text-[9px] sm:text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Total Proof Requests</p>
             </div>
 
-            <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-5 hover:border-white/10 transition-none group cursor-pointer">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-9 h-9 rounded-lg bg-black/30 border border-white/5 flex items-center justify-center group-hover:bg-white/[0.05] transition-none" style={{ borderColor: '#f59e0b20' }}>
-                  <Clock size={16} style={{ color: '#f59e0b' }} />
+            <div className="bg-[#1E1E1E] border border-white/5 rounded-xl p-3.5 sm:p-5 hover:border-white/10 transition-none group cursor-pointer">
+              <div className="flex items-center justify-between mb-2.5 sm:mb-4">
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-black/30 border border-white/5 flex items-center justify-center group-hover:bg-white/[0.05] transition-none" style={{ borderColor: '#f59e0b20' }}>
+                  <Clock size={15} style={{ color: '#f59e0b' }} />
                 </div>
                 {proofStats.pending > 0 && (
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                  <span className="text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
                     Action Needed
                   </span>
                 )}
               </div>
-              <p className="text-2xl font-black text-white mb-1">{proofStats.pending}</p>
-              <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Pending Review</p>
+              <p className="text-xl sm:text-2xl font-black text-white mb-0.5 sm:mb-1">{proofStats.pending}</p>
+              <p className="text-[9px] sm:text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Pending Review</p>
             </div>
 
-            <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-5 hover:border-white/10 transition-none group cursor-pointer">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-9 h-9 rounded-lg bg-black/30 border border-white/5 flex items-center justify-center group-hover:bg-white/[0.05] transition-none" style={{ borderColor: '#10b98120' }}>
-                  <ShieldCheck size={16} style={{ color: '#10b981' }} />
+            <div className="bg-[#1E1E1E] border border-white/5 rounded-xl p-3.5 sm:p-5 hover:border-white/10 transition-none group cursor-pointer">
+              <div className="flex items-center justify-between mb-2.5 sm:mb-4">
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-black/30 border border-white/5 flex items-center justify-center group-hover:bg-white/[0.05] transition-none" style={{ borderColor: '#10b98120' }}>
+                  <ShieldCheck size={15} style={{ color: '#10b981' }} />
                 </div>
               </div>
-              <p className="text-2xl font-black text-white mb-1">{proofStats.approved}</p>
-              <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Approved Tradifive</p>
+              <p className="text-xl sm:text-2xl font-black text-white mb-0.5 sm:mb-1">{proofStats.approved}</p>
+              <p className="text-[9px] sm:text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Approved Tradifive</p>
             </div>
 
-            <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-5 hover:border-white/10 transition-none group cursor-pointer">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-9 h-9 rounded-lg bg-black/30 border border-white/5 flex items-center justify-center group-hover:bg-white/[0.05] transition-none" style={{ borderColor: '#ef444420' }}>
-                  <XCircle size={16} style={{ color: '#ef4444' }} />
+            <div className="bg-[#1E1E1E] border border-white/5 rounded-xl p-3.5 sm:p-5 hover:border-white/10 transition-none group cursor-pointer">
+              <div className="flex items-center justify-between mb-2.5 sm:mb-4">
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-black/30 border border-white/5 flex items-center justify-center group-hover:bg-white/[0.05] transition-none" style={{ borderColor: '#ef444420' }}>
+                  <XCircle size={15} style={{ color: '#ef4444' }} />
                 </div>
               </div>
-              <p className="text-2xl font-black text-white mb-1">{proofStats.rejected}</p>
-              <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Rejected Proofs</p>
+              <p className="text-xl sm:text-2xl font-black text-white mb-0.5 sm:mb-1">{proofStats.rejected}</p>
+              <p className="text-[9px] sm:text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Rejected Proofs</p>
             </div>
           </div>
 
           {/* Proofs Filter and Search Bar */}
-          <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-4 flex flex-col md:flex-row items-center justify-between gap-3">
+          <div className="bg-[#1E1E1E] border border-white/5 rounded-xl p-3 sm:p-4 flex flex-col md:flex-row items-center justify-between gap-3">
             <div className="relative flex-1 w-full">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" size={14} />
               <input
                 type="text"
-                placeholder="Search proofs by user name, email, MT5 account #, or broker..."
+                placeholder="Search proofs by user name, email, MT5 #, broker..."
                 value={proofSearchQuery}
                 onChange={(e) => setProofSearchQuery(e.target.value)}
-                className="w-full h-9 bg-black/30 border border-white/5 focus:border-white/20 rounded px-3 pl-9 pr-8 text-xs text-neutral-200 placeholder-neutral-600 focus:outline-none transition-none"
+                className="w-full h-9 bg-black/30 border border-white/5 focus:border-white/20 rounded-lg px-3 pl-9 pr-8 text-xs text-neutral-200 placeholder-neutral-600 focus:outline-none transition-none"
               />
               {proofSearchQuery && (
                 <button
@@ -1812,10 +1927,10 @@ export default function AutoTradeManagerPage() {
               )}
             </div>
 
-            <div className="flex items-center gap-1.5 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
+            <div className="flex items-center gap-1.5 w-full md:w-auto overflow-x-auto scrollbar-none pb-1 md:pb-0">
               <button
                 onClick={() => setProofFilter("all")}
-                className={`h-9 px-3 rounded-lg text-xs font-semibold transition-none ${proofFilter === "all"
+                className={`h-8 sm:h-9 px-2.5 sm:px-3 rounded-lg text-xs font-semibold whitespace-nowrap shrink-0 transition-none ${proofFilter === "all"
                     ? "bg-[#2A2A2E] text-white border border-white/20"
                     : "text-neutral-400 hover:text-white bg-black/30 border border-white/5"
                   }`}
@@ -1824,16 +1939,16 @@ export default function AutoTradeManagerPage() {
               </button>
               <button
                 onClick={() => setProofFilter("pending")}
-                className={`h-9 px-3 rounded-lg text-xs font-semibold transition-none flex items-center gap-1.5 ${proofFilter === "pending"
+                className={`h-8 sm:h-9 px-2.5 sm:px-3 rounded-lg text-xs font-semibold whitespace-nowrap shrink-0 transition-none flex items-center gap-1.5 ${proofFilter === "pending"
                     ? "bg-amber-500/20 text-amber-300 border border-amber-500/30"
                     : "text-neutral-400 hover:text-amber-400 bg-black/30 border border-white/5"
                   }`}
               >
-                <Clock size={12} /> Pending Review ({proofStats.pending})
+                <Clock size={12} /> Pending ({proofStats.pending})
               </button>
               <button
                 onClick={() => setProofFilter("approved")}
-                className={`h-9 px-3 rounded-lg text-xs font-semibold transition-none flex items-center gap-1.5 ${proofFilter === "approved"
+                className={`h-8 sm:h-9 px-2.5 sm:px-3 rounded-lg text-xs font-semibold whitespace-nowrap shrink-0 transition-none flex items-center gap-1.5 ${proofFilter === "approved"
                     ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
                     : "text-neutral-400 hover:text-emerald-400 bg-black/30 border border-white/5"
                   }`}
@@ -1842,7 +1957,7 @@ export default function AutoTradeManagerPage() {
               </button>
               <button
                 onClick={() => setProofFilter("rejected")}
-                className={`h-9 px-3 rounded-lg text-xs font-semibold transition-none flex items-center gap-1.5 ${proofFilter === "rejected"
+                className={`h-8 sm:h-9 px-2.5 sm:px-3 rounded-lg text-xs font-semibold whitespace-nowrap shrink-0 transition-none flex items-center gap-1.5 ${proofFilter === "rejected"
                     ? "bg-rose-500/20 text-rose-400 border border-rose-500/30"
                     : "text-neutral-400 hover:text-rose-400 bg-black/30 border border-white/5"
                   }`}
@@ -1852,9 +1967,9 @@ export default function AutoTradeManagerPage() {
             </div>
           </div>
 
-          {/* Proofs Queue Table / Cards */}
-          <div className="bg-[#1E1E1E] border border-white/5 rounded-lg overflow-hidden">
-            <div className="p-4 border-b border-white/5 flex items-center justify-between">
+          {/* Proofs Queue Table / Cards Container */}
+          <div className="bg-[#1E1E1E] border border-white/5 rounded-xl overflow-hidden shadow-sm">
+            <div className="p-3.5 sm:p-4 border-b border-white/5 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <ImageIcon size={13} className="text-amber-400" />
                 <h2 className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">
@@ -1866,7 +1981,171 @@ export default function AutoTradeManagerPage() {
               </span>
             </div>
 
-            <div className="overflow-x-auto">
+            {/* ── Mobile Touch Cards (visible on mobile, hidden on md+) ── */}
+            <div className="md:hidden divide-y divide-white/5">
+              {filteredProofRequests.length === 0 ? (
+                <div className="p-8 text-center text-neutral-400">
+                  <ImageIcon size={26} className="mx-auto mb-2 text-neutral-500" />
+                  <p className="text-xs">No transfer proof requests match this filter.</p>
+                </div>
+              ) : (
+                filteredProofRequests.map((proof) => (
+                  <div key={proof.id} className="p-3.5 space-y-3 bg-[#18181A]/60">
+                    {/* Header: Trader Avatar, Name & Status */}
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#24242A] to-[#161618] border border-white/10 flex items-center justify-center font-bold text-white text-xs shrink-0 shadow-sm">
+                          {proof.user_name.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="min-w-0">
+                          <h4 className="font-bold text-white text-xs truncate">{proof.user_name}</h4>
+                          <p className="text-[11px] text-neutral-400 truncate">{proof.user_email}</p>
+                          {proof.user_phone && (
+                            <p className="text-[10px] text-neutral-500">{proof.user_phone}</p>
+                          )}
+                        </div>
+                      </div>
+
+                      <span
+                        className={`shrink-0 inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                          proof.status === "approved"
+                            ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
+                            : proof.status === "rejected"
+                              ? "bg-rose-500/15 text-rose-400 border border-rose-500/30"
+                              : "bg-amber-500/15 text-amber-300 border border-amber-500/30 animate-pulse"
+                        }`}
+                      >
+                        {proof.status === "approved" && <CheckCheck size={10} />}
+                        {proof.status === "rejected" && <X size={10} />}
+                        {proof.status === "pending" && <Clock size={10} />}
+                        {proof.status === "approved" ? "Approved" : proof.status === "rejected" ? "Rejected" : "Pending"}
+                      </span>
+                    </div>
+
+                    {/* Middle Info: MT5 Number, Broker, Submitted */}
+                    <div className="grid grid-cols-2 gap-2 p-2.5 rounded-lg bg-black/40 border border-white/5 text-xs">
+                      <div>
+                        <span className="text-[9px] text-neutral-500 uppercase font-semibold block">MT5 Terminal</span>
+                        <div className="font-mono font-bold text-emerald-400 flex items-center gap-1">
+                          #{proof.mt5_account_number}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              navigator.clipboard.writeText(proof.mt5_account_number);
+                              toast.success("MT5 Account copied!");
+                            }}
+                            className="text-neutral-500 hover:text-white"
+                          >
+                            <Copy size={10} />
+                          </button>
+                        </div>
+                        <span className="inline-block px-1.5 py-0.2 rounded text-[9.5px] font-semibold bg-[#1C1C20] text-neutral-300 border border-white/10 mt-0.5">
+                          {proof.broker_name}
+                        </span>
+                      </div>
+
+                      <div className="text-right">
+                        <span className="text-[9px] text-neutral-500 uppercase font-semibold block">Submitted</span>
+                        <span className="text-[11px] text-neutral-300 font-mono">
+                          {new Date(proof.submitted_at).toLocaleDateString(undefined, { day: "2-digit", month: "short" })}
+                        </span>
+                        <p className="text-[10px] text-neutral-500 font-mono">
+                          {new Date(proof.submitted_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Photo Proof & Remarks Row */}
+                    <div className="flex items-center gap-3 p-2 rounded-lg bg-black/30 border border-white/5">
+                      <div
+                        onClick={() => setPreviewModalProof(proof)}
+                        className="relative w-24 h-16 rounded-md overflow-hidden border border-white/10 shrink-0 cursor-pointer group bg-black/80"
+                      >
+                        <img
+                          src={proof.proof_image_url}
+                          alt="Proof"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-all"
+                        />
+                        <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                          <ZoomIn size={14} className="text-white drop-shadow" />
+                        </div>
+                      </div>
+
+                      <div className="min-w-0 flex-1 text-xs">
+                        <span className="text-[9.5px] text-neutral-500 uppercase font-semibold block">Trader Remarks</span>
+                        <p className="text-[11px] text-neutral-300 italic line-clamp-2 mt-0.5 leading-snug">
+                          "{proof.remarks || "No user remarks provided."}"
+                        </p>
+                        {proof.reviewer_notes && (
+                          <p className="text-[10px] text-amber-300/90 border-l border-amber-500/40 pl-1.5 mt-1 truncate">
+                            Note: {proof.reviewer_notes}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Action Buttons on Mobile */}
+                    <div className="flex items-center gap-2 pt-1">
+                      <button
+                        type="button"
+                        onClick={() => setPreviewModalProof(proof)}
+                        className="h-8 flex-1 bg-white/5 hover:bg-white/10 text-neutral-200 border border-white/10 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5"
+                      >
+                        <Eye size={12} /> Inspect Photo
+                      </button>
+
+                      {proof.status === "pending" && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => handleApproveProof(proof)}
+                            className="h-8 flex-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1 shadow-sm"
+                          >
+                            <Check size={12} /> Approve
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setRejectModalProof(proof);
+                              setRejectReasonInput("");
+                            }}
+                            className="h-8 px-2.5 bg-rose-950/60 hover:bg-rose-900 text-rose-300 border border-rose-500/30 rounded-lg text-xs font-semibold flex items-center justify-center gap-1"
+                          >
+                            <X size={12} /> Reject
+                          </button>
+                        </>
+                      )}
+
+                      {proof.status === "approved" && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setRejectModalProof(proof);
+                            setRejectReasonInput("");
+                          }}
+                          className="h-8 px-3 bg-neutral-800 text-neutral-300 hover:text-white rounded-lg text-xs font-medium"
+                        >
+                          Change
+                        </button>
+                      )}
+
+                      {proof.status === "rejected" && (
+                        <button
+                          type="button"
+                          onClick={() => handleApproveProof(proof)}
+                          className="h-8 flex-1 bg-emerald-600 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1"
+                        >
+                          <Check size={12} /> Re-Approve
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* ── Desktop Data Table (hidden on mobile, visible on md+) ── */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full min-w-[760px] text-left border-collapse">
                 <thead>
                   <tr className="border-b border-white/5 bg-black/20 text-[9px] font-bold uppercase tracking-[0.2em] text-neutral-500">
@@ -2072,75 +2351,77 @@ export default function AutoTradeManagerPage() {
 
       {/* ── TAB 3: ₹99,999 LICENSE PAYMENTS (PHONEPE / UPI & BANK TRANSFER) ── */}
       {activeMainTab === "payments" && (
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Payment KPI Overview Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-5 hover:border-white/10 transition-none group cursor-pointer">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-9 h-9 rounded-lg bg-black/30 border border-white/5 flex items-center justify-center group-hover:bg-white/[0.05] transition-none" style={{ borderColor: '#6366f120' }}>
-                  <CreditCard size={16} style={{ color: '#6366f1' }} />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4">
+            <div className="bg-[#1E1E1E] border border-white/5 rounded-xl p-3.5 sm:p-5 hover:border-white/10 transition-none group cursor-pointer">
+              <div className="flex items-center justify-between mb-2.5 sm:mb-4">
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-black/30 border border-white/5 flex items-center justify-center group-hover:bg-white/[0.05] transition-none" style={{ borderColor: '#6366f120' }}>
+                  <CreditCard size={15} style={{ color: '#6366f1' }} />
                 </div>
               </div>
-              <p className="text-2xl font-black text-white mb-1">{paymentStats.total}</p>
-              <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Total Payments</p>
+              <p className="text-xl sm:text-2xl font-black text-white mb-0.5 sm:mb-1">{paymentStats.total}</p>
+              <p className="text-[9px] sm:text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Total Payments</p>
             </div>
 
-            <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-5 hover:border-white/10 transition-none group cursor-pointer">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-9 h-9 rounded-lg bg-black/30 border border-white/5 flex items-center justify-center group-hover:bg-white/[0.05] transition-none" style={{ borderColor: '#f59e0b20' }}>
-                  <Clock size={16} style={{ color: '#f59e0b' }} />
+            <div className="bg-[#1E1E1E] border border-white/5 rounded-xl p-3.5 sm:p-5 hover:border-white/10 transition-none group cursor-pointer">
+              <div className="flex items-center justify-between mb-2.5 sm:mb-4">
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-black/30 border border-white/5 flex items-center justify-center group-hover:bg-white/[0.05] transition-none" style={{ borderColor: '#f59e0b20' }}>
+                  <Clock size={15} style={{ color: '#f59e0b' }} />
                 </div>
                 {paymentStats.pending > 0 && (
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                  <span className="text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
                     Action Needed
                   </span>
                 )}
               </div>
-              <p className="text-2xl font-black text-white mb-1">{paymentStats.pending}</p>
-              <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Pending Review</p>
+              <p className="text-xl sm:text-2xl font-black text-white mb-0.5 sm:mb-1">{paymentStats.pending}</p>
+              <p className="text-[9px] sm:text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Pending Review</p>
             </div>
 
-            <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-5 hover:border-white/10 transition-none group cursor-pointer">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-9 h-9 rounded-lg bg-black/30 border border-white/5 flex items-center justify-center group-hover:bg-white/[0.05] transition-none" style={{ borderColor: '#10b98120' }}>
-                  <ShieldCheck size={16} style={{ color: '#10b981' }} />
+            <div className="bg-[#1E1E1E] border border-white/5 rounded-xl p-3.5 sm:p-5 hover:border-white/10 transition-none group cursor-pointer">
+              <div className="flex items-center justify-between mb-2.5 sm:mb-4">
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-black/30 border border-white/5 flex items-center justify-center group-hover:bg-white/[0.05] transition-none" style={{ borderColor: '#10b98120' }}>
+                  <ShieldCheck size={15} style={{ color: '#10b981' }} />
                 </div>
               </div>
-              <p className="text-2xl font-black text-white mb-1">{paymentStats.approved}</p>
-              <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Verified Licenses</p>
+              <p className="text-xl sm:text-2xl font-black text-white mb-0.5 sm:mb-1">{paymentStats.approved}</p>
+              <p className="text-[9px] sm:text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Verified Licenses</p>
             </div>
 
-            <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-5 hover:border-white/10 transition-none group cursor-pointer">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-9 h-9 rounded-lg bg-black/30 border border-white/5 flex items-center justify-center group-hover:bg-white/[0.05] transition-none" style={{ borderColor: '#10b98120' }}>
-                  <DollarSign size={16} style={{ color: '#10b981' }} />
+            <div className="bg-[#1E1E1E] border border-white/5 rounded-xl p-3.5 sm:p-5 hover:border-white/10 transition-none group cursor-pointer">
+              <div className="flex items-center justify-between mb-2.5 sm:mb-4">
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-black/30 border border-white/5 flex items-center justify-center group-hover:bg-white/[0.05] transition-none" style={{ borderColor: '#10b98120' }}>
+                  <DollarSign size={15} style={{ color: '#10b981' }} />
                 </div>
               </div>
-              <p className="text-2xl font-black text-emerald-400 font-mono mb-1">₹{paymentStats.revenueInr.toLocaleString()}</p>
-              <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Verified Revenue</p>
+              <p className="text-xl sm:text-2xl font-black text-emerald-400 font-mono mb-0.5 sm:mb-1">₹{paymentStats.revenueInr.toLocaleString()}</p>
+              <p className="text-[9px] sm:text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Verified Revenue</p>
             </div>
           </div>
 
           {/* Official Receiving Account Status Bar */}
-          <div className="p-3.5 bg-[#1A1A1E] border border-white/10 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center justify-center shrink-0">
-                <Building2 size={15} />
+          <div className="p-3 sm:p-3.5 bg-[#1A1A1E] border border-white/10 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
+            <div className="flex items-start sm:items-center gap-2.5 sm:gap-3">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center justify-center shrink-0 mt-0.5 sm:mt-0">
+                <Building2 size={14} />
               </div>
               <div>
-                <span className="text-[10px] uppercase font-bold text-neutral-400 block tracking-wider">Official Payment Destination</span>
-                <span className="text-white font-semibold">UPI: <strong className="font-mono text-emerald-400">9731980756@axisbank</strong> · Axis Bank A/C: <strong className="font-mono text-neutral-200">924010072811588</strong> (IFSC: UTIB0001690)</span>
+                <span className="text-[9px] sm:text-[10px] uppercase font-bold text-neutral-400 block tracking-wider">Official Payment Destination</span>
+                <span className="text-white font-semibold text-[11px] sm:text-xs leading-snug">
+                  UPI: <strong className="font-mono text-emerald-400">9731980756@axisbank</strong> · Axis Bank: <strong className="font-mono text-neutral-200">924010072811588</strong>
+                </span>
               </div>
             </div>
-            <div className="text-[11px] text-neutral-400">
+            <div className="text-[10px] sm:text-[11px] text-neutral-400 shrink-0">
               License price fixed at <strong className="text-white font-mono">₹99,999 Lifetime</strong>
             </div>
           </div>
 
           {/* Search, Filter & Payments Table */}
           <div className="bg-[#1A1A1A] border border-white/5 rounded-xl overflow-hidden shadow-sm">
-            <div className="p-4 border-b border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-3 bg-[#1E1E1E]">
-              <div className="relative flex-1 max-w-md">
+            <div className="p-3 sm:p-4 border-b border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-3 bg-[#1E1E1E]">
+              <div className="relative flex-1 w-full md:max-w-md">
                 <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
                 <input
                   type="text"
@@ -2159,10 +2440,10 @@ export default function AutoTradeManagerPage() {
                 )}
               </div>
 
-              <div className="flex items-center gap-1.5 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
+              <div className="flex items-center gap-1.5 w-full md:w-auto overflow-x-auto scrollbar-none pb-1 md:pb-0">
                 <button
                   onClick={() => setPaymentFilter("all")}
-                  className={`h-9 px-3 rounded-lg text-xs font-semibold transition-none ${paymentFilter === "all"
+                  className={`h-8 sm:h-9 px-2.5 sm:px-3 rounded-lg text-xs font-semibold whitespace-nowrap shrink-0 transition-none ${paymentFilter === "all"
                       ? "bg-[#2A2A2E] text-white border border-white/20"
                       : "text-neutral-400 hover:text-white bg-black/30 border border-white/5"
                     }`}
@@ -2171,16 +2452,16 @@ export default function AutoTradeManagerPage() {
                 </button>
                 <button
                   onClick={() => setPaymentFilter("pending")}
-                  className={`h-9 px-3 rounded-lg text-xs font-semibold transition-none flex items-center gap-1.5 ${paymentFilter === "pending"
+                  className={`h-8 sm:h-9 px-2.5 sm:px-3 rounded-lg text-xs font-semibold whitespace-nowrap shrink-0 transition-none flex items-center gap-1.5 ${paymentFilter === "pending"
                       ? "bg-amber-500/20 text-amber-300 border border-amber-500/30"
                       : "text-neutral-400 hover:text-amber-400 bg-black/30 border border-white/5"
                     }`}
                 >
-                  <Clock size={12} /> Pending Review ({paymentStats.pending})
+                  <Clock size={12} /> Pending ({paymentStats.pending})
                 </button>
                 <button
                   onClick={() => setPaymentFilter("approved")}
-                  className={`h-9 px-3 rounded-lg text-xs font-semibold transition-none flex items-center gap-1.5 ${paymentFilter === "approved"
+                  className={`h-8 sm:h-9 px-2.5 sm:px-3 rounded-lg text-xs font-semibold whitespace-nowrap shrink-0 transition-none flex items-center gap-1.5 ${paymentFilter === "approved"
                       ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
                       : "text-neutral-400 hover:text-emerald-400 bg-black/30 border border-white/5"
                     }`}
@@ -2189,7 +2470,7 @@ export default function AutoTradeManagerPage() {
                 </button>
                 <button
                   onClick={() => setPaymentFilter("rejected")}
-                  className={`h-9 px-3 rounded-lg text-xs font-semibold transition-none flex items-center gap-1.5 ${paymentFilter === "rejected"
+                  className={`h-8 sm:h-9 px-2.5 sm:px-3 rounded-lg text-xs font-semibold whitespace-nowrap shrink-0 transition-none flex items-center gap-1.5 ${paymentFilter === "rejected"
                       ? "bg-rose-500/20 text-rose-400 border border-rose-500/30"
                       : "text-neutral-400 hover:text-rose-400 bg-black/30 border border-white/5"
                     }`}
@@ -2197,12 +2478,12 @@ export default function AutoTradeManagerPage() {
                   <X size={12} /> Rejected ({paymentStats.rejected})
                 </button>
 
-                <div className="h-5 w-[1px] bg-white/10 mx-1" />
+                <div className="h-5 w-[1px] bg-white/10 mx-1 shrink-0" />
 
                 <select
                   value={paymentMethodFilter}
                   onChange={(e) => setPaymentMethodFilter(e.target.value as any)}
-                  className="h-9 px-2.5 bg-black/40 border border-white/5 rounded-lg text-xs text-neutral-300 focus:outline-none focus:border-white/20"
+                  className="h-8 sm:h-9 px-2.5 bg-black/40 border border-white/5 rounded-lg text-xs text-neutral-300 focus:outline-none focus:border-white/20 shrink-0"
                 >
                   <option value="all">All Methods</option>
                   <option value="upi">PhonePe / UPI</option>
@@ -2211,8 +2492,214 @@ export default function AutoTradeManagerPage() {
               </div>
             </div>
 
-            {/* Table */}
-            <div className="overflow-x-auto">
+            {/* ── Mobile Touch Cards (visible on mobile, hidden on md+) ── */}
+            <div className="md:hidden divide-y divide-white/5">
+              {filteredPayments.length === 0 ? (
+                <div className="p-8 text-center text-neutral-500">
+                  <CreditCard size={28} className="mx-auto mb-2 opacity-30" />
+                  <p className="text-xs font-semibold text-neutral-400">No payment records found</p>
+                  <p className="text-[11px] text-neutral-600 mt-0.5">
+                    {paymentSearchQuery || paymentFilter !== "all"
+                      ? "Try adjusting your filters or search query"
+                      : "New ₹99,999 PhonePe / UPI or Bank transfer requests will appear here."}
+                  </p>
+                </div>
+              ) : (
+                filteredPayments.map((payment) => (
+                  <div key={payment.id} className="p-3.5 space-y-3 bg-[#18181A]/60">
+                    {/* Header: Client Avatar, Name & Status */}
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-9 h-9 rounded-full bg-blue-600/20 text-blue-400 border border-blue-500/30 flex items-center justify-center font-bold text-xs shrink-0 shadow-sm">
+                          {payment.user_name?.charAt(0) || "U"}
+                        </div>
+                        <div className="min-w-0">
+                          <h4 className="font-bold text-white text-xs truncate">{payment.user_name}</h4>
+                          <p className="text-[11px] text-neutral-400 truncate">{payment.user_email}</p>
+                          <div className="text-[10px] text-neutral-500 font-mono mt-0.5 flex items-center gap-1">
+                            <span>MT5:</span>
+                            <strong className="text-neutral-300">{payment.mt5_account_number || "—"}</strong>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="text-right shrink-0">
+                        <div className="font-mono font-black text-emerald-400 text-sm">
+                          ₹{Number(payment.amount || 99999).toLocaleString()}
+                        </div>
+                        <span className="text-[9px] text-neutral-500 font-semibold uppercase block">100% Paid</span>
+                      </div>
+                    </div>
+
+                    {/* Middle Details Grid */}
+                    <div className="grid grid-cols-2 gap-2 p-2.5 rounded-lg bg-black/40 border border-white/5 text-xs">
+                      <div>
+                        <span className="text-[9px] text-neutral-500 uppercase font-semibold block">Method & UTR</span>
+                        <div className="mt-0.5">
+                          {payment.method === "upi" ? (
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded text-[9.5px] font-bold bg-purple-500/15 text-purple-300 border border-purple-500/25">
+                              <QrCode size={10} /> PhonePe / UPI
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded text-[9.5px] font-bold bg-blue-500/15 text-blue-300 border border-blue-500/25">
+                              <Landmark size={10} /> Bank Transfer
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1 font-mono mt-1">
+                          <span className="text-[11px] font-bold text-white select-all">{payment.utr_number}</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              navigator.clipboard.writeText(payment.utr_number);
+                              toast.success(`UTR Copied: ${payment.utr_number}`);
+                            }}
+                            className="text-neutral-500 hover:text-white"
+                          >
+                            <Copy size={10} />
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="text-right">
+                        <span className="text-[9px] text-neutral-500 uppercase font-semibold block">Status & Submitted</span>
+                        <div className="mt-0.5">
+                          {payment.status === "pending" && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" /> Pending
+                            </span>
+                          )}
+                          {payment.status === "approved" && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                              <CheckCircle2 size={10} /> Approved
+                            </span>
+                          )}
+                          {payment.status === "rejected" && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/15 text-rose-300 border border-rose-500/30">
+                              <XCircle size={10} /> Rejected
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[10px] text-neutral-500 font-mono mt-1">
+                          {new Date(payment.submitted_at).toLocaleDateString(undefined, { day: "2-digit", month: "short" })} · {new Date(payment.submitted_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Screenshot & Key Block */}
+                    {(payment.proof_file || payment.license_key || payment.rejection_reason) && (
+                      <div className="flex items-center gap-3 p-2 rounded-lg bg-black/30 border border-white/5">
+                        {payment.proof_file && (
+                          <div
+                            onClick={() => setPreviewPaymentProof(payment)}
+                            className="relative w-20 h-14 rounded-md overflow-hidden border border-white/10 shrink-0 cursor-pointer group bg-black/80"
+                          >
+                            <img
+                              src={payment.proof_file}
+                              alt="Payment Proof"
+                              className="w-full h-full object-cover group-hover:scale-105 transition-all"
+                            />
+                            <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                              <ZoomIn size={14} className="text-white drop-shadow" />
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="min-w-0 flex-1 text-xs">
+                          {payment.license_key && (
+                            <div className="space-y-1">
+                              <span className="text-[9px] text-neutral-500 uppercase font-semibold block">Issued License</span>
+                              <div className="flex items-center gap-1">
+                                <span className="font-mono text-[10.5px] font-bold text-emerald-400 truncate bg-emerald-950/40 px-1.5 py-0.5 rounded border border-emerald-500/30">
+                                  {payment.license_key}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(payment.license_key!);
+                                    toast.success("License key copied!");
+                                  }}
+                                  className="text-neutral-400 hover:text-white"
+                                >
+                                  <Copy size={11} />
+                                </button>
+                              </div>
+                            </div>
+                          )}
+
+                          {payment.rejection_reason && (
+                            <p className="text-[10px] text-rose-400/90 border-l border-rose-500/40 pl-1.5 leading-snug">
+                              Reason: {payment.rejection_reason}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Mobile Action Buttons */}
+                    <div className="flex items-center gap-2 pt-1">
+                      {payment.proof_file && (
+                        <button
+                          type="button"
+                          onClick={() => setPreviewPaymentProof(payment)}
+                          className="h-8 px-2.5 bg-white/5 hover:bg-white/10 text-neutral-200 border border-white/10 rounded-lg text-xs font-semibold flex items-center justify-center gap-1"
+                        >
+                          <Eye size={12} /> Inspect
+                        </button>
+                      )}
+
+                      {payment.status === "pending" && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => handleApprovePayment(payment)}
+                            className="h-8 flex-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1 shadow-sm"
+                          >
+                            <Check size={12} /> Approve & Issue Key
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setRejectModalPayment(payment);
+                              setPaymentRejectReason("");
+                            }}
+                            className="h-8 px-2.5 bg-rose-950/60 hover:bg-rose-900 text-rose-300 border border-rose-500/30 rounded-lg text-xs font-semibold flex items-center justify-center gap-1"
+                          >
+                            <X size={12} /> Reject
+                          </button>
+                        </>
+                      )}
+
+                      {payment.status === "approved" && payment.license_key && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText(payment.license_key!);
+                            toast.success(`License Key Copied: ${payment.license_key}`);
+                          }}
+                          className="h-8 flex-1 bg-white/5 hover:bg-white/10 text-emerald-400 border border-white/10 rounded-lg text-xs font-mono font-semibold flex items-center justify-center gap-1.5"
+                        >
+                          <Key size={12} /> Copy License Key
+                        </button>
+                      )}
+
+                      {payment.status === "rejected" && (
+                        <button
+                          type="button"
+                          onClick={() => handleApprovePayment(payment)}
+                          className="h-8 flex-1 bg-emerald-600 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1"
+                        >
+                          <Check size={12} /> Re-Approve
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* ── Desktop Data Table (hidden on mobile, visible on md+) ── */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b border-white/5 bg-[#141414] text-[10px] font-bold text-neutral-400 uppercase tracking-wider">
@@ -2529,27 +3016,27 @@ export default function AutoTradeManagerPage() {
               </div>
 
               {/* Drawer Content Body */}
-              <div className="flex-1 overflow-y-auto p-6 space-y-6">
+              <div className="flex-1 overflow-y-auto p-3.5 sm:p-6 space-y-4 sm:space-y-6 pb-24 sm:pb-6">
                 {/* ── TAB 1: OVERVIEW ── */}
                 {drawerTab === "overview" && (
-                  <div className="space-y-6">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="bg-[#1A1A1A] border border-white/5 rounded-xl p-4">
+                  <div className="space-y-4 sm:space-y-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-4">
+                      <div className="bg-[#1A1A1A] border border-white/5 rounded-xl p-3 sm:p-4">
                         <span className="text-[10px] text-neutral-500 uppercase font-bold tracking-wider">User ID</span>
-                        <div className="text-xs font-mono font-bold text-white mt-1 select-all">{selectedRecord.user_id}</div>
+                        <div className="text-xs font-mono font-bold text-white mt-1 select-all break-all">{selectedRecord.user_id}</div>
                       </div>
 
-                      <div className="bg-[#1A1A1A] border border-white/5 rounded-xl p-4">
+                      <div className="bg-[#1A1A1A] border border-white/5 rounded-xl p-3 sm:p-4">
                         <span className="text-[10px] text-neutral-500 uppercase font-bold tracking-wider">Contact Phone</span>
                         <div className="text-xs font-mono font-bold text-white mt-1">{selectedRecord.user_phone || "Not Provided"}</div>
                       </div>
 
-                      <div className="bg-[#1A1A1A] border border-white/5 rounded-xl p-4">
+                      <div className="bg-[#1A1A1A] border border-white/5 rounded-xl p-3 sm:p-4">
                         <span className="text-[10px] text-neutral-500 uppercase font-bold tracking-wider">MT5 Account Number</span>
                         <div className="text-sm font-mono font-bold text-emerald-400 mt-1">#{selectedRecord.mt5_account_number}</div>
                       </div>
 
-                      <div className="bg-[#1A1A1A] border border-white/5 rounded-xl p-4">
+                      <div className="bg-[#1A1A1A] border border-white/5 rounded-xl p-3 sm:p-4">
                         <span className="text-[10px] text-neutral-500 uppercase font-bold tracking-wider">Broker & Server</span>
                         <div className="text-xs font-bold text-white mt-1">
                           {selectedRecord.mt5_account_number === "414416991" && (!selectedRecord.broker_server || selectedRecord.broker_server.includes("Real"))
@@ -2559,12 +3046,12 @@ export default function AutoTradeManagerPage() {
                       </div>
                     </div>
 
-                    <div className="bg-[#1A1A1A] border border-white/5 rounded-xl p-4 space-y-3">
+                    <div className="bg-[#1A1A1A] border border-white/5 rounded-xl p-3 sm:p-4 space-y-3">
                       <h4 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
                         <Activity size={14} className="text-purple-400" /> Live Terminal Telemetry
                       </h4>
-                      <div className="grid grid-cols-3 gap-3 pt-1">
-                        <div>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3 pt-1">
+                        <div className="p-2 sm:p-0 bg-black/30 sm:bg-transparent rounded-lg">
                           <span className="text-[10px] text-neutral-400 uppercase font-medium">Balance</span>
                           <div className="text-sm font-mono font-bold text-white">
                             {formatMoney(
@@ -2573,7 +3060,7 @@ export default function AutoTradeManagerPage() {
                             )}
                           </div>
                         </div>
-                        <div>
+                        <div className="p-2 sm:p-0 bg-black/30 sm:bg-transparent rounded-lg">
                           <span className="text-[10px] text-neutral-400 uppercase font-medium">Equity</span>
                           <div className="text-sm font-mono font-bold text-white">
                             {formatMoney(
@@ -2582,7 +3069,7 @@ export default function AutoTradeManagerPage() {
                             )}
                           </div>
                         </div>
-                        <div>
+                        <div className="p-2 sm:p-0 bg-black/30 sm:bg-transparent rounded-lg">
                           <span className="text-[10px] text-neutral-400 uppercase font-medium">Algo Heartbeat</span>
                           <div className={`text-xs font-bold flex items-center gap-1.5 mt-0.5 ${selectedRecord.algo_execution_active ? "text-emerald-400" : "text-neutral-400"}`}>
                             <span className={`w-2 h-2 rounded-full ${selectedRecord.algo_execution_active ? "bg-emerald-400 animate-pulse" : "bg-neutral-500"}`} />
@@ -2592,17 +3079,17 @@ export default function AutoTradeManagerPage() {
                       </div>
                     </div>
 
-                    <div className="bg-gradient-to-r from-blue-950/40 to-indigo-950/40 border border-blue-500/20 rounded-xl p-4 space-y-2">
+                    <div className="bg-gradient-to-r from-blue-950/40 to-indigo-950/40 border border-blue-500/20 rounded-xl p-3 sm:p-4 space-y-2">
                       <h4 className="text-xs font-bold text-blue-300 uppercase tracking-wider flex items-center gap-2">
                         <Key size={14} className="text-blue-400" /> Quick License Snapshot
                       </h4>
-                      <div className="flex items-center justify-between bg-black/40 p-2.5 rounded-lg border border-white/5">
-                        <span className="font-mono text-xs font-bold text-white select-all">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-black/40 p-2.5 rounded-lg border border-white/5">
+                        <span className="font-mono text-xs font-bold text-white select-all break-all">
                           {selectedRecord.license_key && selectedRecord.license_key.startsWith("TF-")
                             ? selectedRecord.license_key
                             : generateTradifiveLicenseKey(selectedRecord.mt5_account_number)}
                         </span>
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${selectedRecord.license_status === "active" ? "bg-emerald-500/20 text-emerald-400" : "bg-rose-500/20 text-rose-400"}`}>
+                        <span className={`self-start sm:self-auto text-[10px] font-bold px-2 py-0.5 rounded uppercase ${selectedRecord.license_status === "active" ? "bg-emerald-500/20 text-emerald-400" : "bg-rose-500/20 text-rose-400"}`}>
                           {selectedRecord.license_status}
                         </span>
                       </div>
@@ -2612,12 +3099,12 @@ export default function AutoTradeManagerPage() {
 
                 {/* ── TAB 2: TRADIFIVE IB & BROKER LINKAGE ── */}
                 {drawerTab === "ib_broker" && (
-                  <div className="space-y-6">
-                    <div className={`p-4 rounded-xl border ${selectedRecord.is_under_tradifive
+                  <div className="space-y-4 sm:space-y-6">
+                    <div className={`p-3.5 sm:p-4 rounded-xl border ${selectedRecord.is_under_tradifive
                         ? "bg-emerald-950/20 border-emerald-500/30 text-emerald-300"
                         : "bg-rose-950/20 border-rose-500/30 text-rose-300"
                       }`}>
-                      <div className="flex items-start justify-between">
+                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                         <div>
                           <h4 className="text-sm font-bold flex items-center gap-2">
                             {selectedRecord.is_under_tradifive ? <CheckCircle2 size={16} /> : <XCircle size={16} />}
@@ -2634,7 +3121,7 @@ export default function AutoTradeManagerPage() {
 
                         <button
                           onClick={() => toggleUnderTradifive(selectedRecord)}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${selectedRecord.is_under_tradifive
+                          className={`w-full sm:w-auto px-3 py-1.5 rounded-lg text-xs font-bold transition-all shrink-0 ${selectedRecord.is_under_tradifive
                               ? "bg-rose-600 hover:bg-rose-500 text-white"
                               : "bg-emerald-600 hover:bg-emerald-500 text-white"
                             }`}
@@ -2644,11 +3131,11 @@ export default function AutoTradeManagerPage() {
                       </div>
                     </div>
 
-                    <div className="bg-[#1A1A1A] border border-white/5 rounded-xl p-4 space-y-3">
+                    <div className="bg-[#1A1A1A] border border-white/5 rounded-xl p-3.5 sm:p-4 space-y-3">
                       <h4 className="text-xs font-bold text-white uppercase tracking-wider">
                         Broker & Partnership Specification
                       </h4>
-                      <div className="grid grid-cols-2 gap-4 pt-1 text-xs">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-4 pt-1 text-xs">
                         <div>
                           <span className="text-[10px] text-neutral-500 uppercase">Partner IB Code</span>
                           <div className="font-mono font-bold text-white text-sm mt-0.5">{selectedRecord.ib_code}</div>
@@ -2684,7 +3171,7 @@ export default function AutoTradeManagerPage() {
                       );
                       if (!userProof) return null;
                       return (
-                        <div className="bg-[#1A1A1A] border border-amber-500/30 rounded-xl p-4 space-y-3">
+                        <div className="bg-[#1A1A1A] border border-amber-500/30 rounded-xl p-3.5 sm:p-4 space-y-3">
                           <div className="flex items-center justify-between">
                             <span className="text-[10px] text-amber-400 uppercase font-bold flex items-center gap-1.5">
                               <ImageIcon size={13} /> Uploaded IB Transfer Photo Proof
@@ -2704,10 +3191,10 @@ export default function AutoTradeManagerPage() {
                                   : "⏳ Pending Review"}
                             </span>
                           </div>
-                          <div className="flex items-center gap-4">
+                          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
                             <div
                               onClick={() => setPreviewModalProof(userProof)}
-                              className="relative w-28 h-20 rounded-lg overflow-hidden border border-white/10 group cursor-pointer shrink-0 bg-black/60"
+                              className="relative w-full sm:w-28 h-24 sm:h-20 rounded-lg overflow-hidden border border-white/10 group cursor-pointer shrink-0 bg-black/60"
                             >
                               <img
                                 src={userProof.proof_image_url}
@@ -2718,10 +3205,10 @@ export default function AutoTradeManagerPage() {
                                 <ZoomIn size={16} className="text-white drop-shadow" />
                               </div>
                             </div>
-                            <div className="space-y-1.5 text-xs flex-1">
+                            <div className="space-y-1.5 text-xs flex-1 w-full">
                               <p className="text-neutral-300 font-semibold">{userProof.proof_filename}</p>
                               <p className="text-neutral-500 text-[11px] italic">"{userProof.remarks || "No user remarks provided."}"</p>
-                              <div className="flex items-center gap-2 pt-1">
+                              <div className="flex items-center gap-2 pt-1 flex-wrap">
                                 <button
                                   onClick={() => setPreviewModalProof(userProof)}
                                   className="px-2.5 py-1 bg-white/10 hover:bg-white/20 text-white rounded text-[11px] font-bold"
@@ -2754,7 +3241,7 @@ export default function AutoTradeManagerPage() {
                       );
                     })()}
 
-                    <div className="bg-[#1A1A1A] border border-white/5 rounded-xl p-4 space-y-2">
+                    <div className="bg-[#1A1A1A] border border-white/5 rounded-xl p-3.5 sm:p-4 space-y-2">
                       <span className="text-[10px] text-neutral-500 uppercase font-bold">Tradifive Partner Portal Guidance</span>
                       <p className="text-xs text-neutral-400 leading-relaxed">
                         To verify this account directly with {selectedRecord.broker_name}, log into your broker IB portal and search for account <strong className="text-white">#{selectedRecord.mt5_account_number}</strong>. If listed, click "Verify Under Tradifive" above to unlock institutional automated trading.
@@ -2765,9 +3252,9 @@ export default function AutoTradeManagerPage() {
 
                 {/* ── TAB 3: ALGO PURCHASED ── */}
                 {drawerTab === "algo_purchase" && (
-                  <div className="space-y-6">
-                    <div className="bg-[#1A1A1A] border border-white/5 rounded-xl p-5 space-y-4">
-                      <div className="flex items-center justify-between pb-3 border-b border-white/5">
+                  <div className="space-y-4 sm:space-y-6">
+                    <div className="bg-[#1A1A1A] border border-white/5 rounded-xl p-4 sm:p-5 space-y-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-white/5 gap-2">
                         <div>
                           <span className="text-[10px] text-neutral-500 uppercase font-bold">Purchased Algorithm</span>
                           <h4 className="text-base font-bold text-white flex items-center gap-2 mt-0.5">
@@ -2775,12 +3262,12 @@ export default function AutoTradeManagerPage() {
                             {selectedRecord.algo_name}
                           </h4>
                         </div>
-                        <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-500/10 text-blue-400 border border-blue-500/30">
+                        <span className="self-start sm:self-auto px-3 py-1 rounded-full text-xs font-bold bg-blue-500/10 text-blue-400 border border-blue-500/30">
                           {selectedRecord.purchase_tier}
                         </span>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-4 text-xs">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-4 text-xs">
                         <div>
                           <span className="text-[10px] text-neutral-500 uppercase">Trading Instrument</span>
                           <div className="font-mono font-bold text-white text-sm mt-0.5">{selectedRecord.algo_pair}</div>
@@ -2810,17 +3297,17 @@ export default function AutoTradeManagerPage() {
                       </div>
                     </div>
 
-                    <div className="bg-[#1A1A1A] border border-white/5 rounded-xl p-4 space-y-3">
+                    <div className="bg-[#1A1A1A] border border-white/5 rounded-xl p-3.5 sm:p-4 space-y-3">
                       <h4 className="text-xs font-bold text-white uppercase tracking-wider">Asset Download Records</h4>
-                      <div className="grid grid-cols-2 gap-3 text-xs">
-                        <div className="p-3 bg-black/40 border border-white/5 rounded-lg flex items-center justify-between">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 text-xs">
+                        <div className="p-2.5 sm:p-3 bg-black/40 border border-white/5 rounded-lg flex items-center justify-between">
                           <span>Expert Advisor (.ex5)</span>
                           <span className={`font-bold ${selectedRecord.binary_downloaded ? "text-emerald-400" : "text-neutral-500"}`}>
                             {selectedRecord.binary_downloaded ? "✓ Downloaded" : "Not Downloaded"}
                           </span>
                         </div>
 
-                        <div className="p-3 bg-black/40 border border-white/5 rounded-lg flex items-center justify-between">
+                        <div className="p-2.5 sm:p-3 bg-black/40 border border-white/5 rounded-lg flex items-center justify-between">
                           <span>Backtest Set Pack</span>
                           <span className={`font-bold ${selectedRecord.backtest_downloaded ? "text-emerald-400" : "text-neutral-500"}`}>
                             {selectedRecord.backtest_downloaded ? "✓ Downloaded" : "Not Downloaded"}
@@ -2833,8 +3320,8 @@ export default function AutoTradeManagerPage() {
 
                 {/* ── TAB 4: LICENSE SECURITY & MANAGEMENT ── */}
                 {drawerTab === "license" && (
-                  <div className="space-y-6">
-                    <div className="bg-[#1A1A1A] border border-white/5 rounded-xl p-5 space-y-4">
+                  <div className="space-y-4 sm:space-y-6">
+                    <div className="bg-[#1A1A1A] border border-white/5 rounded-xl p-4 sm:p-5 space-y-4">
                       <div className="flex items-center justify-between pb-3 border-b border-white/5">
                         <span className="text-xs font-bold text-white uppercase tracking-wider">Encrypted License Key</span>
                         <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${selectedRecord.license_status === "active" ? "bg-emerald-500/20 text-emerald-400" : "bg-rose-500/20 text-rose-400"
@@ -2852,7 +3339,7 @@ export default function AutoTradeManagerPage() {
                               ? selectedRecord.license_key
                               : generateTradifiveLicenseKey(selectedRecord.mt5_account_number)
                           }
-                          className="flex-1 bg-black/60 border border-white/10 rounded-lg px-4 py-2.5 text-sm font-mono font-bold text-white select-all"
+                          className="flex-1 min-w-0 bg-black/60 border border-white/10 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-mono font-bold text-white select-all truncate"
                         />
                         <button
                           type="button"
@@ -2863,13 +3350,13 @@ export default function AutoTradeManagerPage() {
                             navigator.clipboard.writeText(keyToCopy);
                             toast.success("Cryptographic License Key copied!");
                           }}
-                          className="px-3.5 py-2.5 bg-neutral-800 hover:bg-neutral-700 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                          className="px-3 sm:px-3.5 py-2 sm:py-2.5 bg-neutral-800 hover:bg-neutral-700 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer shrink-0"
                         >
                           <Copy size={13} /> Copy
                         </button>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-4 pt-2 text-xs">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-4 pt-2 text-xs">
                         <div>
                           <span className="text-[10px] text-neutral-500 uppercase">Hardware / Account Binding</span>
                           <div className="font-mono font-bold text-emerald-400 mt-0.5">#{selectedRecord.bound_account || selectedRecord.mt5_account_number}</div>
@@ -2882,19 +3369,19 @@ export default function AutoTradeManagerPage() {
                       </div>
                     </div>
 
-                    <div className="bg-[#1A1A1A] border border-white/5 rounded-xl p-4 space-y-3">
+                    <div className="bg-[#1A1A1A] border border-white/5 rounded-xl p-3.5 sm:p-4 space-y-3">
                       <h4 className="text-xs font-bold text-white uppercase tracking-wider">Admin License Actions</h4>
-                      <div className="flex flex-wrap gap-2.5">
+                      <div className="flex flex-col sm:flex-row gap-2 sm:gap-2.5">
                         <button
                           onClick={() => regenerateLicenseKey(selectedRecord)}
-                          className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg flex items-center gap-2"
+                          className="w-full sm:w-auto px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg flex items-center justify-center gap-2"
                         >
                           <Key size={13} /> Re-generate / Re-issue License
                         </button>
 
                         <button
                           onClick={() => toggleLicenseStatus(selectedRecord)}
-                          className={`px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 text-white ${selectedRecord.license_status === "active" ? "bg-rose-600 hover:bg-rose-500" : "bg-emerald-600 hover:bg-emerald-500"
+                          className={`w-full sm:w-auto px-4 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-2 text-white ${selectedRecord.license_status === "active" ? "bg-rose-600 hover:bg-rose-500" : "bg-emerald-600 hover:bg-emerald-500"
                             }`}
                         >
                           {selectedRecord.license_status === "active" ? <Lock size={13} /> : <Unlock size={13} />}
@@ -2908,7 +3395,7 @@ export default function AutoTradeManagerPage() {
                 {/* ── TAB 5: ADMIN NOTES ── */}
                 {drawerTab === "notes" && (
                   <div className="space-y-4">
-                    <div className="bg-[#1A1A1A] border border-white/5 rounded-xl p-4 space-y-3">
+                    <div className="bg-[#1A1A1A] border border-white/5 rounded-xl p-3.5 sm:p-4 space-y-3">
                       <h4 className="text-xs font-bold text-white uppercase tracking-wider">Internal Admin Log & Notes</h4>
                       <textarea
                         defaultValue={selectedRecord.admin_notes || ""}
@@ -2922,7 +3409,7 @@ export default function AutoTradeManagerPage() {
                           const el = document.getElementById("admin-notes-textarea") as HTMLTextAreaElement;
                           if (el) saveNotes(el.value);
                         }}
-                        className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold"
+                        className="w-full sm:w-auto px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold"
                       >
                         Save Admin Notes
                       </button>
@@ -2938,12 +3425,12 @@ export default function AutoTradeManagerPage() {
       {/* ── MANUAL ADD / ISSUE LICENSE MODAL ── */}
       <AnimatePresence>
         {isAddModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-3 sm:p-4">
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="w-full max-w-lg bg-[#161616] border border-white/10 rounded-2xl p-6 shadow-2xl space-y-5"
+              className="w-full max-w-lg bg-[#161616] border border-white/10 rounded-2xl p-4 sm:p-6 shadow-2xl space-y-4 sm:space-y-5 max-h-[90vh] overflow-y-auto"
             >
               <div className="flex items-center justify-between pb-3 border-b border-white/10">
                 <h3 className="text-base font-bold text-white flex items-center gap-2">
@@ -2981,7 +3468,7 @@ export default function AutoTradeManagerPage() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="text-neutral-400 font-semibold block mb-1">MT5 Account Number</label>
                     <input
@@ -3010,7 +3497,7 @@ export default function AutoTradeManagerPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="text-neutral-400 font-semibold block mb-1">Algorithm</label>
                     <select
@@ -3111,84 +3598,84 @@ export default function AutoTradeManagerPage() {
       {/* ── PHOTO PROOF LIGHTBOX / ZOOM INSPECTION MODAL ── */}
       <AnimatePresence>
         {previewModalProof && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-black/85 backdrop-blur-md">
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[#161616] border border-white/10 rounded-2xl w-full max-w-4xl max-h-[92vh] overflow-hidden flex flex-col shadow-2xl"
+              className="bg-[#161616] border border-white/10 rounded-2xl w-full max-w-4xl max-h-[94vh] overflow-y-auto flex flex-col shadow-2xl"
             >
               {/* Header */}
-              <div className="p-4 border-b border-white/10 bg-[#1A1A1A] flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center shrink-0">
-                    <ImageIcon size={18} />
+              <div className="p-3.5 sm:p-4 border-b border-white/10 bg-[#1A1A1A] flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                  <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center shrink-0">
+                    <ImageIcon size={16} />
                   </div>
-                  <div>
-                    <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                      IB Transfer Photo Verification
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${previewModalProof.status === "approved"
+                  <div className="min-w-0">
+                    <h3 className="text-xs sm:text-sm font-bold text-white flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                      <span>IB Photo Verification</span>
+                      <span className={`text-[9px] sm:text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${previewModalProof.status === "approved"
                           ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
                           : previewModalProof.status === "rejected"
                             ? "bg-rose-500/20 text-rose-400 border border-rose-500/30"
                             : "bg-amber-500/20 text-amber-300 border border-amber-500/30"
                         }`}>
                         {previewModalProof.status === "approved"
-                          ? "✓ Approved Under Tradifive"
+                          ? "✓ Approved"
                           : previewModalProof.status === "rejected"
                             ? "✗ Rejected"
-                            : "⏳ Pending Review"}
+                            : "⏳ Pending"}
                       </span>
                     </h3>
-                    <p className="text-[11px] text-neutral-400">
-                      Trader: <strong className="text-white">{previewModalProof.user_name}</strong> ({previewModalProof.user_email}) · MT5: <span className="font-mono text-emerald-400 font-bold">#{previewModalProof.mt5_account_number}</span> ({previewModalProof.broker_name})
+                    <p className="text-[10px] sm:text-[11px] text-neutral-400 truncate">
+                      {previewModalProof.user_name} · <span className="font-mono text-emerald-400 font-bold">#{previewModalProof.mt5_account_number}</span> ({previewModalProof.broker_name})
                     </p>
                   </div>
                 </div>
 
                 <button
                   onClick={() => setPreviewModalProof(null)}
-                  className="w-8 h-8 rounded-lg bg-neutral-800 text-neutral-400 hover:text-white flex items-center justify-center transition-colors"
+                  className="w-8 h-8 rounded-lg bg-neutral-800 text-neutral-400 hover:text-white flex items-center justify-center transition-colors shrink-0"
                 >
                   ✕
                 </button>
               </div>
 
               {/* Main Content Area */}
-              <div className="flex-1 overflow-y-auto p-4 sm:p-5 grid grid-cols-1 lg:grid-cols-3 gap-5">
+              <div className="flex-1 p-3.5 sm:p-5 grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5">
                 {/* Left/Main Column: Image Viewer */}
                 <div className="lg:col-span-2 space-y-3 flex flex-col justify-center">
-                  <div className="relative rounded-xl overflow-hidden bg-black/80 border border-white/10 flex items-center justify-center max-h-[60vh] group">
+                  <div className="relative rounded-xl overflow-hidden bg-black/80 border border-white/10 flex items-center justify-center max-h-[45vh] sm:max-h-[60vh] group">
                     <img
                       src={previewModalProof.proof_image_url}
                       alt="Full Screenshot Proof"
-                      className="max-h-[58vh] w-auto object-contain select-none"
+                      className="max-h-[44vh] sm:max-h-[58vh] w-auto object-contain select-none"
                     />
                     <a
                       href={previewModalProof.proof_image_url}
                       target="_blank"
                       rel="noreferrer"
-                      className="absolute top-3 right-3 px-2.5 py-1.5 rounded-lg bg-black/70 hover:bg-black/90 text-white text-[11px] font-semibold border border-white/10 flex items-center gap-1.5 backdrop-blur-sm transition-all"
+                      className="absolute top-2.5 right-2.5 px-2.5 py-1.5 rounded-lg bg-black/70 hover:bg-black/90 text-white text-[10px] sm:text-[11px] font-semibold border border-white/10 flex items-center gap-1.5 backdrop-blur-sm transition-all"
                     >
                       <ExternalLink size={12} /> Open Full Size
                     </a>
                   </div>
-                  <div className="flex items-center justify-between text-[11px] text-neutral-400 px-1 font-mono">
-                    <span>File: {previewModalProof.proof_filename}</span>
-                    <span>Submitted: {new Date(previewModalProof.submitted_at).toLocaleString()}</span>
+                  <div className="flex items-center justify-between text-[10px] sm:text-[11px] text-neutral-400 px-1 font-mono">
+                    <span className="truncate max-w-[180px]">File: {previewModalProof.proof_filename}</span>
+                    <span>{new Date(previewModalProof.submitted_at).toLocaleDateString()}</span>
                   </div>
                 </div>
 
                 {/* Right Column: Verification Dossier & Decision Controls */}
-                <div className="space-y-4 flex flex-col justify-between">
-                  <div className="space-y-3.5">
+                <div className="space-y-3.5 sm:space-y-4 flex flex-col justify-between">
+                  <div className="space-y-3">
                     {/* Compliance Checklist Box */}
-                    <div className="bg-[#1A1A1A] border border-white/5 rounded-xl p-3.5 space-y-2.5">
-                      <h4 className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 flex items-center gap-1.5">
+                    <div className="bg-[#1A1A1A] border border-white/5 rounded-xl p-3 sm:p-3.5 space-y-2">
+                      <h4 className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-neutral-400 flex items-center gap-1.5">
                         <ShieldCheck size={13} className="text-blue-400" />
                         Verification Checklist
                       </h4>
-                      <div className="space-y-2 text-xs">
+                      <div className="space-y-1.5 text-xs">
                         <div className="p-2 rounded-lg bg-black/40 border border-white/5 flex items-center justify-between">
                           <span className="text-neutral-400">Target Broker:</span>
                           <span className="font-bold text-white">{previewModalProof.broker_name}</span>
@@ -3202,31 +3689,31 @@ export default function AutoTradeManagerPage() {
                           <span className="font-mono font-bold text-emerald-400">TRDF940182</span>
                         </div>
                       </div>
-                      <p className="text-[10px] text-neutral-500 leading-normal pt-1">
-                        Ensure the screenshot explicitly verifies that MT5 account <strong className="text-white">#{previewModalProof.mt5_account_number}</strong> is linked under Tradifive Partner ID <strong className="text-emerald-400">TRDF940182</strong>.
+                      <p className="text-[10px] text-neutral-500 leading-normal pt-0.5">
+                        Verify MT5 account <strong className="text-white">#{previewModalProof.mt5_account_number}</strong> is linked under Tradifive Partner ID <strong className="text-emerald-400">TRDF940182</strong>.
                       </p>
                     </div>
 
                     {/* User Remarks */}
-                    <div className="bg-[#1A1A1A] border border-white/5 rounded-xl p-3.5 space-y-1.5">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 block">
+                    <div className="bg-[#1A1A1A] border border-white/5 rounded-xl p-3 sm:p-3.5 space-y-1">
+                      <span className="text-[9.5px] sm:text-[10px] font-bold uppercase tracking-wider text-neutral-400 block">
                         Trader Notes
                       </span>
                       <p className="text-xs text-neutral-300 italic leading-relaxed">
-                        "{previewModalProof.remarks || "No additional remarks submitted by trader."}"
+                        "{previewModalProof.remarks || "No remarks provided."}"
                       </p>
                     </div>
 
                     {/* Audit Info if Reviewed */}
                     {previewModalProof.reviewed_at && (
-                      <div className="bg-[#1A1A1A] border border-white/5 rounded-xl p-3.5 space-y-1 text-xs">
-                        <span className="text-[10px] font-bold uppercase text-neutral-400 block">
+                      <div className="bg-[#1A1A1A] border border-white/5 rounded-xl p-3 sm:p-3.5 space-y-1 text-xs">
+                        <span className="text-[9.5px] sm:text-[10px] font-bold uppercase text-neutral-400 block">
                           Review History
                         </span>
                         <div className="text-[11px] text-neutral-300">
-                          Reviewed by: <strong className="text-white">{previewModalProof.reviewer_name || "Admin"}</strong>
+                          By: <strong className="text-white">{previewModalProof.reviewer_name || "Admin"}</strong>
                         </div>
-                        <div className="text-[10px] text-neutral-500">
+                        <div className="text-[10px] text-neutral-500 font-mono">
                           {new Date(previewModalProof.reviewed_at).toLocaleString()}
                         </div>
                         {previewModalProof.reviewer_notes && (
@@ -3254,7 +3741,7 @@ export default function AutoTradeManagerPage() {
                       }}
                       className="w-full py-2.5 bg-rose-950/60 hover:bg-rose-900 border border-rose-500/30 text-rose-300 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all"
                     >
-                      <X size={14} /> Reject Proof (Request Clearer Copy)
+                      <X size={14} /> Reject Proof (Request New Copy)
                     </button>
                   </div>
                 </div>
@@ -3267,20 +3754,20 @@ export default function AutoTradeManagerPage() {
       {/* ── REJECTION FEEDBACK DIALOG MODAL ── */}
       <AnimatePresence>
         {rejectModalProof && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md">
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[#161616] border border-rose-500/30 rounded-2xl w-full max-w-md overflow-hidden p-5 space-y-4 shadow-2xl"
+              className="bg-[#161616] border border-rose-500/30 rounded-2xl w-full max-w-md overflow-hidden p-4 sm:p-5 space-y-3.5 sm:space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto"
             >
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-rose-500/20 text-rose-400 border border-rose-500/30 flex items-center justify-center shrink-0">
                   <XCircle size={20} />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <h3 className="text-sm font-bold text-white">Reject Transfer Proof</h3>
-                  <p className="text-xs text-neutral-400">
+                  <p className="text-xs text-neutral-400 truncate">
                     Account <strong className="text-white font-mono">#{rejectModalProof.mt5_account_number}</strong> ({rejectModalProof.user_name})
                   </p>
                 </div>
@@ -3352,50 +3839,50 @@ export default function AutoTradeManagerPage() {
       {/* ── PREVIEW PAYMENT PROOF SCREENSHOT MODAL ── */}
       <AnimatePresence>
         {previewPaymentProof && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-black/85 backdrop-blur-md">
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[#161616] border border-white/10 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]"
+              className="bg-[#161616] border border-white/10 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col max-h-[92vh]"
             >
-              <div className="p-4 border-b border-white/10 flex items-center justify-between bg-[#1B1B1B]">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center">
+              <div className="p-3.5 sm:p-4 border-b border-white/10 flex items-center justify-between bg-[#1B1B1B] gap-2">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center shrink-0">
                     <CreditCard size={15} />
                   </div>
-                  <div>
-                    <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                      ₹99,999 Payment Proof · UTR #{previewPaymentProof.utr_number}
+                  <div className="min-w-0">
+                    <h3 className="text-xs sm:text-sm font-bold text-white flex items-center gap-1.5 truncate">
+                      ₹99,999 Proof · UTR #{previewPaymentProof.utr_number}
                     </h3>
-                    <p className="text-[11px] text-neutral-400">
-                      Client: <strong className="text-white">{previewPaymentProof.user_name}</strong> ({previewPaymentProof.user_email}) · MT5: <strong className="font-mono text-emerald-400">{previewPaymentProof.mt5_account_number || "Unbound"}</strong>
+                    <p className="text-[10px] sm:text-[11px] text-neutral-400 truncate">
+                      {previewPaymentProof.user_name} · MT5: <strong className="font-mono text-emerald-400">{previewPaymentProof.mt5_account_number || "Unbound"}</strong>
                     </p>
                   </div>
                 </div>
                 <button
                   onClick={() => setPreviewPaymentProof(null)}
-                  className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white flex items-center justify-center transition-colors"
+                  className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white flex items-center justify-center transition-colors shrink-0"
                 >
                   <X size={15} />
                 </button>
               </div>
 
-              <div className="p-4 overflow-y-auto flex-1 flex flex-col items-center justify-center bg-black/60">
+              <div className="p-3 sm:p-4 overflow-y-auto flex-1 flex flex-col items-center justify-center bg-black/60">
                 {previewPaymentProof.proof_file ? (
                   <img
                     src={previewPaymentProof.proof_file}
                     alt="Payment Proof Full"
-                    className="max-h-[55vh] w-auto object-contain rounded-xl border border-white/10 shadow-lg"
+                    className="max-h-[48vh] sm:max-h-[55vh] w-auto object-contain rounded-xl border border-white/10 shadow-lg"
                   />
                 ) : (
-                  <div className="p-12 text-center text-neutral-500">No proof image available</div>
+                  <div className="p-12 text-center text-neutral-500 text-xs">No proof image available</div>
                 )}
               </div>
 
-              <div className="p-4 border-t border-white/10 bg-[#181818] flex items-center justify-between gap-3 flex-wrap">
+              <div className="p-3.5 sm:p-4 border-t border-white/10 bg-[#181818] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="text-xs">
-                  <span className="text-[10px] text-neutral-500 uppercase block font-semibold">Payment Method & Amount</span>
+                  <span className="text-[9.5px] sm:text-[10px] text-neutral-500 uppercase block font-semibold">Payment Method & Amount</span>
                   <span className="font-bold text-white">
                     {previewPaymentProof.method === "upi" ? "PhonePe / UPI" : "Bank Transfer"} · <strong className="font-mono text-emerald-400">₹99,999</strong>
                   </span>
@@ -3407,7 +3894,7 @@ export default function AutoTradeManagerPage() {
                       setRejectModalPayment(previewPaymentProof);
                       setPaymentRejectReason("");
                     }}
-                    className="px-4 py-2 bg-rose-950/60 hover:bg-rose-900 border border-rose-500/30 text-rose-300 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all"
+                    className="flex-1 sm:flex-none px-3.5 py-2 bg-rose-950/60 hover:bg-rose-900 border border-rose-500/30 text-rose-300 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all"
                   >
                     <X size={13} /> Reject Payment
                   </button>
@@ -3416,9 +3903,9 @@ export default function AutoTradeManagerPage() {
                       handleApprovePayment(previewPaymentProof);
                       setPreviewPaymentProof(null);
                     }}
-                    className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all shadow-md"
+                    className="flex-1 sm:flex-none px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-md"
                   >
-                    <Check size={14} /> Approve & Issue License Key
+                    <Check size={14} /> Approve & Issue Key
                   </button>
                 </div>
               </div>
@@ -3430,20 +3917,20 @@ export default function AutoTradeManagerPage() {
       {/* ── REJECTION PAYMENT MODAL ── */}
       <AnimatePresence>
         {rejectModalPayment && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md">
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[#161616] border border-rose-500/30 rounded-2xl w-full max-w-md overflow-hidden p-5 space-y-4 shadow-2xl"
+              className="bg-[#161616] border border-rose-500/30 rounded-2xl w-full max-w-md overflow-hidden p-4 sm:p-5 space-y-3.5 sm:space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto"
             >
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-rose-500/20 text-rose-400 border border-rose-500/30 flex items-center justify-center shrink-0">
                   <XCircle size={20} />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <h3 className="text-sm font-bold text-white">Reject ₹99,999 Payment</h3>
-                  <p className="text-xs text-neutral-400">
+                  <p className="text-xs text-neutral-400 truncate">
                     UTR: <strong className="text-white font-mono">{rejectModalPayment.utr_number}</strong> ({rejectModalPayment.user_name})
                   </p>
                 </div>
