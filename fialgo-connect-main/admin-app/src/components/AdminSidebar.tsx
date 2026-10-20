@@ -394,7 +394,7 @@ export default function AdminSidebar({ mobileOpen = false, onClose }: AdminSideb
   return (
     <>
       {/* Desktop Persistent Sidebar */}
-      <aside className="hidden lg:flex w-[260px] h-screen bg-[#1E1E1E] border-r border-white/5 flex-col shrink-0 select-none p-4 relative z-[100]">
+      <aside className="hidden lg:flex w-[260px] h-screen bg-[#1E1E1E] border-r border-white/5 flex-col shrink-0 select-none p-4 relative z-20">
         {renderSidebarInner(false)}
       </aside>
 

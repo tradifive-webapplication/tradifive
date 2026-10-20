@@ -269,7 +269,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <div className="flex-1 flex flex-col min-w-0">
         {/* Topbar - Sleek Minimal & Ergonomic */}
         {!isEmbed && (
-          <header className="h-14 sm:h-15 flex items-center justify-between px-4 sm:px-6 md:px-8 bg-[#121214]/95 backdrop-blur-md border-b border-white/[0.08] relative z-40 select-none shrink-0">
+          <header className="h-14 flex items-center justify-between px-4 sm:px-6 md:px-8 bg-[#121214]/95 backdrop-blur-md border-b border-white/[0.08] relative z-30 select-none shrink-0">
             {/* Left: Hamburger (Mobile) + Breadcrumb */}
             <div className="flex items-center gap-2.5 sm:gap-3 shrink-0 min-w-0">
               <button

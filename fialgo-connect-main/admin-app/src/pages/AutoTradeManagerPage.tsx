@@ -51,6 +51,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import { createPortal } from "react-dom";
 
 export interface IbTransferProofRequest {
   id: string;
@@ -2933,87 +2934,92 @@ export default function AutoTradeManagerPage() {
       )}
 
       {/* ── COMPREHENSIVE INSPECTION MODAL / DRAWER ("EACH AND EVERYTHING") ── */}
-      <AnimatePresence>
-        {isDrawerOpen && selectedRecord && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-end bg-black/75 backdrop-blur-sm">
-            <motion.div
-              initial={{ x: "100%", opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: "100%", opacity: 0 }}
-              transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="w-full max-w-2xl h-full bg-[#141416] border-l border-white/10 shadow-2xl flex flex-col overflow-hidden"
+      {typeof document !== "undefined" && createPortal(
+        <AnimatePresence>
+          {isDrawerOpen && selectedRecord && (
+            <div
+              className="fixed inset-0 z-[1000] flex items-center justify-end bg-black/80 backdrop-blur-sm"
+              onClick={() => setIsDrawerOpen(false)}
             >
-              {/* Drawer Top Header */}
-              <div className="border-b border-white/[0.08] bg-[#161618] px-6 py-4 flex items-center justify-between shrink-0">
-                <div className="flex items-center gap-3.5 min-w-0">
-                  <div className="relative shrink-0">
-                    <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500/20 to-indigo-500/20 border border-blue-500/30 flex items-center justify-center text-blue-400 font-bold text-base shadow-inner">
-                      {selectedRecord.user_name.charAt(0).toUpperCase()}
+              <motion.div
+                initial={{ x: "100%", opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{ x: "100%", opacity: 0 }}
+                transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                onClick={(e) => e.stopPropagation()}
+                className="w-full max-w-2xl h-full bg-[#141416] border-l border-white/10 shadow-2xl flex flex-col overflow-hidden"
+              >
+                {/* Drawer Top Header */}
+                <div className="border-b border-white/[0.08] bg-[#161618] px-6 py-4 flex items-center justify-between shrink-0">
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="relative shrink-0">
+                      <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500/20 to-indigo-500/20 border border-blue-500/30 flex items-center justify-center text-blue-400 font-bold text-base shadow-inner">
+                        {selectedRecord.user_name.charAt(0).toUpperCase()}
+                      </div>
+                      <span className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#161618] ${selectedRecord.algo_execution_active ? "bg-emerald-500 animate-pulse" : "bg-neutral-500"}`} />
                     </div>
-                    <span className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#161618] ${selectedRecord.algo_execution_active ? "bg-emerald-500 animate-pulse" : "bg-neutral-500"}`} />
+
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="text-base font-bold text-white tracking-tight truncate">
+                          {selectedRecord.user_name}
+                        </h3>
+                        {selectedRecord.is_under_tradifive ? (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                            <CheckCircle2 size={11} /> Under Tradifive
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-rose-500/15 text-rose-400 border border-rose-500/30">
+                            <XCircle size={11} /> Outside Tradifive
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 mt-0.5 text-xs text-neutral-400 font-mono truncate">
+                        <span>{selectedRecord.user_email}</span>
+                        <span className="text-neutral-600">•</span>
+                        <span className="text-emerald-400 font-bold">#{selectedRecord.mt5_account_number}</span>
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="text-base font-bold text-white tracking-tight truncate">
-                        {selectedRecord.user_name}
-                      </h3>
-                      {selectedRecord.is_under_tradifive ? (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                          <CheckCircle2 size={11} /> Under Tradifive
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-rose-500/15 text-rose-400 border border-rose-500/30">
-                          <XCircle size={11} /> Outside Tradifive
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2 mt-0.5 text-xs text-neutral-400 font-mono truncate">
-                      <span>{selectedRecord.user_email}</span>
-                      <span className="text-neutral-600">•</span>
-                      <span className="text-emerald-400 font-bold">#{selectedRecord.mt5_account_number}</span>
-                    </div>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsDrawerOpen(false)}
+                    className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 active:bg-white/15 text-neutral-400 hover:text-white border border-white/5 flex items-center justify-center transition-all cursor-pointer"
+                    title="Close Drawer"
+                  >
+                    <X size={16} />
+                  </button>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => setIsDrawerOpen(false)}
-                  className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 active:bg-white/15 text-neutral-400 hover:text-white border border-white/5 flex items-center justify-center transition-all cursor-pointer"
-                  title="Close Drawer"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-
-              {/* Drawer Navigation Tabs - Sleek Single-Line Pill Strip */}
-              <div className="border-b border-white/[0.08] bg-[#121214] px-4 py-2.5 shrink-0 overflow-x-auto scrollbar-none flex items-center gap-1.5">
-                {[
-                  { id: "overview", label: "Overview", icon: User },
-                  { id: "ib_broker", label: "Tradifive IB & Broker", icon: ShieldCheck },
-                  { id: "algo_purchase", label: "Algo Purchased", icon: Zap },
-                  { id: "license", label: "License Security", icon: Key },
-                  { id: "notes", label: "Admin Notes", icon: Info },
-                ].map((tab) => {
-                  const Icon = tab.icon;
-                  const isActive = drawerTab === tab.id;
-                  return (
-                    <button
-                      key={tab.id}
-                      type="button"
-                      onClick={() => setDrawerTab(tab.id as any)}
-                      className={`whitespace-nowrap shrink-0 px-3.5 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
-                        isActive
-                          ? "bg-blue-600/15 text-blue-400 border border-blue-500/30 shadow-sm"
-                          : "text-neutral-400 hover:text-white hover:bg-white/5 border border-transparent"
-                      }`}
-                    >
-                      <Icon size={14} className={isActive ? "text-blue-400" : "text-neutral-500"} />
-                      <span>{tab.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
+                {/* Drawer Navigation Tabs - Sleek Single-Line Pill Strip */}
+                <div className="border-b border-white/[0.08] bg-[#121214] px-4 py-2 shrink-0 overflow-x-auto scrollbar-hide flex items-center gap-1.5">
+                  {[
+                    { id: "overview", label: "Overview", icon: User },
+                    { id: "ib_broker", label: "Tradifive IB", icon: ShieldCheck },
+                    { id: "algo_purchase", label: "Algo Purchases", icon: Zap },
+                    { id: "license", label: "License Security", icon: Key },
+                    { id: "notes", label: "Admin Notes", icon: Info },
+                  ].map((tab) => {
+                    const Icon = tab.icon;
+                    const isActive = drawerTab === tab.id;
+                    return (
+                      <button
+                        key={tab.id}
+                        type="button"
+                        onClick={() => setDrawerTab(tab.id as any)}
+                        className={`whitespace-nowrap shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                          isActive
+                            ? "bg-blue-600/15 text-blue-400 border border-blue-500/30 shadow-sm"
+                            : "text-neutral-400 hover:text-white hover:bg-white/5 border border-transparent"
+                        }`}
+                      >
+                        <Icon size={13} className={isActive ? "text-blue-400" : "text-neutral-500"} />
+                        <span>{tab.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
 
               {/* Drawer Content Body */}
               <div className="flex-1 overflow-y-auto p-3.5 sm:p-6 space-y-4 sm:space-y-6 pb-24 sm:pb-6">
@@ -3420,12 +3426,15 @@ export default function AutoTradeManagerPage() {
             </motion.div>
           </div>
         )}
-      </AnimatePresence>
+      </AnimatePresence>,
+      document.body
+    )}
 
       {/* ── MANUAL ADD / ISSUE LICENSE MODAL ── */}
-      <AnimatePresence>
-        {isAddModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-3 sm:p-4">
+      {typeof document !== "undefined" && createPortal(
+        <AnimatePresence>
+          {isAddModalOpen && (
+            <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/80 backdrop-blur-sm p-3 sm:p-4">
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -3593,12 +3602,15 @@ export default function AutoTradeManagerPage() {
             </motion.div>
           </div>
         )}
-      </AnimatePresence>
+      </AnimatePresence>,
+      document.body
+    )}
 
       {/* ── PHOTO PROOF LIGHTBOX / ZOOM INSPECTION MODAL ── */}
-      <AnimatePresence>
-        {previewModalProof && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-black/85 backdrop-blur-md">
+      {typeof document !== "undefined" && createPortal(
+        <AnimatePresence>
+          {previewModalProof && (
+            <div className="fixed inset-0 z-[1000] flex items-center justify-center p-2.5 sm:p-4 bg-black/85 backdrop-blur-md">
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -3749,12 +3761,15 @@ export default function AutoTradeManagerPage() {
             </motion.div>
           </div>
         )}
-      </AnimatePresence>
+      </AnimatePresence>,
+      document.body
+    )}
 
       {/* ── REJECTION FEEDBACK DIALOG MODAL ── */}
-      <AnimatePresence>
-        {rejectModalProof && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md">
+      {typeof document !== "undefined" && createPortal(
+        <AnimatePresence>
+          {rejectModalProof && (
+            <div className="fixed inset-0 z-[1000] flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md">
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -3834,12 +3849,15 @@ export default function AutoTradeManagerPage() {
             </motion.div>
           </div>
         )}
-      </AnimatePresence>
+      </AnimatePresence>,
+      document.body
+    )}
 
       {/* ── PREVIEW PAYMENT PROOF SCREENSHOT MODAL ── */}
-      <AnimatePresence>
-        {previewPaymentProof && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-black/85 backdrop-blur-md">
+      {typeof document !== "undefined" && createPortal(
+        <AnimatePresence>
+          {previewPaymentProof && (
+            <div className="fixed inset-0 z-[1000] flex items-center justify-center p-2.5 sm:p-4 bg-black/85 backdrop-blur-md">
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -3912,12 +3930,15 @@ export default function AutoTradeManagerPage() {
             </motion.div>
           </div>
         )}
-      </AnimatePresence>
+      </AnimatePresence>,
+      document.body
+    )}
 
       {/* ── REJECTION PAYMENT MODAL ── */}
-      <AnimatePresence>
-        {rejectModalPayment && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md">
+      {typeof document !== "undefined" && createPortal(
+        <AnimatePresence>
+          {rejectModalPayment && (
+            <div className="fixed inset-0 z-[1000] flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md">
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -3997,7 +4018,9 @@ export default function AutoTradeManagerPage() {
             </motion.div>
           </div>
         )}
-      </AnimatePresence>
+      </AnimatePresence>,
+      document.body
+    )}
     </div>
   );
 }
