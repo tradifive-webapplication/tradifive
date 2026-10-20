@@ -227,7 +227,7 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
   const navigate = useNavigate();
   const [downloadingDemo, setDownloadingDemo] = useState(false);
   const [downloadingBacktest, setDownloadingBacktest] = useState(false);
-  const [mobileTab, setMobileTab] = useState<'specs' | 'license'>('specs');
+  const [mobileTab, setMobileTab] = useState<'specs' | 'license'>('license');
   const [selectedTier, setSelectedTier] = useState<"lifetime" | "profit_share_50">("lifetime");
 
   const specRow1 = [
@@ -474,25 +474,61 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
             <span>MetaTrader 5 Automated Gold Algo</span>
           </div>
 
-          {/* Mobile Segmented Tab Switcher: Specifications vs License */}
+          {/* Mobile Segmented Tab Switcher: Plans & Pricing (2 Tiers) vs Specifications */}
           <div
+            className="flex lg:hidden"
             style={{
               width: "100%",
-              maxWidth: 380,
+              maxWidth: 390,
               marginTop: 18,
               background: "#111111",
               border: "1px solid rgba(255, 255, 255, 0.08)",
               borderRadius: 14,
               padding: 4,
-              display: "flex",
               gap: 4,
             }}
           >
             <button
+              onClick={() => setMobileTab('license')}
+              style={{
+                flex: 1,
+                padding: "10px 12px",
+                borderRadius: 10,
+                border: "none",
+                cursor: "pointer",
+                background: mobileTab === 'license' ? "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)" : "transparent",
+                boxShadow: mobileTab === 'license' ? "inset 0 1px 0 rgba(255,255,255,0.1), 0 2px 4px rgba(0,0,0,0.3)" : "none",
+                color: mobileTab === 'license' ? "#60a5fa" : "rgba(255, 255, 255, 0.5)",
+                fontSize: 12,
+                fontWeight: 700,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 6,
+                transition: "all 0.2s ease",
+              }}
+            >
+              <Zap size={14} />
+              <span>Plans & Pricing</span>
+              <span
+                style={{
+                  fontSize: 9,
+                  fontWeight: 700,
+                  padding: "1px 6px",
+                  borderRadius: 6,
+                  background: mobileTab === 'license' ? "rgba(96, 165, 250, 0.18)" : "rgba(255, 255, 255, 0.08)",
+                  color: mobileTab === 'license' ? "#93c5fd" : "rgba(255, 255, 255, 0.4)",
+                  border: mobileTab === 'license' ? "1px solid rgba(96, 165, 250, 0.3)" : "1px solid transparent",
+                }}
+              >
+                2 Tiers
+              </span>
+            </button>
+            <button
               onClick={() => setMobileTab('specs')}
               style={{
                 flex: 1,
-                padding: "9px 12px",
+                padding: "10px 12px",
                 borderRadius: 10,
                 border: "none",
                 cursor: "pointer",
@@ -510,29 +546,6 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
             >
               <Package size={14} />
               <span>Specifications</span>
-            </button>
-            <button
-              onClick={() => setMobileTab('license')}
-              style={{
-                flex: 1,
-                padding: "9px 12px",
-                borderRadius: 10,
-                border: "none",
-                cursor: "pointer",
-                background: mobileTab === 'license' ? "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)" : "transparent",
-                boxShadow: mobileTab === 'license' ? "inset 0 1px 0 rgba(255,255,255,0.1), 0 2px 4px rgba(0,0,0,0.3)" : "none",
-                color: mobileTab === 'license' ? "#60a5fa" : "rgba(255, 255, 255, 0.5)",
-                fontSize: 12,
-                fontWeight: 700,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 6,
-                transition: "all 0.2s ease",
-              }}
-            >
-              <Zap size={14} />
-              <span>License Access</span>
             </button>
           </div>
         </div>
@@ -835,7 +848,7 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                     transition: "all 0.2s ease",
                   }}
                 >
-                  <span>Proceed to License & Pricing</span>
+                  <span>View Plans & Pricing (2 Tiers)</span>
                   <ArrowRight size={14} />
                 </button>
               </div>
@@ -863,7 +876,7 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                     style={{
                       background: "transparent",
                       border: "none",
-                      color: "rgba(255, 255, 255, 0.55)",
+                      color: "rgba(255, 255, 255, 0.6)",
                       fontSize: 12,
                       fontWeight: 600,
                       cursor: "pointer",
@@ -873,7 +886,7 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                       padding: 0,
                     }}
                   >
-                    <span>&larr; Back to Specifications</span>
+                    <span>&larr; View Technical Specifications</span>
                   </button>
                 </div>
 
