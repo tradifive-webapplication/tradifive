@@ -38,38 +38,59 @@ export default function PublicNavbar({
   const MOBILE_FEATURES = [
     {
       title: "FiAlgo",
-      category: "AUTOMATED TRADING",
-      desc: "Hands-free automated execution bots.",
+      desc: "Automated MT5 Gold trading bots",
       path: "/features/auto-trade",
-      accentColor: "#38bdf8",
+      icon: Cpu,
+      color: "#38bdf8",
+      bgColor: "rgba(56, 189, 248, 0.12)",
+      borderColor: "rgba(56, 189, 248, 0.25)",
+      badge: "ALGO",
     },
     {
       title: "Risk Guard Protection",
-      category: "CAPITAL PRESERVATION",
-      desc: "Drawdown kill-switch & daily loss limits.",
+      desc: "Drawdown kill-switch & daily limits",
       path: "/features/risk-guard",
-      accentColor: "#34d399",
+      icon: Shield,
+      color: "#34d399",
+      bgColor: "rgba(52, 211, 153, 0.12)",
+      borderColor: "rgba(52, 211, 153, 0.25)",
     },
     {
       title: "Smart Trade Journal",
-      category: "ANALYTICS & METRICS",
-      desc: "Auto broker sync & 40+ analytics metrics.",
+      desc: "Auto broker sync & 40+ metrics",
       path: "/features/smart-journal",
-      accentColor: "#f472b6",
+      icon: BookOpen,
+      color: "#f472b6",
+      bgColor: "rgba(244, 114, 182, 0.12)",
+      borderColor: "rgba(244, 114, 182, 0.25)",
     },
     {
       title: "Community Hub",
-      category: "SOCIAL TRADING",
-      desc: "Connect with verified traders worldwide.",
+      desc: "Verified social trader network",
       path: "/features/community-hub",
-      accentColor: "#818cf8",
+      icon: Users,
+      color: "#818cf8",
+      bgColor: "rgba(129, 140, 248, 0.12)",
+      borderColor: "rgba(129, 140, 248, 0.25)",
     },
     {
       title: "Creator Hub",
-      category: "CREATOR ROOMS",
-      desc: "Curated creator broadcast rooms & verified signals.",
+      desc: "Broadcast rooms & verified signals",
       path: "/features/channels",
-      accentColor: "#fb7185",
+      icon: Radio,
+      color: "#fb7185",
+      bgColor: "rgba(251, 113, 133, 0.12)",
+      borderColor: "rgba(251, 113, 133, 0.25)",
+    },
+    {
+      title: "TradiFive AI",
+      desc: "AI trading engine & market copilot",
+      path: "/features/tradifive-ai",
+      icon: Brain,
+      color: "#c084fc",
+      bgColor: "rgba(192, 132, 252, 0.14)",
+      borderColor: "rgba(192, 132, 252, 0.3)",
+      badge: "AI",
     },
   ];
   const dropdownTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -575,7 +596,17 @@ export default function PublicNavbar({
               <div style={{ height: 1, background: "rgba(255,255,255,0.05)", marginLeft: 24, marginRight: 24 }} />
 
               {/* â”€â”€ Scrollable Content â”€â”€ */}
-              <div style={{ flex: 1, overflowY: "auto", padding: "20px 16px", display: "flex", flexDirection: "column", gap: 2 }}>
+              <div
+                style={{
+                  flex: 1,
+                  overflowY: "auto",
+                  padding: "16px 16px 24px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 4,
+                  WebkitOverflowScrolling: "touch",
+                }}
+              >
 
                 {/* Collapsible Features Dropdown Header */}
                 <button
@@ -585,7 +616,7 @@ export default function PublicNavbar({
                     alignItems: "center",
                     justifyContent: "space-between",
                     width: "100%",
-                    padding: "6px 8px 10px",
+                    padding: "8px 8px 10px",
                     background: "transparent",
                     border: "none",
                     cursor: "pointer",
@@ -598,7 +629,18 @@ export default function PublicNavbar({
                 >
                   <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
                     Features
-                    <span style={{ fontSize: 9, background: "rgba(96, 165, 250, 0.15)", color: "#60a5fa", padding: "1px 6px", borderRadius: 100, fontWeight: 700 }}>5</span>
+                    <span
+                      style={{
+                        fontSize: 9,
+                        background: "rgba(96, 165, 250, 0.15)",
+                        color: "#60a5fa",
+                        padding: "1px 6px",
+                        borderRadius: 100,
+                        fontWeight: 700,
+                      }}
+                    >
+                      {MOBILE_FEATURES.length}
+                    </span>
                   </span>
                   <ChevronDown
                     size={14}
@@ -611,42 +653,104 @@ export default function PublicNavbar({
                 </button>
 
                 {/* Features Items Dropdown List */}
-                <AnimatePresence>
-                  {mobileFeaturesOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-                      style={{ overflow: "hidden", display: "flex", flexDirection: "column", gap: 6, marginBottom: 8 }}
-                    >
-                      {MOBILE_FEATURES.map((feat) => {
-                        return (
-                          <button
-                            key={feat.path}
-                            onClick={() => { setMobileMenuOpen(false); navigate(feat.path); }}
+                {mobileFeaturesOpen && (
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 6,
+                      marginBottom: 10,
+                    }}
+                  >
+                    {MOBILE_FEATURES.map((feat) => {
+                      const Icon = feat.icon;
+                      return (
+                        <button
+                          key={feat.path}
+                          onClick={() => {
+                            setMobileMenuOpen(false);
+                            navigate(feat.path);
+                          }}
+                          style={{
+                            width: "100%",
+                            textAlign: "left",
+                            background: "rgba(255, 255, 255, 0.02)",
+                            border: "1px solid rgba(255, 255, 255, 0.05)",
+                            borderRadius: 12,
+                            padding: "9px 12px",
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 12,
+                            transition: "all 0.15s ease",
+                            outline: "none",
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)";
+                            e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.1)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = "rgba(255, 255, 255, 0.02)";
+                            e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.05)";
+                          }}
+                        >
+                          <div
                             style={{
-                              width: "100%", textAlign: "left",
-                              background: "rgba(255,255,255,0.015)",
-                              border: "1px solid rgba(255,255,255,0.04)",
-                              borderRadius: 14, padding: "12px 14px",
-                              cursor: "pointer",
-                              transition: "all 0.2s ease",
+                              width: 32,
+                              height: 32,
+                              borderRadius: 8,
+                              background: feat.bgColor,
+                              border: `1px solid ${feat.borderColor}`,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              flexShrink: 0,
+                              color: feat.color,
                             }}
                           >
-                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 3 }}>
-                              <div style={{ fontSize: 13.5, fontWeight: 700, color: "#fff", lineHeight: 1.2 }}>{feat.title}</div>
-                              <div style={{ fontSize: 9.5, color: feat.accentColor, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" }}>{feat.category}</div>
+                            <Icon size={15} />
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 6, lineHeight: 1.2 }}>
+                              <span style={{ fontSize: 13.5, fontWeight: 600, color: "#ffffff" }}>
+                                {feat.title}
+                              </span>
+                              {feat.badge && (
+                                <span
+                                  style={{
+                                    fontSize: 8.5,
+                                    fontWeight: 700,
+                                    padding: "1px 5px",
+                                    borderRadius: 4,
+                                    background: feat.bgColor,
+                                    border: `1px solid ${feat.borderColor}`,
+                                    color: feat.color,
+                                    letterSpacing: 0.4,
+                                  }}
+                                >
+                                  {feat.badge}
+                                </span>
+                              )}
                             </div>
-                            <p style={{ fontSize: 11.5, color: "rgba(255,255,255,0.45)", margin: 0, lineHeight: 1.5 }}>
+                            <div
+                              style={{
+                                fontSize: 11,
+                                color: "rgba(255, 255, 255, 0.45)",
+                                marginTop: 2,
+                                whiteSpace: "nowrap",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                              }}
+                            >
                               {feat.desc}
-                            </p>
-                          </button>
-                        );
-                      })}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                            </div>
+                          </div>
+                          <ChevronRight size={13} color="rgba(255, 255, 255, 0.25)" style={{ flexShrink: 0 }} />
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
 
                 {/* Section Label */}
                 <div style={{ padding: "10px 8px 8px", fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.22)", letterSpacing: "0.16em", textTransform: "uppercase" }}>
