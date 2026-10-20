@@ -1629,30 +1629,30 @@ export default function AutoTradeManagerPage() {
             </div>
 
             {/* ── Desktop Data Table (hidden on mobile, visible on md+) ── */}
-            <div className="hidden md:block overflow-x-auto">
-              <table className="w-full min-w-[760px] text-left border-collapse">
+            <div className="hidden md:block overflow-x-auto rounded-xl border border-white/5 bg-[#121214]/60 shadow-xl">
+              <table className="w-full min-w-[1360px] text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-white/5 bg-black/20 text-[9px] font-bold uppercase tracking-[0.2em] text-neutral-500">
-                    <th className="px-4 py-3">User Identity</th>
-                    <th className="px-4 py-3">MT5 Terminal & Broker</th>
-                    <th className="px-4 py-3">Under Tradifive?</th>
-                    <th className="px-4 py-3">Algo Purchased</th>
-                    <th className="px-4 py-3">License Key & Status</th>
-                    <th className="px-4 py-3">Balance / Equity</th>
-                    <th className="px-4 py-3 text-right">Actions</th>
+                  <tr className="border-b border-white/10 bg-[#161618] text-[10px] font-bold uppercase tracking-[0.18em] text-neutral-400 select-none whitespace-nowrap">
+                    <th className="px-5 py-3.5 min-w-[210px]">User Identity</th>
+                    <th className="px-5 py-3.5 min-w-[200px]">MT5 Terminal & Broker</th>
+                    <th className="px-5 py-3.5 min-w-[180px]">Tradifive Status</th>
+                    <th className="px-5 py-3.5 min-w-[220px]">Algo Purchased</th>
+                    <th className="px-5 py-3.5 min-w-[290px]">License Key & Status</th>
+                    <th className="px-5 py-3.5 min-w-[150px]">Balance / Equity</th>
+                    <th className="px-5 py-3.5 min-w-[250px] text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/[0.02] text-xs">
+                <tbody className="divide-y divide-white/[0.04] text-xs">
                   {loading && records.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="px-4 py-12 text-center text-neutral-400">
+                      <td colSpan={7} className="px-5 py-12 text-center text-neutral-400">
                         <RefreshCcw size={18} className="animate-spin mx-auto mb-2 text-blue-400" />
                         Loading Auto Trade registry from Supabase...
                       </td>
                     </tr>
                   ) : filteredRecords.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="px-4 py-12 text-center text-neutral-400">
+                      <td colSpan={7} className="px-5 py-12 text-center text-neutral-400">
                         <Bot size={24} className="mx-auto mb-2 text-neutral-500" />
                         No Auto Trade records match your search criteria.
                       </td>
@@ -1661,23 +1661,23 @@ export default function AutoTradeManagerPage() {
                     filteredRecords.map((record) => (
                       <tr
                         key={record.id}
-                        className="hover:bg-white/[0.02] transition-colors group cursor-pointer"
+                        className="hover:bg-white/[0.03] transition-colors group cursor-pointer border-b border-white/[0.04] last:border-0"
                         onClick={() => {
                           setSelectedRecord(record);
                           setIsDrawerOpen(true);
                         }}
                       >
                         {/* User Identity */}
-                        <td className="px-4 py-3.5">
+                        <td className="px-5 py-3.5 whitespace-nowrap align-middle">
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-bold text-white text-xs shrink-0 shadow-sm">
-                              {record.user_name.charAt(0).toUpperCase()}
+                            <div className="w-9 h-9 rounded-lg bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-bold text-white text-xs shrink-0 shadow-sm ring-1 ring-white/15">
+                              {record.user_name ? record.user_name.charAt(0).toUpperCase() : "U"}
                             </div>
-                            <div>
-                              <div className="font-semibold text-white">
+                            <div className="min-w-0">
+                              <div className="font-semibold text-white text-xs truncate max-w-[160px]">
                                 {record.user_name}
                               </div>
-                              <div className="text-xs text-neutral-400">
+                              <div className="text-[11px] text-neutral-400 font-mono truncate max-w-[160px]">
                                 {record.user_email}
                               </div>
                             </div>
@@ -1685,37 +1685,37 @@ export default function AutoTradeManagerPage() {
                         </td>
 
                         {/* MT5 Terminal & Broker */}
-                        <td className="px-4 py-3.5">
+                        <td className="px-5 py-3.5 whitespace-nowrap align-middle">
                           <div className="space-y-0.5">
-                            <div className="font-mono font-semibold text-neutral-200 flex items-center gap-1.5">
-                              <Server size={12} className="text-neutral-500" />
-                              #{record.mt5_account_number}
+                            <div className="font-mono font-semibold text-neutral-200 text-xs flex items-center gap-1.5">
+                              <Server size={12} className="text-neutral-500 shrink-0" />
+                              <span>#{record.mt5_account_number}</span>
                             </div>
-                            <div className="text-xs text-neutral-400 flex items-center gap-1.5">
-                              <span className="font-medium text-neutral-300">{record.broker_name}</span>
-                              <span className="text-neutral-600">·</span>
-                              <span className="text-neutral-400">{record.broker_server}</span>
+                            <div className="text-[11px] text-neutral-400 flex items-center gap-1.5 truncate max-w-[200px]">
+                              <span className="font-medium text-neutral-300 truncate">{record.broker_name}</span>
+                              <span className="text-neutral-600 shrink-0">·</span>
+                              <span className="text-neutral-400 shrink-0 font-mono text-[10.5px]">{record.broker_server}</span>
                             </div>
                           </div>
                         </td>
 
                         {/* Under Tradifive Status */}
-                        <td className="px-4 py-3.5" onClick={(e) => e.stopPropagation()}>
+                        <td className="px-5 py-3.5 whitespace-nowrap align-middle" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center gap-2">
                             {record.is_under_tradifive ? (
-                              <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-medium">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
                                 <span>Tradifive</span>
-                                <span className="text-[10px] text-neutral-500 font-mono">TRDF940182</span>
+                                <span className="text-[10px] text-emerald-400/80 font-mono font-normal">TRDF940182</span>
                               </div>
                             ) : record.ib_status === "pending_transfer" ? (
-                              <div className="flex items-center gap-1.5 text-xs text-amber-400 font-medium">
-                                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse shrink-0" />
                                 <span>Pending Review</span>
                               </div>
                             ) : (
-                              <div className="flex items-center gap-1.5 text-xs text-neutral-400">
-                                <span className="w-1.5 h-1.5 rounded-full bg-neutral-600" />
+                              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium text-neutral-400 bg-white/5 border border-white/5">
+                                <span className="w-1.5 h-1.5 rounded-full bg-neutral-600 shrink-0" />
                                 <span>Outside IB</span>
                               </div>
                             )}
@@ -1723,7 +1723,7 @@ export default function AutoTradeManagerPage() {
                             <button
                               type="button"
                               onClick={() => toggleUnderTradifive(record)}
-                              className="text-[10px] text-neutral-500 hover:text-white underline ml-1 transition-colors"
+                              className="text-[10.5px] text-neutral-400 hover:text-white underline transition-colors cursor-pointer shrink-0 ml-0.5"
                               title={record.is_under_tradifive ? "Revoke Tradifive link" : "Link under Tradifive"}
                             >
                               {record.is_under_tradifive ? "Revoke" : "Link"}
@@ -1732,47 +1732,52 @@ export default function AutoTradeManagerPage() {
                         </td>
 
                         {/* Algo Purchased */}
-                        <td className="px-4 py-3.5">
+                        <td className="px-5 py-3.5 whitespace-nowrap align-middle">
                           <div>
-                            <div className="font-medium text-white text-xs flex items-center gap-1.5">
-                              <span>{record.algo_name}</span>
+                            <div className="font-semibold text-white text-xs flex items-center gap-1.5">
+                              <span className="truncate max-w-[160px]">{record.algo_name}</span>
                               {record.price_paid > 0 && (
-                                <span className="text-[10px] font-semibold text-emerald-400">${record.price_paid}</span>
+                                <span className="text-[10px] font-bold text-emerald-400 px-1.5 py-0.2 rounded bg-emerald-500/10 border border-emerald-500/20 shrink-0">
+                                  ${record.price_paid}
+                                </span>
                               )}
                             </div>
-                            <div className="text-[11px] text-neutral-500 mt-0.5">
-                              {record.algo_pair} · {record.purchase_tier}
+                            <div className="text-[11px] text-neutral-400 mt-0.5 flex items-center gap-1.5">
+                              <span className="text-neutral-300 font-mono text-[10.5px]">{record.algo_pair}</span>
+                              <span className="text-neutral-600">·</span>
+                              <span>{record.purchase_tier}</span>
                             </div>
                           </div>
                         </td>
 
                         {/* License Key & Status */}
-                        <td className="px-4 py-3.5" onClick={(e) => e.stopPropagation()}>
+                        <td className="px-5 py-3.5 whitespace-nowrap align-middle" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center gap-2">
-                            <span className="font-mono text-xs text-neutral-300">
+                            <span className="font-mono text-xs text-neutral-200 bg-[#1A1A1E] border border-white/10 px-2.5 py-1 rounded-md select-all whitespace-nowrap tracking-wider font-semibold">
                               {record.license_key}
                             </span>
                             {record.license_key !== "UNISSUED" && (
                               <button
+                                type="button"
                                 onClick={() => {
                                   navigator.clipboard.writeText(record.license_key);
                                   toast.success("License key copied!");
                                 }}
-                                className="text-neutral-500 hover:text-white transition-colors"
+                                className="p-1 text-neutral-400 hover:text-white hover:bg-white/10 rounded transition-colors cursor-pointer shrink-0"
                                 title="Copy License Key"
                               >
-                                <Copy size={11} />
+                                <Copy size={12} />
                               </button>
                             )}
                             <span
-                              className={`text-[9px] font-semibold px-1.5 py-0.5 rounded uppercase tracking-wider ml-1 ${
+                              className={`text-[9.5px] font-bold px-2 py-0.5 rounded uppercase tracking-wider shrink-0 ${
                                 record.license_status === "active"
-                                  ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                                  ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
                                   : record.license_status === "expiring"
-                                    ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                                    ? "bg-amber-500/15 text-amber-400 border border-amber-500/30"
                                     : record.license_status === "suspended"
-                                      ? "bg-rose-500/10 text-rose-400 border border-rose-500/20"
-                                      : "bg-white/5 text-neutral-400 border border-white/5"
+                                      ? "bg-rose-500/15 text-rose-400 border border-rose-500/30"
+                                      : "bg-white/5 text-neutral-400 border border-white/10"
                               }`}
                             >
                               {record.license_status}
@@ -1781,7 +1786,7 @@ export default function AutoTradeManagerPage() {
                         </td>
 
                         {/* Balance / Equity */}
-                        <td className="px-4 py-3.5">
+                        <td className="px-5 py-3.5 whitespace-nowrap align-middle">
                           <div className="space-y-0.5 font-mono">
                             <div className="text-white font-bold text-xs flex items-center gap-1">
                               <span>{(record.currency === "INR" || record.currency === "₹") ? "₹" : "$"}{record.balance?.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
@@ -1794,16 +1799,16 @@ export default function AutoTradeManagerPage() {
                         </td>
 
                         {/* Actions */}
-                        <td className="px-4 py-3.5 text-right" onClick={(e) => e.stopPropagation()}>
-                          <div className="flex items-center justify-end gap-1.5 flex-wrap">
+                        <td className="px-5 py-3.5 text-right whitespace-nowrap align-middle" onClick={(e) => e.stopPropagation()}>
+                          <div className="inline-flex items-center justify-end gap-1.5 shrink-0 whitespace-nowrap">
                             {/* Suspend / Reactivate Quick Toggle Button */}
                             <button
                               type="button"
                               onClick={() => toggleLicenseStatus(record)}
-                              className={`h-7 px-2.5 rounded text-[11px] font-semibold flex items-center gap-1.5 border transition-all cursor-pointer ${
+                              className={`h-7 px-2.5 rounded-md text-[11px] font-semibold inline-flex items-center gap-1.5 border transition-all cursor-pointer shrink-0 ${
                                 record.license_status === "active"
-                                  ? "bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border-rose-500/20 hover:border-rose-500/40"
-                                  : "bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border-emerald-500/20 hover:border-emerald-500/40"
+                                  ? "bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border-rose-500/25 hover:border-rose-500/40"
+                                  : "bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border-emerald-500/25 hover:border-emerald-500/40"
                               }`}
                               title={record.license_status === "active" ? "Click to Suspend License Key" : "Click to Reactivate License Key"}
                             >
@@ -1824,11 +1829,11 @@ export default function AutoTradeManagerPage() {
                             <button
                               type="button"
                               onClick={() => regenerateLicenseKey(record)}
-                              className="h-7 px-2 bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white border border-white/10 rounded text-[11px] font-semibold flex items-center gap-1 transition-all cursor-pointer"
+                              className="h-7 px-2.5 bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white border border-white/10 rounded-md text-[11px] font-semibold inline-flex items-center gap-1 transition-all cursor-pointer shrink-0"
                               title="Regenerate Cryptographic License Key"
                             >
                               <Key size={11} />
-                              <span className="hidden sm:inline">Regen Key</span>
+                              <span>Regen Key</span>
                             </button>
 
                             {/* Inspect Drawer Button */}
@@ -1838,7 +1843,7 @@ export default function AutoTradeManagerPage() {
                                 setSelectedRecord(record);
                                 setIsDrawerOpen(true);
                               }}
-                              className="h-7 px-2.5 bg-[#1E1E1E] hover:bg-white/10 text-neutral-300 hover:text-white border border-white/5 hover:border-white/10 rounded text-xs font-medium transition-none flex items-center gap-1.5 cursor-pointer"
+                              className="h-7 px-2.5 bg-[#1E1E22] hover:bg-white/10 text-neutral-300 hover:text-white border border-white/10 rounded-md text-[11px] font-medium transition-colors inline-flex items-center gap-1.5 cursor-pointer shrink-0"
                             >
                               <Eye size={12} />
                               <span>Inspect</span>
@@ -2145,16 +2150,16 @@ export default function AutoTradeManagerPage() {
             </div>
 
             {/* ── Desktop Data Table (hidden on mobile, visible on md+) ── */}
-            <div className="hidden md:block overflow-x-auto">
-              <table className="w-full min-w-[760px] text-left border-collapse">
+            <div className="hidden md:block overflow-x-auto rounded-xl border border-white/5 bg-[#121214]/60 shadow-xl">
+              <table className="w-full min-w-[1150px] text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-white/5 bg-black/20 text-[9px] font-bold uppercase tracking-[0.2em] text-neutral-500">
-                    <th className="px-4 py-3">Trader Identity</th>
-                    <th className="px-4 py-3">MT5 Account & Broker</th>
-                    <th className="px-4 py-3">Screenshot / Photo Proof</th>
-                    <th className="px-4 py-3">User Remarks</th>
-                    <th className="px-4 py-3">Status & Audit</th>
-                    <th className="px-4 py-3 text-right">Verification Action</th>
+                  <tr className="border-b border-white/10 bg-[#161618] text-[10px] font-bold uppercase tracking-[0.18em] text-neutral-400 select-none whitespace-nowrap">
+                    <th className="px-5 py-3.5 min-w-[200px]">Trader Identity</th>
+                    <th className="px-5 py-3.5 min-w-[190px]">MT5 Account & Broker</th>
+                    <th className="px-5 py-3.5 min-w-[160px]">Screenshot / Photo Proof</th>
+                    <th className="px-5 py-3.5 min-w-[200px]">User Remarks</th>
+                    <th className="px-5 py-3.5 min-w-[180px]">Status & Audit</th>
+                    <th className="px-5 py-3.5 min-w-[220px] text-right">Verification Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/[0.02] text-xs">
@@ -2699,18 +2704,18 @@ export default function AutoTradeManagerPage() {
             </div>
 
             {/* ── Desktop Data Table (hidden on mobile, visible on md+) ── */}
-            <div className="hidden md:block overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+            <div className="hidden md:block overflow-x-auto rounded-xl border border-white/5 bg-[#121214]/60 shadow-xl">
+              <table className="w-full min-w-[1280px] text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-white/5 bg-[#141414] text-[10px] font-bold text-neutral-400 uppercase tracking-wider">
-                    <th className="px-4 py-3">Client / MT5</th>
-                    <th className="px-4 py-3">Algorithm</th>
-                    <th className="px-4 py-3">Method & UTR</th>
-                    <th className="px-4 py-3">Amount</th>
-                    <th className="px-4 py-3">Proof Screenshot</th>
-                    <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3">Submitted At</th>
-                    <th className="px-4 py-3 text-right">Actions</th>
+                  <tr className="border-b border-white/10 bg-[#161618] text-[10px] font-bold text-neutral-400 uppercase tracking-[0.18em] select-none whitespace-nowrap">
+                    <th className="px-5 py-3.5 min-w-[180px]">Client / MT5</th>
+                    <th className="px-5 py-3.5 min-w-[170px]">Algorithm</th>
+                    <th className="px-5 py-3.5 min-w-[170px]">Method & UTR</th>
+                    <th className="px-5 py-3.5 min-w-[130px]">Amount</th>
+                    <th className="px-5 py-3.5 min-w-[150px]">Proof Screenshot</th>
+                    <th className="px-5 py-3.5 min-w-[140px]">Status</th>
+                    <th className="px-5 py-3.5 min-w-[160px]">Submitted At</th>
+                    <th className="px-5 py-3.5 min-w-[180px] text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5 text-xs">

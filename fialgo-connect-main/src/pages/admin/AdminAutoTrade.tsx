@@ -1237,16 +1237,16 @@ export default function AdminAutoTrade() {
       {/* Main Table */}
       <div className="bg-slate-900/50 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full min-w-[1300px] text-left border-collapse">
             <thead>
-              <tr className="border-b border-slate-800 bg-slate-950/40 text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                <th className="px-5 py-4">User</th>
-                <th className="px-5 py-4">MT5 Account & Broker</th>
-                <th className="px-5 py-4">Under Tradifive?</th>
-                <th className="px-5 py-4">Algo Purchased</th>
-                <th className="px-5 py-4">License Key</th>
-                <th className="px-5 py-4">Balance</th>
-                <th className="px-5 py-4 text-right">Actions</th>
+              <tr className="border-b border-slate-800 bg-slate-950/40 text-[11px] font-bold uppercase tracking-wider text-slate-400 whitespace-nowrap select-none">
+                <th className="px-5 py-4 min-w-[210px]">User</th>
+                <th className="px-5 py-4 min-w-[200px]">MT5 Account & Broker</th>
+                <th className="px-5 py-4 min-w-[180px]">Under Tradifive?</th>
+                <th className="px-5 py-4 min-w-[210px]">Algo Purchased</th>
+                <th className="px-5 py-4 min-w-[280px]">License Key</th>
+                <th className="px-5 py-4 min-w-[150px]">Balance</th>
+                <th className="px-5 py-4 min-w-[240px] text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60 text-xs">
@@ -1336,13 +1336,13 @@ export default function AdminAutoTrade() {
                       </div>
                     </td>
 
-                    <td className="px-5 py-4 text-right" onClick={(e) => e.stopPropagation()}>
-                      <div className="flex items-center justify-end gap-1.5 flex-wrap">
+                    <td className="px-5 py-4 text-right whitespace-nowrap align-middle" onClick={(e) => e.stopPropagation()}>
+                      <div className="inline-flex items-center justify-end gap-1.5 shrink-0 whitespace-nowrap">
                         {/* Suspend / Reactivate Quick Toggle Button */}
                         <button
                           type="button"
                           onClick={() => toggleLicenseStatus(r)}
-                          className={`h-7 px-2.5 rounded text-[11px] font-semibold flex items-center gap-1.5 border transition-all cursor-pointer ${
+                          className={`h-7 px-2.5 rounded text-[11px] font-semibold inline-flex items-center gap-1.5 border transition-all cursor-pointer shrink-0 ${
                             r.license_status === "active"
                               ? "bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border-rose-500/20 hover:border-rose-500/40"
                               : "bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border-emerald-500/20 hover:border-emerald-500/40"
@@ -1366,11 +1366,11 @@ export default function AdminAutoTrade() {
                         <button
                           type="button"
                           onClick={() => regenerateLicenseKey(r)}
-                          className="h-7 px-2 bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white border border-white/10 rounded text-[11px] font-semibold flex items-center gap-1 transition-all cursor-pointer"
+                          className="h-7 px-2.5 bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white border border-white/10 rounded text-[11px] font-semibold inline-flex items-center gap-1 transition-all cursor-pointer shrink-0"
                           title="Regenerate Cryptographic License Key"
                         >
                           <Key size={11} />
-                          <span className="hidden sm:inline">Regen Key</span>
+                          <span>Regen Key</span>
                         </button>
 
                         {/* Inspect Drawer Button */}
@@ -1380,7 +1380,7 @@ export default function AdminAutoTrade() {
                             setSelectedRecord(r);
                             setIsDrawerOpen(true);
                           }}
-                          className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer"
+                          className="h-7 px-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold inline-flex items-center gap-1 cursor-pointer shrink-0"
                         >
                           <Eye size={12} />
                           <span>Inspect</span>
