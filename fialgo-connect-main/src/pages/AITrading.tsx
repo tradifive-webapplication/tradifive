@@ -153,6 +153,7 @@ export default function AITrading() {
   });
 
   const hasPaid = paymentStatus === "approved";
+  const [selectedTier, setSelectedTier] = useState<"lifetime" | "profit_share_50">("profit_share_50");
   const [paymentMethod, setPaymentMethod] = useState<"upi" | "bank">("upi");
   const [paymentUtr, setPaymentUtr] = useState<string>(() => {
     try {
@@ -620,8 +621,10 @@ export default function AITrading() {
       user_email: userEmail,
       mt5_account_number: accountForPayment,
       algo_id: "fialgo_v1",
-      algo_name: "FiAlgo V1 Lifetime License",
-      amount: "99999",
+      algo_name: selectedTier === "lifetime" ? "FiAlgo V1 Lifetime VIP" : "FiAlgo V1 Performance Partner (50% Daily Share)",
+      amount: selectedTier === "lifetime" ? "99999" : "5000",
+      plan_tier: selectedTier,
+      plan_name: selectedTier === "lifetime" ? "VIP Lifetime License (0% Profit Share)" : "Performance Partner (₹5,000 Setup + Daily 50% Profit Share)",
       currency: "INR",
       method: paymentMethod,
       upi_id: paymentMethod === "upi" ? "9731980756@axisbank" : undefined,
@@ -2088,52 +2091,104 @@ MagicNumber=789104
             ) : (
               /* STATE 3C: PAYMENT REQUIRED - FORM WITH PHONEPE / UPI & BANK TRANSFER */
               <div className="space-y-4">
-                {/* Selected Algorithm & Price: FiAlgo V1 ₹99,999 Lifetime */}
-                <div className="p-3.5 sm:p-4 rounded-xl bg-slate-50/80 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 space-y-2.5">
+                {/* ── 2 TIER PLAN SELECTOR: LIFETIME ₹1,00,000 VS PERFORMANCE ₹5,000 + DAILY 50% PROFIT SHARE ── */}
+                <div className="space-y-3">
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-[10.5px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                      Selected Algorithm
+                      Choose Your Algo Access Plan
                     </span>
-                    <span className="text-[10.5px] font-bold text-emerald-600 dark:text-emerald-400">
-                      Lifetime License
+                    <span className="text-[10.5px] font-bold text-blue-600 dark:text-blue-400">
+                      2 Official Licensing Options
                     </span>
                   </div>
 
-                  <div className="p-3 rounded-xl bg-white dark:bg-[#161618] border-2 border-blue-600 dark:border-blue-500 flex items-center justify-between gap-3 shadow-2xs">
-                    <div className="flex items-center gap-3 min-w-0">
-                      {/* 3D Product Box Image */}
-                      <div className="h-12 w-10 sm:h-14 sm:w-11 shrink-0 flex items-center justify-center">
-                        <img
-                          src="/fialgo-v1-box.png"
-                          alt="FiAlgo V1 Product"
-                          className="h-full w-auto object-contain drop-shadow-md"
-                        />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white truncate">
-                            FiAlgo V1
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {/* TIER 1: VIP LIFETIME LICENSE (₹1,00,000 / ₹99,999) */}
+                    <div
+                      onClick={() => setSelectedTier("lifetime")}
+                      className={`p-3.5 sm:p-4 rounded-xl cursor-pointer transition-all border-2 relative flex flex-col justify-between ${
+                        selectedTier === "lifetime"
+                          ? "bg-purple-50/50 dark:bg-purple-950/20 border-purple-600 dark:border-purple-500 shadow-md"
+                          : "bg-white dark:bg-[#161618] border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20"
+                      }`}
+                    >
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="px-2 py-0.5 rounded text-[9.5px] font-extrabold uppercase tracking-wide bg-purple-100 text-purple-800 dark:bg-purple-500/20 dark:text-purple-300 border border-purple-300 dark:border-purple-500/30">
+                            VIP Lifetime (0% Share)
                           </span>
-                          <span className="px-1.5 py-0.5 rounded text-[9.5px] font-bold bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300 border border-blue-200/60 dark:border-blue-500/20">
-                            Selected
+                          <span className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                            selectedTier === "lifetime" ? "border-purple-600 bg-purple-600 text-white" : "border-slate-300 dark:border-neutral-600"
+                          }`}>
+                            {selectedTier === "lifetime" && <Check size={10} />}
                           </span>
                         </div>
-                        <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
-                          Gold (XAUUSD) Precision EA
-                        </p>
+
+                        <div>
+                          <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
+                            Lifetime VIP License
+                          </h3>
+                          <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed mt-0.5">
+                            Pay once, keep <strong className="text-purple-600 dark:text-purple-400">100% of all profits</strong> forever. No profit sharing, no recurring fees. Best for high-capital traders.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="pt-3 mt-3 border-t border-slate-200/70 dark:border-white/5 flex items-baseline justify-between">
+                        <span className="text-[10px] font-bold uppercase text-slate-400">One-Time Price</span>
+                        <div className="text-right">
+                          <span className="text-lg sm:text-xl font-mono font-black text-slate-900 dark:text-white">
+                            ₹99,999
+                          </span>
+                          <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold block">
+                            0% Profit Cut Forever
+                          </span>
+                        </div>
                       </div>
                     </div>
 
-                    <div className="text-right shrink-0">
-                      <div className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider">
-                        Price
+                    {/* TIER 2: PERFORMANCE PARTNER (₹5,000 SETUP + DAILY 50% PROFIT SHARE) */}
+                    <div
+                      onClick={() => setSelectedTier("profit_share_50")}
+                      className={`p-3.5 sm:p-4 rounded-xl cursor-pointer transition-all border-2 relative flex flex-col justify-between ${
+                        selectedTier === "profit_share_50"
+                          ? "bg-blue-50/50 dark:bg-blue-950/20 border-blue-600 dark:border-blue-500 shadow-md"
+                          : "bg-white dark:bg-[#161618] border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20"
+                      }`}
+                    >
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="px-2 py-0.5 rounded text-[9.5px] font-extrabold uppercase tracking-wide bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-300 border border-blue-300 dark:border-blue-500/30">
+                            Low Entry Setup
+                          </span>
+                          <span className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                            selectedTier === "profit_share_50" ? "border-blue-600 bg-blue-600 text-white" : "border-slate-300 dark:border-neutral-600"
+                          }`}>
+                            {selectedTier === "profit_share_50" && <Check size={10} />}
+                          </span>
+                        </div>
+
+                        <div>
+                          <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
+                            Performance Partner (50% Daily)
+                          </h3>
+                          <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed mt-0.5">
+                            <strong className="text-blue-600 dark:text-blue-400">₹5,000 setup fee</strong> + Daily 50% profit share on green days. <span className="text-rose-500 font-semibold">Strict Rule:</span> If daily 50% profit share is not settled, license key is suspended until cleared.
+                          </p>
+                        </div>
                       </div>
-                      <div className="text-base sm:text-xl font-mono font-black text-slate-900 dark:text-white leading-tight">
-                        ₹99,999
+
+                      <div className="pt-3 mt-3 border-t border-slate-200/70 dark:border-white/5 flex items-baseline justify-between">
+                        <span className="text-[10px] font-bold uppercase text-slate-400">Setup Fee Today</span>
+                        <div className="text-right">
+                          <span className="text-lg sm:text-xl font-mono font-black text-slate-900 dark:text-white">
+                            ₹5,000
+                          </span>
+                          <span className="text-[10px] text-amber-500 font-bold block">
+                            + Daily 50% Profit Share
+                          </span>
+                        </div>
                       </div>
-                      <span className="inline-block mt-0.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                        Lifetime
-                      </span>
                     </div>
                   </div>
                 </div>
@@ -2183,7 +2238,6 @@ MagicNumber=789104
                         </span>
                       </div>
 
-
                       <div className="space-y-2.5 flex-1 text-center sm:text-left">
                         <div className="flex flex-wrap items-center justify-center sm:justify-start gap-1.5 text-[10.5px] font-bold">
                           <span className="px-2 py-0.5 rounded bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300 border border-purple-200/80 dark:border-purple-500/20">PhonePe</span>
@@ -2215,7 +2269,7 @@ MagicNumber=789104
                         </div>
 
                         <p className="text-[11.5px] text-slate-500 dark:text-slate-400">
-                          Transfer Amount: <strong className="text-slate-900 dark:text-white font-mono">₹99,999</strong> · Zero additional processing fees
+                          Transfer Amount: <strong className="text-slate-900 dark:text-white font-mono">{selectedTier === "lifetime" ? "₹99,999" : "₹5,000"}</strong> · Zero additional processing fees
                         </p>
                       </div>
                     </div>
@@ -2226,7 +2280,7 @@ MagicNumber=789104
                 {paymentMethod === "bank" && (
                   <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 space-y-3 text-xs">
                     <div className="text-xs text-slate-600 dark:text-slate-400 font-medium">
-                      Transfer ₹99,999 via NEFT, RTGS, IMPS, or Net Banking to bank account details below:
+                      Transfer <strong className="text-slate-900 dark:text-white font-mono">{selectedTier === "lifetime" ? "₹99,999" : "₹5,000"}</strong> via NEFT, RTGS, IMPS, or Net Banking to bank account details below:
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -2466,7 +2520,7 @@ MagicNumber=789104
                       FiAlgo V1 License Key Locked
                     </h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-xl">
-                      Complete the one-time payment of ₹99,999 in Step 3 via PhonePe / UPI (<strong className="font-mono text-slate-800 dark:text-slate-200">9731980756@axisbank</strong>) or Bank Transfer to request your license key.
+                      Complete payment of <strong className="text-slate-900 dark:text-white">{selectedTier === "lifetime" ? "₹99,999 (Lifetime VIP)" : "₹5,000 Setup (Performance Partner)"}</strong> in Step 3 via PhonePe / UPI (<strong className="font-mono text-slate-800 dark:text-slate-200">9731980756@axisbank</strong>) or Bank Transfer to request your license key.
                     </p>
                   </div>
                 </div>
@@ -2477,7 +2531,7 @@ MagicNumber=789104
                   className="w-full py-3 px-4 rounded-xl text-xs sm:text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center gap-2 cursor-pointer shadow-xs transition-all"
                 >
                   <CreditCard size={14} />
-                  <span>Go to Step 3: Complete Payment (₹99,999) →</span>
+                  <span>Go to Step 3: Complete Payment ({selectedTier === "lifetime" ? "₹99,999" : "₹5,000"}) →</span>
                 </button>
               </div>
             ) : paymentStatus === "pending" ? (
@@ -2511,9 +2565,11 @@ MagicNumber=789104
                     <div className="flex items-center justify-between p-2.5 rounded-lg bg-white dark:bg-[#18181B] border border-slate-200/70 dark:border-white/5">
                       <div className="flex items-center gap-2">
                         <span className="w-4 h-4 rounded-full bg-slate-100 dark:bg-white/10 text-amber-600 dark:text-amber-400 flex items-center justify-center text-[10px] font-bold shrink-0">⌛</span>
-                        <span className="text-slate-600 dark:text-slate-400">Fee Verification:</span>
+                        <span className="text-slate-600 dark:text-slate-400">Plan &amp; Fee:</span>
                       </div>
-                      <span className="font-bold text-amber-600 dark:text-amber-400">₹99,999 (Under Review)</span>
+                      <span className="font-bold text-amber-600 dark:text-amber-400">
+                        {selectedTier === "lifetime" ? "₹99,999 Lifetime (Under Review)" : "₹5,000 Setup + Daily 50% Share"}
+                      </span>
                     </div>
 
                     <div className="flex items-center justify-between p-2.5 rounded-lg bg-white dark:bg-[#18181B] border border-slate-200/70 dark:border-white/5">
@@ -2567,7 +2623,7 @@ MagicNumber=789104
                   <div className="grid grid-cols-2 gap-2 pt-0.5">
                     <a
                       href={`https://wa.me/?text=${encodeURIComponent(
-                        `Hello TradiFive Team! I have completed the ₹99,999 payment for FiAlgo V1 (UTR: ${paymentUtr || "[Your UTR]"}). Please verify and issue my license key.`
+                        `Hello TradiFive Team! I have completed the ${selectedTier === "lifetime" ? "₹99,999 payment for FiAlgo V1 Lifetime VIP" : "₹5,000 setup fee for FiAlgo V1 Performance Partner (50% Daily Profit Share)"} (UTR: ${paymentUtr || "[Your UTR]"}). Please verify and issue my license key.`
                       )}`}
                       target="_blank"
                       rel="noreferrer"
@@ -2581,7 +2637,7 @@ MagicNumber=789104
                       href={`mailto:support@tradifive.in?subject=${encodeURIComponent(
                         `Verify License Payment UTR #${paymentUtr || ""}`
                       )}&body=${encodeURIComponent(
-                        `Hello Support Team,\n\nPlease verify my payment of ₹99,999 for FiAlgo V1.\nUTR Number: ${paymentUtr || ""}\n\nPlease issue my license key.\n\nThank you!`
+                        `Hello Support Team,\n\nPlease verify my payment of ${selectedTier === "lifetime" ? "₹99,999" : "₹5,000"} for FiAlgo V1.\nUTR Number: ${paymentUtr || ""}\nPlan: ${selectedTier === "lifetime" ? "Lifetime VIP" : "Performance Partner (50% Daily)"}\n\nPlease issue my license key.\n\nThank you!`
                       )}`}
                       className="py-2.5 px-3 rounded-xl text-xs font-semibold bg-white dark:bg-white/10 hover:bg-slate-100 text-slate-800 dark:text-white border border-slate-200 dark:border-white/10 flex items-center justify-center gap-1.5 transition-all shadow-2xs"
                     >
@@ -2620,7 +2676,7 @@ MagicNumber=789104
                       FiAlgo V1 License Key Locked
                     </h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-xl">
-                      Payment of ₹99,999 is confirmed! Your license key will unlock once your MT5 account is verified under Partner IB <strong className="text-slate-800 dark:text-slate-200">27863221</strong> with a <strong className="text-slate-800 dark:text-slate-200">minimum balance of $500 USD</strong>.
+                      Payment of {selectedTier === "lifetime" ? "₹99,999" : "₹5,000"} is confirmed! Your license key will unlock once your MT5 account is verified under Partner IB <strong className="text-slate-800 dark:text-slate-200">27863221</strong> with a <strong className="text-slate-800 dark:text-slate-200">minimum balance of $500 USD</strong>.
                     </p>
                   </div>
                 </div>
@@ -2637,7 +2693,9 @@ MagicNumber=789104
                         <span className="w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] font-bold shrink-0">✓</span>
                         <span className="text-slate-600 dark:text-slate-400">License Payment:</span>
                       </div>
-                      <span className="font-bold text-emerald-600 dark:text-emerald-400">₹99,999 Paid ✓</span>
+                      <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                        {selectedTier === "lifetime" ? "₹99,999 Paid ✓" : "₹5,000 Setup Paid ✓"}
+                      </span>
                     </div>
 
                     <div className="flex items-center justify-between p-2.5 rounded-lg bg-white dark:bg-[#18181B] border border-slate-200/70 dark:border-white/5">

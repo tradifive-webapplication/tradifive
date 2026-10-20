@@ -81,6 +81,8 @@ export interface LicensePaymentRequest {
   algo_id: string;
   algo_name: string;
   amount: string; // "99999"
+  plan_tier?: "lifetime" | "profit_share_50";
+  plan_name?: string;
   currency: string; // "INR"
   method: "upi" | "bank";
   upi_id?: string;
@@ -124,13 +126,13 @@ export interface AutoTradeRecord {
   transfer_path: "new_account" | "transfer_ib" | "unknown";
   last_ib_check_at: string;
 
-  // Algo Purchase Details
+  // Algo Purchase Details (Tier 1: 1L Lifetime, Tier 2: 5k Setup + Daily 50% Share)
   has_purchased: boolean;
   algo_id: "fialgo_v1" | "fialgo_trend" | "fialgo_scalper" | "enterprise_bundle" | "none";
   algo_name: string;
   algo_manifest: string;
   algo_pair: string;
-  purchase_tier: "Lifetime License" | "Enterprise Pack" | "3-Day Free Trial" | "None";
+  purchase_tier: "Lifetime License" | "Daily 50% Profit Share" | "Enterprise Pack" | "3-Day Free Trial" | "None";
   price_paid: number;
   payment_status: "paid" | "free_trial" | "pending" | "refunded";
   purchase_date: string;
@@ -143,6 +145,12 @@ export interface AutoTradeRecord {
   license_expiry: string; // "Lifetime" or date
   allowed_accounts: number;
   bound_account: string;
+
+  // Daily 50% Profit Share Ledger
+  daily_settlement_status?: "settled" | "pending" | "overdue";
+  today_profit?: number;
+  profit_share_due?: number;
+  last_settled_at?: string;
 
   // Admin Audit
   admin_notes?: string;
@@ -217,8 +225,12 @@ export default function AutoTradeManagerPage() {
   const [filterLicense, setFilterLicense] = useState<string>("all");
   const [filterBroker, setFilterBroker] = useState<string>("all");
 
-  // Main Tab Navigation: Accounts, IB Proofs, or ₹99k License Payments
-  const [activeMainTab, setActiveMainTab] = useState<"accounts" | "proofs" | "payments">("accounts");
+  // Main Tab Navigation: Accounts, IB Proofs, License Payments, or Daily 50% Profit Ledger
+  const [activeMainTab, setActiveMainTab] = useState<"accounts" | "proofs" | "payments" | "profit_ledger">("accounts");
+
+  // Tab 4: Daily 50% Profit Ledger State
+  const [profitLedgerFilter, setProfitLedgerFilter] = useState<"all" | "pending" | "overdue" | "settled">("all");
+  const [profitLedgerSearch, setProfitLedgerSearch] = useState("");
 
   // IB Proof Requests State
   const [proofRequests, setProofRequests] = useState<IbTransferProofRequest[]>(getInitialProofs);
@@ -228,7 +240,7 @@ export default function AutoTradeManagerPage() {
   const [rejectModalProof, setRejectModalProof] = useState<IbTransferProofRequest | null>(null);
   const [rejectReasonInput, setRejectReasonInput] = useState("");
 
-  // ₹99,999 License Payments State
+  // License Payments State (Tier 1 ₹99,999 / Tier 2 ₹5,000 Setup)
   const [licensePayments, setLicensePayments] = useState<LicensePaymentRequest[]>(getInitialPayments);
   const [paymentFilter, setPaymentFilter] = useState<"all" | "pending" | "approved" | "rejected">("pending");
   const [paymentMethodFilter, setPaymentMethodFilter] = useState<"all" | "upi" | "bank">("all");
@@ -247,12 +259,13 @@ export default function AutoTradeManagerPage() {
   const [newRecordForm, setNewRecordForm] = useState({
     user_name: "",
     user_email: "",
+    user_phone: "",
     mt5_account_number: "",
     broker_name: "Exness",
     is_under_tradifive: true,
     algo_id: "fialgo_v1",
-    purchase_tier: "Lifetime License",
-    price_paid: "39",
+    purchase_tier: "Lifetime License" as "Lifetime License" | "Daily 50% Profit Share" | "Enterprise Pack" | "3-Day Free Trial" | "None",
+    price_paid: "99999",
     license_status: "active"
   });
 
@@ -508,6 +521,10 @@ export default function AutoTradeManagerPage() {
             license_expiry: override.license_expiry || (hasPurchased ? "Lifetime" : "N/A"),
             allowed_accounts: 1,
             bound_account: effectiveAccount || "Unbound",
+            daily_settlement_status: override.daily_settlement_status || (override.purchase_tier === "Daily 50% Profit Share" ? "pending" : undefined),
+            today_profit: override.today_profit !== undefined ? override.today_profit : (override.purchase_tier === "Daily 50% Profit Share" ? 124.50 : 0),
+            profit_share_due: override.profit_share_due !== undefined ? override.profit_share_due : (override.purchase_tier === "Daily 50% Profit Share" ? 62.25 : 0),
+            last_settled_at: override.last_settled_at || undefined,
             admin_notes: override.admin_notes || ""
           });
         }
@@ -738,38 +755,70 @@ export default function AutoTradeManagerPage() {
       }
     } catch (e) {}
 
+    const isPerformance = payment.amount === "5000" || payment.plan_tier === "profit_share_50";
+    const planTier: "Lifetime License" | "Daily 50% Profit Share" = isPerformance ? "Daily 50% Profit Share" : "Lifetime License";
+    const amountVal = isPerformance ? 5000 : 99999;
+    const planLabel = isPerformance ? "Performance Partner (₹5,000 + Daily 50% Share)" : "Lifetime VIP (₹99,999)";
+
     const existingRec = records.find(r => 
       (payment.mt5_account_number && r.mt5_account_number === payment.mt5_account_number) || 
       (payment.user_email && r.user_email === payment.user_email)
     );
 
-    if (existingRec) {
-      const updatedRec: AutoTradeRecord = {
-        ...existingRec,
-        has_purchased: true,
-        purchase_tier: "Lifetime License",
-        price_paid: 99999,
-        payment_status: "paid",
-        license_key: generatedKey,
-        license_status: "active",
-        license_expiry: "Lifetime",
-        algo_name: "FiAlgo V1 (Gold Scalper & Trend)",
-        algo_id: "fialgo_v1",
-        admin_notes: `₹99,999 Lifetime Payment verified via ${payment.method === "upi" ? "PhonePe/UPI" : "Bank Transfer"} (UTR: ${payment.utr_number}). Personal MT5 license key issued.`
-      };
-      await persistUpdate(updatedRec);
-    }
+    const updatedRec: AutoTradeRecord = {
+      ...(existingRec || {
+        id: `rec-${payment.id}`,
+        user_id: payment.user_id || `usr-${payment.mt5_account_number || Date.now()}`,
+        user_name: payment.user_name || "Client Trader",
+        user_email: payment.user_email || "trader@tradifive.in",
+        user_phone: payment.user_phone,
+        created_at: payment.submitted_at || new Date().toISOString(),
+        mt5_account_number: payment.mt5_account_number || "4820194",
+        broker_name: "Exness",
+        broker_server: "Exness-Real",
+        balance: 1000,
+        equity: 1000,
+        currency: "USD",
+        is_connected: true,
+        algo_execution_active: true,
+        is_under_tradifive: true,
+        ib_status: "verified",
+        ib_code: "TRDF940182",
+        transfer_path: "new_account",
+        last_ib_check_at: new Date().toISOString(),
+        binary_downloaded: true,
+        backtest_downloaded: true,
+        allowed_accounts: 1,
+        bound_account: payment.mt5_account_number || "4820194",
+      }),
+      has_purchased: true,
+      purchase_tier: planTier,
+      price_paid: amountVal,
+      payment_status: "paid",
+      purchase_date: new Date().toISOString().split("T")[0],
+      license_key: generatedKey,
+      license_status: "active",
+      license_expiry: isPerformance ? "Active (Daily 50%)" : "Lifetime",
+      algo_name: isPerformance ? "FiAlgo V1 (50% Daily Share)" : "FiAlgo V1 (Gold Scalper & Trend)",
+      algo_id: "fialgo_v1",
+      daily_settlement_status: isPerformance ? "settled" : undefined,
+      today_profit: isPerformance ? 0 : undefined,
+      profit_share_due: isPerformance ? 0 : undefined,
+      last_settled_at: new Date().toISOString(),
+      admin_notes: `${planLabel} payment verified via ${payment.method === "upi" ? "PhonePe/UPI" : "Bank Transfer"} (UTR: ${payment.utr_number}). Personal MT5 license key issued.`
+    };
+    await persistUpdate(updatedRec);
 
     if (previewPaymentProof?.id === payment.id) {
       setPreviewPaymentProof(updatedPayment);
     }
 
-    toast.success(`Payment Verified! ₹99,999 License Key Issued`, {
+    toast.success(`Payment Verified! ${planLabel} Issued`, {
       description: `Key ${generatedKey} generated. User Step 4 is now active.`
     });
   };
 
-  // Reject ₹99,999 Payment
+  // Reject Payment
   const handleRejectPayment = async (payment: LicensePaymentRequest, reason: string) => {
     const updatedPayment: LicensePaymentRequest = {
       ...payment,
@@ -810,6 +859,88 @@ export default function AutoTradeManagerPage() {
     toast.error(`Payment Request Rejected for UTR #${payment.utr_number}`, {
       description: `Reason: ${reason}`
     });
+  };
+
+  // Daily 50% Profit Share Ledger Actions
+  const handleMarkSettled = async (record: AutoTradeRecord) => {
+    const updated: AutoTradeRecord = {
+      ...record,
+      daily_settlement_status: "settled",
+      profit_share_due: 0,
+      last_settled_at: new Date().toISOString(),
+      license_status: record.license_status === "suspended" ? "active" : record.license_status,
+      algo_execution_active: record.license_status === "suspended" ? true : record.algo_execution_active,
+      admin_notes: `${record.admin_notes || ""}\n[${new Date().toLocaleDateString()}] Daily 50% profit share marked settled. License key active.`
+    };
+    await persistUpdate(updated);
+    if (selectedRecord?.id === record.id) {
+      setSelectedRecord(updated);
+    }
+    toast.success(`Settlement Cleared for MT5 #${record.mt5_account_number}`, {
+      description: "Daily 50% profit share cleared. Trading active."
+    });
+  };
+
+  const handleSuspendUnpaidKey = async (record: AutoTradeRecord) => {
+    const updated: AutoTradeRecord = {
+      ...record,
+      license_status: "suspended",
+      algo_execution_active: false,
+      daily_settlement_status: "overdue",
+      admin_notes: `${record.admin_notes || ""}\n[${new Date().toLocaleDateString()}] Key SUSPENDED due to unpaid 50% daily profit share.`
+    };
+    await persistUpdate(updated);
+    if (selectedRecord?.id === record.id) {
+      setSelectedRecord(updated);
+    }
+    toast.error(`Key Suspended for MT5 #${record.mt5_account_number}`, {
+      description: "Client did not settle daily 50% profit share. EA trading halted."
+    });
+  };
+
+  const handleReactivateKey = async (record: AutoTradeRecord) => {
+    const updated: AutoTradeRecord = {
+      ...record,
+      license_status: "active",
+      algo_execution_active: true,
+      daily_settlement_status: "settled",
+      admin_notes: `${record.admin_notes || ""}\n[${new Date().toLocaleDateString()}] Key reactivated by admin.`
+    };
+    await persistUpdate(updated);
+    if (selectedRecord?.id === record.id) {
+      setSelectedRecord(updated);
+    }
+    toast.success(`Key Reactivated for MT5 #${record.mt5_account_number}`, {
+      description: "Algorithm execution re-enabled."
+    });
+  };
+
+  const handleTogglePlanTier = async (record: AutoTradeRecord, tier: "Lifetime License" | "Daily 50% Profit Share") => {
+    const isPerf = tier === "Daily 50% Profit Share";
+    const updated: AutoTradeRecord = {
+      ...record,
+      purchase_tier: tier,
+      price_paid: isPerf ? 5000 : 99999,
+      daily_settlement_status: isPerf ? (record.daily_settlement_status || "pending") : undefined,
+      today_profit: isPerf ? (record.today_profit ?? 85.0) : undefined,
+      profit_share_due: isPerf ? (record.profit_share_due ?? 42.5) : undefined,
+      license_expiry: isPerf ? "Active (Daily 50%)" : "Lifetime"
+    };
+    await persistUpdate(updated);
+    if (selectedRecord?.id === record.id) {
+      setSelectedRecord(updated);
+    }
+    toast.success(`Plan updated to ${tier} for #${record.mt5_account_number}`);
+  };
+
+  const getWhatsAppShareLink = (record: AutoTradeRecord) => {
+    const profitUsd = record.today_profit ?? 85.0;
+    const profitInr = Math.round(profitUsd * 84);
+    const shareUsd = Math.round((profitUsd * 0.5) * 100) / 100;
+    const shareInr = Math.round(profitInr * 0.5);
+    const msg = `Hello ${record.user_name || "Trader"}!\n\nYour TradiFive FiAlgo V1 net profit today on MT5 Account #${record.mt5_account_number} is $${profitUsd.toFixed(2)} (₹${profitInr.toLocaleString()}).\n\nAs per your Performance Partner agreement, your Daily 50% Profit Share due is: ₹${shareInr.toLocaleString()} ($${shareUsd.toFixed(2)}).\n\nPlease transfer to TradiFive official UPI:\nUPI ID: 9731980756@axisbank\nName: Nikhil Ravindra Harake\n\nKindly send screenshot or UTR here once transferred to keep your MT5 algorithm license active. Thank you!`;
+    const cleanPhone = (record.user_phone || "").replace(/\D/g, "");
+    return cleanPhone ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}` : `https://wa.me/?text=${encodeURIComponent(msg)}`;
   };
 
   useEffect(() => {
@@ -1106,7 +1237,9 @@ export default function AutoTradeManagerPage() {
     const pending = licensePayments.filter(p => p.status === "pending").length;
     const approved = licensePayments.filter(p => p.status === "approved").length;
     const rejected = licensePayments.filter(p => p.status === "rejected").length;
-    const revenueInr = approved * 99999;
+    const revenueInr = licensePayments
+      .filter(p => p.status === "approved")
+      .reduce((sum, p) => sum + (parseFloat(p.amount) || 99999), 0);
     return { total, pending, approved, rejected, revenueInr };
   }, [licensePayments]);
 
@@ -1127,6 +1260,53 @@ export default function AutoTradeManagerPage() {
       return true;
     });
   }, [licensePayments, paymentSearchQuery, paymentFilter, paymentMethodFilter]);
+
+  // Tab 4: Performance Partner (50% Daily Share) Memos
+  const performanceRecords = useMemo(() => {
+    return records.filter(r => 
+      r.purchase_tier === "Daily 50% Profit Share" || 
+      (r.daily_settlement_status !== undefined && r.daily_settlement_status !== null)
+    );
+  }, [records]);
+
+  const overdueProfitCount = useMemo(() => {
+    return performanceRecords.filter(r => r.daily_settlement_status === "overdue" || r.license_status === "suspended").length;
+  }, [performanceRecords]);
+
+  const pendingProfitCount = useMemo(() => {
+    return performanceRecords.filter(r => r.daily_settlement_status === "pending").length;
+  }, [performanceRecords]);
+
+  const filteredProfitLedger = useMemo(() => {
+    return performanceRecords.filter(r => {
+      if (profitLedgerFilter === "pending" && r.daily_settlement_status !== "pending") return false;
+      if (profitLedgerFilter === "overdue" && (r.daily_settlement_status !== "overdue" && r.license_status !== "suspended")) return false;
+      if (profitLedgerFilter === "settled" && r.daily_settlement_status !== "settled") return false;
+
+      if (!profitLedgerSearch.trim()) return true;
+      const q = profitLedgerSearch.toLowerCase();
+      return (
+        r.user_name.toLowerCase().includes(q) ||
+        r.user_email.toLowerCase().includes(q) ||
+        r.mt5_account_number.toLowerCase().includes(q) ||
+        r.broker_name.toLowerCase().includes(q)
+      );
+    });
+  }, [performanceRecords, profitLedgerFilter, profitLedgerSearch]);
+
+  const profitStats = useMemo(() => {
+    const totalClients = performanceRecords.length;
+    const totalTodayProfitUsd = performanceRecords.reduce((acc, r) => acc + (r.today_profit || 0), 0);
+    const totalShareDueUsd = performanceRecords.reduce((acc, r) => {
+      if (r.daily_settlement_status === "pending" || r.daily_settlement_status === "overdue") {
+        return acc + (r.profit_share_due !== undefined ? r.profit_share_due : (r.today_profit ? r.today_profit * 0.5 : 0));
+      }
+      return acc;
+    }, 0);
+    const totalShareDueInr = Math.round(totalShareDueUsd * 84);
+    const settledToday = performanceRecords.filter(r => r.daily_settlement_status === "settled").length;
+    return { totalClients, totalTodayProfitUsd, totalShareDueUsd, totalShareDueInr, settledToday };
+  }, [performanceRecords]);
 
   // Export CSV
   const exportCsv = () => {
@@ -1260,7 +1440,7 @@ export default function AutoTradeManagerPage() {
           <div className="flex items-center gap-2.5">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
             <span className="text-neutral-300">
-              <strong className="text-white font-medium">{pendingPaymentsCount} client{pendingPaymentsCount > 1 ? "s" : ""}</strong> submitted ₹99,999 payment verification requests (PhonePe / UPI / Bank)
+              <strong className="text-white font-medium">{pendingPaymentsCount} client{pendingPaymentsCount > 1 ? "s" : ""}</strong> submitted license payment requests (Tier 1: ₹99,999 VIP / Tier 2: ₹5,000 Setup)
             </span>
           </div>
           <button
@@ -1320,7 +1500,7 @@ export default function AutoTradeManagerPage() {
           }`}
         >
           <CreditCard size={13} className="text-emerald-400" />
-          <span>₹99k Payments</span>
+          <span>License Payments</span>
           {pendingPaymentsCount > 0 ? (
             <span className="text-[9px] px-2 py-0.5 rounded font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
@@ -1329,6 +1509,34 @@ export default function AutoTradeManagerPage() {
           ) : (
             <span className="text-[10px] px-1.5 py-0.2 rounded bg-black/40 text-neutral-400 font-mono">
               {licensePayments.length}
+            </span>
+          )}
+        </button>
+
+        {/* Tab 4: Daily 50% Profit Ledger */}
+        <button
+          onClick={() => setActiveMainTab("profit_ledger")}
+          className={`whitespace-nowrap shrink-0 px-3.5 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-none flex items-center gap-2 cursor-pointer ${
+            activeMainTab === "profit_ledger"
+              ? "bg-blue-600/25 text-blue-300 border border-blue-500/40 shadow-xs"
+              : "text-neutral-400 hover:text-white border border-transparent"
+          }`}
+        >
+          <DollarSign size={13} className="text-blue-400" />
+          <span>Daily 50% Profit Ledger</span>
+          {overdueProfitCount > 0 ? (
+            <span className="text-[9px] px-2 py-0.5 rounded font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30 flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+              {overdueProfitCount} Overdue
+            </span>
+          ) : pendingProfitCount > 0 ? (
+            <span className="text-[9px] px-2 py-0.5 rounded font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+              {pendingProfitCount} Due
+            </span>
+          ) : (
+            <span className="text-[10px] px-1.5 py-0.2 rounded bg-black/40 text-neutral-400 font-mono">
+              {performanceRecords.length}
             </span>
           )}
         </button>
@@ -2933,6 +3141,314 @@ export default function AutoTradeManagerPage() {
         </div>
       )}
 
+      {/* ── TAB 4: DAILY 50% PROFIT LEDGER & KEY SUSPENSION DESK ── */}
+      {activeMainTab === "profit_ledger" && (
+        <div className="space-y-4 sm:space-y-6">
+          {/* Top KPI Cards for Daily 50% Profit Share */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4">
+            <div className="bg-[#1E1E1E] border border-white/5 rounded-xl p-3.5 sm:p-5 hover:border-white/10 transition-none group cursor-pointer">
+              <div className="flex items-center justify-between mb-2.5 sm:mb-4">
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-black/30 border border-white/5 flex items-center justify-center group-hover:bg-white/[0.05] transition-none" style={{ borderColor: '#3b82f620' }}>
+                  <Users size={15} style={{ color: '#3b82f6' }} />
+                </div>
+              </div>
+              <p className="text-xl sm:text-2xl font-black text-white mb-0.5 sm:mb-1">{profitStats.totalClients}</p>
+              <p className="text-[9px] sm:text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Performance Clients</p>
+            </div>
+
+            <div className="bg-[#1E1E1E] border border-white/5 rounded-xl p-3.5 sm:p-5 hover:border-white/10 transition-none group cursor-pointer">
+              <div className="flex items-center justify-between mb-2.5 sm:mb-4">
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-black/30 border border-white/5 flex items-center justify-center group-hover:bg-white/[0.05] transition-none" style={{ borderColor: '#10b98120' }}>
+                  <DollarSign size={15} style={{ color: '#10b981' }} />
+                </div>
+              </div>
+              <p className="text-xl sm:text-2xl font-black text-emerald-400 font-mono mb-0.5 sm:mb-1">
+                ${profitStats.totalTodayProfitUsd.toFixed(2)}
+              </p>
+              <p className="text-[9px] sm:text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Today's Client Profits</p>
+            </div>
+
+            <div className="bg-[#1E1E1E] border border-white/5 rounded-xl p-3.5 sm:p-5 hover:border-white/10 transition-none group cursor-pointer">
+              <div className="flex items-center justify-between mb-2.5 sm:mb-4">
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-black/30 border border-white/5 flex items-center justify-center group-hover:bg-white/[0.05] transition-none" style={{ borderColor: '#6366f120' }}>
+                  <CreditCard size={15} style={{ color: '#6366f1' }} />
+                </div>
+                {profitStats.totalShareDueInr > 0 && (
+                  <span className="text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                    50% Cut
+                  </span>
+                )}
+              </div>
+              <p className="text-xl sm:text-2xl font-black text-indigo-400 font-mono mb-0.5 sm:mb-1">
+                ₹{profitStats.totalShareDueInr.toLocaleString()}
+              </p>
+              <p className="text-[9px] sm:text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Today's 50% Due to Tradifive</p>
+            </div>
+
+            <div className="bg-[#1E1E1E] border border-white/5 rounded-xl p-3.5 sm:p-5 hover:border-white/10 transition-none group cursor-pointer">
+              <div className="flex items-center justify-between mb-2.5 sm:mb-4">
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-black/30 border border-white/5 flex items-center justify-center group-hover:bg-white/[0.05] transition-none" style={{ borderColor: '#ef444420' }}>
+                  <AlertTriangle size={15} style={{ color: '#ef4444' }} />
+                </div>
+                {overdueProfitCount > 0 && (
+                  <span className="text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                    Action Needed
+                  </span>
+                )}
+              </div>
+              <p className="text-xl sm:text-2xl font-black text-white mb-0.5 sm:mb-1">
+                {overdueProfitCount} <span className="text-xs font-normal text-neutral-400">({pendingProfitCount} pending)</span>
+              </p>
+              <p className="text-[9px] sm:text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Unpaid / Suspended Keys</p>
+            </div>
+          </div>
+
+          {/* Operating Policy Notice Callout */}
+          <div className="p-3.5 sm:p-4 bg-[#18181B] border border-blue-500/20 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center justify-center shrink-0">
+                <ShieldAlert size={16} />
+              </div>
+              <div>
+                <span className="text-white font-bold text-xs block">
+                  Strict Enforcement Rule: Daily 50% Profit Share
+                </span>
+                <p className="text-neutral-400 text-[11px] leading-relaxed mt-0.5">
+                  Clients on the ₹5,000 Setup Plan must remit 50% of each green trading day. If client fails to transfer by end of day, admin can immediately suspend their MT5 EA license key until payment is confirmed.
+                </p>
+              </div>
+            </div>
+            <div className="shrink-0 flex items-center gap-2">
+              <span className="text-[11px] text-neutral-400">Receive via UPI:</span>
+              <code className="text-xs font-mono font-bold text-emerald-400 bg-black/40 px-2 py-1 rounded border border-white/5">
+                9731980756@axisbank
+              </code>
+            </div>
+          </div>
+
+          {/* Filter & Search Bar */}
+          <div className="bg-[#18181A] border border-white/5 rounded-xl p-3 sm:p-4 flex flex-col md:flex-row items-center justify-between gap-3">
+            <div className="flex items-center gap-2 w-full md:w-auto">
+              <div className="relative flex-1 md:w-80">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
+                <input
+                  type="text"
+                  placeholder="Search MT5 login, trader name, email..."
+                  value={profitLedgerSearch}
+                  onChange={(e) => setProfitLedgerSearch(e.target.value)}
+                  className="w-full bg-[#121214] border border-white/10 rounded-lg pl-9 pr-3 py-2 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div className="flex items-center gap-1 bg-[#121214] p-1 rounded-lg border border-white/10 text-xs">
+                <button
+                  onClick={() => setProfitLedgerFilter("all")}
+                  className={`px-2.5 py-1 rounded text-xs font-semibold ${profitLedgerFilter === "all" ? "bg-white/10 text-white" : "text-neutral-400 hover:text-white"}`}
+                >
+                  All ({performanceRecords.length})
+                </button>
+                <button
+                  onClick={() => setProfitLedgerFilter("pending")}
+                  className={`px-2.5 py-1 rounded text-xs font-semibold flex items-center gap-1 ${profitLedgerFilter === "pending" ? "bg-amber-500/20 text-amber-300" : "text-neutral-400 hover:text-white"}`}
+                >
+                  <Clock size={11} /> Pending ({pendingProfitCount})
+                </button>
+                <button
+                  onClick={() => setProfitLedgerFilter("overdue")}
+                  className={`px-2.5 py-1 rounded text-xs font-semibold flex items-center gap-1 ${profitLedgerFilter === "overdue" ? "bg-rose-500/20 text-rose-300" : "text-neutral-400 hover:text-white"}`}
+                >
+                  <AlertTriangle size={11} /> Overdue ({overdueProfitCount})
+                </button>
+                <button
+                  onClick={() => setProfitLedgerFilter("settled")}
+                  className={`px-2.5 py-1 rounded text-xs font-semibold flex items-center gap-1 ${profitLedgerFilter === "settled" ? "bg-emerald-500/20 text-emerald-300" : "text-neutral-400 hover:text-white"}`}
+                >
+                  <Check size={11} /> Settled ({profitStats.settledToday})
+                </button>
+              </div>
+            </div>
+
+            <div className="text-[11px] text-neutral-400 self-end md:self-auto">
+              Showing <strong className="text-white">{filteredProfitLedger.length}</strong> performance accounts
+            </div>
+          </div>
+
+          {/* Table of Performance Accounts */}
+          <div className="bg-[#18181A] border border-white/5 rounded-xl overflow-hidden shadow-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="border-b border-white/5 bg-black/30 text-[10px] uppercase font-bold text-neutral-400 tracking-wider">
+                    <th className="py-3 px-4">MT5 Account & Broker</th>
+                    <th className="py-3 px-4">Trader Details</th>
+                    <th className="py-3 px-4 text-right">Balance & Live Equity</th>
+                    <th className="py-3 px-4 text-right">Today's Net Profit</th>
+                    <th className="py-3 px-4 text-right">50% Share Due (Tradifive)</th>
+                    <th className="py-3 px-4 text-center">Settlement Status</th>
+                    <th className="py-3 px-4 text-right">Enforcement Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {filteredProfitLedger.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="py-12 text-center text-neutral-500">
+                        <DollarSign size={28} className="mx-auto mb-2 opacity-30" />
+                        <p className="font-semibold text-xs">No performance partner accounts found.</p>
+                        <p className="text-[11px] mt-1 text-neutral-600 max-w-md mx-auto">
+                          When users pay ₹5,000 setup fee or when you enroll an account on the Daily 50% Profit Share plan, they will appear here with live daily P&amp;L and 1-click key suspension.
+                        </p>
+                        {records.length > 0 && (
+                          <div className="mt-4">
+                            <button
+                              type="button"
+                              onClick={() => handleTogglePlanTier(records[0], "Daily 50% Profit Share")}
+                              className="px-3.5 py-1.5 bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/30 rounded-lg text-xs font-semibold cursor-pointer transition-all"
+                            >
+                              ⚡ Quick-Enroll #{records[0].mt5_account_number} ({records[0].user_name}) into 50% Plan
+                            </button>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredProfitLedger.map((r) => {
+                      const profitUsd = r.today_profit ?? 85.0;
+                      const profitInr = Math.round(profitUsd * 84);
+                      const shareUsd = r.profit_share_due !== undefined ? r.profit_share_due : Math.round((profitUsd * 0.5) * 100) / 100;
+                      const shareInr = Math.round(profitInr * 0.5);
+                      const isSuspended = r.license_status === "suspended" || r.daily_settlement_status === "overdue";
+                      const isSettled = r.daily_settlement_status === "settled" && !isSuspended;
+
+                      return (
+                        <tr key={r.id} className="hover:bg-white/[0.02] transition-colors">
+                          <td className="py-3.5 px-4">
+                            <div className="font-mono font-bold text-white text-xs flex items-center gap-1.5">
+                              <span>#{r.mt5_account_number}</span>
+                              <span className="text-[10px] px-1.5 py-0.2 rounded bg-white/5 text-neutral-400 font-normal">
+                                {r.broker_name}
+                              </span>
+                            </div>
+                            <span className="text-[10px] text-neutral-500 font-mono block mt-0.5">
+                              Key: {r.license_key ? `${r.license_key.slice(0, 10)}...` : "UNISSUED"}
+                            </span>
+                          </td>
+
+                          <td className="py-3.5 px-4">
+                            <div className="font-semibold text-white text-xs">{r.user_name}</div>
+                            <div className="text-[11px] text-neutral-400 truncate max-w-[180px]">{r.user_email}</div>
+                          </td>
+
+                          <td className="py-3.5 px-4 text-right font-mono">
+                            <div className="text-white font-semibold">${Number(r.equity || r.balance || 0).toLocaleString()}</div>
+                            <div className="text-[10px] text-neutral-500">Bal: ${Number(r.balance || 0).toLocaleString()}</div>
+                          </td>
+
+                          <td className="py-3.5 px-4 text-right">
+                            <div className="font-mono font-bold text-emerald-400 text-xs">
+                              +${profitUsd.toFixed(2)}
+                            </div>
+                            <div className="text-[10px] text-emerald-500/80 font-mono">
+                              +₹{profitInr.toLocaleString()}
+                            </div>
+                          </td>
+
+                          <td className="py-3.5 px-4 text-right font-mono">
+                            <div className="font-bold text-indigo-400 text-xs">
+                              ₹{shareInr.toLocaleString()}
+                            </div>
+                            <div className="text-[10px] text-neutral-500">
+                              (${shareUsd.toFixed(2)})
+                            </div>
+                          </td>
+
+                          <td className="py-3.5 px-4 text-center">
+                            {isSuspended ? (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                                <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+                                Overdue · Key Suspended
+                              </span>
+                            ) : isSettled ? (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                                <Check size={11} /> Settled Today
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                                <Clock size={11} /> Pending Payment
+                              </span>
+                            )}
+                          </td>
+
+                          <td className="py-3.5 px-4 text-right">
+                            <div className="flex items-center justify-end gap-1.5">
+                              {/* WhatsApp Reminder Link */}
+                              <a
+                                href={getWhatsAppShareLink(r)}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="h-7 px-2 bg-emerald-950/60 hover:bg-emerald-900 text-emerald-300 border border-emerald-500/30 rounded text-[11px] font-semibold flex items-center gap-1 transition-all"
+                                title="Send WhatsApp payment reminder with profit details & UPI ID"
+                              >
+                                <MessageCircle size={11} /> Request 50%
+                              </a>
+
+                              {/* Mark Settled */}
+                              {!isSettled && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleMarkSettled(r)}
+                                  className="h-7 px-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded text-[11px] font-bold flex items-center gap-1 transition-all cursor-pointer shadow-xs"
+                                  title="Mark 50% profit share settled"
+                                >
+                                  <Check size={11} /> Settle
+                                </button>
+                              )}
+
+                              {/* Suspend or Reactivate Key */}
+                              {isSuspended ? (
+                                <button
+                                  type="button"
+                                  onClick={() => handleReactivateKey(r)}
+                                  className="h-7 px-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-[11px] font-bold flex items-center gap-1 transition-all cursor-pointer shadow-xs"
+                                  title="Reactivate license key"
+                                >
+                                  <Unlock size={11} /> Reactivate Key
+                                </button>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => handleSuspendUnpaidKey(r)}
+                                  className="h-7 px-2.5 bg-rose-950/70 hover:bg-rose-900 text-rose-300 border border-rose-500/30 rounded text-[11px] font-semibold flex items-center gap-1 transition-all cursor-pointer"
+                                  title="Suspend key if client did not give daily 50% profit share"
+                                >
+                                  <Lock size={11} /> Suspend Key
+                                </button>
+                              )}
+
+                              {/* Inspect drawer button */}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSelectedRecord(r);
+                                  setIsDrawerOpen(true);
+                                }}
+                                className="h-7 w-7 bg-[#1C1C20] hover:bg-white/10 text-neutral-400 hover:text-white border border-white/5 rounded flex items-center justify-center transition-all cursor-pointer"
+                                title="Open full inspection drawer"
+                              >
+                                <Eye size={12} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── COMPREHENSIVE INSPECTION MODAL / DRAWER ("EACH AND EVERYTHING") ── */}
       {typeof document !== "undefined" && createPortal(
         <AnimatePresence>
@@ -3273,6 +3789,113 @@ export default function AutoTradeManagerPage() {
                         </span>
                       </div>
 
+                      {/* Plan Tier Switcher & Daily 50% Settlement Control */}
+                      <div className="pt-2 pb-2 border-b border-white/5 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] text-neutral-400 uppercase font-bold tracking-wider">Trading Plan Model</span>
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => handleTogglePlanTier(selectedRecord, "Lifetime License")}
+                              className={`px-2.5 py-1 rounded text-[11px] font-semibold cursor-pointer transition-all ${
+                                selectedRecord.purchase_tier === "Lifetime License"
+                                  ? "bg-purple-600 text-white"
+                                  : "bg-neutral-800 text-neutral-400 hover:text-white"
+                              }`}
+                            >
+                              Tier 1: Lifetime VIP (₹1L)
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleTogglePlanTier(selectedRecord, "Daily 50% Profit Share")}
+                              className={`px-2.5 py-1 rounded text-[11px] font-semibold cursor-pointer transition-all ${
+                                selectedRecord.purchase_tier === "Daily 50% Profit Share"
+                                  ? "bg-blue-600 text-white"
+                                  : "bg-neutral-800 text-neutral-400 hover:text-white"
+                              }`}
+                            >
+                              Tier 2: 50% Daily Share (₹5k)
+                            </button>
+                          </div>
+                        </div>
+
+                        {selectedRecord.purchase_tier === "Daily 50% Profit Share" && (
+                          <div className="mt-2 p-3 bg-black/40 rounded-xl border border-blue-500/20 space-y-2.5">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-bold text-blue-300 flex items-center gap-1.5">
+                                <DollarSign size={13} /> Daily 50% Settlement Status
+                              </span>
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                                selectedRecord.license_status === "suspended"
+                                  ? "bg-rose-500/20 text-rose-300"
+                                  : selectedRecord.daily_settlement_status === "settled"
+                                    ? "bg-emerald-500/20 text-emerald-300"
+                                    : "bg-amber-500/20 text-amber-300"
+                              }`}>
+                                {selectedRecord.license_status === "suspended"
+                                  ? "Key Suspended (Unpaid)"
+                                  : selectedRecord.daily_settlement_status === "settled"
+                                    ? "Settled Today"
+                                    : "Pending Remittance"}
+                              </span>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2 text-xs">
+                              <div className="p-2 bg-[#161618] rounded-lg">
+                                <span className="text-[10px] text-neutral-400 uppercase">Today's Profit</span>
+                                <div className="text-emerald-400 font-mono font-bold mt-0.5">
+                                  +${(selectedRecord.today_profit ?? 85.0).toFixed(2)} (₹{Math.round((selectedRecord.today_profit ?? 85.0) * 84).toLocaleString()})
+                                </div>
+                              </div>
+                              <div className="p-2 bg-[#161618] rounded-lg">
+                                <span className="text-[10px] text-neutral-400 uppercase">50% Share Due</span>
+                                <div className="text-indigo-400 font-mono font-bold mt-0.5">
+                                  ₹{Math.round(Math.round((selectedRecord.today_profit ?? 85.0) * 84) * 0.5).toLocaleString()}
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="flex flex-wrap items-center gap-2 pt-1">
+                              <button
+                                type="button"
+                                onClick={() => handleMarkSettled(selectedRecord)}
+                                className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded text-xs font-bold flex items-center gap-1 cursor-pointer"
+                              >
+                                <Check size={12} /> Mark 50% Settled
+                              </button>
+
+                              {selectedRecord.license_status === "suspended" ? (
+                                <button
+                                  type="button"
+                                  onClick={() => handleReactivateKey(selectedRecord)}
+                                  className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-xs font-bold flex items-center gap-1 cursor-pointer"
+                                >
+                                  <Unlock size={12} /> Reactivate Key
+                                </button>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => handleSuspendUnpaidKey(selectedRecord)}
+                                  className="px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white rounded text-xs font-bold flex items-center gap-1 cursor-pointer"
+                                  title="Suspend key if client did not give daily 50% profit share"
+                                >
+                                  <Lock size={12} /> Suspend Key (Unpaid 50%)
+                                </button>
+                              )}
+
+                              <a
+                                href={getWhatsAppShareLink(selectedRecord)}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="px-3 py-1.5 bg-emerald-950/60 hover:bg-emerald-900 text-emerald-300 border border-emerald-500/30 rounded text-xs font-semibold flex items-center gap-1"
+                              >
+                                <MessageCircle size={12} /> WhatsApp Request
+                              </a>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-4 text-xs">
                         <div>
                           <span className="text-[10px] text-neutral-500 uppercase">Trading Instrument</span>
@@ -3519,7 +4142,41 @@ export default function AutoTradeManagerPage() {
                       <option value="fialgo_scalper">FiAlgo Scalper Pro</option>
                     </select>
                   </div>
+                </div>
 
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-neutral-400 font-semibold block mb-1">Licensing Plan Tier</label>
+                    <select
+                      value={newRecordForm.purchase_tier}
+                      onChange={(e) => {
+                        const tier = e.target.value as any;
+                        const price = tier === "Daily 50% Profit Share" ? "5000" : tier === "Lifetime License" ? "99999" : "0";
+                        setNewRecordForm({ ...newRecordForm, purchase_tier: tier, price_paid: price });
+                      }}
+                      className="w-full bg-[#111111] border border-white/10 rounded-lg px-3 py-2 text-white text-xs font-semibold"
+                    >
+                      <option value="Lifetime License">Tier 1: Lifetime VIP (₹1 Lakh · 0% Profit Share)</option>
+                      <option value="Daily 50% Profit Share">Tier 2: Performance Partner (₹5,000 + Daily 50% Share)</option>
+                      <option value="Enterprise Pack">Enterprise Custom Pack</option>
+                      <option value="3-Day Free Trial">3-Day Free Trial</option>
+                      <option value="None">Tradifive IB Account Only</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-neutral-400 font-semibold block mb-1">Setup Fee / Price Paid</label>
+                    <input
+                      type="text"
+                      value={newRecordForm.price_paid}
+                      onChange={(e) => setNewRecordForm({ ...newRecordForm, price_paid: e.target.value })}
+                      placeholder="e.g. 99999 or 5000"
+                      className="w-full bg-[#111111] border border-white/10 rounded-lg px-3 py-2 text-white font-mono text-xs"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="text-neutral-400 font-semibold block mb-1">Tradifive IB Status</label>
                     <select
@@ -3530,6 +4187,17 @@ export default function AutoTradeManagerPage() {
                       <option value="yes">✓ Under Tradifive (Verified)</option>
                       <option value="no">✗ Outside Tradifive (Unverified)</option>
                     </select>
+                  </div>
+
+                  <div>
+                    <label className="text-neutral-400 font-semibold block mb-1">Trader Phone / WhatsApp</label>
+                    <input
+                      type="text"
+                      value={newRecordForm.user_phone}
+                      onChange={(e) => setNewRecordForm({ ...newRecordForm, user_phone: e.target.value })}
+                      placeholder="e.g. +91 97319 80756"
+                      className="w-full bg-[#111111] border border-white/10 rounded-lg px-3 py-2 text-white text-xs"
+                    />
                   </div>
                 </div>
               </div>
@@ -3552,11 +4220,13 @@ export default function AutoTradeManagerPage() {
                     }
 
                     const hex = Math.random().toString(36).substring(2, 6).toUpperCase();
+                    const isPerf = newRecordForm.purchase_tier === "Daily 50% Profit Share";
                     const newRecord: AutoTradeRecord = {
                       id: `rec-manual-${Date.now()}`,
                       user_id: `usr-${Date.now()}`,
                       user_name: newRecordForm.user_name,
                       user_email: newRecordForm.user_email || "user@tradifive.com",
+                      user_phone: newRecordForm.user_phone || undefined,
                       created_at: new Date().toISOString(),
                       mt5_account_number: newRecordForm.mt5_account_number,
                       broker_name: newRecordForm.broker_name,
@@ -3573,21 +4243,25 @@ export default function AutoTradeManagerPage() {
                       last_ib_check_at: new Date().toISOString(),
                       has_purchased: true,
                       algo_id: newRecordForm.algo_id as any,
-                      algo_name: newRecordForm.algo_id === "fialgo_v1" ? "FiAlgo V1 (Gold Scalper & Trend)" : newRecordForm.algo_id === "fialgo_trend" ? "FiAlgo Trend Alpha" : "FiAlgo Scalper Pro",
+                      algo_name: newRecordForm.algo_id === "fialgo_v1" ? (isPerf ? "FiAlgo V1 (50% Daily Share)" : "FiAlgo V1 (Gold Scalper & Trend)") : newRecordForm.algo_id === "fialgo_trend" ? "FiAlgo Trend Alpha" : "FiAlgo Scalper Pro",
                       algo_manifest: "FiAlgo_v1.0.4.ex5",
                       algo_pair: "XAUUSD · M15",
-                      purchase_tier: "Lifetime License",
-                      price_paid: parseFloat(newRecordForm.price_paid) || 39,
+                      purchase_tier: newRecordForm.purchase_tier,
+                      price_paid: parseFloat(newRecordForm.price_paid) || (isPerf ? 5000 : 99999),
                       payment_status: "paid",
                       purchase_date: new Date().toISOString(),
                       binary_downloaded: true,
                       backtest_downloaded: true,
                       license_key: `FIALGO-${hex}-9401-XAU1`,
                       license_status: "active",
-                      license_expiry: "Lifetime",
+                      license_expiry: isPerf ? "Active (Daily 50%)" : "Lifetime",
                       allowed_accounts: 1,
                       bound_account: newRecordForm.mt5_account_number,
-                      admin_notes: "Manually registered and license issued by admin."
+                      daily_settlement_status: isPerf ? "pending" : undefined,
+                      today_profit: isPerf ? 85.0 : undefined,
+                      profit_share_due: isPerf ? 42.5 : undefined,
+                      last_settled_at: new Date().toISOString(),
+                      admin_notes: `Registered under ${newRecordForm.purchase_tier} by admin.`
                     };
 
                     await persistUpdate(newRecord);
