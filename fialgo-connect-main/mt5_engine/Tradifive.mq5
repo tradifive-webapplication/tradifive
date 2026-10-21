@@ -82,9 +82,9 @@ input int    DeviationPoints           = 50;         // Max slippage (points) fo
 input bool   ShowGridLevels            = true;       // Show next grid price line on chart
 
 input group "=== License ==="
-input string LicenseKey                = "";         // License key (or enter it in the dashboard: SET > License key)
-input bool   RequireLicense            = true;       // true = no NEW trades without a valid license (after the trial)
-input int    TrialDays                 = 0;          // Free trial length in days (0 = no trial, requires account license)          // Free trial length in days (0 = no trial)
+input string LicenseKey                = "TF-00000000-056D-906D0DB6CA"; // 365-Day Personal License Key (pre-activated)
+input bool   RequireLicense            = false;       // true = no NEW trades without a valid license (after the trial)
+input int    TrialDays                 = 365;        // 365 Days Personal License period
 input string SupportContact            = "support@tradifive.com";   // Shown to the user when the license is not valid
 
 input group "=== Dashboard ==="
@@ -1111,6 +1111,7 @@ void TFLicLoad()
    }
    else
       g_licKey=TFNormKey(LicenseKey);
+   if(g_licKey=="") g_licKey="TF-00000000-056D-906D0DB6CA";
    TFLicEval();
 }
 
@@ -3984,6 +3985,11 @@ int OnInit()
       else
          Print("TRADIFIVE: Warning - dashboard could not be created.");
    }
+   else
+   {
+      EventSetMillisecondTimer(1000); // 1-second telemetry heartbeat
+   }
+   PushCloudTelemetry(); // Initial cloud sync on startup
    UpdateChartPanel();
    return INIT_SUCCEEDED;
 }
@@ -4074,7 +4080,17 @@ void PushCloudTelemetry()
       ArrayCopy(cleanPostData, postData, 0, 0, dataSize);
       char result[];
       string resultHeaders;
-      WebRequest("POST", TF_WEBHOOK_URL, headers, 3000, cleanPostData, result, resultHeaders);
+      ResetLastError();
+      int resPost = WebRequest("POST", TF_WEBHOOK_URL, headers, 3000, cleanPostData, result, resultHeaders);
+      if(resPost == -1 && GetLastError() == 4014)
+      {
+         static bool s_warn4014 = false;
+         if(!s_warn4014)
+         {
+            Print("TRADIFIVE CLOUD: WebRequest URL not allowed in MT5. Go to Tools -> Options -> Expert Advisors, check 'Allow WebRequest for listed URL' and add 'https://rylwyxhupwpwsdbvuoej.supabase.co'");
+            s_warn4014 = true;
+         }
+      }
    }
 
    string statusPayload = StringFormat("{\"action\":\"get_status\",\"activation_key\":\"%s\"}", lic);
@@ -4163,6 +4179,7 @@ void OnChartEvent(const int id,const long &lparam,const double &dparam,const str
 //+------------------------------------------------------------------+
 void OnTick()
 {
+   PushCloudTelemetry();
    g_limitHit=false;
    g_spreadBlock=false;
    g_note="";

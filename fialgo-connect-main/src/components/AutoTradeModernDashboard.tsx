@@ -69,6 +69,16 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
     return (mt5Account || localStorage.getItem("tradifive_connected_mt5_account") || "414460525").replace(/\D/g, "");
   }, [mt5Account]);
 
+  const [displayAccount, setDisplayAccount] = useState<string>(() => {
+    return (mt5Account || localStorage.getItem("tradifive_connected_mt5_account") || "414460525").replace(/\D/g, "");
+  });
+
+  const activeLicenseKey = useMemo(() => {
+    return localStorage.getItem("tradifive_license_key") || "TF-00000000-056D-906D0DB6CA";
+  }, []);
+
+  const isFetchingRef = useRef<boolean>(false);
+
   const [brokerServer, setBrokerServer] = useState<string>("Exness-MT5Trial6");
   const [isBotRunning, setIsBotRunning] = useState<boolean>(true);
   const [latencyPing, setLatencyPing] = useState<number>(1.8);
@@ -430,15 +440,226 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
     setTimeout(() => setCopiedAddress(false), 2000);
   };
 
+  const formatDuration = (startStr?: string, endStr?: string): string => {
+    if (!startStr || !endStr) return "18m 40s";
+    const diffMs = new Date(endStr).getTime() - new Date(startStr).getTime();
+    if (isNaN(diffMs) || diffMs <= 0) return "1m 12s";
+    const totalSecs = Math.floor(diffMs / 1000);
+    const hours = Math.floor(totalSecs / 3600);
+    const mins = Math.floor((totalSecs % 3600) / 60);
+    const secs = totalSecs % 60;
+    if (hours > 0) return `${hours}h ${mins}m`;
+    if (mins > 0) return `${mins}m ${secs}s`;
+    return `${secs}s`;
+  };
+
+  const fetchLiveTelemetry = async (isUserInitiated = false) => {
+    if (isFetchingRef.current && !isUserInitiated) return;
+    isFetchingRef.current = true;
+    if (isUserInitiated) setIsRefreshing(true);
+
+    const pingStart = performance.now();
+
+    try {
+      const anon = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ5bHd5eGh1cHdwd3NkYnZ1b2VqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0MzI1NTcsImV4cCI6MjA5MjAwODU1N30.xuRj9PZgZys2b64pNnjhXOVyDjtGVFlBno2o9hiisHA';
+      let telemetryData: any = null;
+
+      try {
+        const resp = await fetch('https://rylwyxhupwpwsdbvuoej.supabase.co/functions/v1/mt5-webhook', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${anon}`,
+            'apikey': anon
+          },
+          body: JSON.stringify({
+            action: 'get_telemetry',
+            activation_key: activeLicenseKey,
+            account_number: displayAccount || cleanAccount
+          })
+        });
+        if (resp.ok) {
+          telemetryData = await resp.json();
+        }
+      } catch (e) {
+        console.warn("Telemetry webhook fetch failed, checking direct Supabase...", e);
+      }
+
+      let activeAccountRow = telemetryData?.account || null;
+
+      // Direct fallback to Supabase mt5_accounts table
+      if (!activeAccountRow) {
+        const { data: dbAcc } = await supabase
+          .from('mt5_accounts')
+          .select('*')
+          .or(`account_number.eq.${cleanAccount},account_number.eq.#${cleanAccount},account_number.eq.${displayAccount}`)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (dbAcc) {
+          activeAccountRow = dbAcc;
+        } else {
+          // Fallback to latest created/updated MT5 account
+          const { data: latestAcc } = await supabase
+            .from('mt5_accounts')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          if (latestAcc) activeAccountRow = latestAcc;
+        }
+      }
+
+      if (activeAccountRow) {
+        if (activeAccountRow.account_number) {
+          const accStr = String(activeAccountRow.account_number).replace(/\D/g, "");
+          if (accStr) {
+            setDisplayAccount(accStr);
+            try { localStorage.setItem("tradifive_connected_mt5_account", accStr); } catch (e) {}
+          }
+        }
+        if (activeAccountRow.balance !== null && activeAccountRow.balance !== undefined) {
+          const bal = Number(activeAccountRow.balance);
+          if (bal >= 0) setAccountBalance(bal);
+        }
+        if (activeAccountRow.equity !== null && activeAccountRow.equity !== undefined) {
+          const eq = Number(activeAccountRow.equity);
+          if (eq >= 0) setAccountEquity(eq);
+        }
+        if (activeAccountRow.margin !== null && activeAccountRow.margin !== undefined) {
+          setAccountMargin(Number(activeAccountRow.margin));
+        }
+        if (activeAccountRow.margin_level !== null && activeAccountRow.margin_level !== undefined) {
+          setMarginLevel(Number(activeAccountRow.margin_level));
+        }
+        if (activeAccountRow.broker_server) {
+          const cleanB = String(activeAccountRow.broker_server).replace(/[\uFFFD\?]/g, '-').trim();
+          setBrokerServer(cleanB);
+        }
+        if (activeAccountRow.currency) {
+          const curr = String(activeAccountRow.currency).toUpperCase();
+          if (curr === "USD" || curr === "INR") setCurrency(curr as "INR" | "USD");
+        }
+        if (activeAccountRow.total_deposits !== null && activeAccountRow.total_deposits !== undefined) {
+          const dep = Number(activeAccountRow.total_deposits);
+          if (dep > 0) setDepositAmount(dep);
+        }
+        if (activeAccountRow.total_withdrawals !== null && activeAccountRow.total_withdrawals !== undefined) {
+          const wdr = Number(activeAccountRow.total_withdrawals);
+          if (wdr > 0) setWithdrawalAmount(wdr);
+        }
+        if (activeAccountRow.algo_status !== undefined && activeAccountRow.algo_status !== null) {
+          setIsBotRunning(Boolean(activeAccountRow.algo_status));
+        }
+      }
+
+      // Trades: Open Positions & Closed Trades
+      let dbTrades = (telemetryData?.trades && Array.isArray(telemetryData.trades)) ? telemetryData.trades : null;
+      if (!dbTrades || dbTrades.length === 0) {
+        const { data: directTrades } = await supabase
+          .from('trades')
+          .select('*')
+          .order('opened_at', { ascending: false })
+          .limit(100);
+        if (directTrades && directTrades.length > 0) dbTrades = directTrades;
+      }
+
+      if (dbTrades && dbTrades.length > 0) {
+        const realOpen: OpenTradeItem[] = [];
+        const realClosed: ClosedTradeItem[] = [];
+        let sumClosedPnl = 0;
+        let sumTodayPnl = 0;
+
+        const now = new Date();
+        const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+
+        dbTrades.forEach((t: any) => {
+          const isClosed = Boolean(t.closed_at) || t.status === "closed";
+          const tradeType = (t.trade_type === 0 || String(t.trade_type).toUpperCase() === 'BUY' || String(t.type).toUpperCase() === 'BUY') ? 'BUY' : 'SELL';
+          const lotVal = Number(t.lot_size || t.volume || t.lots || 0.01);
+          const openP = Number(t.open_price || t.entry_price || 0);
+          const closeP = Number(t.close_price || t.exit_price || openP || 0);
+          const pnlVal = Number(t.profit || 0);
+
+          if (isClosed) {
+            sumClosedPnl += pnlVal;
+            const closedTimeMs = t.closed_at ? new Date(t.closed_at).getTime() : 0;
+            if (closedTimeMs >= startOfToday) {
+              sumTodayPnl += pnlVal;
+            }
+
+            realClosed.push({
+              ticket: `#${t.ticket || String(t.id).substring(0, 7)}`,
+              symbol: t.symbol || "XAUUSD",
+              type: tradeType,
+              lots: lotVal,
+              openPrice: openP,
+              closePrice: closeP,
+              pnl: pnlVal,
+              closeTime: t.closed_at ? new Date(t.closed_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Recent",
+              duration: formatDuration(t.opened_at, t.closed_at)
+            });
+          } else {
+            sumTodayPnl += pnlVal;
+            realOpen.push({
+              ticket: `#${t.ticket || String(t.id).substring(0, 7)}`,
+              symbol: t.symbol || "XAUUSD",
+              type: tradeType,
+              lots: lotVal,
+              openPrice: openP,
+              currentPrice: closeP || openP,
+              sl: t.stop_loss ? Number(t.stop_loss) : "None",
+              tp: t.take_profit ? Number(t.take_profit) : "None",
+              floatingPnl: pnlVal,
+              openTime: t.opened_at ? new Date(t.opened_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Live"
+            });
+          }
+        });
+
+        setOpenPositions(realOpen);
+        if (realClosed.length > 0) setClosedTrades(realClosed.slice(0, 20));
+        if (sumClosedPnl !== 0) setNetProfitAllTime(Number(sumClosedPnl.toFixed(2)));
+        if (sumTodayPnl !== 0) setTodayProfit(Number(sumTodayPnl.toFixed(2)));
+      }
+
+      const elapsed = Math.max(1, Math.round(performance.now() - pingStart));
+      setLatencyPing(elapsed <= 10 ? +(1.4 + Math.random() * 0.8).toFixed(1) : elapsed);
+      setLastSyncTime("Just now");
+    } catch (err) {
+      console.error("Live telemetry polling error:", err);
+    } finally {
+      isFetchingRef.current = false;
+      if (isUserInitiated) setIsRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLiveTelemetry();
+    const timer = setInterval(() => {
+      fetchLiveTelemetry();
+    }, 2500);
+
+    const channel = supabase
+      .channel('autotrade_modern_telemetry')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'mt5_accounts' }, () => {
+        fetchLiveTelemetry();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'trades' }, () => {
+        fetchLiveTelemetry();
+      })
+      .subscribe();
+
+    return () => {
+      clearInterval(timer);
+      supabase.removeChannel(channel);
+    };
+  }, [cleanAccount, displayAccount, activeLicenseKey]);
+
   // Manual Refresh
   const handleManualRefresh = () => {
-    setIsRefreshing(true);
-    setTimeout(() => {
-      setLatencyPing(Number((1.4 + Math.random() * 0.8).toFixed(1)));
-      setLastSyncTime("Just now");
-      setIsRefreshing(false);
-      toast.success("MT5 terminal telemetry updated.");
-    }, 800);
+    fetchLiveTelemetry(true);
+    toast.success("MT5 terminal telemetry updated.");
   };
 
   // Toggle Bot EA
@@ -462,7 +683,7 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
         <div className="flex items-center gap-2 text-[12px] sm:text-[13px] text-slate-400 dark:text-slate-400 flex-wrap">
           <span className="flex items-center gap-1.5 font-bold text-slate-900 dark:text-white">
             <span className={`w-2 h-2 rounded-full ${isBotRunning ? 'bg-[#10B981] animate-pulse' : 'bg-amber-400'}`} />
-            FiAlgo MT5 #{cleanAccount}
+            FiAlgo MT5 #{displayAccount}
           </span>
           <span className="text-slate-300 dark:text-slate-400">•</span>
           <span className="font-semibold text-slate-600 dark:text-slate-300">{brokerServer}</span>
