@@ -12,6 +12,7 @@ import {
   ChevronRight,
   MonitorPlay,
   Lock,
+  Unlock,
   Download,
   Copy,
   CheckCircle2,
@@ -19,7 +20,11 @@ import {
   PlayCircle,
   ArrowRight,
   Loader2,
-  Sparkles
+  Sparkles,
+  ShieldCheck,
+  Crown,
+  MessageCircle,
+  AlertTriangle
 } from "lucide-react";
 import DownloadEngineFlow from "@/components/DownloadEngineFlow";
 import { useTrading } from "@/contexts/TradingContext";
@@ -81,27 +86,98 @@ export default function Strategy() {
   const [selectedCat, setSelectedCat] = useState<string>("scalping");
   const [selectedBot, setSelectedBot] = useState<any>(null);
   const [copied, setCopied] = useState(false);
-  const [activationKey, setActivationKey] = useState("Loading...");
+  const [activationKey, setActivationKey] = useState("");
   const [downloadedEngines, setDownloadedEngines] = useState<Record<string, boolean>>({});
-
-
-
+  
+  // Real License & Gating States (1 Key Per User, Bound to MT5)
+  const [accountNumber, setAccountNumber] = useState<string>("");
+  const [hasApprovedLicense, setHasApprovedLicense] = useState<boolean>(false);
+  const [isSuspended, setIsSuspended] = useState<boolean>(false);
+  const [licenseTier, setLicenseTier] = useState<"lifetime" | "50_50">("lifetime");
+  const [selectedPlanForInquiry, setSelectedPlanForInquiry] = useState<"lifetime" | "50_50">("lifetime");
+  const [loadingLicense, setLoadingLicense] = useState<boolean>(true);
 
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchKey = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data } = await supabase.from('profiles').select('activation_key').eq('id', user.id).maybeSingle();
-        if (data && data.activation_key) {
-          setActivationKey(data.activation_key);
-        } else {
-          // Auto-generate dynamically for new users!
-          const generatedKey = "TRADIFIVE-" + Math.random().toString(36).substring(2, 8).toUpperCase() + "-" + Math.random().toString(36).substring(2, 8).toUpperCase();
-          await supabase.from('profiles').upsert({ id: user.id, activation_key: generatedKey });
-          setActivationKey(generatedKey);
+      setLoadingLicense(true);
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          // 1. Check mt5_accounts
+          const { data: acc } = await supabase
+            .from('mt5_accounts')
+            .select('account_number, activation_key, is_active, algo_status')
+            .eq('user_id', user.id)
+            .maybeSingle();
+
+          const cleanAcc = acc?.account_number || localStorage.getItem("tradifive_connected_mt5_account") || "";
+          setAccountNumber(cleanAcc);
+
+          // 2. Check profile
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('activation_key')
+            .eq('id', user.id)
+            .maybeSingle();
+
+          // 3. Check system_settings auto_trade_admin_records
+          let adminApproved = false;
+          let adminSuspended = false;
+          let adminKey = "";
+          let adminTier = "50_50";
+
+          const { data: sysSettings } = await supabase
+            .from('system_settings')
+            .select('value')
+            .eq('id', 'auto_trade_admin_records')
+            .maybeSingle();
+
+          if (sysSettings?.value && typeof sysSettings.value === "object") {
+            const records: any[] = Array.isArray(sysSettings.value)
+              ? sysSettings.value
+              : Object.values(sysSettings.value);
+
+            const match = records.find((r: any) =>
+              (r.user_id && r.user_id === user.id) ||
+              (cleanAcc && (r.mt5_account_number === cleanAcc || r.bound_account === cleanAcc))
+            );
+
+            if (match) {
+              if (match.license_status === "suspended") {
+                adminSuspended = true;
+              }
+              if (match.license_status === "active" && match.license_key) {
+                adminApproved = true;
+                adminKey = match.license_key;
+                if (match.purchase_tier === "Lifetime License") {
+                  adminTier = "lifetime";
+                }
+              }
+            }
+          }
+
+          if (adminSuspended || acc?.is_active === false || acc?.algo_status === false) {
+            setIsSuspended(true);
+          }
+
+          const effectiveKey = adminKey || profile?.activation_key || acc?.activation_key || "";
+
+          // Only consider approved if they have an active admin record OR an existing valid cryptographic key
+          if (adminApproved || (effectiveKey && effectiveKey.startsWith("TF-"))) {
+            setHasApprovedLicense(true);
+            setActivationKey(effectiveKey);
+            setLicenseTier(adminTier as "lifetime" | "50_50");
+          } else {
+            setHasApprovedLicense(false);
+            setActivationKey("");
+          }
         }
+      } catch (e) {
+        console.error("Error fetching license status:", e);
+      } finally {
+        setLoadingLicense(false);
       }
     };
     fetchKey();
@@ -372,48 +448,176 @@ export default function Strategy() {
               </motion.div>
             )}
 
-            {/* STEP 3: SETUP TRADING ENGINE */}
+            {/* STEP 3: SETUP TRADING ENGINE & LICENSE GATING */}
             {step === 3 && (
-              <motion.div key="step4" variants={containerVariants} initial="hidden" animate="visible" exit="exit" className="w-full max-w-md mx-auto mt-2">
-                <div className="bg-white dark:bg-[#1E1E1E] rounded-[24px] p-8 md:p-10 border border-border/80 shadow-sm">
-                  <h2 className="text-[24px] font-black tracking-tight mb-8 text-center text-foreground uppercase">Setup Protocol</h2>
-
-                  <div className="space-y-8 mb-12 max-w-sm mx-auto">
-                    <div className="flex items-start gap-5">
-                      <div className="w-10 h-10 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 text-[15px] font-bold text-primary shadow-sm">1</div>
-                      <div className="pt-1.5">
-                        <p className="text-[16px] text-foreground font-bold mb-1">Download Trading Engine</p>
-                        <p className="text-[14px] text-slate-500 font-medium">Get the secure trading connector file.</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-5">
-                      <div className="w-10 h-10 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 text-[15px] font-bold text-primary shadow-sm">2</div>
-                      <div className="pt-1.5">
-                        <p className="text-[16px] text-foreground font-bold mb-1">Attach to MT5 Platform</p>
-                        <p className="text-[14px] text-slate-500 font-medium">Drag and drop it onto any chart.</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-5">
-                      <div className="w-10 h-10 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 text-[15px] font-bold text-primary shadow-sm">3</div>
-                      <div className="pt-1.5">
-                        <p className="text-[16px] text-foreground font-bold mb-1">Enter Activation Key</p>
-                        <p className="text-[14px] text-slate-500 font-medium">We’ll provide this after download.</p>
-                      </div>
-                    </div>
+              <motion.div key="step3" variants={containerVariants} initial="hidden" animate="visible" exit="exit" className="w-full max-w-lg mx-auto mt-2">
+                <div className="bg-white dark:bg-[#1E1E1E] rounded-[24px] p-6 sm:p-8 border border-border/80 shadow-sm">
+                  <div className="text-center mb-6">
+                    <h2 className="text-[22px] font-black tracking-tight text-foreground uppercase">
+                      EA License & Protocol
+                    </h2>
+                    <p className="text-slate-500 font-medium text-xs mt-1">
+                      {hasApprovedLicense
+                        ? "Your license is approved. Download Tradifive.ex5 and attach to MT5."
+                        : "Select your license tier. Exactly 1 hardware-locked key is issued per MT5 account."}
+                    </p>
                   </div>
 
-                  <div className="space-y-4 max-w-sm mx-auto">
-                    <PushableButton variant="deep-3d" onClick={handleDownloadEngine} className="w-full">
-                      Download EA
-                    </PushableButton>
-                    <PushableButton
-                      variant="secondary"
-                      onClick={() => setStep(5)}
-                      className="w-full"
-                    >
-                      View Setup Guide
-                    </PushableButton>
-                  </div>
+                  {/* Suspended Alert */}
+                  {isSuspended && (
+                    <div className="p-4 bg-rose-500/10 border border-rose-500/30 rounded-2xl mb-6 flex items-start gap-3">
+                      <AlertTriangle size={18} className="shrink-0 text-rose-500 mt-0.5" />
+                      <div>
+                        <h4 className="text-xs font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider">
+                          Trading Suspended by Admin
+                        </h4>
+                        <p className="text-xs text-rose-600/90 dark:text-rose-400/90 mt-1 leading-relaxed">
+                          Your EA license key has been suspended. In your MT5 terminal, the Tradifive EA has ceased trading and removed pending orders. Please contact support to reactivate.
+                        </p>
+                        <a
+                          href="https://wa.me/919999999999?text=Hello%20Tradifive%20Support%2C%20my%20EA%20license%20is%20suspended.%20Please%20assist%20me%20to%20reactivate."
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1.5 mt-2.5 px-3 py-1 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-[11px] font-bold transition-colors"
+                        >
+                          <MessageCircle size={12} /> Contact Tradifive Support
+                        </a>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* If Approved & Active */}
+                  {hasApprovedLicense ? (
+                    <div className="space-y-6">
+                      <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
+                            <ShieldCheck size={22} />
+                          </div>
+                          <div>
+                            <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 block">
+                              License Approved & Verified
+                            </span>
+                            <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100">
+                              {licenseTier === "lifetime" ? "1 Lakh Lifetime License (0% Share)" : "Daily 50% Profit Share Partner"}
+                            </h4>
+                          </div>
+                        </div>
+                        <span className="text-[11px] font-mono font-bold text-slate-400 bg-black/10 dark:bg-white/5 px-2.5 py-1 rounded-lg">
+                          #{accountNumber || "MT5"}
+                        </span>
+                      </div>
+
+                      <div className="space-y-4 max-w-sm mx-auto pt-2">
+                        <PushableButton
+                          variant="deep-3d"
+                          onClick={handleDownloadEngine}
+                          disabled={isSuspended}
+                          className="w-full flex items-center justify-center gap-2"
+                        >
+                          <Download size={16} /> Download EA (Tradifive.ex5)
+                        </PushableButton>
+                        <PushableButton
+                          variant="secondary"
+                          onClick={() => setStep(5)}
+                          className="w-full"
+                        >
+                          View License Key & Guide
+                        </PushableButton>
+                      </div>
+                    </div>
+                  ) : (
+                    /* If Not Approved / Unpaid: Show the Two Plan Options & Talk with Team */
+                    <div className="space-y-5">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {/* Option 1: 1 Lakh Lifetime License */}
+                        <div
+                          onClick={() => setSelectedPlanForInquiry("lifetime")}
+                          className={`p-4 rounded-2xl border-2 transition-all cursor-pointer relative ${
+                            selectedPlanForInquiry === "lifetime"
+                              ? "border-amber-500 bg-amber-50/40 dark:bg-amber-500/10 shadow-sm"
+                              : "border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <Crown size={18} className="text-amber-500" />
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-300">
+                              0% Share
+                            </span>
+                          </div>
+                          <h4 className="text-[13px] font-black text-slate-900 dark:text-white">
+                            1 Lakh Lifetime
+                          </h4>
+                          <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                            ₹1,00,000 / $1,200 one-time. Keep 100% of all profits. 1 hardware-bound permanent key.
+                          </p>
+                          <div className="mt-3 text-xs font-bold text-amber-600 dark:text-amber-400">
+                            Full Ownership
+                          </div>
+                        </div>
+
+                        {/* Option 2: 50/50 Profit Split Partner */}
+                        <div
+                          onClick={() => setSelectedPlanForInquiry("50_50")}
+                          className={`p-4 rounded-2xl border-2 transition-all cursor-pointer relative ${
+                            selectedPlanForInquiry === "50_50"
+                              ? "border-sky-500 bg-sky-50/40 dark:bg-sky-500/10 shadow-sm"
+                              : "border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <Activity size={18} className="text-sky-500" />
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-100 dark:bg-sky-500/20 text-sky-800 dark:text-sky-300">
+                              Partner
+                            </span>
+                          </div>
+                          <h4 className="text-[13px] font-black text-slate-900 dark:text-white">
+                            50/50 Profit Split
+                          </h4>
+                          <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                            ₹0 Upfront. Split daily trading profits 50/50 with Tradifive via crypto remittance.
+                          </p>
+                          <div className="mt-3 text-xs font-bold text-sky-600 dark:text-sky-400">
+                            Zero Initial Cost
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Locked EA Download Button Notice */}
+                      <div className="p-3.5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl flex items-center gap-3 text-xs text-slate-600 dark:text-slate-300">
+                        <Lock size={16} className="text-amber-500 shrink-0" />
+                        <span>
+                          EA download and cryptographic activation key unlock automatically once your plan is approved by the admin.
+                        </span>
+                      </div>
+
+                      {/* Talk with Tradifive Team CTA */}
+                      <a
+                        href={`https://wa.me/919999999999?text=${encodeURIComponent(
+                          `Hello Tradifive Team! I want to get an MT5 EA License Key for Account #${accountNumber || "new"}. I am interested in the ${
+                            selectedPlanForInquiry === "lifetime"
+                              ? "₹1 Lakh Lifetime License (0% Profit Share)"
+                              : "50/50 Profit Split Partner"
+                          } plan. Please help me get activated.`
+                        )}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="w-full py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 transition-all cursor-pointer"
+                      >
+                        <MessageCircle size={16} />
+                        <span>Talk with Tradifive Team to Activate</span>
+                        <ArrowRight size={14} />
+                      </a>
+
+                      <button
+                        disabled
+                        className="w-full py-2.5 rounded-xl border border-slate-200 dark:border-white/10 text-slate-400 text-xs font-semibold flex items-center justify-center gap-2 bg-slate-100 dark:bg-white/5 opacity-70 cursor-not-allowed"
+                      >
+                        <Lock size={13} />
+                        <span>EA Download Locked (Activation Required)</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
               </motion.div>
             )}
@@ -424,11 +628,10 @@ export default function Strategy() {
                 <DownloadEngineFlow
                   onDownloadComplete={onDownloadComplete}
                   alreadyDownloaded={selectedBot ? downloadedEngines[selectedBot.id] : false}
-                  fileName={selectedBot?.id === "scalper" ? "TradiFive_scalper_Engine.ex5" : "TradiFive_swing_Engine.ex5"}
+                  fileName="Tradifive.ex5"
                 />
               </motion.div>
             )}
-
 
             {/* STEP 5: ACTIVATION KEY */}
             {step === 5 && (
@@ -439,24 +642,63 @@ export default function Strategy() {
                   </div>
 
                   <div className="w-16 h-16 bg-primary/10 rounded-2xl mx-auto flex items-center justify-center mb-6 border border-primary/20 relative z-10">
-                    <Download size={28} className="text-primary" />
+                    {hasApprovedLicense && !isSuspended ? (
+                      <ShieldCheck size={28} className="text-primary" />
+                    ) : (
+                      <Lock size={28} className="text-amber-500" />
+                    )}
                   </div>
-                  <h2 className="text-[22px] font-black tracking-[0.05em] mb-4 text-foreground uppercase italic">Control Key Ready</h2>
-                  <p className="text-slate-500 text-[14px] font-medium mb-10 max-w-[280px] mx-auto leading-relaxed">
-                    Copy your tactical activation key to authenticate your engine handshake.
+
+                  <h2 className="text-[22px] font-black tracking-[0.05em] mb-2 text-foreground uppercase italic">
+                    {isSuspended ? "License Suspended" : hasApprovedLicense ? "Control Key Ready" : "Activation Required"}
+                  </h2>
+                  <p className="text-slate-500 text-[13px] font-medium mb-8 max-w-[300px] mx-auto leading-relaxed">
+                    {isSuspended
+                      ? "Trading has been halted by admin kill-switch. Contact support to reactivate your license."
+                      : hasApprovedLicense
+                      ? `Hardware-locked to MT5 #${accountNumber || "your account"}. Paste into Tradifive EA inputs.`
+                      : "You must connect with the Tradifive team to receive an approved activation key."}
                   </p>
 
-                  <div className="max-w-xs mx-auto mb-10 relative group">
-                    <p className="text-slate-400 text-[9px] font-black uppercase tracking-[0.2em] mb-3">Encryption Key</p>
-                    <div className="bg-slate-50 dark:bg-[#141414] border border-slate-100 dark:border-[#333333] rounded-[16px] p-4 flex items-center justify-between group overflow-hidden shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)]">
-                      <span className="text-foreground font-mono text-[16px] tracking-widest font-black truncate max-w-[180px]">{activationKey}</span>
-                      <PushableButton variant="deep-3d" onClick={copyKey} disabled={activationKey.includes("Loading")} className="p-1.5 min-w-[44px]">
-                        {copied ? <CheckCircle2 size={16} className="text-primary" /> : <Copy size={16} />}
-                      </PushableButton>
+                  {hasApprovedLicense && !isSuspended ? (
+                    <div className="max-w-xs mx-auto mb-8 relative group">
+                      <p className="text-slate-400 text-[9px] font-black uppercase tracking-[0.2em] mb-2">
+                        Cryptographic Key (1 Key Bound)
+                      </p>
+                      <div className="bg-slate-50 dark:bg-[#141414] border border-slate-100 dark:border-[#333333] rounded-[16px] p-3.5 flex items-center justify-between group overflow-hidden shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)]">
+                        <span className="text-foreground font-mono text-[13px] tracking-wide font-black truncate max-w-[200px]">
+                          {activationKey}
+                        </span>
+                        <PushableButton
+                          variant="deep-3d"
+                          onClick={() => copyKey(activationKey)}
+                          className="p-1.5 min-w-[38px]"
+                        >
+                          {copied ? <CheckCircle2 size={15} className="text-primary" /> : <Copy size={15} />}
+                        </PushableButton>
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="max-w-xs mx-auto mb-8">
+                      <a
+                        href={`https://wa.me/919999999999?text=${encodeURIComponent(
+                          `Hello Tradifive Team, I need help with my MT5 License Key for Account #${accountNumber || "new"}.`
+                        )}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold inline-flex items-center gap-2 shadow-md transition-all"
+                      >
+                        <MessageCircle size={15} /> Talk with Tradifive Support
+                      </a>
+                    </div>
+                  )}
 
-                  <PushableButton variant="deep-3d" onClick={() => setStep(6)} className="w-full">
+                  <PushableButton
+                    variant="deep-3d"
+                    onClick={() => setStep(6)}
+                    disabled={!hasApprovedLicense || isSuspended}
+                    className="w-full"
+                  >
                     INITIALIZE SETUP <ArrowRight size={16} className="ml-1" />
                   </PushableButton>
                 </div>

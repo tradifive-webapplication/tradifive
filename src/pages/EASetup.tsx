@@ -102,11 +102,8 @@ export default function EASetup() {
               setLicenseKey(acc.activation_key);
               try { localStorage.setItem("tradifive_license_key", acc.activation_key); } catch (e) {}
             } else {
-              const cleanAcc = acc?.account_number || localStorage.getItem("tradifive_connected_mt5_account") || "100000";
-              const newKey = generateTradifiveLicenseKey(cleanAcc);
-              await supabase.from("profiles").update({ activation_key: newKey }).eq("id", user.id);
-              setLicenseKey(newKey);
-              try { localStorage.setItem("tradifive_license_key", newKey); } catch (e) {}
+              // Unapproved / unpaid user: require approval or payment from Tradifive team
+              setLicenseKey("PENDING_ACTIVATION");
             }
           }
         }
@@ -116,6 +113,12 @@ export default function EASetup() {
   }, []);
 
   const copyKey = (keyToCopy: string) => {
+    if (keyToCopy === "PENDING_ACTIVATION" || !keyToCopy) {
+      toast.error("License Not Active", {
+        description: "Please connect with the Tradifive team to activate your license key."
+      });
+      return;
+    }
     navigator.clipboard.writeText(keyToCopy);
     setCopied(true);
     toast.success("License key copied to clipboard");
@@ -123,14 +126,20 @@ export default function EASetup() {
   };
 
   const handleDownloadEA = () => {
+    if (licenseKey === "PENDING_ACTIVATION" || !licenseKey) {
+      toast.error("Activation Required", {
+        description: "You must choose a plan and be approved by the Tradifive team before downloading the EA."
+      });
+      return;
+    }
     const a = document.createElement("a");
-    a.href = "/FiAlgo_v1.0.4.ex5";
-    a.download = "Tradifive_Master_EA.ex5";
+    a.href = "/Tradifive.ex5";
+    a.download = "Tradifive.ex5";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
 
-    toast.success("Downloading Tradifive_Master_EA.ex5", {
+    toast.success("Downloading Tradifive.ex5", {
       description: "Save this file into your MT5 /MQL5/Experts folder."
     });
   };

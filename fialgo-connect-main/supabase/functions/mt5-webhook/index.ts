@@ -225,14 +225,58 @@ serve(async (req) => {
 
     // Step C.1: Intercept Kill-Switch Pull
     if (action === 'get_status') {
-      const { data: accStatus } = await supabaseAdmin
-        .from('mt5_accounts')
-        .select('algo_status')
-        .eq('user_id', user_id)
-        .maybeSingle();
+      let isSuspended = false;
+      let licenseStatus = "active";
+      let purchaseTier = "Lifetime License";
+
+      // 1. Check system_settings -> auto_trade_admin_records
+      try {
+        const { data: adminSettings } = await supabaseAdmin
+          .from('system_settings')
+          .select('value')
+          .eq('id', 'auto_trade_admin_records')
+          .maybeSingle();
+
+        if (adminSettings?.value && typeof adminSettings.value === 'object') {
+          const recList = Object.values(adminSettings.value) as any[];
+          const myRec = recList.find(
+            (r: any) => (user_id && r.user_id === user_id) ||
+                        (account_number && (r.bound_account === String(account_number).replace(/\D/g, '') || r.mt5_account_number === String(account_number).replace(/\D/g, ''))) ||
+                        (activation_key && r.license_key === activation_key)
+          );
+          if (myRec) {
+            purchaseTier = myRec.purchase_tier || purchaseTier;
+            if (myRec.license_status === 'suspended' || myRec.algo_execution_active === false) {
+              isSuspended = true;
+              licenseStatus = 'suspended';
+            } else if (myRec.license_status === 'active') {
+              licenseStatus = 'active';
+            }
+          }
+        }
+      } catch (e) {}
+
+      // 2. Also verify mt5_accounts algo_status
+      if (!isSuspended) {
+        const { data: accStatus } = await supabaseAdmin
+          .from('mt5_accounts')
+          .select('algo_status, is_active')
+          .eq('user_id', user_id)
+          .maybeSingle();
+        if (accStatus && (accStatus.algo_status === false || accStatus.is_active === false)) {
+          isSuspended = true;
+          licenseStatus = 'suspended';
+        }
+      }
         
       return new Response(
-        JSON.stringify({ success: true, algo_status: accStatus?.algo_status || false }),
+        JSON.stringify({ 
+          success: true, 
+          algo_status: !isSuspended, 
+          license_status: licenseStatus,
+          purchase_tier: purchaseTier,
+          is_suspended: isSuspended
+        }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -262,13 +306,42 @@ serve(async (req) => {
        // Check if account row already exists for this user or account number
        const { data: existingAccount } = await supabaseAdmin
          .from('mt5_accounts')
-         .select('id')
+         .select('id, algo_status, is_active')
          .or(`user_id.eq.${user_id}${cleanAcc ? `,account_number.eq.${cleanAcc},account_number.eq.#${cleanAcc}` : ''}`)
          .limit(1)
          .maybeSingle();
 
        let dbError = null;
        let targetAccountId = existingAccount?.id || null;
+
+       // Verify if license is suspended
+       let isSuspended = false;
+       let licenseStatus = "active";
+       try {
+         const { data: adminSettings } = await supabaseAdmin
+           .from('system_settings')
+           .select('value')
+           .eq('id', 'auto_trade_admin_records')
+           .maybeSingle();
+
+         if (adminSettings?.value && typeof adminSettings.value === 'object') {
+           const recList = Object.values(adminSettings.value) as any[];
+           const myRec = recList.find(
+             (r: any) => (user_id && r.user_id === user_id) ||
+                         (cleanAcc && (r.bound_account === cleanAcc || r.mt5_account_number === cleanAcc)) ||
+                         (activation_key && r.license_key === activation_key)
+           );
+           if (myRec && (myRec.license_status === 'suspended' || myRec.algo_execution_active === false)) {
+             isSuspended = true;
+             licenseStatus = 'suspended';
+           }
+         }
+       } catch (e) {}
+
+       if (!isSuspended && existingAccount && (existingAccount.algo_status === false || existingAccount.is_active === false)) {
+         isSuspended = true;
+         licenseStatus = 'suspended';
+       }
 
        const total_deposits = payload.total_deposits !== undefined ? Number(payload.total_deposits) : null;
        const total_withdrawals = payload.total_withdrawals !== undefined ? Number(payload.total_withdrawals) : null;
@@ -281,7 +354,7 @@ serve(async (req) => {
           equity: equity !== undefined ? Number(equity) : 0,
           currency: currency || 'INR',
           connection_status: 'deployed',
-          algo_status: true
+          algo_status: !isSuspended
        };
        if (total_deposits !== null) accountPayload.total_deposits = total_deposits;
        if (total_withdrawals !== null) accountPayload.total_withdrawals = total_withdrawals;
@@ -448,7 +521,12 @@ serve(async (req) => {
           console.error('Metrics Sync Error:', dbError);
           return new Response(JSON.stringify({ error: dbError.message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
         }
-        return new Response(JSON.stringify({ success: true }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        return new Response(JSON.stringify({ 
+          success: true, 
+          algo_status: !isSuspended, 
+          license_status: licenseStatus,
+          is_suspended: isSuspended 
+        }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     // Step E: Normalize trade_type (supporting "BUY"/"SELL" strings, "0"/"1" strings, or 0/1 numbers)

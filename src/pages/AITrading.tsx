@@ -2890,6 +2890,15 @@ MagicNumber=789104
                               {copiedKey ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
                               <span>{copiedKey ? "Copied" : "Copy Key"}</span>
                             </button>
+                            <a
+                              href="/Tradifive.ex5"
+                              download="Tradifive.ex5"
+                              className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white inline-flex items-center gap-1.5 cursor-pointer shadow-xs"
+                              title="Download Tradifive Expert Advisor file for MT5"
+                            >
+                              <Download size={13} />
+                              <span>Download EA</span>
+                            </a>
                             <button
                               type="button"
                               onClick={handleDownloadPreset}

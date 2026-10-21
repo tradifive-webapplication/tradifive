@@ -1311,136 +1311,137 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
         </div>
 
         {/* RIGHT COLUMN: 1 LAKH LIFETIME OWNERSHIP (0% SHARE) vs 50/50 PROFIT SPLIT (4 cols) */}
-        {isLifetime ? (
-          <div className={`lg:col-span-4 ${cardBoxStyle} flex flex-col justify-between`}>
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <Crown size={16} className="text-amber-500 fill-amber-500/20" />
+        <div className={`lg:col-span-4 ${cardBoxStyle} flex flex-col justify-between min-h-[460px]`}>
+          <div>
+            <div className="flex items-center justify-between mb-2 min-h-[26px]">
+              {isLifetime ? (
+                <>
+                  <div className="flex items-center gap-2">
+                    <Crown size={16} className="text-amber-500 fill-amber-500/20" />
+                    <h2 className="text-[15px] font-bold text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
+                      Full EA Ownership
+                    </h2>
+                  </div>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-200/50 flex items-center gap-1">
+                    <Sparkles size={10} /> 0% Profit Share
+                  </span>
+                </>
+              ) : (
+                <>
                   <h2 className="text-[15px] font-bold text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
-                    Full EA Ownership
+                    Profit Split (50 / 50)
                   </h2>
-                </div>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-200/50 flex items-center gap-1">
-                  <Sparkles size={10} /> 0% Profit Share
-                </span>
-              </div>
-              <p className="text-[11.5px] font-normal text-slate-400 mb-4 leading-relaxed">
-                You own the complete FiAlgo Expert Advisor with a permanent Lifetime License (₹1 Lakh Purchase). 100% of all trading profits stay directly in your MT5 account.
-              </p>
-
-              {/* Ownership Visual Meter */}
-              <div className="space-y-3">
-                {/* 100% Retained Card */}
-                <div className="p-3.5 rounded-[18px] border-2 border-white bg-gradient-to-b from-[#ECFDF5] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.08),0_0_0_2px_#A7F3D0] dark:bg-none dark:bg-[#132A20] dark:border-[1px] dark:border-emerald-500/30">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-[11px] font-extrabold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider flex items-center gap-1.5">
-                      <CheckCircle2 size={13} className="text-emerald-600 dark:text-emerald-400" /> Profits Retained by You (100%)
-                    </span>
-                    <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">Zero Commission</span>
-                  </div>
-                  <h3 className="text-[22px] font-medium text-slate-900 dark:text-white tracking-tight leading-none my-1" style={{ fontFamily: "'Inter', sans-serif" }}>
-                    +{currencySymbol}{todayProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </h3>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-                    100% retained in your broker account · No daily payouts needed.
-                  </p>
-                </div>
-
-                {/* Savings & Hardware Lock Card */}
-                <div className="p-3.5 rounded-[18px] border-2 border-white bg-gradient-to-b from-[#FFFBEB] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.08),0_0_0_2px_#FDE68A] dark:bg-none dark:bg-[#2A2415] dark:border-[1px] dark:border-amber-500/30">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-[11px] font-extrabold text-amber-900 dark:text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
-                      <ShieldCheck size={13} className="text-amber-600 dark:text-amber-400" /> Platform Fee Saved (50%)
-                    </span>
-                    <span className="text-[10px] font-bold text-slate-400">Saved Today</span>
-                  </div>
-                  <div className="flex items-baseline gap-2 my-1">
-                    <h3 className="text-[22px] font-medium text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
-                      {currencySymbol}{(todayProfit * 0.5).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </h3>
-                    <span className="text-[12px] font-medium text-emerald-600 dark:text-emerald-400 font-bold">
-                      Saved
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-                    Hardware-locked to MT5 #{displayAccount || cleanAccount} · Lifetime Unlimited
-                  </p>
-                </div>
-              </div>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-50 dark:bg-sky-500/10 text-sky-700 dark:text-sky-400 border border-sky-200/50">
+                    Partner Model
+                  </span>
+                </>
+              )}
             </div>
+            <p className="text-[11.5px] font-normal text-slate-400 mb-4 leading-relaxed min-h-[36px]">
+              {isLifetime
+                ? "You own the complete FiAlgo Expert Advisor with a permanent Lifetime License (₹1 Lakh Purchase). 100% of all trading profits stay directly in your MT5 account."
+                : "Today's trading profits are split equally between client and platform. Keep 50% in your MT5 broker account; remit 50% daily via Crypto."}
+            </p>
 
-            {/* Lifetime Status Footer (Fixed 42px Height) */}
-            <div className="mt-5 pt-4 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-xs min-h-[42px]">
-              <span className="text-slate-400 font-medium flex items-center gap-1.5">
-                <Lock size={12} className="text-emerald-500" /> License Type:
-              </span>
-              <span className="font-bold text-slate-800 dark:text-slate-200">
-                Lifetime Enterprise (Permanent)
-              </span>
+            {/* Visual Meter / Split Cards */}
+            <div className="space-y-3">
+              {isLifetime ? (
+                <>
+                  {/* 100% Retained Card */}
+                  <div className="p-3.5 rounded-[18px] border-2 border-white bg-gradient-to-b from-[#ECFDF5] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.08),0_0_0_2px_#A7F3D0] dark:bg-none dark:bg-[#132A20] dark:border-[1px] dark:border-emerald-500/30">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[11px] font-extrabold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider flex items-center gap-1.5">
+                        <CheckCircle2 size={13} className="text-emerald-600 dark:text-emerald-400" /> Profits Retained by You (100%)
+                      </span>
+                      <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">Zero Commission</span>
+                    </div>
+                    <h3 className="text-[22px] font-medium text-slate-900 dark:text-white tracking-tight leading-none my-1" style={{ fontFamily: "'Inter', sans-serif" }}>
+                      +{currencySymbol}{todayProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </h3>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                      100% retained in your broker account · No daily payouts needed.
+                    </p>
+                  </div>
+
+                  {/* Savings & Hardware Lock Card */}
+                  <div className="p-3.5 rounded-[18px] border-2 border-white bg-gradient-to-b from-[#FFFBEB] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.08),0_0_0_2px_#FDE68A] dark:bg-none dark:bg-[#2A2415] dark:border-[1px] dark:border-amber-500/30">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[11px] font-extrabold text-amber-900 dark:text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
+                        <ShieldCheck size={13} className="text-amber-600 dark:text-amber-400" /> Platform Fee Saved (50%)
+                      </span>
+                      <span className="text-[10px] font-bold text-slate-400">Saved Today</span>
+                    </div>
+                    <div className="flex items-baseline gap-2 my-1">
+                      <h3 className="text-[22px] font-medium text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
+                        {currencySymbol}{(todayProfit * 0.5).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </h3>
+                      <span className="text-[12px] font-bold text-emerald-600 dark:text-emerald-400">
+                        Saved
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                      Hardware-locked to MT5 #{displayAccount || cleanAccount} · Lifetime Unlimited
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* Client Card */}
+                  <div className="p-3.5 rounded-[18px] border-2 border-white bg-gradient-to-b from-[#ECFDF5] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.08),0_0_0_2px_#A7F3D0] dark:bg-none dark:bg-[#132A20] dark:border-[1px] dark:border-emerald-500/30">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[11px] font-extrabold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider flex items-center gap-1.5">
+                        <CheckCircle2 size={13} className="text-emerald-600 dark:text-emerald-400" /> Client Share (50%)
+                      </span>
+                      <span className="text-[10px] font-bold text-slate-400">Retained in MT5</span>
+                    </div>
+                    <h3 className="text-[22px] font-medium text-slate-900 dark:text-white tracking-tight leading-none my-1" style={{ fontFamily: "'Inter', sans-serif" }}>
+                      +{currencySymbol}{clientShareToday.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </h3>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                      Credited directly to your MT5 account equity.
+                    </p>
+                  </div>
+
+                  {/* Admin / Tradifive Card */}
+                  <div className="p-3.5 rounded-[18px] border-2 border-white bg-gradient-to-b from-[#EFF6FF] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.08),0_0_0_2px_#BFDBFE] dark:bg-none dark:bg-[#1A2332] dark:border-[1px] dark:border-blue-500/30">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[11px] font-extrabold text-blue-900 dark:text-blue-300 uppercase tracking-wider flex items-center gap-1.5">
+                        <QrCode size={13} className="text-blue-600 dark:text-blue-400" /> Platform Share (50%)
+                      </span>
+                      <span className="text-[10px] font-bold text-slate-400">Remit via Crypto</span>
+                    </div>
+                    <div className="flex items-baseline gap-2 my-1">
+                      <h3 className="text-[22px] font-medium text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
+                        ${adminShareTodayUsdt} USDT
+                      </h3>
+                      <span className="text-[12px] font-medium text-slate-400">
+                        ({currencySymbol}{adminShareToday.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })})
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                      Daily remittance required to keep EA key active.
+                    </p>
+                  </div>
+                </>
+              )}
             </div>
           </div>
-        ) : (
-          <div className={`lg:col-span-4 ${cardBoxStyle} flex flex-col justify-between`}>
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <h2 className="text-[15px] font-bold text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
-                  Profit Split (50 / 50)
-                </h2>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-50 dark:bg-sky-500/10 text-sky-700 dark:text-sky-400 border border-sky-200/50">
-                  Partner Model
+
+          {/* Unified Footer (Fixed min-h-[46px] for Zero Layout Shift) */}
+          <div className="mt-5 pt-4 border-t border-slate-100 dark:border-white/5 flex items-center min-h-[46px]">
+            {isLifetime ? (
+              <div className="w-full flex items-center justify-between text-xs">
+                <span className="text-slate-400 font-medium flex items-center gap-1.5">
+                  <Lock size={12} className="text-emerald-500" /> License Type:
+                </span>
+                <span className="font-bold text-slate-800 dark:text-slate-200">
+                  Lifetime Enterprise (Permanent)
                 </span>
               </div>
-              <p className="text-[11.5px] font-normal text-slate-400 mb-4 leading-relaxed">
-                Today's trading profits are split equally between client and platform. Keep 50% in your MT5 broker account; remit 50% daily via Crypto.
-              </p>
-
-              {/* Split Visual Meter */}
-              <div className="space-y-3">
-                {/* Client Card */}
-                <div className="p-3.5 rounded-[18px] border-2 border-white bg-gradient-to-b from-[#ECFDF5] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.08),0_0_0_2px_#A7F3D0] dark:bg-none dark:bg-[#132A20] dark:border-[1px] dark:border-emerald-500/30">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-[11px] font-extrabold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider flex items-center gap-1.5">
-                      <CheckCircle2 size={13} className="text-emerald-600 dark:text-emerald-400" /> Client Share (50%)
-                    </span>
-                    <span className="text-[10px] font-bold text-slate-400">Retained in MT5</span>
-                  </div>
-                  <h3 className="text-[22px] font-medium text-slate-900 dark:text-white tracking-tight leading-none my-1" style={{ fontFamily: "'Inter', sans-serif" }}>
-                    +{currencySymbol}{clientShareToday.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </h3>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-                    Credited directly to your MT5 account equity.
-                  </p>
-                </div>
-
-                {/* Admin / Tradifive Card */}
-                <div className="p-3.5 rounded-[18px] border-2 border-white bg-gradient-to-b from-[#EFF6FF] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.08),0_0_0_2px_#BFDBFE] dark:bg-none dark:bg-[#1A2332] dark:border-[1px] dark:border-blue-500/30">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-[11px] font-extrabold text-blue-900 dark:text-blue-300 uppercase tracking-wider flex items-center gap-1.5">
-                      <QrCode size={13} className="text-blue-600 dark:text-blue-400" /> Platform Share (50%)
-                    </span>
-                    <span className="text-[10px] font-bold text-slate-400">Remit via Crypto</span>
-                  </div>
-                  <div className="flex items-baseline gap-2 my-1">
-                    <h3 className="text-[22px] font-medium text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
-                      ${adminShareTodayUsdt} USDT
-                    </h3>
-                    <span className="text-[12px] font-medium text-slate-400">
-                      ({currencySymbol}{adminShareToday.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })})
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-                    Daily remittance required to keep EA key active.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Quick Pay Button (Fixed 42px Height) */}
-            <div className="mt-5 pt-4 border-t border-slate-100 dark:border-white/5 min-h-[42px] flex items-center">
+            ) : (
               <button
                 onClick={() => setShowSettlementModal(true)}
-                className="w-full py-2.5 rounded-xl text-white font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md hover:scale-[1.01] active:scale-[0.99]"
+                className="w-full py-2.5 rounded-xl text-white font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md hover:scale-[1.01] active:scale-[0.99] h-[38px]"
                 style={{
                   background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
                   boxShadow: '0 2px 10px rgba(15,23,42,0.2)',
@@ -1449,9 +1450,9 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
                 <Upload size={14} className="text-sky-400" />
                 <span>Remit 50% via Crypto & Upload Proof</span>
               </button>
-            </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
 
       {/* ── 2-COLUMN SECTION: Live Open Basket Positions & Recent Trade History ── */}

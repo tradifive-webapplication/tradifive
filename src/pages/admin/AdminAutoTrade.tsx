@@ -120,7 +120,7 @@ export interface AutoTradeRecord {
   algo_name: string;
   algo_manifest: string;
   algo_pair: string;
-  purchase_tier: "Lifetime License" | "Enterprise Pack" | "3-Day Free Trial" | "None";
+  purchase_tier: "Lifetime License" | "Daily 50% Profit Share" | "Enterprise Pack" | "3-Day Free Trial" | "None";
   price_paid: number;
   payment_status: "paid" | "free_trial" | "pending" | "refunded";
   purchase_date: string;
@@ -765,9 +765,9 @@ export default function AdminAutoTrade() {
             account_number: cleanAcc,
             broker_name: updatedRecord.broker_name || "Vantage Markets",
             broker_server: updatedRecord.broker_server || `${updatedRecord.broker_name || "Vantage Markets"}-Real`,
-            is_active: updatedRecord.is_under_tradifive ?? true,
+            is_active: updatedRecord.license_status !== "suspended",
             is_connected: updatedRecord.is_connected ?? true,
-            algo_status: true,
+            algo_status: updatedRecord.license_status === "active" && updatedRecord.algo_execution_active !== false,
             balance: Number(updatedRecord.balance || 2000),
             equity: Number(updatedRecord.equity || 2000),
             currency: updatedRecord.currency || "USD",
@@ -2319,12 +2319,34 @@ export default function AdminAutoTrade() {
                     <strong className="text-white">{selectedRecord.algo_name}</strong>
                   </div>
                   <div>
-                    <span className="text-slate-500 block text-[10px] uppercase">Package</span>
-                    <strong className="text-white">{selectedRecord.purchase_tier}</strong>
+                    <span className="text-slate-500 block text-[10px] uppercase mb-1">Package / Tier</span>
+                    <select
+                      value={selectedRecord.purchase_tier || "None"}
+                      onChange={async (e) => {
+                        const newTier = e.target.value as any;
+                        const updated: AutoTradeRecord = {
+                          ...selectedRecord,
+                          purchase_tier: newTier,
+                          has_purchased: newTier !== "None",
+                          price_paid: newTier === "Lifetime License" ? 99999 : 0,
+                          updated_at: new Date().toISOString()
+                        };
+                        await persistUpdate(updated);
+                        toast.success(`Assigned tier: ${newTier}`);
+                      }}
+                      className="bg-black/60 border border-slate-700 rounded px-2 py-1 text-xs font-semibold text-white focus:outline-none focus:border-blue-500"
+                    >
+                      <option value="Lifetime License">1 Lakh Lifetime License (0% Share)</option>
+                      <option value="Daily 50% Profit Share">Daily 50% Profit Share Partner</option>
+                      <option value="Enterprise Pack">Enterprise Pack</option>
+                      <option value="None">None (Unpaid / Unissued)</option>
+                    </select>
                   </div>
                   <div>
                     <span className="text-slate-500 block text-[10px] uppercase">Amount Paid</span>
-                    <strong className="text-emerald-400 font-mono">${selectedRecord.price_paid} USD</strong>
+                    <strong className="text-emerald-400 font-mono">
+                      {selectedRecord.purchase_tier === "Lifetime License" ? "₹1,00,000 / $1,200" : "$0 (50/50 Share)"}
+                    </strong>
                   </div>
                   <div>
                     <span className="text-slate-500 block text-[10px] uppercase">Binary File</span>
@@ -2333,7 +2355,18 @@ export default function AdminAutoTrade() {
                 </div>
 
                 <div className="pt-2">
-                  <span className="text-slate-500 block text-[10px] uppercase">License Key</span>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-slate-500 block text-[10px] uppercase">Cryptographic License Key (1 Key Bound)</span>
+                    <span
+                      className={`text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider ${
+                        selectedRecord.license_status === "active"
+                          ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                          : "bg-rose-500/10 text-rose-400 border border-rose-500/20"
+                      }`}
+                    >
+                      {selectedRecord.license_status}
+                    </span>
+                  </div>
                   <div className="flex items-center gap-2 mt-1">
                     <input
                       type="text"
@@ -2346,9 +2379,42 @@ export default function AdminAutoTrade() {
                         navigator.clipboard.writeText(selectedRecord.license_key);
                         toast.success("Copied!");
                       }}
-                      className="px-3 py-1.5 bg-slate-800 text-white rounded text-xs"
+                      className="px-3 py-1.5 bg-slate-800 text-white rounded text-xs hover:bg-slate-700 transition-colors"
                     >
                       Copy
+                    </button>
+                    <button
+                      onClick={() => regenerateLicenseKey(selectedRecord)}
+                      className="px-2.5 py-1.5 bg-blue-600/20 text-blue-400 border border-blue-500/30 rounded text-xs hover:bg-blue-600/30 transition-colors"
+                      title="Generate new cryptographic key for bound MT5 account"
+                    >
+                      Regen Key
+                    </button>
+                  </div>
+
+                  {/* Suspension Kill-Switch Action in Drawer */}
+                  <div className="mt-3 pt-3 border-t border-slate-800 flex items-center justify-between">
+                    <span className="text-xs text-slate-400">
+                      Terminal Kill-Switch:
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => toggleLicenseStatus(selectedRecord)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 border transition-all cursor-pointer ${
+                        selectedRecord.license_status === "active"
+                          ? "bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border-rose-500/30"
+                          : "bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border-emerald-500/30"
+                      }`}
+                    >
+                      {selectedRecord.license_status === "active" ? (
+                        <>
+                          <Lock size={12} /> Suspend License (Halt MT5)
+                        </>
+                      ) : (
+                        <>
+                          <Unlock size={12} /> Reactivate License
+                        </>
+                      )}
                     </button>
                   </div>
                 </div>

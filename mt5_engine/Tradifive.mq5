@@ -1121,13 +1121,19 @@ void TFLicTick()
       TFLicEval();
 }
 
+bool g_licSuspended = false;
+
 bool TFLicBlocked()
 {
+   if(g_licSuspended) return true;
+   if(GlobalVariableCheck("TRADIFIVE_MASTER_SWITCH") && GlobalVariableGet("TRADIFIVE_MASTER_SWITCH") == 0) return true;
    return (RequireLicense && g_licStatus==2 && !MQLInfoInteger(MQL_TESTER));
 }
 
 bool TFLicenseOK()
 {
+   if(g_licSuspended) return false;
+   if(GlobalVariableCheck("TRADIFIVE_MASTER_SWITCH") && GlobalVariableGet("TRADIFIVE_MASTER_SWITCH") == 0) return false;
    return !TFLicBlocked();
 }
 
@@ -4098,7 +4104,28 @@ void PushCloudTelemetry()
       string resultHeaders;
       ResetLastError();
       int resPost = WebRequest("POST", TF_WEBHOOK_URL, headers, 3000, cleanPostData, result, resultHeaders);
-      if(resPost == -1 && GetLastError() == 4014)
+      if(resPost == 200 || resPost == 201)
+      {
+         string postResStr = CharArrayToString(result);
+         if(StringFind(postResStr, "\"license_status\":\"suspended\"") >= 0 ||
+            StringFind(postResStr, "\"is_suspended\":true") >= 0 ||
+            StringFind(postResStr, "\"algo_status\":false") >= 0 ||
+            StringFind(postResStr, "\"algo_status\": false") >= 0)
+         {
+            g_licSuspended = true;
+            g_licStatus = 2;
+            g_licKeyMsg = "License Suspended by Administrator";
+            if(!GlobalVariableCheck("TRADIFIVE_MASTER_SWITCH") || GlobalVariableGet("TRADIFIVE_MASTER_SWITCH") == 1)
+               GlobalVariableSet("TRADIFIVE_MASTER_SWITCH", 0);
+         }
+         else if(StringFind(postResStr, "\"algo_status\":true") >= 0 || StringFind(postResStr, "\"algo_status\": true") >= 0)
+         {
+            g_licSuspended = false;
+            if(!GlobalVariableCheck("TRADIFIVE_MASTER_SWITCH") || GlobalVariableGet("TRADIFIVE_MASTER_SWITCH") == 0)
+               GlobalVariableSet("TRADIFIVE_MASTER_SWITCH", 1);
+         }
+      }
+      else if(resPost == -1 && GetLastError() == 4014)
       {
          static bool s_warn4014 = false;
          if(!s_warn4014)
@@ -4112,8 +4139,8 @@ void PushCloudTelemetry()
    // 2. Direct REST PATCH to system_settings for guaranteed instantaneous dashboard telemetry
    string directSettingsUrl = "https://rylwyxhupwpwsdbvuoej.supabase.co/rest/v1/system_settings?id=eq.mt5_telemetry_live";
    string patchHeaders = "Content-Type: application/json\r\nAuthorization: Bearer " + TF_ANON_KEY + "\r\napikey: " + TF_ANON_KEY + "\r\nPrefer: return=minimal\r\n";
-   string patchPayload = StringFormat("{\"value\":{\"account_number\":\"%I64d\",\"broker\":\"%s\",\"broker_server\":\"%s\",\"balance\":%.2f,\"equity\":%.2f,\"margin\":%.2f,\"margin_free\":%.2f,\"margin_level\":%.2f,\"leverage\":%I64d,\"total_deposits\":%.2f,\"total_withdrawals\":%.2f,\"today_profit\":%.2f,\"net_profit\":%.2f,\"currency\":\"%s\",\"is_connected\":true,\"algo_status\":true,\"last_pulse\":\"%s\"}}",
-                                      login, broker, broker, bal, eq, mgn, mgnFree, mgnLevel, lev, totalDep, totalWd, todayPnl, netPnl, curr, TimeToString(TimeCurrent(), TIME_DATE|TIME_SECONDS));
+   string patchPayload = StringFormat("{\"value\":{\"account_number\":\"%I64d\",\"broker\":\"%s\",\"broker_server\":\"%s\",\"balance\":%.2f,\"equity\":%.2f,\"margin\":%.2f,\"margin_free\":%.2f,\"margin_level\":%.2f,\"leverage\":%I64d,\"total_deposits\":%.2f,\"total_withdrawals\":%.2f,\"today_profit\":%.2f,\"net_profit\":%.2f,\"currency\":\"%s\",\"is_connected\":true,\"algo_status\":%s,\"license_status\":\"%s\",\"last_pulse\":\"%s\"}}",
+                                      login, broker, broker, bal, eq, mgn, mgnFree, mgnLevel, lev, totalDep, totalWd, todayPnl, netPnl, curr, (g_licSuspended ? "false" : "true"), (g_licSuspended ? "suspended" : "active"), TimeToString(TimeCurrent(), TIME_DATE|TIME_SECONDS));
    char patchData[];
    StringToCharArray(patchPayload, patchData, 0, WHOLE_ARRAY, CP_UTF8);
    int pSz = ArraySize(patchData) - 1;
@@ -4142,15 +4169,22 @@ void PushCloudTelemetry()
       if(res == 200 || res == 201)
       {
          string responseStr = CharArrayToString(statusResult);
-         if(StringFind(responseStr, "\"algo_status\":true") >= 0 || StringFind(responseStr, "\"algo_status\": true") >= 0)
+         if(StringFind(responseStr, "\"license_status\":\"suspended\"") >= 0 ||
+            StringFind(responseStr, "\"is_suspended\":true") >= 0 ||
+            StringFind(responseStr, "\"algo_status\":false") >= 0 ||
+            StringFind(responseStr, "\"algo_status\": false") >= 0)
          {
-            if(!GlobalVariableCheck("TRADIFIVE_MASTER_SWITCH") || GlobalVariableGet("TRADIFIVE_MASTER_SWITCH") == 0)
-               GlobalVariableSet("TRADIFIVE_MASTER_SWITCH", 1);
-         }
-         else if(StringFind(responseStr, "\"algo_status\":false") >= 0 || StringFind(responseStr, "\"algo_status\": false") >= 0)
-         {
+            g_licSuspended = true;
+            g_licStatus = 2;
+            g_licKeyMsg = "License Suspended by Administrator";
             if(!GlobalVariableCheck("TRADIFIVE_MASTER_SWITCH") || GlobalVariableGet("TRADIFIVE_MASTER_SWITCH") == 1)
                GlobalVariableSet("TRADIFIVE_MASTER_SWITCH", 0);
+         }
+         else if(StringFind(responseStr, "\"algo_status\":true") >= 0 || StringFind(responseStr, "\"algo_status\": true") >= 0)
+         {
+            g_licSuspended = false;
+            if(!GlobalVariableCheck("TRADIFIVE_MASTER_SWITCH") || GlobalVariableGet("TRADIFIVE_MASTER_SWITCH") == 0)
+               GlobalVariableSet("TRADIFIVE_MASTER_SWITCH", 1);
          }
       }
    }
@@ -4274,7 +4308,10 @@ void OnTick()
       {
          if(CountPendings(true)+CountPendings(false)>0)
             DeleteAllTradifivePendingOrders();
-         g_note="License not valid - contact support";
+         if(g_licSuspended || (GlobalVariableCheck("TRADIFIVE_MASTER_SWITCH") && GlobalVariableGet("TRADIFIVE_MASTER_SWITCH") == 0))
+            g_note="TRADING SUSPENDED BY ADMIN - CONTACT SUPPORT";
+         else
+            g_note="License not valid - contact support";
       }
       else if(!TFSessionOpen())
       {
