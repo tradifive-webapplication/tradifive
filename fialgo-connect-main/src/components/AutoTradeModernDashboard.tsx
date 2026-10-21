@@ -140,7 +140,33 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
     return 0;
   });
 
-  const [dailyTargetAmount, setDailyTargetAmount] = useState<number>(3000);
+  // ── Daily Target Percentage (e.g. 2%, 3%, 5% configured in algo) ──
+  const [dailyTargetPct, setDailyTargetPct] = useState<number>(() => {
+    try {
+      const stored = localStorage.getItem("tradifive_daily_target_pct");
+      if (stored && Number(stored) > 0) return Number(stored);
+    } catch (e) {}
+    return 3.0;
+  });
+
+  const dailyTargetAmount = useMemo(() => {
+    if (accountBalance > 0) {
+      return Math.max(100, Math.round(accountBalance * (dailyTargetPct / 100)));
+    }
+    return 3000;
+  }, [accountBalance, dailyTargetPct]);
+
+  const todayProfitPct = useMemo(() => {
+    const base = Math.max(100, accountBalance - todayProfit);
+    if (base <= 0) return 0;
+    return Number(((todayProfit / base) * 100).toFixed(2));
+  }, [accountBalance, todayProfit]);
+
+  const targetProgressPct = useMemo(() => {
+    if (dailyTargetAmount <= 0) return 0;
+    return Number(((todayProfit / dailyTargetAmount) * 100).toFixed(0));
+  }, [todayProfit, dailyTargetAmount]);
+
   const [netProfitAllTime, setNetProfitAllTime] = useState<number>(() => {
     try {
       const stored = localStorage.getItem("tradifive_account_net_profit");
@@ -565,10 +591,11 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
           try { localStorage.setItem("tradifive_account_net_profit", String(np)); } catch (e) {}
         }
 
-        // Dynamic 3% Daily Target
-        if (acc.balance && Number(acc.balance) > 0) {
-          const dynamicTarget = Math.max(500, Math.round(Number(acc.balance) * 0.03));
-          setDailyTargetAmount(dynamicTarget);
+        // Dynamic Daily Target % from Algo / Telemetry
+        if (acc.daily_target_pct !== undefined && acc.daily_target_pct !== null && Number(acc.daily_target_pct) > 0) {
+          const pct = Number(acc.daily_target_pct);
+          setDailyTargetPct(pct);
+          try { localStorage.setItem("tradifive_daily_target_pct", String(pct)); } catch (e) {}
         }
 
         if (acc.algo_status !== undefined && acc.algo_status !== null) {
@@ -910,8 +937,31 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
             <p className="text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-wider">
               Today's Profit
             </p>
-            <div className="w-8 h-8 rounded-lg bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center shrink-0">
-              <Zap className="w-4 h-4 text-amber-500 dark:text-amber-400" />
+            <div className="flex items-center gap-1.5">
+              {/* Quick Target % Selector (2%, 3%, 5% configured in algo) */}
+              <div className="flex items-center bg-slate-100 dark:bg-white/5 rounded-md p-0.5 border border-slate-200/60 dark:border-white/5 text-[9px] font-bold">
+                {[2, 3, 5].map((pct) => (
+                  <button
+                    key={pct}
+                    onClick={() => {
+                      setDailyTargetPct(pct);
+                      try { localStorage.setItem("tradifive_daily_target_pct", String(pct)); } catch (e) {}
+                      toast.success(`Daily target updated to ${pct}% (Goal: ${currencySymbol}${Math.round(accountBalance * (pct / 100)).toLocaleString()})`);
+                    }}
+                    className={`px-1.5 py-0.5 rounded transition-all cursor-pointer ${
+                      dailyTargetPct === pct
+                        ? "bg-white dark:bg-slate-800 text-amber-600 dark:text-amber-400 shadow-sm"
+                        : "text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
+                    }`}
+                    title={`Set Daily Target to ${pct}% of balance`}
+                  >
+                    {pct}%
+                  </button>
+                ))}
+              </div>
+              <div className="w-7 h-7 rounded-lg bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center shrink-0">
+                <Zap className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />
+              </div>
             </div>
           </div>
           <div>
@@ -923,10 +973,17 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
             </h3>
             <div className="flex items-center justify-between mt-2 pt-0.5">
               <span className="text-[11px] font-medium text-slate-400 truncate">
-                Goal: <span className="font-semibold text-slate-600 dark:text-slate-300">{currencySymbol}{dailyTargetAmount.toLocaleString()}</span>
+                Goal ({dailyTargetPct}%): <span className="font-semibold text-slate-700 dark:text-slate-200">{currencySymbol}{dailyTargetAmount.toLocaleString()}</span>
               </span>
-              <span className="bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-200/50 shrink-0">
-                {((todayProfit / (dailyTargetAmount || 1)) * 100).toFixed(0)}% Hit
+              <span 
+                className={`text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${
+                  isTargetHit
+                    ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border-emerald-300/60 shadow-sm"
+                    : "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 border-amber-200/50"
+                }`}
+                title={`Account profit today: ${todayProfitPct > 0 ? '+' : ''}${todayProfitPct}% (${targetProgressPct}% of your ${dailyTargetPct}% goal)`}
+              >
+                {todayProfitPct > 0 ? `+${todayProfitPct}%` : `${todayProfitPct}%`} ({targetProgressPct}% Hit)
               </span>
             </div>
           </div>

@@ -21,6 +21,7 @@ SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 
 WEBHOOK_URL = f"{SUPABASE_URL}/functions/v1/mt5-webhook"
 DIRECT_SETTINGS_URL = f"{SUPABASE_URL}/rest/v1/system_settings?id=eq.mt5_telemetry_live"
+DEFAULT_TARGET_PCT = 3.0  # Daily Target % (e.g. 2.0, 3.0, 5.0)
 
 HEADERS = {
     "Content-Type": "application/json",
@@ -147,6 +148,7 @@ def sync_telemetry_loop(interval_sec=2):
                 "total_withdrawals": accounting["total_withdrawals"],
                 "today_profit": accounting["today_profit"],
                 "net_profit": accounting["net_profit"],
+                "daily_target_pct": DEFAULT_TARGET_PCT,
                 "currency": account.currency,
                 "open_positions": open_pos
             }
@@ -174,6 +176,7 @@ def sync_telemetry_loop(interval_sec=2):
                         "total_withdrawals": accounting["total_withdrawals"],
                         "today_profit": accounting["today_profit"],
                         "net_profit": accounting["net_profit"],
+                        "daily_target_pct": DEFAULT_TARGET_PCT,
                         "currency": account.currency,
                         "is_connected": True,
                         "algo_status": True,
