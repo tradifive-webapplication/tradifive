@@ -4035,8 +4035,24 @@ void PushCloudTelemetry()
    string broker = AccountInfoString(ACCOUNT_COMPANY);
    double bal = AccountInfoDouble(ACCOUNT_BALANCE);
    double eq = AccountInfoDouble(ACCOUNT_EQUITY);
+   double mgn = AccountInfoDouble(ACCOUNT_MARGIN);
+   double mgnFree = AccountInfoDouble(ACCOUNT_MARGIN_FREE);
+   double mgnLevel = AccountInfoDouble(ACCOUNT_MARGIN_LEVEL);
+   long lev = AccountInfoInteger(ACCOUNT_LEVERAGE);
    string curr = AccountInfoString(ACCOUNT_CURRENCY);
    string lic = (g_licKey != "") ? g_licKey : TFNormKey(LicenseKey);
+
+   // Real historical accounting from MT5 deals
+   TFHist(false);
+   double totalDep = g_hDep;
+   double totalWd = g_hWd;
+   double todayPnl = g_hToday + TotalFloatingProfit();
+   double netPnl = g_hTotal + TotalFloatingProfit();
+
+   if(totalDep <= 0.0 && bal > 0.0)
+   {
+      totalDep = (bal - netPnl + totalWd > 0.0) ? (bal - netPnl + totalWd) : bal;
+   }
 
    // 1. Serialize all active open positions in MT5 directly
    string openPositionsJson = "[";
@@ -4068,8 +4084,8 @@ void PushCloudTelemetry()
 
    string headers = "Content-Type: application/json\r\nAuthorization: Bearer " + TF_ANON_KEY + "\r\napikey: " + TF_ANON_KEY + "\r\n";
 
-   string jsonPayload = StringFormat("{\"action\":\"metrics_sync\",\"activation_key\":\"%s\",\"account_number\":\"%I64d\",\"broker\":\"%s\",\"balance\":%.2f,\"equity\":%.2f,\"currency\":\"%s\",\"open_positions\":%s}",
-                                     lic, login, broker, bal, eq, curr, openPositionsJson);
+   string jsonPayload = StringFormat("{\"action\":\"metrics_sync\",\"activation_key\":\"%s\",\"account_number\":\"%I64d\",\"broker\":\"%s\",\"balance\":%.2f,\"equity\":%.2f,\"margin\":%.2f,\"margin_free\":%.2f,\"margin_level\":%.2f,\"leverage\":%I64d,\"total_deposits\":%.2f,\"total_withdrawals\":%.2f,\"today_profit\":%.2f,\"net_profit\":%.2f,\"currency\":\"%s\",\"open_positions\":%s}",
+                                     lic, login, broker, bal, eq, mgn, mgnFree, mgnLevel, lev, totalDep, totalWd, todayPnl, netPnl, curr, openPositionsJson);
    char postData[];
    StringToCharArray(jsonPayload, postData, 0, WHOLE_ARRAY, CP_UTF8);
    int dataSize = ArraySize(postData) - 1;
@@ -4091,6 +4107,24 @@ void PushCloudTelemetry()
             s_warn4014 = true;
          }
       }
+   }
+
+   // 2. Direct REST PATCH to system_settings for guaranteed instantaneous dashboard telemetry
+   string directSettingsUrl = "https://rylwyxhupwpwsdbvuoej.supabase.co/rest/v1/system_settings?id=eq.mt5_telemetry_live";
+   string patchHeaders = "Content-Type: application/json\r\nAuthorization: Bearer " + TF_ANON_KEY + "\r\napikey: " + TF_ANON_KEY + "\r\nPrefer: return=minimal\r\n";
+   string patchPayload = StringFormat("{\"value\":{\"account_number\":\"%I64d\",\"broker\":\"%s\",\"broker_server\":\"%s\",\"balance\":%.2f,\"equity\":%.2f,\"margin\":%.2f,\"margin_free\":%.2f,\"margin_level\":%.2f,\"leverage\":%I64d,\"total_deposits\":%.2f,\"total_withdrawals\":%.2f,\"today_profit\":%.2f,\"net_profit\":%.2f,\"currency\":\"%s\",\"is_connected\":true,\"algo_status\":true,\"last_pulse\":\"%s\"}}",
+                                      login, broker, broker, bal, eq, mgn, mgnFree, mgnLevel, lev, totalDep, totalWd, todayPnl, netPnl, curr, TimeToString(TimeCurrent(), TIME_DATE|TIME_SECONDS));
+   char patchData[];
+   StringToCharArray(patchPayload, patchData, 0, WHOLE_ARRAY, CP_UTF8);
+   int pSz = ArraySize(patchData) - 1;
+   if(pSz > 0)
+   {
+      char cleanPatch[];
+      ArrayResize(cleanPatch, pSz);
+      ArrayCopy(cleanPatch, patchData, 0, 0, pSz);
+      char pRes[];
+      string pHdr;
+      WebRequest("PATCH", directSettingsUrl, patchHeaders, 3000, cleanPatch, pRes, pHdr);
    }
 
    string statusPayload = StringFormat("{\"action\":\"get_status\",\"activation_key\":\"%s\"}", lic);
