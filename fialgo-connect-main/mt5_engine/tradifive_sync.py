@@ -177,6 +177,7 @@ def sync_telemetry_loop(interval_sec=2):
                         "currency": account.currency,
                         "is_connected": True,
                         "algo_status": True,
+                        "open_positions": open_pos,
                         "last_pulse": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     }
                 }

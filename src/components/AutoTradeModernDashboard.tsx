@@ -599,7 +599,7 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
 
         dbTrades.forEach((t: any) => {
           const isClosed = Boolean(t.closed_at) || t.status === "closed";
-          const tradeType = (t.trade_type === 0 || String(t.trade_type).toUpperCase() === 'BUY' || String(t.type).toUpperCase() === 'BUY') ? 'BUY' : 'SELL';
+          const tradeType = (t.trade_type === 0 || t.trade_type === "0" || String(t.trade_type).toUpperCase() === 'BUY' || String(t.type).toUpperCase() === 'BUY') ? 'BUY' : 'SELL';
           const lotVal = Number(t.lot_size || t.volume || t.lots || 0.01);
           const openP = Number(t.open_price || t.entry_price || 0);
           const closeP = Number(t.close_price || t.exit_price || openP || 0);
@@ -640,7 +640,25 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
           }
         });
 
-        setOpenPositions(realOpen);
+        // If MT5 telemetry sends direct real-time open_positions array, use it as primary truth:
+        if (acc.open_positions !== undefined && Array.isArray(acc.open_positions)) {
+          const liveOpenList: OpenTradeItem[] = acc.open_positions.map((p: any) => ({
+            ticket: `#${p.ticket}`,
+            symbol: p.symbol || "XAUUSDm",
+            type: (p.type === 0 || p.type === "0" || String(p.type).toUpperCase() === "BUY") ? "BUY" : "SELL",
+            lots: Number(p.lot || p.lots || p.volume || 0.01),
+            openPrice: Number(p.open_price || p.price_open || 0),
+            currentPrice: Number(p.current_price || p.price_current || p.open_price || 0),
+            sl: p.sl ? Number(p.sl) : "None",
+            tp: p.tp ? Number(p.tp) : "None",
+            floatingPnl: Number(p.profit || 0),
+            openTime: p.time ? new Date(p.time * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Live"
+          }));
+          setOpenPositions(liveOpenList);
+        } else {
+          setOpenPositions(realOpen);
+        }
+
         setClosedTrades(realClosed);
 
         // If telemetry didn't have explicit today_profit or net_profit, use calculated deals:
