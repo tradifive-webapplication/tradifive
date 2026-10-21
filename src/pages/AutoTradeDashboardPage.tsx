@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
-import AITradingDashboard from "@/components/AITradingDashboard";
+import AutoTradeModernDashboard from "@/components/AutoTradeModernDashboard";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 
@@ -149,7 +149,7 @@ export default function AutoTradeDashboardPage() {
   return (
     <DashboardLayout>
       <div className="max-w-none mx-auto w-full font-sans select-none px-2 md:px-6">
-        <AITradingDashboard 
+        <AutoTradeModernDashboard 
           onBack={() => navigate('/auto-trade/setup')} 
           algo={{ name: accountData.algoName, risk: accountData.risk, deposit: accountData.deposit }} 
           mt5Account={accountData.mt5Account} 
