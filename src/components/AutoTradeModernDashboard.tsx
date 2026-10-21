@@ -856,20 +856,22 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
           </span>
         </div>
 
-        <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
-          {/* Telemetry Refresh Button */}
+        <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
+          {/* Telemetry Refresh Button - 36px Fixed */}
           <button
             onClick={handleManualRefresh}
             disabled={isRefreshing}
-            className="w-[36px] h-[36px] rounded-[14px] border-2 border-white dark:border-white/5 bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:shadow-none text-slate-500 dark:text-slate-400 flex items-center justify-center hover:text-slate-800 dark:hover:text-white hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#D0D0D5] dark:hover:shadow-none transition-all disabled:opacity-50 cursor-pointer"
+            className="w-[36px] h-[36px] shrink-0 rounded-[14px] border-2 border-white dark:border-white/5 bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:shadow-none text-slate-500 dark:text-slate-400 flex items-center justify-center hover:text-slate-800 dark:hover:text-white hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#D0D0D5] dark:hover:shadow-none transition-all disabled:opacity-50 cursor-pointer"
             title="Refresh Telemetry"
           >
             <RefreshCw size={13} className={isRefreshing ? "animate-spin text-sky-600" : ""} />
           </button>
 
-          {/* Plan Tier Switcher (Sleek Apple/Fintech Segmented Control - 36px consistent box) */}
-          <div className="h-[36px] p-0.5 inline-flex items-center rounded-[14px] border-2 border-white dark:border-white/5 bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:shadow-none text-[11px] font-bold">
+          {/* Plan Tier Slider (Fixed 244px, Zero-Shift Smooth Glider) */}
+          <div className="w-[244px] h-[36px] p-1 shrink-0 rounded-[14px] border-2 border-white dark:border-white/5 bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:shadow-none grid grid-cols-2 relative select-none">
+            {/* Button 1: 1 Lakh Full Lifetime */}
             <button
+              type="button"
               onClick={() => {
                 setLicenseTier("lifetime");
                 try { localStorage.setItem("tradifive_selected_tier", "lifetime"); } catch (e) {}
@@ -877,16 +879,26 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
                   description: "0% Profit Share · 100% of all profits retained directly in MT5."
                 });
               }}
-              className={`h-[28px] px-3 rounded-[11px] flex items-center gap-1.5 transition-all cursor-pointer ${
+              className={`relative z-10 w-full h-[26px] rounded-[10px] flex items-center justify-center gap-1.5 text-[11px] font-bold cursor-pointer transition-colors duration-150 ${
                 isLifetime
-                  ? "bg-amber-500 text-white shadow-[0_2px_6px_rgba(245,158,11,0.35)]"
-                  : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
+                  ? "text-white"
+                  : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
               }`}
             >
-              <Crown size={12} className={isLifetime ? "fill-white text-white" : "text-amber-500"} />
-              <span>1 Lakh Full Lifetime</span>
+              {isLifetime && (
+                <motion.div
+                  layoutId="activeTierGlider"
+                  className="absolute inset-0 rounded-[10px] bg-gradient-to-r from-amber-500 to-amber-600 shadow-[0_2px_6px_rgba(245,158,11,0.35)]"
+                  transition={{ type: "spring", stiffness: 450, damping: 30 }}
+                />
+              )}
+              <Crown size={12} className={`relative z-10 ${isLifetime ? "text-white fill-white" : "text-amber-500"}`} />
+              <span className="relative z-10">1 Lakh Lifetime</span>
             </button>
+
+            {/* Button 2: 50/50 Split */}
             <button
+              type="button"
               onClick={() => {
                 setLicenseTier("profit_share_50");
                 try { localStorage.setItem("tradifive_selected_tier", "profit_share_50"); } catch (e) {}
@@ -894,41 +906,63 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
                   description: "Daily crypto remittance mode enabled."
                 });
               }}
-              className={`h-[28px] px-3 rounded-[11px] flex items-center gap-1.5 transition-all cursor-pointer ${
+              className={`relative z-10 w-full h-[26px] rounded-[10px] flex items-center justify-center gap-1.5 text-[11px] font-bold cursor-pointer transition-colors duration-150 ${
                 !isLifetime
-                  ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-[0_2px_6px_rgba(15,23,42,0.25)]"
-                  : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
+                  ? "text-white"
+                  : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
               }`}
             >
-              <span>50/50 Split</span>
+              {!isLifetime && (
+                <motion.div
+                  layoutId="activeTierGlider"
+                  className="absolute inset-0 rounded-[10px] bg-slate-900 dark:bg-slate-700 shadow-[0_2px_6px_rgba(15,23,42,0.25)]"
+                  transition={{ type: "spring", stiffness: 450, damping: 30 }}
+                />
+              )}
+              <span className="relative z-10">50/50 Split</span>
             </button>
           </div>
 
-          {/* Quick Action / Status Box: Consistent 36px Box */}
-          {isLifetime ? (
-            <div className="inline-flex items-center gap-2 h-[36px] px-3.5 rounded-[14px] border-2 border-white dark:border-white/5 bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] text-slate-700 dark:text-slate-200 shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:shadow-none text-[11px] font-bold tracking-tight">
-              <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-bold">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                0% Profit Share
-              </span>
-              <span className="text-slate-300 dark:text-slate-600 font-normal">·</span>
-              <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400 font-extrabold">
-                <Sparkles size={11} className="fill-amber-400 text-amber-500" />
-                100% Retained
-              </span>
-            </div>
-          ) : (
-            <button
-              onClick={() => setShowSettlementModal(true)}
-              className="inline-flex items-center gap-1.5 h-[36px] px-3.5 rounded-[14px] border-2 border-white dark:border-white/5 bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-[0_4px_7px_-5px_rgba(15,23,42,0.2),0_0_0_2px_#0F172A] text-[11px] font-bold tracking-tight cursor-pointer hover:shadow-md transition-all active:scale-[0.99]"
-            >
-              <QrCode size={13} className="text-sky-400 dark:text-sky-600" />
-              <span>Pay Profit Split</span>
-              {isTargetHit && (
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse ml-0.5" />
+          {/* Quick Action / Status Box (Fixed 172px, Zero-Shift Crossfade) */}
+          <div className="w-[172px] h-[36px] shrink-0 relative">
+            <AnimatePresence mode="wait" initial={false}>
+              {isLifetime ? (
+                <motion.div
+                  key="lifetime-badge"
+                  initial={{ opacity: 0, scale: 0.96 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.96 }}
+                  transition={{ duration: 0.15 }}
+                  className="w-full h-full px-3 rounded-[14px] border-2 border-white dark:border-white/5 bg-gradient-to-b from-[#FEF3C7]/60 to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] text-slate-800 dark:text-slate-200 shadow-[0_4px_7px_-5px_rgba(245,158,11,0.2),0_0_0_2px_#FDE68A] dark:shadow-none text-[11px] font-bold tracking-tight flex items-center justify-center gap-1.5 select-none"
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                  <span className="text-emerald-700 dark:text-emerald-400">0% Share</span>
+                  <span className="text-slate-300 dark:text-slate-600">·</span>
+                  <span className="text-amber-700 dark:text-amber-300 flex items-center gap-1">
+                    <Sparkles size={11} className="fill-amber-400 text-amber-500 shrink-0" />
+                    100% Kept
+                  </span>
+                </motion.div>
+              ) : (
+                <motion.button
+                  key="split-pay-btn"
+                  type="button"
+                  initial={{ opacity: 0, scale: 0.96 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.96 }}
+                  transition={{ duration: 0.15 }}
+                  onClick={() => setShowSettlementModal(true)}
+                  className="w-full h-full px-3 rounded-[14px] border-2 border-white dark:border-white/5 bg-gradient-to-b from-slate-900 to-slate-800 text-white shadow-[0_4px_7px_-5px_rgba(15,23,42,0.25),0_0_0_2px_#0F172A] text-[11px] font-bold tracking-tight cursor-pointer hover:shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-1.5"
+                >
+                  <QrCode size={13} className="text-sky-400 shrink-0" />
+                  <span>Pay Profit Split</span>
+                  {isTargetHit && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse ml-0.5 shrink-0" />
+                  )}
+                </motion.button>
               )}
-            </button>
-          )}
+            </AnimatePresence>
+          </div>
         </div>
       </div>
 
@@ -1336,8 +1370,8 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
               </div>
             </div>
 
-            {/* Lifetime Status Footer */}
-            <div className="mt-5 pt-4 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-xs">
+            {/* Lifetime Status Footer (Fixed 42px Height) */}
+            <div className="mt-5 pt-4 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-xs min-h-[42px]">
               <span className="text-slate-400 font-medium flex items-center gap-1.5">
                 <Lock size={12} className="text-emerald-500" /> License Type:
               </span>
@@ -1402,8 +1436,8 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
               </div>
             </div>
 
-            {/* Quick Pay Button */}
-            <div className="mt-5 pt-4 border-t border-slate-100 dark:border-white/5">
+            {/* Quick Pay Button (Fixed 42px Height) */}
+            <div className="mt-5 pt-4 border-t border-slate-100 dark:border-white/5 min-h-[42px] flex items-center">
               <button
                 onClick={() => setShowSettlementModal(true)}
                 className="w-full py-2.5 rounded-xl text-white font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md hover:scale-[1.01] active:scale-[0.99]"
