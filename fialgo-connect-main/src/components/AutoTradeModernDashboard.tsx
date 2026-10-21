@@ -3,7 +3,7 @@ import {
   TrendingUp, TrendingDown, Wallet, Zap, ShieldCheck, Activity, 
   ArrowUpRight, ArrowDownLeft, Play, Pause, RefreshCw, Copy, Check, 
   Upload, X, CheckCircle2, AlertCircle, Clock, ExternalLink, QrCode, 
-  Image as ImageIcon, Trash2, Eye, Cpu, Radio, ChevronRight, DollarSign,
+  Image as ImageIcon, Trash2, Eye, Cpu, Radio, ChevronRight, ChevronLeft, DollarSign,
   Layers, Sliders, ArrowRight
 } from "lucide-react";
 import { 
@@ -326,6 +326,35 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
   // ── Recent Closed Trades History (Real MT5 Trade History) ──
   const [closedTrades, setClosedTrades] = useState<ClosedTradeItem[]>([]);
 
+  // ── Pagination States (5 trades per page) ──
+  const TRADES_PER_PAGE = 5;
+  const [closedTradesPage, setClosedTradesPage] = useState<number>(1);
+  const [openPositionsPage, setOpenPositionsPage] = useState<number>(1);
+
+  const totalClosedPages = Math.max(1, Math.ceil(closedTrades.length / TRADES_PER_PAGE));
+  const currentClosedTrades = useMemo(() => {
+    const start = (closedTradesPage - 1) * TRADES_PER_PAGE;
+    return closedTrades.slice(start, start + TRADES_PER_PAGE);
+  }, [closedTrades, closedTradesPage]);
+
+  useEffect(() => {
+    if (closedTradesPage > totalClosedPages) {
+      setClosedTradesPage(totalClosedPages);
+    }
+  }, [totalClosedPages, closedTradesPage]);
+
+  const totalOpenPages = Math.max(1, Math.ceil(openPositions.length / TRADES_PER_PAGE));
+  const currentOpenPositions = useMemo(() => {
+    const start = (openPositionsPage - 1) * TRADES_PER_PAGE;
+    return openPositions.slice(start, start + TRADES_PER_PAGE);
+  }, [openPositions, openPositionsPage]);
+
+  useEffect(() => {
+    if (openPositionsPage > totalOpenPages) {
+      setOpenPositionsPage(totalOpenPages);
+    }
+  }, [totalOpenPages, openPositionsPage]);
+
   // Handle proof image upload
   const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -612,7 +641,7 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
         });
 
         setOpenPositions(realOpen);
-        setClosedTrades(realClosed.slice(0, 20));
+        setClosedTrades(realClosed);
 
         // If telemetry didn't have explicit today_profit or net_profit, use calculated deals:
         if (acc.today_profit === undefined || acc.today_profit === null) {
@@ -1143,8 +1172,12 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
                 {openPositions.length} Active Positions
               </span>
             </div>
-            <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
-              Floating: +{currencySymbol}{openPositions.reduce((acc, p) => acc + p.floatingPnl, 0).toLocaleString()}
+            <span className="text-xs font-bold">
+              Floating: {openPositions.reduce((acc, p) => acc + p.floatingPnl, 0) >= 0 ? (
+                <span className="text-emerald-600 dark:text-emerald-400">+{currencySymbol}{openPositions.reduce((acc, p) => acc + p.floatingPnl, 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              ) : (
+                <span className="text-rose-600 dark:text-rose-400">-{currencySymbol}{Math.abs(openPositions.reduce((acc, p) => acc + p.floatingPnl, 0)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              )}
             </span>
           </div>
 
@@ -1153,37 +1186,85 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
               No open positions. FiAlgo is scanning for next high-probability basket entry.
             </div>
           ) : (
-            <div className="space-y-2.5">
-              {openPositions.map((pos) => (
-                <div 
-                  key={pos.ticket}
-                  className="p-3.5 rounded-[16px] bg-[#F8F9FC] dark:bg-white/5 border border-slate-200/60 dark:border-white/5 flex items-center justify-between hover:bg-slate-100/70 dark:hover:bg-white/10 transition-all text-xs"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className={`px-2 py-0.5 rounded-md font-bold text-[10px] ${pos.type === 'BUY' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}>
-                      {pos.type}
-                    </span>
-                    <div>
-                      <div className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                        <span>{pos.symbol}</span>
-                        <span className="font-mono text-slate-400 text-[11px]">{pos.lots} Lots</span>
+            <>
+              <div className="space-y-2.5">
+                {currentOpenPositions.map((pos) => {
+                  const isProfit = pos.floatingPnl >= 0;
+                  return (
+                    <div 
+                      key={pos.ticket}
+                      className="p-3.5 rounded-[16px] bg-[#F8F9FC] dark:bg-white/5 border border-slate-200/60 dark:border-white/5 flex items-center justify-between hover:bg-slate-100/70 dark:hover:bg-white/10 transition-all text-xs"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className={`px-2 py-0.5 rounded-md font-bold text-[10px] ${pos.type === 'BUY' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}>
+                          {pos.type}
+                        </span>
+                        <div>
+                          <div className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                            <span>{pos.symbol}</span>
+                            <span className="font-mono text-slate-400 text-[11px]">{pos.lots} Lots</span>
+                          </div>
+                          <div className="text-[11px] text-slate-400 font-mono mt-0.5">
+                            Open: {pos.openPrice} → Now: {pos.currentPrice}
+                          </div>
+                        </div>
                       </div>
-                      <div className="text-[11px] text-slate-400 font-mono mt-0.5">
-                        Open: {pos.openPrice} → Now: {pos.currentPrice}
+                      <div className="text-right">
+                        <div 
+                          className={`font-bold text-sm ${isProfit ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`} 
+                          style={{ fontFamily: "'Inter', sans-serif" }}
+                        >
+                          {isProfit ? '+' : '-'}{currencySymbol}{Math.abs(pos.floatingPnl).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </div>
+                        <div className="text-[10px] text-slate-400 font-mono">
+                          SL: {pos.sl} • TP: {pos.tp}
+                        </div>
                       </div>
                     </div>
+                  );
+                })}
+              </div>
+
+              {/* Open Positions Pagination */}
+              {totalOpenPages > 1 && (
+                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-white/5 flex items-center justify-between">
+                  <div className="text-[11px] font-medium text-slate-400">
+                    Showing <span className="font-semibold text-slate-700 dark:text-slate-200">{(openPositionsPage - 1) * TRADES_PER_PAGE + 1}</span>–<span className="font-semibold text-slate-700 dark:text-slate-200">{Math.min(openPositionsPage * TRADES_PER_PAGE, openPositions.length)}</span> of <span className="font-semibold text-slate-700 dark:text-slate-200">{openPositions.length}</span>
                   </div>
-                  <div className="text-right">
-                    <div className="font-bold text-emerald-600 dark:text-emerald-400 text-sm" style={{ fontFamily: "'Inter', sans-serif" }}>
-                      +{currencySymbol}{pos.floatingPnl.toLocaleString()}
-                    </div>
-                    <div className="text-[10px] text-slate-400 font-mono">
-                      SL: {pos.sl} • TP: {pos.tp}
-                    </div>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => setOpenPositionsPage(p => Math.max(1, p - 1))}
+                      disabled={openPositionsPage === 1}
+                      className="h-7 w-7 rounded-[9px] border border-slate-200/80 dark:border-white/10 bg-white dark:bg-white/5 flex items-center justify-center text-slate-600 dark:text-slate-300 disabled:opacity-35 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-white/10 transition-all cursor-pointer shadow-sm"
+                      title="Previous Page"
+                    >
+                      <ChevronLeft size={13} />
+                    </button>
+                    {Array.from({ length: totalOpenPages }, (_, i) => i + 1).map((page) => (
+                      <button
+                        key={page}
+                        onClick={() => setOpenPositionsPage(page)}
+                        className={`h-7 min-w-[28px] px-1.5 rounded-[9px] text-[11px] font-bold transition-all cursor-pointer ${
+                          page === openPositionsPage
+                            ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-sm"
+                            : "border border-slate-200/80 dark:border-white/10 bg-white dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/10"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+                    <button
+                      onClick={() => setOpenPositionsPage(p => Math.min(totalOpenPages, p + 1))}
+                      disabled={openPositionsPage === totalOpenPages}
+                      className="h-7 w-7 rounded-[9px] border border-slate-200/80 dark:border-white/10 bg-white dark:bg-white/5 flex items-center justify-center text-slate-600 dark:text-slate-300 disabled:opacity-35 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-white/10 transition-all cursor-pointer shadow-sm"
+                      title="Next Page"
+                    >
+                      <ChevronRight size={13} />
+                    </button>
                   </div>
                 </div>
-              ))}
-            </div>
+              )}
+            </>
           )}
         </div>
 
@@ -1199,41 +1280,120 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
               </span>
             </div>
             <span className="text-xs text-slate-400">
-              Session Total: <b className="text-emerald-600 dark:text-emerald-400 font-bold">+{currencySymbol}{closedTrades.reduce((acc, t) => acc + t.pnl, 0).toLocaleString()}</b>
+              Session Total: {closedTrades.reduce((acc, t) => acc + t.pnl, 0) >= 0 ? (
+                <b className="text-emerald-600 dark:text-emerald-400 font-bold">+{currencySymbol}{closedTrades.reduce((acc, t) => acc + t.pnl, 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b>
+              ) : (
+                <b className="text-rose-600 dark:text-rose-400 font-bold">-{currencySymbol}{Math.abs(closedTrades.reduce((acc, t) => acc + t.pnl, 0)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b>
+              )}
             </span>
           </div>
 
-          <div className="space-y-2.5">
-            {closedTrades.map((t) => (
-              <div 
-                key={t.ticket}
-                className="p-3.5 rounded-[16px] bg-[#F8F9FC] dark:bg-white/5 border border-slate-200/60 dark:border-white/5 flex items-center justify-between hover:bg-slate-100/70 dark:hover:bg-white/10 transition-all text-xs"
-              >
-                <div className="flex items-center gap-3">
-                  <span className={`px-2 py-0.5 rounded-md font-bold text-[10px] ${t.type === 'BUY' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}>
-                    {t.type}
-                  </span>
-                  <div>
-                    <div className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                      <span>{t.symbol}</span>
-                      <span className="font-mono text-slate-400 text-[11px]">{t.lots} Lots</span>
+          {closedTrades.length === 0 ? (
+            <div className="py-12 text-center text-slate-400 text-xs">
+              No closed trades recorded yet for today's session.
+            </div>
+          ) : (
+            <>
+              <div className="space-y-2.5">
+                {currentClosedTrades.map((t) => {
+                  const isProfit = t.pnl >= 0;
+                  return (
+                    <div 
+                      key={t.ticket}
+                      className="p-3.5 rounded-[16px] bg-[#F8F9FC] dark:bg-white/5 border border-slate-200/60 dark:border-white/5 flex items-center justify-between hover:bg-slate-100/70 dark:hover:bg-white/10 transition-all text-xs"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className={`px-2 py-0.5 rounded-md font-bold text-[10px] ${t.type === 'BUY' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}>
+                          {t.type}
+                        </span>
+                        <div>
+                          <div className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                            <span>{t.symbol}</span>
+                            <span className="font-mono text-slate-400 text-[11px]">{t.lots} Lots</span>
+                          </div>
+                          <div className="text-[11px] text-slate-400 font-mono mt-0.5">
+                            {t.openPrice} → {t.closePrice} ({t.duration})
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div 
+                          className={`font-bold text-sm ${isProfit ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`} 
+                          style={{ fontFamily: "'Inter', sans-serif" }}
+                        >
+                          {isProfit ? '+' : '-'}{currencySymbol}{Math.abs(t.pnl).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </div>
+                        <div className="text-[10px] text-slate-400 font-mono">
+                          {t.closeTime}
+                        </div>
+                      </div>
                     </div>
-                    <div className="text-[11px] text-slate-400 font-mono mt-0.5">
-                      {t.openPrice} → {t.closePrice} ({t.duration})
-                    </div>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="font-bold text-emerald-600 dark:text-emerald-400 text-sm" style={{ fontFamily: "'Inter', sans-serif" }}>
-                    +{currencySymbol}{t.pnl.toLocaleString()}
-                  </div>
-                  <div className="text-[10px] text-slate-400 font-mono">
-                    {t.closeTime}
-                  </div>
-                </div>
+                  );
+                })}
               </div>
-            ))}
-          </div>
+
+              {/* Sleek Pagination Footer for Closed Trades (5 per page) */}
+              {totalClosedPages > 1 && (
+                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-white/5 flex items-center justify-between">
+                  <div className="text-[11px] font-medium text-slate-400">
+                    Showing <span className="font-semibold text-slate-700 dark:text-slate-200">{(closedTradesPage - 1) * TRADES_PER_PAGE + 1}</span>–<span className="font-semibold text-slate-700 dark:text-slate-200">{Math.min(closedTradesPage * TRADES_PER_PAGE, closedTrades.length)}</span> of <span className="font-semibold text-slate-700 dark:text-slate-200">{closedTrades.length}</span> trades
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => setClosedTradesPage(p => Math.max(1, p - 1))}
+                      disabled={closedTradesPage === 1}
+                      className="h-7 w-7 rounded-[9px] border border-slate-200/80 dark:border-white/10 bg-white dark:bg-white/5 flex items-center justify-center text-slate-600 dark:text-slate-300 disabled:opacity-35 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-white/10 transition-all cursor-pointer shadow-sm"
+                      title="Previous Page"
+                    >
+                      <ChevronLeft size={13} />
+                    </button>
+                    
+                    {Array.from({ length: totalClosedPages }, (_, i) => i + 1).map((page) => {
+                      if (totalClosedPages > 5) {
+                        if (
+                          page !== 1 && 
+                          page !== totalClosedPages && 
+                          Math.abs(page - closedTradesPage) > 1
+                        ) {
+                          if (page === 2 && closedTradesPage > 3) {
+                            return <span key={page} className="px-1 text-[10px] text-slate-400">...</span>;
+                          }
+                          if (page === totalClosedPages - 1 && closedTradesPage < totalClosedPages - 2) {
+                            return <span key={page} className="px-1 text-[10px] text-slate-400">...</span>;
+                          }
+                          return null;
+                        }
+                      }
+
+                      const isActive = page === closedTradesPage;
+                      return (
+                        <button
+                          key={page}
+                          onClick={() => setClosedTradesPage(page)}
+                          className={`h-7 min-w-[28px] px-1.5 rounded-[9px] text-[11px] font-bold transition-all cursor-pointer ${
+                            isActive
+                              ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-sm"
+                              : "border border-slate-200/80 dark:border-white/10 bg-white dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/10"
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      );
+                    })}
+
+                    <button
+                      onClick={() => setClosedTradesPage(p => Math.min(totalClosedPages, p + 1))}
+                      disabled={closedTradesPage === totalClosedPages}
+                      className="h-7 w-7 rounded-[9px] border border-slate-200/80 dark:border-white/10 bg-white dark:bg-white/5 flex items-center justify-center text-slate-600 dark:text-slate-300 disabled:opacity-35 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-white/10 transition-all cursor-pointer shadow-sm"
+                      title="Next Page"
+                    >
+                      <ChevronRight size={13} />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
         </div>
       </div>
 
