@@ -28,6 +28,7 @@ import { useTrading } from "@/contexts/TradingContext";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import DashboardLayout from "@/components/DashboardLayout";
 import { supabase } from "@/lib/supabase";
+import { generateTradifiveLicenseKey } from "@/pages/AITrading";
 import { toast } from "sonner";
 
 const cardBoxStyle = "p-5 sm:p-6 rounded-[22px] border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:shadow-none transition-all";
@@ -90,6 +91,23 @@ export default function EASetup() {
 
           if (data && data.activation_key) {
             setLicenseKey(data.activation_key);
+            try { localStorage.setItem("tradifive_license_key", data.activation_key); } catch (e) {}
+          } else {
+            const { data: acc } = await supabase
+              .from("mt5_accounts")
+              .select("activation_key, account_number")
+              .eq("user_id", user.id)
+              .maybeSingle();
+            if (acc?.activation_key) {
+              setLicenseKey(acc.activation_key);
+              try { localStorage.setItem("tradifive_license_key", acc.activation_key); } catch (e) {}
+            } else {
+              const cleanAcc = acc?.account_number || localStorage.getItem("tradifive_connected_mt5_account") || "100000";
+              const newKey = generateTradifiveLicenseKey(cleanAcc);
+              await supabase.from("profiles").update({ activation_key: newKey }).eq("id", user.id);
+              setLicenseKey(newKey);
+              try { localStorage.setItem("tradifive_license_key", newKey); } catch (e) {}
+            }
           }
         }
       } catch (e) {}
@@ -105,7 +123,14 @@ export default function EASetup() {
   };
 
   const handleDownloadEA = () => {
-    toast.success("Downloading TradiFive_Master_EA.ex5", {
+    const a = document.createElement("a");
+    a.href = "/FiAlgo_v1.0.4.ex5";
+    a.download = "Tradifive_Master_EA.ex5";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    toast.success("Downloading Tradifive_Master_EA.ex5", {
       description: "Save this file into your MT5 /MQL5/Experts folder."
     });
   };

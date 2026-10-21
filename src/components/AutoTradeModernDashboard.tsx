@@ -73,8 +73,46 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
     return (mt5Account || localStorage.getItem("tradifive_connected_mt5_account") || "414460525").replace(/\D/g, "");
   });
 
-  const activeLicenseKey = useMemo(() => {
+  const [activeLicenseKey, setActiveLicenseKey] = useState<string>(() => {
     return localStorage.getItem("tradifive_license_key") || "TF-00000000-056D-906D0DB6CA";
+  });
+
+  // Dynamically resolve active user's credentials to guarantee multi-user isolation
+  useEffect(() => {
+    async function resolveUserCredentials() {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user?.id) {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("activation_key")
+            .eq("id", session.user.id)
+            .maybeSingle();
+          if (profile?.activation_key) {
+            setActiveLicenseKey(profile.activation_key);
+            try { localStorage.setItem("tradifive_license_key", profile.activation_key); } catch (e) {}
+          }
+
+          const { data: acc } = await supabase
+            .from("mt5_accounts")
+            .select("account_number, activation_key")
+            .eq("user_id", session.user.id)
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          if (acc?.account_number) {
+            const accClean = String(acc.account_number).replace(/\D/g, "");
+            setDisplayAccount(accClean);
+            try { localStorage.setItem("tradifive_connected_mt5_account", accClean); } catch (e) {}
+          }
+          if (acc?.activation_key && !profile?.activation_key) {
+            setActiveLicenseKey(acc.activation_key);
+            try { localStorage.setItem("tradifive_license_key", acc.activation_key); } catch (e) {}
+          }
+        }
+      } catch (e) {}
+    }
+    resolveUserCredentials();
   }, []);
 
   const isFetchingRef = useRef<boolean>(false);
@@ -491,7 +529,12 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
           .eq('id', 'mt5_telemetry_live')
           .maybeSingle();
         if (cacheData?.value && typeof cacheData.value === 'object') {
-          liveCache = cacheData.value;
+          const cacheAcc = String(cacheData.value.account_number || '').replace(/\D/g, '');
+          const currentAcc = String(displayAccount || cleanAccount || '').replace(/\D/g, '');
+          // Multi-tenant check: only accept liveCache if account matches
+          if (cacheAcc && currentAcc && cacheAcc === currentAcc) {
+            liveCache = cacheData.value;
+          }
         }
       } catch (e) {}
 
@@ -515,7 +558,7 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
         }
       } catch (e) {}
 
-      // Merge data sources
+      // Merge data sources (prioritize user telemetry, augment with live cache if same account)
       const acc = {
         ...(telemetryData?.account || {}),
         ...(liveCache || {})

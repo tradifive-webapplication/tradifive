@@ -109,7 +109,10 @@ export default function AutoTradeDashboardPage() {
 
           localStorage.setItem("tradifive_auto_trade_setup", "true");
           if (accNumber) {
-            localStorage.setItem("tradifive_connected_mt5_account", accNumber);
+             localStorage.setItem("tradifive_connected_mt5_account", accNumber);
+          }
+          if (userProfile?.activation_key || userAcc?.activation_key) {
+             localStorage.setItem("tradifive_license_key", userProfile?.activation_key || userAcc?.activation_key || "");
           }
           window.dispatchEvent(new Event("tradifive_auto_trade_setup_done"));
 

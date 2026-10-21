@@ -111,6 +111,9 @@ export default function AutoTradeDashboardPage() {
           if (accNumber) {
             localStorage.setItem("tradifive_connected_mt5_account", accNumber);
           }
+          if (userProfile?.activation_key || userAcc?.activation_key) {
+            localStorage.setItem("tradifive_license_key", userProfile?.activation_key || userAcc?.activation_key || "");
+          }
           window.dispatchEvent(new Event("tradifive_auto_trade_setup_done"));
 
           setAccountData(prev => ({

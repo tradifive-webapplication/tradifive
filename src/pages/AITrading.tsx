@@ -907,10 +907,12 @@ MagicNumber=789104
     }, 1200);
   };
 
-  const handleGoToDashboard = () => {
-    const cleanAccount = mt5Account.trim();
+  const handleGoToDashboard = async () => {
+    const cleanAccount = mt5Account.trim().replace(/\D/g, "");
     const selectedBrokerObj = BROKERS.find(b => b.id === selectedBroker);
     const brokerName = selectedBrokerObj ? selectedBrokerObj.name : "Exness";
+    const licenseKey = generateTradifiveLicenseKey(cleanAccount);
+
     try {
       const existing = localStorage.getItem("tradifive_ib_proof_request");
       const parsed = existing ? JSON.parse(existing) : {};
@@ -918,7 +920,30 @@ MagicNumber=789104
       parsed.broker_name = brokerName;
       localStorage.setItem("tradifive_ib_proof_request", JSON.stringify(parsed));
       localStorage.setItem("tradifive_connected_mt5_account", cleanAccount);
-    } catch (e) {}
+      localStorage.setItem("tradifive_license_key", licenseKey);
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user?.id) {
+        await supabase
+          .from("profiles")
+          .update({ activation_key: licenseKey })
+          .eq("id", session.user.id);
+
+        await supabase
+          .from("mt5_accounts")
+          .upsert({
+            user_id: session.user.id,
+            account_number: cleanAccount,
+            activation_key: licenseKey,
+            broker_server: brokerName,
+            connection_status: "deployed",
+            algo_status: true
+          }, { onConflict: "user_id" });
+      }
+    } catch (e) {
+      console.warn("Could not sync account to Supabase:", e);
+    }
+
     localStorage.setItem("tradifive_auto_trade_setup", "true");
     localStorage.setItem("tradifive_bot_status", "active");
     window.dispatchEvent(new Event("tradifive_auto_trade_setup_done"));

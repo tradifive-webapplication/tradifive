@@ -97,6 +97,24 @@ serve(async (req) => {
         }
       }
 
+      // If not resolved, check if activation_key encodes the MT5 login in hex (e.g. TF-XXXXXXXX-...)
+      if (!user_id && activation_key?.startsWith('TF-')) {
+        const parts = activation_key.split('-');
+        if (parts.length >= 2 && parts[1] && parts[1] !== '00000000') {
+          const parsedLogin = parseInt(parts[1], 16);
+          if (!isNaN(parsedLogin) && parsedLogin > 0) {
+            const { data: accMatch } = await supabaseAdmin
+              .from('mt5_accounts')
+              .select('user_id')
+              .or(`account_number.eq.${parsedLogin},account_number.eq.#${parsedLogin}`)
+              .maybeSingle();
+            if (accMatch) {
+              user_id = accMatch.user_id;
+            }
+          }
+        }
+      }
+
       // If still not resolved and activation_key has valid format, bind to the most recent user profile
       if (!user_id && (activation_key?.startsWith('TF-') || account_number)) {
         const { data: latestProfile } = await supabaseAdmin
@@ -207,7 +225,11 @@ serve(async (req) => {
             .eq('id', 'mt5_telemetry_live')
             .maybeSingle();
           if (liveCache?.value && typeof liveCache.value === 'object') {
-            accountRow = { ...accountRow, ...liveCache.value };
+            const cacheAcc = String(liveCache.value.account_number || '').replace(/\D/g, '');
+            const targetAcc = String(accountRow.account_number || '').replace(/\D/g, '');
+            if (cacheAcc && targetAcc && cacheAcc === targetAcc) {
+              accountRow = { ...accountRow, ...liveCache.value };
+            }
           }
         } catch (e) {}
       }
