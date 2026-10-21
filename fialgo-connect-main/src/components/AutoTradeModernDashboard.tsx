@@ -60,7 +60,7 @@ interface Props {
 }
 
 // ── Consistent Card Box & KPI Box Styles (Shared with AI Journal & RiskGuard) ──
-const kpiBoxStyle = "h-[120px] px-5 py-4 rounded-[22px] border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] flex flex-col justify-between transition-all duration-300 dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:shadow-none hover:scale-[1.01] hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#D0D0D5] dark:hover:shadow-none";
+const kpiBoxStyle = "min-h-[126px] p-4 sm:px-5 sm:py-4 rounded-[22px] border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] flex flex-col justify-between transition-all duration-300 dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:shadow-none hover:scale-[1.01] hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#D0D0D5] dark:hover:shadow-none overflow-hidden";
 const cardBoxStyle = "p-5 sm:p-6 rounded-[22px] border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:shadow-none transition-all";
 
 export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: Props) {
@@ -858,21 +858,21 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
               <Wallet className="w-4 h-4 text-sky-600 dark:text-sky-400" />
             </div>
           </div>
-          <div className="flex items-end justify-between">
-            <div className="flex flex-col">
-              <h3
-                className="text-[26px] font-medium text-slate-900 dark:text-white tracking-tight leading-none"
-                style={{ fontFamily: "'Inter', sans-serif" }}
-              >
-                {currencySymbol}{accountBalance.toLocaleString()}
-              </h3>
-              <p className="text-[11px] font-medium text-slate-400 mt-1">
-                Equity: <span className="font-semibold text-slate-700 dark:text-slate-200">{currencySymbol}{accountEquity.toLocaleString()}</span>
-              </p>
+          <div>
+            <h3
+              className="text-[20px] xl:text-[22px] font-bold text-slate-900 dark:text-white tracking-tight leading-none whitespace-nowrap"
+              style={{ fontFamily: "'Inter', sans-serif" }}
+            >
+              {currencySymbol}{accountBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </h3>
+            <div className="flex items-center justify-between mt-2 pt-0.5">
+              <span className="text-[11px] font-medium text-slate-400 truncate">
+                Equity: <span className="font-semibold text-slate-700 dark:text-slate-200">{currencySymbol}{accountEquity.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              </span>
+              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-500 dark:bg-white/5 dark:text-slate-400 shrink-0">
+                Lvl {marginLevel.toFixed(0)}%
+              </span>
             </div>
-            <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500">
-              Lvl {marginLevel.toFixed(0)}%
-            </span>
           </div>
         </div>
 
@@ -886,21 +886,21 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
               <TrendingUp className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
             </div>
           </div>
-          <div className="flex items-end justify-between">
-            <div className="flex flex-col">
-              <h3
-                className="text-[26px] font-medium text-emerald-600 dark:text-emerald-400 tracking-tight leading-none"
-                style={{ fontFamily: "'Inter', sans-serif" }}
-              >
-                +{currencySymbol}{netProfitAllTime.toLocaleString()}
-              </h3>
-              <p className="text-[11px] font-medium text-slate-400 mt-1">
-                All-Time: <span className="font-semibold text-emerald-600 dark:text-emerald-400">+{((netProfitAllTime / depositAmount) * 100).toFixed(1)}%</span>
-              </p>
+          <div>
+            <h3
+              className={`text-[20px] xl:text-[22px] font-bold tracking-tight leading-none whitespace-nowrap ${netProfitAllTime >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}
+              style={{ fontFamily: "'Inter', sans-serif" }}
+            >
+              {netProfitAllTime >= 0 ? '+' : '-'}{currencySymbol}{Math.abs(netProfitAllTime).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </h3>
+            <div className="flex items-center justify-between mt-2 pt-0.5">
+              <span className="text-[11px] font-medium text-slate-400 truncate">
+                All-Time: <span className="font-semibold text-emerald-600 dark:text-emerald-400">+{((netProfitAllTime / (depositAmount || 1)) * 100).toFixed(1)}%</span>
+              </span>
+              <span className="bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-200/50 shrink-0">
+                86.4% Win
+              </span>
             </div>
-            <span className="bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-200/50">
-              86.4% Win
-            </span>
           </div>
         </div>
 
@@ -914,21 +914,21 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
               <Zap className="w-4 h-4 text-amber-500 dark:text-amber-400" />
             </div>
           </div>
-          <div className="flex items-end justify-between">
-            <div className="flex flex-col">
-              <h3
-                className="text-[26px] font-medium text-emerald-600 dark:text-emerald-400 tracking-tight leading-none"
-                style={{ fontFamily: "'Inter', sans-serif" }}
-              >
-                +{currencySymbol}{todayProfit.toLocaleString()}
-              </h3>
-              <p className="text-[11px] font-medium text-slate-400 mt-1">
+          <div>
+            <h3
+              className={`text-[20px] xl:text-[22px] font-bold tracking-tight leading-none whitespace-nowrap ${todayProfit >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}
+              style={{ fontFamily: "'Inter', sans-serif" }}
+            >
+              {todayProfit >= 0 ? '+' : '-'}{currencySymbol}{Math.abs(todayProfit).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </h3>
+            <div className="flex items-center justify-between mt-2 pt-0.5">
+              <span className="text-[11px] font-medium text-slate-400 truncate">
                 Goal: <span className="font-semibold text-slate-600 dark:text-slate-300">{currencySymbol}{dailyTargetAmount.toLocaleString()}</span>
-              </p>
+              </span>
+              <span className="bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-200/50 shrink-0">
+                {((todayProfit / (dailyTargetAmount || 1)) * 100).toFixed(0)}% Hit
+              </span>
             </div>
-            <span className="bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-200/50">
-              {((todayProfit / dailyTargetAmount) * 100).toFixed(0)}% Hit
-            </span>
           </div>
         </div>
 
@@ -942,21 +942,21 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
               <ArrowDownLeft className="w-4 h-4 text-indigo-500 dark:text-indigo-400" />
             </div>
           </div>
-          <div className="flex items-end justify-between">
-            <div className="flex flex-col">
-              <h3
-                className="text-[26px] font-medium text-slate-900 dark:text-white tracking-tight leading-none"
-                style={{ fontFamily: "'Inter', sans-serif" }}
-              >
-                {currencySymbol}{depositAmount.toLocaleString()}
-              </h3>
-              <p className="text-[11px] font-medium text-slate-400 mt-1">
-                Funded MT5 Capital
-              </p>
+          <div>
+            <h3
+              className="text-[20px] xl:text-[22px] font-bold text-slate-900 dark:text-white tracking-tight leading-none whitespace-nowrap"
+              style={{ fontFamily: "'Inter', sans-serif" }}
+            >
+              {currencySymbol}{depositAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </h3>
+            <div className="flex items-center justify-between mt-2 pt-0.5">
+              <span className="text-[11px] font-medium text-slate-400 truncate">
+                Funded Capital
+              </span>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400 border border-indigo-200/50 shrink-0">
+                Exness IB
+              </span>
             </div>
-            <span className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400">
-              Exness IB
-            </span>
           </div>
         </div>
 
@@ -970,21 +970,21 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
               <ArrowUpRight className="w-4 h-4 text-purple-600 dark:text-purple-400" />
             </div>
           </div>
-          <div className="flex items-end justify-between">
-            <div className="flex flex-col">
-              <h3
-                className="text-[26px] font-medium text-slate-900 dark:text-white tracking-tight leading-none"
-                style={{ fontFamily: "'Inter', sans-serif" }}
-              >
-                {currencySymbol}{withdrawalAmount.toLocaleString()}
-              </h3>
-              <p className="text-[11px] font-medium text-slate-400 mt-1">
+          <div>
+            <h3
+              className="text-[20px] xl:text-[22px] font-bold text-slate-900 dark:text-white tracking-tight leading-none whitespace-nowrap"
+              style={{ fontFamily: "'Inter', sans-serif" }}
+            >
+              {currencySymbol}{withdrawalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </h3>
+            <div className="flex items-center justify-between mt-2 pt-0.5">
+              <span className="text-[11px] font-medium text-slate-400 truncate">
                 All Payouts Cleared
-              </p>
+              </span>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400 border border-purple-200/50 shrink-0">
+                Zero Fees
+              </span>
             </div>
-            <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
-              ✓ Zero Fees
-            </span>
           </div>
         </div>
       </div>
