@@ -1096,10 +1096,10 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
         )}
       </div>
 
-      {/* ── MODAL: CRYPTO WITHDRAWAL / 50% REMITTANCE & PROOF UPLOAD (Clean Styled Modal) ── */}
+      {/* ── MODAL: CRYPTO WITHDRAWAL / 50% REMITTANCE & PROOF UPLOAD (Clean Styled Modal, No Scrollbar) ── */}
       <AnimatePresence>
         {showSettlementModal && (
-          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4">
             {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
@@ -1109,59 +1109,65 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
               className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
             />
 
-            {/* Modal Dialog */}
+            {/* Modal Dialog (No scroll view, fits completely in viewport) */}
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              className="relative w-full max-w-lg rounded-[26px] border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.18),0_0_0_2px_#E2E8F0] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/10 text-slate-800 dark:text-white max-h-[90vh] overflow-y-auto"
+              className="relative w-full max-w-[520px] rounded-[24px] border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] p-4 sm:p-5 shadow-[0_20px_60px_rgba(0,0,0,0.18),0_0_0_2px_#E2E8F0] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/10 text-slate-800 dark:text-white max-h-[96vh] overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
             >
               {/* Header */}
-              <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/5 mb-5">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-50 to-sky-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
-                    <QrCode size={20} />
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/5 mb-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-50 to-sky-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
+                    <QrCode size={18} />
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight" style={{ fontFamily: "'Inter', sans-serif" }}>
+                    <h3 className="text-[15px] font-bold text-slate-900 dark:text-white tracking-tight leading-tight" style={{ fontFamily: "'Inter', sans-serif" }}>
                       Daily 50% Profit Share Settlement
                     </h3>
-                    <p className="text-xs text-slate-400">Remit via Crypto to keep FiAlgo license active</p>
+                    <p className="text-[11px] text-slate-400 leading-none mt-0.5">Remit via Crypto to keep FiAlgo license active</p>
                   </div>
                 </div>
                 <button
                   onClick={() => setShowSettlementModal(false)}
-                  className="p-1.5 rounded-lg bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-500 hover:text-slate-800 dark:hover:text-white transition-colors cursor-pointer"
+                  className="p-1.5 rounded-lg bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-500 hover:text-slate-800 dark:hover:text-white transition-colors cursor-pointer shrink-0"
                 >
-                  <X size={16} />
+                  <X size={15} />
                 </button>
               </div>
 
-              {/* Amount Due Card */}
-              <div className="p-4 rounded-[18px] border-2 border-white bg-gradient-to-b from-[#ECFDF5] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.08),0_0_0_2px_#A7F3D0] dark:bg-none dark:bg-[#132A20] dark:border-[1px] dark:border-emerald-500/30 mb-5">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Total Today's Net Profit:</span>
-                  <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400">+{currencySymbol}{todayProfit.toLocaleString()}</span>
+              {/* Amount Due Card (Compact Banner) */}
+              <div className="p-3 rounded-[16px] border-2 border-white bg-gradient-to-b from-[#ECFDF5] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.08),0_0_0_2px_#A7F3D0] dark:bg-none dark:bg-[#132A20] dark:border-[1px] dark:border-emerald-500/30 mb-3 flex items-center justify-between gap-3">
+                <div>
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-400">
+                    Net Profit: <b className="text-emerald-600 dark:text-emerald-400">+{currencySymbol}{todayProfit.toLocaleString()}</b>
+                  </span>
+                  <div className="text-xs font-bold text-slate-900 dark:text-white mt-0.5">
+                    50% Platform Remittance Due:
+                  </div>
                 </div>
-                <div className="flex items-center justify-between mt-2 pt-2 border-t border-emerald-200/60 dark:border-emerald-500/20">
-                  <span className="text-xs font-bold text-slate-900 dark:text-white">50% Platform Remittance Due:</span>
-                  <div className="text-right">
-                    <div className="text-xl font-bold text-emerald-700 dark:text-emerald-400 tracking-tight" style={{ fontFamily: "'Inter', sans-serif" }}>
-                      ${adminShareTodayUsdt} USDT
-                    </div>
-                    <div className="text-[10px] text-slate-500 dark:text-slate-400">
-                      ({currencySymbol}{adminShareToday.toLocaleString()} INR equivalent)
-                    </div>
+                <div className="text-right shrink-0">
+                  <div className="text-[20px] font-bold text-emerald-600 dark:text-emerald-400 tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
+                    ${adminShareTodayUsdt} USDT
+                  </div>
+                  <div className="text-[10px] text-slate-400 mt-0.5">
+                    ({currencySymbol}{adminShareToday.toLocaleString()} INR)
                   </div>
                 </div>
               </div>
 
-              {/* Crypto Network Selector */}
-              <div className="mb-4">
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">
-                  Select Crypto Network:
-                </label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {/* Crypto Network Selector (Compact Grid) */}
+              <div className="mb-3">
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-[11px] font-bold text-slate-700 dark:text-slate-300">
+                    Select Crypto Network:
+                  </label>
+                  <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
+                    Fee: {cryptoWallets[selectedNetwork].fee}
+                  </span>
+                </div>
+                <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5">
                   {(Object.keys(cryptoWallets) as Array<keyof typeof cryptoWallets>).map((net) => {
                     const info = cryptoWallets[net];
                     const isSelected = selectedNetwork === net;
@@ -1170,51 +1176,47 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
                         key={net}
                         type="button"
                         onClick={() => setSelectedNetwork(net)}
-                        className={`p-2.5 rounded-[14px] border-2 text-left transition-all cursor-pointer ${
+                        className={`py-1.5 px-1.5 rounded-[12px] border-2 text-center transition-all cursor-pointer ${
                           isSelected
-                            ? "bg-sky-50 dark:bg-sky-500/10 border-sky-400 text-sky-900 dark:text-sky-300 ring-1 ring-sky-400 font-bold"
+                            ? "bg-sky-50 dark:bg-sky-500/10 border-sky-400 text-sky-900 dark:text-sky-300 ring-1 ring-sky-400 font-bold shadow-xs"
                             : "bg-white dark:bg-white/5 border-slate-200/80 dark:border-white/5 text-slate-600 dark:text-slate-300 hover:bg-slate-50"
                         }`}
                       >
-                        <div className="text-xs font-semibold">{info.name}</div>
-                        <div className="text-[10px] text-slate-400 truncate">{info.chain}</div>
+                        <div className="text-[11px] font-bold truncate leading-tight">{net.replace('USDT-', '')}</div>
+                        <div className="text-[9px] text-slate-400 truncate mt-0.5">{info.badge}</div>
                       </button>
                     );
                   })}
                 </div>
               </div>
 
-              {/* Deposit Wallet Address & QR Code */}
-              <div className="p-4 rounded-[18px] bg-[#F8F9FC] dark:bg-white/5 border border-slate-200/80 dark:border-white/5 mb-5">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                    Send to Admin {cryptoWallets[selectedNetwork].name} Address:
+              {/* Deposit Wallet Address Card (Compact Row) */}
+              <div className="p-2.5 sm:p-3 rounded-[16px] bg-[#F8F9FC] dark:bg-white/5 border border-slate-200/80 dark:border-white/5 mb-3">
+                <div className="flex items-center justify-between mb-1.5 text-[11px]">
+                  <span className="font-bold text-slate-700 dark:text-slate-300">
+                    Admin {cryptoWallets[selectedNetwork].name} Address:
                   </span>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-500/30">
-                    {cryptoWallets[selectedNetwork].badge}
+                  <span className="text-[10px] text-slate-400">
+                    Chain: <b className="text-slate-700 dark:text-slate-300">{cryptoWallets[selectedNetwork].chain}</b>
                   </span>
                 </div>
 
-                <div className="flex items-center gap-2 bg-white dark:bg-[#1E1E1E] p-2.5 rounded-xl border border-slate-200 dark:border-white/10 font-mono text-xs text-slate-900 dark:text-white break-all shadow-xs">
-                  <span className="flex-1 font-semibold">{cryptoWallets[selectedNetwork].address}</span>
+                <div className="flex items-center gap-2 bg-white dark:bg-[#1E1E1E] px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-white/10 font-mono text-[11px] text-slate-900 dark:text-white break-all shadow-xs">
+                  <span className="flex-1 font-semibold truncate">{cryptoWallets[selectedNetwork].address}</span>
                   <button
                     onClick={() => handleCopyAddress(cryptoWallets[selectedNetwork].address)}
-                    className="p-1.5 rounded-lg bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 transition-all shrink-0 cursor-pointer border border-slate-200 dark:border-white/10"
+                    className="p-1 rounded-lg bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 transition-all shrink-0 cursor-pointer border border-slate-200 dark:border-white/10"
                     title="Copy Address"
                   >
-                    {copiedAddress ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
+                    {copiedAddress ? <Check size={13} className="text-emerald-600" /> : <Copy size={13} />}
                   </button>
-                </div>
-                <div className="text-[10px] text-slate-400 mt-2 flex items-center justify-between">
-                  <span>Network: <b className="text-slate-700 dark:text-slate-300">{cryptoWallets[selectedNetwork].chain}</b></span>
-                  <span>Fee: <b className="text-slate-700 dark:text-slate-300">{cryptoWallets[selectedNetwork].fee}</b></span>
                 </div>
               </div>
 
-              {/* Proof Image Upload */}
-              <div className="mb-5">
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">
-                  Upload Payment Transfer Screenshot Proof:
+              {/* Proof Image Upload (Compact Dropzone) */}
+              <div className="mb-3">
+                <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  Upload Payment Screenshot Proof:
                 </label>
 
                 <input
@@ -1228,25 +1230,27 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
                 {!proofImageBase64 ? (
                   <div
                     onClick={() => fileInputRef.current?.click()}
-                    className="border-2 border-dashed border-slate-300 dark:border-white/10 hover:border-sky-500 rounded-[18px] p-6 text-center cursor-pointer transition-all bg-slate-50/60 dark:bg-white/[0.02] hover:bg-sky-50/30"
+                    className="border-2 border-dashed border-slate-300 dark:border-white/10 hover:border-sky-500 rounded-[16px] py-3 px-4 text-center cursor-pointer transition-all bg-slate-50/60 dark:bg-white/[0.02] hover:bg-sky-50/30 flex items-center justify-center gap-3"
                   >
-                    <div className="w-12 h-12 rounded-full bg-sky-100 dark:bg-sky-500/10 text-sky-600 dark:text-sky-400 mx-auto flex items-center justify-center mb-2.5">
-                      <Upload size={20} />
+                    <div className="w-8 h-8 rounded-lg bg-sky-100 dark:bg-sky-500/10 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0">
+                      <Upload size={16} />
                     </div>
-                    <div className="text-xs font-bold text-slate-800 dark:text-white">Click or Drag & Drop screenshot</div>
-                    <p className="text-[11px] text-slate-400 mt-1">PNG, JPG, or WEBP receipt from your exchange or wallet</p>
+                    <div className="text-left">
+                      <div className="text-[12px] font-bold text-slate-800 dark:text-white leading-tight">Click to attach transfer screenshot</div>
+                      <p className="text-[10px] text-slate-400 mt-0.5">PNG, JPG, or WEBP receipt from exchange/wallet</p>
+                    </div>
                   </div>
                 ) : (
-                  <div className="p-3 rounded-[16px] bg-[#F8F9FC] dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-[14px] bg-[#F8F9FC] dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2.5">
                       <img 
                         src={proofImageBase64} 
                         alt="Proof Preview" 
-                        className="w-14 h-14 object-cover rounded-xl border border-slate-200 dark:border-white/10 shadow-xs" 
+                        className="w-9 h-9 object-cover rounded-lg border border-slate-200 dark:border-white/10 shadow-xs" 
                       />
                       <div>
-                        <div className="text-xs font-bold text-slate-900 dark:text-white max-w-[200px] truncate">{proofFileName || "proof_screenshot.png"}</div>
-                        <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold">✓ Image Attached</span>
+                        <div className="text-xs font-bold text-slate-900 dark:text-white max-w-[220px] truncate">{proofFileName || "proof_screenshot.png"}</div>
+                        <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold">✓ Attached</span>
                       </div>
                     </div>
                     <button
@@ -1255,18 +1259,18 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
                         setProofImageBase64(null);
                         setProofFileName("");
                       }}
-                      className="p-1.5 rounded-lg bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-100 text-rose-600 transition-colors border border-rose-200 dark:border-rose-500/20 cursor-pointer"
+                      className="p-1 rounded-lg bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-100 text-rose-600 transition-colors border border-rose-200 dark:border-rose-500/20 cursor-pointer"
                       title="Remove Image"
                     >
-                      <Trash2 size={15} />
+                      <Trash2 size={13} />
                     </button>
                   </div>
                 )}
               </div>
 
-              {/* Transaction Hash / TXID */}
-              <div className="mb-5">
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+              {/* Transaction Hash / TXID (Compact Input) */}
+              <div className="mb-3.5">
+                <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
                   Transaction Hash / TXID (Optional):
                 </label>
                 <input
@@ -1274,16 +1278,16 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
                   placeholder="Paste blockchain transaction hash or receipt ID"
                   value={txidInput}
                   onChange={(e) => setTxidInput(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-[#1E1E1E] border border-slate-200 dark:border-white/10 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-sky-500 font-mono shadow-xs"
+                  className="w-full px-3 py-1.5 rounded-xl bg-white dark:bg-[#1E1E1E] border border-slate-200 dark:border-white/10 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-sky-500 font-mono shadow-xs"
                 />
               </div>
 
-              {/* Submit Button */}
-              <div className="flex items-center gap-3 pt-2">
+              {/* Submit Button (Compact Row, fully in view) */}
+              <div className="flex items-center gap-2.5 pt-1">
                 <button
                   type="button"
                   onClick={() => setShowSettlementModal(false)}
-                  className="flex-1 py-2.5 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 text-xs font-semibold transition-colors border border-slate-200 dark:border-white/10 cursor-pointer"
+                  className="flex-1 py-2 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 text-xs font-semibold transition-colors border border-slate-200 dark:border-white/10 cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -1291,7 +1295,7 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
                   type="button"
                   disabled={isSubmittingProof || !proofImageBase64}
                   onClick={handleSubmitSettlement}
-                  className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm ${
+                  className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm ${
                     proofImageBase64 
                       ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20" 
                       : "bg-slate-200 text-slate-400 cursor-not-allowed"
@@ -1299,12 +1303,12 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
                 >
                   {isSubmittingProof ? (
                     <>
-                      <RefreshCw size={14} className="animate-spin" />
+                      <RefreshCw size={13} className="animate-spin" />
                       <span>Submitting...</span>
                     </>
                   ) : (
                     <>
-                      <CheckCircle2 size={14} />
+                      <CheckCircle2 size={13} />
                       <span>Submit Proof & Verify</span>
                     </>
                   )}
