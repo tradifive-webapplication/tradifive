@@ -59,6 +59,10 @@ interface Props {
   mt5Account?: string;
 }
 
+// ── Consistent Card Box & KPI Box Styles (Shared with AI Journal & RiskGuard) ──
+const kpiBoxStyle = "h-[120px] px-5 py-4 rounded-[22px] border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] flex flex-col justify-between transition-all duration-300 dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:shadow-none hover:scale-[1.01] hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#D0D0D5] dark:hover:shadow-none";
+const cardBoxStyle = "p-5 sm:p-6 rounded-[22px] border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:shadow-none transition-all";
+
 export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: Props) {
   // ── Account & Live Connection State ──
   const cleanAccount = useMemo(() => {
@@ -248,97 +252,119 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
     }
     if (chartTimeframe === "30D") {
       return [
-        { time: "Week 1", netProfit: 11200, balance: 111200, dailyGain: 11.2 },
-        { time: "Week 2", netProfit: 22800, balance: 122800, dailyGain: 11.6 },
-        { time: "Week 3", netProfit: 34100, balance: 134100, dailyGain: 11.3 },
-        { time: "Week 4", netProfit: 42850, balance: 142850, dailyGain: 8.75 },
+        { time: "W1", netProfit: 11200, balance: 111200, dailyGain: 11.2 },
+        { time: "W2", netProfit: 22400, balance: 122400, dailyGain: 10.0 },
+        { time: "W3", netProfit: 32900, balance: 132900, dailyGain: 8.5 },
+        { time: "W4", netProfit: 42850, balance: 142850, dailyGain: 7.5 },
       ];
     }
     return [
-      { time: "Start", netProfit: 0, balance: 100000, dailyGain: 0 },
-      { time: "Month 1", netProfit: 18400, balance: 118400, dailyGain: 18.4 },
-      { time: "Month 2", netProfit: 31200, balance: 131200, dailyGain: 12.8 },
-      { time: "Current", netProfit: 42850, balance: 142850, dailyGain: 11.65 },
+      { time: "Aug", netProfit: 9500, balance: 109500, dailyGain: 9.5 },
+      { time: "Sep", netProfit: 24200, balance: 124200, dailyGain: 13.4 },
+      { time: "Oct", netProfit: 42850, balance: 142850, dailyGain: 15.0 },
     ];
   }, [chartTimeframe]);
 
-  // ── Live Active Positions (XAUUSD Gold Specialist) ──
+  // ── Live Active Basket Positions ──
   const [openPositions, setOpenPositions] = useState<OpenTradeItem[]>([
     {
-      ticket: "#8392102",
+      ticket: "#8894101",
       symbol: "XAUUSD",
       type: "BUY",
-      lots: 0.02,
+      lots: 0.05,
       openPrice: 2684.20,
-      currentPrice: 2687.90,
-      sl: 2674.00,
-      tp: 2696.50,
-      floatingPnl: 1120.00,
-      openTime: "18:42:10",
+      currentPrice: 2689.45,
+      sl: 2678.00,
+      tp: 2698.00,
+      floatingPnl: 262.50,
+      openTime: "14:22:10",
     },
     {
-      ticket: "#8392106",
+      ticket: "#8894109",
       symbol: "XAUUSD",
       type: "BUY",
-      lots: 0.02,
+      lots: 0.08,
       openPrice: 2685.10,
-      currentPrice: 2687.90,
-      sl: 2674.00,
-      tp: 2696.50,
-      floatingPnl: 630.00,
-      openTime: "18:55:04",
+      currentPrice: 2689.45,
+      sl: 2678.00,
+      tp: 2698.00,
+      floatingPnl: 348.00,
+      openTime: "14:25:35",
+    },
+    {
+      ticket: "#8894115",
+      symbol: "XAUUSD",
+      type: "BUY",
+      lots: 0.10,
+      openPrice: 2686.00,
+      currentPrice: 2689.45,
+      sl: 2678.00,
+      tp: 2698.00,
+      floatingPnl: 345.00,
+      openTime: "14:31:02",
     },
   ]);
 
-  // ── Recent Closed History ──
+  // ── Recent Closed Trades History ──
   const [closedTrades, setClosedTrades] = useState<ClosedTradeItem[]>([
     {
-      ticket: "#8392078",
+      ticket: "#8893980",
       symbol: "XAUUSD",
       type: "BUY",
-      lots: 0.04,
-      openPrice: 2678.50,
-      closePrice: 2684.20,
-      pnl: 3420.00,
-      closeTime: "17:35:12",
-      duration: "42 min",
+      lots: 0.10,
+      openPrice: 2672.40,
+      closePrice: 2682.10,
+      pnl: 970.00,
+      closeTime: "13:45:10",
+      duration: "42m 10s",
     },
     {
-      ticket: "#8392062",
+      ticket: "#8893962",
+      symbol: "XAUUSD",
+      type: "BUY",
+      lots: 0.08,
+      openPrice: 2673.80,
+      closePrice: 2682.10,
+      pnl: 664.00,
+      closeTime: "13:45:11",
+      duration: "38m 22s",
+    },
+    {
+      ticket: "#8893890",
       symbol: "XAUUSD",
       type: "SELL",
-      lots: 0.02,
-      openPrice: 2682.10,
-      closePrice: 2677.30,
-      pnl: 2880.00,
-      closeTime: "15:20:44",
-      duration: "28 min",
+      lots: 0.05,
+      openPrice: 2688.00,
+      closePrice: 2676.20,
+      pnl: 590.00,
+      closeTime: "11:20:04",
+      duration: "1h 14m",
     },
     {
-      ticket: "#8392044",
+      ticket: "#8893845",
       symbol: "XAUUSD",
-      type: "BUY",
-      lots: 0.03,
-      openPrice: 2671.00,
-      closePrice: 2676.80,
-      pnl: 4400.00,
-      closeTime: "12:14:02",
-      duration: "1h 14m",
+      type: "SELL",
+      lots: 0.08,
+      openPrice: 2687.50,
+      closePrice: 2676.20,
+      pnl: 904.00,
+      closeTime: "11:20:05",
+      duration: "1h 08m",
     },
   ]);
 
-  // Handle Image Upload & Conversion to Base64
+  // Handle proof image upload
   const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      toast.error("Please upload an image file (PNG, JPG, or WEBP).");
+      toast.error("Please upload a valid image file (PNG, JPG, or WEBP)");
       return;
     }
 
     if (file.size > 8 * 1024 * 1024) {
-      toast.error("Image file size should be less than 8MB.");
+      toast.error("Image file is too large (Maximum 8MB allowed)");
       return;
     }
 
@@ -346,15 +372,15 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
     const reader = new FileReader();
     reader.onload = () => {
       setProofImageBase64(reader.result as string);
-      toast.success("Payment proof screenshot loaded!");
+      toast.success("Proof image attached successfully!");
     };
     reader.readAsDataURL(file);
   };
 
-  // Submit Settlement Record
-  const handleSubmitSettlement = () => {
+  // Submit daily crypto remittance proof
+  const handleSubmitSettlement = async () => {
     if (!proofImageBase64) {
-      toast.error("Please attach a screenshot of your crypto transfer as proof.");
+      toast.error("Please attach a screenshot proof of your crypto transfer");
       return;
     }
 
@@ -431,123 +457,117 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
 
   return (
     <div className="w-full text-slate-800 pb-16 font-sans">
-      {/* ── TOP HEADER: Terminal Heartbeat & EA Control (Clean White Card) ── */}
-      <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 rounded-2xl bg-white border border-slate-200/90 shadow-[0_2px_12px_rgba(0,0,0,0.03)]">
-        <div className="flex items-center gap-3.5">
-          <div className="relative w-12 h-12 rounded-xl bg-gradient-to-br from-sky-50 to-indigo-50 border border-sky-200 flex items-center justify-center shrink-0">
-            <Cpu className="w-6 h-6 text-sky-600" />
-            <span className="absolute -top-1 -right-1 flex h-3 w-3">
-              <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${isBotRunning ? 'bg-emerald-400 opacity-75' : 'bg-amber-400 opacity-75'}`}></span>
-              <span className={`relative inline-flex rounded-full h-3 w-3 ${isBotRunning ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
-            </span>
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold tracking-tight text-slate-900">FiAlgo Auto Trade Dashboard</h1>
-              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-sky-50 border border-sky-200 text-sky-700">
-                Gold Specialist
-              </span>
-            </div>
-            <div className="flex items-center gap-3 text-xs text-slate-500 mt-1 flex-wrap font-mono">
-              <span>Account: <b className="text-slate-900">#{cleanAccount}</b></span>
-              <span>•</span>
-              <span>Server: <b className="text-slate-700">{brokerServer}</b></span>
-              <span>•</span>
-              <span>Asset: <b className="text-amber-600">XAUUSD (M1)</b></span>
-              <span>•</span>
-              <span className="text-emerald-600 flex items-center gap-1 font-semibold">
-                <Activity size={12} /> {latencyPing}ms Latency
-              </span>
-            </div>
-          </div>
+      {/* ── TOP ACTION & TELEMETRY TOOLBAR (Matches AI Journal & RiskGuard Header) ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+        <div className="flex items-center gap-2 text-[12px] sm:text-[13px] text-slate-400 dark:text-slate-400 flex-wrap">
+          <span className="flex items-center gap-1.5 font-bold text-slate-900 dark:text-white">
+            <span className={`w-2 h-2 rounded-full ${isBotRunning ? 'bg-[#10B981] animate-pulse' : 'bg-amber-400'}`} />
+            FiAlgo MT5 #{cleanAccount}
+          </span>
+          <span className="text-slate-300 dark:text-slate-400">•</span>
+          <span className="font-semibold text-slate-600 dark:text-slate-300">{brokerServer}</span>
+          <span className="text-slate-300 dark:text-slate-400">•</span>
+          <span className="font-semibold text-amber-600 dark:text-amber-400">XAUUSD (M1)</span>
+          <span className="text-slate-300 dark:text-slate-400">•</span>
+          <span className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
+            <Activity size={12} /> {latencyPing}ms Latency
+          </span>
         </div>
 
-        {/* Action Controls */}
-        <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
-          {/* Currency Toggle */}
+        <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+          {/* Currency Toggle (Consistent with AI Journal) */}
           <button
             onClick={() => setCurrency(prev => prev === "INR" ? "USD" : "INR")}
-            className="px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs font-bold text-slate-700 flex items-center gap-1.5 transition-all shadow-2xs"
+            className="inline-flex items-center gap-1.5 h-[36px] px-3 rounded-[14px] border-2 border-white dark:border-white/5 bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:shadow-none text-[11px] font-bold text-slate-700 dark:text-slate-200 hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#D0D0D5] dark:hover:shadow-none transition-all cursor-pointer"
             title="Toggle Currency Display (INR / USD)"
           >
-            <DollarSign size={13} className="text-emerald-600" />
+            <DollarSign size={13} className="text-emerald-600 dark:text-emerald-400" />
             <span>{currency}</span>
           </button>
 
-          {/* Refresh Button */}
-          <button
-            onClick={handleManualRefresh}
-            disabled={isRefreshing}
-            className="p-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 hover:text-slate-900 transition-all disabled:opacity-50 shadow-2xs"
-            title="Refresh Live Data"
-          >
-            <RefreshCw size={15} className={isRefreshing ? "animate-spin text-sky-600" : ""} />
-          </button>
-
-          {/* Master EA Run / Pause Switch */}
+          {/* EA Status Toggle Button */}
           <button
             onClick={handleToggleBot}
-            className={`px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-2 transition-all cursor-pointer shadow-2xs ${
+            className={`inline-flex items-center gap-1.5 h-[36px] px-3.5 rounded-[14px] border-2 text-[11px] font-bold tracking-tight transition-all cursor-pointer ${
               isBotRunning 
-                ? "bg-emerald-600 hover:bg-emerald-700 text-white border border-emerald-600 shadow-emerald-600/20" 
-                : "bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300"
+                ? "border-white dark:border-white/5 bg-gradient-to-b from-[#D1FAE5] to-[#ECFDF5] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#10B98140] dark:shadow-none text-emerald-700 dark:text-emerald-400" 
+                : "border-white dark:border-white/5 bg-gradient-to-b from-[#FEF3C7] to-[#FFFBEB] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#F59E0B40] dark:shadow-none text-amber-700 dark:text-amber-400"
             }`}
           >
             {isBotRunning ? (
               <>
-                <Play size={13} className="fill-white text-white" />
-                <span>EA Running</span>
+                <Play size={11} className="fill-emerald-600 text-emerald-600 dark:fill-emerald-400 dark:text-emerald-400" />
+                <span>EA Active</span>
               </>
             ) : (
               <>
-                <Pause size={13} className="fill-amber-600 text-amber-600" />
+                <Pause size={11} className="fill-amber-600 text-amber-600 dark:fill-amber-400 dark:text-amber-400" />
                 <span>EA Paused</span>
               </>
             )}
           </button>
 
-          {/* Trigger Settlement Button */}
+          {/* Telemetry Refresh Button */}
+          <button
+            onClick={handleManualRefresh}
+            disabled={isRefreshing}
+            className="w-[36px] h-[36px] rounded-[14px] border-2 border-white dark:border-white/5 bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:shadow-none text-slate-500 dark:text-slate-400 flex items-center justify-center hover:text-slate-800 dark:hover:text-white hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#D0D0D5] dark:hover:shadow-none transition-all disabled:opacity-50 cursor-pointer"
+            title="Refresh Telemetry"
+          >
+            <RefreshCw size={13} className={isRefreshing ? "animate-spin text-sky-600" : ""} />
+          </button>
+
+          {/* Quick Pay Remittance Button */}
           <button
             onClick={() => setShowSettlementModal(true)}
-            className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
+            className="inline-flex items-center gap-1.5 h-[36px] px-3.5 rounded-[14px] border-2 border-white dark:border-white/5 text-[11px] font-bold text-white transition-all cursor-pointer shadow-sm hover:scale-[1.01] active:scale-[0.99]"
+            style={{
+              background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+              boxShadow: '0 2px 10px rgba(15,23,42,0.2)',
+            }}
           >
-            <QrCode size={14} className="text-sky-400" />
+            <QrCode size={13} className="text-sky-400" />
             <span>Pay Profit Split</span>
             {isTargetHit && (
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse ml-0.5" />
             )}
           </button>
         </div>
       </div>
 
-      {/* ── DAILY TARGET HIT CELEBRATION / REMITTANCE ALERT (Clean White with Emerald Accent) ── */}
+      {/* ── DAILY TARGET HIT CELEBRATION / REMITTANCE ALERT (Matches AI Journal & Dashboard Banner) ── */}
       {isTargetHit && (
         <motion.div 
-          initial={{ opacity: 0, y: -10 }}
+          initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-6 p-4 md:p-5 rounded-2xl bg-gradient-to-r from-emerald-50/90 via-emerald-50/40 to-white border border-emerald-200/90 shadow-[0_4px_16px_rgba(16,185,129,0.06)] flex flex-col md:flex-row md:items-center justify-between gap-4"
+          transition={{ duration: 0.35 }}
+          className="mb-6 p-3.5 sm:p-4 md:p-5 rounded-[22px] border-2 border-white bg-gradient-to-b from-[#ECFDF5] to-[#F8FAFC] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.08),0_0_0_2px_#A7F3D0] dark:bg-none dark:bg-[#132A20] dark:border-[1px] dark:border-emerald-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
         >
-          <div className="flex items-start gap-3.5">
-            <div className="w-10 h-10 rounded-xl bg-emerald-100 border border-emerald-300 flex items-center justify-center shrink-0 text-emerald-700">
-              <Zap size={22} className="fill-emerald-600 text-emerald-600" />
+          <div className="flex items-start sm:items-center gap-3.5">
+            <div className="w-9 h-9 rounded-xl flex-shrink-0 bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-600">
+              <Zap size={18} className="fill-emerald-600 text-emerald-600" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-emerald-800 bg-emerald-100/80 px-2 py-0.5 rounded-full border border-emerald-300">
+                <span className="text-[11px] font-extrabold uppercase tracking-wider text-emerald-800 dark:text-emerald-300 leading-tight">
                   Target Achieved 🎯
                 </span>
-                <span className="text-xs font-mono text-slate-500">
+                <span className="text-[11.5px] sm:text-[12px] text-slate-500 dark:text-slate-400">
                   Daily Goal: {currencySymbol}{dailyTargetAmount.toLocaleString()}
                 </span>
               </div>
-              <p className="text-sm text-slate-700 mt-1 font-medium">
-                FiAlgo generated <b className="text-emerald-700 font-bold">{currencySymbol}{todayProfit.toLocaleString()}</b> net profit today! In accordance with the 50/50 Performance Partner tier, please remit the platform share (<b className="text-slate-900 font-bold">${adminShareTodayUsdt} USDT</b>) to keep your MT5 license active.
+              <p className="text-[11.5px] sm:text-[12px] text-slate-700 dark:text-slate-200 mt-0.5 leading-snug">
+                FiAlgo generated <b className="text-emerald-700 dark:text-emerald-400 font-bold">{currencySymbol}{todayProfit.toLocaleString()}</b> net profit today! In accordance with the 50/50 Performance Partner tier, please remit the platform share (<b className="text-slate-900 dark:text-white font-bold">${adminShareTodayUsdt} USDT</b>) to keep your MT5 license active.
               </p>
             </div>
           </div>
           <button
             onClick={() => setShowSettlementModal(true)}
-            className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shrink-0 flex items-center justify-center gap-2 transition-all shadow-md shadow-emerald-600/20 cursor-pointer"
+            className="w-full sm:w-auto justify-center text-[12.5px] sm:text-[13px] font-semibold text-white flex items-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] py-2.5 px-4 rounded-xl shadow-md cursor-pointer shrink-0"
+            style={{
+              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+              boxShadow: '0 2px 10px rgba(16,185,129,0.3)',
+            }}
           >
             <span>Remit ${adminShareTodayUsdt} USDT & Upload Proof</span>
             <ArrowRight size={14} />
@@ -555,132 +575,178 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
         </motion.div>
       )}
 
-      {/* ── CORE 5 METRIC CARDS (User Request: Balance, Net Profit, Today's Profit, Deposit, Withdrawal) ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 mb-6">
-        {/* 1. BALANCE */}
-        <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] flex flex-col justify-between hover:shadow-md transition-all">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-slate-500">Account Balance</span>
-            <div className="w-8 h-8 rounded-lg bg-sky-50 border border-sky-200 flex items-center justify-center text-sky-600">
-              <Wallet size={15} />
+      {/* ── CORE 5 METRIC BOXES (Consistent with AI Journal & RiskGuard) ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 sm:gap-4 mb-6">
+        {/* 1. Account Balance */}
+        <div className={kpiBoxStyle}>
+          <div className="flex items-center justify-between">
+            <p className="text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-wider">
+              Account Balance
+            </p>
+            <div className="w-8 h-8 rounded-lg bg-sky-50 dark:bg-sky-500/10 flex items-center justify-center shrink-0">
+              <Wallet className="w-4 h-4 text-sky-600 dark:text-sky-400" />
             </div>
           </div>
-          <div>
-            <div className="text-2xl font-bold text-slate-900 tracking-tight">
-              {currencySymbol}{accountBalance.toLocaleString()}
+          <div className="flex items-end justify-between">
+            <div className="flex flex-col">
+              <h3
+                className="text-[26px] font-medium text-slate-900 dark:text-white tracking-tight leading-none"
+                style={{ fontFamily: "'Inter', sans-serif" }}
+              >
+                {currencySymbol}{accountBalance.toLocaleString()}
+              </h3>
+              <p className="text-[11px] font-medium text-slate-400 mt-1">
+                Equity: <span className="font-semibold text-slate-700 dark:text-slate-200">{currencySymbol}{accountEquity.toLocaleString()}</span>
+              </p>
             </div>
-            <div className="text-[11px] text-slate-500 mt-1 flex items-center justify-between">
-              <span>Equity: <b className="text-slate-700">{currencySymbol}{accountEquity.toLocaleString()}</b></span>
-              <span className="text-emerald-600 font-mono text-[10px] font-bold">Lvl: {marginLevel.toFixed(0)}%</span>
-            </div>
-          </div>
-        </div>
-
-        {/* 2. NET PROFIT */}
-        <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-b from-emerald-50/50 to-white border border-emerald-200/90 shadow-[0_2px_8px_rgba(16,185,129,0.04)] flex flex-col justify-between hover:shadow-md transition-all">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-slate-500">Total Net Profit</span>
-            <div className="w-8 h-8 rounded-lg bg-emerald-100 border border-emerald-300 flex items-center justify-center text-emerald-700">
-              <TrendingUp size={15} />
-            </div>
-          </div>
-          <div>
-            <div className="text-2xl font-bold text-emerald-600 tracking-tight">
-              +{currencySymbol}{netProfitAllTime.toLocaleString()}
-            </div>
-            <div className="text-[11px] text-slate-500 mt-1 flex items-center justify-between">
-              <span className="text-emerald-700 font-bold">+{(netProfitAllTime / depositAmount * 100).toFixed(1)}% All-Time</span>
-              <span className="text-[10px] text-slate-500 font-medium">86.4% Win Rate</span>
-            </div>
+            <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500">
+              Lvl {marginLevel.toFixed(0)}%
+            </span>
           </div>
         </div>
 
-        {/* 3. TODAY'S PROFIT */}
-        <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] flex flex-col justify-between hover:shadow-md transition-all">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-slate-500">Today's Profit</span>
-            <div className="w-8 h-8 rounded-lg bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600">
-              <Zap size={15} />
+        {/* 2. Total Net Profit */}
+        <div className={kpiBoxStyle}>
+          <div className="flex items-center justify-between">
+            <p className="text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-wider">
+              Total Net Profit
+            </p>
+            <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center shrink-0">
+              <TrendingUp className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
             </div>
           </div>
-          <div>
-            <div className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-1.5">
-              <span>+{currencySymbol}{todayProfit.toLocaleString()}</span>
-              {isTargetHit && <span className="text-xs text-emerald-600 font-bold">🎯</span>}
+          <div className="flex items-end justify-between">
+            <div className="flex flex-col">
+              <h3
+                className="text-[26px] font-medium text-emerald-600 dark:text-emerald-400 tracking-tight leading-none"
+                style={{ fontFamily: "'Inter', sans-serif" }}
+              >
+                +{currencySymbol}{netProfitAllTime.toLocaleString()}
+              </h3>
+              <p className="text-[11px] font-medium text-slate-400 mt-1">
+                All-Time: <span className="font-semibold text-emerald-600 dark:text-emerald-400">+{((netProfitAllTime / depositAmount) * 100).toFixed(1)}%</span>
+              </p>
             </div>
-            <div className="text-[11px] text-slate-500 mt-1 flex items-center justify-between">
-              <span>Goal: {currencySymbol}{dailyTargetAmount.toLocaleString()}</span>
-              <span className="text-emerald-600 font-bold">{(todayProfit / dailyTargetAmount * 100).toFixed(0)}% Hit</span>
-            </div>
-          </div>
-        </div>
-
-        {/* 4. TOTAL DEPOSIT */}
-        <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] flex flex-col justify-between hover:shadow-md transition-all">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-slate-500">Total Deposits</span>
-            <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-200 flex items-center justify-center text-indigo-600">
-              <ArrowDownLeft size={15} />
-            </div>
-          </div>
-          <div>
-            <div className="text-2xl font-bold text-slate-900 tracking-tight">
-              {currencySymbol}{depositAmount.toLocaleString()}
-            </div>
-            <div className="text-[11px] text-slate-500 mt-1 flex items-center justify-between">
-              <span>Funded MT5 Capital</span>
-              <span className="text-[10px] text-indigo-600 font-semibold">Exness IB</span>
-            </div>
+            <span className="bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-200/50">
+              86.4% Win
+            </span>
           </div>
         </div>
 
-        {/* 5. TOTAL WITHDRAWAL */}
-        <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] flex flex-col justify-between hover:shadow-md transition-all">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-slate-500">Total Withdrawals</span>
-            <div className="w-8 h-8 rounded-lg bg-purple-50 border border-purple-200 flex items-center justify-center text-purple-600">
-              <ArrowUpRight size={15} />
+        {/* 3. Today's Profit */}
+        <div className={kpiBoxStyle}>
+          <div className="flex items-center justify-between">
+            <p className="text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-wider">
+              Today's Profit
+            </p>
+            <div className="w-8 h-8 rounded-lg bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center shrink-0">
+              <Zap className="w-4 h-4 text-amber-500 dark:text-amber-400" />
             </div>
           </div>
-          <div>
-            <div className="text-2xl font-bold text-slate-900 tracking-tight">
-              {currencySymbol}{withdrawalAmount.toLocaleString()}
+          <div className="flex items-end justify-between">
+            <div className="flex flex-col">
+              <h3
+                className="text-[26px] font-medium text-emerald-600 dark:text-emerald-400 tracking-tight leading-none"
+                style={{ fontFamily: "'Inter', sans-serif" }}
+              >
+                +{currencySymbol}{todayProfit.toLocaleString()}
+              </h3>
+              <p className="text-[11px] font-medium text-slate-400 mt-1">
+                Goal: <span className="font-semibold text-slate-600 dark:text-slate-300">{currencySymbol}{dailyTargetAmount.toLocaleString()}</span>
+              </p>
             </div>
-            <div className="text-[11px] text-slate-500 mt-1 flex items-center justify-between">
-              <span>All Payouts Cleared</span>
-              <span className="text-emerald-600 font-mono text-[10px] font-bold">✓ Zero Fees</span>
+            <span className="bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-200/50">
+              {((todayProfit / dailyTargetAmount) * 100).toFixed(0)}% Hit
+            </span>
+          </div>
+        </div>
+
+        {/* 4. Total Deposits */}
+        <div className={kpiBoxStyle}>
+          <div className="flex items-center justify-between">
+            <p className="text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-wider">
+              Total Deposits
+            </p>
+            <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center shrink-0">
+              <ArrowDownLeft className="w-4 h-4 text-indigo-500 dark:text-indigo-400" />
             </div>
+          </div>
+          <div className="flex items-end justify-between">
+            <div className="flex flex-col">
+              <h3
+                className="text-[26px] font-medium text-slate-900 dark:text-white tracking-tight leading-none"
+                style={{ fontFamily: "'Inter', sans-serif" }}
+              >
+                {currencySymbol}{depositAmount.toLocaleString()}
+              </h3>
+              <p className="text-[11px] font-medium text-slate-400 mt-1">
+                Funded MT5 Capital
+              </p>
+            </div>
+            <span className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400">
+              Exness IB
+            </span>
+          </div>
+        </div>
+
+        {/* 5. Total Withdrawals */}
+        <div className={kpiBoxStyle}>
+          <div className="flex items-center justify-between">
+            <p className="text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-wider">
+              Total Withdrawals
+            </p>
+            <div className="w-8 h-8 rounded-lg bg-purple-50 dark:bg-purple-500/10 flex items-center justify-center shrink-0">
+              <ArrowUpRight className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+            </div>
+          </div>
+          <div className="flex items-end justify-between">
+            <div className="flex flex-col">
+              <h3
+                className="text-[26px] font-medium text-slate-900 dark:text-white tracking-tight leading-none"
+                style={{ fontFamily: "'Inter', sans-serif" }}
+              >
+                {currencySymbol}{withdrawalAmount.toLocaleString()}
+              </h3>
+              <p className="text-[11px] font-medium text-slate-400 mt-1">
+                All Payouts Cleared
+              </p>
+            </div>
+            <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
+              ✓ Zero Fees
+            </span>
           </div>
         </div>
       </div>
 
-      {/* ── 2-COLUMN SECTION: Net Profit Growth Chart + 50/50 Profit Split Card (White Cards) ── */}
+      {/* ── 2-COLUMN SECTION: Net Profit Growth Chart + 50/50 Profit Split Card ── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 mb-6">
         {/* LEFT COLUMN: NET PROFIT GROWTH CHART (8 cols) */}
-        <div className="lg:col-span-8 p-5 rounded-2xl bg-white border border-slate-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] flex flex-col justify-between">
+        <div className={`lg:col-span-8 ${cardBoxStyle} flex flex-col justify-between`}>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-base font-bold text-slate-900">Net Profit & Equity Curve</h2>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <h2 className="text-[15px] font-bold text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
+                  Net Profit & Equity Curve
+                </h2>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-200/50">
                   Cumulative P&L
                 </span>
               </div>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className="text-[11.5px] font-normal text-slate-400 mt-1">
                 Real-time performance trajectory from FiAlgo execution engine
               </p>
             </div>
 
-            {/* Timeframe Filter Tabs */}
-            <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-xl border border-slate-200 shrink-0 self-start sm:self-auto">
+            {/* Timeframe Filter Tabs (Matches Journal Pill Style) */}
+            <div className="flex items-center gap-1 p-1 bg-slate-100/80 dark:bg-white/5 rounded-[14px] border border-slate-200/60 dark:border-white/5 shrink-0 self-start sm:self-auto">
               {(["Today", "7D", "30D", "All"] as const).map((tf) => (
                 <button
                   key={tf}
                   onClick={() => setChartTimeframe(tf)}
-                  className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
+                  className={`px-3 py-1 rounded-[10px] text-xs font-semibold transition-all ${
                     chartTimeframe === tf 
-                      ? "bg-white text-slate-900 shadow-xs border border-slate-200/80 font-bold" 
-                      : "text-slate-500 hover:text-slate-900"
+                      ? "bg-white dark:bg-[#252525] text-slate-900 dark:text-white shadow-[0_2px_4px_rgba(0,0,0,0.06)] font-bold" 
+                      : "text-slate-400 hover:text-slate-700 dark:hover:text-white"
                   }`}
                 >
                   {tf}
@@ -719,13 +785,13 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
                     if (active && payload && payload.length) {
                       const data = payload[0].payload;
                       return (
-                        <div className="p-3 rounded-xl bg-white border border-slate-200 shadow-xl text-slate-800">
-                          <div className="text-[11px] text-slate-500">{data.time}</div>
-                          <div className="text-base font-bold text-emerald-600 mt-0.5">
+                        <div className="p-3 rounded-[16px] bg-white border-2 border-white shadow-[0_4px_20px_rgba(0,0,0,0.1)] text-slate-800">
+                          <div className="text-[11px] text-slate-400 font-medium">{data.time}</div>
+                          <div className="text-[17px] font-bold text-emerald-600 mt-0.5" style={{ fontFamily: "'Inter', sans-serif" }}>
                             +{currencySymbol}{Number(data.netProfit).toLocaleString()} Net Profit
                           </div>
-                          <div className="text-[11px] text-slate-600 mt-1 flex items-center justify-between gap-4">
-                            <span>Balance: {currencySymbol}{Number(data.balance).toLocaleString()}</span>
+                          <div className="text-[11px] text-slate-500 mt-1 flex items-center justify-between gap-4">
+                            <span>Balance: <b className="text-slate-700">{currencySymbol}{Number(data.balance).toLocaleString()}</b></span>
                             <span className="text-emerald-600 font-bold">+{data.dailyGain}%</span>
                           </div>
                         </div>
@@ -747,81 +813,91 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
           </div>
 
           {/* Quick Metrics Under Chart */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-3 border-t border-slate-100 text-xs text-slate-500">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 mt-2 border-t border-slate-100 dark:border-white/5">
             <div>
-              <span className="block text-[10px] uppercase text-slate-400 font-semibold">Profit Factor</span>
-              <b className="text-slate-900 font-mono text-sm font-bold">2.84</b>
+              <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Profit Factor</p>
+              <h4 className="text-[18px] font-medium text-slate-900 dark:text-white tracking-tight mt-0.5" style={{ fontFamily: "'Inter', sans-serif" }}>2.84</h4>
             </div>
             <div>
-              <span className="block text-[10px] uppercase text-slate-400 font-semibold">Sharpe Ratio</span>
-              <b className="text-slate-900 font-mono text-sm font-bold">2.15</b>
+              <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Sharpe Ratio</p>
+              <h4 className="text-[18px] font-medium text-slate-900 dark:text-white tracking-tight mt-0.5" style={{ fontFamily: "'Inter', sans-serif" }}>2.15</h4>
             </div>
             <div>
-              <span className="block text-[10px] uppercase text-slate-400 font-semibold">Max Drawdown</span>
-              <b className="text-emerald-600 font-mono text-sm font-bold">-3.8%</b>
+              <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Max Drawdown</p>
+              <h4 className="text-[18px] font-medium text-emerald-600 dark:text-emerald-400 tracking-tight mt-0.5" style={{ fontFamily: "'Inter', sans-serif" }}>-3.8%</h4>
             </div>
             <div>
-              <span className="block text-[10px] uppercase text-slate-400 font-semibold">Avg Win Trade</span>
-              <b className="text-slate-900 font-mono text-sm font-bold">+{currencySymbol}412.00</b>
+              <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Avg Win Trade</p>
+              <h4 className="text-[18px] font-medium text-slate-900 dark:text-white tracking-tight mt-0.5" style={{ fontFamily: "'Inter', sans-serif" }}>+{currencySymbol}412.00</h4>
             </div>
           </div>
         </div>
 
         {/* RIGHT COLUMN: 50/50 PROFIT SPLIT (CLIENT & MINE) (4 cols) */}
-        <div className="lg:col-span-4 p-5 rounded-2xl bg-white border border-slate-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] flex flex-col justify-between">
+        <div className={`lg:col-span-4 ${cardBoxStyle} flex flex-col justify-between`}>
           <div>
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-base font-bold text-slate-900">Profit Split (50 / 50)</h2>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-50 border border-sky-200 text-sky-700">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-[15px] font-bold text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
+                Profit Split (50 / 50)
+              </h2>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-50 dark:bg-sky-500/10 text-sky-700 dark:text-sky-400 border border-sky-200/50">
                 Partner Model
               </span>
             </div>
-            <p className="text-xs text-slate-500 mb-4 leading-relaxed">
+            <p className="text-[11.5px] font-normal text-slate-400 mb-4 leading-relaxed">
               Today's trading profits are split equally between client and platform. Keep 50% in your MT5 broker account; remit 50% daily via Crypto.
             </p>
 
             {/* Split Visual Meter */}
             <div className="space-y-3">
               {/* Client Card */}
-              <div className="p-3.5 rounded-xl bg-emerald-50/60 border border-emerald-200">
+              <div className="p-3.5 rounded-[18px] border-2 border-white bg-gradient-to-b from-[#ECFDF5] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.08),0_0_0_2px_#A7F3D0] dark:bg-none dark:bg-[#132A20] dark:border-[1px] dark:border-emerald-500/30">
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-bold text-emerald-800 flex items-center gap-1.5">
-                    <CheckCircle2 size={13} className="text-emerald-600" /> Client Share (50%)
+                  <span className="text-[11px] font-extrabold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider flex items-center gap-1.5">
+                    <CheckCircle2 size={13} className="text-emerald-600 dark:text-emerald-400" /> Client Share (50%)
                   </span>
-                  <span className="text-[10px] font-mono text-slate-500">Retained in MT5</span>
+                  <span className="text-[10px] font-bold text-slate-400">Retained in MT5</span>
                 </div>
-                <div className="text-xl font-bold text-slate-900 tracking-tight">
+                <h3 className="text-[22px] font-medium text-slate-900 dark:text-white tracking-tight leading-none my-1" style={{ fontFamily: "'Inter', sans-serif" }}>
                   +{currencySymbol}{clientShareToday.toLocaleString()}
-                </div>
-                <div className="text-[11px] text-slate-500 mt-1">
+                </h3>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
                   Credited directly to your MT5 account equity.
-                </div>
+                </p>
               </div>
 
               {/* Admin / Tradifive Card */}
-              <div className="p-3.5 rounded-xl bg-sky-50/60 border border-sky-200">
+              <div className="p-3.5 rounded-[18px] border-2 border-white bg-gradient-to-b from-[#EFF6FF] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.08),0_0_0_2px_#BFDBFE] dark:bg-none dark:bg-[#1A2332] dark:border-[1px] dark:border-blue-500/30">
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-bold text-sky-800 flex items-center gap-1.5">
-                    <QrCode size={13} className="text-sky-600" /> Platform Share (50%)
+                  <span className="text-[11px] font-extrabold text-blue-900 dark:text-blue-300 uppercase tracking-wider flex items-center gap-1.5">
+                    <QrCode size={13} className="text-blue-600 dark:text-blue-400" /> Platform Share (50%)
                   </span>
-                  <span className="text-[10px] font-mono text-slate-500">Remit via Crypto</span>
+                  <span className="text-[10px] font-bold text-slate-400">Remit via Crypto</span>
                 </div>
-                <div className="text-xl font-bold text-slate-900 tracking-tight flex items-baseline gap-2">
-                  <span>${adminShareTodayUsdt} USDT</span>
-                  <span className="text-xs font-normal text-slate-500">({currencySymbol}{adminShareToday.toLocaleString()})</span>
+                <div className="flex items-baseline gap-2 my-1">
+                  <h3 className="text-[22px] font-medium text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
+                    ${adminShareTodayUsdt} USDT
+                  </h3>
+                  <span className="text-[12px] font-medium text-slate-400">
+                    ({currencySymbol}{adminShareToday.toLocaleString()})
+                  </span>
                 </div>
-                <div className="text-[11px] text-slate-500 mt-1">
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
                   Daily remittance required to keep EA key active.
-                </div>
+                </p>
               </div>
             </div>
           </div>
 
           {/* Quick Pay Button */}
-          <div className="mt-5 pt-4 border-t border-slate-100">
+          <div className="mt-5 pt-4 border-t border-slate-100 dark:border-white/5">
             <button
               onClick={() => setShowSettlementModal(true)}
-              className="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm"
+              className="w-full py-2.5 rounded-xl text-white font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md hover:scale-[1.01] active:scale-[0.99]"
+              style={{
+                background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+                boxShadow: '0 2px 10px rgba(15,23,42,0.2)',
+              }}
             >
               <Upload size={14} className="text-sky-400" />
               <span>Remit 50% via Crypto & Upload Proof</span>
@@ -833,15 +909,17 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
       {/* ── 2-COLUMN SECTION: Live Open Basket Positions & Recent Trade History ── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 mb-6">
         {/* LIVE OPEN POSITIONS (XAUUSD BASKET) (6 cols) */}
-        <div className="lg:col-span-6 p-5 rounded-2xl bg-white border border-slate-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)]">
+        <div className={`lg:col-span-6 ${cardBoxStyle}`}>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <h2 className="text-base font-bold text-slate-900">Live Open Basket (Gold)</h2>
-              <span className="text-[10px] font-mono bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full border border-emerald-200 font-bold">
+              <h2 className="text-[15px] font-bold text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
+                Live Open Basket (Gold)
+              </h2>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-200/50">
                 {openPositions.length} Active Positions
               </span>
             </div>
-            <span className="text-xs font-bold text-emerald-600">
+            <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
               Floating: +{currencySymbol}{openPositions.reduce((acc, p) => acc + p.floatingPnl, 0).toLocaleString()}
             </span>
           </div>
@@ -855,24 +933,24 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
               {openPositions.map((pos) => (
                 <div 
                   key={pos.ticket}
-                  className="p-3 rounded-xl bg-slate-50/70 border border-slate-200/70 flex items-center justify-between hover:bg-slate-100/80 transition-all text-xs"
+                  className="p-3.5 rounded-[16px] bg-[#F8F9FC] dark:bg-white/5 border border-slate-200/60 dark:border-white/5 flex items-center justify-between hover:bg-slate-100/70 dark:hover:bg-white/10 transition-all text-xs"
                 >
                   <div className="flex items-center gap-3">
-                    <span className={`px-2 py-0.5 rounded font-bold text-[10px] ${pos.type === 'BUY' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}>
+                    <span className={`px-2 py-0.5 rounded-md font-bold text-[10px] ${pos.type === 'BUY' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}>
                       {pos.type}
                     </span>
                     <div>
-                      <div className="font-bold text-slate-900 flex items-center gap-2">
+                      <div className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
                         <span>{pos.symbol}</span>
-                        <span className="font-mono text-slate-500 text-[11px]">{pos.lots} Lots</span>
+                        <span className="font-mono text-slate-400 text-[11px]">{pos.lots} Lots</span>
                       </div>
-                      <div className="text-[11px] text-slate-500 font-mono">
+                      <div className="text-[11px] text-slate-400 font-mono mt-0.5">
                         Open: {pos.openPrice} → Now: {pos.currentPrice}
                       </div>
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="font-bold text-emerald-600 font-mono text-sm">
+                    <div className="font-bold text-emerald-600 dark:text-emerald-400 text-sm" style={{ fontFamily: "'Inter', sans-serif" }}>
                       +{currencySymbol}{pos.floatingPnl.toLocaleString()}
                     </div>
                     <div className="text-[10px] text-slate-400 font-mono">
@@ -886,14 +964,18 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
         </div>
 
         {/* RECENT CLOSED TRADES (6 cols) */}
-        <div className="lg:col-span-6 p-5 rounded-2xl bg-white border border-slate-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)]">
+        <div className={`lg:col-span-6 ${cardBoxStyle}`}>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <h2 className="text-base font-bold text-slate-900">Recent Execution History</h2>
-              <span className="text-[10px] font-mono text-slate-500">Closed Trades</span>
+              <h2 className="text-[15px] font-bold text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
+                Recent Execution History
+              </h2>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 dark:bg-white/5 dark:text-slate-400">
+                Closed Trades
+              </span>
             </div>
-            <span className="text-xs text-slate-500">
-              Session Total: <b className="text-emerald-600 font-bold">+{currencySymbol}{closedTrades.reduce((acc, t) => acc + t.pnl, 0).toLocaleString()}</b>
+            <span className="text-xs text-slate-400">
+              Session Total: <b className="text-emerald-600 dark:text-emerald-400 font-bold">+{currencySymbol}{closedTrades.reduce((acc, t) => acc + t.pnl, 0).toLocaleString()}</b>
             </span>
           </div>
 
@@ -901,24 +983,24 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
             {closedTrades.map((t) => (
               <div 
                 key={t.ticket}
-                className="p-3 rounded-xl bg-slate-50/70 border border-slate-200/70 flex items-center justify-between hover:bg-slate-100/80 transition-all text-xs"
+                className="p-3.5 rounded-[16px] bg-[#F8F9FC] dark:bg-white/5 border border-slate-200/60 dark:border-white/5 flex items-center justify-between hover:bg-slate-100/70 dark:hover:bg-white/10 transition-all text-xs"
               >
                 <div className="flex items-center gap-3">
-                  <span className={`px-2 py-0.5 rounded font-bold text-[10px] ${t.type === 'BUY' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}>
+                  <span className={`px-2 py-0.5 rounded-md font-bold text-[10px] ${t.type === 'BUY' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}>
                     {t.type}
                   </span>
                   <div>
-                    <div className="font-bold text-slate-900 flex items-center gap-2">
+                    <div className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
                       <span>{t.symbol}</span>
-                      <span className="font-mono text-slate-500 text-[11px]">{t.lots} Lots</span>
+                      <span className="font-mono text-slate-400 text-[11px]">{t.lots} Lots</span>
                     </div>
-                    <div className="text-[11px] text-slate-500 font-mono">
+                    <div className="text-[11px] text-slate-400 font-mono mt-0.5">
                       {t.openPrice} → {t.closePrice} ({t.duration})
                     </div>
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="font-bold text-emerald-600 font-mono text-sm">
+                  <div className="font-bold text-emerald-600 dark:text-emerald-400 text-sm" style={{ fontFamily: "'Inter', sans-serif" }}>
                     +{currencySymbol}{t.pnl.toLocaleString()}
                   </div>
                   <div className="text-[10px] text-slate-400 font-mono">
@@ -931,23 +1013,27 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
         </div>
       </div>
 
-      {/* ── DAILY CRYPTO SETTLEMENTS LEDGER (Clean White Table) ── */}
-      <div className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)]">
+      {/* ── DAILY CRYPTO SETTLEMENTS LEDGER (Clean Table Box) ── */}
+      <div className={cardBoxStyle}>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-base font-bold text-slate-900">Daily Crypto Profit Settlements</h2>
-              <span className="text-[10px] font-mono text-slate-500">50% Platform Remittance Ledger</span>
+              <h2 className="text-[15px] font-bold text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
+                Daily Crypto Profit Settlements
+              </h2>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 dark:bg-sky-500/10 dark:text-sky-400 border border-sky-200/50">
+                50% Platform Remittance Ledger
+              </span>
             </div>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-[11.5px] font-normal text-slate-400 mt-1">
               Verified records of daily profit share sent via Crypto with uploaded transaction proofs.
             </p>
           </div>
           <button
             onClick={() => setShowSettlementModal(true)}
-            className="px-3.5 py-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs font-bold text-slate-700 flex items-center gap-1.5 self-start sm:self-auto transition-all shadow-2xs"
+            className="inline-flex items-center gap-1.5 h-[36px] px-3.5 rounded-[14px] border-2 border-white dark:border-white/5 bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:shadow-none text-[11px] font-bold text-slate-700 dark:text-slate-200 hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#D0D0D5] dark:hover:shadow-none self-start sm:self-auto transition-all cursor-pointer"
           >
-            <Upload size={13} className="text-sky-600" />
+            <Upload size={13} className="text-sky-600 dark:text-sky-400" />
             <span>Submit New Settlement</span>
           </button>
         </div>
@@ -960,44 +1046,44 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead>
-                <tr className="border-b border-slate-200 text-slate-500 uppercase text-[10px]">
-                  <th className="pb-2.5 font-bold">Settlement ID</th>
-                  <th className="pb-2.5 font-bold">Date</th>
-                  <th className="pb-2.5 font-bold">Today's Profit</th>
-                  <th className="pb-2.5 font-bold">50% Remittance</th>
-                  <th className="pb-2.5 font-bold">Network</th>
-                  <th className="pb-2.5 font-bold">Proof Screenshot</th>
-                  <th className="pb-2.5 font-bold">Status</th>
+                <tr className="border-b border-slate-200/80 dark:border-white/5 text-slate-400 uppercase text-[10px] font-extrabold tracking-wider">
+                  <th className="pb-3 font-extrabold">Settlement ID</th>
+                  <th className="pb-3 font-extrabold">Date</th>
+                  <th className="pb-3 font-extrabold">Today's Profit</th>
+                  <th className="pb-3 font-extrabold">50% Remittance</th>
+                  <th className="pb-3 font-extrabold">Network</th>
+                  <th className="pb-3 font-extrabold">Proof Screenshot</th>
+                  <th className="pb-3 font-extrabold">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 font-mono">
+              <tbody className="divide-y divide-slate-100 dark:divide-white/5 font-mono">
                 {settlementHistory.map((rec) => (
-                  <tr key={rec.id} className="hover:bg-slate-50/60 transition-colors">
-                    <td className="py-3 text-slate-800 font-semibold">{rec.id}</td>
-                    <td className="py-3 text-slate-500">{rec.date} ({rec.timestamp})</td>
-                    <td className="py-3 text-emerald-600 font-bold">+{currencySymbol}{rec.todayProfit.toLocaleString()}</td>
-                    <td className="py-3 text-slate-900 font-bold">${rec.remittanceAmount.toFixed(2)} USDT</td>
-                    <td className="py-3 text-slate-600">{rec.network}</td>
+                  <tr key={rec.id} className="hover:bg-slate-50/60 dark:hover:bg-white/[0.02] transition-colors">
+                    <td className="py-3 text-slate-900 dark:text-white font-semibold">{rec.id}</td>
+                    <td className="py-3 text-slate-500 dark:text-slate-400">{rec.date} ({rec.timestamp})</td>
+                    <td className="py-3 text-emerald-600 dark:text-emerald-400 font-bold">+{currencySymbol}{rec.todayProfit.toLocaleString()}</td>
+                    <td className="py-3 text-slate-900 dark:text-white font-bold">${rec.remittanceAmount.toFixed(2)} USDT</td>
+                    <td className="py-3 text-slate-600 dark:text-slate-300">{rec.network}</td>
                     <td className="py-3">
                       {rec.proofUrl ? (
                         <button
                           onClick={() => setPreviewLightboxUrl(rec.proofUrl)}
-                          className="flex items-center gap-1.5 px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 transition-all text-[11px]"
+                          className="flex items-center gap-1.5 px-2.5 py-1 rounded-[10px] bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 transition-all text-[11px] font-sans font-semibold cursor-pointer"
                         >
-                          <Eye size={12} className="text-sky-600" />
+                          <Eye size={12} className="text-sky-600 dark:text-sky-400" />
                           <span>View Proof</span>
                         </button>
                       ) : (
-                        <span className="text-slate-400">No Image</span>
+                        <span className="text-slate-400 font-sans">No Image</span>
                       )}
                     </td>
                     <td className="py-3">
                       {rec.status === "verified" ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 border border-emerald-200 text-emerald-700">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-400 font-sans">
                           <CheckCircle2 size={11} /> Verified & Cleared
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 border border-amber-200 text-amber-700">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 text-amber-700 dark:text-amber-400 font-sans">
                           <Clock size={11} /> Pending Review
                         </span>
                       )}
@@ -1010,7 +1096,7 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
         )}
       </div>
 
-      {/* ── MODAL: CRYPTO WITHDRAWAL / 50% REMITTANCE & PROOF UPLOAD (Clean White Modal) ── */}
+      {/* ── MODAL: CRYPTO WITHDRAWAL / 50% REMITTANCE & PROOF UPLOAD (Clean Styled Modal) ── */}
       <AnimatePresence>
         {showSettlementModal && (
           <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
@@ -1028,40 +1114,42 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              className="relative w-full max-w-lg rounded-3xl bg-white border border-slate-200 p-6 shadow-2xl text-slate-800 max-h-[90vh] overflow-y-auto"
+              className="relative w-full max-w-lg rounded-[26px] border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.18),0_0_0_2px_#E2E8F0] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/10 text-slate-800 dark:text-white max-h-[90vh] overflow-y-auto"
             >
               {/* Header */}
-              <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-5">
+              <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/5 mb-5">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-50 to-sky-50 border border-emerald-200 flex items-center justify-center text-emerald-600">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-50 to-sky-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
                     <QrCode size={20} />
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-slate-900">Daily 50% Profit Share Settlement</h3>
-                    <p className="text-xs text-slate-500">Remit via Crypto to keep FiAlgo license active</p>
+                    <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight" style={{ fontFamily: "'Inter', sans-serif" }}>
+                      Daily 50% Profit Share Settlement
+                    </h3>
+                    <p className="text-xs text-slate-400">Remit via Crypto to keep FiAlgo license active</p>
                   </div>
                 </div>
                 <button
                   onClick={() => setShowSettlementModal(false)}
-                  className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition-colors"
+                  className="p-1.5 rounded-lg bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-500 hover:text-slate-800 dark:hover:text-white transition-colors cursor-pointer"
                 >
                   <X size={16} />
                 </button>
               </div>
 
               {/* Amount Due Card */}
-              <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-50/60 via-sky-50/40 to-white border border-emerald-200 mb-5">
+              <div className="p-4 rounded-[18px] border-2 border-white bg-gradient-to-b from-[#ECFDF5] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.08),0_0_0_2px_#A7F3D0] dark:bg-none dark:bg-[#132A20] dark:border-[1px] dark:border-emerald-500/30 mb-5">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-slate-600 font-medium">Total Today's Net Profit:</span>
-                  <span className="text-xs font-bold text-emerald-700">+{currencySymbol}{todayProfit.toLocaleString()}</span>
+                  <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Total Today's Net Profit:</span>
+                  <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400">+{currencySymbol}{todayProfit.toLocaleString()}</span>
                 </div>
-                <div className="flex items-center justify-between mt-2 pt-2 border-t border-emerald-200/60">
-                  <span className="text-xs font-bold text-slate-900">50% Platform Remittance Due:</span>
+                <div className="flex items-center justify-between mt-2 pt-2 border-t border-emerald-200/60 dark:border-emerald-500/20">
+                  <span className="text-xs font-bold text-slate-900 dark:text-white">50% Platform Remittance Due:</span>
                   <div className="text-right">
-                    <div className="text-xl font-black text-emerald-700 font-mono">
+                    <div className="text-xl font-bold text-emerald-700 dark:text-emerald-400 tracking-tight" style={{ fontFamily: "'Inter', sans-serif" }}>
                       ${adminShareTodayUsdt} USDT
                     </div>
-                    <div className="text-[10px] text-slate-500">
+                    <div className="text-[10px] text-slate-500 dark:text-slate-400">
                       ({currencySymbol}{adminShareToday.toLocaleString()} INR equivalent)
                     </div>
                   </div>
@@ -1070,7 +1158,7 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
 
               {/* Crypto Network Selector */}
               <div className="mb-4">
-                <label className="block text-xs font-semibold text-slate-700 mb-2">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">
                   Select Crypto Network:
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -1082,14 +1170,14 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
                         key={net}
                         type="button"
                         onClick={() => setSelectedNetwork(net)}
-                        className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                        className={`p-2.5 rounded-[14px] border-2 text-left transition-all cursor-pointer ${
                           isSelected
-                            ? "bg-sky-50 border-sky-500 text-sky-900 ring-1 ring-sky-500 font-bold"
-                            : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
+                            ? "bg-sky-50 dark:bg-sky-500/10 border-sky-400 text-sky-900 dark:text-sky-300 ring-1 ring-sky-400 font-bold"
+                            : "bg-white dark:bg-white/5 border-slate-200/80 dark:border-white/5 text-slate-600 dark:text-slate-300 hover:bg-slate-50"
                         }`}
                       >
-                        <div className="text-xs">{info.name}</div>
-                        <div className="text-[10px] text-slate-500 truncate">{info.chain}</div>
+                        <div className="text-xs font-semibold">{info.name}</div>
+                        <div className="text-[10px] text-slate-400 truncate">{info.chain}</div>
                       </button>
                     );
                   })}
@@ -1097,35 +1185,35 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
               </div>
 
               {/* Deposit Wallet Address & QR Code */}
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 mb-5">
+              <div className="p-4 rounded-[18px] bg-[#F8F9FC] dark:bg-white/5 border border-slate-200/80 dark:border-white/5 mb-5">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-semibold text-slate-700">
+                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
                     Send to Admin {cryptoWallets[selectedNetwork].name} Address:
                   </span>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300">
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-500/30">
                     {cryptoWallets[selectedNetwork].badge}
                   </span>
                 </div>
 
-                <div className="flex items-center gap-2 bg-white p-2.5 rounded-xl border border-slate-300 font-mono text-xs text-slate-900 break-all shadow-xs">
+                <div className="flex items-center gap-2 bg-white dark:bg-[#1E1E1E] p-2.5 rounded-xl border border-slate-200 dark:border-white/10 font-mono text-xs text-slate-900 dark:text-white break-all shadow-xs">
                   <span className="flex-1 font-semibold">{cryptoWallets[selectedNetwork].address}</span>
                   <button
                     onClick={() => handleCopyAddress(cryptoWallets[selectedNetwork].address)}
-                    className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all shrink-0 cursor-pointer border border-slate-200"
+                    className="p-1.5 rounded-lg bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 transition-all shrink-0 cursor-pointer border border-slate-200 dark:border-white/10"
                     title="Copy Address"
                   >
                     {copiedAddress ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
                   </button>
                 </div>
-                <div className="text-[10px] text-slate-500 mt-2 flex items-center justify-between">
-                  <span>Network: <b className="text-slate-700">{cryptoWallets[selectedNetwork].chain}</b></span>
-                  <span>Fee: <b className="text-slate-700">{cryptoWallets[selectedNetwork].fee}</b></span>
+                <div className="text-[10px] text-slate-400 mt-2 flex items-center justify-between">
+                  <span>Network: <b className="text-slate-700 dark:text-slate-300">{cryptoWallets[selectedNetwork].chain}</b></span>
+                  <span>Fee: <b className="text-slate-700 dark:text-slate-300">{cryptoWallets[selectedNetwork].fee}</b></span>
                 </div>
               </div>
 
               {/* Proof Image Upload */}
               <div className="mb-5">
-                <label className="block text-xs font-semibold text-slate-700 mb-2">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">
                   Upload Payment Transfer Screenshot Proof:
                 </label>
 
@@ -1140,25 +1228,25 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
                 {!proofImageBase64 ? (
                   <div
                     onClick={() => fileInputRef.current?.click()}
-                    className="border-2 border-dashed border-slate-300 hover:border-sky-500 rounded-2xl p-6 text-center cursor-pointer transition-all bg-slate-50/60 hover:bg-sky-50/30"
+                    className="border-2 border-dashed border-slate-300 dark:border-white/10 hover:border-sky-500 rounded-[18px] p-6 text-center cursor-pointer transition-all bg-slate-50/60 dark:bg-white/[0.02] hover:bg-sky-50/30"
                   >
-                    <div className="w-12 h-12 rounded-full bg-sky-100 text-sky-600 mx-auto flex items-center justify-center mb-2.5">
+                    <div className="w-12 h-12 rounded-full bg-sky-100 dark:bg-sky-500/10 text-sky-600 dark:text-sky-400 mx-auto flex items-center justify-center mb-2.5">
                       <Upload size={20} />
                     </div>
-                    <div className="text-xs font-bold text-slate-800">Click or Drag & Drop screenshot</div>
-                    <p className="text-[11px] text-slate-500 mt-1">PNG, JPG, or WEBP receipt from your exchange or wallet</p>
+                    <div className="text-xs font-bold text-slate-800 dark:text-white">Click or Drag & Drop screenshot</div>
+                    <p className="text-[11px] text-slate-400 mt-1">PNG, JPG, or WEBP receipt from your exchange or wallet</p>
                   </div>
                 ) : (
-                  <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-3">
+                  <div className="p-3 rounded-[16px] bg-[#F8F9FC] dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
                       <img 
                         src={proofImageBase64} 
                         alt="Proof Preview" 
-                        className="w-14 h-14 object-cover rounded-xl border border-slate-200 shadow-xs" 
+                        className="w-14 h-14 object-cover rounded-xl border border-slate-200 dark:border-white/10 shadow-xs" 
                       />
                       <div>
-                        <div className="text-xs font-bold text-slate-900 max-w-[200px] truncate">{proofFileName || "proof_screenshot.png"}</div>
-                        <span className="text-[10px] text-emerald-700 font-bold">✓ Image Attached</span>
+                        <div className="text-xs font-bold text-slate-900 dark:text-white max-w-[200px] truncate">{proofFileName || "proof_screenshot.png"}</div>
+                        <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold">✓ Image Attached</span>
                       </div>
                     </div>
                     <button
@@ -1167,7 +1255,7 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
                         setProofImageBase64(null);
                         setProofFileName("");
                       }}
-                      className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 transition-colors border border-rose-200"
+                      className="p-1.5 rounded-lg bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-100 text-rose-600 transition-colors border border-rose-200 dark:border-rose-500/20 cursor-pointer"
                       title="Remove Image"
                     >
                       <Trash2 size={15} />
@@ -1178,7 +1266,7 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
 
               {/* Transaction Hash / TXID */}
               <div className="mb-5">
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                   Transaction Hash / TXID (Optional):
                 </label>
                 <input
@@ -1186,7 +1274,7 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
                   placeholder="Paste blockchain transaction hash or receipt ID"
                   value={txidInput}
                   onChange={(e) => setTxidInput(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-sky-500 font-mono shadow-xs"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-[#1E1E1E] border border-slate-200 dark:border-white/10 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-sky-500 font-mono shadow-xs"
                 />
               </div>
 
@@ -1195,7 +1283,7 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
                 <button
                   type="button"
                   onClick={() => setShowSettlementModal(false)}
-                  className="flex-1 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors border border-slate-200"
+                  className="flex-1 py-2.5 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 text-xs font-semibold transition-colors border border-slate-200 dark:border-white/10 cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -1246,7 +1334,7 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
             >
               <button
                 onClick={() => setPreviewLightboxUrl(null)}
-                className="absolute -top-10 right-0 p-1.5 rounded-lg bg-white/20 text-white hover:bg-white/30 transition-all"
+                className="absolute -top-10 right-0 p-1.5 rounded-lg bg-white/20 text-white hover:bg-white/30 transition-all cursor-pointer"
               >
                 <X size={18} />
               </button>
