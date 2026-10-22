@@ -923,8 +923,8 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
             </button>
           </div>
 
-          {/* Quick Action / Status Box (Fixed 172px, Zero-Shift Crossfade) */}
-          <div className="w-[172px] h-[36px] shrink-0 relative">
+          {/* Quick Action / Status Box (Fixed 188px, Zero-Shift Crossfade, No Text Wrapping) */}
+          <div className="w-[188px] h-[36px] shrink-0 relative">
             <AnimatePresence mode="wait" initial={false}>
               {isLifetime ? (
                 <motion.div
@@ -933,14 +933,14 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.96 }}
                   transition={{ duration: 0.15 }}
-                  className="w-full h-full px-3 rounded-[14px] border-2 border-white dark:border-white/5 bg-gradient-to-b from-[#FEF3C7]/60 to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] text-slate-800 dark:text-slate-200 shadow-[0_4px_7px_-5px_rgba(245,158,11,0.2),0_0_0_2px_#FDE68A] dark:shadow-none text-[11px] font-bold tracking-tight flex items-center justify-center gap-1.5 select-none"
+                  className="w-full h-full px-2.5 rounded-[14px] border-2 border-white dark:border-white/5 bg-gradient-to-b from-[#FEF3C7]/60 to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] text-slate-800 dark:text-slate-200 shadow-[0_4px_7px_-5px_rgba(245,158,11,0.2),0_0_0_2px_#FDE68A] dark:shadow-none text-[11px] font-bold tracking-tight flex items-center justify-center gap-1.5 select-none whitespace-nowrap"
                 >
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-                  <span className="text-emerald-700 dark:text-emerald-400">0% Share</span>
+                  <span className="text-emerald-700 dark:text-emerald-400 font-extrabold whitespace-nowrap">0% Share</span>
                   <span className="text-slate-300 dark:text-slate-600">·</span>
-                  <span className="text-amber-700 dark:text-amber-300 flex items-center gap-1">
+                  <span className="text-amber-700 dark:text-amber-300 font-extrabold flex items-center gap-1 whitespace-nowrap">
                     <Sparkles size={11} className="fill-amber-400 text-amber-500 shrink-0" />
-                    100% Kept
+                    <span>100% Kept</span>
                   </span>
                 </motion.div>
               ) : (
@@ -952,7 +952,7 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
                   exit={{ opacity: 0, scale: 0.96 }}
                   transition={{ duration: 0.15 }}
                   onClick={() => setShowSettlementModal(true)}
-                  className="w-full h-full px-3 rounded-[14px] border-2 border-white dark:border-white/5 bg-gradient-to-b from-slate-900 to-slate-800 text-white shadow-[0_4px_7px_-5px_rgba(15,23,42,0.25),0_0_0_2px_#0F172A] text-[11px] font-bold tracking-tight cursor-pointer hover:shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-1.5"
+                  className="w-full h-full px-3 rounded-[14px] border-2 border-white dark:border-white/5 bg-gradient-to-b from-slate-900 to-slate-800 text-white shadow-[0_4px_7px_-5px_rgba(15,23,42,0.25),0_0_0_2px_#0F172A] text-[11px] font-bold tracking-tight cursor-pointer hover:shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-1.5 whitespace-nowrap"
                 >
                   <QrCode size={13} className="text-sky-400 shrink-0" />
                   <span>Pay Profit Split</span>
