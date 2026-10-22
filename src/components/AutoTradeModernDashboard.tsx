@@ -66,15 +66,15 @@ const cardBoxStyle = "p-5 sm:p-6 rounded-[22px] border-2 border-white bg-gradien
 export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: Props) {
   // ── Account & Live Connection State ──
   const cleanAccount = useMemo(() => {
-    return (mt5Account || localStorage.getItem("tradifive_connected_mt5_account") || "414460525").replace(/\D/g, "");
+    return (mt5Account || localStorage.getItem("tradifive_connected_mt5_account") || "").replace(/\D/g, "");
   }, [mt5Account]);
 
   const [displayAccount, setDisplayAccount] = useState<string>(() => {
-    return (mt5Account || localStorage.getItem("tradifive_connected_mt5_account") || "414460525").replace(/\D/g, "");
+    return (mt5Account || localStorage.getItem("tradifive_connected_mt5_account") || "").replace(/\D/g, "");
   });
 
   const [activeLicenseKey, setActiveLicenseKey] = useState<string>(() => {
-    return localStorage.getItem("tradifive_license_key") || "TF-00000000-056D-906D0DB6CA";
+    return localStorage.getItem("tradifive_license_key") || "";
   });
 
   // Dynamically resolve active user's credentials to guarantee multi-user isolation
@@ -141,7 +141,7 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
 
   const isFetchingRef = useRef<boolean>(false);
 
-  const [brokerServer, setBrokerServer] = useState<string>("Exness-MT5Trial6");
+  const [brokerServer, setBrokerServer] = useState<string>("—");
   const [isBotRunning, setIsBotRunning] = useState<boolean>(true);
   const [latencyPing, setLatencyPing] = useState<number>(1.8);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
@@ -215,7 +215,7 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
     if (accountBalance > 0) {
       return Math.max(100, Math.round(accountBalance * (dailyTargetPct / 100)));
     }
-    return 3000;
+    return 0;
   }, [accountBalance, dailyTargetPct]);
 
   const todayProfitPct = useMemo(() => {
@@ -338,46 +338,54 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
       const saved = localStorage.getItem("tradifive_daily_settlements");
       if (saved) return JSON.parse(saved);
     } catch (e) {}
-    return [
-      {
-        id: "SET-8491",
-        date: "Yesterday",
-        todayProfit: 9800,
-        remittanceAmount: 58.89,
-        currency: "USDT",
-        network: "USDT (TRC-20)",
-        address: "TYuH5N8qX7mKjLwP9vB3zR1sQa4eCtFd2M",
-        txid: "0x8fa92b...e389c",
-        proofUrl: "https://images.unsplash.com/photo-1621416894569-0f39ed31d247?auto=format&fit=crop&w=400&q=80",
-        proofFileName: "usdt_transfer_binance.png",
-        status: "verified",
-        timestamp: "Yesterday, 21:40",
-      },
-      {
-        id: "SET-8480",
-        date: "Oct 19, 2026",
-        todayProfit: 14200,
-        remittanceAmount: 85.33,
-        currency: "USDT",
-        network: "USDT (TRC-20)",
-        address: "TYuH5N8qX7mKjLwP9vB3zR1sQa4eCtFd2M",
-        txid: "0x3bc184...7190f",
-        proofUrl: "https://images.unsplash.com/photo-1622979135225-d2ba269bc1df?auto=format&fit=crop&w=400&q=80",
-        proofFileName: "trust_wallet_receipt.png",
-        status: "verified",
-        timestamp: "Oct 19, 22:15",
-      },
-    ];
+    return [];
   });
 
   // ── Chart Timeframe & Data ──
   const [chartTimeframe, setChartTimeframe] = useState<"Today" | "7D" | "30D" | "All">("7D");
 
   const chartData = useMemo(() => {
-    const bal = accountBalance > 0 ? accountBalance : 100000;
+    const bal = accountBalance > 0 ? accountBalance : 0;
     const todayP = todayProfit;
     const netP = netProfitAllTime;
     const baseBal = Math.max(100, bal - todayP);
+
+    if (bal <= 0 && todayP === 0 && netP === 0) {
+      if (chartTimeframe === "Today") {
+        return [
+          { time: "09:00", netProfit: 0, balance: 0, dailyGain: 0 },
+          { time: "11:00", netProfit: 0, balance: 0, dailyGain: 0 },
+          { time: "13:00", netProfit: 0, balance: 0, dailyGain: 0 },
+          { time: "15:00", netProfit: 0, balance: 0, dailyGain: 0 },
+          { time: "17:00", netProfit: 0, balance: 0, dailyGain: 0 },
+          { time: "Now", netProfit: 0, balance: 0, dailyGain: 0 },
+        ];
+      }
+      if (chartTimeframe === "7D") {
+        return [
+          { time: "Mon", netProfit: 0, balance: 0, dailyGain: 0 },
+          { time: "Tue", netProfit: 0, balance: 0, dailyGain: 0 },
+          { time: "Wed", netProfit: 0, balance: 0, dailyGain: 0 },
+          { time: "Thu", netProfit: 0, balance: 0, dailyGain: 0 },
+          { time: "Fri", netProfit: 0, balance: 0, dailyGain: 0 },
+          { time: "Sat", netProfit: 0, balance: 0, dailyGain: 0 },
+          { time: "Today", netProfit: 0, balance: 0, dailyGain: 0 },
+        ];
+      }
+      if (chartTimeframe === "30D") {
+        return [
+          { time: "W1", netProfit: 0, balance: 0, dailyGain: 0 },
+          { time: "W2", netProfit: 0, balance: 0, dailyGain: 0 },
+          { time: "W3", netProfit: 0, balance: 0, dailyGain: 0 },
+          { time: "W4", netProfit: 0, balance: 0, dailyGain: 0 },
+        ];
+      }
+      return [
+        { time: "Aug", netProfit: 0, balance: 0, dailyGain: 0 },
+        { time: "Sep", netProfit: 0, balance: 0, dailyGain: 0 },
+        { time: "Oct", netProfit: 0, balance: 0, dailyGain: 0 },
+      ];
+    }
 
     if (chartTimeframe === "Today") {
       const p1 = Number((todayP * 0.15).toFixed(2));
@@ -844,7 +852,7 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
         <div className="flex items-center gap-2 text-[12px] sm:text-[13px] text-slate-400 dark:text-slate-400 flex-wrap">
           <span className="flex items-center gap-1.5 font-bold text-slate-900 dark:text-white">
             <span className={`w-2 h-2 rounded-full ${isBotRunning ? 'bg-[#10B981] animate-pulse' : 'bg-amber-400'}`} />
-            FiAlgo MT5 #{displayAccount}
+            FiAlgo MT5 {displayAccount ? `#${displayAccount}` : "(Unconnected)"}
           </span>
           <span className="text-slate-300 dark:text-slate-400">•</span>
           <span className="font-semibold text-slate-600 dark:text-slate-300">{brokerServer}</span>
@@ -1380,7 +1388,7 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
                       </span>
                     </div>
                     <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-                      Hardware-locked to MT5 #{displayAccount || cleanAccount} · Lifetime Unlimited
+                      Hardware-locked to MT5 #{displayAccount || cleanAccount || "Unassigned"} · Lifetime Unlimited
                     </p>
                   </div>
                 </>
@@ -1501,7 +1509,7 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
             <div className="p-4 rounded-[18px] bg-slate-50 dark:bg-white/5 border border-slate-200/70 dark:border-white/5">
               <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Trading Terminal Binding</span>
               <p className="text-[14px] font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                <Lock size={14} className="text-sky-500" /> MT5 #{displayAccount || cleanAccount}
+                <Lock size={14} className="text-sky-500" /> MT5 #{displayAccount || cleanAccount || "Unassigned"}
               </p>
               <p className="text-[11px] text-slate-400 mt-1 font-medium">Hardware locked & encrypted</p>
             </div>

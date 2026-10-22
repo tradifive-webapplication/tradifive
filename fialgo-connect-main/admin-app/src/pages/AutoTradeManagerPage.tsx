@@ -441,7 +441,7 @@ export default function AutoTradeManagerPage() {
         if (mt5 || p.activation_key || override.has_purchased || override.mt5_account_number) {
           const isUnder = override.is_under_tradifive !== undefined ? override.is_under_tradifive : (Boolean(mt5?.is_active ?? true));
           const hasPurchased = override.has_purchased !== undefined ? override.has_purchased : Boolean(p.activation_key || mt5?.activation_key || override.license_key);
-          const effectiveAccount = String(override.mt5_account_number || mt5?.account_number || "414416991").replace(/\D/g, "");
+          const effectiveAccount = String(override.mt5_account_number || mt5?.account_number || "").replace(/\D/g, "");
 
           // Check if live telemetry matches this account
           const isTelMatch = liveTelemetry?.account_number && String(liveTelemetry.account_number).replace(/\D/g, "") === effectiveAccount;
@@ -461,27 +461,27 @@ export default function AutoTradeManagerPage() {
           // Balance and Equity from real telemetry if available, else override, else mt5 table
           const realBal = isTelMatch && liveTelemetry.balance !== undefined
             ? Number(liveTelemetry.balance)
-            : (override.balance !== undefined ? Number(override.balance) : (mt5?.balance !== undefined ? Number(mt5.balance) : 205866.92));
+            : (override.balance !== undefined ? Number(override.balance) : (mt5?.balance !== undefined ? Number(mt5.balance) : 0));
 
           const realEq = isTelMatch && liveTelemetry.equity !== undefined
             ? Number(liveTelemetry.equity)
-            : (override.equity !== undefined ? Number(override.equity) : (mt5?.equity !== undefined ? Number(mt5.equity) : 205866.92));
+            : (override.equity !== undefined ? Number(override.equity) : (mt5?.equity !== undefined ? Number(mt5.equity) : 0));
 
           const realCurr = isTelMatch && liveTelemetry.currency
             ? liveTelemetry.currency
-            : (override.currency || mt5?.currency || "INR");
+            : (override.currency || mt5?.currency || "USD");
 
           const realServer = isTelMatch && liveTelemetry.broker_server
             ? liveTelemetry.broker_server
-            : (override.broker_server || mt5?.broker_server || "Exness-MT5Trial6");
+            : (override.broker_server || mt5?.broker_server || "—");
 
           const realBroker = isTelMatch && liveTelemetry.broker
             ? liveTelemetry.broker
-            : (override.broker_name || mt5?.broker_name || "Exness Technologies Ltd");
+            : (override.broker_name || mt5?.broker_name || "—");
 
           const isConn = isTelMatch && liveTelemetry.is_connected !== undefined
             ? Boolean(liveTelemetry.is_connected)
-            : (override.is_connected !== undefined ? Boolean(override.is_connected) : Boolean(mt5?.is_connected ?? true));
+            : (override.is_connected !== undefined ? Boolean(override.is_connected) : Boolean(mt5?.is_connected ?? false));
 
           liveRecords.push({
             id: `rec-${p.id}`,
@@ -1765,7 +1765,7 @@ export default function AutoTradeManagerPage() {
                         <span className="text-[9px] text-neutral-500 uppercase font-semibold block">MT5 Terminal</span>
                         <span className="font-mono font-bold text-emerald-400">#{record.mt5_account_number}</span>
                         <p className="text-[10px] text-neutral-400 truncate">
-                          {record.mt5_account_number === "414416991" ? "Exness" : record.broker_name}
+                          {record.broker_name || "—"}
                         </p>
                       </div>
 
@@ -1773,8 +1773,8 @@ export default function AutoTradeManagerPage() {
                         <span className="text-[9px] text-neutral-500 uppercase font-semibold block">Live Balance</span>
                         <span className="font-mono font-bold text-white">
                           {formatMoney(
-                            record.mt5_account_number === "414416991" ? (record.balance && record.balance !== 2000 ? record.balance : 205866.92) : record.balance,
-                            record.currency || "INR"
+                            record.balance || 0,
+                            record.currency || "USD"
                           )}
                         </span>
                         <p className={`text-[10px] font-semibold ${record.algo_execution_active ? "text-emerald-400" : "text-neutral-500"}`}>
@@ -3561,9 +3561,7 @@ export default function AutoTradeManagerPage() {
                       <div className="bg-[#1A1A1A] border border-white/5 rounded-xl p-3 sm:p-4">
                         <span className="text-[10px] text-neutral-500 uppercase font-bold tracking-wider">Broker & Server</span>
                         <div className="text-xs font-bold text-white mt-1">
-                          {selectedRecord.mt5_account_number === "414416991" && (!selectedRecord.broker_server || selectedRecord.broker_server.includes("Real"))
-                            ? "Exness Technologies Ltd · Exness-MT5Trial6"
-                            : `${selectedRecord.broker_name} · ${selectedRecord.broker_server}`}
+                          {`${selectedRecord.broker_name || "—"} · ${selectedRecord.broker_server || "—"}`}
                         </div>
                       </div>
                     </div>
@@ -3577,8 +3575,8 @@ export default function AutoTradeManagerPage() {
                           <span className="text-[10px] text-neutral-400 uppercase font-medium">Balance</span>
                           <div className="text-sm font-mono font-bold text-white">
                             {formatMoney(
-                              selectedRecord.mt5_account_number === "414416991" ? (selectedRecord.balance && selectedRecord.balance !== 2000 ? selectedRecord.balance : 205866.92) : selectedRecord.balance,
-                              selectedRecord.currency || "INR"
+                              selectedRecord.balance || 0,
+                              selectedRecord.currency || "USD"
                             )}
                           </div>
                         </div>
@@ -3586,8 +3584,8 @@ export default function AutoTradeManagerPage() {
                           <span className="text-[10px] text-neutral-400 uppercase font-medium">Equity</span>
                           <div className="text-sm font-mono font-bold text-white">
                             {formatMoney(
-                              selectedRecord.mt5_account_number === "414416991" ? (selectedRecord.equity && selectedRecord.equity !== 2000 ? selectedRecord.equity : 205866.92) : selectedRecord.equity,
-                              selectedRecord.currency || "INR"
+                              selectedRecord.equity || 0,
+                              selectedRecord.currency || "USD"
                             )}
                           </div>
                         </div>

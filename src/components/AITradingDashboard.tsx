@@ -112,12 +112,12 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
         }
       }
     } catch (e) {}
-    return "Exness-MT5Trial6";
+    return "—";
   });
 
   // Server Name formatting strictly (e.g. Exness-MT5Trial6 / Exness-MT5Trial4)
   const cleanServerName = useMemo(() => {
-    const raw = brokerGatewayName || "Exness-MT5Trial6";
+    const raw = brokerGatewayName || "—";
     const m = raw.match(/([a-zA-Z0-9_\-]+MT[45][a-zA-Z0-9_\-]+)/i);
     if (m) return m[1];
     if (raw.includes('·')) {
@@ -128,7 +128,7 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
     return raw.replace(/[\uFFFD\?]/g, '-').trim();
   }, [brokerGatewayName]);
 
-  const [activeLicenseKey, setActiveLicenseKey] = useState<string>("TF-18B42A6D-2710-30307601B9");
+  const [activeLicenseKey, setActiveLicenseKey] = useState<string>("");
   const [copiedKey, setCopiedKey] = useState<boolean>(false);
 
   // User Selected Daily Profit Target (Synced with AutoTrade Profit Calculator)
@@ -146,14 +146,14 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
       const saved = localStorage.getItem("tradifive_selected_deposit");
       if (saved && Number(saved) > 0) return Number(saved);
     } catch (e) {}
-    return 100000.00;
+    return 0;
   });
 
   const [showTargetModal, setShowTargetModal] = useState<boolean>(false);
   const [tempTargetRate, setTempTargetRate] = useState<number>(2.0);
-  const [tempTargetDeposit, setTempTargetDeposit] = useState<number>(100000);
+  const [tempTargetDeposit, setTempTargetDeposit] = useState<number>(0);
 
-  // 100% Real Account & Financial Data (Streamed live from MT5 account #414460525)
+  // 100% Real Account & Financial Data (Streamed live from MT5 account)
   const [totalDeposits, setTotalDeposits] = useState<number>(() => {
     try {
       const storedPay = localStorage.getItem("tradifive_payment_request");
@@ -169,7 +169,7 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
       const savedDep = localStorage.getItem("tradifive_selected_deposit");
       if (savedDep && Number(savedDep) > 0) return Number(savedDep);
     } catch (e) {}
-    return 100000.00;
+    return 0;
   });
 
   const [accountBalance, setAccountBalance] = useState<number>(() => {
@@ -375,7 +375,7 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
           const cleanB = String(activeAccountRow.broker_server).replace(/[\uFFFD\?]/g, '-').trim();
           setBrokerGatewayName(cleanB);
         } else {
-          setBrokerGatewayName("Exness-MT5Trial6");
+          setBrokerGatewayName("—");
         }
         if (activeAccountRow.algo_status !== undefined && activeAccountRow.algo_status !== null) {
           setIsBotRunning(Boolean(activeAccountRow.algo_status));

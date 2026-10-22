@@ -86,8 +86,9 @@ const BrokerLogo = ({ id, size = 24 }: { id: string; size?: number }) => {
 // Cryptographic Key Generator matching Tradifive.mq5 FNV-1a algorithm & TF_SALT
 export const generateTradifiveLicenseKey = (mt5AccountNumber?: string | number, expDays: number = 10000): string => {
   const salt = "TFv1-Zk39xQ-7mLpA2";
-  const numClean = String(mt5AccountNumber || "4820194").replace(/\D/g, "");
-  const login = BigInt(numClean || "4820194");
+  const numClean = String(mt5AccountNumber || "").replace(/\D/g, "");
+  if (!numClean) return "";
+  const login = BigInt(numClean);
 
   let h = 0xCBF29CE484222325n;
   const prime = 0x100000001B3n;

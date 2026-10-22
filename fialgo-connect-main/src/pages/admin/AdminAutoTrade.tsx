@@ -390,7 +390,7 @@ export default function AdminAutoTrade() {
         if (mt5 || p.activation_key || override.has_purchased || override.mt5_account_number) {
           const isUnder = override.is_under_tradifive !== undefined ? override.is_under_tradifive : Boolean(mt5?.is_active ?? true);
           const hasPurchased = override.has_purchased !== undefined ? override.has_purchased : Boolean(p.activation_key || mt5?.activation_key || override.license_key);
-          const effectiveAccount = String(override.mt5_account_number || mt5?.account_number || "414416991").replace(/\D/g, "");
+          const effectiveAccount = String(override.mt5_account_number || mt5?.account_number || "").replace(/\D/g, "");
 
           // Check if live telemetry matches this account
           const isTelMatch = liveTelemetry?.account_number && String(liveTelemetry.account_number).replace(/\D/g, "") === effectiveAccount;
@@ -410,27 +410,27 @@ export default function AdminAutoTrade() {
           // Balance and Equity from real telemetry if available, else override, else mt5 table
           const realBal = isTelMatch && liveTelemetry.balance !== undefined
             ? Number(liveTelemetry.balance)
-            : (override.balance !== undefined ? Number(override.balance) : (mt5?.balance !== undefined ? Number(mt5.balance) : 205866.92));
+            : (override.balance !== undefined ? Number(override.balance) : (mt5?.balance !== undefined ? Number(mt5.balance) : 0));
 
           const realEq = isTelMatch && liveTelemetry.equity !== undefined
             ? Number(liveTelemetry.equity)
-            : (override.equity !== undefined ? Number(override.equity) : (mt5?.equity !== undefined ? Number(mt5.equity) : 205866.92));
+            : (override.equity !== undefined ? Number(override.equity) : (mt5?.equity !== undefined ? Number(mt5.equity) : 0));
 
           const realCurr = isTelMatch && liveTelemetry.currency
             ? liveTelemetry.currency
-            : (override.currency || mt5?.currency || "INR");
+            : (override.currency || mt5?.currency || "USD");
 
           const realServer = isTelMatch && liveTelemetry.broker_server
             ? liveTelemetry.broker_server
-            : (override.broker_server || mt5?.broker_server || "Exness-MT5Trial6");
+            : (override.broker_server || mt5?.broker_server || "—");
 
           const realBroker = isTelMatch && liveTelemetry.broker
             ? liveTelemetry.broker
-            : (override.broker_name || mt5?.broker_name || "Exness Technologies Ltd");
+            : (override.broker_name || mt5?.broker_name || "—");
 
           const isConn = isTelMatch && liveTelemetry.is_connected !== undefined
             ? Boolean(liveTelemetry.is_connected)
-            : (override.is_connected !== undefined ? Boolean(override.is_connected) : Boolean(mt5?.is_connected ?? true));
+            : (override.is_connected !== undefined ? Boolean(override.is_connected) : Boolean(mt5?.is_connected ?? false));
 
           liveRecords.push({
             id: `rec-${p.id}`,

@@ -65,7 +65,7 @@ interface Props {
 
 export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) {
   const cleanAccount = useMemo(() => {
-    return (mt5Account || "414460525").replace(/\D/g, "");
+    return (mt5Account || "").replace(/\D/g, "");
   }, [mt5Account]);
 
   // State for live bot toggle (Active / Paused) - synced with localStorage
@@ -112,12 +112,12 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
         }
       }
     } catch (e) {}
-    return "Exness-MT5Trial6";
+    return "—";
   });
 
   // Server Name formatting strictly (e.g. Exness-MT5Trial6 / Exness-MT5Trial4)
   const cleanServerName = useMemo(() => {
-    const raw = brokerGatewayName || "Exness-MT5Trial6";
+    const raw = brokerGatewayName || "—";
     const m = raw.match(/([a-zA-Z0-9_\-]+MT[45][a-zA-Z0-9_\-]+)/i);
     if (m) return m[1];
     if (raw.includes('·')) {
@@ -128,7 +128,7 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
     return raw.replace(/[\uFFFD\?]/g, '-').trim();
   }, [brokerGatewayName]);
 
-  const [activeLicenseKey, setActiveLicenseKey] = useState<string>("TF-18B42A6D-2710-30307601B9");
+  const [activeLicenseKey, setActiveLicenseKey] = useState<string>("");
   const [copiedKey, setCopiedKey] = useState<boolean>(false);
 
   // User Selected Daily Profit Target (Synced with AutoTrade Profit Calculator)
@@ -146,14 +146,14 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
       const saved = localStorage.getItem("tradifive_selected_deposit");
       if (saved && Number(saved) > 0) return Number(saved);
     } catch (e) {}
-    return 100000.00;
+    return 0;
   });
 
   const [showTargetModal, setShowTargetModal] = useState<boolean>(false);
   const [tempTargetRate, setTempTargetRate] = useState<number>(2.0);
-  const [tempTargetDeposit, setTempTargetDeposit] = useState<number>(100000);
+  const [tempTargetDeposit, setTempTargetDeposit] = useState<number>(0);
 
-  // 100% Real Account & Financial Data (Streamed live from MT5 account #414460525)
+  // 100% Real Account & Financial Data (Streamed live from MT5 account)
   const [totalDeposits, setTotalDeposits] = useState<number>(() => {
     try {
       const storedPay = localStorage.getItem("tradifive_payment_request");
@@ -169,7 +169,7 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
       const savedDep = localStorage.getItem("tradifive_selected_deposit");
       if (savedDep && Number(savedDep) > 0) return Number(savedDep);
     } catch (e) {}
-    return 100000.00;
+    return 0;
   });
 
   const [accountBalance, setAccountBalance] = useState<number>(() => {
@@ -375,7 +375,7 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
           const cleanB = String(activeAccountRow.broker_server).replace(/[\uFFFD\?]/g, '-').trim();
           setBrokerGatewayName(cleanB);
         } else {
-          setBrokerGatewayName("Exness-MT5Trial6");
+          setBrokerGatewayName("—");
         }
         if (activeAccountRow.algo_status !== undefined && activeAccountRow.algo_status !== null) {
           setIsBotRunning(Boolean(activeAccountRow.algo_status));
@@ -1084,7 +1084,7 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
                 Live Feed Connected:
               </span>
               <span>
-                MT5 Terminal <strong className="font-mono text-slate-900 dark:text-white">#{cleanAccount || "414460525"}</strong> is streaming live ticks.
+                MT5 Terminal <strong className="font-mono text-slate-900 dark:text-white">#{cleanAccount || "Unassigned"}</strong> is streaming live ticks.
               </span>
             </div>
             <div className="flex items-center gap-3 font-mono text-[11px]">
@@ -1734,7 +1734,7 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-[12px] font-medium text-slate-400 dark:text-[#778396]">Bound MT5 Account</span>
-                <span className="text-[13px] font-mono font-semibold text-slate-800 dark:text-[#E2E7EE] tabular-nums">#{cleanAccount || '414460525'}</span>
+                <span className="text-[13px] font-mono font-semibold text-slate-800 dark:text-[#E2E7EE] tabular-nums">#{cleanAccount || '—'}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-[12px] font-medium text-slate-400 dark:text-[#778396]">Broker Gateway</span>
@@ -1933,7 +1933,7 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
                       </span>
                     </div>
                     <p className="text-[11.5px] text-slate-400 dark:text-slate-400">
-                      Real-time Expert Advisor logs directly streamed from MetaTrader 5 Terminal #{cleanAccount || '414460525'}
+                      Real-time Expert Advisor logs directly streamed from MetaTrader 5 Terminal #{cleanAccount || '—'}
                     </p>
                   </div>
                 </div>
