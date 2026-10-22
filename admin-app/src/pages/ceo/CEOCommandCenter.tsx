@@ -221,7 +221,7 @@ export default function CEOCommandCenter() {
                 <RechartsTooltip
                   contentStyle={{ backgroundColor: "#000", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", fontSize: "12px" }}
                   itemStyle={{ color: "#10b981", fontWeight: "bold" }}
-                  formatter={(val: number) => [`$${val.toLocaleString()}`, "Revenue"]}
+                  formatter={(val: any) => [`$${Number(val || 0).toLocaleString()}`, "Revenue"]}
                 />
                 <Area type="monotone" dataKey="Total" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorTotal)" />
               </AreaChart>
@@ -254,7 +254,7 @@ export default function CEOCommandCenter() {
                 <RechartsTooltip
                   contentStyle={{ backgroundColor: "#000", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", fontSize: "12px" }}
                   itemStyle={{ color: "#fff", fontWeight: "bold" }}
-                  formatter={(val: number) => [val, "Users"]}
+                  formatter={(val: any) => [val, "Users"]}
                 />
               </PieChart>
             </ResponsiveContainer>

@@ -24,7 +24,7 @@ const formatLastSeen = (dateString: string | null) => {
 };
 
 export default function RolesManagementPage() {
-  const { adminUser } = useAdminAuth();
+  const { adminUser, activeRole } = useAdminAuth();
   const [admins, setAdmins] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 

@@ -272,21 +272,23 @@ export default function UsersPage() {
 
       // 5. Send notification to the user
       try {
-        await createNotification(
-          user.id,
-          "SYSTEM",
-          "AI Trading Setup Revoked",
-          "Your AI Trading connection has been revoked by administration. To connect a new account, please visit the AI Trading Setup page and complete activation."
-        );
+        await createNotification({
+          userId: user.id,
+          type: "SYSTEM",
+          title: "AI Trading Setup Revoked",
+          message: "Your AI Trading connection has been revoked by administration. To connect a new account, please visit the AI Trading Setup page and complete activation."
+        });
       } catch (eNotif) {}
 
       // 6. Audit log
       try {
-        await logAdminAction(
-          "REVOKE_AI_TRADING_SETUP",
-          user.id,
-          { targetEmail: user.email, adminRole: activeRole }
-        );
+        await logAdminAction({
+          adminId: activeRole || "admin",
+          action: "DELETE",
+          targetId: user.id,
+          targetType: "ai_trading_setup",
+          details: `Revoked setup for email: ${user.email}`
+        });
       } catch (eAudit) {}
 
       alert(`AI Trading setup successfully revoked for ${userName}. If the user logs in, they will be required to pay and connect a new account.`);

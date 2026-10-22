@@ -71,7 +71,10 @@ export default function EASetup() {
   const { licenseKey: tradingKey, connectDemo } = useTrading();
   const { isConnected } = useDashboardData();
 
-  const [licenseKey, setLicenseKey] = useState(tradingKey || "TRDF-8492-AX91");
+  const [licenseKey, setLicenseKey] = useState(tradingKey || "");
+  const [connectedAccount, setConnectedAccount] = useState<string | null>(() => {
+    try { return localStorage.getItem("tradifive_connected_mt5_account") || null; } catch (e) { return null; }
+  });
   const [copied, setCopied] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [activeStep, setActiveStep] = useState(1);
@@ -92,19 +95,25 @@ export default function EASetup() {
           if (data && data.activation_key) {
             setLicenseKey(data.activation_key);
             try { localStorage.setItem("tradifive_license_key", data.activation_key); } catch (e) {}
-          } else {
-            const { data: acc } = await supabase
-              .from("mt5_accounts")
-              .select("activation_key, account_number")
-              .eq("user_id", user.id)
-              .maybeSingle();
-            if (acc?.activation_key) {
-              setLicenseKey(acc.activation_key);
-              try { localStorage.setItem("tradifive_license_key", acc.activation_key); } catch (e) {}
-            } else {
-              // Unapproved / unpaid user: require approval or payment from Tradifive team
-              setLicenseKey("PENDING_ACTIVATION");
-            }
+          }
+
+          const { data: acc } = await supabase
+            .from("mt5_accounts")
+            .select("activation_key, account_number")
+            .eq("user_id", user.id)
+            .maybeSingle();
+
+          if (acc?.account_number) {
+            const cleanAcc = String(acc.account_number).replace(/\D/g, "");
+            setConnectedAccount(cleanAcc);
+            try { localStorage.setItem("tradifive_connected_mt5_account", cleanAcc); } catch (e) {}
+          }
+
+          if (acc?.activation_key && (!data || !data.activation_key)) {
+            setLicenseKey(acc.activation_key);
+            try { localStorage.setItem("tradifive_license_key", acc.activation_key); } catch (e) {}
+          } else if (!data?.activation_key && !acc?.activation_key) {
+            setLicenseKey("PENDING_ACTIVATION");
           }
         }
       } catch (e) {}
@@ -239,15 +248,15 @@ export default function EASetup() {
             </div>
             <div className="flex items-baseline justify-between">
               <span className="font-mono text-base font-bold text-slate-900 dark:text-white">
-                Account #8492018
+                {connectedAccount ? `Account #${connectedAccount}` : "Not Attached Yet"}
               </span>
-              <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
-                Synchronized
+              <span className={`text-xs font-medium ${connectedAccount ? "text-emerald-600 dark:text-emerald-400" : "text-amber-500"}`}>
+                {connectedAccount ? "Synchronized" : "Pending MT5"}
               </span>
             </div>
           </div>
 
-          {/* Card 3: VPS Telemetry */}
+          {/* Card 3: Execution Telemetry */}
           <div className={kpiBoxStyle}>
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
@@ -259,11 +268,11 @@ export default function EASetup() {
             </div>
             <div className="flex items-baseline justify-between">
               <span className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                Live · 2.1ms Ping
+                <span className={`w-2 h-2 rounded-full ${connectedAccount ? "bg-emerald-500 animate-pulse" : "bg-amber-400"}`} />
+                {connectedAccount ? "Live · 2.1ms Ping" : "Waiting for MT5"}
               </span>
               <span className="text-xs font-medium text-slate-400">
-                VPS Online
+                {connectedAccount ? "VPS Online" : "Standby"}
               </span>
             </div>
           </div>

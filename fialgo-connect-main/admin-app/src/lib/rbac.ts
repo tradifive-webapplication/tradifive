@@ -103,7 +103,7 @@ export type PageId =
   | "task_assignment"
   | "learning_manager_hr"
   // Employee pages
-
+  | "my_dashboard"
   | "my_profile"
   | "roles_management_hr";
 
@@ -344,7 +344,7 @@ export function getDefaultPathForRole(role: AdminRole): string {
 
 export function canPerformAction(role: AdminRole, actionId: string): boolean {
   if (role === "ceo") return true;
-  if (role === "risk_analyst" && ["freeze_trading", "kill_switch"].includes(actionId)) return true;
+  if (((role as string) === "risk_analyst" || role === "risk_executive") && ["freeze_trading", "kill_switch"].includes(actionId)) return true;
   if (role === "support_executive" && ["resolve_ticket"].includes(actionId)) return true;
   if (role === "operations_executive" && ["approve_payout", "reject_payout", "change_subscription"].includes(actionId)) return true;
   if (role === "hr_manager" && ["hire_employee", "reject_candidate", "mark_attendance"].includes(actionId)) return true;

@@ -429,113 +429,137 @@ function InboxSkeleton() {
 
           {/* Scrollable list of conversations divided by light dividers */}
           <div className="flex-1 overflow-y-auto amazing-scrollbar bg-white dark:bg-[#121212] min-h-0 pb-24 md:pb-0">
-            {filteredConversations.map(conv => {
-              const isActive = conv.id === activeConvId;
-              
-              // Map role tag background colors
-              let roleBg = "bg-slate-100 dark:bg-slate-800 text-slate-650 dark:text-slate-400";
-              if (conv.roleTag === "RISK DESK") roleBg = "bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 border border-rose-100/30";
-              else if (conv.roleTag === "FINANCE") roleBg = "bg-green-50 dark:bg-green-950/20 text-green-600 dark:text-green-400 border border-green-100/30";
-              else if (conv.roleTag === "MENTOR") roleBg = "bg-purple-50 dark:bg-purple-950/20 text-purple-600 dark:text-purple-400 border border-purple-100/30";
-              else if (conv.roleTag === "BOT") roleBg = "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300";
-              else if (conv.roleTag === "TRADER") roleBg = "bg-slate-50 dark:bg-slate-900/40 text-slate-600 dark:text-slate-300 border border-slate-200/50 dark:border-slate-700/50";
+            {filteredConversations.length === 0 ? (
+              <div className="flex flex-col items-center justify-center p-8 text-center h-full min-h-[260px] text-slate-400 select-none">
+                <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/5 flex items-center justify-center mb-3 text-slate-400 dark:text-slate-500">
+                  <MessageSquare size={20} />
+                </div>
+                <h4 className="text-[13px] font-bold text-slate-800 dark:text-white">
+                  {searchQuery ? "No matching conversations" : "No Messages Yet"}
+                </h4>
+                <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1 max-w-[220px] leading-relaxed">
+                  {searchQuery 
+                    ? `No conversations match "${searchQuery}". Try a different keyword.` 
+                    : "Direct messages with mentors, risk desk analysts, and peers will appear here."}
+                </p>
+                {!searchQuery && (
+                  <Link
+                    to="/community"
+                    className="mt-4 px-4 py-2 rounded-xl text-[11px] font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 border border-slate-200/60 dark:border-white/5 transition-all shadow-2xs"
+                  >
+                    Explore Community
+                  </Link>
+                )}
+              </div>
+            ) : (
+              filteredConversations.map(conv => {
+                const isActive = conv.id === activeConvId;
+                
+                // Map role tag background colors
+                let roleBg = "bg-slate-100 dark:bg-slate-800 text-slate-650 dark:text-slate-400";
+                if (conv.roleTag === "RISK DESK") roleBg = "bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 border border-rose-100/30";
+                else if (conv.roleTag === "FINANCE") roleBg = "bg-green-50 dark:bg-green-950/20 text-green-600 dark:text-green-400 border border-green-100/30";
+                else if (conv.roleTag === "MENTOR") roleBg = "bg-purple-50 dark:bg-purple-950/20 text-purple-600 dark:text-purple-400 border border-purple-100/30";
+                else if (conv.roleTag === "BOT") roleBg = "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300";
+                else if (conv.roleTag === "TRADER") roleBg = "bg-slate-50 dark:bg-slate-900/40 text-slate-600 dark:text-slate-300 border border-slate-200/50 dark:border-slate-700/50";
 
-              return (
-                <div
-                  key={conv.id}
-                  onClick={() => {
-                    setActiveConvId(conv.id);
-                    setMobileView("chat");
-                    triggerHaptic("selection");
-                  }}
-                  className={`relative text-left w-full p-4 flex gap-3.5 border-b border-slate-100/60 dark:border-white/5 transition-all duration-200 outline-none items-start cursor-pointer select-none ${
-                    isActive 
-                      ? "bg-slate-100/70 dark:bg-slate-800/30 text-slate-900 dark:text-white" 
-                      : "hover:bg-slate-50/50 dark:hover:bg-slate-800/10"
-                  }`}
-                >
-                  {/* Left Active indicator bar */}
-                  {isActive && (
-                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-slate-500 dark:bg-slate-400 rounded-r-full shadow-xs" />
-                  )}
-                  
-                  {/* Avatar wrapper with status indicators */}
-                  <div className="relative shrink-0">
-                    <img src={conv.avatar} alt={conv.name} className="w-10 h-10 rounded-full object-cover border border-slate-100 dark:border-white/5 shadow-2xs" onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.svg"; }} />
-                    {conv.status === "Online" && (
-                      <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white dark:border-[#0E121E] rounded-full" />
-                    )}
-                    {conv.status === "Away" && (
-                      <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-amber-500 border-2 border-white dark:border-[#0E121E] rounded-full" />
-                    )}
-                    {conv.status === "Offline" && (
-                      <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-slate-350 border-2 border-white dark:border-[#0E121E] rounded-full" />
-                    )}
-                    {conv.status === "Bot" && (
-                      <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-[#4F46E5] border-2 border-white dark:border-[#0E121E] rounded-full flex items-center justify-center" />
-                    )}
-                  </div>
-                  
-                  {/* Content (SaaS Grid Interior) */}
-                  <div className="flex-1 min-w-0 flex flex-col gap-1">
-                    
-                    {/* Row 1: Name, Role Tag & Time */}
-                    <div className="flex items-center justify-between gap-1">
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        <h4 className="text-[13.5px] font-semibold leading-none truncate text-slate-900 dark:text-white flex items-center gap-1">
-                          <span>{conv.name}</span>
-                          {conv.verified && <CheckCircle2 size={13} className="text-slate-400 fill-slate-450 dark:text-slate-400 text-white shrink-0" />}
-                        </h4>
-                        
-                        <span className={`text-[8.5px] font-black uppercase px-1.5 py-0.5 rounded-md tracking-wider shrink-0 ${roleBg}`}>
-                          {conv.roleTag}
-                        </span>
-                      </div>
-                      
-                      <span className="text-[11px] shrink-0 font-medium tabular-nums text-slate-400 dark:text-slate-400">
-                        {conv.time}
-                      </span>
-                    </div>
-
-                    {/* Optional Ticket ID Row */}
-                    {conv.ticketId && (
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-[9.5px] font-extrabold text-slate-450 bg-slate-100 dark:bg-slate-800/70 dark:text-slate-400 px-1.5 py-0.5 rounded-md leading-none">
-                          Ticket #{conv.ticketId}
-                        </span>
-                        <span className={`text-[9px] font-black uppercase tracking-wider ${
-                          conv.ticketStatus === "Resolved" 
-                            ? "text-green-600 dark:text-green-400" 
-                            : conv.ticketStatus === "In-Progress"
-                            ? "text-amber-500 dark:text-amber-400"
-                            : "text-rose-500 dark:text-rose-400"
-                        }`}>
-                          {conv.ticketStatus}
-                        </span>
-                      </div>
+                return (
+                  <div
+                    key={conv.id}
+                    onClick={() => {
+                      setActiveConvId(conv.id);
+                      setMobileView("chat");
+                      triggerHaptic("selection");
+                    }}
+                    className={`relative text-left w-full p-4 flex gap-3.5 border-b border-slate-100/60 dark:border-white/5 transition-all duration-200 outline-none items-start cursor-pointer select-none ${
+                      isActive 
+                        ? "bg-slate-100/70 dark:bg-slate-800/30 text-slate-900 dark:text-white" 
+                        : "hover:bg-slate-50/50 dark:hover:bg-slate-800/10"
+                    }`}
+                  >
+                    {/* Left Active indicator bar */}
+                    {isActive && (
+                      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-slate-500 dark:bg-slate-400 rounded-r-full shadow-xs" />
                     )}
                     
-                    {/* Row 2: Message preview & Unread badge aligned perfectly */}
-                    <div className="flex items-start justify-between gap-2.5">
-                      <p className="text-[12.5px] font-normal leading-snug line-clamp-2 flex-1 text-slate-500 dark:text-slate-400">
-                        {conv.content}
-                      </p>
-                      
-                      {conv.unread > 0 && (
-                        <span className={`shrink-0 self-end px-2 py-0.5 rounded-full text-[10px] font-extrabold shadow-xs tabular-nums mt-0.5 ${
-                          isActive 
-                            ? "bg-slate-700 dark:bg-slate-600 text-white" 
-                            : "bg-slate-100 dark:bg-slate-800/60 text-slate-650 dark:text-slate-400 border border-slate-200/50 dark:border-slate-700/50"
-                        }`}>
-                          {conv.unread}
-                        </span>
+                    {/* Avatar wrapper with status indicators */}
+                    <div className="relative shrink-0">
+                      <img src={conv.avatar} alt={conv.name} className="w-10 h-10 rounded-full object-cover border border-slate-100 dark:border-white/5 shadow-2xs" onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.svg"; }} />
+                      {conv.status === "Online" && (
+                        <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white dark:border-[#0E121E] rounded-full" />
+                      )}
+                      {conv.status === "Away" && (
+                        <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-amber-500 border-2 border-white dark:border-[#0E121E] rounded-full" />
+                      )}
+                      {conv.status === "Offline" && (
+                        <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-slate-350 border-2 border-white dark:border-[#0E121E] rounded-full" />
+                      )}
+                      {conv.status === "Bot" && (
+                        <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-[#4F46E5] border-2 border-white dark:border-[#0E121E] rounded-full flex items-center justify-center" />
                       )}
                     </div>
                     
+                    {/* Content (SaaS Grid Interior) */}
+                    <div className="flex-1 min-w-0 flex flex-col gap-1">
+                      
+                      {/* Row 1: Name, Role Tag & Time */}
+                      <div className="flex items-center justify-between gap-1">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <h4 className="text-[13.5px] font-semibold leading-none truncate text-slate-900 dark:text-white flex items-center gap-1">
+                            <span>{conv.name}</span>
+                            {conv.verified && <CheckCircle2 size={13} className="text-slate-400 fill-slate-450 dark:text-slate-400 text-white shrink-0" />}
+                          </h4>
+                          
+                          <span className={`text-[8.5px] font-black uppercase px-1.5 py-0.5 rounded-md tracking-wider shrink-0 ${roleBg}`}>
+                            {conv.roleTag}
+                          </span>
+                        </div>
+                        
+                        <span className="text-[11px] shrink-0 font-medium tabular-nums text-slate-400 dark:text-slate-400">
+                          {conv.time}
+                        </span>
+                      </div>
+
+                      {/* Optional Ticket ID Row */}
+                      {conv.ticketId && (
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[9.5px] font-extrabold text-slate-450 bg-slate-100 dark:bg-slate-800/70 dark:text-slate-400 px-1.5 py-0.5 rounded-md leading-none">
+                            Ticket #{conv.ticketId}
+                          </span>
+                          <span className={`text-[9px] font-black uppercase tracking-wider ${
+                            conv.ticketStatus === "Resolved" 
+                              ? "text-green-600 dark:text-green-400" 
+                              : conv.ticketStatus === "In-Progress"
+                              ? "text-amber-500 dark:text-amber-400"
+                              : "text-rose-500 dark:text-rose-400"
+                          }`}>
+                            {conv.ticketStatus}
+                          </span>
+                        </div>
+                      )}
+                      
+                      {/* Row 2: Message preview & Unread badge aligned perfectly */}
+                      <div className="flex items-start justify-between gap-2.5">
+                        <p className="text-[12.5px] font-normal leading-snug line-clamp-2 flex-1 text-slate-500 dark:text-slate-400">
+                          {conv.content}
+                        </p>
+                        
+                        {conv.unread > 0 && (
+                          <span className={`shrink-0 self-end px-2 py-0.5 rounded-full text-[10px] font-extrabold shadow-xs tabular-nums mt-0.5 ${
+                            isActive 
+                              ? "bg-slate-700 dark:bg-slate-600 text-white" 
+                              : "bg-slate-100 dark:bg-slate-800/60 text-slate-650 dark:text-slate-400 border border-slate-200/50 dark:border-slate-700/50"
+                          }`}>
+                            {conv.unread}
+                          </span>
+                        )}
+                      </div>
+                      
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </div>
 
         </div>

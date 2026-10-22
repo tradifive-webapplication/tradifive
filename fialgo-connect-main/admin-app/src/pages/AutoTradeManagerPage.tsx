@@ -790,6 +790,8 @@ export default function AutoTradeManagerPage() {
         backtest_downloaded: true,
         allowed_accounts: 1,
         bound_account: payment.mt5_account_number || "4820194",
+        algo_manifest: "Gold Scalper Pro v1.0",
+        algo_pair: "XAUUSD",
       }),
       has_purchased: true,
       purchase_tier: planTier,

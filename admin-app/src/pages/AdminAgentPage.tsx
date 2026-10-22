@@ -189,7 +189,7 @@ export default function AdminAgentPage() {
     if (activeRole === "ceo") return true;
     if (activeRole === "hr_manager") return agent.id !== "ceo";
     if (activeRole === "technical_lead" && agent.id === "tech") return true;
-    if (activeRole === "risk_analyst" && agent.id === "risk") return true;
+    if (((activeRole as string) === "risk_analyst" || activeRole === "risk_executive") && agent.id === "risk") return true;
     if (activeRole === "support_executive" && agent.id === "support") return true;
     if (activeRole === "operations_executive" && (agent.id === "finance" || agent.id === "operations")) return true;
     return false;

@@ -8,6 +8,8 @@ export interface AdminProfile {
   full_name: string;
   role: AdminRole;
   avatar_url?: string;
+  isDeptHead?: boolean;
+  deptLabel?: string;
 }
 
 interface AdminAuthContextType {

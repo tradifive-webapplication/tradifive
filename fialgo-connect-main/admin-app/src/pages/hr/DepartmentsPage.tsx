@@ -307,7 +307,7 @@ export default function DepartmentsPage() {
                     <KeyRound size={8} /> Active Signup Keys
                   </p>
                   <div className="flex flex-wrap gap-1">
-                    {dept.keys.map(k => (
+                    {dept.keys.map((k: string) => (
                       <span key={k} className="text-[9px] font-mono font-bold text-indigo-400 bg-indigo-500/10 px-1.5 py-0.5 rounded border border-indigo-500/20">
                         {k}
                       </span>

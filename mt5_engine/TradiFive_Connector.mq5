@@ -12,6 +12,7 @@ sinput string InpActivationKey = "PASTE_YOUR_KEY_HERE"; // TradiFive Activation 
 
 //--- Hardcoded Pipeline Settings (Hidden from User)
 const string InpWebhookURL = "https://rylwyxhupwpwsdbvuoej.supabase.co/functions/v1/mt5-webhook"; // Connects dynamically to TradiFive Cloud
+const string InpAnonKey    = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ5bHd5eGh1cHdwd3NkYnZ1b2VqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0MzI1NTcsImV4cCI6MjA5MjAwODU1N30.xuRj9PZgZys2b64pNnjhXOVyDjtGVFlBno2o9hiisHA";
 
 //+------------------------------------------------------------------+
 //| Expert initialization function                                   |
@@ -87,7 +88,7 @@ void OnTimer()
 
    char result[];
    string resultHeaders;
-   string headers = "Content-Type: application/json\r\n";
+   string headers = "Content-Type: application/json\r\nAuthorization: Bearer " + InpAnonKey + "\r\napikey: " + InpAnonKey + "\r\n";
    
    // Silent Fire-and-Forget metrics heartbeat so we don't spam terminal
    WebRequest("POST", InpWebhookURL, headers, 3000, cleanPostData, result, resultHeaders);
@@ -154,7 +155,7 @@ void SendTradeToDatabase(ulong ticket, string symbol, string type, double lot, d
    // Configure HTTP Request
    char result[];
    string resultHeaders;
-   string headers = "Content-Type: application/json\r\n";
+   string headers = "Content-Type: application/json\r\nAuthorization: Bearer " + InpAnonKey + "\r\napikey: " + InpAnonKey + "\r\n";
    
    // Make the POST request
    int res = WebRequest("POST",
