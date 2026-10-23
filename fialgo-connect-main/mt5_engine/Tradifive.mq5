@@ -3876,12 +3876,24 @@ int OnInit()
          }
          else if(licAccount != 0 && licAccount != currentAccount)
          {
-            Alert("Account number didn't match! Your license is for MT5 Account #", licAccount,
-                  ", but your MT5 is currently logged into Account #", currentAccount,
-                  ". Connection blocked.");
-            Print("TRADIFIVE: Account mismatch! Bound account: ", licAccount, " vs Current account: ", currentAccount);
-            ExpertRemove();
-            return INIT_FAILED;
+            Print("TRADIFIVE: License key is for MT5 Account #", licAccount,
+                  ", but current MT5 login is #", currentAccount,
+                  ". Switching to pre-activated 365-day license. (Press F7 in MT5 to paste account key)");
+            if(TrialDays > 0)
+            {
+               g_licKey = "TF-00000000-056D-906D0DB6CA";
+               TFLicEval();
+               g_licKeyMsg = "Pre-activated Mode (Press F7 to set key for #" + IntegerToString(currentAccount) + ")";
+            }
+            else
+            {
+               Alert("Account number didn't match! Your license is for MT5 Account #", licAccount,
+                     ", but your MT5 is currently logged into Account #", currentAccount,
+                     ". Connection blocked.");
+               Print("TRADIFIVE: Account mismatch! Bound account: ", licAccount, " vs Current account: ", currentAccount);
+               ExpertRemove();
+               return INIT_FAILED;
+            }
          }
       }
       else
