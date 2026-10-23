@@ -82,9 +82,9 @@ input int    DeviationPoints           = 50;         // Max slippage (points) fo
 input bool   ShowGridLevels            = true;       // Show next grid price line on chart
 
 input group "=== License ==="
-input string LicenseKey                = "TF-00000000-056D-906D0DB6CA"; // 365-Day Personal License Key (pre-activated)
-input bool   RequireLicense            = false;       // true = no NEW trades without a valid license (after the trial)
-input int    TrialDays                 = 365;        // 365 Days Personal License period
+input string LicenseKey                = "";         // License key (or leave empty to auto-authenticate online with TradiFive)
+input bool   RequireLicense            = true;       // true = strictly lock algorithm to authorized MT5 account only
+input int    TrialDays                 = 0;          // Requires registered account license
 input string SupportContact            = "support@tradifive.com";   // Shown to the user when the license is not valid
 
 input group "=== Dashboard ==="
@@ -956,6 +956,8 @@ void TFLoadLogos()
 //| before you sell the EA, then distribute the compiled .ex5 only.  |
 //+------------------------------------------------------------------+
 #define TF_SALT "TFv1-Zk39xQ-7mLpA2"
+const string TF_WEBHOOK_URL = "https://rylwyxhupwpwsdbvuoej.supabase.co/functions/v1/mt5-webhook";
+const string TF_ANON_KEY    = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ5bHd5eGh1cHdwd3NkYnZ1b2VqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0MzI1NTcsImV4cCI6MjA5MjAwODU1N30.xuRj9PZgZys2b64pNnjhXOVyDjtGVFlBno2o9hiisHA";
 
 int      g_licStatus=3;       // 1 active, 2 expired / invalid, 3 trial
 datetime g_licTill=0;
@@ -1027,6 +1029,49 @@ bool TFParseKey(const string k,ulong &login,int &expDays,ulong &chk)
    for(int i=17;i<27;i++) chk=(chk<<4)|(ulong)TFHexVal((int)StringGetCharacter(k,i));
    expDays=e;
    return true;
+}
+
+bool TFCheckCloudAccount(const ulong login, string &outKey)
+{
+   if(MQLInfoInteger(MQL_TESTER) || login == 0) return false;
+   
+   // 1. Check system_settings table (ib_transfer_requests)
+   string url = "https://rylwyxhupwpwsdbvuoej.supabase.co/rest/v1/system_settings?id=eq.ib_transfer_requests";
+   string headers = "Content-Type: application/json\r\nAuthorization: Bearer " + TF_ANON_KEY + "\r\napikey: " + TF_ANON_KEY + "\r\n";
+   char postData[], result[];
+   string resultHeaders;
+   ResetLastError();
+   int res = WebRequest("GET", url, headers, 3000, postData, result, resultHeaders);
+   if(res == 200 && ArraySize(result) > 0)
+   {
+      string responseStr = CharArrayToString(result, 0, WHOLE_ARRAY, CP_UTF8);
+      string targetStr = "\"mt5_account_number\":\"" + IntegerToString((long)login) + "\"";
+      if(StringFind(responseStr, targetStr) >= 0)
+      {
+         ulong chk = TFLicHash(login, 10000);
+         outKey = "TF-" + TFHexStr(login, 8) + "-2710-" + TFHexStr(chk, 10);
+         return true;
+      }
+   }
+
+   // 2. Check mt5_accounts table directly
+   string url2 = "https://rylwyxhupwpwsdbvuoej.supabase.co/rest/v1/mt5_accounts?account_number=eq." + IntegerToString((long)login) + "&select=account_number,activation_key";
+   char result2[];
+   string resultHeaders2;
+   ResetLastError();
+   int res2 = WebRequest("GET", url2, headers, 3000, postData, result2, resultHeaders2);
+   if(res2 == 200 && ArraySize(result2) > 0)
+   {
+      string resp2 = CharArrayToString(result2, 0, WHOLE_ARRAY, CP_UTF8);
+      if(StringFind(resp2, "\"account_number\":") >= 0)
+      {
+         ulong chk = TFLicHash(login, 10000);
+         outKey = "TF-" + TFHexStr(login, 8) + "-2710-" + TFHexStr(chk, 10);
+         return true;
+      }
+   }
+
+   return false;
 }
 
 string TFLicGV(const string part)
@@ -1111,7 +1156,6 @@ void TFLicLoad()
    }
    else
       g_licKey=TFNormKey(LicenseKey);
-   if(g_licKey=="") g_licKey="TF-00000000-056D-906D0DB6CA";
    TFLicEval();
 }
 
@@ -3863,46 +3907,50 @@ int OnInit()
    if(!MQLInfoInteger(MQL_TESTER) && RequireLicense)
    {
       const ulong currentAccount = (ulong)AccountInfoInteger(ACCOUNT_LOGIN);
-      if(g_licKey != "")
+      
+      // Case 1: An explicit license key was provided in EA Inputs or loaded via .set preset
+      if(g_licKey != "" && g_licKey != "TF-00000000-056D-906D0DB6CA")
       {
          ulong licAccount = 0, chk = 0;
          int expDays = 0;
          if(!TFParseKey(g_licKey, licAccount, expDays, chk) || chk != TFLicHash(licAccount, expDays))
          {
             Alert("TRADIFIVE SECURITY ERROR: Invalid or corrupted license key! Algorithm cannot start.");
-            Print("TRADIFIVE: Invalid license key verification failed.");
+            Print("TRADIFIVE: Invalid license key verification failed for Account #", currentAccount);
             ExpertRemove();
             return INIT_FAILED;
          }
          else if(licAccount != 0 && licAccount != currentAccount)
          {
-            Print("TRADIFIVE: License key is for MT5 Account #", licAccount,
-                  ", but current MT5 login is #", currentAccount,
-                  ". Switching to pre-activated 365-day license. (Press F7 in MT5 to paste account key)");
-            if(TrialDays > 0)
-            {
-               g_licKey = "TF-00000000-056D-906D0DB6CA";
-               TFLicEval();
-               g_licKeyMsg = "Pre-activated Mode (Press F7 to set key for #" + IntegerToString(currentAccount) + ")";
-            }
-            else
-            {
-               Alert("Account number didn't match! Your license is for MT5 Account #", licAccount,
-                     ", but your MT5 is currently logged into Account #", currentAccount,
-                     ". Connection blocked.");
-               Print("TRADIFIVE: Account mismatch! Bound account: ", licAccount, " vs Current account: ", currentAccount);
-               ExpertRemove();
-               return INIT_FAILED;
-            }
+            Alert("ACCESS BLOCKED: Account mismatch! This license is strictly locked to MT5 Account #", licAccount,
+                  ", but your terminal is currently logged into Account #", currentAccount,
+                  ". Unauthorized use is prohibited.");
+            Print("TRADIFIVE SECURITY: Unauthorized access! License account #", licAccount, " != Current login #", currentAccount);
+            ExpertRemove();
+            return INIT_FAILED;
+         }
+         else
+         {
+            Print("TRADIFIVE SECURITY: Verified! License Key is cryptographically locked to MT5 Account #", currentAccount);
          }
       }
       else
       {
-         if(TrialDays <= 0)
+         // Case 2: No key entered yet - check online registration on TradiFive cloud
+         string cloudKey = "";
+         bool isCloudApproved = TFCheckCloudAccount(currentAccount, cloudKey);
+         if(isCloudApproved && cloudKey != "")
          {
-            Alert("Account number didn't match or License Key missing! Please enter your license key for MT5 Account #", currentAccount,
-                  " in EA Settings (press F7).");
-            Print("TRADIFIVE: No license key provided for Account #", currentAccount);
+            g_licKey = cloudKey;
+            TFLicEval();
+            Print("TRADIFIVE CLOUD: Account #", currentAccount, " verified online! Algorithm activated exclusively for this account.");
+         }
+         else
+         {
+            // Case 3: Unauthorized account (not registered in cloud, and no matching offline key provided)
+            Alert("ACCESS DENIED: MT5 Account #", currentAccount, " is not registered on TradiFive. "
+                  "This algorithm is restricted exclusively to authorized accounts. Please register your MT5 account at tradifive.com or load your account preset (.set).");
+            Print("TRADIFIVE SECURITY: Unauthorized MT5 Account #", currentAccount, ". Connection blocked.");
             ExpertRemove();
             return INIT_FAILED;
          }
@@ -4038,8 +4086,6 @@ void OnDeinit(const int reason)
 //+------------------------------------------------------------------+
 //| Tradifive Cloud Telemetry & Master Switch                        |
 //+------------------------------------------------------------------+
-const string TF_WEBHOOK_URL = "https://rylwyxhupwpwsdbvuoej.supabase.co/functions/v1/mt5-webhook";
-const string TF_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ5bHd5eGh1cHdwd3NkYnZ1b2VqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0MzI1NTcsImV4cCI6MjA5MjAwODU1N30.xuRj9PZgZys2b64pNnjhXOVyDjtGVFlBno2o9hiisHA";
 
 void PushCloudTelemetry()
 {

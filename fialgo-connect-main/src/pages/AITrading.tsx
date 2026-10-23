@@ -777,6 +777,10 @@ export default function AITrading() {
       submitted_at: new Date().toISOString()
     };
 
+    const cleanNum = cleanAccount.replace(/\D/g, "");
+    const generatedLicKey = generateTradifiveLicenseKey(cleanNum);
+    localStorage.setItem("tradifive_connected_mt5_account", cleanNum);
+    localStorage.setItem("tradifive_license_key", generatedLicKey);
     localStorage.setItem("tradifive_ib_proof_request", JSON.stringify(newRequest));
     setTransferRequestStatus("pending");
 
@@ -795,13 +799,24 @@ export default function AITrading() {
         value: list,
         updated_at: new Date().toISOString()
       });
+
+      if (userId && !userId.startsWith("usr-")) {
+        await supabase.from("mt5_accounts").upsert({
+          user_id: userId,
+          account_number: cleanNum,
+          activation_key: generatedLicKey,
+          broker_name: brokerLabel,
+          connection_status: "pending_verification",
+          algo_status: true
+        }, { onConflict: "user_id" });
+      }
     } catch (err) {
       console.warn("Stored locally:", err);
     }
 
     setIsSubmittingProof(false);
-    toast.success("Verification Request Submitted!", {
-      description: "Our desk will verify your MT5 account under Partner IB 27863221 ($500 min. deposit) within ~1–2 hours."
+    toast.success(`Verification Request Submitted for #${cleanNum}!`, {
+      description: `License key ${generatedLicKey} auto-generated & cryptographically locked to your MT5 account.`
     });
   };
 
@@ -835,6 +850,9 @@ export default function AITrading() {
   };
 
   const handleDownloadEA = () => {
+    const cleanAccount = String(mt5Account || localStorage.getItem("tradifive_connected_mt5_account") || "").replace(/\D/g, "");
+    const activeKey = cleanAccount ? generateTradifiveLicenseKey(cleanAccount) : "";
+
     const a = document.createElement("a");
     a.href = "/FiAlgo_v1.0.4.ex5";
     a.download = "FiAlgo_v1.0.4.ex5";
@@ -844,9 +862,19 @@ export default function AITrading() {
 
     setHasDownloaded(true);
     localStorage.setItem("tradifive_ea_downloaded", "true");
-    toast.success("FiAlgo_v1.0.4.ex5 downloaded! (Real 236 KB MT5 Binary)", {
-      description: "Official compiled Expert Advisor ready. Copy into your MetaTrader 5 MQL5/Experts folder."
-    });
+
+    if (cleanAccount && activeKey) {
+      setTimeout(() => {
+        handleDownloadPreset();
+      }, 400);
+      toast.success(`FiAlgo EA & Preset Downloaded for Account #${cleanAccount}!`, {
+        description: `License Key is locked to MT5 Account #${cleanAccount}. Only this account can execute the EA.`
+      });
+    } else {
+      toast.success("FiAlgo_v1.0.4.ex5 downloaded! (Real 248 KB MT5 Binary)", {
+        description: "Official compiled Expert Advisor ready. Copy into your MetaTrader 5 MQL5/Experts folder."
+      });
+    }
   };
 
 
@@ -1408,7 +1436,17 @@ MagicNumber=789104
                             type="text"
                             placeholder="e.g. 8492015"
                             value={mt5Account}
-                            onChange={(e) => setMt5Account(e.target.value)}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setMt5Account(val);
+                              const clean = val.replace(/\D/g, "");
+                              if (clean) {
+                                try {
+                                  localStorage.setItem("tradifive_connected_mt5_account", clean);
+                                  localStorage.setItem("tradifive_license_key", generateTradifiveLicenseKey(clean));
+                                } catch (_) {}
+                              }
+                            }}
                             className="w-full bg-slate-50 dark:bg-[#121214] border border-slate-200/80 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white font-mono focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all placeholder:text-slate-400"
                           />
                         </div>
@@ -1583,7 +1621,17 @@ MagicNumber=789104
                             type="text"
                             placeholder="e.g. 8492015"
                             value={mt5Account}
-                            onChange={(e) => setMt5Account(e.target.value)}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setMt5Account(val);
+                              const clean = val.replace(/\D/g, "");
+                              if (clean) {
+                                try {
+                                  localStorage.setItem("tradifive_connected_mt5_account", clean);
+                                  localStorage.setItem("tradifive_license_key", generateTradifiveLicenseKey(clean));
+                                } catch (_) {}
+                              }
+                            }}
                             className="w-full bg-slate-50 dark:bg-[#121214] border border-slate-200/80 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white font-mono focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all placeholder:text-slate-400"
                           />
                           <p className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1 mt-1">
@@ -1859,7 +1907,7 @@ MagicNumber=789104
                     </code>
                   </div>
                   <div className="text-[11px] text-slate-500 shrink-0 font-mono">
-                    <span>Size: <strong className="text-emerald-600 dark:text-emerald-400 font-bold">236 KB</strong></span>
+                    <span>Size: <strong className="text-emerald-600 dark:text-emerald-400 font-bold">248 KB</strong></span>
                     <span className="hidden sm:inline"> · Real Compiled MT5 Binary</span>
                   </div>
                 </div>
@@ -2893,6 +2941,15 @@ MagicNumber=789104
                             </button>
                             <button
                               type="button"
+                              onClick={handleDownloadEA}
+                              className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white inline-flex items-center gap-1.5 cursor-pointer shadow-xs"
+                              title="Download FiAlgo Expert Advisor (.ex5) + Account Preset (.set)"
+                            >
+                              <Download size={13} />
+                              <span>Download EA</span>
+                            </button>
+                            <button
+                              type="button"
                               onClick={handleDownloadPreset}
                               className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white inline-flex items-center gap-1.5 cursor-pointer shadow-xs"
                               title="Download pre-configured .set preset"
@@ -2901,6 +2958,17 @@ MagicNumber=789104
                               <span>Download .set</span>
                             </button>
                           </div>
+                        </div>
+
+                        {/* Account-Lock Security Guarantee Card */}
+                        <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-900 dark:text-emerald-200 space-y-1">
+                          <div className="flex items-center gap-2 font-bold text-emerald-800 dark:text-emerald-300">
+                            <ShieldCheck size={14} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+                            <span>Strictly Account-Locked to MT5 Account #{effectiveAccount}</span>
+                          </div>
+                          <p className="text-[11px] leading-relaxed text-emerald-800/90 dark:text-emerald-300/90">
+                            This algo and license key are mathematically bound to account #{effectiveAccount}. If any other person copies your key or tries running this EA on a different MT5 login, execution is blocked immediately and the EA will remove itself.
+                          </p>
                         </div>
                       </div>
 

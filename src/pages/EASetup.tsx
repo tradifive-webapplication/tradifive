@@ -107,13 +107,24 @@ export default function EASetup() {
             const cleanAcc = String(acc.account_number).replace(/\D/g, "");
             setConnectedAccount(cleanAcc);
             try { localStorage.setItem("tradifive_connected_mt5_account", cleanAcc); } catch (e) {}
-          }
 
-          if (acc?.activation_key && (!data || !data.activation_key)) {
-            setLicenseKey(acc.activation_key);
-            try { localStorage.setItem("tradifive_license_key", acc.activation_key); } catch (e) {}
-          } else if (!data?.activation_key && !acc?.activation_key) {
-            setLicenseKey("PENDING_ACTIVATION");
+            if (acc?.activation_key && (!data || !data.activation_key)) {
+              setLicenseKey(acc.activation_key);
+              try { localStorage.setItem("tradifive_license_key", acc.activation_key); } catch (e) {}
+            } else if (!data?.activation_key && !acc?.activation_key) {
+              const autoKey = generateTradifiveLicenseKey(cleanAcc);
+              setLicenseKey(autoKey);
+              try { localStorage.setItem("tradifive_license_key", autoKey); } catch (e) {}
+            }
+          } else if (!data?.activation_key) {
+            const localAcc = localStorage.getItem("tradifive_connected_mt5_account");
+            if (localAcc) {
+              const autoKey = generateTradifiveLicenseKey(localAcc);
+              setLicenseKey(autoKey);
+              setConnectedAccount(localAcc);
+            } else {
+              setLicenseKey("PENDING_ACTIVATION");
+            }
           }
         }
       } catch (e) {}
@@ -124,32 +135,36 @@ export default function EASetup() {
   const copyKey = (keyToCopy: string) => {
     if (keyToCopy === "PENDING_ACTIVATION" || !keyToCopy) {
       toast.error("License Not Active", {
-        description: "Please connect with the Tradifive team to activate your license key."
+        description: "Please connect with the Tradifive team or input your MT5 account to activate your license key."
       });
       return;
     }
     navigator.clipboard.writeText(keyToCopy);
     setCopied(true);
-    toast.success("License key copied to clipboard");
+    toast.success("License key copied to clipboard", {
+      description: connectedAccount ? `Cryptographically locked to MT5 Account #${connectedAccount}` : undefined
+    });
     setTimeout(() => setCopied(false), 2000);
   };
 
   const handleDownloadEA = () => {
     if (licenseKey === "PENDING_ACTIVATION" || !licenseKey) {
       toast.error("Activation Required", {
-        description: "You must choose a plan and be approved by the Tradifive team before downloading the EA."
+        description: "Please enter your MT5 account number in Setup before downloading."
       });
       return;
     }
     const a = document.createElement("a");
-    a.href = "/Tradifive.ex5";
-    a.download = "Tradifive.ex5";
+    a.href = "/FiAlgo_v1.0.4.ex5";
+    a.download = "FiAlgo_v1.0.4.ex5";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
 
-    toast.success("Downloading Tradifive.ex5", {
-      description: "Save this file into your MT5 /MQL5/Experts folder."
+    toast.success("Downloading FiAlgo_v1.0.4.ex5", {
+      description: connectedAccount 
+        ? `Account-locked to MT5 Account #${connectedAccount}. Copy into your MT5 MQL5/Experts folder.`
+        : "Save this file into your MT5 /MQL5/Experts folder."
     });
   };
 
