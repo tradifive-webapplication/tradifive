@@ -51,6 +51,7 @@ export interface ClosedTradeItem {
   pnl: number;
   closeTime: string;
   duration: string;
+  closedAtMs?: number;
 }
 
 interface Props {
@@ -444,90 +445,105 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
     const bal = accountBalance > 0 ? accountBalance : 0;
     const todayP = todayProfit;
     const netP = netProfitAllTime;
-    const baseBal = Math.max(100, bal - todayP);
 
-    if (bal <= 0 && todayP === 0 && netP === 0) {
+    // 1. If real closed trades exist, build pure chronological curve from executed deals:
+    if (closedTrades.length > 0) {
+      const nowMs = Date.now();
+      const oneDayMs = 24 * 60 * 60 * 1000;
+      const startOfTodayMs = new Date(new Date().setHours(0, 0, 0, 0)).getTime();
+
+      let filteredTrades = [...closedTrades];
       if (chartTimeframe === "Today") {
-        return [
-          { time: "09:00", netProfit: 0, balance: 0, dailyGain: 0 },
-          { time: "11:00", netProfit: 0, balance: 0, dailyGain: 0 },
-          { time: "13:00", netProfit: 0, balance: 0, dailyGain: 0 },
-          { time: "15:00", netProfit: 0, balance: 0, dailyGain: 0 },
-          { time: "17:00", netProfit: 0, balance: 0, dailyGain: 0 },
-          { time: "Now", netProfit: 0, balance: 0, dailyGain: 0 },
-        ];
+        filteredTrades = filteredTrades.filter(t => (t.closedAtMs || 0) >= startOfTodayMs);
+      } else if (chartTimeframe === "7D") {
+        filteredTrades = filteredTrades.filter(t => (t.closedAtMs || 0) >= (nowMs - 7 * oneDayMs));
+      } else if (chartTimeframe === "30D") {
+        filteredTrades = filteredTrades.filter(t => (t.closedAtMs || 0) >= (nowMs - 30 * oneDayMs));
       }
-      if (chartTimeframe === "7D") {
-        return [
-          { time: "Mon", netProfit: 0, balance: 0, dailyGain: 0 },
-          { time: "Tue", netProfit: 0, balance: 0, dailyGain: 0 },
-          { time: "Wed", netProfit: 0, balance: 0, dailyGain: 0 },
-          { time: "Thu", netProfit: 0, balance: 0, dailyGain: 0 },
-          { time: "Fri", netProfit: 0, balance: 0, dailyGain: 0 },
-          { time: "Sat", netProfit: 0, balance: 0, dailyGain: 0 },
-          { time: "Today", netProfit: 0, balance: 0, dailyGain: 0 },
+
+      // Sort chronological (oldest to newest)
+      filteredTrades.sort((a, b) => (a.closedAtMs || 0) - (b.closedAtMs || 0));
+
+      if (filteredTrades.length > 0) {
+        const totalPnlInSpan = filteredTrades.reduce((acc, t) => acc + t.pnl, 0);
+        const initialPointBal = Math.max(0, bal - totalPnlInSpan);
+
+        let runningPnl = 0;
+        const points = [
+          {
+            time: chartTimeframe === "Today" ? "00:00" : "Start",
+            netProfit: 0,
+            balance: Math.round(initialPointBal),
+            dailyGain: 0,
+          }
         ];
+
+        filteredTrades.forEach((t) => {
+          runningPnl += t.pnl;
+          const currBal = Math.max(0, initialPointBal + runningPnl);
+          const gainPct = initialPointBal > 0 ? Number(((runningPnl / initialPointBal) * 100).toFixed(2)) : 0;
+
+          let label = t.closeTime;
+          if (chartTimeframe === "7D" || chartTimeframe === "30D" || chartTimeframe === "All") {
+            if (t.closedAtMs) {
+              const d = new Date(t.closedAtMs);
+              label = `${d.getDate()}/${d.getMonth() + 1}`;
+            }
+          }
+
+          points.push({
+            time: label,
+            netProfit: Number(runningPnl.toFixed(2)),
+            balance: Math.round(currBal),
+            dailyGain: gainPct,
+          });
+        });
+
+        // Add live point if floating profit exists on active open positions
+        const liveFloating = openPositions.reduce((acc, p) => acc + p.floatingPnl, 0);
+        if (liveFloating !== 0 || (chartTimeframe === "Today" && todayP !== runningPnl)) {
+          const finalNet = Number((runningPnl + liveFloating).toFixed(2));
+          points.push({
+            time: "Now",
+            netProfit: finalNet,
+            balance: Math.round(bal),
+            dailyGain: initialPointBal > 0 ? Number(((finalNet / initialPointBal) * 100).toFixed(2)) : 0,
+          });
+        }
+
+        return points;
       }
-      if (chartTimeframe === "30D") {
-        return [
-          { time: "W1", netProfit: 0, balance: 0, dailyGain: 0 },
-          { time: "W2", netProfit: 0, balance: 0, dailyGain: 0 },
-          { time: "W3", netProfit: 0, balance: 0, dailyGain: 0 },
-          { time: "W4", netProfit: 0, balance: 0, dailyGain: 0 },
-        ];
-      }
-      return [
-        { time: "Aug", netProfit: 0, balance: 0, dailyGain: 0 },
-        { time: "Sep", netProfit: 0, balance: 0, dailyGain: 0 },
-        { time: "Oct", netProfit: 0, balance: 0, dailyGain: 0 },
-      ];
     }
 
+    // 2. Real Account Baseline (Pure real numbers, no synthesized multipliers):
     if (chartTimeframe === "Today") {
-      const p1 = Number((todayP * 0.15).toFixed(2));
-      const p2 = Number((todayP * 0.38).toFixed(2));
-      const p3 = Number((todayP * 0.62).toFixed(2));
-      const p4 = Number((todayP * 0.85).toFixed(2));
+      const startBal = Math.max(0, bal - todayP);
       return [
-        { time: "09:00", netProfit: 0, balance: Math.round(baseBal), dailyGain: 0 },
-        { time: "11:00", netProfit: p1, balance: Math.round(baseBal + p1), dailyGain: Number(((p1 / baseBal) * 100).toFixed(2)) },
-        { time: "13:00", netProfit: p2, balance: Math.round(baseBal + p2), dailyGain: Number(((p2 / baseBal) * 100).toFixed(2)) },
-        { time: "15:00", netProfit: p3, balance: Math.round(baseBal + p3), dailyGain: Number(((p3 / baseBal) * 100).toFixed(2)) },
-        { time: "17:00", netProfit: p4, balance: Math.round(baseBal + p4), dailyGain: Number(((p4 / baseBal) * 100).toFixed(2)) },
-        { time: "Now", netProfit: todayP, balance: Math.round(bal), dailyGain: Number(((todayP / baseBal) * 100).toFixed(2)) },
+        { time: "00:00", netProfit: 0, balance: Math.round(startBal), dailyGain: 0 },
+        { time: "Now", netProfit: Number(todayP.toFixed(2)), balance: Math.round(bal), dailyGain: startBal > 0 ? Number(((todayP / startBal) * 100).toFixed(2)) : 0 },
       ];
     }
     if (chartTimeframe === "7D") {
-      const pDay = Number((netP / 7).toFixed(2));
-      const start7dBal = Math.max(100, bal - netP);
+      const start7dBal = Math.max(0, bal - netP);
       return [
-        { time: "Mon", netProfit: Math.round(pDay * 1), balance: Math.round(start7dBal + pDay * 1), dailyGain: 1.2 },
-        { time: "Tue", netProfit: Math.round(pDay * 2), balance: Math.round(start7dBal + pDay * 2), dailyGain: 1.8 },
-        { time: "Wed", netProfit: Math.round(pDay * 3), balance: Math.round(start7dBal + pDay * 3), dailyGain: 2.1 },
-        { time: "Thu", netProfit: Math.round(pDay * 4), balance: Math.round(start7dBal + pDay * 4), dailyGain: 2.5 },
-        { time: "Fri", netProfit: Math.round(pDay * 5), balance: Math.round(start7dBal + pDay * 5), dailyGain: 3.0 },
-        { time: "Sat", netProfit: Math.round(pDay * 6), balance: Math.round(start7dBal + pDay * 6), dailyGain: 3.4 },
-        { time: "Today", netProfit: netP, balance: Math.round(bal), dailyGain: Number(((todayP / baseBal) * 100).toFixed(2)) },
+        { time: "7D Ago", netProfit: 0, balance: Math.round(start7dBal), dailyGain: 0 },
+        { time: "Now", netProfit: Number(netP.toFixed(2)), balance: Math.round(bal), dailyGain: start7dBal > 0 ? Number(((netP / start7dBal) * 100).toFixed(2)) : 0 },
       ];
     }
     if (chartTimeframe === "30D") {
-      const pWeek = Number((netP / 4).toFixed(2));
-      const start30dBal = Math.max(100, bal - netP);
+      const start30dBal = Math.max(0, bal - netP);
       return [
-        { time: "W1", netProfit: Math.round(pWeek * 1), balance: Math.round(start30dBal + pWeek * 1), dailyGain: 2.8 },
-        { time: "W2", netProfit: Math.round(pWeek * 2), balance: Math.round(start30dBal + pWeek * 2), dailyGain: 5.4 },
-        { time: "W3", netProfit: Math.round(pWeek * 3), balance: Math.round(start30dBal + pWeek * 3), dailyGain: 8.2 },
-        { time: "W4", netProfit: netP, balance: Math.round(bal), dailyGain: 11.5 },
+        { time: "30D Ago", netProfit: 0, balance: Math.round(start30dBal), dailyGain: 0 },
+        { time: "Now", netProfit: Number(netP.toFixed(2)), balance: Math.round(bal), dailyGain: start30dBal > 0 ? Number(((netP / start30dBal) * 100).toFixed(2)) : 0 },
       ];
     }
-    const pM = Number((netP / 3).toFixed(2));
-    const startAllBal = Math.max(100, bal - netP);
+
+    const startAllBal = Math.max(0, bal - netP);
     return [
-      { time: "Aug", netProfit: Math.round(pM * 1), balance: Math.round(startAllBal + pM * 1), dailyGain: 4.5 },
-      { time: "Sep", netProfit: Math.round(pM * 2), balance: Math.round(startAllBal + pM * 2), dailyGain: 9.8 },
-      { time: "Oct", netProfit: netP, balance: Math.round(bal), dailyGain: 14.2 },
+      { time: "Initial", netProfit: 0, balance: Math.round(startAllBal), dailyGain: 0 },
+      { time: "Now", netProfit: Number(netP.toFixed(2)), balance: Math.round(bal), dailyGain: startAllBal > 0 ? Number(((netP / startAllBal) * 100).toFixed(2)) : 0 },
     ];
-  }, [chartTimeframe, accountBalance, todayProfit, netProfitAllTime]);
+  }, [chartTimeframe, accountBalance, todayProfit, netProfitAllTime, closedTrades, openPositions]);
 
   // ── Live Active Basket Positions (Real MT5 Live Positions) ──
   const [openPositions, setOpenPositions] = useState<OpenTradeItem[]>([]);
@@ -564,7 +580,7 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
     }
   }, [totalOpenPages, openPositionsPage]);
 
-  // ── Quantitative Performance Metrics (Profit Factor, Sharpe Ratio, Max Drawdown, Win Rate) ──
+  // ── Quantitative Performance Metrics (Pure Real Trades & Live Telemetry - No Demo Data) ──
   const quantMetrics = useMemo(() => {
     const totalTrades = closedTrades.length;
     const wins = closedTrades.filter(t => t.pnl > 0);
@@ -576,24 +592,26 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
     const grossLoss = Math.abs(losses.reduce((acc, t) => acc + t.pnl, 0));
 
     // 1. Avg Win Rate (%)
-    const winRatePct = totalTrades > 0 ? Number(((winCount / totalTrades) * 100).toFixed(1)) : 86.4;
+    const winRatePct = totalTrades > 0 ? Number(((winCount / totalTrades) * 100).toFixed(1)) : 0;
 
     // 2. Profit Factor (Gross Profit / Gross Loss)
-    let profitFactor = "2.48";
+    let profitFactor = "0.00";
     if (totalTrades > 0) {
       if (grossLoss > 0) {
         profitFactor = (grossProfit / grossLoss).toFixed(2);
       } else if (grossProfit > 0) {
-        profitFactor = "5.0+";
+        profitFactor = grossProfit.toFixed(2);
       } else {
         profitFactor = "0.00";
       }
+    } else if (todayProfit > 0) {
+      profitFactor = (todayProfit).toFixed(2);
     }
 
     // 3. Max Drawdown % (Historical peak-to-trough drop + active floating loss)
     let maxDd = 0;
-    const baseCap = depositAmount > 0 ? depositAmount : (accountBalance > 0 ? accountBalance : 1000);
-    if (totalTrades > 0) {
+    const baseCap = depositAmount > 0 ? depositAmount : (accountBalance > 0 ? accountBalance : 0);
+    if (totalTrades > 0 && baseCap > 0) {
       let peak = baseCap;
       let running = baseCap;
       const chrono = [...closedTrades].reverse();
@@ -609,10 +627,10 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
       const liveDd = (floatingLoss / accountBalance) * 100;
       if (liveDd > maxDd) maxDd = liveDd;
     }
-    const maxDrawdownPct = totalTrades > 0 || maxDd > 0 ? Number(Math.min(99.9, Math.max(0.5, maxDd)).toFixed(1)) : 3.8;
+    const maxDrawdownPct = Number(maxDd.toFixed(1));
 
-    // 4. Sharpe Ratio (Institutional risk-adjusted alpha efficiency)
-    let sharpeRatio = "2.35";
+    // 4. Sharpe Ratio (Real risk-adjusted alpha efficiency)
+    let sharpeRatio = "0.00";
     if (totalTrades >= 2) {
       const returns = closedTrades.map(t => t.pnl);
       const mean = returns.reduce((a, b) => a + b, 0) / returns.length;
@@ -620,12 +638,12 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
       const stdDev = Math.sqrt(variance);
       if (stdDev > 0) {
         const sr = (mean / stdDev) * Math.sqrt(Math.min(returns.length, 252));
-        sharpeRatio = Math.max(0, Math.min(9.99, sr)).toFixed(2);
+        sharpeRatio = Math.max(0, Math.min(99.99, sr)).toFixed(2);
       }
     }
 
-    // 5. Average Win Trade
-    const avgWinTrade = winCount > 0 ? grossProfit / winCount : (todayProfit > 0 ? todayProfit : 412);
+    // 5. Average Win Trade (Real average profit per winning trade)
+    const avgWinTrade = winCount > 0 ? (grossProfit / winCount) : 0;
 
     return {
       winRatePct,
@@ -922,7 +940,8 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
               closePrice: closeP,
               pnl: pnlVal,
               closeTime: t.closed_at ? new Date(t.closed_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Recent",
-              duration: formatDuration(t.opened_at, t.closed_at)
+              duration: formatDuration(t.opened_at, t.closed_at),
+              closedAtMs: closedTimeMs || (t.time ? Number(t.time) * 1000 : Date.now())
             });
           } else {
             calcTodayPnl += pnlVal;
@@ -1462,121 +1481,6 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
         </div>
       </div>
 
-      {/* ── ALGORITHM QUANT PERFORMANCE & RISK DIAGNOSTICS (Real Institutional MT5 Metrics) ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4 mb-6">
-        {/* Metric 1: Profit Factor */}
-        <div className={kpiBoxStyle}>
-          <div className="flex items-center justify-between">
-            <p className="text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-wider">
-              Profit Factor
-            </p>
-            <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center shrink-0">
-              <TrendingUp className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-            </div>
-          </div>
-          <div>
-            <div className="flex items-baseline gap-2">
-              <h3 className="text-[20px] xl:text-[22px] font-bold text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
-                {quantMetrics.profitFactor}
-              </h3>
-              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-200/50">
-                {Number(quantMetrics.profitFactor) >= 2.0 || quantMetrics.profitFactor.includes("+") ? "Institutional" : "Optimal"}
-              </span>
-            </div>
-            <div className="flex items-center justify-between mt-2 pt-0.5 text-[11px] font-medium text-slate-400">
-              <span>Gross Profit / Loss</span>
-              <span className="font-semibold text-slate-700 dark:text-slate-300">
-                {formatMoney(quantMetrics.grossProfit, { compact: true })} / {formatMoney(quantMetrics.grossLoss, { compact: true })}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Metric 2: Sharpe Ratio */}
-        <div className={kpiBoxStyle}>
-          <div className="flex items-center justify-between">
-            <p className="text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-wider">
-              Sharpe Ratio
-            </p>
-            <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center shrink-0">
-              <Award className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-            </div>
-          </div>
-          <div>
-            <div className="flex items-baseline gap-2">
-              <h3 className="text-[20px] xl:text-[22px] font-bold text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
-                {quantMetrics.sharpeRatio}
-              </h3>
-              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-400 border border-indigo-200/50">
-                Alpha &gt; 2.0
-              </span>
-            </div>
-            <div className="flex items-center justify-between mt-2 pt-0.5 text-[11px] font-medium text-slate-400">
-              <span>Risk-Adjusted Efficiency</span>
-              <span className="font-semibold text-emerald-600 dark:text-emerald-400">
-                Superior
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Metric 3: Max Drawdown */}
-        <div className={kpiBoxStyle}>
-          <div className="flex items-center justify-between">
-            <p className="text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-wider">
-              Max Drawdown
-            </p>
-            <div className="w-8 h-8 rounded-lg bg-sky-50 dark:bg-sky-500/10 flex items-center justify-center shrink-0">
-              <ShieldCheck className="w-4 h-4 text-sky-600 dark:text-sky-400" />
-            </div>
-          </div>
-          <div>
-            <div className="flex items-baseline gap-2">
-              <h3 className="text-[20px] xl:text-[22px] font-bold text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
-                {quantMetrics.maxDrawdownPct}%
-              </h3>
-              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-sky-50 text-sky-700 dark:bg-sky-500/10 dark:text-sky-400 border border-sky-200/50">
-                Low Risk (&lt;5%)
-              </span>
-            </div>
-            <div className="flex items-center justify-between mt-2 pt-0.5 text-[11px] font-medium text-slate-400">
-              <span>Peak-to-Trough Safety</span>
-              <span className="font-semibold text-sky-600 dark:text-sky-400">
-                Basket Guarded
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Metric 4: Avg Win Rate */}
-        <div className={kpiBoxStyle}>
-          <div className="flex items-center justify-between">
-            <p className="text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-wider">
-              Avg Win Rate
-            </p>
-            <div className="w-8 h-8 rounded-lg bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center shrink-0">
-              <Target className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-            </div>
-          </div>
-          <div>
-            <div className="flex items-baseline gap-2">
-              <h3 className="text-[20px] xl:text-[22px] font-bold text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
-                {quantMetrics.winRatePct}%
-              </h3>
-              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 border border-amber-200/50">
-                {quantMetrics.isLiveCalculated ? `${quantMetrics.winCount}W / ${quantMetrics.lossCount}L` : "Benchmark"}
-              </span>
-            </div>
-            <div className="flex items-center justify-between mt-2 pt-0.5 text-[11px] font-medium text-slate-400">
-              <span>Total Closed Baskets</span>
-              <span className="font-semibold text-slate-700 dark:text-slate-300">
-                {quantMetrics.totalTrades} Executed
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* ── 2-COLUMN SECTION: Net Profit Growth Chart + 50/50 Profit Split Card ── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 mb-6">
         {/* LEFT COLUMN: NET PROFIT GROWTH CHART (8 cols) */}
@@ -1688,13 +1592,13 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
             <div>
               <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Max Drawdown</p>
               <h4 className="text-[18px] font-medium text-emerald-600 dark:text-emerald-400 tracking-tight mt-0.5" style={{ fontFamily: "'Inter', sans-serif" }}>
-                -{quantMetrics.maxDrawdownPct}%
+                {quantMetrics.maxDrawdownPct > 0 ? `-${quantMetrics.maxDrawdownPct}%` : "0.0%"}
               </h4>
             </div>
             <div>
               <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Avg Win Trade</p>
               <h4 className="text-[18px] font-medium text-slate-900 dark:text-white tracking-tight mt-0.5" style={{ fontFamily: "'Inter', sans-serif" }}>
-                +{formatMoney(quantMetrics.avgWinTrade)}
+                {quantMetrics.winCount > 0 ? `+${formatMoney(quantMetrics.avgWinTrade)}` : formatMoney(0)}
               </h4>
             </div>
           </div>
