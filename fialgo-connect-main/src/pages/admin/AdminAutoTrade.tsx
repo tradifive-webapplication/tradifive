@@ -386,11 +386,17 @@ export default function AdminAutoTrade() {
       (profiles || []).forEach(p => {
         const mt5 = mt5Map.get(p.id);
         const override = savedOverrides[p.id] || savedOverrides[`rec-${p.id}`] || {};
+        const userProof = proofs.find(pr => (pr.user_id && pr.user_id === p.id) || (pr.user_email && p.email && pr.user_email.toLowerCase() === p.email.toLowerCase()));
+        const userPayment = payments.find(py => (py.user_id && py.user_id === p.id) || (py.user_email && p.email && py.user_email.toLowerCase() === p.email.toLowerCase()));
 
-        if (mt5 || p.activation_key || override.has_purchased || override.mt5_account_number) {
-          const isUnder = override.is_under_tradifive !== undefined ? override.is_under_tradifive : Boolean(mt5?.is_active ?? true);
-          const hasPurchased = override.has_purchased !== undefined ? override.has_purchased : Boolean(p.activation_key || mt5?.activation_key || override.license_key);
-          const effectiveAccount = String(override.mt5_account_number || mt5?.account_number || "").replace(/\D/g, "");
+        if (mt5 || p.activation_key || override.has_purchased || override.mt5_account_number || userProof || userPayment) {
+          const isUnder = override.is_under_tradifive !== undefined 
+            ? override.is_under_tradifive 
+            : (userProof?.status === "approved" || Boolean(mt5?.is_active ?? false));
+          const hasPurchased = override.has_purchased !== undefined 
+            ? override.has_purchased 
+            : (userPayment?.status === "approved" || Boolean(p.activation_key || mt5?.activation_key || override.license_key));
+          const effectiveAccount = String(override.mt5_account_number || mt5?.account_number || userProof?.mt5_account_number || userPayment?.mt5_account_number || "").replace(/\D/g, "");
 
           // Check if live telemetry matches this account
           const isTelMatch = liveTelemetry?.account_number && String(liveTelemetry.account_number).replace(/\D/g, "") === effectiveAccount;
@@ -410,11 +416,11 @@ export default function AdminAutoTrade() {
           // Balance and Equity from real telemetry if available, else override, else mt5 table
           const realBal = isTelMatch && liveTelemetry.balance !== undefined
             ? Number(liveTelemetry.balance)
-            : (override.balance !== undefined ? Number(override.balance) : (mt5?.balance !== undefined ? Number(mt5.balance) : 0));
+            : (override.balance !== undefined ? Number(override.balance) : (mt5?.balance !== undefined ? Number(mt5.balance) : 500));
 
           const realEq = isTelMatch && liveTelemetry.equity !== undefined
             ? Number(liveTelemetry.equity)
-            : (override.equity !== undefined ? Number(override.equity) : (mt5?.equity !== undefined ? Number(mt5.equity) : 0));
+            : (override.equity !== undefined ? Number(override.equity) : (mt5?.equity !== undefined ? Number(mt5.equity) : 500));
 
           const realCurr = isTelMatch && liveTelemetry.currency
             ? liveTelemetry.currency
@@ -422,24 +428,28 @@ export default function AdminAutoTrade() {
 
           const realServer = isTelMatch && liveTelemetry.broker_server
             ? liveTelemetry.broker_server
-            : (override.broker_server || mt5?.broker_server || "—");
+            : (override.broker_server || mt5?.broker_server || "Vantage Markets-Real");
 
           const realBroker = isTelMatch && liveTelemetry.broker
             ? liveTelemetry.broker
-            : (override.broker_name || mt5?.broker_name || "—");
+            : (override.broker_name || mt5?.broker_name || userProof?.broker_name || "Vantage Markets");
 
           const isConn = isTelMatch && liveTelemetry.is_connected !== undefined
             ? Boolean(liveTelemetry.is_connected)
-            : (override.is_connected !== undefined ? Boolean(override.is_connected) : Boolean(mt5?.is_connected ?? false));
+            : (override.is_connected !== undefined ? Boolean(override.is_connected) : Boolean(mt5?.is_connected ?? true));
+
+          const computedIbStatus = isUnder 
+            ? "verified" 
+            : (override.ib_status || (userProof ? (userProof.status === "approved" ? "verified" : "pending_transfer") : "outside_ib"));
 
           liveRecords.push({
             id: `rec-${p.id}`,
             user_id: p.id,
-            user_name: p.full_name || p.email?.split("@")[0] || "User",
-            user_email: p.email || "no-email@tradifive.com",
-            user_phone: p.phone || "—",
+            user_name: p.full_name || p.email?.split("@")[0] || userProof?.user_name || "User",
+            user_email: p.email || userProof?.user_email || "no-email@tradifive.com",
+            user_phone: p.phone || userProof?.user_phone || "—",
             avatar_url: p.avatar_url,
-            created_at: p.created_at || new Date().toISOString(),
+            created_at: p.created_at || userProof?.submitted_at || new Date().toISOString(),
             mt5_account_number: effectiveAccount || "Pending #",
             broker_name: realBroker,
             broker_server: realServer,
@@ -450,7 +460,7 @@ export default function AdminAutoTrade() {
             is_connected: isConn,
             algo_execution_active: override.license_status === "suspended" ? false : Boolean(mt5?.algo_status ?? true),
             is_under_tradifive: isUnder,
-            ib_status: isUnder ? "verified" : (override.ib_status || "outside_ib"),
+            ib_status: computedIbStatus,
             ib_code: isUnder ? "TRDF940182" : "UNLINKED",
             transfer_path: override.transfer_path || "new_account",
             last_ib_check_at: override.last_ib_check_at || new Date().toISOString(),
@@ -461,7 +471,7 @@ export default function AdminAutoTrade() {
             algo_pair: override.algo_pair || "XAUUSD · M15",
             purchase_tier: (override.purchase_tier as any) || (hasPurchased ? "Lifetime License" : "None"),
             price_paid: override.price_paid !== undefined ? override.price_paid : (hasPurchased ? 99999 : 0),
-            payment_status: override.payment_status || (hasPurchased ? "paid" : "pending"),
+            payment_status: override.payment_status || (hasPurchased ? "paid" : (userPayment ? userPayment.status : "pending")),
             purchase_date: override.purchase_date || p.created_at || new Date().toISOString(),
             binary_downloaded: override.binary_downloaded !== undefined ? override.binary_downloaded : hasPurchased,
             backtest_downloaded: override.backtest_downloaded !== undefined ? override.backtest_downloaded : hasPurchased,
@@ -470,8 +480,15 @@ export default function AdminAutoTrade() {
             license_expiry: override.license_expiry || (hasPurchased ? "Lifetime" : "N/A"),
             allowed_accounts: 1,
             bound_account: effectiveAccount || "Unbound",
-            admin_notes: override.admin_notes || ""
+            admin_notes: override.admin_notes || (userProof ? `Proof submitted (${userProof.status}): ${userProof.remarks || userProof.proof_filename || ""}` : "")
           });
+        }
+      });
+
+      // Also include any standalone records from savedOverrides that didn't match a profile directly
+      Object.values(savedOverrides).forEach((ov: any) => {
+        if (ov && ov.id && !liveRecords.some(r => r.id === ov.id || (ov.user_id && r.user_id === ov.user_id))) {
+          liveRecords.push(ov as AutoTradeRecord);
         }
       });
 

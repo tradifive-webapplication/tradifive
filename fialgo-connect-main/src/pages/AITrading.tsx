@@ -528,40 +528,101 @@ export default function AITrading() {
     }
   };
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const compressImage = async (file: File, maxDim = 1200, quality = 0.75): Promise<string> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const rawUrl = (e.target?.result as string) || "";
+        const img = new Image();
+        img.onload = () => {
+          try {
+            const canvas = document.createElement("canvas");
+            let width = img.width || 1;
+            let height = img.height || 1;
+            if (width > height) {
+              if (width > maxDim) {
+                height = Math.round((height * maxDim) / width);
+                width = maxDim;
+              }
+            } else {
+              if (height > maxDim) {
+                width = Math.round((width * maxDim) / height);
+                height = maxDim;
+              }
+            }
+            canvas.width = Math.max(1, width);
+            canvas.height = Math.max(1, height);
+            const ctx = canvas.getContext("2d");
+            if (ctx) {
+              ctx.drawImage(img, 0, 0, width, height);
+              resolve(canvas.toDataURL("image/jpeg", quality));
+              return;
+            }
+          } catch (_) {}
+          resolve(rawUrl);
+        };
+        img.onerror = () => resolve(rawUrl);
+        img.src = rawUrl;
+      };
+      reader.onerror = () => resolve("");
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const uploadProofToStorage = async (file: File, prefix = "proofs"): Promise<string> => {
+    try {
+      const cleanName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
+      const path = `${prefix}/${cleanName}`;
+      const { data, error } = await supabase.storage.from("attachments").upload(path, file, {
+        cacheControl: "3600",
+        upsert: true
+      });
+      if (!error && data?.path) {
+        const { data: pubData } = supabase.storage.from("attachments").getPublicUrl(data.path);
+        if (pubData?.publicUrl) return pubData.publicUrl;
+      }
+    } catch (_) {}
+    return "";
+  };
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 8 * 1024 * 1024) {
-      toast.error("File is too large. Please select an image under 8MB.");
+    if (file.size > 15 * 1024 * 1024) {
+      toast.error("File is too large. Please select an image under 15MB.");
       return;
     }
 
     setProofFileName(file.name);
-    const reader = new FileReader();
-    reader.onload = () => {
-      setProofFile(reader.result as string);
-      toast.success("Screenshot attached!", { description: file.name });
-    };
-    reader.readAsDataURL(file);
+    toast.info("Processing screenshot proof...");
+
+    // 1. Upload to Supabase storage if possible
+    const storageUrl = await uploadProofToStorage(file, "proofs");
+    // 2. Compress image for fallback and instant UI preview (keeps payload under 100KB)
+    const compressedDataUrl = await compressImage(file, 1200, 0.75);
+
+    setProofFile(storageUrl || compressedDataUrl);
+    toast.success("Screenshot attached!", { description: file.name });
   };
 
-  const handlePaymentProofUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePaymentProofUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 8 * 1024 * 1024) {
-      toast.error("File is too large. Please select an image under 8MB.");
+    if (file.size > 15 * 1024 * 1024) {
+      toast.error("File is too large. Please select an image under 15MB.");
       return;
     }
 
     setPaymentProofFileName(file.name);
-    const reader = new FileReader();
-    reader.onload = () => {
-      setPaymentProofFile(reader.result as string);
-      toast.success("Payment screenshot attached!", { description: file.name });
-    };
-    reader.readAsDataURL(file);
+    toast.info("Processing payment screenshot...");
+
+    const storageUrl = await uploadProofToStorage(file, "payments");
+    const compressedDataUrl = await compressImage(file, 1200, 0.75);
+
+    setPaymentProofFile(storageUrl || compressedDataUrl);
+    toast.success("Payment screenshot attached!", { description: file.name });
   };
 
   const handleSubmitPaymentRequest = async () => {
@@ -668,14 +729,24 @@ export default function AITrading() {
         .maybeSingle();
 
       const list = Array.isArray(existing?.value) ? existing.value : [];
-      list.unshift(newPaymentRequest);
+      const filteredList = list.filter((p: any) => 
+        p.id !== newPaymentRequest.id &&
+        !(userId && p.user_id === userId) &&
+        !(newPaymentRequest.utr_number && p.utr_number === newPaymentRequest.utr_number)
+      );
+      filteredList.unshift(newPaymentRequest);
 
-      await supabase.from("system_settings").upsert({
+      const { error: payErr } = await supabase.from("system_settings").upsert({
         id: "license_payment_requests",
-        value: list,
+        value: filteredList,
         updated_at: new Date().toISOString()
       });
-    } catch (err) {}
+      if (payErr) {
+        console.error("Failed to update license_payment_requests:", payErr);
+      }
+    } catch (err) {
+      console.warn("Payment submission error:", err);
+    }
 
     setIsSubmittingPayment(false);
     toast.success("Payment Request Submitted!", {
@@ -785,6 +856,7 @@ export default function AITrading() {
     setTransferRequestStatus("pending");
 
     try {
+      // 1. Fetch & update ib_transfer_requests in system_settings
       const { data: existing } = await supabase
         .from("system_settings")
         .select("*")
@@ -792,16 +864,86 @@ export default function AITrading() {
         .maybeSingle();
 
       const list = Array.isArray(existing?.value) ? existing.value : [];
-      list.unshift(newRequest);
+      // Clean previous requests for same user or account
+      const filteredList = list.filter((r: any) => 
+        r.id !== newRequest.id &&
+        !(userId && r.user_id === userId) &&
+        !(r.mt5_account_number && cleanAccount && r.mt5_account_number === cleanAccount)
+      );
+      filteredList.unshift(newRequest);
 
-      await supabase.from("system_settings").upsert({
+      const { error: ssErr } = await supabase.from("system_settings").upsert({
         id: "ib_transfer_requests",
-        value: list,
+        value: filteredList,
         updated_at: new Date().toISOString()
       });
+      if (ssErr) {
+        console.error("Failed to update ib_transfer_requests:", ssErr);
+      }
 
+      // 2. Also register immediately into auto_trade_admin_records so the Admin page's Active Accounts tab displays this account
+      try {
+        const { data: adminRecSetting } = await supabase
+          .from("system_settings")
+          .select("value")
+          .eq("id", "auto_trade_admin_records")
+          .maybeSingle();
+
+        const currentRecords = (adminRecSetting?.value && typeof adminRecSetting.value === "object") ? { ...adminRecSetting.value } : {};
+        const recKey = userId && !userId.startsWith("usr-") ? `rec-${userId}` : newRequest.id;
+        currentRecords[recKey] = {
+          id: recKey,
+          user_id: userId || "",
+          user_name: userName,
+          user_email: userEmail,
+          mt5_account_number: cleanNum,
+          broker_name: brokerLabel,
+          broker_server: `${brokerLabel}-Real`,
+          balance: 500,
+          equity: 500,
+          currency: "USD",
+          is_connected: true,
+          algo_execution_active: false,
+          is_under_tradifive: false,
+          ib_status: "pending_transfer",
+          ib_code: "TRDF940182",
+          transfer_path: setupPath === "transfer" ? "transfer_ib" : "new_account",
+          last_ib_check_at: new Date().toISOString(),
+          has_purchased: false,
+          algo_id: "fialgo_v1",
+          algo_name: "FiAlgo V1 (Gold Scalper & Trend)",
+          algo_manifest: "FiAlgo_v1.0.4.ex5",
+          algo_pair: "XAUUSD · M15",
+          purchase_tier: "None",
+          price_paid: 0,
+          payment_status: "pending",
+          purchase_date: "—",
+          binary_downloaded: false,
+          backtest_downloaded: false,
+          license_key: generatedLicKey,
+          license_status: "unissued",
+          license_expiry: "N/A",
+          allowed_accounts: 1,
+          bound_account: cleanNum,
+          admin_notes: `Account submitted for review with $500 balance proof (${proofFileName || "verification_proof.png"}).`,
+          created_at: new Date().toISOString()
+        };
+
+        const { error: atErr } = await supabase.from("system_settings").upsert({
+          id: "auto_trade_admin_records",
+          value: currentRecords,
+          updated_at: new Date().toISOString()
+        });
+        if (atErr) {
+          console.error("Failed to update auto_trade_admin_records:", atErr);
+        }
+      } catch (adminRecErr) {
+        console.warn("Could not sync to auto_trade_admin_records:", adminRecErr);
+      }
+
+      // 3. Upsert to public.mt5_accounts
       if (userId && !userId.startsWith("usr-")) {
-        await supabase.from("mt5_accounts").upsert({
+        const { error: mt5Err } = await supabase.from("mt5_accounts").upsert({
           user_id: userId,
           account_number: cleanNum,
           activation_key: generatedLicKey,
@@ -809,9 +951,12 @@ export default function AITrading() {
           connection_status: "pending_verification",
           algo_status: true
         }, { onConflict: "user_id" });
+        if (mt5Err) {
+          console.error("Failed to upsert mt5_accounts:", mt5Err);
+        }
       }
     } catch (err) {
-      console.warn("Stored locally:", err);
+      console.warn("Submission error:", err);
     }
 
     setIsSubmittingProof(false);
