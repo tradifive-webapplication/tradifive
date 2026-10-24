@@ -244,7 +244,8 @@ export default function TabLayout() {
   };
 
   const isSettings = pathname.includes('settings');
-  const isHome = (segments.length <= 1 && (segments[0] === '(tabs)' || !segments[0])) || (segments.length === 2 && segments[0] === '(tabs)' && (segments[1] as string) === 'index');
+  const segs = segments as unknown as string[];
+  const isHome = (segs.length <= 1 && (segs[0] === '(tabs)' || !segs[0])) || (segs.length === 2 && segs[0] === '(tabs)' && segs[1] === 'index');
 
   const [activeTab, setActiveTab] = useState<'feed' | 'dashboard' | 'dynamic'>(view === 'dashboard' ? 'dashboard' : 'feed');
   const [pendingTab, setPendingTab] = useState<string | null>(null);
