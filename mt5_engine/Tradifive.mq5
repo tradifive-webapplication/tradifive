@@ -4200,8 +4200,8 @@ void PushCloudTelemetry()
 
    string headers = "Content-Type: application/json\r\nAuthorization: Bearer " + TF_ANON_KEY + "\r\napikey: " + TF_ANON_KEY + "\r\n";
 
-   string jsonPayload = StringFormat("{\"action\":\"metrics_sync\",\"activation_key\":\"%s\",\"account_number\":\"%I64d\",\"broker\":\"%s\",\"balance\":%.2f,\"equity\":%.2f,\"margin\":%.2f,\"margin_free\":%.2f,\"margin_level\":%.2f,\"leverage\":%I64d,\"total_deposits\":%.2f,\"total_withdrawals\":%.2f,\"today_profit\":%.2f,\"net_profit\":%.2f,\"currency\":\"%s\",\"open_positions\":%s}",
-                                     lic, login, broker, bal, eq, mgn, mgnFree, mgnLevel, lev, totalDep, totalWd, todayPnl, netPnl, curr, openPositionsJson);
+   string jsonPayload = StringFormat("{\"action\":\"metrics_sync\",\"activation_key\":\"%s\",\"account_number\":\"%I64d\",\"broker\":\"%s\",\"balance\":%.2f,\"equity\":%.2f,\"margin\":%.2f,\"margin_free\":%.2f,\"margin_level\":%.2f,\"leverage\":%I64d,\"total_deposits\":%.2f,\"total_withdrawals\":%.2f,\"today_profit\":%.2f,\"net_profit\":%.2f,\"daily_target_pct\":%.1f,\"currency\":\"%s\",\"open_positions\":%s}",
+                                     lic, login, broker, bal, eq, mgn, mgnFree, mgnLevel, lev, totalDep, totalWd, todayPnl, netPnl, (DailyTargetOn ? DailyTargetPct : 3.0), curr, openPositionsJson);
    char postData[];
    StringToCharArray(jsonPayload, postData, 0, WHOLE_ARRAY, CP_UTF8);
    int dataSize = ArraySize(postData) - 1;
@@ -4249,8 +4249,8 @@ void PushCloudTelemetry()
    // 2. Direct REST PATCH to system_settings for guaranteed instantaneous dashboard telemetry
    string directSettingsUrl = "https://rylwyxhupwpwsdbvuoej.supabase.co/rest/v1/system_settings?id=eq.mt5_telemetry_live";
    string patchHeaders = "Content-Type: application/json\r\nAuthorization: Bearer " + TF_ANON_KEY + "\r\napikey: " + TF_ANON_KEY + "\r\nPrefer: return=minimal\r\n";
-   string patchPayload = StringFormat("{\"value\":{\"account_number\":\"%I64d\",\"broker\":\"%s\",\"broker_server\":\"%s\",\"balance\":%.2f,\"equity\":%.2f,\"margin\":%.2f,\"margin_free\":%.2f,\"margin_level\":%.2f,\"leverage\":%I64d,\"total_deposits\":%.2f,\"total_withdrawals\":%.2f,\"today_profit\":%.2f,\"net_profit\":%.2f,\"currency\":\"%s\",\"is_connected\":true,\"algo_status\":%s,\"license_status\":\"%s\",\"last_pulse\":\"%s\"}}",
-                                      login, broker, broker, bal, eq, mgn, mgnFree, mgnLevel, lev, totalDep, totalWd, todayPnl, netPnl, curr, (g_licSuspended ? "false" : "true"), (g_licSuspended ? "suspended" : "active"), TimeToString(TimeCurrent(), TIME_DATE|TIME_SECONDS));
+   string patchPayload = StringFormat("{\"value\":{\"account_number\":\"%I64d\",\"broker\":\"%s\",\"broker_server\":\"%s\",\"balance\":%.2f,\"equity\":%.2f,\"margin\":%.2f,\"margin_free\":%.2f,\"margin_level\":%.2f,\"leverage\":%I64d,\"total_deposits\":%.2f,\"total_withdrawals\":%.2f,\"today_profit\":%.2f,\"net_profit\":%.2f,\"daily_target_pct\":%.1f,\"currency\":\"%s\",\"is_connected\":true,\"algo_status\":%s,\"license_status\":\"%s\",\"last_pulse\":\"%s\"}}",
+                                      login, broker, broker, bal, eq, mgn, mgnFree, mgnLevel, lev, totalDep, totalWd, todayPnl, netPnl, (DailyTargetOn ? DailyTargetPct : 3.0), curr, (g_licSuspended ? "false" : "true"), (g_licSuspended ? "suspended" : "active"), TimeToString(TimeCurrent(), TIME_DATE|TIME_SECONDS));
    char patchData[];
    StringToCharArray(patchPayload, patchData, 0, WHOLE_ARRAY, CP_UTF8);
    int pSz = ArraySize(patchData) - 1;

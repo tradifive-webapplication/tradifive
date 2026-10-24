@@ -346,13 +346,25 @@ serve(async (req) => {
        const total_deposits = payload.total_deposits !== undefined ? Number(payload.total_deposits) : null;
        const total_withdrawals = payload.total_withdrawals !== undefined ? Number(payload.total_withdrawals) : null;
 
+       let normalizedCurr = 'USD';
+       if (currency) {
+         const cUpper = String(currency).trim().toUpperCase();
+         if (cUpper === 'USC' || cUpper === 'USCENT' || cUpper.includes('CENT') || cUpper === 'EUX') {
+           normalizedCurr = 'USC';
+         } else if (cUpper === 'INR') {
+           normalizedCurr = 'INR';
+         } else {
+           normalizedCurr = 'USD';
+         }
+       }
+
        const accountPayload: any = {
           user_id,
           account_number: cleanAcc,
           broker_server: brokerServerStr,
           balance: balance !== undefined ? Number(balance) : 0,
           equity: equity !== undefined ? Number(equity) : 0,
-          currency: currency || 'INR',
+          currency: normalizedCurr,
           connection_status: 'deployed',
           algo_status: !isSuspended
        };
@@ -486,7 +498,6 @@ serve(async (req) => {
               .delete()
               .eq('user_id', user_id)
               .eq('is_pending', true);
-          }
         // Save real MT5 expert logs to system_logs
         if (expert_logs && Array.isArray(expert_logs) && expert_logs.length > 0) {
           try {
@@ -499,13 +510,32 @@ serve(async (req) => {
                 message: l.message
               })
             }));
+            await supabaseAdmin.from('system_logs').insert(logEntries);
+          } catch (e_logs) {
+            console.error('Error saving expert logs:', e_logs);
+          }
+        }
+
         // Cache live margin, leverage and account metrics
         try {
           const liveCacheObj: any = {
-            margin: reqBody.margin !== undefined ? Number(reqBody.margin) : 0,
-            margin_free: reqBody.margin_free !== undefined ? Number(reqBody.margin_free) : Number(equity || 0),
-            margin_level: reqBody.margin_level !== undefined ? Number(reqBody.margin_level) : 0,
-            leverage: reqBody.leverage !== undefined ? Number(reqBody.leverage) : 100,
+            account_number: cleanAcc,
+            broker: brokerClean,
+            broker_server: brokerServerStr,
+            balance: balance !== undefined ? Number(balance) : 0,
+            equity: equity !== undefined ? Number(equity) : 0,
+            margin: payload.margin !== undefined ? Number(payload.margin) : 0,
+            margin_free: payload.margin_free !== undefined ? Number(payload.margin_free) : Number(equity || 0),
+            margin_level: payload.margin_level !== undefined ? Number(payload.margin_level) : 0,
+            leverage: payload.leverage !== undefined ? Number(payload.leverage) : 100,
+            currency: accountPayload.currency,
+            today_profit: payload.today_profit !== undefined ? Number(payload.today_profit) : 0,
+            net_profit: payload.net_profit !== undefined ? Number(payload.net_profit) : 0,
+            daily_target_pct: payload.daily_target_pct !== undefined ? Number(payload.daily_target_pct) : 3.0,
+            open_positions: payload.open_positions || [],
+            is_connected: true,
+            algo_status: !isSuspended,
+            license_status: licenseStatus,
             updated_at: new Date().toISOString()
           };
           if (total_deposits !== null) liveCacheObj.total_deposits = total_deposits;
@@ -515,7 +545,9 @@ serve(async (req) => {
             id: 'mt5_telemetry_live',
             value: liveCacheObj
           });
-        } catch (e_mgn) {}
+        } catch (e_mgn) {
+          console.error('Error saving mt5_telemetry_live cache:', e_mgn);
+        }
 
         if (dbError) {
           console.error('Metrics Sync Error:', dbError);
@@ -527,7 +559,7 @@ serve(async (req) => {
           license_status: licenseStatus,
           is_suspended: isSuspended 
         }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-    }
+      }
 
     // Step E: Normalize trade_type (supporting "BUY"/"SELL" strings, "0"/"1" strings, or 0/1 numbers)
     let finalTradeType = 0;
