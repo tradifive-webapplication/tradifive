@@ -1,7 +1,7 @@
 import { Tabs, useRouter, usePathname, useGlobalSearchParams, useSegments } from 'expo-router';
 import React, { useState, useRef, useEffect } from 'react';
 import {
-  Bot, Menu, X, Cpu, Zap, CreditCard, History, Brain, Mic, BadgeCheck, Clock, List, Rocket, CircleSlash, UserPlus, DollarSign, ArrowUp, Globe, Sparkles
+  Bot, Menu, X, Cpu, Zap, CreditCard, History, Brain, Mic, BadgeCheck, Clock, List, Rocket, CircleSlash, UserPlus, DollarSign, ArrowUp, Globe, Sparkles, LogOut
 } from 'lucide-react-native';
 import {
   User,
@@ -87,12 +87,12 @@ const AI_SUGGESTIONS = [
 const SEARCH_DATA = [
   { label: 'Journal', type: 'tool', route: '/(tabs)/journal', icon: BookOpen },
   { label: 'Risk Guard', type: 'tool', route: '/(tabs)/risk-guard', icon: ShieldCheck },
+  { label: 'Broker Connect', type: 'tool', route: '/broker-connect', icon: Zap },
   { label: 'Rewards', type: 'tool', route: '/(tabs)/rewards', icon: Gift },
-  { label: 'Discover', type: 'community', route: '/(tabs)/channel?view=Discover', icon: Users },
   { label: 'Channels', type: 'community', route: '/(tabs)/channels', icon: Users },
   { label: 'Help Center', type: 'support', route: '/help', icon: HelpCircle },
-  { label: 'Settings', type: 'account', route: '/settings', icon: SettingsIcon },
-  { label: 'Contests', type: 'community', route: '/(tabs)/contests', icon: Trophy },
+  { label: 'Settings', type: 'account', route: '/(tabs)/settings', icon: SettingsIcon },
+  { label: 'Marketplace', type: 'store', route: '/(tabs)/marketplace', icon: Bag },
 ];
 
 const QUICK_SEARCHES = ['Risk Guard', 'Journal', 'Help Center', 'Settings'];
@@ -322,26 +322,30 @@ export default function TabLayout() {
   const isCreator = (currentUser as any)?.is_creator || false;
 
   const ALL_DRAWER_ITEMS = [
-    { label: 'Home', icon: Home, type: 'nav', subItems: ['Dashboard Overview', 'Inbox', 'Notifications'] },
-    { label: 'Discover', icon: Search, type: 'nav', subItems: ['Marketplace', 'Rewards & Referrals'] },
-    { label: 'Auto Trade', icon: Rocket, type: 'nav', subItems: ['Active Bots', 'Strategy Builder', 'Backtesting', 'Order History'] },
-    { label: 'Portfolio & Finance', icon: Bag, type: 'nav', subItems: ['Portfolio', 'Broker Connect'] },
-    { label: 'Risk Guard', icon: ShieldCheck, type: 'nav', subItems: ['Risk Dashboard', 'Drawdown Limits', 'Kill Switch'] },
-    { label: 'AI & Journal', icon: Brain, type: 'nav', subItems: ['AI Coach Insights', 'Daily Journal', 'Performance Analytics'] },
-    { label: 'Community & Learning', icon: Users, type: 'nav', subItems: ['Channels', 'Contests', 'Mentorship Hub', 'Live Sessions'] },
+    { label: 'Dashboard', icon: LayoutGrid, route: '/(tabs)', params: { view: 'dashboard' }, desc: 'Trading overview & metrics' },
+    { label: 'Feed', icon: Home, route: '/(tabs)', params: { view: 'feed' }, desc: 'Trader community & posts' },
+    { label: 'Risk Guard', icon: ShieldCheck, route: '/(tabs)/risk-guard', desc: 'Drawdown & capital protection' },
+    { label: 'Trading Journal', icon: BookOpen, route: '/(tabs)/journal', desc: 'Trade logs & calendar' },
+    { label: 'Broker Connect', icon: Zap, route: '/broker-connect', desc: 'MT5 & account sync' },
+    { label: 'Channels', icon: Users, route: '/(tabs)/channels', desc: 'Signals & discussion rooms' },
+    { label: 'AI Coach', icon: Brain, action: 'ai', desc: 'Instant AI trade insights' },
+    { label: 'Rewards', icon: Gift, route: '/(tabs)/rewards', desc: 'Points, streaks & badges' },
+    { label: 'Marketplace', icon: Bag, route: '/(tabs)/marketplace', desc: 'Strategies & bot store' },
   ];
 
   if (isElite && currentUser?.account_type === 'creator') {
     ALL_DRAWER_ITEMS.push({
-      label: 'Creator Studio', icon: Crown, type: 'nav',
-      subItems: ['Creator Dashboard', 'My Store']
+      label: 'Creator Studio',
+      icon: Crown,
+      route: '/(tabs)/creator-studio',
+      desc: 'Creator store & analytics',
     } as any);
   }
 
   const DRAWER_FOOTER = [
-    { label: 'Settings and privacy', icon: SettingsIcon },
-    { label: 'Refer a Friend', icon: Users },
-    { label: 'Help Centre', icon: HelpCircle },
+    { label: 'Settings and privacy', icon: SettingsIcon, route: '/(tabs)/settings' },
+    { label: 'Help Centre', icon: HelpCircle, route: '/help' },
+    { label: 'Log Out', icon: LogOut, action: 'signout' },
   ];
 
   return (
@@ -448,159 +452,124 @@ export default function TabLayout() {
             </TouchableOpacity>
 
             {/* Drawer Main Items */}
-            {ALL_DRAWER_ITEMS.map((item: any, idx) => {
-              const isExpanded = expandedItem === item.label;
-              const isSoon = item.soon;
+            {ALL_DRAWER_ITEMS.map((item: any, idx: number) => {
+              const isActive = (item.params?.view && isHome && view === item.params.view) ||
+                (item.route && !item.params && pathname.includes(item.route.replace('/(tabs)', '')));
 
               return (
-                <View key={idx}>
-                  <TouchableOpacity
-                    onPress={() => {
-                      if (item.type === 'profile') {
-                        closeDrawer();
-                        router.push('/profile');
-                      } else if (item.type === 'nav') {
-                        if (isSoon) {
-                          h();
-                          return;
-                        }
-                        if (item.subItems) {
-                          setExpandedItem(isExpanded ? null : item.label);
-                          hSelect();
-                        } else {
-                          if ((item as any).isLocked) {
-                            h();
-                            Alert.alert("Locked", `${item.label} is currently locked.`);
-                            return;
-                          }
-                          setActiveNavItem({ label: item.label, icon: item.icon });
-                          setActiveTab('dynamic');
-                          setPendingTab('dynamic');
-                          if (item.label === 'Journal') router.push('/(tabs)/journal');
-                          else if (item.label === 'Risk Guard') router.push('/(tabs)/risk-guard');
-                          else if (item.label === 'Rewards') router.push('/(tabs)/rewards');
-                          else if (item.label === 'Discover') router.push({ pathname: '/(tabs)/channel', params: { view: 'Discover' } });
-                          else if (item.label === 'Channels') router.push('/(tabs)/channels');
-                          closeDrawer();
-                        }
+                <TouchableOpacity
+                  key={idx}
+                  activeOpacity={0.7}
+                  onPress={() => {
+                    h();
+                    closeDrawer();
+                    if (item.action === 'ai') {
+                      openAI();
+                      return;
+                    }
+                    setActiveNavItem({ label: item.label, icon: item.icon });
+                    setActiveTab('dynamic');
+                    setPendingTab('dynamic');
+                    if (item.params) {
+                      if (isHome) {
+                        router.setParams(item.params);
+                      } else {
+                        router.push({ pathname: '/(tabs)', params: item.params } as any);
                       }
-                    }}
-                    style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 14, gap: 16 }}
-                  >
-                    <item.icon size={20} color={isDark ? '#fff' : (headerStyle === 'simple' ? '#0f172a' : '#fff')} strokeWidth={2} />
-                    <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                        <Text style={{ color: isDark ? '#fff' : (headerStyle === 'simple' ? '#0f172a' : '#fff'), fontSize: 16, fontFamily: 'Inter_700Bold' }}>{item.label}</Text>
-                        {isSoon && (
-                          <View style={{ backgroundColor: isDark ? '#1e293b' : (headerStyle === 'simple' ? '#f1f5f9' : '#1e293b'), paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
-                            <Text style={{ color: isDark ? '#64748b' : (headerStyle === 'simple' ? '#64748b' : '#64748b'), fontSize: 8, fontFamily: 'Inter_700Bold' }}>SOON</Text>
-                          </View>
-                        )}
-                      </View>
-                      {item.subItems && (
-                        <ChevronDown
-                          size={16}
-                          color={isDark ? '#475569' : (headerStyle === 'simple' ? '#64748b' : '#475569')}
-                          style={{ transform: [{ rotate: isExpanded ? '180deg' : '0deg' }] }}
-                        />
-                      )}
-                    </View>
-                  </TouchableOpacity>
-
-                  {isExpanded && item.subItems && (
-                    <View style={{ paddingLeft: 32, paddingBottom: 10, borderLeftWidth: 1, borderLeftColor: isDark ? '#1e293b' : (headerStyle === 'simple' ? '#e2e8f0' : '#1e293b'), marginLeft: 26, marginTop: 4 }}>
-                      {item.subItems.map((sub: string) => {
-                        const SUB_ITEM_ICONS: Record<string, any> = {
-                          'Dashboard Overview': LayoutGrid,
-                          'Inbox': MessageCircle,
-                          'Notifications': Bookmark,
-                          'Marketplace': Bag,
-                          'Rewards & Referrals': Gift,
-                          'Active Bots': Cpu,
-                          'Strategy Builder': Zap,
-                          'Backtesting': History,
-                          'Order History': List,
-                          'Portfolio': Bag,
-                          'Broker Connect': Zap,
-                          'Risk Dashboard': ShieldCheck,
-                          'Drawdown Limits': CircleSlash,
-                          'Kill Switch': X,
-                          'AI Coach Insights': Brain,
-                          'Daily Journal': BookOpen,
-                          'Performance Analytics': Clock,
-                          'Channels': Users,
-                          'Contests': Trophy,
-                          'Mentorship Hub': Bookmark,
-                          'Live Sessions': Video,
-                          'Creator Dashboard': Crown,
-                          'My Store': Bag,
-                        };
-                        const SubIcon = SUB_ITEM_ICONS[sub] || BookOpen;
-                        return (
-                          <TouchableOpacity
-                            key={sub}
-                            onPress={() => {
-                              if (item.isSoonGroup) {
-                                h();
-                                return;
-                              }
-                              setActiveNavItem({ label: item.label, icon: item.icon });
-                              setActiveTab('dynamic');
-                              setPendingTab('dynamic');
-                              
-                              if (sub === 'Inbox') { closeDrawer(); router.push('/(tabs)/inbox' as any); return; }
-                              if (sub === 'Dashboard Overview') { closeDrawer(); router.setParams({ view: 'dashboard' }); return; }
-                              if (sub === 'Marketplace') { closeDrawer(); router.push('/(tabs)/marketplace'); return; }
-                              if (sub === 'Rewards & Referrals') { closeDrawer(); router.push('/(tabs)/rewards'); return; }
-                              if (sub === 'Portfolio') { closeDrawer(); router.push('/(tabs)/finance'); return; }
-                              if (sub === 'Broker Connect') { closeDrawer(); router.push('/broker-connect' as any); return; }
-                              if (sub === 'Risk Dashboard') { closeDrawer(); router.push('/(tabs)/risk-guard'); return; }
-                              if (sub === 'Daily Journal') { closeDrawer(); router.push('/(tabs)/journal'); return; }
-                              if (sub === 'AI Coach Insights') { closeDrawer(); openAI(); return; }
-                              if (sub === 'Channels') { closeDrawer(); router.push('/(tabs)/channels'); return; }
-                              if (sub === 'Contests') { closeDrawer(); router.push('/(tabs)/contests'); return; }
-                              if (sub === 'Mentorship Hub') { closeDrawer(); router.push('/(tabs)/mentorship-hub'); return; }
-                              if (sub === 'Live Sessions') { closeDrawer(); router.push('/(tabs)/live-sessions'); return; }
-                              if (sub === 'Creator Dashboard') { closeDrawer(); router.push('/(tabs)/creator-studio'); return; }
-                              if (sub === 'My Store') { closeDrawer(); router.push('/(tabs)/my-store'); return; }
-
-                              closeDrawer();
-                            }}
-                            style={{ paddingVertical: 10, flexDirection: 'row', alignItems: 'center', gap: 12 }}
-                          >
-                            <SubIcon size={15} color={isDark ? '#94a3b8' : (headerStyle === 'simple' ? '#64748b' : '#94a3b8')} strokeWidth={2} />
-                            <Text style={{ color: isDark ? '#94a3b8' : (headerStyle === 'simple' ? '#475569' : '#94a3b8'), fontSize: 14, fontFamily: 'Inter_600SemiBold' }}>{sub}</Text>
-                          </TouchableOpacity>
-                        );
-                      })}
-                    </View>
-                  )}
-                </View>
+                    } else if (item.route) {
+                      router.push(item.route as any);
+                    }
+                  }}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    paddingVertical: 12,
+                    paddingHorizontal: 12,
+                    borderRadius: 14,
+                    marginBottom: 4,
+                    backgroundColor: isActive ? (isDark ? 'rgba(56, 189, 248, 0.12)' : 'rgba(2, 132, 199, 0.08)') : 'transparent',
+                    gap: 14,
+                  }}
+                >
+                  <View style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 10,
+                    backgroundColor: isActive ? '#0284c7' : (isDark ? '#111827' : '#f1f5f9'),
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}>
+                    <item.icon
+                      size={18}
+                      color={isActive ? '#ffffff' : (isDark ? '#cbd5e1' : '#334155')}
+                      strokeWidth={2}
+                    />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{
+                      color: isActive ? (isDark ? '#38bdf8' : '#0284c7') : (isDark ? '#f8fafc' : '#0f172a'),
+                      fontSize: 15,
+                      fontFamily: 'Inter_700Bold',
+                      letterSpacing: -0.2
+                    }}>
+                      {item.label}
+                    </Text>
+                    {item.desc ? (
+                      <Text style={{
+                        color: isDark ? '#64748b' : '#94a3b8',
+                        fontSize: 11,
+                        fontFamily: 'Inter_500Medium',
+                        marginTop: 1
+                      }}>
+                        {item.desc}
+                      </Text>
+                    ) : null}
+                  </View>
+                </TouchableOpacity>
               );
             })}
 
-            <View style={{ height: 1, backgroundColor: isDark ? '#1e293b' : (headerStyle === 'simple' ? '#e2e8f0' : '#1e293b'), marginVertical: 12 }} />
+            <View style={{ height: 1, backgroundColor: isDark ? '#1e293b' : '#e2e8f0', marginVertical: 12 }} />
 
             {/* Drawer Footer Items */}
-            {DRAWER_FOOTER.map((item, idx) => (
+            {DRAWER_FOOTER.map((item: any, idx: number) => (
               <TouchableOpacity
                 key={idx}
+                activeOpacity={0.7}
                 onPress={() => {
-                  if (item.label === 'Settings and privacy') {
-                    closeDrawer();
-                    router.push('/(tabs)/settings');
-                  } else if (item.label === 'Help Centre') {
-                    closeDrawer();
-                    router.push('/help');
-                  } else if (item.label === 'Refer a Friend') {
-                    closeDrawer();
-                    router.push('/(tabs)/referrals');
+                  h();
+                  closeDrawer();
+                  if (item.action === 'signout') {
+                    Alert.alert(
+                      'Log Out',
+                      'Are you sure you want to log out of TradiFive?',
+                      [
+                        { text: 'Cancel', style: 'cancel' },
+                        {
+                          text: 'Log Out',
+                          style: 'destructive',
+                          onPress: async () => {
+                            try {
+                              const { AuthService } = require('../services/auth.service');
+                              await AuthService.signOut();
+                            } catch (e) {}
+                            router.replace('/login');
+                          }
+                        }
+                      ]
+                    );
+                    return;
+                  }
+                  if (item.route) {
+                    router.push(item.route as any);
                   }
                 }}
-                style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 12, gap: 16 }}
+                style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 11, paddingHorizontal: 12, gap: 14, borderRadius: 12, marginBottom: 2 }}
               >
-                <item.icon size={18} color={isDark ? '#fff' : (headerStyle === 'simple' ? '#0f172a' : '#fff')} strokeWidth={2} />
-                <Text style={{ color: isDark ? '#fff' : (headerStyle === 'simple' ? '#0f172a' : '#fff'), fontSize: 14, fontFamily: 'Inter_600SemiBold' }}>{item.label}</Text>
+                <item.icon size={18} color={item.action === 'signout' ? '#ef4444' : (isDark ? '#94a3b8' : '#64748b')} strokeWidth={2} />
+                <Text style={{ color: item.action === 'signout' ? '#ef4444' : (isDark ? '#cbd5e1' : '#475569'), fontSize: 14, fontFamily: 'Inter_600SemiBold' }}>
+                  {item.label}
+                </Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -782,15 +751,13 @@ export default function TabLayout() {
                         h();
                         setActiveTab('dynamic');
                         setPendingTab('dynamic');
-                        if (activeNavItem.label === 'Journal') router.push('/(tabs)/journal');
+                        if (activeNavItem.label === 'Trading Journal' || activeNavItem.label === 'Journal') router.push('/(tabs)/journal');
                         else if (activeNavItem.label === 'Risk Guard') router.push('/(tabs)/risk-guard');
                         else if (activeNavItem.label === 'Rewards') router.push('/(tabs)/rewards');
-                        else if (activeNavItem.label === 'Discover') router.push({ pathname: '/(tabs)/channel', params: { view: 'Discover' } });
+                        else if (activeNavItem.label === 'Broker Connect') router.push('/broker-connect' as any);
                         else if (activeNavItem.label === 'Channels') router.push('/(tabs)/channels');
-                        else if (activeNavItem.label === 'Learning') router.push('/(tabs)/learning');
-                        else if (activeNavItem.label === 'Contests') router.push('/(tabs)/contests');
-                        else if (activeNavItem.label === 'Finance') router.push('/(tabs)/finance');
                         else if (activeNavItem.label === 'Marketplace') router.push('/(tabs)/marketplace');
+                        else if (activeNavItem.label === 'Settings') router.push('/(tabs)/settings');
                       }}
                     >
                       <activeNavItem.icon
@@ -836,113 +803,64 @@ export default function TabLayout() {
                 <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: insets.top + 16, paddingHorizontal: 24, paddingBottom: insets.bottom + 100 }}>
                   {(() => {
                     const localNavItems: any[] = [
-                      { label: 'Journal', icon: BookOpen, hasChevron: false },
-                      { label: 'Risk Guard', icon: ShieldCheck, hasChevron: false },
-                      { label: 'Channels', icon: Users, hasChevron: false },
-                      { label: 'Rewards', icon: Gift, hasChevron: false },
+                      { label: 'Dashboard', icon: LayoutGrid, route: '/(tabs)', params: { view: 'dashboard' } },
+                      { label: 'Feed', icon: Home, route: '/(tabs)', params: { view: 'feed' } },
+                      { label: 'Risk Guard', icon: ShieldCheck, route: '/(tabs)/risk-guard' },
+                      { label: 'Trading Journal', icon: BookOpen, route: '/(tabs)/journal' },
+                      { label: 'Broker Connect', icon: Zap, route: '/broker-connect' },
+                      { label: 'Channels', icon: Users, route: '/(tabs)/channels' },
+                      { label: 'Rewards', icon: Gift, route: '/(tabs)/rewards' },
+                      { label: 'Marketplace', icon: Bag, route: '/(tabs)/marketplace' },
                     ];
                     if (isElite && currentUser?.account_type === 'creator') {
                       localNavItems.push({
-                        label: 'Creator Hub',
+                        label: 'Creator Studio',
                         icon: Crown,
-                        hasChevron: true,
-                        subItems: ['Creator Dashboard', 'Mentorship Hub', 'My Store', 'Live Sessions']
+                        route: '/(tabs)/creator-studio'
                       } as any);
                     }
                     return localNavItems.map(item => {
                       const Icon = item.icon;
-                      const isExpanded = expandedItem === item.label;
                       return (
-                        <View key={item.label}>
-                          <TouchableOpacity
-                            activeOpacity={0.2}
-                            onPress={() => {
-                              if (item.subItems) {
-                                setExpandedItem(isExpanded ? null : item.label);
-                                hSelect();
+                        <TouchableOpacity
+                          key={item.label}
+                          activeOpacity={0.7}
+                          onPress={() => {
+                            h();
+                            closeMenu();
+                            setActiveNavItem({ label: item.label, icon: item.icon });
+                            if (item.params) {
+                              if (isHome) {
+                                router.setParams(item.params);
                               } else {
-                                h();
-                                setActiveNavItem({ label: item.label, icon: item.icon });
-                                if (item.label === 'Journal') router.push('/(tabs)/journal');
-                                else if (item.label === 'Discover') router.push({ pathname: '/(tabs)/channel', params: { view: 'Discover' } });
-                                else if (item.label === 'Channels') router.push('/(tabs)/channels');
-                                else if (item.label === 'Rewards') router.push('/(tabs)/rewards');
-                                else if (item.label === 'Risk Guard') router.push('/(tabs)/risk-guard');
-                                closeMenu();
+                                router.push({ pathname: '/(tabs)', params: item.params } as any);
                               }
-                            }}
-                            style={{
-                              flexDirection: 'row',
-                              alignItems: 'center',
-                              paddingVertical: 14,
-                              paddingHorizontal: 16,
-                              marginBottom: 4,
-                              opacity: 1
-                            }}
-                          >
-                            <Icon size={18} color="#fff" style={{ marginRight: 16 }} strokeWidth={1.5} />
-                            <Text style={{
-                              color: '#fff',
-                              fontSize: 16,
-                              flex: 1,
-                              fontFamily: 'Inter_400Regular',
-                              letterSpacing: -0.1
-                            }}>
-                              {item.label}
-                            </Text>
-
-                            {item.hasChevron && (
-                              <ChevronDown
-                                size={16}
-                                color="#fff"
-                                style={{
-                                  opacity: 0.6,
-                                  transform: [{ rotate: isExpanded ? '180deg' : '0deg' }]
-                                }}
-                              />
-                            )}
-                          </TouchableOpacity>
-
-                          {isExpanded && item.subItems && (
-                            <View style={{ paddingLeft: 32, paddingBottom: 10, borderLeftWidth: 1, borderLeftColor: '#1e293b', marginLeft: 24, marginTop: 4 }}>
-                              {item.subItems.map((sub: string) => {
-                                const SUB_ITEM_ICONS: Record<string, any> = {
-                                  'Creator Dashboard': Crown,
-                                  'Mentorship Hub': Bookmark,
-                                  'My Store': Bag,
-                                  'Live Sessions': Video,
-                                };
-                                const SubIcon = SUB_ITEM_ICONS[sub] || BookOpen;
-                                return (
-                                  <TouchableOpacity
-                                    key={sub}
-                                    onPress={() => {
-                                      setActiveNavItem({ label: item.label, icon: item.icon });
-                                      if (sub === 'Creator Dashboard') { closeMenu(); router.push('/(tabs)/creator-studio'); return; }
-                                      if (sub === 'Mentorship Hub') { closeMenu(); router.push('/(tabs)/mentorship-hub'); return; }
-                                      if (sub === 'My Store') { closeMenu(); router.push('/(tabs)/my-store'); return; }
-                                      if (sub === 'Live Sessions') { closeMenu(); router.push('/(tabs)/live-sessions'); return; }
-                                      if (item.label === 'Channels') router.push('/(tabs)/channels');
-                                      else if (item.label === 'Contests') router.push('/(tabs)/contests');
-                                      else if (item.label === 'Learning') router.push('/(tabs)/learning');
-                                      else if (item.label === 'AI Auto Trader') router.push('/(tabs)/ai-auto-trader' as any);
-                                      else if (item.label === 'Strategy Builder') router.push('/(tabs)/strategy-builder' as any);
-                                      else if (item.label === 'Finance') router.push('/(tabs)/finance');
-                                      else if (item.label === 'Marketplace') router.push('/(tabs)/marketplace');
-                                      else if (item.label === 'Risk Guard') router.push('/(tabs)/risk-guard');
-                                      else if (item.label === 'Rewards') router.push('/(tabs)/rewards');
-                                      closeMenu();
-                                    }}
-                                    style={{ paddingVertical: 10, flexDirection: 'row', alignItems: 'center', gap: 12 }}
-                                  >
-                                    <SubIcon size={16} color="#94a3b8" strokeWidth={2} />
-                                    <Text style={{ color: '#94a3b8', fontSize: 15, fontFamily: 'Inter_600SemiBold' }}>{sub}</Text>
-                                  </TouchableOpacity>
-                                );
-                              })}
-                            </View>
-                          )}
-                        </View>
+                            } else if (item.route) {
+                              router.push(item.route as any);
+                            }
+                          }}
+                          style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            paddingVertical: 14,
+                            paddingHorizontal: 16,
+                            marginBottom: 6,
+                            borderRadius: 12,
+                            backgroundColor: 'rgba(255,255,255,0.05)'
+                          }}
+                        >
+                          <Icon size={20} color="#fff" style={{ marginRight: 16 }} strokeWidth={1.8} />
+                          <Text style={{
+                            color: '#fff',
+                            fontSize: 16,
+                            flex: 1,
+                            fontFamily: 'Inter_600SemiBold',
+                            letterSpacing: -0.2
+                          }}>
+                            {item.label}
+                          </Text>
+                          <ChevronRight size={18} color="#64748b" />
+                        </TouchableOpacity>
                       );
                     });
                   })()}
