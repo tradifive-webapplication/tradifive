@@ -6,14 +6,20 @@ import {
 import {
   User,
   UsersIcon as Users,
+  TwoUsers,
+  Message,
   MessageIcon as MessageCircle,
   MessageIcon as MessageSquare,
+  Chat,
   Setting as SettingsIcon,
   CrownIcon as Crown,
   TrophyIcon as Trophy,
   Home,
   Search,
+  ShieldDone,
+  ShieldFail,
   ShieldDoneIcon as ShieldCheck,
+  Document,
   Document as BookOpen,
   Send,
   Plus,
@@ -21,11 +27,28 @@ import {
   ChevronDown,
   ChevronUp,
   HelpIcon as HelpCircle,
+  Category,
   Category as LayoutGrid,
   Bag,
   Bookmark,
   Discovery as Gift,
-  Video
+  Discovery,
+  Video,
+  Activity,
+  Wallet,
+  Swap,
+  Work,
+  TimeCircle,
+  Chart,
+  Graph,
+  SparklesIcon,
+  CloseSquare,
+  Danger,
+  Notification,
+  Paper,
+  Star,
+  LogOutIcon,
+  Logout
 } from '../../components/Iconly';
 import {
   View,
@@ -327,63 +350,63 @@ export default function TabLayout() {
       icon: Home,
       subItems: [
         { label: 'Feed', icon: Home, route: '/(tabs)', params: { view: 'feed' } },
-        { label: 'Inbox', icon: MessageSquare, route: '/(tabs)/inbox' },
-        { label: 'Notifications', icon: Bell, route: '/notifications' },
+        { label: 'Inbox', icon: Message, route: '/(tabs)/inbox' },
+        { label: 'Notifications', icon: Notification, route: '/notifications' },
       ],
     },
     {
       label: 'Dashboard',
-      icon: LayoutGrid,
+      icon: Category,
       subItems: [
-        { label: 'Overview & Stats', icon: LayoutGrid, route: '/(tabs)', params: { view: 'dashboard' } },
-        { label: 'Portfolio', icon: DollarSign, route: '/(tabs)/portfolio' },
-        { label: 'Broker Connect', icon: Zap, route: '/broker-connect' },
+        { label: 'Overview & Stats', icon: Category, route: '/(tabs)', params: { view: 'dashboard' } },
+        { label: 'Portfolio', icon: Wallet, route: '/(tabs)/portfolio' },
+        { label: 'Broker Connect', icon: Swap, route: '/broker-connect' },
       ],
     },
     {
       label: 'Auto Trade & Market',
-      icon: Rocket,
+      icon: Activity,
       subItems: [
         { label: 'Algo Marketplace', icon: Bag, route: '/(tabs)/marketplace' },
-        { label: 'Active Bots & Setup', icon: Cpu, route: '/broker-connect' },
-        { label: 'Order History', icon: List, route: '/(tabs)/journal' },
+        { label: 'Active Bots & Setup', icon: Work, route: '/broker-connect' },
+        { label: 'Order History', icon: Document, route: '/(tabs)/journal' },
       ],
     },
     {
       label: 'Risk Guard',
-      icon: ShieldCheck,
+      icon: ShieldDone,
       subItems: [
-        { label: 'Risk Dashboard', icon: ShieldCheck, route: '/(tabs)/risk-guard' },
-        { label: 'Drawdown Limits', icon: ShieldAlert, route: '/(tabs)/risk-guard' },
-        { label: 'Kill Switch', icon: CircleSlash, route: '/(tabs)/risk-guard' },
+        { label: 'Risk Dashboard', icon: ShieldDone, route: '/(tabs)/risk-guard' },
+        { label: 'Drawdown Limits', icon: ShieldFail, route: '/(tabs)/risk-guard' },
+        { label: 'Kill Switch', icon: CloseSquare, route: '/(tabs)/risk-guard' },
       ],
     },
     {
       label: 'Trading Journal',
-      icon: BookOpen,
+      icon: Paper,
       subItems: [
-        { label: 'Daily Journal', icon: BookOpen, route: '/(tabs)/journal' },
-        { label: 'Performance Analytics', icon: ArrowUp, route: '/(tabs)/journal' },
-        { label: 'Trade History', icon: Clock, route: '/(tabs)/journal' },
+        { label: 'Daily Journal', icon: Document, route: '/(tabs)/journal' },
+        { label: 'Performance Analytics', icon: Chart, route: '/(tabs)/journal' },
+        { label: 'Trade History', icon: TimeCircle, route: '/(tabs)/journal' },
       ],
     },
     {
       label: 'AI Coach',
-      icon: Brain,
+      icon: SparklesIcon,
       subItems: [
-        { label: 'AI Coach Insights', icon: Brain, action: 'ai' },
-        { label: 'Trade Feedback & Chat', icon: Sparkles, action: 'ai' },
+        { label: 'AI Coach Insights', icon: SparklesIcon, action: 'ai' },
+        { label: 'Trade Feedback & Chat', icon: Chat, action: 'ai' },
       ],
     },
     {
       label: 'Channels & Community',
-      icon: Users,
+      icon: TwoUsers,
       subItems: [
-        { label: 'Trading Channels', icon: Users, route: '/(tabs)/channels' },
+        { label: 'Trading Channels', icon: Chat, route: '/(tabs)/channels' },
         { label: 'Trading Contests', icon: Trophy, route: '/(tabs)/contests' },
         { label: 'Mentorship Hub', icon: Crown, route: '/(tabs)/mentorship-hub' },
         { label: 'Live Sessions', icon: Video, route: '/(tabs)/live-sessions' },
-        { label: 'Courses & Learning', icon: BookOpen, route: '/(tabs)/learning' },
+        { label: 'Courses & Learning', icon: Discovery, route: '/(tabs)/learning' },
       ],
     },
   ];
@@ -393,7 +416,7 @@ export default function TabLayout() {
       label: 'Creator Studio',
       icon: Crown,
       subItems: [
-        { label: 'Creator Dashboard', icon: LayoutGrid, route: '/(tabs)/creator-studio' },
+        { label: 'Creator Dashboard', icon: Category, route: '/(tabs)/creator-studio' },
         { label: 'My Store', icon: Bag, route: '/(tabs)/my-store' },
       ],
     } as any);
@@ -403,7 +426,7 @@ export default function TabLayout() {
     { label: 'Rewards', icon: Gift, route: '/(tabs)/rewards' },
     { label: 'Settings and privacy', icon: SettingsIcon, route: '/(tabs)/settings' },
     { label: 'Help Centre', icon: HelpCircle, route: '/help' },
-    { label: 'Log Out', icon: LogOut, action: 'signout' },
+    { label: 'Log Out', icon: Logout, action: 'signout' },
   ];
 
   return (
@@ -520,7 +543,7 @@ export default function TabLayout() {
               });
 
               return (
-                <View key={idx} style={{ marginBottom: 4 }}>
+                <View key={idx} style={{ marginBottom: 2 }}>
                   {/* Folder Header Row */}
                   <TouchableOpacity
                     activeOpacity={0.7}
@@ -553,36 +576,27 @@ export default function TabLayout() {
                     style={{
                       flexDirection: 'row',
                       alignItems: 'center',
-                      paddingVertical: 11,
-                      paddingHorizontal: 12,
+                      paddingVertical: 12,
+                      paddingHorizontal: 8,
                       borderRadius: 12,
                       backgroundColor: isAnySubActive && !isExpanded
-                        ? (isDark ? 'rgba(56, 189, 248, 0.12)' : 'rgba(2, 132, 199, 0.08)')
+                        ? 'rgba(56, 189, 248, 0.12)'
                         : 'transparent',
                     }}
                   >
-                    <View style={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: 9,
-                      backgroundColor: isAnySubActive
-                        ? (isDark ? 'rgba(56, 189, 248, 0.2)' : '#e0f2fe')
-                        : (isDark ? '#111827' : '#f1f5f9'),
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      marginRight: 12,
-                    }}>
-                      <item.icon
-                        size={18}
-                        color={isAnySubActive ? (isDark ? '#38bdf8' : '#0284c7') : (isDark ? '#94a3b8' : '#475569')}
-                        strokeWidth={2}
-                      />
-                    </View>
+                    {/* Native Iconly Icon directly rendered */}
+                    <item.icon
+                      size={22}
+                      color={isAnySubActive ? '#38bdf8' : '#ffffff'}
+                      set={isAnySubActive ? 'bold' : 'curved'}
+                      stroke="bold"
+                      style={{ marginRight: 14 }}
+                    />
 
                     <Text style={{
                       flex: 1,
-                      color: isAnySubActive ? (isDark ? '#38bdf8' : '#0284c7') : (isDark ? '#f8fafc' : '#0f172a'),
-                      fontSize: 15,
+                      color: isAnySubActive ? '#38bdf8' : '#ffffff',
+                      fontSize: 16,
                       fontFamily: isAnySubActive ? 'Inter_700Bold' : 'Inter_600SemiBold',
                       letterSpacing: -0.2,
                     }}>
@@ -591,8 +605,8 @@ export default function TabLayout() {
 
                     {hasSubItems && (
                       <ChevronDown
-                        size={16}
-                        color={isDark ? '#64748b' : '#94a3b8'}
+                        size={18}
+                        color={isExpanded ? '#38bdf8' : '#94a3b8'}
                         style={{
                           transform: [{ rotate: isExpanded ? '180deg' : '0deg' }],
                         }}
@@ -604,17 +618,17 @@ export default function TabLayout() {
                   {isExpanded && hasSubItems && (
                     <View style={{
                       paddingLeft: 14,
-                      marginLeft: 26,
+                      marginLeft: 18,
                       marginTop: 2,
                       marginBottom: 6,
                       borderLeftWidth: 1.5,
-                      borderLeftColor: isDark ? 'rgba(56, 189, 248, 0.3)' : 'rgba(2, 132, 199, 0.25)',
+                      borderLeftColor: 'rgba(255, 255, 255, 0.15)',
                     }}>
                       {item.subItems.map((sub: any, sIdx: number) => {
                         const isSubActive =
                           (sub.params?.view && isHome && view === sub.params.view) ||
                           (sub.route && !sub.params && (pathname === sub.route || pathname.includes(sub.route.replace('/(tabs)', ''))));
-                        const SubIcon = sub.icon || BookOpen;
+                        const SubIcon = sub.icon || Document;
 
                         return (
                           <TouchableOpacity
@@ -647,25 +661,26 @@ export default function TabLayout() {
                             style={{
                               flexDirection: 'row',
                               alignItems: 'center',
-                              paddingVertical: 9,
-                              paddingHorizontal: 10,
+                              paddingVertical: 10,
+                              paddingHorizontal: 12,
                               borderRadius: 10,
-                              marginVertical: 1.5,
+                              marginVertical: 2,
                               backgroundColor: isSubActive
-                                ? (isDark ? 'rgba(56, 189, 248, 0.14)' : 'rgba(2, 132, 199, 0.1)')
+                                ? 'rgba(56, 189, 248, 0.15)'
                                 : 'transparent',
-                              gap: 11,
+                              gap: 12,
                             }}
                           >
                             <SubIcon
-                              size={15}
-                              color={isSubActive ? (isDark ? '#38bdf8' : '#0284c7') : (isDark ? '#94a3b8' : '#64748b')}
-                              strokeWidth={2}
+                              size={17}
+                              color={isSubActive ? '#38bdf8' : '#94a3b8'}
+                              set={isSubActive ? 'bold' : 'curved'}
+                              stroke="bold"
                             />
                             <Text style={{
                               flex: 1,
-                              color: isSubActive ? (isDark ? '#38bdf8' : '#0284c7') : (isDark ? '#cbd5e1' : '#334155'),
-                              fontSize: 13.5,
+                              color: isSubActive ? '#38bdf8' : '#e2e8f0',
+                              fontSize: 14,
                               fontFamily: isSubActive ? 'Inter_700Bold' : 'Inter_500Medium',
                             }}>
                               {sub.label}
@@ -679,11 +694,15 @@ export default function TabLayout() {
               );
             })}
 
-            <View style={{ height: 1, backgroundColor: isDark ? '#1e293b' : '#e2e8f0', marginVertical: 12 }} />
+            <View style={{ height: 1, backgroundColor: 'rgba(255, 255, 255, 0.12)', marginVertical: 14 }} />
 
             {/* Drawer Footer Items */}
             {DRAWER_FOOTER.map((item: any, idx: number) => {
               const isFooterActive = item.route && pathname.includes(item.route.replace('/(tabs)', ''));
+              const isSignout = item.action === 'signout';
+              const iconColor = isSignout ? '#ef4444' : (isFooterActive ? '#38bdf8' : '#ffffff');
+              const textColor = isSignout ? '#ef4444' : (isFooterActive ? '#38bdf8' : '#ffffff');
+
               return (
                 <TouchableOpacity
                   key={idx}
@@ -691,7 +710,7 @@ export default function TabLayout() {
                   onPress={() => {
                     h();
                     closeDrawer();
-                    if (item.action === 'signout') {
+                    if (isSignout) {
                       Alert.alert(
                         'Log Out',
                         'Are you sure you want to log out of TradiFive?',
@@ -722,25 +741,26 @@ export default function TabLayout() {
                   style={{
                     flexDirection: 'row',
                     alignItems: 'center',
-                    paddingVertical: 10,
-                    paddingHorizontal: 12,
-                    gap: 12,
+                    paddingVertical: 12,
+                    paddingHorizontal: 8,
+                    gap: 14,
                     borderRadius: 10,
-                    marginBottom: 2,
+                    marginBottom: 4,
                     backgroundColor: isFooterActive
-                      ? (isDark ? 'rgba(56, 189, 248, 0.12)' : 'rgba(2, 132, 199, 0.08)')
+                      ? 'rgba(56, 189, 248, 0.12)'
                       : 'transparent',
                   }}
                 >
                   <item.icon
-                    size={18}
-                    color={item.action === 'signout' ? '#ef4444' : (isFooterActive ? (isDark ? '#38bdf8' : '#0284c7') : (isDark ? '#94a3b8' : '#64748b'))}
-                    strokeWidth={2}
+                    size={20}
+                    color={iconColor}
+                    set={isFooterActive ? 'bold' : 'curved'}
+                    stroke="bold"
                   />
                   <Text style={{
-                    color: item.action === 'signout' ? '#ef4444' : (isFooterActive ? (isDark ? '#38bdf8' : '#0284c7') : (isDark ? '#cbd5e1' : '#475569')),
-                    fontSize: 14,
-                    fontFamily: isFooterActive ? 'Inter_700Bold' : 'Inter_600SemiBold'
+                    color: textColor,
+                    fontSize: 15,
+                    fontFamily: isFooterActive ? 'Inter_700Bold' : 'Inter_600SemiBold',
                   }}>
                     {item.label}
                   </Text>
@@ -1105,11 +1125,12 @@ export default function TabLayout() {
                                   <SubIcon
                                     size={16}
                                     color={isSubActive ? '#38bdf8' : '#94a3b8'}
-                                    strokeWidth={2}
+                                    set={isSubActive ? 'bold' : 'curved'}
+                                    stroke="bold"
                                   />
                                   <Text style={{
                                     flex: 1,
-                                    color: isSubActive ? '#38bdf8' : '#cbd5e1',
+                                    color: isSubActive ? '#38bdf8' : '#e2e8f0',
                                     fontSize: 14,
                                     fontFamily: isSubActive ? 'Inter_700Bold' : 'Inter_500Medium',
                                   }}>
