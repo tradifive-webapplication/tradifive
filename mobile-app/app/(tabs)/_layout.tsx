@@ -556,28 +556,59 @@ export default function TabLayout() {
                     activeOpacity={0.7}
                     onPress={() => {
                       h();
-                      if (hasSubItems) {
-                        setExpandedItem(isExpanded ? null : item.label);
+                      closeDrawer();
+                      if (item.action === 'ai') {
+                        openAI();
+                        return;
+                      }
+                      setActiveNavItem({ label: item.label, icon: item.icon });
+                      if (item.label === 'Home') {
+                        setActiveTab('feed');
+                        setPendingTab('feed');
+                        if (isHome) {
+                          router.setParams({ view: 'feed' });
+                        } else {
+                          router.push({ pathname: '/(tabs)', params: { view: 'feed' } } as any);
+                        }
+                      } else if (item.label === 'Dashboard') {
+                        setActiveTab('dashboard');
+                        setPendingTab('dashboard');
+                        if (isHome) {
+                          router.setParams({ view: 'dashboard' });
+                        } else {
+                          router.push({ pathname: '/(tabs)', params: { view: 'dashboard' } } as any);
+                        }
+                      } else if (item.label === 'Journal') {
+                        setActiveTab('dynamic');
+                        setPendingTab('dynamic');
+                        router.push('/(tabs)/journal');
+                      } else if (item.label === 'Risk Guard') {
+                        setActiveTab('dynamic');
+                        setPendingTab('dynamic');
+                        router.push('/(tabs)/risk-guard');
+                      } else if (item.label === 'Auto Trade') {
+                        setActiveTab('dynamic');
+                        setPendingTab('dynamic');
+                        router.push('/broker-connect');
+                      } else if (item.label === 'Discover') {
+                        setActiveTab('dynamic');
+                        setPendingTab('dynamic');
+                        router.push('/(tabs)/marketplace');
+                      } else if (item.label === 'Channels') {
+                        setActiveTab('dynamic');
+                        setPendingTab('dynamic');
+                        router.push('/(tabs)/channels');
+                      } else if (item.label === 'Creator Studio') {
+                        setActiveTab('dynamic');
+                        setPendingTab('dynamic');
+                        router.push('/(tabs)/creator-studio');
+                      } else if (item.route) {
+                        setActiveTab('dynamic');
+                        setPendingTab('dynamic');
+                        router.push(item.route as any);
                       } else {
-                        closeDrawer();
-                        if (item.action === 'ai') {
-                          openAI();
-                          return;
-                        }
-                        setActiveNavItem({ label: item.label, icon: item.icon });
-                        if (item.params) {
-                          setActiveTab(item.params.view === 'dashboard' ? 'dashboard' : 'feed');
-                          setPendingTab(item.params.view === 'dashboard' ? 'dashboard' : 'feed');
-                          if (isHome) {
-                            router.setParams(item.params);
-                          } else {
-                            router.push({ pathname: '/(tabs)', params: item.params } as any);
-                          }
-                        } else if (item.route) {
-                          setActiveTab('dynamic');
-                          setPendingTab('dynamic');
-                          router.push(item.route as any);
-                        }
+                        // Fallback: toggle expanded if no primary route
+                        setExpandedItem(isExpanded ? null : item.label);
                       }
                     }}
                     style={{
@@ -613,13 +644,24 @@ export default function TabLayout() {
                     </Text>
 
                     {hasSubItems && (
-                      <ChevronDown
-                        size={18}
-                        color={isExpanded ? '#38bdf8' : '#94a3b8'}
-                        style={{
-                          transform: [{ rotate: isExpanded ? '180deg' : '0deg' }],
+                      <TouchableOpacity
+                        activeOpacity={0.7}
+                        hitSlop={{ top: 12, bottom: 12, left: 16, right: 16 }}
+                        onPress={(e) => {
+                          e.stopPropagation();
+                          h();
+                          setExpandedItem(isExpanded ? null : item.label);
                         }}
-                      />
+                        style={{ padding: 4 }}
+                      >
+                        <ChevronDown
+                          size={18}
+                          color={isExpanded ? '#38bdf8' : '#94a3b8'}
+                          style={{
+                            transform: [{ rotate: isExpanded ? '180deg' : '0deg' }],
+                          }}
+                        />
+                      </TouchableOpacity>
                     )}
                   </TouchableOpacity>
 

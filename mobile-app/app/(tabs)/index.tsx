@@ -1236,7 +1236,35 @@ export default function DashboardScreen() {
   };
 
   const storePosts = useStore(state => state.posts);
-  const mappedPosts = storePosts.map(p => {
+  const storeLoading = useStore(state => state.loading);
+  const fetchPosts = useStore(state => state.fetchPosts);
+  const followingIds = useStore(state => state.followingIds);
+
+  useEffect(() => {
+    fetchPosts();
+  }, [fetchPosts]);
+
+  // Combine storePosts with feeds from useSocialFeed as reliable fallback
+  const combinedPosts = React.useMemo(() => {
+    if (storePosts && storePosts.length > 0) return storePosts;
+    if (feeds && feeds.length > 0) {
+      return feeds.map((f: any) => ({
+        ...f,
+        likes_count: f.likes_count ?? f.like_count ?? 0,
+        comments_count: f.comments_count ?? f.comment_count ?? 0,
+        shares_count: f.shares_count ?? f.share_count ?? 0,
+        profiles: f.profiles ? {
+          id: f.user_id,
+          display_name: f.profiles.full_name || f.profiles.username || 'User',
+          username: f.profiles.username,
+          avatar_url: f.profiles.avatar_url,
+        } : undefined
+      }));
+    }
+    return [];
+  }, [storePosts, feeds]);
+
+  const mappedPosts = combinedPosts.map((p: any) => {
     let displayContent = p.content;
     let postLocation = '';
     if (p.content && p.content.includes('\n\n[LOC:')) {
@@ -1246,9 +1274,12 @@ export default function DashboardScreen() {
     }
 
     const isLiked = likedPosts[p.id] ?? p.is_liked ?? false;
-    const finalLikes = Math.max(0, p.likes_count + (likesOffset[p.id] ?? 0));
-    const finalComments = Math.max(0, p.comments_count + (commentsOffset[p.id] ?? 0));
-    const finalShares = Math.max(0, (sharesOffset[p.id] ?? 0));
+    const rawLikes = p.likes_count ?? p.like_count ?? 0;
+    const rawComments = p.comments_count ?? p.comment_count ?? 0;
+    const rawShares = p.shares_count ?? p.share_count ?? 0;
+    const finalLikes = Math.max(0, rawLikes + (likesOffset[p.id] ?? 0));
+    const finalComments = Math.max(0, rawComments + (commentsOffset[p.id] ?? 0));
+    const finalShares = Math.max(0, rawShares + (sharesOffset[p.id] ?? 0));
 
     return {
       id: p.id,
@@ -1269,10 +1300,14 @@ export default function DashboardScreen() {
     };
   });
 
-  // Render live posts only, no mock data fallback
-  const storeLoading = useStore(state => state.loading);
-  const isFeedEmptyAndLoading = feedsLoading || storeLoading;
   const feedPostsToRender = mappedPosts;
+
+  const displayedPosts = React.useMemo(() => {
+    if (feedSubTab === 'following') {
+      return feedPostsToRender.filter((p: any) => followingIds.includes(p.user_id));
+    }
+    return feedPostsToRender;
+  }, [feedSubTab, feedPostsToRender, followingIds]);
 
   type ContestView = 'contests' | 'profile' | 'leaderboard';
   const [contestView, setContestView] = useState<ContestView>('contests');
@@ -1523,14 +1558,20 @@ export default function DashboardScreen() {
   const feedOp = useRef(new Animated.Value(1)).current;
   const [refreshing, setRefreshing] = React.useState(false);
 
-  const onRefresh = React.useCallback(() => {
+  const onRefresh = React.useCallback(async () => {
     h(Haptics.ImpactFeedbackStyle.Light);
     setRefreshing(true);
-    // Simulate data fetch
-    setTimeout(() => {
+    try {
+      await Promise.all([
+        fetchPosts(),
+        refetchFeeds ? refetchFeeds() : Promise.resolve(),
+      ]);
+    } catch (e) {
+      console.warn('Error refreshing feed:', e);
+    } finally {
       setRefreshing(false);
-    }, 1500);
-  }, []);
+    }
+  }, [fetchPosts, refetchFeeds]);
 
   const scrollY = React.useRef(new Animated.Value(0)).current;
   const headerHeight = insets.top + 64;
@@ -2842,12 +2883,15 @@ export default function DashboardScreen() {
 
 
               {/* Posts */}
-              {feedsLoading && (feedSubTab === 'new' ? feedPostsToRender : []).length === 0 ? (
-                <View style={{ padding: 40, alignItems: 'center' }}>
-                  <ActivityIndicator size="large" color="#10b981" />
+              {(feedsLoading || storeLoading) && displayedPosts.length === 0 ? (
+                <View style={{ padding: 60, alignItems: 'center', justifyContent: 'center' }}>
+                  <ActivityIndicator size="large" color="#3b82f6" />
+                  <Text style={{ marginTop: 14, color: '#94a3b8', fontSize: 14, fontFamily: 'Inter_500Medium' }}>
+                    Loading latest posts...
+                  </Text>
                 </View>
-              ) : (
-                (feedSubTab === 'new' ? feedPostsToRender : []).map((post: any, index: number) => (
+              ) : displayedPosts.length > 0 ? (
+                displayedPosts.map((post: any) => (
                   <HomePostCard
                     key={post.id}
                     post={post}
@@ -2865,6 +2909,85 @@ export default function DashboardScreen() {
                     onImagePress={(postId) => setActiveViewerPostId(postId)}
                   />
                 ))
+              ) : (
+                <View style={{
+                  padding: 36,
+                  marginHorizontal: 14,
+                  marginTop: 16,
+                  alignItems: 'center',
+                  backgroundColor: isDark ? '#111111' : '#f8fafc',
+                  borderRadius: 24,
+                  borderWidth: 1,
+                  borderColor: isDark ? '#222222' : '#e2e8f0',
+                }}>
+                  <View style={{
+                    width: 52,
+                    height: 52,
+                    borderRadius: 26,
+                    backgroundColor: isDark ? 'rgba(56, 189, 248, 0.12)' : '#eff6ff',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginBottom: 14,
+                  }}>
+                    <Sparkles size={24} color="#38bdf8" />
+                  </View>
+                  <Text style={{
+                    fontSize: 17,
+                    fontFamily: 'Inter_700Bold',
+                    color: isDark ? '#ffffff' : '#0f172a',
+                    marginBottom: 6,
+                    textAlign: 'center',
+                  }}>
+                    {feedSubTab === 'following' ? 'No posts from following' : 'No posts yet'}
+                  </Text>
+                  <Text style={{
+                    fontSize: 13,
+                    fontFamily: 'Inter_400Regular',
+                    color: '#94a3b8',
+                    textAlign: 'center',
+                    lineHeight: 19,
+                    marginBottom: 18,
+                  }}>
+                    {feedSubTab === 'following'
+                      ? 'Switch to the "New" tab to explore all posts or follow creators to see them here.'
+                      : 'Share your first market insight, trade setup, or analysis with the TradiFive community!'}
+                  </Text>
+                  {feedSubTab === 'following' ? (
+                    <TouchableOpacity
+                      activeOpacity={0.8}
+                      onPress={() => setFeedSubTab('new')}
+                      style={{
+                        paddingHorizontal: 18,
+                        paddingVertical: 10,
+                        borderRadius: 12,
+                        backgroundColor: '#3b82f6',
+                      }}
+                    >
+                      <Text style={{ color: '#fff', fontSize: 13, fontFamily: 'Inter_600SemiBold' }}>
+                        Explore New Posts
+                      </Text>
+                    </TouchableOpacity>
+                  ) : (
+                    <TouchableOpacity
+                      activeOpacity={0.8}
+                      onPress={() => setCreatePostVisible(true)}
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 8,
+                        paddingHorizontal: 18,
+                        paddingVertical: 10,
+                        borderRadius: 12,
+                        backgroundColor: '#3b82f6',
+                      }}
+                    >
+                      <Plus size={16} color="#fff" />
+                      <Text style={{ color: '#fff', fontSize: 13, fontFamily: 'Inter_600SemiBold' }}>
+                        Create Post
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
               )}
             </Animated.View>
           </Animated.ScrollView>

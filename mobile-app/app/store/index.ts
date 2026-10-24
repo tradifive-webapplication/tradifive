@@ -211,6 +211,10 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   init: async () => {
+    // Always fetch public social posts & channels immediately so users (including guests and bypassed) see feed right away
+    get().fetchPosts().catch(err => console.warn('[fetchPosts Error]:', err));
+    get().fetchChannels().catch(err => console.warn('[fetchChannels Error]:', err));
+
     // Avoid double auth state listener subscription
     if ((useStore as any)._authListenerRegistered) return;
     
@@ -220,8 +224,10 @@ export const useStore = create<AppState>((set, get) => ({
     supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('[Auth State Changed]:', event, session?.user?.id);
       
-      // If we are bypassed, ignore auth change events unless a real session is started
+      // If we are bypassed, keep public data loaded and ignore auth change unless a real session is started
       if (get().isBypassed && !session?.user) {
+        set({ loading: false });
+        get().fetchPosts().catch(err => console.warn('[fetchPosts Error]:', err));
         return;
       }
       
@@ -360,14 +366,16 @@ export const useStore = create<AppState>((set, get) => ({
           set({ 
             hasRealSession: false, 
             currentUser: null,
-            posts: [],
-            channels: [],
             mt5Account: null,
             trades: [],
             notifications: [],
             followerCount: 0,
             followingIds: []
           });
+          
+          // Re-fetch public posts & channels for unauthenticated / guest user
+          get().fetchPosts().catch(err => console.warn('[fetchPosts Error]:', err));
+          get().fetchChannels().catch(err => console.warn('[fetchChannels Error]:', err));
           
           try {
             supabase.removeAllChannels();
@@ -708,7 +716,11 @@ export const useStore = create<AppState>((set, get) => ({
       return timeB - timeA;
     });
 
-    set({ posts: postsWithLikes as unknown as Post[], loading: false });
+    if (!postsError && postsData) {
+      set({ posts: postsWithLikes as unknown as Post[], loading: false });
+    } else {
+      set({ loading: false });
+    }
   },
 
   createPost: async (content, media_url, media_type) => {

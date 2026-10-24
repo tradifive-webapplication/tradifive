@@ -56,6 +56,7 @@ export default function SplashScreen() {
         if (isBypassedVal === 'true') {
           AuthService.isBypassed = true;
           useStore.getState().setBypassed(true);
+          useStore.getState().init().catch((e) => console.warn('[Init Error]:', e));
           router.replace('/(tabs)');
           return;
         }
