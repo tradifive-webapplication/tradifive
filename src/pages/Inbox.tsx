@@ -81,13 +81,6 @@ export default function InboxPage() {
   const [user, setUser] = useState<any>(null);
   const [authChecked, setAuthChecked] = useState(false);
   const { canAccess } = usePlan();
-  
-  const [themeMode, setThemeMode] = useState<"light" | "dark">(() => {
-    if (typeof document !== "undefined" && document.documentElement.classList.contains("dark")) {
-      return "dark";
-    }
-    return "light";
-  });
 
   const COLORS = ['#10b981', '#ef4444', '#f59e0b', '#3b82f6'];
 

@@ -1,4 +1,6 @@
 {
+  "framework": "vite",
+  "outputDirectory": "dist",
   "rewrites": [
     { "source": "/mobile/((?!assets/|.*\\\\..*).*$)", "destination": "/mobile/index.html" },
     { "source": "/((?!assets/|mobile/|.*\\\\..*).*$)", "destination": "/index.html" }

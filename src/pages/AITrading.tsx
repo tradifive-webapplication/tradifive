@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { 
   Download, Copy, CheckCircle2, Lock, Mail, Play, Pause, Power, 
-  ExternalLink, ArrowRight, ArrowLeft, X, Zap, Package, Shield, Check, 
+  ExternalLink, ArrowRight, ArrowLeft, X, Zap, Package, Shield, ShieldCheck, Check, 
   Terminal, Camera, UploadCloud, Clock, Image as ImageIcon, 
   Headset, Send, RefreshCw, Calculator, Calendar, Sparkles, ChevronRight,
   AlertCircle, DollarSign, MessageCircle, AlertTriangle, Coins, Layers,
