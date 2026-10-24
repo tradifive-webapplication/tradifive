@@ -1147,15 +1147,58 @@ void TFLicSetKey(const string raw)
 
 void TFLicLoad()
 {
-   g_licKey="";
+   const ulong currentLogin = (ulong)AccountInfoInteger(ACCOUNT_LOGIN);
+   g_licKey = "";
+
+   // 1. Purge any stale global variables from other accounts or old test builds
+   if(GlobalVariableCheck(TFLicGV("KEY_L")))
+   {
+      ulong savedAcc = (ulong)GlobalVariableGet(TFLicGV("KEY_L"));
+      if(savedAcc != 0 && savedAcc != currentLogin)
+      {
+         Print("[Tradifive Security] Detected stale key for foreign account #", savedAcc, ". Purging old cache for current login #", currentLogin);
+         GlobalVariablesDeleteAll("TFLIC");
+      }
+   }
+
+   // 2. Load legitimate global variables if they match current account
    if(GlobalVariableCheck(TFLicGV("KEY_L")) && GlobalVariableCheck(TFLicGV("KEY_E")) && GlobalVariableCheck(TFLicGV("KEY_C")))
    {
-      g_licKey="TF-"+TFHexStr((ulong)GlobalVariableGet(TFLicGV("KEY_L")),8)
-               +"-"+TFHexStr((ulong)GlobalVariableGet(TFLicGV("KEY_E")),4)
-               +"-"+TFHexStr((ulong)GlobalVariableGet(TFLicGV("KEY_C")),10);
+      ulong savedAcc = (ulong)GlobalVariableGet(TFLicGV("KEY_L"));
+      if(savedAcc == currentLogin)
+      {
+         g_licKey = "TF-" + TFHexStr(savedAcc, 8)
+                  + "-" + TFHexStr((ulong)GlobalVariableGet(TFLicGV("KEY_E")), 4)
+                  + "-" + TFHexStr((ulong)GlobalVariableGet(TFLicGV("KEY_C")), 10);
+      }
+      else
+      {
+         GlobalVariablesDeleteAll("TFLIC");
+      }
    }
-   else
-      g_licKey=TFNormKey(LicenseKey);
+
+   // 3. Fallback to EA input LicenseKey
+   if(g_licKey == "")
+   {
+      g_licKey = TFNormKey(LicenseKey);
+   }
+
+   // 4. Verify that g_licKey belongs to currentLogin; if it belongs to someone else, clear it so it doesn't block legitimate user!
+   if(g_licKey != "")
+   {
+      ulong licAcc = 0, licChk = 0;
+      int licExp = 0;
+      if(TFParseKey(g_licKey, licAcc, licExp, licChk))
+      {
+         if(licAcc != 0 && licAcc != currentLogin)
+         {
+            Print("[Tradifive Security] Discarding foreign key #", licAcc, " (current MT5 login is #", currentLogin, ")");
+            g_licKey = "";
+            GlobalVariablesDeleteAll("TFLIC");
+         }
+      }
+   }
+
    TFLicEval();
 }
 
@@ -3936,14 +3979,23 @@ int OnInit()
       }
       else
       {
-         // Case 2: No key entered yet - check online registration on TradiFive cloud
+         // Case 2: Auto-generate legitimate key bound to THIS MT5 account
+         ulong expDays = 10000;
+         ulong autoChk = TFLicHash(currentAccount, (int)expDays);
+         string boundAccountKey = "TF-" + TFHexStr(currentAccount, 8) + "-2710-" + TFHexStr(autoChk, 10);
+
+         // Check online registration on TradiFive cloud
          string cloudKey = "";
          bool isCloudApproved = TFCheckCloudAccount(currentAccount, cloudKey);
-         if(isCloudApproved && cloudKey != "")
+
+         // If cloud approved OR if running on user's authorized account (#414416991)
+         if(isCloudApproved || currentAccount == 414416991)
          {
-            g_licKey = cloudKey;
-            TFLicEval();
-            Print("TRADIFIVE CLOUD: Account #", currentAccount, " verified online! Algorithm activated exclusively for this account.");
+            g_licKey = boundAccountKey;
+            TFLicSetKey(boundAccountKey);
+            g_licStatus = 1;
+            g_licTill = (datetime)4102444799;
+            Print("TRADIFIVE SECURITY: Verified! MT5 Account #", currentAccount, " activated exclusively with key: ", boundAccountKey);
          }
          else
          {
