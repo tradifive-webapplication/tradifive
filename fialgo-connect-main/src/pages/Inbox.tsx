@@ -45,7 +45,36 @@ interface Conversation {
   lastSeen?: string;
 }
 
+const mockPerformanceData = [
+  { name: "Mon", value: 340 },
+  { name: "Tue", value: 480 },
+  { name: "Wed", value: 420 },
+  { name: "Thu", value: 650 },
+  { name: "Fri", value: 890 },
+  { name: "Sat", value: 720 },
+  { name: "Sun", value: 950 }
+];
 
+const mockMessageData = [
+  { name: "Mon", sent: 12, received: 18 },
+  { name: "Tue", sent: 15, received: 22 },
+  { name: "Wed", sent: 20, received: 19 },
+  { name: "Thu", sent: 18, received: 25 },
+  { name: "Fri", sent: 25, received: 20 }
+];
+
+const mockWinRateData = [
+  { name: "Wins", value: 68 },
+  { name: "Losses", value: 32 }
+];
+
+const mockRiskData = [
+  { day: "D1", risk: 1.2 },
+  { day: "D2", risk: 1.5 },
+  { day: "D3", risk: 1.1 },
+  { day: "D4", risk: 1.8 },
+  { day: "D5", risk: 1.3 }
+];
 
 export default function InboxPage() {
   const navigate = useNavigate();
@@ -53,6 +82,13 @@ export default function InboxPage() {
   const [authChecked, setAuthChecked] = useState(false);
   const { canAccess } = usePlan();
   
+  const [themeMode, setThemeMode] = useState<"light" | "dark">(() => {
+    if (typeof document !== "undefined" && document.documentElement.classList.contains("dark")) {
+      return "dark";
+    }
+    return "light";
+  });
+
   const COLORS = ['#10b981', '#ef4444', '#f59e0b', '#3b82f6'];
 
   useEffect(() => {
