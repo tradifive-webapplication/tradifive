@@ -1,7 +1,7 @@
 import { Tabs, useRouter, usePathname, useGlobalSearchParams, useSegments } from 'expo-router';
 import React, { useState, useRef, useEffect } from 'react';
 import {
-  Bot, Menu, X, Cpu, Zap, CreditCard, History, Brain, Mic, BadgeCheck, Clock, List, Rocket, CircleSlash, UserPlus, DollarSign, ArrowUp, Globe, Sparkles, LogOut
+  Bot, Menu, X, Cpu, Zap, CreditCard, History, Brain, Mic, BadgeCheck, Clock, List, Rocket, CircleSlash, UserPlus, DollarSign, ArrowUp, Globe, Sparkles, LogOut, Bell, ShieldAlert
 } from 'lucide-react-native';
 import {
   User,
@@ -319,30 +319,88 @@ export default function TabLayout() {
     extrapolate: 'clamp'
   });
 
-  const isCreator = (currentUser as any)?.is_creator || false;
+  const isCreator = (currentUser as any)?.is_creator || currentUser?.account_type === 'creator' || false;
 
   const ALL_DRAWER_ITEMS = [
-    { label: 'Dashboard', icon: LayoutGrid, route: '/(tabs)', params: { view: 'dashboard' }, desc: 'Trading overview & metrics' },
-    { label: 'Feed', icon: Home, route: '/(tabs)', params: { view: 'feed' }, desc: 'Trader community & posts' },
-    { label: 'Risk Guard', icon: ShieldCheck, route: '/(tabs)/risk-guard', desc: 'Drawdown & capital protection' },
-    { label: 'Trading Journal', icon: BookOpen, route: '/(tabs)/journal', desc: 'Trade logs & calendar' },
-    { label: 'Broker Connect', icon: Zap, route: '/broker-connect', desc: 'MT5 & account sync' },
-    { label: 'Channels', icon: Users, route: '/(tabs)/channels', desc: 'Signals & discussion rooms' },
-    { label: 'AI Coach', icon: Brain, action: 'ai', desc: 'Instant AI trade insights' },
-    { label: 'Rewards', icon: Gift, route: '/(tabs)/rewards', desc: 'Points, streaks & badges' },
-    { label: 'Marketplace', icon: Bag, route: '/(tabs)/marketplace', desc: 'Strategies & bot store' },
+    {
+      label: 'Home',
+      icon: Home,
+      subItems: [
+        { label: 'Feed', icon: Home, route: '/(tabs)', params: { view: 'feed' } },
+        { label: 'Inbox', icon: MessageSquare, route: '/(tabs)/inbox' },
+        { label: 'Notifications', icon: Bell, route: '/notifications' },
+      ],
+    },
+    {
+      label: 'Dashboard',
+      icon: LayoutGrid,
+      subItems: [
+        { label: 'Overview & Stats', icon: LayoutGrid, route: '/(tabs)', params: { view: 'dashboard' } },
+        { label: 'Portfolio', icon: DollarSign, route: '/(tabs)/portfolio' },
+        { label: 'Broker Connect', icon: Zap, route: '/broker-connect' },
+      ],
+    },
+    {
+      label: 'Auto Trade & Market',
+      icon: Rocket,
+      subItems: [
+        { label: 'Algo Marketplace', icon: Bag, route: '/(tabs)/marketplace' },
+        { label: 'Active Bots & Setup', icon: Cpu, route: '/broker-connect' },
+        { label: 'Order History', icon: List, route: '/(tabs)/journal' },
+      ],
+    },
+    {
+      label: 'Risk Guard',
+      icon: ShieldCheck,
+      subItems: [
+        { label: 'Risk Dashboard', icon: ShieldCheck, route: '/(tabs)/risk-guard' },
+        { label: 'Drawdown Limits', icon: ShieldAlert, route: '/(tabs)/risk-guard' },
+        { label: 'Kill Switch', icon: CircleSlash, route: '/(tabs)/risk-guard' },
+      ],
+    },
+    {
+      label: 'Trading Journal',
+      icon: BookOpen,
+      subItems: [
+        { label: 'Daily Journal', icon: BookOpen, route: '/(tabs)/journal' },
+        { label: 'Performance Analytics', icon: ArrowUp, route: '/(tabs)/journal' },
+        { label: 'Trade History', icon: Clock, route: '/(tabs)/journal' },
+      ],
+    },
+    {
+      label: 'AI Coach',
+      icon: Brain,
+      subItems: [
+        { label: 'AI Coach Insights', icon: Brain, action: 'ai' },
+        { label: 'Trade Feedback & Chat', icon: Sparkles, action: 'ai' },
+      ],
+    },
+    {
+      label: 'Channels & Community',
+      icon: Users,
+      subItems: [
+        { label: 'Trading Channels', icon: Users, route: '/(tabs)/channels' },
+        { label: 'Trading Contests', icon: Trophy, route: '/(tabs)/contests' },
+        { label: 'Mentorship Hub', icon: Crown, route: '/(tabs)/mentorship-hub' },
+        { label: 'Live Sessions', icon: Video, route: '/(tabs)/live-sessions' },
+        { label: 'Courses & Learning', icon: BookOpen, route: '/(tabs)/learning' },
+      ],
+    },
   ];
 
-  if (isElite && currentUser?.account_type === 'creator') {
+  if (isElite || isCreator) {
     ALL_DRAWER_ITEMS.push({
       label: 'Creator Studio',
       icon: Crown,
-      route: '/(tabs)/creator-studio',
-      desc: 'Creator store & analytics',
+      subItems: [
+        { label: 'Creator Dashboard', icon: LayoutGrid, route: '/(tabs)/creator-studio' },
+        { label: 'My Store', icon: Bag, route: '/(tabs)/my-store' },
+      ],
     } as any);
   }
 
   const DRAWER_FOOTER = [
+    { label: 'Rewards', icon: Gift, route: '/(tabs)/rewards' },
     { label: 'Settings and privacy', icon: SettingsIcon, route: '/(tabs)/settings' },
     { label: 'Help Centre', icon: HelpCircle, route: '/help' },
     { label: 'Log Out', icon: LogOut, action: 'signout' },
@@ -451,11 +509,181 @@ export default function TabLayout() {
               </View>
             </TouchableOpacity>
 
-            {/* Drawer Main Items */}
+            {/* Drawer Main Items - Folders & Subfolders */}
             {ALL_DRAWER_ITEMS.map((item: any, idx: number) => {
-              const isActive = (item.params?.view && isHome && view === item.params.view) ||
-                (item.route && !item.params && pathname.includes(item.route.replace('/(tabs)', '')));
+              const isExpanded = expandedItem === item.label;
+              const hasSubItems = item.subItems && item.subItems.length > 0;
+              const isAnySubActive = hasSubItems && item.subItems.some((sub: any) => {
+                if (sub.params?.view && isHome && view === sub.params.view) return true;
+                if (sub.route && !sub.params && (pathname === sub.route || pathname.includes(sub.route.replace('/(tabs)', '')))) return true;
+                return false;
+              });
 
+              return (
+                <View key={idx} style={{ marginBottom: 4 }}>
+                  {/* Folder Header Row */}
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    onPress={() => {
+                      h();
+                      if (hasSubItems) {
+                        setExpandedItem(isExpanded ? null : item.label);
+                      } else {
+                        closeDrawer();
+                        if (item.action === 'ai') {
+                          openAI();
+                          return;
+                        }
+                        setActiveNavItem({ label: item.label, icon: item.icon });
+                        if (item.params) {
+                          setActiveTab(item.params.view === 'dashboard' ? 'dashboard' : 'feed');
+                          setPendingTab(item.params.view === 'dashboard' ? 'dashboard' : 'feed');
+                          if (isHome) {
+                            router.setParams(item.params);
+                          } else {
+                            router.push({ pathname: '/(tabs)', params: item.params } as any);
+                          }
+                        } else if (item.route) {
+                          setActiveTab('dynamic');
+                          setPendingTab('dynamic');
+                          router.push(item.route as any);
+                        }
+                      }
+                    }}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      paddingVertical: 11,
+                      paddingHorizontal: 12,
+                      borderRadius: 12,
+                      backgroundColor: isAnySubActive && !isExpanded
+                        ? (isDark ? 'rgba(56, 189, 248, 0.12)' : 'rgba(2, 132, 199, 0.08)')
+                        : 'transparent',
+                    }}
+                  >
+                    <View style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: 9,
+                      backgroundColor: isAnySubActive
+                        ? (isDark ? 'rgba(56, 189, 248, 0.2)' : '#e0f2fe')
+                        : (isDark ? '#111827' : '#f1f5f9'),
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginRight: 12,
+                    }}>
+                      <item.icon
+                        size={18}
+                        color={isAnySubActive ? (isDark ? '#38bdf8' : '#0284c7') : (isDark ? '#94a3b8' : '#475569')}
+                        strokeWidth={2}
+                      />
+                    </View>
+
+                    <Text style={{
+                      flex: 1,
+                      color: isAnySubActive ? (isDark ? '#38bdf8' : '#0284c7') : (isDark ? '#f8fafc' : '#0f172a'),
+                      fontSize: 15,
+                      fontFamily: isAnySubActive ? 'Inter_700Bold' : 'Inter_600SemiBold',
+                      letterSpacing: -0.2,
+                    }}>
+                      {item.label}
+                    </Text>
+
+                    {hasSubItems && (
+                      <ChevronDown
+                        size={16}
+                        color={isDark ? '#64748b' : '#94a3b8'}
+                        style={{
+                          transform: [{ rotate: isExpanded ? '180deg' : '0deg' }],
+                        }}
+                      />
+                    )}
+                  </TouchableOpacity>
+
+                  {/* Subfolder Items */}
+                  {isExpanded && hasSubItems && (
+                    <View style={{
+                      paddingLeft: 14,
+                      marginLeft: 26,
+                      marginTop: 2,
+                      marginBottom: 6,
+                      borderLeftWidth: 1.5,
+                      borderLeftColor: isDark ? 'rgba(56, 189, 248, 0.3)' : 'rgba(2, 132, 199, 0.25)',
+                    }}>
+                      {item.subItems.map((sub: any, sIdx: number) => {
+                        const isSubActive =
+                          (sub.params?.view && isHome && view === sub.params.view) ||
+                          (sub.route && !sub.params && (pathname === sub.route || pathname.includes(sub.route.replace('/(tabs)', ''))));
+                        const SubIcon = sub.icon || BookOpen;
+
+                        return (
+                          <TouchableOpacity
+                            key={sIdx}
+                            activeOpacity={0.65}
+                            onPress={() => {
+                              h();
+                              closeDrawer();
+                              setActiveNavItem({ label: sub.label, icon: sub.icon || item.icon });
+                              if (sub.action === 'ai') {
+                                openAI();
+                                return;
+                              }
+                              if (sub.params) {
+                                setActiveTab(sub.params.view === 'dashboard' ? 'dashboard' : 'feed');
+                                setPendingTab(sub.params.view === 'dashboard' ? 'dashboard' : 'feed');
+                                if (isHome) {
+                                  router.setParams(sub.params);
+                                } else {
+                                  router.push({ pathname: '/(tabs)', params: sub.params } as any);
+                                }
+                                return;
+                              }
+                              if (sub.route) {
+                                setActiveTab('dynamic');
+                                setPendingTab('dynamic');
+                                router.push(sub.route as any);
+                              }
+                            }}
+                            style={{
+                              flexDirection: 'row',
+                              alignItems: 'center',
+                              paddingVertical: 9,
+                              paddingHorizontal: 10,
+                              borderRadius: 10,
+                              marginVertical: 1.5,
+                              backgroundColor: isSubActive
+                                ? (isDark ? 'rgba(56, 189, 248, 0.14)' : 'rgba(2, 132, 199, 0.1)')
+                                : 'transparent',
+                              gap: 11,
+                            }}
+                          >
+                            <SubIcon
+                              size={15}
+                              color={isSubActive ? (isDark ? '#38bdf8' : '#0284c7') : (isDark ? '#94a3b8' : '#64748b')}
+                              strokeWidth={2}
+                            />
+                            <Text style={{
+                              flex: 1,
+                              color: isSubActive ? (isDark ? '#38bdf8' : '#0284c7') : (isDark ? '#cbd5e1' : '#334155'),
+                              fontSize: 13.5,
+                              fontFamily: isSubActive ? 'Inter_700Bold' : 'Inter_500Medium',
+                            }}>
+                              {sub.label}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                  )}
+                </View>
+              );
+            })}
+
+            <View style={{ height: 1, backgroundColor: isDark ? '#1e293b' : '#e2e8f0', marginVertical: 12 }} />
+
+            {/* Drawer Footer Items */}
+            {DRAWER_FOOTER.map((item: any, idx: number) => {
+              const isFooterActive = item.route && pathname.includes(item.route.replace('/(tabs)', ''));
               return (
                 <TouchableOpacity
                   key={idx}
@@ -463,115 +691,62 @@ export default function TabLayout() {
                   onPress={() => {
                     h();
                     closeDrawer();
-                    if (item.action === 'ai') {
-                      openAI();
+                    if (item.action === 'signout') {
+                      Alert.alert(
+                        'Log Out',
+                        'Are you sure you want to log out of TradiFive?',
+                        [
+                          { text: 'Cancel', style: 'cancel' },
+                          {
+                            text: 'Log Out',
+                            style: 'destructive',
+                            onPress: async () => {
+                              try {
+                                const { AuthService } = require('../services/auth.service');
+                                await AuthService.signOut();
+                              } catch (e) {}
+                              router.replace('/login');
+                            }
+                          }
+                        ]
+                      );
                       return;
                     }
-                    setActiveNavItem({ label: item.label, icon: item.icon });
-                    setActiveTab('dynamic');
-                    setPendingTab('dynamic');
-                    if (item.params) {
-                      if (isHome) {
-                        router.setParams(item.params);
-                      } else {
-                        router.push({ pathname: '/(tabs)', params: item.params } as any);
-                      }
-                    } else if (item.route) {
+                    if (item.route) {
+                      setActiveNavItem({ label: item.label, icon: item.icon });
+                      setActiveTab('dynamic');
+                      setPendingTab('dynamic');
                       router.push(item.route as any);
                     }
                   }}
                   style={{
                     flexDirection: 'row',
                     alignItems: 'center',
-                    paddingVertical: 12,
+                    paddingVertical: 10,
                     paddingHorizontal: 12,
-                    borderRadius: 14,
-                    marginBottom: 4,
-                    backgroundColor: isActive ? (isDark ? 'rgba(56, 189, 248, 0.12)' : 'rgba(2, 132, 199, 0.08)') : 'transparent',
-                    gap: 14,
+                    gap: 12,
+                    borderRadius: 10,
+                    marginBottom: 2,
+                    backgroundColor: isFooterActive
+                      ? (isDark ? 'rgba(56, 189, 248, 0.12)' : 'rgba(2, 132, 199, 0.08)')
+                      : 'transparent',
                   }}
                 >
-                  <View style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: 10,
-                    backgroundColor: isActive ? '#0284c7' : (isDark ? '#111827' : '#f1f5f9'),
-                    alignItems: 'center',
-                    justifyContent: 'center',
+                  <item.icon
+                    size={18}
+                    color={item.action === 'signout' ? '#ef4444' : (isFooterActive ? (isDark ? '#38bdf8' : '#0284c7') : (isDark ? '#94a3b8' : '#64748b'))}
+                    strokeWidth={2}
+                  />
+                  <Text style={{
+                    color: item.action === 'signout' ? '#ef4444' : (isFooterActive ? (isDark ? '#38bdf8' : '#0284c7') : (isDark ? '#cbd5e1' : '#475569')),
+                    fontSize: 14,
+                    fontFamily: isFooterActive ? 'Inter_700Bold' : 'Inter_600SemiBold'
                   }}>
-                    <item.icon
-                      size={18}
-                      color={isActive ? '#ffffff' : (isDark ? '#cbd5e1' : '#334155')}
-                      strokeWidth={2}
-                    />
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={{
-                      color: isActive ? (isDark ? '#38bdf8' : '#0284c7') : (isDark ? '#f8fafc' : '#0f172a'),
-                      fontSize: 15,
-                      fontFamily: 'Inter_700Bold',
-                      letterSpacing: -0.2
-                    }}>
-                      {item.label}
-                    </Text>
-                    {item.desc ? (
-                      <Text style={{
-                        color: isDark ? '#64748b' : '#94a3b8',
-                        fontSize: 11,
-                        fontFamily: 'Inter_500Medium',
-                        marginTop: 1
-                      }}>
-                        {item.desc}
-                      </Text>
-                    ) : null}
-                  </View>
+                    {item.label}
+                  </Text>
                 </TouchableOpacity>
               );
             })}
-
-            <View style={{ height: 1, backgroundColor: isDark ? '#1e293b' : '#e2e8f0', marginVertical: 12 }} />
-
-            {/* Drawer Footer Items */}
-            {DRAWER_FOOTER.map((item: any, idx: number) => (
-              <TouchableOpacity
-                key={idx}
-                activeOpacity={0.7}
-                onPress={() => {
-                  h();
-                  closeDrawer();
-                  if (item.action === 'signout') {
-                    Alert.alert(
-                      'Log Out',
-                      'Are you sure you want to log out of TradiFive?',
-                      [
-                        { text: 'Cancel', style: 'cancel' },
-                        {
-                          text: 'Log Out',
-                          style: 'destructive',
-                          onPress: async () => {
-                            try {
-                              const { AuthService } = require('../services/auth.service');
-                              await AuthService.signOut();
-                            } catch (e) {}
-                            router.replace('/login');
-                          }
-                        }
-                      ]
-                    );
-                    return;
-                  }
-                  if (item.route) {
-                    router.push(item.route as any);
-                  }
-                }}
-                style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 11, paddingHorizontal: 12, gap: 14, borderRadius: 12, marginBottom: 2 }}
-              >
-                <item.icon size={18} color={item.action === 'signout' ? '#ef4444' : (isDark ? '#94a3b8' : '#64748b')} strokeWidth={2} />
-                <Text style={{ color: item.action === 'signout' ? '#ef4444' : (isDark ? '#cbd5e1' : '#475569'), fontSize: 14, fontFamily: 'Inter_600SemiBold' }}>
-                  {item.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
           </ScrollView>
         </Animated.View>
 
@@ -635,14 +810,20 @@ export default function TabLayout() {
               <Tabs.Screen name="risk-guard" options={{ title: 'Risk Guard' }} />
               <Tabs.Screen name="ai-coach" options={{ title: 'AI Coach' }} />
               <Tabs.Screen name="rewards" options={{ title: 'Rewards' }} />
-              <Tabs.Screen name="channel" options={{ title: 'Channels' }} />
+              <Tabs.Screen name="channel" options={{ title: 'Channel' }} />
+              <Tabs.Screen name="channels" options={{ title: 'Channels' }} />
               <Tabs.Screen name="learning" options={{ title: 'Learning' }} />
               <Tabs.Screen name="contests" options={{ title: 'Contests' }} />
+              <Tabs.Screen name="mentorship-hub" options={{ title: 'Mentorship Hub' }} />
+              <Tabs.Screen name="live-sessions" options={{ title: 'Live Sessions' }} />
+              <Tabs.Screen name="portfolio" options={{ title: 'Portfolio' }} />
               <Tabs.Screen name="inbox" options={{ title: 'Inbox' }} />
               <Tabs.Screen name="finance" options={{ title: 'Finance' }} />
               <Tabs.Screen name="marketplace" options={{ title: 'Marketplace' }} />
               <Tabs.Screen name="settings" options={{ title: 'Settings' }} />
               <Tabs.Screen name="creator-studio" options={{ title: 'Creator Studio' }} />
+              <Tabs.Screen name="my-store" options={{ title: 'My Store' }} />
+              <Tabs.Screen name="referrals" options={{ title: 'Referrals' }} />
             </Tabs>
 
             {/* GLOBAL TOP HEADER - Show for all tactical pages (Left Aligned Style) */}
@@ -801,103 +982,189 @@ export default function TabLayout() {
             <Modal visible={menuOpen} transparent animationType="none" onRequestClose={closeMenu}>
               <Animated.View style={{ flex: 1, backgroundColor: '#000', transform: [{ translateY: menuAnim }] }}>
                 <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: insets.top + 16, paddingHorizontal: 24, paddingBottom: insets.bottom + 100 }}>
-                  {(() => {
-                    const localNavItems: any[] = [
-                      { label: 'Dashboard', icon: LayoutGrid, route: '/(tabs)', params: { view: 'dashboard' } },
-                      { label: 'Feed', icon: Home, route: '/(tabs)', params: { view: 'feed' } },
-                      { label: 'Risk Guard', icon: ShieldCheck, route: '/(tabs)/risk-guard' },
-                      { label: 'Trading Journal', icon: BookOpen, route: '/(tabs)/journal' },
-                      { label: 'Broker Connect', icon: Zap, route: '/broker-connect' },
-                      { label: 'Channels', icon: Users, route: '/(tabs)/channels' },
-                      { label: 'Rewards', icon: Gift, route: '/(tabs)/rewards' },
-                      { label: 'Marketplace', icon: Bag, route: '/(tabs)/marketplace' },
-                    ];
-                    if (isElite && currentUser?.account_type === 'creator') {
-                      localNavItems.push({
-                        label: 'Creator Studio',
-                        icon: Crown,
-                        route: '/(tabs)/creator-studio'
-                      } as any);
-                    }
-                    return localNavItems.map(item => {
-                      const Icon = item.icon;
-                      return (
+                  <Text style={{ color: '#fff', fontSize: 22, fontFamily: 'Inter_700Bold', marginBottom: 16 }}>Navigation</Text>
+                  {ALL_DRAWER_ITEMS.map((item: any, idx: number) => {
+                    const isExpanded = expandedItem === item.label;
+                    const hasSubItems = item.subItems && item.subItems.length > 0;
+                    const isAnySubActive = hasSubItems && item.subItems.some((sub: any) => {
+                      if (sub.params?.view && isHome && view === sub.params.view) return true;
+                      if (sub.route && !sub.params && (pathname === sub.route || pathname.includes(sub.route.replace('/(tabs)', '')))) return true;
+                      return false;
+                    });
+
+                    return (
+                      <View key={idx} style={{ marginBottom: 6 }}>
                         <TouchableOpacity
-                          key={item.label}
                           activeOpacity={0.7}
                           onPress={() => {
                             h();
-                            closeMenu();
-                            setActiveNavItem({ label: item.label, icon: item.icon });
-                            if (item.params) {
-                              if (isHome) {
-                                router.setParams(item.params);
-                              } else {
-                                router.push({ pathname: '/(tabs)', params: item.params } as any);
+                            if (hasSubItems) {
+                              setExpandedItem(isExpanded ? null : item.label);
+                            } else {
+                              closeMenu();
+                              if (item.action === 'ai') {
+                                openAI();
+                                return;
                               }
-                            } else if (item.route) {
-                              router.push(item.route as any);
+                              setActiveNavItem({ label: item.label, icon: item.icon });
+                              if (item.params) {
+                                if (isHome) {
+                                  router.setParams(item.params);
+                                } else {
+                                  router.push({ pathname: '/(tabs)', params: item.params } as any);
+                                }
+                              } else if (item.route) {
+                                router.push(item.route as any);
+                              }
                             }
                           }}
                           style={{
                             flexDirection: 'row',
                             alignItems: 'center',
-                            paddingVertical: 14,
-                            paddingHorizontal: 16,
-                            marginBottom: 6,
+                            paddingVertical: 13,
+                            paddingHorizontal: 14,
                             borderRadius: 12,
-                            backgroundColor: 'rgba(255,255,255,0.05)'
+                            backgroundColor: isAnySubActive ? 'rgba(56, 189, 248, 0.12)' : 'rgba(255,255,255,0.05)',
                           }}
                         >
-                          <Icon size={20} color="#fff" style={{ marginRight: 16 }} strokeWidth={1.8} />
+                          <item.icon size={20} color={isAnySubActive ? '#38bdf8' : '#fff'} style={{ marginRight: 14 }} strokeWidth={1.8} />
                           <Text style={{
-                            color: '#fff',
+                            color: isAnySubActive ? '#38bdf8' : '#fff',
                             fontSize: 16,
                             flex: 1,
-                            fontFamily: 'Inter_600SemiBold',
+                            fontFamily: isAnySubActive ? 'Inter_700Bold' : 'Inter_600SemiBold',
                             letterSpacing: -0.2
                           }}>
                             {item.label}
                           </Text>
-                          <ChevronRight size={18} color="#64748b" />
+                          {hasSubItems && (
+                            <ChevronDown
+                              size={16}
+                              color="#64748b"
+                              style={{
+                                transform: [{ rotate: isExpanded ? '180deg' : '0deg' }],
+                              }}
+                            />
+                          )}
                         </TouchableOpacity>
-                      );
-                    });
-                  })()}
+
+                        {isExpanded && hasSubItems && (
+                          <View style={{
+                            paddingLeft: 14,
+                            marginLeft: 24,
+                            marginTop: 4,
+                            marginBottom: 4,
+                            borderLeftWidth: 1.5,
+                            borderLeftColor: 'rgba(56, 189, 248, 0.3)',
+                          }}>
+                            {item.subItems.map((sub: any, sIdx: number) => {
+                              const isSubActive =
+                                (sub.params?.view && isHome && view === sub.params.view) ||
+                                (sub.route && !sub.params && (pathname === sub.route || pathname.includes(sub.route.replace('/(tabs)', ''))));
+                              const SubIcon = sub.icon || BookOpen;
+
+                              return (
+                                <TouchableOpacity
+                                  key={sIdx}
+                                  activeOpacity={0.65}
+                                  onPress={() => {
+                                    h();
+                                    closeMenu();
+                                    setActiveNavItem({ label: sub.label, icon: sub.icon || item.icon });
+                                    if (sub.action === 'ai') {
+                                      openAI();
+                                      return;
+                                    }
+                                    if (sub.params) {
+                                      setActiveTab(sub.params.view === 'dashboard' ? 'dashboard' : 'feed');
+                                      setPendingTab(sub.params.view === 'dashboard' ? 'dashboard' : 'feed');
+                                      if (isHome) {
+                                        router.setParams(sub.params);
+                                      } else {
+                                        router.push({ pathname: '/(tabs)', params: sub.params } as any);
+                                      }
+                                      return;
+                                    }
+                                    if (sub.route) {
+                                      setActiveTab('dynamic');
+                                      setPendingTab('dynamic');
+                                      router.push(sub.route as any);
+                                    }
+                                  }}
+                                  style={{
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    paddingVertical: 9,
+                                    paddingHorizontal: 10,
+                                    borderRadius: 10,
+                                    marginVertical: 1.5,
+                                    backgroundColor: isSubActive ? 'rgba(56, 189, 248, 0.14)' : 'transparent',
+                                    gap: 12,
+                                  }}
+                                >
+                                  <SubIcon
+                                    size={16}
+                                    color={isSubActive ? '#38bdf8' : '#94a3b8'}
+                                    strokeWidth={2}
+                                  />
+                                  <Text style={{
+                                    flex: 1,
+                                    color: isSubActive ? '#38bdf8' : '#cbd5e1',
+                                    fontSize: 14,
+                                    fontFamily: isSubActive ? 'Inter_700Bold' : 'Inter_500Medium',
+                                  }}>
+                                    {sub.label}
+                                  </Text>
+                                </TouchableOpacity>
+                              );
+                            })}
+                          </View>
+                        )}
+                      </View>
+                    );
+                  })}
                 </ScrollView>
-                <View style={{ position: 'absolute', bottom: insets.bottom + 24, left: 24, right: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <View style={{ flexDirection: 'row', gap: 24 }}>
+                <View style={{ position: 'absolute', bottom: insets.bottom + 20, left: 20, right: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <View style={{ flexDirection: 'row', gap: 16 }}>
+                    <TouchableOpacity
+                      onPress={() => { closeMenu(); router.push('/(tabs)/rewards'); }}
+                      style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
+                    >
+                      <Gift size={18} color="#fff" strokeWidth={1.5} />
+                      <Text style={{ color: '#fff', fontSize: 14, fontFamily: 'Inter_500Medium' }}>Rewards</Text>
+                    </TouchableOpacity>
+
                     <TouchableOpacity
                       onPress={() => { closeMenu(); router.push('/(tabs)/settings'); }}
-                      style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}
+                      style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
                     >
-                      <SettingsIcon size={20} color="#fff" strokeWidth={1.5} />
-                      <Text style={{ color: '#fff', fontSize: 16, fontFamily: 'Inter_400Regular' }}>Settings</Text>
+                      <SettingsIcon size={18} color="#fff" strokeWidth={1.5} />
+                      <Text style={{ color: '#fff', fontSize: 14, fontFamily: 'Inter_500Medium' }}>Settings</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
                       onPress={() => { closeMenu(); router.push('/help'); }}
-                      style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}
+                      style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
                     >
-                      <HelpCircle size={20} color="#fff" strokeWidth={1.5} />
-                      <Text style={{ color: '#fff', fontSize: 16, fontFamily: 'Inter_400Regular' }}>Help</Text>
+                      <HelpCircle size={18} color="#fff" strokeWidth={1.5} />
+                      <Text style={{ color: '#fff', fontSize: 14, fontFamily: 'Inter_500Medium' }}>Help</Text>
                     </TouchableOpacity>
                   </View>
 
                   <TouchableOpacity
                     onPress={closeMenu}
                     style={{
-                      width: 84,
-                      height: 84,
-                      borderRadius: 42,
+                      width: 56,
+                      height: 56,
+                      borderRadius: 28,
                       backgroundColor: '#1c1c1e',
                       alignItems: 'center',
                       justifyContent: 'center',
                       borderWidth: 1,
-                      borderColor: 'rgba(255,255,255,0.05)'
+                      borderColor: 'rgba(255,255,255,0.1)'
                     }}
                   >
-                    <X size={32} color="#fff" strokeWidth={1.5} />
+                    <X size={26} color="#fff" strokeWidth={1.5} />
                   </TouchableOpacity>
                 </View>
               </Animated.View>
