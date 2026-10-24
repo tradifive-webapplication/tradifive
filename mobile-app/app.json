@@ -46,7 +46,10 @@
       ],
       "expo-secure-store",
       "expo-web-browser",
-      "expo-video"
+      "expo-video",
+      "expo-font",
+      "expo-image",
+      "expo-status-bar"
     ],
     "experiments": {
       "typedRoutes": true,
@@ -62,7 +65,7 @@
     },
     "owner": "nikil5",
     "runtimeVersion": {
-      "policy": "appVersion"
+      "policy": "sdkVersion"
     },
     "updates": {
       "url": "https://u.expo.dev/00e0a449-ddea-4b1b-b752-76d2042e2f47"
