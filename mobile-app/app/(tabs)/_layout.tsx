@@ -393,7 +393,7 @@ export default function TabLayout() {
       label: 'Auto Trade',
       icon: Activity,
       subItems: [
-        { label: 'Active Bots & Setup', icon: Work, route: '/broker-connect' },
+        { label: 'Auto Trade Setup', icon: Work, route: '/auto-trade-setup' },
         { label: 'Algo Marketplace', icon: Bag, route: '/(tabs)/marketplace' },
         { label: 'Order History', icon: Document, route: '/(tabs)/journal' },
       ],
@@ -589,7 +589,7 @@ export default function TabLayout() {
                       } else if (item.label === 'Auto Trade') {
                         setActiveTab('dynamic');
                         setPendingTab('dynamic');
-                        router.push('/broker-connect');
+                        router.push('/auto-trade-setup');
                       } else if (item.label === 'Discover') {
                         setActiveTab('dynamic');
                         setPendingTab('dynamic');
@@ -619,7 +619,7 @@ export default function TabLayout() {
                       borderRadius: 12,
                       gap: 16,
                       backgroundColor: isAnySubActive && !isExpanded
-                        ? 'rgba(56, 189, 248, 0.12)'
+                        ? 'rgba(255, 255, 255, 0.08)'
                         : 'transparent',
                     }}
                   >
@@ -627,15 +627,15 @@ export default function TabLayout() {
                     <View style={{ width: 26, alignItems: 'center', justifyContent: 'center' }}>
                       <item.icon
                         size={22}
-                        color={isAnySubActive ? '#38bdf8' : '#ffffff'}
-                        set={isAnySubActive ? 'bold' : 'curved'}
+                        color="#ffffff"
+                        set="curved"
                         stroke="bold"
                       />
                     </View>
 
                     <Text style={{
                       flex: 1,
-                      color: isAnySubActive ? '#38bdf8' : '#ffffff',
+                      color: '#ffffff',
                       fontSize: 16,
                       fontFamily: isAnySubActive ? 'Inter_700Bold' : 'Inter_600SemiBold',
                       letterSpacing: -0.2,
@@ -656,7 +656,7 @@ export default function TabLayout() {
                       >
                         <ChevronDown
                           size={18}
-                          color={isExpanded ? '#38bdf8' : '#94a3b8'}
+                          color="#94a3b8"
                           style={{
                             transform: [{ rotate: isExpanded ? '180deg' : '0deg' }],
                           }}
@@ -717,7 +717,7 @@ export default function TabLayout() {
                               borderRadius: 10,
                               marginVertical: 2,
                               backgroundColor: isSubActive
-                                ? 'rgba(56, 189, 248, 0.15)'
+                                ? 'rgba(255, 255, 255, 0.08)'
                                 : 'transparent',
                               gap: 14,
                             }}
@@ -725,14 +725,14 @@ export default function TabLayout() {
                             <View style={{ width: 22, alignItems: 'center', justifyContent: 'center' }}>
                               <SubIcon
                                 size={17}
-                                color={isSubActive ? '#38bdf8' : '#94a3b8'}
-                                set={isSubActive ? 'bold' : 'curved'}
+                                color={isSubActive ? '#ffffff' : '#94a3b8'}
+                                set="curved"
                                 stroke="bold"
                               />
                             </View>
                             <Text style={{
                               flex: 1,
-                              color: isSubActive ? '#38bdf8' : '#e2e8f0',
+                              color: isSubActive ? '#ffffff' : '#cbd5e1',
                               fontSize: 14,
                               fontFamily: isSubActive ? 'Inter_700Bold' : 'Inter_500Medium',
                             }}>
@@ -753,8 +753,8 @@ export default function TabLayout() {
             {DRAWER_FOOTER.map((item: any, idx: number) => {
               const isFooterActive = item.route && pathname.includes(item.route.replace('/(tabs)', ''));
               const isSignout = item.action === 'signout';
-              const iconColor = isSignout ? '#ef4444' : (isFooterActive ? '#38bdf8' : '#ffffff');
-              const textColor = isSignout ? '#ef4444' : (isFooterActive ? '#38bdf8' : '#ffffff');
+              const iconColor = isSignout ? '#ef4444' : '#ffffff';
+              const textColor = isSignout ? '#ef4444' : '#ffffff';
 
               return (
                 <TouchableOpacity
@@ -800,7 +800,7 @@ export default function TabLayout() {
                     borderRadius: 10,
                     marginBottom: 4,
                     backgroundColor: isFooterActive
-                      ? 'rgba(56, 189, 248, 0.12)'
+                      ? 'rgba(255, 255, 255, 0.08)'
                       : 'transparent',
                   }}
                 >
@@ -808,7 +808,7 @@ export default function TabLayout() {
                     <item.icon
                       size={20}
                       color={iconColor}
-                      set={isFooterActive ? 'bold' : 'curved'}
+                      set="curved"
                       stroke="bold"
                     />
                   </View>
