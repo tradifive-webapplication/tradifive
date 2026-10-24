@@ -2,12 +2,27 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, Image, ActivityIndicator, Platform, Dimensions } from 'react-native';
 import { X, Image as ImageIcon, Video as VideoIcon, Send } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { Video, ResizeMode } from 'expo-av';
+import { useVideoPlayer, VideoView } from 'expo-video';
 import { supabase } from '../app/utils/supabase';
 import { useStore } from '../app/store';
 import { useAppTheme } from '../hooks/useAppTheme';
 
 const { width, height } = Dimensions.get('window');
+
+const VideoPreview: React.FC<{ uri: string; style: any }> = ({ uri, style }) => {
+  const player = useVideoPlayer(uri, (p) => {
+    p.loop = true;
+  });
+
+  return (
+    <VideoView
+      style={style}
+      player={player}
+      allowsFullscreen
+      allowsPictureInPicture
+    />
+  );
+};
 
 interface CreatePostModalProps {
   visible: boolean;
@@ -174,12 +189,10 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({ visible, onClo
               <X size={20} color="#fff" />
             </TouchableOpacity>
             
-            {mediaType === 'video' ? (
-              <Video
-                source={{ uri: mediaUri }}
+            {mediaType === 'video' && mediaUri ? (
+              <VideoPreview
+                uri={mediaUri}
                 style={styles.mediaPreview}
-                useNativeControls
-                resizeMode={ResizeMode.COVER}
               />
             ) : (
               <Image source={{ uri: mediaUri }} style={styles.mediaPreview} />

@@ -2,12 +2,27 @@ import React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, Dimensions, Animated } from 'react-native';
 import { Heart, Chat, Send, Bookmark } from './Iconly';
 import { useRouter } from 'expo-router';
-import { Video, ResizeMode } from 'expo-av';
+import { useVideoPlayer, VideoView } from 'expo-video';
 import { getAvatarUrl } from '../app/utils/avatar';
 import { FeedPost } from '../hooks/useSocialFeed';
 import { useAppTheme } from '../hooks/useAppTheme';
 
 const { width } = Dimensions.get('window');
+
+const FeedVideo: React.FC<{ uri: string; style: any }> = ({ uri, style }) => {
+  const player = useVideoPlayer(uri, (p) => {
+    p.loop = true;
+  });
+
+  return (
+    <VideoView
+      style={style}
+      player={player}
+      allowsFullscreen
+      allowsPictureInPicture
+    />
+  );
+};
 
 interface FeedCardProps {
   post: FeedPost;
@@ -136,12 +151,9 @@ export const FeedCard: React.FC<FeedCardProps> = ({ post, onLike, onComment, onS
       {post.media_url && (
         <View style={styles.mediaContainer}>
           {isVideo ? (
-            <Video
-              source={{ uri: post.media_url }}
+            <FeedVideo
+              uri={post.media_url}
               style={styles.media}
-              useNativeControls
-              resizeMode={ResizeMode.COVER}
-              isLooping
             />
           ) : (
             <Image 

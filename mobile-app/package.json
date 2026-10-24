@@ -25,7 +25,6 @@
     "date-fns": "^4.2.1",
     "expo": "^58.0.0",
     "expo-auth-session": "~58.0.14",
-    "expo-av": "^16.0.8",
     "expo-blur": "~58.0.5",
     "expo-constants": "~58.0.13",
     "expo-crypto": "~58.0.7",
