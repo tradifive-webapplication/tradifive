@@ -438,6 +438,12 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
     return [];
   });
 
+  // ── Live Active Basket Positions (Real MT5 Live Positions) ──
+  const [openPositions, setOpenPositions] = useState<OpenTradeItem[]>([]);
+
+  // ── Recent Closed Trades History (Real MT5 Trade History) ──
+  const [closedTrades, setClosedTrades] = useState<ClosedTradeItem[]>([]);
+
   // ── Chart Timeframe & Data ──
   const [chartTimeframe, setChartTimeframe] = useState<"Today" | "7D" | "30D" | "All">("7D");
 
@@ -544,12 +550,6 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
       { time: "Now", netProfit: Number(netP.toFixed(2)), balance: Math.round(bal), dailyGain: startAllBal > 0 ? Number(((netP / startAllBal) * 100).toFixed(2)) : 0 },
     ];
   }, [chartTimeframe, accountBalance, todayProfit, netProfitAllTime, closedTrades, openPositions]);
-
-  // ── Live Active Basket Positions (Real MT5 Live Positions) ──
-  const [openPositions, setOpenPositions] = useState<OpenTradeItem[]>([]);
-
-  // ── Recent Closed Trades History (Real MT5 Trade History) ──
-  const [closedTrades, setClosedTrades] = useState<ClosedTradeItem[]>([]);
 
   // ── Pagination States (5 trades per page) ──
   const TRADES_PER_PAGE = 5;
