@@ -364,12 +364,12 @@ export default function TabLayout() {
       ],
     },
     {
-      label: 'Auto Trade & Market',
-      icon: Activity,
+      label: 'Journal',
+      icon: Paper,
       subItems: [
-        { label: 'Algo Marketplace', icon: Bag, route: '/(tabs)/marketplace' },
-        { label: 'Active Bots & Setup', icon: Work, route: '/broker-connect' },
-        { label: 'Order History', icon: Document, route: '/(tabs)/journal' },
+        { label: 'Daily Journal', icon: Document, route: '/(tabs)/journal' },
+        { label: 'Performance Analytics', icon: Chart, route: '/(tabs)/journal' },
+        { label: 'Trade History', icon: TimeCircle, route: '/(tabs)/journal' },
       ],
     },
     {
@@ -382,15 +382,6 @@ export default function TabLayout() {
       ],
     },
     {
-      label: 'Trading Journal',
-      icon: Paper,
-      subItems: [
-        { label: 'Daily Journal', icon: Document, route: '/(tabs)/journal' },
-        { label: 'Performance Analytics', icon: Chart, route: '/(tabs)/journal' },
-        { label: 'Trade History', icon: TimeCircle, route: '/(tabs)/journal' },
-      ],
-    },
-    {
       label: 'AI Coach',
       icon: SparklesIcon,
       subItems: [
@@ -399,14 +390,30 @@ export default function TabLayout() {
       ],
     },
     {
-      label: 'Channels & Community',
+      label: 'Auto Trade',
+      icon: Activity,
+      subItems: [
+        { label: 'Active Bots & Setup', icon: Work, route: '/broker-connect' },
+        { label: 'Algo Marketplace', icon: Bag, route: '/(tabs)/marketplace' },
+        { label: 'Order History', icon: Document, route: '/(tabs)/journal' },
+      ],
+    },
+    {
+      label: 'Discover',
+      icon: Discovery,
+      subItems: [
+        { label: 'Algo Marketplace', icon: Bag, route: '/(tabs)/marketplace' },
+        { label: 'Trading Contests', icon: Trophy, route: '/(tabs)/contests' },
+        { label: 'Courses & Learning', icon: Paper, route: '/(tabs)/learning' },
+      ],
+    },
+    {
+      label: 'Channels',
       icon: TwoUsers,
       subItems: [
         { label: 'Trading Channels', icon: Chat, route: '/(tabs)/channels' },
-        { label: 'Trading Contests', icon: Trophy, route: '/(tabs)/contests' },
         { label: 'Mentorship Hub', icon: Crown, route: '/(tabs)/mentorship-hub' },
         { label: 'Live Sessions', icon: Video, route: '/(tabs)/live-sessions' },
-        { label: 'Courses & Learning', icon: Discovery, route: '/(tabs)/learning' },
       ],
     },
   ];
@@ -579,19 +586,21 @@ export default function TabLayout() {
                       paddingVertical: 12,
                       paddingHorizontal: 8,
                       borderRadius: 12,
+                      gap: 16,
                       backgroundColor: isAnySubActive && !isExpanded
                         ? 'rgba(56, 189, 248, 0.12)'
                         : 'transparent',
                     }}
                   >
-                    {/* Native Iconly Icon directly rendered */}
-                    <item.icon
-                      size={22}
-                      color={isAnySubActive ? '#38bdf8' : '#ffffff'}
-                      set={isAnySubActive ? 'bold' : 'curved'}
-                      stroke="bold"
-                      style={{ marginRight: 14 }}
-                    />
+                    {/* Fixed container for Iconly Icon ensuring guaranteed gap */}
+                    <View style={{ width: 26, alignItems: 'center', justifyContent: 'center' }}>
+                      <item.icon
+                        size={22}
+                        color={isAnySubActive ? '#38bdf8' : '#ffffff'}
+                        set={isAnySubActive ? 'bold' : 'curved'}
+                        stroke="bold"
+                      />
+                    </View>
 
                     <Text style={{
                       flex: 1,
@@ -668,15 +677,17 @@ export default function TabLayout() {
                               backgroundColor: isSubActive
                                 ? 'rgba(56, 189, 248, 0.15)'
                                 : 'transparent',
-                              gap: 12,
+                              gap: 14,
                             }}
                           >
-                            <SubIcon
-                              size={17}
-                              color={isSubActive ? '#38bdf8' : '#94a3b8'}
-                              set={isSubActive ? 'bold' : 'curved'}
-                              stroke="bold"
-                            />
+                            <View style={{ width: 22, alignItems: 'center', justifyContent: 'center' }}>
+                              <SubIcon
+                                size={17}
+                                color={isSubActive ? '#38bdf8' : '#94a3b8'}
+                                set={isSubActive ? 'bold' : 'curved'}
+                                stroke="bold"
+                              />
+                            </View>
                             <Text style={{
                               flex: 1,
                               color: isSubActive ? '#38bdf8' : '#e2e8f0',
@@ -743,7 +754,7 @@ export default function TabLayout() {
                     alignItems: 'center',
                     paddingVertical: 12,
                     paddingHorizontal: 8,
-                    gap: 14,
+                    gap: 16,
                     borderRadius: 10,
                     marginBottom: 4,
                     backgroundColor: isFooterActive
@@ -751,12 +762,14 @@ export default function TabLayout() {
                       : 'transparent',
                   }}
                 >
-                  <item.icon
-                    size={20}
-                    color={iconColor}
-                    set={isFooterActive ? 'bold' : 'curved'}
-                    stroke="bold"
-                  />
+                  <View style={{ width: 26, alignItems: 'center', justifyContent: 'center' }}>
+                    <item.icon
+                      size={20}
+                      color={iconColor}
+                      set={isFooterActive ? 'bold' : 'curved'}
+                      stroke="bold"
+                    />
+                  </View>
                   <Text style={{
                     color: textColor,
                     fontSize: 15,
@@ -1044,10 +1057,13 @@ export default function TabLayout() {
                             paddingVertical: 13,
                             paddingHorizontal: 14,
                             borderRadius: 12,
+                            gap: 16,
                             backgroundColor: isAnySubActive ? 'rgba(56, 189, 248, 0.12)' : 'rgba(255,255,255,0.05)',
                           }}
                         >
-                          <item.icon size={20} color={isAnySubActive ? '#38bdf8' : '#fff'} style={{ marginRight: 14 }} strokeWidth={1.8} />
+                          <View style={{ width: 24, alignItems: 'center', justifyContent: 'center' }}>
+                            <item.icon size={20} color={isAnySubActive ? '#38bdf8' : '#fff'} set={isAnySubActive ? 'bold' : 'curved'} stroke="bold" />
+                          </View>
                           <Text style={{
                             color: isAnySubActive ? '#38bdf8' : '#fff',
                             fontSize: 16,
@@ -1081,7 +1097,7 @@ export default function TabLayout() {
                               const isSubActive =
                                 (sub.params?.view && isHome && view === sub.params.view) ||
                                 (sub.route && !sub.params && (pathname === sub.route || pathname.includes(sub.route.replace('/(tabs)', ''))));
-                              const SubIcon = sub.icon || BookOpen;
+                              const SubIcon = sub.icon || Document;
 
                               return (
                                 <TouchableOpacity
@@ -1119,15 +1135,17 @@ export default function TabLayout() {
                                     borderRadius: 10,
                                     marginVertical: 1.5,
                                     backgroundColor: isSubActive ? 'rgba(56, 189, 248, 0.14)' : 'transparent',
-                                    gap: 12,
+                                    gap: 14,
                                   }}
                                 >
-                                  <SubIcon
-                                    size={16}
-                                    color={isSubActive ? '#38bdf8' : '#94a3b8'}
-                                    set={isSubActive ? 'bold' : 'curved'}
-                                    stroke="bold"
-                                  />
+                                  <View style={{ width: 20, alignItems: 'center', justifyContent: 'center' }}>
+                                    <SubIcon
+                                      size={16}
+                                      color={isSubActive ? '#38bdf8' : '#94a3b8'}
+                                      set={isSubActive ? 'bold' : 'curved'}
+                                      stroke="bold"
+                                    />
+                                  </View>
                                   <Text style={{
                                     flex: 1,
                                     color: isSubActive ? '#38bdf8' : '#e2e8f0',
