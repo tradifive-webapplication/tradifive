@@ -2943,16 +2943,7 @@ export default function DashboardScreen() {
               />
             }
           >
-            <Animated.View style={{
-              flex: 1,
-              transform: headerStyle === 'simple' ? [] : [{
-                translateY: scrollY.interpolate({
-                  inputRange: [0, 150],
-                  outputRange: [0, 150],
-                  extrapolate: 'clamp'
-                })
-              }]
-            }}>
+            <View style={{ flex: 1 }}>
 
               {/* Quick Post Prompt Card */}
               <TouchableOpacity
@@ -3227,7 +3218,7 @@ export default function DashboardScreen() {
                   )}
                 </View>
               )}
-            </Animated.View>
+            </View>
           </Animated.ScrollView>
 
           {activePostMenu && (

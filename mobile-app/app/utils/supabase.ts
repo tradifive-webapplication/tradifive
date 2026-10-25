@@ -7,8 +7,11 @@ import Constants from 'expo-constants';
 // To configure, add these to your app.json under "extra":
 //   "supabaseUrl": "https://your-project.supabase.co",
 //   "supabaseAnonKey": "your-anon-key"
-const SUPABASE_URL = Constants.expoConfig?.extra?.supabaseUrl || "";
-const SUPABASE_ANON_KEY = Constants.expoConfig?.extra?.supabaseAnonKey || "";
+const FALLBACK_SUPABASE_URL = "https://rylwyxhupwpwsdbvuoej.supabase.co";
+const FALLBACK_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ5bHd5eGh1cHdwd3NkYnZ1b2VqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0MzI1NTcsImV4cCI6MjA5MjAwODU1N30.xuRj9PZgZys2b64pNnjhXOVyDjtGVFlBno2o9hiisHA";
+
+const SUPABASE_URL = Constants.expoConfig?.extra?.supabaseUrl || (Constants as any).manifest?.extra?.supabaseUrl || (Constants as any).manifest2?.extra?.expoClient?.extra?.supabaseUrl || FALLBACK_SUPABASE_URL;
+const SUPABASE_ANON_KEY = Constants.expoConfig?.extra?.supabaseAnonKey || (Constants as any).manifest?.extra?.supabaseAnonKey || (Constants as any).manifest2?.extra?.expoClient?.extra?.supabaseAnonKey || FALLBACK_SUPABASE_ANON_KEY;
 
 import { Platform } from 'react-native';
 
