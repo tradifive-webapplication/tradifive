@@ -262,7 +262,7 @@ export default function RiskGuardScreen() {
     }
   };
 
-  const headerHeight = insets.top + 64;
+  const headerHeight = insets.top + 72;
   const clampedScroll = Animated.diffClamp(scrollY.interpolate({ inputRange: [0, 1], outputRange: [0, 1], extrapolateLeft: 'clamp' }), 0, headerHeight);
   const headerTranslateY = clampedScroll.interpolate({ inputRange: [0, headerHeight], outputRange: [0, -headerHeight], extrapolate: 'clamp' });
   const headerOpacity = scrollY.interpolate({ inputRange: [140, 180], outputRange: [0, 1], extrapolate: 'clamp' });
@@ -357,9 +357,9 @@ export default function RiskGuardScreen() {
       
       {/* ── SMART-REVEAL HEADER ── */}
       {headerStyle !== 'simple' && (
-        <Animated.View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: headerHeight, backgroundColor: '#000', zIndex: 2000, paddingTop: insets.top, opacity: headerOpacity, transform: [{ translateY: headerTranslateY }], borderBottomLeftRadius: 40, borderBottomRightRadius: 40, overflow: 'hidden' }}>
+        <Animated.View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: headerHeight, backgroundColor: '#000', zIndex: 2000, paddingTop: insets.top + 8, opacity: headerOpacity, transform: [{ translateY: headerTranslateY }], borderBottomLeftRadius: 40, borderBottomRightRadius: 40, overflow: 'hidden' }}>
           <Image source={require('../../assets/images/top-glow.png')} style={{ position: 'absolute', top: 0, left: 0, right: 0, width: '100%', height: 80, opacity: 0.8 }} resizeMode="stretch" />
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, height: 60 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, height: 56 }}>
             <Text style={{ fontSize: 24, fontFamily: 'Inter_700Bold', color: '#fff', letterSpacing: -0.5 }}>Risk Guard</Text>
             {/* Kill Switch Mini */}
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: killSwitchActive ? (isDark ? '#450a0a' : '#fef2f2') : (isDark ? '#1a1a1e' : '#ffffff'), borderRadius: 20, paddingLeft: 12, paddingRight: 6, paddingVertical: 2, borderWidth: 1, borderColor: killSwitchActive ? '#ef4444' : (isDark ? '#333' : '#e2e8f0'), shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 }}>
@@ -374,8 +374,8 @@ export default function RiskGuardScreen() {
       )}
 
       {/* ── STATIC HEADER ── */}
-      <Animated.View style={{ height: headerStyle === 'simple' ? insets.top + 56 : insets.top + 92, backgroundColor: headerStyle === 'simple' ? (isDark ? theme.background : '#ffffff') : 'transparent', borderBottomWidth: headerStyle === 'simple' ? 1 : 0, borderBottomColor: isDark ? '#1e2a3a' : '#e2e8f0', position: 'relative', transform: headerStyle === 'simple' ? [] : [{ scale: scrollY.interpolate({ inputRange: [0, 80], outputRange: [1, 0.85], extrapolate: 'clamp' }) }, { translateY: scrollY.interpolate({ inputRange: [0, 80], outputRange: [0, -60], extrapolate: 'clamp' }) }] }}>
-        <Animated.View style={{ position: 'absolute', bottom: headerStyle === 'simple' ? 12 : 38, left: 0, right: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, opacity: headerStyle === 'simple' ? 1 : scrollY.interpolate({ inputRange: [0, 140], outputRange: [1, 0], extrapolate: 'clamp' }) }}>
+      <Animated.View style={{ height: headerStyle === 'simple' ? insets.top + 74 : insets.top + 104, backgroundColor: headerStyle === 'simple' ? (isDark ? theme.background : '#ffffff') : 'transparent', borderBottomWidth: headerStyle === 'simple' ? 1 : 0, borderBottomColor: isDark ? '#1e2a3a' : '#e2e8f0', position: 'relative', transform: headerStyle === 'simple' ? [] : [{ scale: scrollY.interpolate({ inputRange: [0, 80], outputRange: [1, 0.85], extrapolate: 'clamp' }) }, { translateY: scrollY.interpolate({ inputRange: [0, 80], outputRange: [0, -60], extrapolate: 'clamp' }) }] }}>
+        <Animated.View style={{ position: 'absolute', bottom: headerStyle === 'simple' ? 16 : 38, left: 0, right: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, opacity: headerStyle === 'simple' ? 1 : scrollY.interpolate({ inputRange: [0, 140], outputRange: [1, 0], extrapolate: 'clamp' }) }}>
           <Text style={{ color: headerStyle === 'simple' ? (isDark ? theme.text : '#000000') : '#fff', fontSize: 24, fontFamily: 'Inter_700Bold', letterSpacing: -0.5 }}>Risk Guard</Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: killSwitchActive ? (isDark ? '#450a0a' : '#fef2f2') : (isDark ? '#1a1a1e' : '#ffffff'), borderRadius: 20, paddingLeft: 12, paddingRight: 6, paddingVertical: 2, borderWidth: 1, borderColor: killSwitchActive ? '#ef4444' : (isDark ? '#333' : '#e2e8f0'), shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 }}>
             <Power size={14} color={killSwitchActive ? '#ef4444' : (isDark ? '#fff' : '#0f172a')} />

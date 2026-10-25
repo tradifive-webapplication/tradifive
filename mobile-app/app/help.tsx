@@ -342,7 +342,7 @@ export default function HelpCentre() {
 
       {/* ── STATIC HEADER ── */}
       <Animated.View style={{ 
-        height: currentHeaderStyle === 'simple' ? insets.top + 56 : insets.top + 92, 
+        height: currentHeaderStyle === 'simple' ? insets.top + 74 : insets.top + 104, 
         backgroundColor: currentHeaderStyle === 'simple' ? '#ffffff' : 'transparent', 
         borderBottomWidth: currentHeaderStyle === 'simple' ? 1 : 0, 
         borderBottomColor: '#e2e8f0', 
@@ -355,7 +355,7 @@ export default function HelpCentre() {
       }}>
         <Animated.View style={{ 
           position: 'absolute', 
-          bottom: currentHeaderStyle === 'simple' ? 12 : 38, 
+          bottom: currentHeaderStyle === 'simple' ? 16 : 38, 
           left: 0, 
           right: 0, 
           flexDirection: 'row', 

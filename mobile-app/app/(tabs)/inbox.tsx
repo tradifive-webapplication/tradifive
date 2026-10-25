@@ -641,7 +641,7 @@ export default function InboxScreen() {
           backgroundColor: headerStyle === 'simple' ? '#ffffff' : 'transparent',
           borderBottomWidth: headerStyle === 'simple' ? 1 : 0,
           borderBottomColor: isDark ? '#1e2a3a' : '#e2e8f0',
-          paddingBottom: headerStyle === 'simple' ? 12 : 28,
+          paddingBottom: headerStyle === 'simple' ? 16 : 28,
         }
       ]}>
         {headerStyle !== 'simple' && (
@@ -652,10 +652,10 @@ export default function InboxScreen() {
           />
         )}
         {/* Spacer so header has height */}
-        <View style={{ height: headerStyle === 'simple' ? 24 : 40, marginTop: headerStyle === 'simple' ? insets.top + 8 : insets.top + 24 }} />
+        <View style={{ height: headerStyle === 'simple' ? 44 : 48, marginTop: headerStyle === 'simple' ? insets.top + 18 : insets.top + 30 }} />
 
         {/* Content Row */}
-        <View style={[s.headerRow, { bottom: headerStyle === 'simple' ? 12 : 38 }]}>
+        <View style={[s.headerRow, { bottom: headerStyle === 'simple' ? 16 : 38 }]}>
           <Text style={{ fontSize: 24, fontFamily: 'Inter_700Bold', color: headerStyle === 'simple' ? '#000' : '#fff', letterSpacing: -0.5 }}>Inbox</Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
             <TouchableOpacity onPress={() => setShowNewMsgModal(true)} style={[s.newMsgBtn, { backgroundColor: headerStyle === 'simple' ? '#f1f5f9' : 'rgba(255,255,255,0.15)', borderColor: headerStyle === 'simple' ? '#e2e8f0' : 'rgba(255,255,255,0.2)' }]}>

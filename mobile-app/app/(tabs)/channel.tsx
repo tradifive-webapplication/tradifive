@@ -195,7 +195,7 @@ export default function Channel() {
   }, []);
 
   // Smart Reveal Header Calculations matching Home screen
-  const headerHeight = insets.top + 64;
+  const headerHeight = insets.top + 72;
 
   const clampedScroll = Animated.diffClamp(
     scrollY.interpolate({
@@ -330,7 +330,7 @@ export default function Channel() {
           />
         )}
         {/* Spacer so header has height */}
-        <View style={{ height: headerStyle === 'simple' ? 24 : 40, marginTop: headerStyle === 'simple' ? insets.top + 8 : insets.top + 24 }} />
+        <View style={{ height: headerStyle === 'simple' ? 44 : 48, marginTop: headerStyle === 'simple' ? insets.top + 18 : insets.top + 30 }} />
 
         {/* Fading container for all header content when scrolling */}
         <Animated.View
@@ -345,7 +345,7 @@ export default function Channel() {
             }
           ]}
         >
-          <View style={[s.headerRow, { bottom: headerStyle === 'simple' ? 12 : 38 }]}>
+          <View style={[s.headerRow, { bottom: headerStyle === 'simple' ? 16 : 38 }]}>
             <Text style={[s.title, { color: headerStyle === 'simple' ? (isDark ? theme.text : '#000000') : '#ffffff' }]}>
               {activeView}
             </Text>
@@ -376,7 +376,7 @@ export default function Channel() {
           height: headerHeight,
           backgroundColor: '#000',
           zIndex: 2000,
-          paddingTop: insets.top,
+          paddingTop: insets.top + 8,
           opacity: smartHeaderOpacity,
           transform: [{ translateY: headerTranslateY }],
           borderBottomLeftRadius: 40,
@@ -389,7 +389,7 @@ export default function Channel() {
             resizeMode="stretch"
           />
 
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, height: 60 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, height: 56 }}>
             <Text style={{ fontSize: 24, fontFamily: 'Inter_700Bold', color: '#fff', letterSpacing: -0.5 }}>
               {activeView}
             </Text>

@@ -368,7 +368,7 @@ export default function AutoTradeSetupScreen() {
       <StatusBar barStyle="light-content" />
 
       {/* ── TOP HEADER (BLACK BACKGROUND WITH TOP-GLOW FIT LIKE OTHER SCREENS) ── */}
-      <View style={[styles.headerContainer, { paddingTop: insets.top }]}>
+      <View style={[styles.headerContainer, { paddingTop: insets.top + 10 }]}>
         <Image
           source={require('../assets/images/top-glow.png')}
           style={styles.headerGlow}

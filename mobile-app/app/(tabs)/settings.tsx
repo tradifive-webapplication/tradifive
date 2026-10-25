@@ -2501,7 +2501,7 @@ export default function SettingsScreen() {
       <StatusBar barStyle={headerStyle === 'simple' && !isDark ? 'dark-content' : 'light-content'} />
 
       {/* ── SPACER ── */}
-      <View style={{ height: headerStyle === 'simple' ? insets.top + 56 : insets.top + 92, width: '100%', zIndex: 1 }} />
+      <View style={{ height: headerStyle === 'simple' ? insets.top + 74 : insets.top + 104, width: '100%', zIndex: 1 }} />
 
       {headerStyle !== 'simple' && (
         <>
@@ -2523,7 +2523,7 @@ export default function SettingsScreen() {
         top: 0,
         left: 0,
         right: 0,
-        height: headerStyle === 'simple' ? insets.top + 56 : insets.top + 92,
+        height: headerStyle === 'simple' ? insets.top + 74 : insets.top + 104,
         backgroundColor: headerStyle === 'simple' ? (isDark ? '#0a0a0a' : '#ffffff') : 'transparent',
         borderBottomWidth: headerStyle === 'simple' ? 1 : 0,
         borderBottomColor: isDark ? '#1a1a1a' : '#e2e8f0',
@@ -2536,7 +2536,7 @@ export default function SettingsScreen() {
       }}>
         <Animated.View style={{
           position: 'absolute',
-          bottom: headerStyle === 'simple' ? 12 : 38,
+          bottom: headerStyle === 'simple' ? 16 : 38,
           left: 0,
           right: 0,
           flexDirection: 'row',
