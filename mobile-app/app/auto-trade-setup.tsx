@@ -40,6 +40,7 @@ import {
   AlertCircle,
   Clock,
   ArrowRight,
+  ArrowLeft,
   Download,
   FileCode,
   Layers,
@@ -48,6 +49,14 @@ import {
   CreditCard,
   QrCode,
   TrendingUp,
+  MessageCircle,
+  Mail,
+  UploadCloud,
+  RefreshCw,
+  Send,
+  ImageIcon,
+  DollarSign,
+  Shield,
 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import * as ImagePicker from 'expo-image-picker';
@@ -116,8 +125,8 @@ const BROKERS: BrokerConfig[] = [
     ibNumber: '27863221',
     referralCode: 'MCTDw2R6',
     supportEmail: 'support@vantagemarkets.com',
-    brandColor: '#ffffff',
-    badge: 'RECOMMENDED'
+    brandColor: '#0284c7',
+    badge: 'OFFICIAL PARTNER'
   },
   {
     id: 'exness',
@@ -127,7 +136,7 @@ const BROKERS: BrokerConfig[] = [
     ibNumber: '27863221',
     referralCode: 'MCTDw2R6',
     supportEmail: 'support@exness.com',
-    brandColor: '#FFD400',
+    brandColor: '#d97706',
     badge: 'POPULAR'
   },
   {
@@ -138,7 +147,7 @@ const BROKERS: BrokerConfig[] = [
     ibNumber: '27863221',
     referralCode: 'MCTDw2R6',
     supportEmail: 'support@xm.com',
-    brandColor: '#D31124',
+    brandColor: '#dc2626',
     badge: 'REPUTABLE'
   },
   {
@@ -149,7 +158,7 @@ const BROKERS: BrokerConfig[] = [
     ibNumber: '27863221',
     referralCode: 'MCTDw2R6',
     supportEmail: 'help@fusionmarkets.com',
-    brandColor: '#00B4D8',
+    brandColor: '#0284c7',
     badge: 'LOW COST'
   },
   {
@@ -160,7 +169,7 @@ const BROKERS: BrokerConfig[] = [
     ibNumber: '27863221',
     referralCode: 'MCTDw2R6',
     supportEmail: 'support@blackbullmarkets.com',
-    brandColor: '#F59E0B',
+    brandColor: '#4f46e5',
     badge: 'INSTITUTIONAL'
   }
 ];
@@ -170,23 +179,30 @@ export default function AutoTradeSetupScreen() {
   const router = useRouter();
   const { isDark, theme } = useAppTheme();
 
-  // Active Wizard Step: 1 = Partner Account, 2 = Download & EA, 3 = Plan Model, 4 = Bot Control
+  // Active Wizard Step: 1 = Connect MT5, 2 = Download FiAlgo, 3 = License Payment, 4 = Activate License
   const [activeStep, setActiveStep] = useState<number>(1);
 
   // Setup mode: New Account vs Existing Account (IB Transfer)
   const [setupMode, setSetupMode] = useState<'new' | 'transfer'>('new');
   const [selectedBrokerId, setSelectedBrokerId] = useState<string>('vantage');
-  const [mt5Account, setMt5Account] = useState<string>('');
+  const [mt5Account, setMt5Account] = useState<string>('8492015');
   const [proofImageUri, setProofImageUri] = useState<string | null>(null);
   const [isUploadingProof, setIsUploadingProof] = useState<boolean>(false);
-  const [verificationStatus, setVerificationStatus] = useState<'idle' | 'pending' | 'verified'>('idle');
+  const [depositConfirmed, setDepositConfirmed] = useState<boolean>(true);
+  const [ibVerified, setIbVerified] = useState<boolean>(false);
+  const [transferStatus, setTransferStatus] = useState<'none' | 'pending' | 'approved'>('none');
 
-  // Plan Tier: 50% Profit Share vs Lifetime License
-  const [selectedTier, setSelectedTier] = useState<'profit_share_50' | 'lifetime'>('profit_share_50');
+  // Step 2 state
+  const [hasDownloaded, setHasDownloaded] = useState<boolean>(false);
+
+  // Step 3 state: Plan Tier (Lifetime VIP ₹99,999 vs Performance ₹5,000 + 50% Profit Share)
+  const [selectedTier, setSelectedTier] = useState<'lifetime' | 'profit_share_50'>('lifetime');
+  const [paymentMethod, setPaymentMethod] = useState<'upi' | 'bank'>('upi');
   const [paymentUtr, setPaymentUtr] = useState<string>('');
   const [paymentProofUri, setPaymentProofUri] = useState<string | null>(null);
+  const [paymentStatus, setPaymentStatus] = useState<'none' | 'pending' | 'approved'>('none');
 
-  // Bot state
+  // Step 4 state: Bot Control
   const [isBotRunning, setIsBotRunning] = useState<boolean>(true);
   const [dailyTargetPct, setDailyTargetPct] = useState<number>(3);
   const [copiedKey, setCopiedKey] = useState<boolean>(false);
@@ -202,7 +218,7 @@ export default function AutoTradeSetupScreen() {
 
   // Dynamic license key for this MT5 account
   const licenseKey = useMemo(() => {
-    return generateTradifiveLicenseKey(mt5Account || '8829104');
+    return generateTradifiveLicenseKey(mt5Account || '8492015');
   }, [mt5Account]);
 
   // Load existing user MT5 account on mount
@@ -232,7 +248,9 @@ export default function AutoTradeSetupScreen() {
     hSuccess();
     Clipboard.setString(text);
     setCopiedCode(label);
-    if (label === 'License') setCopiedKey(true);
+    if (label.toLowerCase().includes('license') || label.toLowerCase().includes('key')) {
+      setCopiedKey(true);
+    }
     setTimeout(() => {
       setCopiedCode(null);
       setCopiedKey(false);
@@ -254,7 +272,7 @@ export default function AutoTradeSetupScreen() {
     }
   };
 
-  const handlePickProofImage = async () => {
+  const handlePickProofImage = async (isPaymentProof: boolean = false) => {
     h();
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
@@ -264,7 +282,11 @@ export default function AutoTradeSetupScreen() {
       });
 
       if (!result.canceled && result.assets[0]?.uri) {
-        setProofImageUri(result.assets[0].uri);
+        if (isPaymentProof) {
+          setPaymentProofUri(result.assets[0].uri);
+        } else {
+          setProofImageUri(result.assets[0].uri);
+        }
         hSuccess();
       }
     } catch (e) {
@@ -278,6 +300,10 @@ export default function AutoTradeSetupScreen() {
       Alert.alert('Missing MT5 Account', 'Please enter your MT5 Account Number to bind your license.');
       return;
     }
+    if (!depositConfirmed) {
+      Alert.alert('Deposit Required', 'Please confirm that your MT5 account maintains a minimum balance of $500 USD.');
+      return;
+    }
     setIsUploadingProof(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -289,22 +315,37 @@ export default function AutoTradeSetupScreen() {
           updated_at: new Date().toISOString()
         });
       }
-      setVerificationStatus('pending');
+      setTransferStatus('pending');
       hSuccess();
       Alert.alert(
         'Account Submitted',
-        `Your ${selectedBroker.name} MT5 account #${mt5Account.trim()} has been saved. Proceeding to EA & License setup.`,
+        `Your ${selectedBroker.name} MT5 account #${mt5Account.trim()} has been submitted for partner verification. Proceeding to Step 2.`,
         [{ text: 'Continue to Step 2', onPress: () => setActiveStep(2) }]
       );
     } catch (e: any) {
-      setVerificationStatus('pending');
+      setTransferStatus('pending');
       setActiveStep(2);
     } finally {
       setIsUploadingProof(false);
     }
   };
 
-  // Calculated returns
+  const handleSubmitPayment = () => {
+    h();
+    if (!paymentUtr.trim()) {
+      Alert.alert('Missing UTR', 'Please enter the 12-digit UTR / Ref Number from your PhonePe/UPI or NetBanking app.');
+      return;
+    }
+    setPaymentStatus('pending');
+    hSuccess();
+    Alert.alert(
+      'Payment Submitted',
+      `UTR #${paymentUtr.trim()} has been submitted to our finance desk. Turnaround is ~2 hours (or fast-track in 15 mins on WhatsApp). Proceeding to Step 4.`,
+      [{ text: 'Check Step 4: License Key', onPress: () => setActiveStep(4) }]
+    );
+  };
+
+  // Preset calculation
   const dailyProfitEst = useMemo(() => {
     return Math.round(calcCapital * (dailyTargetPct / 100));
   }, [calcCapital, dailyTargetPct]);
@@ -313,19 +354,29 @@ export default function AutoTradeSetupScreen() {
     return Math.round(dailyProfitEst * 22); // 22 trading days
   }, [dailyProfitEst]);
 
+  const compound90Days = useMemo(() => {
+    let balance = calcCapital;
+    const rate = dailyTargetPct / 100;
+    for (let day = 0; day < 66; day++) { // 66 trading days (~3 months)
+      balance += balance * rate;
+    }
+    return Math.round(balance);
+  }, [calcCapital, dailyTargetPct]);
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
 
-      {/* ── HEADER WITH SUBTLE GLOW ── */}
-      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+      {/* ── TOP HEADER (BLACK BACKGROUND WITH TOP-GLOW FIT LIKE OTHER SCREENS) ── */}
+      <View style={[styles.headerContainer, { paddingTop: insets.top }]}>
         <Image
           source={require('../assets/images/top-glow.png')}
-          style={[styles.headerGlow, { height: insets.top + 130 }]}
+          style={styles.headerGlow}
           resizeMode="stretch"
         />
 
         <View style={styles.headerRow}>
+          {/* Circular Blurred Back Button */}
           <TouchableOpacity
             activeOpacity={0.7}
             onPress={() => { h(); router.back(); }}
@@ -334,701 +385,977 @@ export default function AutoTradeSetupScreen() {
             <ChevronLeft size={22} color="#ffffff" />
           </TouchableOpacity>
 
-          <View style={styles.headerTitleWrap}>
-            <Text style={styles.headerTitle}>AI Trading Setup</Text>
-            <Text style={styles.headerSubtitle}>Tradifive MT5 Institutional Engine</Text>
-          </View>
+          {/* Page Name */}
+          <Text style={styles.headerTitle}>AI Trading Setup</Text>
 
+          {/* Calculator Pill Button */}
           <TouchableOpacity
             activeOpacity={0.7}
             onPress={() => { h(); setShowCalculator(true); }}
-            style={styles.calcPillBtn}
+            style={styles.calcButton}
           >
-            <Calculator size={14} color="#ffffff" />
-            <Text style={styles.calcPillText}>Calc</Text>
+            <Calculator size={13} color="#60a5fa" />
+            <Text style={styles.calcButtonText}>Calculator</Text>
           </TouchableOpacity>
-        </View>
-
-        {/* ── 4-STEP PROGRESS INDICATOR ── */}
-        <View style={styles.stepProgressContainer}>
-          <View style={styles.progressBarTrack}>
-            <View
-              style={[
-                styles.progressBarFill,
-                { width: activeStep === 1 ? '25%' : activeStep === 2 ? '50%' : activeStep === 3 ? '75%' : '100%' }
-              ]}
-            />
-          </View>
-
-          <View style={styles.stepTabsGrid}>
-            {[
-              { num: 1, label: '1. Connect' },
-              { num: 2, label: '2. EA Setup' },
-              { num: 3, label: '3. Plan' },
-              { num: 4, label: '4. Controls' },
-            ].map((s) => {
-              const isActive = activeStep === s.num;
-              const isDone = activeStep > s.num;
-              return (
-                <TouchableOpacity
-                  key={s.num}
-                  activeOpacity={0.8}
-                  onPress={() => { h(); setActiveStep(s.num); }}
-                  style={[
-                    styles.stepTab,
-                    isActive && styles.stepTabActive,
-                    isDone && styles.stepTabDone,
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.stepTabText,
-                      isActive && styles.stepTabTextActive,
-                      isDone && styles.stepTabTextDone,
-                    ]}
-                    numberOfLines={1}
-                  >
-                    {isDone ? `✓ ${s.label.split('.')[1].trim()}` : s.label}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
         </View>
       </View>
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 44 }]}
-      >
-        {/* ── HERO TOP CARD (SHOWSTOPPER INSTITUTIONAL BANNER) ── */}
-        <View style={styles.heroCard}>
-          <View style={styles.heroTopRow}>
-            <View style={styles.heroBadge}>
-              <View style={styles.pulseDot} />
-              <Text style={styles.heroBadgeText}>TRADIFIVE FIALGO · V1.0.4 PRO</Text>
-            </View>
+      {/* ── BACKSIDE WHITE CARD (CURVED -34 MARGIN TOP FITTING LIKE JOURNAL & RISK GUARD) ── */}
+      <View style={[styles.card, { backgroundColor: isDark ? theme.background : '#ffffff' }]}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 48 }]}
+        >
+          {/* Subtitle Inside Card */}
+          <View style={styles.titleSection}>
+            <Text style={[styles.pageSubtitle, { color: isDark ? '#94a3b8' : '#64748b' }]}>
+              Connect your MT5 broker and activate automated trading.
+            </Text>
+          </View>
 
-            <View style={styles.heroStatusPill}>
-              <Text style={styles.heroStatusText}>
-                {isBotRunning ? 'ENGINE READY' : 'STANDBY'}
+          {/* ── SLEEK PROGRESS BAR (EXACTLY MATCHING WEB USER APP) ── */}
+          <View style={styles.stepperContainer}>
+            {/* Progress Header Meta */}
+            <View style={styles.stepperMetaRow}>
+              <Text style={[styles.stepperMetaText, { color: isDark ? '#f1f5f9' : '#0f172a' }]}>
+                Step {activeStep} of 4: {activeStep === 1 ? 'Connect MT5' : activeStep === 2 ? 'Download FiAlgo' : activeStep === 3 ? 'License Payment' : 'Activate License'}
+              </Text>
+              <Text style={styles.stepperPercentText}>
+                {activeStep === 1 ? '25%' : activeStep === 2 ? '50%' : activeStep === 3 ? '75%' : '100%'}
               </Text>
             </View>
-          </View>
 
-          <Text style={styles.heroHeadline}>Automated Algorithmic Execution</Text>
-          <Text style={styles.heroDescription}>
-            Deploy our high-probability multi-currency grid & trend-following engine directly onto your MT5 terminal. 100% hands-free trading with automated trailing stops and proprietary Risk Guard protection.
-          </Text>
-
-          {/* 3-Cell Telemetry Metric Strip */}
-          <View style={styles.heroMetricsStrip}>
-            <View style={styles.heroMetricItem}>
-              <Text style={styles.heroMetricLabel}>TARGET RETURN</Text>
-              <Text style={styles.heroMetricValue}>2.0% - 5.0%</Text>
-              <Text style={styles.heroMetricSub}>Per Trading Day</Text>
-            </View>
-            <View style={styles.heroMetricDivider} />
-            <View style={styles.heroMetricItem}>
-              <Text style={styles.heroMetricLabel}>RISK GUARD</Text>
-              <Text style={[styles.heroMetricValue, { color: '#10b981' }]}>4.5% Cap</Text>
-              <Text style={styles.heroMetricSub}>Hard SL Equity</Text>
-            </View>
-            <View style={styles.heroMetricDivider} />
-            <View style={styles.heroMetricItem}>
-              <Text style={styles.heroMetricLabel}>SERVER LATENCY</Text>
-              <Text style={styles.heroMetricValue}>14 ms</Text>
-              <Text style={styles.heroMetricSub}>Direct Raw Feed</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* ========================================================================= */}
-        {/* STEP 1: CONNECT MT5 & PARTNER BROKER                                      */}
-        {/* ========================================================================= */}
-        {activeStep === 1 && (
-          <View style={styles.sectionWrap}>
-            {/* Setup Mode Switcher */}
-            <View style={styles.segmentedContainer}>
-              <TouchableOpacity
-                activeOpacity={0.8}
-                onPress={() => { h(); setSetupMode('new'); }}
-                style={[styles.segmentBtn, setupMode === 'new' && styles.segmentBtnActive]}
-              >
-                <Text style={[styles.segmentBtnText, setupMode === 'new' && styles.segmentBtnTextActive]}>
-                  New Partner Account
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                activeOpacity={0.8}
-                onPress={() => { h(); setSetupMode('transfer'); }}
-                style={[styles.segmentBtn, setupMode === 'transfer' && styles.segmentBtnActive]}
-              >
-                <Text style={[styles.segmentBtnText, setupMode === 'transfer' && styles.segmentBtnTextActive]}>
-                  Existing Account (IB Transfer)
-                </Text>
-              </TouchableOpacity>
+            {/* Progress Bar Track */}
+            <View style={[styles.progressBarTrack, { backgroundColor: isDark ? '#1e293b' : '#f1f5f9' }]}>
+              <View
+                style={[
+                  styles.progressBarFill,
+                  { width: activeStep === 1 ? '25%' : activeStep === 2 ? '50%' : activeStep === 3 ? '75%' : '100%' }
+                ]}
+              />
             </View>
 
-            {/* Select Partner Broker */}
-            <View style={styles.subHeadingRow}>
-              <Text style={styles.sectionHeading}>1. Select Supported Partner Broker</Text>
-              <Text style={styles.subHeadingHint}>100% Free EA Access</Text>
-            </View>
-
-            <View style={styles.brokersGrid}>
-              {BROKERS.map((broker) => {
-                const isSelected = selectedBrokerId === broker.id;
+            {/* 4 Step Milestone Tabs */}
+            <View style={styles.milestoneGrid}>
+              {[
+                { step: 1, title: 'Connect', isDone: ibVerified },
+                { step: 2, title: 'Download', isDone: hasDownloaded },
+                { step: 3, title: 'Pay ₹99k', isDone: paymentStatus === 'approved', isPending: paymentStatus === 'pending' },
+                { step: 4, title: 'Activate', isDone: ibVerified && (paymentStatus === 'approved' || selectedTier === 'profit_share_50') },
+              ].map(({ step, title, isDone, isPending }) => {
+                const isActive = activeStep === step;
                 return (
                   <TouchableOpacity
-                    key={broker.id}
-                    activeOpacity={0.8}
-                    onPress={() => { h(); setSelectedBrokerId(broker.id); }}
+                    key={step}
+                    activeOpacity={0.7}
+                    onPress={() => { h(); setActiveStep(step); }}
                     style={[
-                      styles.brokerCard,
-                      isSelected && styles.brokerCardSelected
+                      styles.milestoneTab,
+                      {
+                        backgroundColor: isActive
+                          ? (isDark ? '#ffffff' : '#0f172a')
+                          : isDone
+                          ? (isDark ? '#064e3b' : '#ecfdf5')
+                          : isPending
+                          ? (isDark ? '#451a03' : '#fffbeb')
+                          : (isDark ? '#1e293b' : '#f8fafc'),
+                        borderColor: isActive
+                          ? (isDark ? '#ffffff' : '#0f172a')
+                          : isDone
+                          ? 'rgba(16,185,129,0.4)'
+                          : isPending
+                          ? 'rgba(245,158,11,0.4)'
+                          : (isDark ? '#334155' : '#e2e8f0'),
+                      }
                     ]}
                   >
-                    <View style={styles.brokerCardHeader}>
-                      <View style={[styles.brokerDot, { backgroundColor: broker.brandColor }]} />
-                      <View style={styles.brokerBadgePill}>
-                        <Text style={styles.brokerBadgePillText}>{broker.badge}</Text>
-                      </View>
-                    </View>
-
-                    <Text style={styles.brokerName}>{broker.name}</Text>
-                    <Text style={styles.brokerTagline} numberOfLines={2}>{broker.tagline}</Text>
-
-                    {isSelected && (
-                      <View style={styles.brokerSelectedIndicator}>
-                        <Check size={12} color="#000000" />
-                        <Text style={styles.brokerSelectedText}>Selected</Text>
-                      </View>
-                    )}
+                    <Text
+                      style={[
+                        styles.milestoneTabText,
+                        {
+                          color: isActive
+                            ? (isDark ? '#0f172a' : '#ffffff')
+                            : isDone
+                            ? '#10b981'
+                            : isPending
+                            ? '#f59e0b'
+                            : (isDark ? '#94a3b8' : '#64748b'),
+                        }
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {isDone ? `✓ ${title}` : isPending ? `⌛ ${title}` : `${step}. ${title}`}
+                    </Text>
                   </TouchableOpacity>
                 );
               })}
             </View>
+          </View>
 
-            {/* Partner IB Details Card */}
-            <View style={styles.cardBox}>
-              <View style={styles.cardHeaderRow}>
-                <View style={styles.badgePrimary}>
-                  <Text style={styles.badgePrimaryText}>OFFICIAL PARTNER CREDENTIALS</Text>
-                </View>
-                <TouchableOpacity
-                  activeOpacity={0.7}
-                  onPress={() => copyToClipboard(selectedBroker.referralCode, 'Referral Code')}
-                  style={styles.copyInlineBtn}
-                >
-                  <Copy size={12} color="#94a3b8" />
-                  <Text style={styles.copyInlineText}>
-                    {copiedCode === 'Referral Code' ? 'Copied!' : 'Copy Code'}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-
-              <Text style={styles.partnerInfoTitle}>
-                {selectedBroker.name}
-              </Text>
-              <Text style={styles.partnerInfoDesc}>
-                {setupMode === 'new'
-                  ? 'Open your MT5 trading account using our partner referral code to receive free institutional algo access.'
-                  : `Transfer your existing ${selectedBroker.name} account under Tradifive Partner IB code: ${selectedBroker.ibNumber}.`}
-              </Text>
-
-              <View style={styles.codeBoxesRow}>
-                <View style={styles.codeItem}>
-                  <Text style={styles.codeItemLabel}>PARTNER IB NUMBER</Text>
-                  <Text style={styles.codeItemValue}>{selectedBroker.ibNumber}</Text>
-                </View>
-                <View style={styles.codeItem}>
-                  <Text style={styles.codeItemLabel}>REFERRAL CODE</Text>
-                  <Text style={styles.codeItemValue}>{selectedBroker.referralCode}</Text>
-                </View>
-              </View>
-
-              <TouchableOpacity
-                activeOpacity={0.8}
-                onPress={() => openBrokerLink(selectedBroker.url)}
-                style={styles.openBrokerBtn}
-              >
-                <ExternalLink size={15} color="#ffffff" />
-                <Text style={styles.openBrokerBtnText}>
-                  {setupMode === 'new' ? `Open ${selectedBroker.name} Portal` : 'Open Broker Transfer Form'}
-                </Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* MT5 Account Number Input */}
-            <View style={styles.subHeadingRow}>
-              <Text style={styles.sectionHeading}>2. Your MT5 Account Number</Text>
-              <Text style={styles.subHeadingHint}>Hardware License Binding</Text>
-            </View>
-
-            <View style={styles.inputWrapper}>
-              <TextInput
-                style={styles.textInput}
-                placeholder="e.g. 10294857"
-                placeholderTextColor="#64748b"
-                keyboardType="numeric"
-                value={mt5Account}
-                onChangeText={setMt5Account}
-              />
-            </View>
-
-            {/* IB Transfer Proof Upload (If in transfer mode) */}
-            {setupMode === 'transfer' && (
-              <>
-                <View style={styles.subHeadingRow}>
-                  <Text style={styles.sectionHeading}>3. IB Transfer Confirmation Proof</Text>
-                  <Text style={styles.subHeadingHint}>Optional but Fast-tracks Review</Text>
-                </View>
-
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  onPress={handlePickProofImage}
-                  style={styles.uploadArea}
-                >
-                  {proofImageUri ? (
-                    <View style={styles.uploadedPreviewContainer}>
-                      <Image source={{ uri: proofImageUri }} style={styles.uploadedImagePreview} resizeMode="cover" />
-                      <View style={styles.uploadSuccessOverlay}>
-                        <CheckCircle2 size={18} color="#10b981" />
-                        <Text style={styles.uploadSuccessText}>Screenshot Attached (Tap to change)</Text>
-                      </View>
-                    </View>
-                  ) : (
-                    <View style={styles.uploadPlaceholder}>
-                      <View style={styles.uploadIconCircle}>
-                        <Upload size={20} color="#ffffff" />
-                      </View>
-                      <Text style={styles.uploadMainText}>Tap to attach IB Transfer Screenshot</Text>
-                      <Text style={styles.uploadSubText}>PNG, JPG or JPEG proof from your broker</Text>
+          {/* ========================================================================= */}
+          {/* STEP 1: CONNECT MT5 BROKER                                                */}
+          {/* ========================================================================= */}
+          {activeStep === 1 && (
+            <View style={styles.stepContent}>
+              <View style={[styles.panelCard, { backgroundColor: isDark ? '#1e293b' : '#ffffff', borderColor: isDark ? '#334155' : '#e2e8f0' }]}>
+                {/* Panel Header */}
+                <View style={styles.panelHeader}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.panelTitle, { color: isDark ? '#f8fafc' : '#0f172a' }]}>
+                      Connect MT5 Account
+                    </Text>
+                    <Text style={[styles.panelDesc, { color: isDark ? '#94a3b8' : '#64748b' }]}>
+                      Complete these steps to link your broker and unlock your FiAlgo V1 license.
+                    </Text>
+                  </View>
+                  {ibVerified && (
+                    <View style={styles.verifiedBadge}>
+                      <CheckCircle2 size={12} color="#10b981" />
+                      <Text style={styles.verifiedBadgeText}>Connected</Text>
                     </View>
                   )}
-                </TouchableOpacity>
-              </>
-            )}
-
-            {/* Continue Button */}
-            <TouchableOpacity
-              activeOpacity={0.85}
-              onPress={handleSubmitVerification}
-              disabled={isUploadingProof}
-              style={styles.primaryActionBtn}
-            >
-              {isUploadingProof ? (
-                <ActivityIndicator color="#000000" />
-              ) : (
-                <>
-                  <Text style={styles.primaryActionBtnText}>Verify Account & Proceed to EA Setup</Text>
-                  <ArrowRight size={18} color="#000000" />
-                </>
-              )}
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {/* ========================================================================= */}
-        {/* STEP 2: DOWNLOAD EA & CRYPTOGRAPHIC LICENSE KEY                           */}
-        {/* ========================================================================= */}
-        {activeStep === 2 && (
-          <View style={styles.sectionWrap}>
-            {/* Download Files Box */}
-            <View style={styles.subHeadingRow}>
-              <Text style={styles.sectionHeading}>1. Download Official Trading Toolkit</Text>
-              <Text style={styles.subHeadingHint}>MQL5 Compiled</Text>
-            </View>
-
-            <View style={styles.cardBox}>
-              <View style={styles.downloadRow}>
-                <View style={styles.downloadIconWrap}>
-                  <Download size={20} color="#ffffff" />
                 </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.downloadTitle}>Tradifive.ex5 (FiAlgo V1 Engine)</Text>
-                  <Text style={styles.downloadSubtitle}>Compiled Expert Advisor for MetaTrader 5</Text>
+
+                {/* 2-Option Segmented Control: Open New Account vs Transfer Existing Account */}
+                <View style={[styles.segmentedWrap, { backgroundColor: isDark ? '#0f172a' : '#f1f5f9' }]}>
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={() => { h(); setSetupMode('new'); setSelectedBrokerId('vantage'); }}
+                    style={[
+                      styles.segmentBtn,
+                      setupMode === 'new' && (isDark ? styles.segmentBtnActiveDark : styles.segmentBtnActiveLight),
+                    ]}
+                  >
+                    <Text style={[styles.segmentBtnText, setupMode === 'new' && styles.segmentBtnTextActive]}>
+                      Open New Account
+                    </Text>
+                    <View style={styles.recommendedBadge}>
+                      <Text style={styles.recommendedBadgeText}>Recommended</Text>
+                    </View>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={() => { h(); setSetupMode('transfer'); }}
+                    style={[
+                      styles.segmentBtn,
+                      setupMode === 'transfer' && (isDark ? styles.segmentBtnActiveDark : styles.segmentBtnActiveLight),
+                    ]}
+                  >
+                    <Text style={[styles.segmentBtnText, setupMode === 'transfer' && styles.segmentBtnTextActive]}>
+                      Transfer Existing
+                    </Text>
+                  </TouchableOpacity>
                 </View>
-                <TouchableOpacity
-                  activeOpacity={0.7}
-                  onPress={() => {
-                    hSuccess();
-                    Alert.alert('EA Downloaded', 'Tradifive.ex5 ready. Copy this file into your MT5 MQL5/Experts folder.');
-                  }}
-                  style={styles.downloadSmallBtn}
-                >
-                  <Text style={styles.downloadSmallBtnText}>Download</Text>
-                </TouchableOpacity>
-              </View>
 
-              <View style={styles.divider} />
+                {/* Broker Selector Pills */}
+                <Text style={[styles.inputLabel, { color: isDark ? '#cbd5e1' : '#334155', marginTop: 16 }]}>
+                  SELECT YOUR BROKER
+                </Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.brokerScroll}>
+                  {BROKERS.map((b) => {
+                    const isSelected = selectedBrokerId === b.id;
+                    return (
+                      <TouchableOpacity
+                        key={b.id}
+                        activeOpacity={0.7}
+                        onPress={() => { h(); setSelectedBrokerId(b.id); }}
+                        style={[
+                          styles.brokerPill,
+                          {
+                            backgroundColor: isSelected ? (isDark ? '#0284c7' : '#0f172a') : (isDark ? '#0f172a' : '#f8fafc'),
+                            borderColor: isSelected ? (isDark ? '#38bdf8' : '#0f172a') : (isDark ? '#334155' : '#e2e8f0'),
+                          }
+                        ]}
+                      >
+                        <Text style={[styles.brokerPillText, { color: isSelected ? '#ffffff' : (isDark ? '#cbd5e1' : '#0f172a') }]}>
+                          {b.name}
+                        </Text>
+                        <View style={[styles.brokerMiniTag, { backgroundColor: isSelected ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.05)' }]}>
+                          <Text style={[styles.brokerMiniTagText, { color: isSelected ? '#ffffff' : '#64748b' }]}>
+                            {b.badge}
+                          </Text>
+                        </View>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </ScrollView>
 
-              <View style={styles.downloadRow}>
-                <View style={styles.downloadIconWrap}>
-                  <FileCode size={20} color="#ffffff" />
+                {/* Sub-Step 1: Partner Link & Referral */}
+                <View style={[styles.instructionBox, { backgroundColor: isDark ? '#0f172a' : '#f0f9ff', borderColor: isDark ? '#0369a1' : '#bae6fd' }]}>
+                  <View style={styles.instructionHeader}>
+                    <View style={styles.instructionStepNum}>
+                      <Text style={styles.instructionStepNumText}>1</Text>
+                    </View>
+                    <Text style={[styles.instructionTitle, { color: isDark ? '#f0f9ff' : '#0369a1' }]}>
+                      {setupMode === 'new' ? `Open ${selectedBroker.name} Account` : `Transfer ${selectedBroker.name} to Partner IB`}
+                    </Text>
+                  </View>
+
+                  <Text style={[styles.instructionDesc, { color: isDark ? '#cbd5e1' : '#0c4a6e' }]}>
+                    {setupMode === 'new'
+                      ? `Register with partner referral code ${selectedBroker.referralCode} to link your account to our institutional server.`
+                      : `Email ${selectedBroker.name} support (${selectedBroker.supportEmail}) to transfer your existing account to Partner IB ${selectedBroker.ibNumber}.`}
+                  </Text>
+
+                  <View style={styles.instructionActionRow}>
+                    <TouchableOpacity
+                      activeOpacity={0.8}
+                      onPress={() => openBrokerLink(selectedBroker.url)}
+                      style={styles.primaryPillBtn}
+                    >
+                      <Text style={styles.primaryPillBtnText}>Open {selectedBroker.name}</Text>
+                      <ExternalLink size={13} color="#ffffff" />
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      activeOpacity={0.8}
+                      onPress={() => copyToClipboard(selectedBroker.referralCode, 'Partner Code')}
+                      style={[styles.secondaryPillBtn, { backgroundColor: isDark ? '#1e293b' : '#ffffff', borderColor: isDark ? '#334155' : '#cbd5e1' }]}
+                    >
+                      {copiedCode === 'Partner Code' ? <Check size={12} color="#10b981" /> : <Copy size={12} color={isDark ? '#cbd5e1' : '#475569'} />}
+                      <Text style={[styles.secondaryPillBtnText, { color: isDark ? '#cbd5e1' : '#334155' }]}>
+                        {copiedCode === 'Partner Code' ? 'Copied' : 'Copy Code'}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.downloadTitle}>XAUUSD_M1_Institutional.set</Text>
-                  <Text style={styles.downloadSubtitle}>Optimized Chart Inputs & Risk Presets</Text>
-                </View>
-                <TouchableOpacity
-                  activeOpacity={0.7}
-                  onPress={() => {
-                    hSuccess();
-                    Alert.alert('Preset Downloaded', 'XAUUSD_M1_Institutional.set ready. Load this directly in your EA Inputs tab.');
-                  }}
-                  style={styles.downloadSmallBtn}
-                >
-                  <Text style={styles.downloadSmallBtnText}>Download</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
 
-            {/* Cryptographic License Key Card */}
-            <View style={styles.subHeadingRow}>
-              <Text style={styles.sectionHeading}>2. Your MT5 Cryptographic License Key</Text>
-              <Text style={styles.subHeadingHint}>Hardware FNV-1a Hash</Text>
-            </View>
-
-            <View style={styles.licenseCard}>
-              <View style={styles.licenseCardHeader}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                  <Lock size={15} color="#ffffff" />
-                  <Text style={styles.licenseCardTitle}>Hardware Hash · MT5 #{mt5Account || '8829104'}</Text>
-                </View>
-                <View style={styles.activePill}>
-                  <Text style={styles.activePillText}>ACTIVE</Text>
-                </View>
-              </View>
-
-              <Text style={styles.licenseKeyText}>{licenseKey}</Text>
-
-              <TouchableOpacity
-                activeOpacity={0.8}
-                onPress={() => copyToClipboard(licenseKey, 'License')}
-                style={styles.copyKeyBtn}
-              >
-                <Copy size={15} color="#ffffff" />
-                <Text style={styles.copyKeyBtnText}>{copiedKey ? 'Copied to Clipboard!' : 'Copy License Key'}</Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* MT5 Setup Checklist */}
-            <View style={styles.subHeadingRow}>
-              <Text style={styles.sectionHeading}>3. Setup Checklist in MetaTrader 5</Text>
-              <Text style={styles.subHeadingHint}>4 Simple Steps</Text>
-            </View>
-
-            <View style={styles.checklistCard}>
-              {[
-                {
-                  step: '1',
-                  title: 'Allow WebRequest URL',
-                  desc: 'In MT5 > Tools > Options > Expert Advisors, add:',
-                  copyable: 'https://tradifive.in'
-                },
-                {
-                  step: '2',
-                  title: 'Place Tradifive.ex5 in Experts',
-                  desc: 'File > Open Data Folder > MQL5 > Experts. Paste Tradifive.ex5 here.'
-                },
-                {
-                  step: '3',
-                  title: 'Attach EA to Gold (XAUUSD)',
-                  desc: 'Open XAUUSD 1-Minute (M1) chart, drag Tradifive EA, paste your License Key.'
-                },
-                {
-                  step: '4',
-                  title: 'Turn on "Algo Trading"',
-                  desc: 'Click the green "Algo Trading" button on the MT5 top toolbar.'
-                },
-              ].map((item) => (
-                <View key={item.step} style={styles.checklistItem}>
-                  <View style={styles.checklistStepNum}>
-                    <Text style={styles.checklistStepText}>{item.step}</Text>
+                {/* Sub-Step 2: Maintain $500 Deposit */}
+                <View style={[styles.requirementBox, { backgroundColor: isDark ? '#0f172a' : '#f8fafc', borderColor: isDark ? '#334155' : '#e2e8f0' }]}>
+                  <View style={styles.instructionStepNumGray}>
+                    <Text style={styles.instructionStepNumText}>2</Text>
                   </View>
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.checklistItemTitle}>{item.title}</Text>
-                    <Text style={styles.checklistItemDesc}>{item.desc}</Text>
-                    {item.copyable && (
-                      <TouchableOpacity
-                        activeOpacity={0.7}
-                        onPress={() => copyToClipboard(item.copyable!, 'WebRequest URL')}
-                        style={styles.copyPillSmall}
-                      >
-                        <Text style={styles.copyPillSmallText}>{item.copyable}</Text>
-                        <Copy size={11} color="#94a3b8" />
-                      </TouchableOpacity>
-                    )}
-                  </View>
-                </View>
-              ))}
-            </View>
-
-            {/* Next Button */}
-            <TouchableOpacity
-              activeOpacity={0.85}
-              onPress={() => { h(); setActiveStep(3); }}
-              style={styles.primaryActionBtn}
-            >
-              <Text style={styles.primaryActionBtnText}>Continue to License Model Selection</Text>
-              <ArrowRight size={18} color="#000000" />
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {/* ========================================================================= */}
-        {/* STEP 3: CHOOSE LICENSE MODEL (PROFIT SHARE VS LIFETIME)                    */}
-        {/* ========================================================================= */}
-        {activeStep === 3 && (
-          <View style={styles.sectionWrap}>
-            <View style={styles.subHeadingRow}>
-              <Text style={styles.sectionHeading}>1. Choose Your Auto Trade License Model</Text>
-              <Text style={styles.subHeadingHint}>Zero Upfront Available</Text>
-            </View>
-
-            {/* Option A: Daily 50% Profit Share */}
-            <TouchableOpacity
-              activeOpacity={0.85}
-              onPress={() => { h(); setSelectedTier('profit_share_50'); }}
-              style={[
-                styles.tierCard,
-                selectedTier === 'profit_share_50' && styles.tierCardActive
-              ]}
-            >
-              <View style={styles.tierHeader}>
-                <View style={{ flex: 1 }}>
-                  <View style={styles.tierTagRow}>
-                    <Text style={styles.tierTitle}>Daily 50% Profit Share</Text>
-                    <View style={styles.badgeRecommended}>
-                      <Text style={styles.badgeRecommendedText}>POPULAR</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <Text style={[styles.requirementTitle, { color: isDark ? '#f8fafc' : '#0f172a' }]}>
+                        Maintain $500+ Account Balance
+                      </Text>
+                      <View style={styles.minBadge}>
+                        <Text style={styles.minBadgeText}>Min. $500</Text>
+                      </View>
                     </View>
-                  </View>
-                  <Text style={styles.tierSub}>₹0 Upfront Cost · Pay only when you win</Text>
-                </View>
-                <View style={styles.tierPriceBadge}>
-                  <Text style={styles.tierPriceText}>₹0 UPFRONT</Text>
-                </View>
-              </View>
-              <Text style={styles.tierDesc}>
-                Trade with zero software license fee. 50% profit share is settled daily only when your account is in net profit. Absolutely zero fees on losing or breakeven days.
-              </Text>
-              {selectedTier === 'profit_share_50' && (
-                <View style={styles.tierSelectedPill}>
-                  <Check size={12} color="#000000" />
-                  <Text style={styles.tierSelectedPillText}>Active Selection</Text>
-                </View>
-              )}
-            </TouchableOpacity>
-
-            {/* Option B: Lifetime Ownership License */}
-            <TouchableOpacity
-              activeOpacity={0.85}
-              onPress={() => { h(); setSelectedTier('lifetime'); }}
-              style={[
-                styles.tierCard,
-                selectedTier === 'lifetime' && styles.tierCardActive
-              ]}
-            >
-              <View style={styles.tierHeader}>
-                <View style={{ flex: 1 }}>
-                  <View style={styles.tierTagRow}>
-                    <Text style={styles.tierTitle}>Lifetime Ownership License</Text>
-                    <View style={[styles.badgeRecommended, { backgroundColor: 'rgba(255, 255, 255, 0.15)' }]}>
-                      <Text style={styles.badgeRecommendedText}>VIP OWNERSHIP</Text>
-                    </View>
-                  </View>
-                  <Text style={styles.tierSub}>100% Profits Kept · 0% Profit Share Deductions</Text>
-                </View>
-                <View style={[styles.tierPriceBadge, { backgroundColor: 'rgba(255, 255, 255, 0.15)' }]}>
-                  <Text style={styles.tierPriceText}>₹99,999</Text>
-                </View>
-              </View>
-              <Text style={styles.tierDesc}>
-                Full unlimited lifetime license key. Keep 100% of all generated returns with zero profit share deductions, dedicated private VPS setup & VIP 24/7 priority support.
-              </Text>
-              {selectedTier === 'lifetime' && (
-                <View style={styles.tierSelectedPill}>
-                  <Check size={12} color="#000000" />
-                  <Text style={styles.tierSelectedPillText}>Active Selection</Text>
-                </View>
-              )}
-            </TouchableOpacity>
-
-            {/* Lifetime Payment Details if Selected */}
-            {selectedTier === 'lifetime' && (
-              <View style={styles.cardBox}>
-                <View style={styles.cardHeaderRow}>
-                  <View style={styles.badgePrimary}>
-                    <Text style={styles.badgePrimaryText}>UPI PAYMENT INSTRUCTIONS</Text>
-                  </View>
-                  <Text style={{ color: '#94a3b8', fontSize: 12, fontFamily: 'Inter_500Medium' }}>Instant Verification</Text>
-                </View>
-
-                <View style={styles.codeItem}>
-                  <Text style={styles.codeItemLabel}>UPI ID / VPA</Text>
-                  <Text style={styles.codeItemValue}>tradifive@icici</Text>
-                </View>
-
-                <View style={[styles.inputWrapper, { marginTop: 12 }]}>
-                  <TextInput
-                    style={styles.textInput}
-                    placeholder="Enter 12-digit UPI UTR / Reference No."
-                    placeholderTextColor="#64748b"
-                    keyboardType="numeric"
-                    value={paymentUtr}
-                    onChangeText={setPaymentUtr}
-                  />
-                </View>
-              </View>
-            )}
-
-            {/* Action Button */}
-            <TouchableOpacity
-              activeOpacity={0.85}
-              onPress={() => { h(); setActiveStep(4); }}
-              style={styles.primaryActionBtn}
-            >
-              <Text style={styles.primaryActionBtnText}>Launch Bot Controls & Telemetry</Text>
-              <ArrowRight size={18} color="#000000" />
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {/* ========================================================================= */}
-        {/* STEP 4: LIVE BOT CONTROL & REAL-TIME TELEMETRY                            */}
-        {/* ========================================================================= */}
-        {activeStep === 4 && (
-          <View style={styles.sectionWrap}>
-            {/* Live Bot Status Card */}
-            <View style={styles.botStatusCard}>
-              <View style={styles.botStatusHeader}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                  <View style={[styles.statusIndicatorCircle, isBotRunning && styles.statusIndicatorRunning]} />
-                  <View>
-                    <Text style={styles.botStatusTitle}>Tradifive FiAlgo V1</Text>
-                    <Text style={styles.botStatusSubtitle}>
-                      {isBotRunning ? 'Algorithmic Execution Active' : 'Execution Paused'}
+                    <Text style={[styles.requirementSub, { color: isDark ? '#94a3b8' : '#64748b' }]}>
+                      Maintain at least $500 USD balance for the Gold grid safety buffer and lot sizing.
                     </Text>
                   </View>
                 </View>
 
+                {/* Sub-Step 3: Submit MT5 Account & Proof */}
+                <View style={[styles.submissionBox, { backgroundColor: isDark ? '#0f172a' : '#ffffff', borderColor: isDark ? '#334155' : '#e2e8f0' }]}>
+                  <View style={styles.instructionHeader}>
+                    <View style={styles.instructionStepNum}>
+                      <Text style={styles.instructionStepNumText}>3</Text>
+                    </View>
+                    <Text style={[styles.instructionTitle, { color: isDark ? '#f8fafc' : '#0f172a' }]}>
+                      Submit MT5 Account & Proof
+                    </Text>
+                  </View>
+
+                  <Text style={[styles.inputLabel, { color: isDark ? '#cbd5e1' : '#334155', marginTop: 10 }]}>
+                    MT5 ACCOUNT NUMBER (LOGIN)
+                  </Text>
+                  <TextInput
+                    style={[styles.textInput, { backgroundColor: isDark ? '#1e293b' : '#f8fafc', borderColor: isDark ? '#334155' : '#cbd5e1', color: isDark ? '#ffffff' : '#0f172a' }]}
+                    placeholder="e.g. 8492015"
+                    placeholderTextColor="#94a3b8"
+                    keyboardType="number-pad"
+                    value={mt5Account}
+                    onChangeText={setMt5Account}
+                  />
+
+                  {/* Confirmation Checkbox */}
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={() => setDepositConfirmed(!depositConfirmed)}
+                    style={styles.checkboxRow}
+                  >
+                    <View style={[styles.checkboxBox, depositConfirmed && styles.checkboxBoxActive]}>
+                      {depositConfirmed && <Check size={12} color="#ffffff" />}
+                    </View>
+                    <Text style={[styles.checkboxLabel, { color: isDark ? '#cbd5e1' : '#334155' }]}>
+                      I confirm this MT5 account has a <Text style={{ fontFamily: 'Inter_700Bold' }}>minimum balance of $500 USD</Text>.
+                    </Text>
+                  </TouchableOpacity>
+
+                  {/* Screenshot Proof Button */}
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={() => handlePickProofImage(false)}
+                    style={[styles.proofUploadBtn, { backgroundColor: isDark ? '#1e293b' : '#f8fafc', borderColor: isDark ? '#334155' : '#cbd5e1' }]}
+                  >
+                    <UploadCloud size={16} color={proofImageUri ? '#10b981' : '#64748b'} />
+                    <Text style={[styles.proofUploadText, { color: proofImageUri ? '#10b981' : (isDark ? '#cbd5e1' : '#475569') }]}>
+                      {proofImageUri ? 'Screenshot Proof Attached ✓' : 'Upload MT5 Deposit Screenshot (Optional)'}
+                    </Text>
+                  </TouchableOpacity>
+
+                  {/* Submit CTA */}
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={handleSubmitVerification}
+                    disabled={isUploadingProof}
+                    style={styles.submitButton}
+                  >
+                    {isUploadingProof ? (
+                      <ActivityIndicator size="small" color="#ffffff" />
+                    ) : (
+                      <>
+                        <Send size={14} color="#ffffff" />
+                        <Text style={styles.submitButtonText}>Submit MT5 Account for Verification</Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+                </View>
+
+                {/* Priority Fast-Track Support Desk */}
+                <View style={[styles.supportBox, { backgroundColor: isDark ? '#0f172a' : '#f8fafc', borderColor: isDark ? '#334155' : '#e2e8f0' }]}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <Text style={[styles.supportTitle, { color: isDark ? '#f8fafc' : '#0f172a' }]}>
+                      Need instant 15-min verification?
+                    </Text>
+                    <View style={styles.priorityBadge}>
+                      <Text style={styles.priorityBadgeText}>Priority Desk</Text>
+                    </View>
+                  </View>
+                  <Text style={[styles.supportSub, { color: isDark ? '#94a3b8' : '#64748b' }]}>
+                    Ping our desk with your MT5 ID to get approved immediately:
+                  </Text>
+                  <View style={styles.supportBtnRow}>
+                    <TouchableOpacity
+                      activeOpacity={0.8}
+                      onPress={() => Linking.openURL(`https://wa.me/?text=Hello%20TradiFive!%20Please%20verify%20my%20MT5%20account%20%23${mt5Account}%20under%20Partner%20IB%2027863221.`)}
+                      style={[styles.supportBtn, { backgroundColor: isDark ? '#064e3b' : '#ecfdf5', borderColor: '#10b981' }]}
+                    >
+                      <MessageCircle size={13} color="#10b981" />
+                      <Text style={[styles.supportBtnText, { color: '#10b981' }]}>WhatsApp Desk</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      activeOpacity={0.8}
+                      onPress={() => Linking.openURL(`mailto:support@tradifive.in?subject=Verify%20MT5%20Account%20${mt5Account}&body=Please%20verify%20MT5%20account%20%23${mt5Account}`)}
+                      style={[styles.supportBtn, { backgroundColor: isDark ? '#1e293b' : '#f1f5f9', borderColor: isDark ? '#334155' : '#cbd5e1' }]}
+                    >
+                      <Mail size={13} color={isDark ? '#94a3b8' : '#475569'} />
+                      <Text style={[styles.supportBtnText, { color: isDark ? '#cbd5e1' : '#334155' }]}>Email Desk</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                {/* Bottom Stepper CTA */}
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={() => { h(); setActiveStep(2); }}
+                  style={styles.continueButton}
+                >
+                  <Text style={styles.continueButtonText}>Continue to Step 2: Download FiAlgo</Text>
+                  <ArrowRight size={15} color="#ffffff" />
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
+          {/* ========================================================================= */}
+          {/* STEP 2: DOWNLOAD FIALGO EA                                                */}
+          {/* ========================================================================= */}
+          {activeStep === 2 && (
+            <View style={styles.stepContent}>
+              <View style={[styles.panelCard, { backgroundColor: isDark ? '#1e293b' : '#ffffff', borderColor: isDark ? '#334155' : '#e2e8f0' }]}>
+                {/* Panel Header */}
+                <View style={styles.panelHeader}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.panelTitle, { color: isDark ? '#f8fafc' : '#0f172a' }]}>
+                      Download FiAlgo EA
+                    </Text>
+                    <Text style={[styles.panelDesc, { color: isDark ? '#94a3b8' : '#64748b' }]}>
+                      Deploy our institutional Gold EA directly into your MetaTrader 5 terminal.
+                    </Text>
+                  </View>
+                  <View style={styles.versionBadge}>
+                    <Text style={styles.versionBadgeText}>v1.0.4 PRO</Text>
+                  </View>
+                </View>
+
+                {/* Algorithmic Specs Strip */}
+                <View style={styles.specsGrid}>
+                  <View style={[styles.specTile, { backgroundColor: isDark ? '#0f172a' : '#f8fafc', borderColor: isDark ? '#334155' : '#e2e8f0' }]}>
+                    <View style={styles.specTileHeader}>
+                      <Text style={styles.specTileLabel}>ASSET PAIR</Text>
+                      <Coins size={12} color="#64748b" />
+                    </View>
+                    <Text style={[styles.specTileValue, { color: isDark ? '#ffffff' : '#0f172a' }]}>XAUUSD (Gold)</Text>
+                    <Text style={styles.specTileSub}>Spot / USD Structure</Text>
+                  </View>
+
+                  <View style={[styles.specTile, { backgroundColor: isDark ? '#0f172a' : '#f8fafc', borderColor: isDark ? '#334155' : '#e2e8f0' }]}>
+                    <View style={styles.specTileHeader}>
+                      <Text style={styles.specTileLabel}>TIMEFRAME</Text>
+                      <Clock size={12} color="#64748b" />
+                    </View>
+                    <Text style={[styles.specTileValue, { color: isDark ? '#ffffff' : '#0f172a' }]}>1-Min (M1)</Text>
+                    <Text style={styles.specTileSub}>Tick-Level Accuracy</Text>
+                  </View>
+
+                  <View style={[styles.specTile, { backgroundColor: isDark ? '#0f172a' : '#f8fafc', borderColor: isDark ? '#334155' : '#e2e8f0' }]}>
+                    <View style={styles.specTileHeader}>
+                      <Text style={styles.specTileLabel}>EXECUTION</Text>
+                      <Zap size={12} color="#10b981" />
+                    </View>
+                    <Text style={[styles.specTileValue, { color: '#10b981' }]}>&lt; 3ms Direct</Text>
+                    <Text style={styles.specTileSub}>Zero Broker Relay</Text>
+                  </View>
+
+                  <View style={[styles.specTile, { backgroundColor: isDark ? '#0f172a' : '#f8fafc', borderColor: isDark ? '#334155' : '#e2e8f0' }]}>
+                    <View style={styles.specTileHeader}>
+                      <Text style={styles.specTileLabel}>ENGINE</Text>
+                      <Layers size={12} color="#64748b" />
+                    </View>
+                    <Text style={[styles.specTileValue, { color: isDark ? '#ffffff' : '#0f172a' }]}>Dynamic Basket</Text>
+                    <Text style={styles.specTileSub}>Adaptive Risk Guard</Text>
+                  </View>
+                </View>
+
+                {/* Safety Specifications */}
+                <View style={[styles.safetyCard, { backgroundColor: isDark ? '#0f172a' : '#f8fafc', borderColor: isDark ? '#334155' : '#e2e8f0' }]}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <Shield size={13} color="#64748b" />
+                      <Text style={[styles.safetyTitle, { color: isDark ? '#f8fafc' : '#0f172a' }]}>Safety Specifications</Text>
+                    </View>
+                    <View style={styles.guardActiveBadge}>
+                      <CheckCircle2 size={10} color="#10b981" />
+                      <Text style={styles.guardActiveBadgeText}>Risk Guard Active</Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.quantRow}>
+                    <View style={[styles.quantBox, { backgroundColor: isDark ? '#1e293b' : '#ffffff' }]}>
+                      <Text style={styles.quantLabel}>Min. Deposit</Text>
+                      <Text style={[styles.quantVal, { color: isDark ? '#ffffff' : '#0f172a' }]}>$500 USD</Text>
+                    </View>
+                    <View style={[styles.quantBox, { backgroundColor: isDark ? '#1e293b' : '#ffffff' }]}>
+                      <Text style={styles.quantLabel}>Base Lot</Text>
+                      <Text style={[styles.quantVal, { color: isDark ? '#ffffff' : '#0f172a' }]}>0.01</Text>
+                    </View>
+                    <View style={[styles.quantBox, { backgroundColor: isDark ? '#1e293b' : '#ffffff' }]}>
+                      <Text style={styles.quantLabel}>Leverage</Text>
+                      <Text style={[styles.quantVal, { color: isDark ? '#ffffff' : '#0f172a' }]}>1:100+</Text>
+                    </View>
+                  </View>
+                </View>
+
+                {/* File Download Buttons */}
+                <View style={styles.downloadSection}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <FileCode size={14} color="#64748b" />
+                      <Text style={[styles.fileCodeText, { color: isDark ? '#cbd5e1' : '#334155' }]}>FiAlgo_v1.0.4.ex5</Text>
+                    </View>
+                    <Text style={styles.fileSizeText}>248 KB · Real Compiled EA</Text>
+                  </View>
+
+                  <View style={styles.downloadBtnRow}>
+                    <TouchableOpacity
+                      activeOpacity={0.8}
+                      onPress={() => {
+                        hSuccess();
+                        setHasDownloaded(true);
+                        Share.share({
+                          title: 'FiAlgo_v1.0.4.set',
+                          message: 'Download FiAlgo Gold M1 Settings Preset: https://tradifive.in/presets/FiAlgo_Gold_M1.set'
+                        });
+                      }}
+                      style={[styles.downloadSubBtn, { backgroundColor: isDark ? '#0f172a' : '#f1f5f9', borderColor: isDark ? '#334155' : '#cbd5e1' }]}
+                    >
+                      <Sliders size={13} color={isDark ? '#cbd5e1' : '#334155'} />
+                      <Text style={[styles.downloadSubBtnText, { color: isDark ? '#cbd5e1' : '#334155' }]}>Presets (.set)</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      activeOpacity={0.8}
+                      onPress={() => {
+                        hSuccess();
+                        setHasDownloaded(true);
+                        Share.share({
+                          title: 'FiAlgo_v1.0.4.ex5',
+                          message: 'Download FiAlgo v1.0.4 MetaTrader 5 Expert Advisor: https://tradifive.in/download/FiAlgo_v1.0.4.ex5'
+                        });
+                      }}
+                      style={styles.downloadMainBtn}
+                    >
+                      <Download size={14} color="#ffffff" />
+                      <Text style={styles.downloadMainBtnText}>Download (.ex5)</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                {/* MT5 WebRequest Setup Card */}
+                <View style={[styles.webrequestBox, { backgroundColor: isDark ? '#0f172a' : '#eff6ff', borderColor: isDark ? '#0369a1' : '#bfdbfe' }]}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <Zap size={14} color="#0284c7" />
+                      <Text style={[styles.webrequestTitle, { color: isDark ? '#f0f9ff' : '#0369a1' }]}>
+                        Required MT5 WebRequest Setup (1-Time)
+                      </Text>
+                    </View>
+                    <View style={styles.realtimeBadge}>
+                      <Text style={styles.realtimeBadgeText}>Enables Real Feed</Text>
+                    </View>
+                  </View>
+                  <Text style={[styles.webrequestDesc, { color: isDark ? '#cbd5e1' : '#0c4a6e' }]}>
+                    Open MT5 → Tools → Options → Experts. Check "Allow WebRequest for listed URL" and add:
+                  </Text>
+                  <View style={[styles.urlCopyRow, { backgroundColor: isDark ? '#1e293b' : '#ffffff', borderColor: isDark ? '#334155' : '#bfdbfe' }]}>
+                    <Text style={styles.urlText} numberOfLines={1}>
+                      https://rylwyxhupwpwsdbvuoej.supabase.co
+                    </Text>
+                    <TouchableOpacity
+                      activeOpacity={0.8}
+                      onPress={() => copyToClipboard('https://rylwyxhupwpwsdbvuoej.supabase.co', 'Webhook URL')}
+                      style={styles.urlCopyBtn}
+                    >
+                      <Copy size={11} color="#ffffff" />
+                      <Text style={styles.urlCopyBtnText}>Copy URL</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                {/* Navigation Buttons: Back to Step 1 & Forward to Step 3 */}
+                <View style={styles.navRow}>
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={() => { h(); setActiveStep(1); }}
+                    style={[styles.backNavBtn, { backgroundColor: isDark ? '#0f172a' : '#f1f5f9' }]}
+                  >
+                    <ArrowLeft size={13} color={isDark ? '#cbd5e1' : '#475569'} />
+                    <Text style={[styles.backNavBtnText, { color: isDark ? '#cbd5e1' : '#475569' }]}>Back to Step 1</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={() => { h(); setActiveStep(3); }}
+                    style={styles.forwardNavBtn}
+                  >
+                    <Text style={styles.forwardNavBtnText}>Continue to Step 3: License Payment</Text>
+                    <ArrowRight size={14} color="#ffffff" />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          )}
+
+          {/* ========================================================================= */}
+          {/* STEP 3: LIFETIME LICENSE PAYMENT ₹99,999                                  */}
+          {/* ========================================================================= */}
+          {activeStep === 3 && (
+            <View style={styles.stepContent}>
+              <View style={[styles.panelCard, { backgroundColor: isDark ? '#1e293b' : '#ffffff', borderColor: isDark ? '#334155' : '#e2e8f0' }]}>
+                {/* Panel Header */}
+                <View style={styles.panelHeader}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.panelTitle, { color: isDark ? '#f8fafc' : '#0f172a' }]}>
+                      License Payment
+                    </Text>
+                    <Text style={[styles.panelDesc, { color: isDark ? '#94a3b8' : '#64748b' }]}>
+                      Complete payment via PhonePe / UPI or Bank Transfer to request your license key.
+                    </Text>
+                  </View>
+                  {paymentStatus === 'approved' ? (
+                    <View style={styles.verifiedBadge}>
+                      <CheckCircle2 size={12} color="#10b981" />
+                      <Text style={styles.verifiedBadgeText}>Payment Confirmed</Text>
+                    </View>
+                  ) : paymentStatus === 'pending' ? (
+                    <View style={styles.pendingBadge}>
+                      <Clock size={12} color="#f59e0b" />
+                      <Text style={styles.pendingBadgeText}>Under Review (~2h)</Text>
+                    </View>
+                  ) : null}
+                </View>
+
+                {/* 2-Tier Plan Selector */}
+                <Text style={[styles.inputLabel, { color: isDark ? '#cbd5e1' : '#334155', marginTop: 8 }]}>
+                  CHOOSE YOUR ACCESS PLAN
+                </Text>
+                <View style={styles.tierGrid}>
+                  {/* Tier 1: Lifetime VIP ₹99,999 */}
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={() => { h(); setSelectedTier('lifetime'); }}
+                    style={[
+                      styles.tierCard,
+                      selectedTier === 'lifetime' && styles.tierCardActivePurple,
+                      { backgroundColor: isDark ? '#0f172a' : '#ffffff', borderColor: selectedTier === 'lifetime' ? '#7c3aed' : (isDark ? '#334155' : '#e2e8f0') }
+                    ]}
+                  >
+                    <View style={styles.tierTop}>
+                      <View style={styles.tierBadgePurple}>
+                        <Text style={styles.tierBadgePurpleText}>VIP LIFETIME (0% SHARE)</Text>
+                      </View>
+                      <View style={[styles.radioCircle, selectedTier === 'lifetime' && styles.radioCircleActivePurple]}>
+                        {selectedTier === 'lifetime' && <Check size={10} color="#ffffff" />}
+                      </View>
+                    </View>
+                    <Text style={[styles.tierTitle, { color: isDark ? '#f8fafc' : '#0f172a' }]}>Lifetime VIP License</Text>
+                    <Text style={[styles.tierSub, { color: isDark ? '#94a3b8' : '#64748b' }]}>
+                      Pay once, keep <Text style={{ fontFamily: 'Inter_700Bold', color: '#7c3aed' }}>100% of all profits</Text> forever. Zero recurring cuts.
+                    </Text>
+                    <View style={[styles.tierPriceStrip, { borderTopColor: isDark ? '#1e293b' : '#f1f5f9' }]}>
+                      <Text style={styles.tierPriceLabel}>ONE-TIME</Text>
+                      <Text style={[styles.tierPriceVal, { color: isDark ? '#ffffff' : '#0f172a' }]}>₹99,999</Text>
+                    </View>
+                  </TouchableOpacity>
+
+                  {/* Tier 2: Performance Partner ₹5,000 Setup + 50% Share */}
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={() => { h(); setSelectedTier('profit_share_50'); }}
+                    style={[
+                      styles.tierCard,
+                      selectedTier === 'profit_share_50' && styles.tierCardActiveBlue,
+                      { backgroundColor: isDark ? '#0f172a' : '#ffffff', borderColor: selectedTier === 'profit_share_50' ? '#0284c7' : (isDark ? '#334155' : '#e2e8f0') }
+                    ]}
+                  >
+                    <View style={styles.tierTop}>
+                      <View style={styles.tierBadgeBlue}>
+                        <Text style={styles.tierBadgeBlueText}>LOW ENTRY SETUP</Text>
+                      </View>
+                      <View style={[styles.radioCircle, selectedTier === 'profit_share_50' && styles.radioCircleActiveBlue]}>
+                        {selectedTier === 'profit_share_50' && <Check size={10} color="#ffffff" />}
+                      </View>
+                    </View>
+                    <Text style={[styles.tierTitle, { color: isDark ? '#f8fafc' : '#0f172a' }]}>Performance Partner</Text>
+                    <Text style={[styles.tierSub, { color: isDark ? '#94a3b8' : '#64748b' }]}>
+                      Low ₹5k setup fee + daily 50% profit share on winning trades only.
+                    </Text>
+                    <View style={[styles.tierPriceStrip, { borderTopColor: isDark ? '#1e293b' : '#f1f5f9' }]}>
+                      <Text style={styles.tierPriceLabel}>SETUP FEE</Text>
+                      <Text style={[styles.tierPriceVal, { color: isDark ? '#ffffff' : '#0f172a' }]}>₹5,000</Text>
+                    </View>
+                  </TouchableOpacity>
+                </View>
+
+                {/* Payment Method Tabs */}
+                <View style={[styles.segmentedWrap, { backgroundColor: isDark ? '#0f172a' : '#f1f5f9', marginTop: 16 }]}>
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={() => { h(); setPaymentMethod('upi'); }}
+                    style={[
+                      styles.segmentBtn,
+                      paymentMethod === 'upi' && (isDark ? styles.segmentBtnActiveDark : styles.segmentBtnActiveLight),
+                    ]}
+                  >
+                    <QrCode size={13} color={paymentMethod === 'upi' ? (isDark ? '#ffffff' : '#0f172a') : '#64748b'} />
+                    <Text style={[styles.segmentBtnText, paymentMethod === 'upi' && styles.segmentBtnTextActive]}>
+                      PhonePe / UPI QR
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={() => { h(); setPaymentMethod('bank'); }}
+                    style={[
+                      styles.segmentBtn,
+                      paymentMethod === 'bank' && (isDark ? styles.segmentBtnActiveDark : styles.segmentBtnActiveLight),
+                    ]}
+                  >
+                    <CreditCard size={13} color={paymentMethod === 'bank' ? (isDark ? '#ffffff' : '#0f172a') : '#64748b'} />
+                    <Text style={[styles.segmentBtnText, paymentMethod === 'bank' && styles.segmentBtnTextActive]}>
+                      Bank Transfer
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+
+                {/* Payment Details Box */}
+                {paymentMethod === 'upi' ? (
+                  <View style={[styles.paymentDetailsBox, { backgroundColor: isDark ? '#0f172a' : '#f8fafc', borderColor: isDark ? '#334155' : '#e2e8f0' }]}>
+                    <Text style={[styles.qrTitle, { color: isDark ? '#f8fafc' : '#0f172a' }]}>
+                      Scan & Pay via Any UPI App
+                    </Text>
+                    <Text style={[styles.qrSub, { color: isDark ? '#94a3b8' : '#64748b' }]}>
+                      GPay, PhonePe, Paytm, BHIM or Mobile Banking
+                    </Text>
+
+                    {/* Clean UPI ID Box */}
+                    <View style={[styles.upiIdRow, { backgroundColor: isDark ? '#1e293b' : '#ffffff', borderColor: isDark ? '#334155' : '#cbd5e1' }]}>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.upiIdLabel}>OFFICIAL UPI ID</Text>
+                        <Text style={[styles.upiIdVal, { color: isDark ? '#38bdf8' : '#0284c7' }]}>9731980756@axisbank</Text>
+                      </View>
+                      <TouchableOpacity
+                        activeOpacity={0.8}
+                        onPress={() => copyToClipboard('9731980756@axisbank', 'UPI ID')}
+                        style={styles.copyPillBtn}
+                      >
+                        <Copy size={11} color="#ffffff" />
+                        <Text style={styles.copyPillBtnText}>Copy UPI</Text>
+                      </TouchableOpacity>
+                    </View>
+
+                    <View style={styles.paymentSummaryStrip}>
+                      <Text style={styles.summaryLabel}>PAYABLE AMOUNT:</Text>
+                      <Text style={[styles.summaryAmount, { color: isDark ? '#10b981' : '#047857' }]}>
+                        {selectedTier === 'lifetime' ? '₹99,999' : '₹5,000'}
+                      </Text>
+                    </View>
+                  </View>
+                ) : (
+                  <View style={[styles.paymentDetailsBox, { backgroundColor: isDark ? '#0f172a' : '#f8fafc', borderColor: isDark ? '#334155' : '#e2e8f0' }]}>
+                    <Text style={[styles.qrTitle, { color: isDark ? '#f8fafc' : '#0f172a' }]}>
+                      IMPS / NEFT / RTGS Bank Transfer
+                    </Text>
+                    <View style={styles.bankDetailItem}>
+                      <Text style={styles.bankLabel}>Beneficiary Name</Text>
+                      <Text style={[styles.bankValue, { color: isDark ? '#ffffff' : '#0f172a' }]}>TRADIFIVE TECHNOLOGIES</Text>
+                    </View>
+                    <View style={styles.bankDetailItem}>
+                      <Text style={styles.bankLabel}>Bank Name</Text>
+                      <Text style={[styles.bankValue, { color: isDark ? '#ffffff' : '#0f172a' }]}>Axis Bank Ltd</Text>
+                    </View>
+                    <View style={styles.bankDetailItem}>
+                      <Text style={styles.bankLabel}>Account Number</Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <Text style={[styles.bankValueMono, { color: isDark ? '#38bdf8' : '#0284c7' }]}>924010072811588</Text>
+                        <TouchableOpacity onPress={() => copyToClipboard('924010072811588', 'Account Number')}>
+                          <Copy size={12} color="#64748b" />
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                    <View style={styles.bankDetailItem}>
+                      <Text style={styles.bankLabel}>IFSC Code</Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <Text style={[styles.bankValueMono, { color: isDark ? '#38bdf8' : '#0284c7' }]}>UTIB0000004</Text>
+                        <TouchableOpacity onPress={() => copyToClipboard('UTIB0000004', 'IFSC Code')}>
+                          <Copy size={12} color="#64748b" />
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  </View>
+                )}
+
+                {/* UTR Input & Proof Upload */}
+                <View style={[styles.submissionBox, { backgroundColor: isDark ? '#0f172a' : '#ffffff', borderColor: isDark ? '#334155' : '#e2e8f0', marginTop: 14 }]}>
+                  <Text style={[styles.inputLabel, { color: isDark ? '#cbd5e1' : '#334155' }]}>
+                    12-DIGIT UTR / REFERENCE NUMBER
+                  </Text>
+                  <TextInput
+                    style={[styles.textInput, { backgroundColor: isDark ? '#1e293b' : '#f8fafc', borderColor: isDark ? '#334155' : '#cbd5e1', color: isDark ? '#ffffff' : '#0f172a' }]}
+                    placeholder="e.g. 429104829104"
+                    placeholderTextColor="#94a3b8"
+                    keyboardType="number-pad"
+                    value={paymentUtr}
+                    onChangeText={setPaymentUtr}
+                  />
+
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={() => handlePickProofImage(true)}
+                    style={[styles.proofUploadBtn, { backgroundColor: isDark ? '#1e293b' : '#f8fafc', borderColor: isDark ? '#334155' : '#cbd5e1' }]}
+                  >
+                    <UploadCloud size={16} color={paymentProofUri ? '#10b981' : '#64748b'} />
+                    <Text style={[styles.proofUploadText, { color: paymentProofUri ? '#10b981' : (isDark ? '#cbd5e1' : '#475569') }]}>
+                      {paymentProofUri ? 'Payment Screenshot Attached ✓' : 'Upload Payment Receipt Screenshot'}
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={handleSubmitPayment}
+                    style={styles.submitButton}
+                  >
+                    <Send size={14} color="#ffffff" />
+                    <Text style={styles.submitButtonText}>Submit Payment Verification</Text>
+                  </TouchableOpacity>
+                </View>
+
+                {/* WhatsApp Fast-Track */}
+                <View style={[styles.supportBox, { backgroundColor: isDark ? '#0f172a' : '#f8fafc', borderColor: isDark ? '#334155' : '#e2e8f0', marginTop: 14 }]}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <Text style={[styles.supportTitle, { color: isDark ? '#f8fafc' : '#0f172a' }]}>
+                      Need 15-Minute Priority Issuance?
+                    </Text>
+                    <View style={styles.priorityBadge}>
+                      <Text style={styles.priorityBadgeText}>⚡ 15-Min Fast Track</Text>
+                    </View>
+                  </View>
+                  <Text style={[styles.supportSub, { color: isDark ? '#94a3b8' : '#64748b' }]}>
+                    Send your UTR #{paymentUtr || 'number'} directly to our WhatsApp desk for instant activation:
+                  </Text>
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={() => Linking.openURL(`https://wa.me/?text=Hello%20TradiFive!%20I%20have%20completed%20the%20${selectedTier === 'lifetime' ? 'Rs.99,999' : 'Rs.5,000'}%20license%20payment.%20My%20UTR%20is%20${paymentUtr}.%20Please%20verify%20and%20issue%20my%20license%20key.`)}
+                    style={[styles.supportBtnFull, { backgroundColor: isDark ? '#064e3b' : '#ecfdf5', borderColor: '#10b981' }]}
+                  >
+                    <MessageCircle size={14} color="#10b981" />
+                    <Text style={[styles.supportBtnText, { color: '#10b981' }]}>Fast-Track on WhatsApp Desk</Text>
+                  </TouchableOpacity>
+                </View>
+
+                {/* Navigation Buttons */}
+                <View style={styles.navRow}>
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={() => { h(); setActiveStep(2); }}
+                    style={[styles.backNavBtn, { backgroundColor: isDark ? '#0f172a' : '#f1f5f9' }]}
+                  >
+                    <ArrowLeft size={13} color={isDark ? '#cbd5e1' : '#475569'} />
+                    <Text style={[styles.backNavBtnText, { color: isDark ? '#cbd5e1' : '#475569' }]}>Back to Step 2</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={() => { h(); setActiveStep(4); }}
+                    style={styles.forwardNavBtn}
+                  >
+                    <Text style={styles.forwardNavBtnText}>Check Step 4: License Key</Text>
+                    <ArrowRight size={14} color="#ffffff" />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          )}
+
+          {/* ========================================================================= */}
+          {/* STEP 4: ACTIVATE LICENSE & LIVE ENGINE                                    */}
+          {/* ========================================================================= */}
+          {activeStep === 4 && (
+            <View style={styles.stepContent}>
+              <View style={[styles.panelCard, { backgroundColor: isDark ? '#1e293b' : '#ffffff', borderColor: isDark ? '#334155' : '#e2e8f0' }]}>
+                {/* Panel Header */}
+                <View style={styles.panelHeader}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.panelTitle, { color: isDark ? '#f8fafc' : '#0f172a' }]}>
+                      Activation Key & Live Trading
+                    </Text>
+                    <Text style={[styles.panelDesc, { color: isDark ? '#94a3b8' : '#64748b' }]}>
+                      Copy your cryptographic license key and attach it to FiAlgo V1 in MT5.
+                    </Text>
+                  </View>
+                  <View style={styles.verifiedBadge}>
+                    <CheckCircle2 size={12} color="#10b981" />
+                    <Text style={styles.verifiedBadgeText}>Active & Bound</Text>
+                  </View>
+                </View>
+
+                {/* Personal Cryptographic License Key Box */}
+                <View style={[styles.licenseCard, { backgroundColor: isDark ? '#0f172a' : '#f8fafc', borderColor: isDark ? '#334155' : '#e2e8f0' }]}>
+                  <View style={styles.licenseHeader}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <View style={styles.greenPulseDot} />
+                      <Text style={[styles.licenseCardTitle, { color: isDark ? '#f8fafc' : '#0f172a' }]}>
+                        MT5 License Key
+                      </Text>
+                      <View style={[styles.accountPill, { backgroundColor: isDark ? '#1e293b' : '#e2e8f0' }]}>
+                        <Text style={[styles.accountPillText, { color: isDark ? '#cbd5e1' : '#334155' }]}>#{mt5Account}</Text>
+                      </View>
+                    </View>
+                    <Text style={styles.lifetimeActiveText}>Lifetime Active</Text>
+                  </View>
+
+                  <View style={[styles.keyDisplayRow, { backgroundColor: isDark ? '#1e293b' : '#ffffff', borderColor: isDark ? '#334155' : '#cbd5e1' }]}>
+                    <Text style={[styles.licenseKeyText, { color: isDark ? '#38bdf8' : '#0f172a' }]} numberOfLines={1}>
+                      {licenseKey}
+                    </Text>
+                    <TouchableOpacity
+                      activeOpacity={0.8}
+                      onPress={() => copyToClipboard(licenseKey, 'License Key')}
+                      style={styles.copyKeyBtn}
+                    >
+                      {copiedKey ? <Check size={12} color="#ffffff" /> : <Copy size={12} color="#ffffff" />}
+                      <Text style={styles.copyKeyBtnText}>{copiedKey ? 'Copied' : 'Copy Key'}</Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  {/* Bound Guarantee */}
+                  <View style={[styles.boundBox, { backgroundColor: isDark ? '#064e3b' : '#ecfdf5', borderColor: '#10b981' }]}>
+                    <ShieldCheck size={14} color="#10b981" />
+                    <Text style={[styles.boundBoxText, { color: isDark ? '#a7f3d0' : '#065f46' }]}>
+                      Strictly bound to MT5 account #{mt5Account}. Mathematical FNV-1a verification will auto-block execution on any other terminal login.
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Live Engine Master Control */}
+                <View style={[styles.botControlCard, { backgroundColor: isDark ? '#0f172a' : '#f8fafc', borderColor: isDark ? '#334155' : '#e2e8f0', marginTop: 14 }]}>
+                  <View style={styles.botControlHeader}>
+                    <View>
+                      <Text style={[styles.botControlTitle, { color: isDark ? '#f8fafc' : '#0f172a' }]}>
+                        Algo Engine Execution
+                      </Text>
+                      <Text style={[styles.botControlSub, { color: isDark ? '#94a3b8' : '#64748b' }]}>
+                        Status: <Text style={{ fontFamily: 'Inter_700Bold', color: isBotRunning ? '#10b981' : '#ef4444' }}>{isBotRunning ? 'RUNNING (LIVE)' : 'STANDBY (PAUSED)'}</Text>
+                      </Text>
+                    </View>
+
+                    <TouchableOpacity
+                      activeOpacity={0.8}
+                      onPress={() => { hSuccess(); setIsBotRunning(!isBotRunning); }}
+                      style={[styles.botSwitchBtn, { backgroundColor: isBotRunning ? '#ef4444' : '#10b981' }]}
+                    >
+                      {isBotRunning ? <Pause size={13} color="#ffffff" /> : <Play size={13} color="#ffffff" />}
+                      <Text style={styles.botSwitchBtnText}>{isBotRunning ? 'Pause Engine' : 'Start Engine'}</Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  {/* Daily Target Pills */}
+                  <Text style={[styles.inputLabel, { color: isDark ? '#cbd5e1' : '#334155', marginTop: 12 }]}>
+                    DAILY PROFIT TARGET DISCIPLINE
+                  </Text>
+                  <View style={styles.targetRow}>
+                    {[2, 3, 4, 5].map((pct) => (
+                      <TouchableOpacity
+                        key={pct}
+                        activeOpacity={0.8}
+                        onPress={() => { h(); setDailyTargetPct(pct); }}
+                        style={[
+                          styles.targetPill,
+                          dailyTargetPct === pct && (isDark ? styles.targetPillActiveDark : styles.targetPillActiveLight),
+                          { backgroundColor: dailyTargetPct === pct ? (isDark ? '#ffffff' : '#0f172a') : (isDark ? '#1e293b' : '#ffffff'), borderColor: isDark ? '#334155' : '#cbd5e1' }
+                        ]}
+                      >
+                        <Text style={[styles.targetPillText, dailyTargetPct === pct && (isDark ? styles.targetPillTextActiveDark : styles.targetPillTextActiveLight)]}>
+                          {pct}.0%
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+
+                  {/* Telemetry Projections */}
+                  <View style={styles.telemetryRow}>
+                    <View style={[styles.telemetryBox, { backgroundColor: isDark ? '#1e293b' : '#ffffff', borderColor: isDark ? '#334155' : '#e2e8f0' }]}>
+                      <Text style={styles.telemetryLabel}>EST. DAILY RETURN</Text>
+                      <Text style={[styles.telemetryVal, { color: '#10b981' }]}>+₹{dailyProfitEst.toLocaleString()}</Text>
+                    </View>
+                    <View style={[styles.telemetryBox, { backgroundColor: isDark ? '#1e293b' : '#ffffff', borderColor: isDark ? '#334155' : '#e2e8f0' }]}>
+                      <Text style={styles.telemetryLabel}>EST. MONTHLY (22D)</Text>
+                      <Text style={[styles.telemetryVal, { color: '#0284c7' }]}>+₹{monthlyProfitEst.toLocaleString()}</Text>
+                    </View>
+                  </View>
+                </View>
+
+                {/* Launch Live AutoTrade CTA */}
                 <TouchableOpacity
                   activeOpacity={0.8}
                   onPress={() => {
-                    h();
-                    setIsBotRunning(!isBotRunning);
+                    hSuccess();
                     Alert.alert(
-                      isBotRunning ? 'Algo Paused' : 'Algo Resumed',
-                      isBotRunning ? 'Trading bot execution has been safely paused.' : 'Trading bot execution is now active.'
+                      'Algo Activated',
+                      'FiAlgo V1 is active on your MT5 terminal. Redirecting to live trading dashboard.',
+                      [{ text: 'Open Dashboard', onPress: () => router.push('/(tabs)' as any) }]
                     );
                   }}
-                  style={[styles.botToggleBtn, isBotRunning ? styles.botToggleBtnActive : styles.botToggleBtnPaused]}
+                  style={[styles.launchButton, { marginTop: 18 }]}
                 >
-                  {isBotRunning ? <Pause size={16} color="#ffffff" /> : <Play size={16} color="#ffffff" />}
-                  <Text style={styles.botToggleBtnText}>{isBotRunning ? 'Pause Bot' : 'Start Bot'}</Text>
+                  <Zap size={16} color="#ffffff" />
+                  <Text style={styles.launchButtonText}>Launch Live AutoTrade Dashboard</Text>
                 </TouchableOpacity>
               </View>
-
-              <View style={styles.telemetryDivider} />
-
-              <View style={styles.telemetryGrid}>
-                <View style={styles.telemetryItem}>
-                  <Text style={styles.telemetryLabel}>LATENCY</Text>
-                  <Text style={styles.telemetryVal}>1.8 ms</Text>
-                </View>
-                <View style={styles.telemetryItem}>
-                  <Text style={styles.telemetryLabel}>DAILY TARGET</Text>
-                  <Text style={styles.telemetryVal}>{dailyTargetPct}% / day</Text>
-                </View>
-                <View style={styles.telemetryItem}>
-                  <Text style={styles.telemetryLabel}>EXECUTION</Text>
-                  <Text style={styles.telemetryVal}>Real-time</Text>
-                </View>
-              </View>
             </View>
+          )}
+        </ScrollView>
+      </View>
 
-            {/* Daily Target Setting */}
-            <View style={styles.subHeadingRow}>
-              <Text style={styles.sectionHeading}>Configured Daily Profit Target</Text>
-              <Text style={styles.subHeadingHint}>Trailing Take Profit</Text>
-            </View>
-
-            <View style={styles.targetPillRow}>
-              {[2, 3, 5].map((pct) => (
-                <TouchableOpacity
-                  key={pct}
-                  activeOpacity={0.8}
-                  onPress={() => { h(); setDailyTargetPct(pct); }}
-                  style={[styles.targetPill, dailyTargetPct === pct && styles.targetPillActive]}
-                >
-                  <Text style={[styles.targetPillText, dailyTargetPct === pct && styles.targetPillTextActive]}>
-                    {pct}% / Day
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            {/* Quick Profit Projection Card */}
-            <View style={styles.cardBox}>
-              <View style={styles.cardHeaderRow}>
-                <View style={styles.badgePrimary}>
-                  <Text style={styles.badgePrimaryText}>PROJECTED EARNINGS</Text>
-                </View>
-                <Text style={{ color: '#94a3b8', fontSize: 13, fontFamily: 'Inter_500Medium' }}>
-                  At {dailyTargetPct}% Daily Target
-                </Text>
-              </View>
-
-              <View style={{ marginVertical: 10 }}>
-                <Text style={{ color: '#94a3b8', fontSize: 12, fontFamily: 'Inter_500Medium' }}>Simulated Trading Capital</Text>
-                <Text style={{ color: '#ffffff', fontSize: 24, fontFamily: 'Inter_700Bold', marginTop: 2 }}>
-                  ₹{calcCapital.toLocaleString()}
-                </Text>
-              </View>
-
-              <View style={styles.projectionRow}>
-                <View style={styles.projectionItem}>
-                  <Text style={styles.projectionLabel}>Est. Daily Gain</Text>
-                  <Text style={[styles.projectionValue, { color: '#10b981' }]}>
-                    +₹{dailyProfitEst.toLocaleString()}
-                  </Text>
-                </View>
-                <View style={styles.projectionItem}>
-                  <Text style={styles.projectionLabel}>Est. Monthly (22 Days)</Text>
-                  <Text style={[styles.projectionValue, { color: '#10b981' }]}>
-                    +₹{monthlyProfitEst.toLocaleString()}
-                  </Text>
-                </View>
-              </View>
-            </View>
-
-            {/* Action Buttons */}
-            <TouchableOpacity
-              activeOpacity={0.85}
-              onPress={() => {
-                h();
-                router.push({ pathname: '/(tabs)', params: { view: 'dashboard' } } as any);
-              }}
-              style={styles.primaryActionBtn}
-            >
-              <Text style={styles.primaryActionBtnText}>Open Live Trading Dashboard</Text>
-              <ArrowRight size={18} color="#000000" />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              activeOpacity={0.8}
-              onPress={() => { h(); router.push('/broker-connect' as any); }}
-              style={styles.secondaryActionBtn}
-            >
-              <Text style={styles.secondaryActionBtnText}>Direct MT5 Credentials Login</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-      </ScrollView>
-
-      {/* ── PROFIT CALCULATOR MODAL ── */}
+      {/* ── PROFIT CALCULATOR MODAL IN WHITE MODE ── */}
       <Modal
         visible={showCalculator}
         transparent
@@ -1036,67 +1363,81 @@ export default function AutoTradeSetupScreen() {
         onRequestClose={() => setShowCalculator(false)}
       >
         <View style={styles.modalBackdrop}>
-          <View style={[styles.modalContent, { paddingBottom: insets.bottom + 24 }]}>
+          <View style={[styles.modalCard, { backgroundColor: isDark ? '#1e293b' : '#ffffff' }]}>
             <View style={styles.modalHeader}>
               <View>
-                <Text style={styles.modalTitle}>Auto Trade Profit Calculator</Text>
-                <Text style={styles.modalSubtitle}>Simulate your returns with Tradifive FiAlgo</Text>
+                <Text style={[styles.modalTitle, { color: isDark ? '#f8fafc' : '#0f172a' }]}>
+                  FiAlgo Profit Calculator
+                </Text>
+                <Text style={[styles.modalSub, { color: isDark ? '#94a3b8' : '#64748b' }]}>
+                  Projected algorithmic growth based on daily compound target.
+                </Text>
               </View>
               <TouchableOpacity
-                onPress={() => { h(); setShowCalculator(false); }}
-                style={styles.modalCloseBtn}
+                activeOpacity={0.7}
+                onPress={() => setShowCalculator(false)}
+                style={[styles.modalCloseBtn, { backgroundColor: isDark ? '#334155' : '#f1f5f9' }]}
               >
-                <X size={20} color="#ffffff" />
+                <X size={16} color={isDark ? '#ffffff' : '#0f172a'} />
               </TouchableOpacity>
             </View>
 
-            <Text style={[styles.sectionHeading, { marginTop: 16 }]}>Choose Capital Amount</Text>
+            {/* Capital Presets */}
+            <Text style={[styles.inputLabel, { color: isDark ? '#cbd5e1' : '#334155', marginTop: 14 }]}>
+              STARTING CAPITAL PRESETS
+            </Text>
             <View style={styles.calcPresetsRow}>
-              {[25000, 50000, 100000, 500000].map((amt) => (
+              {[25000, 50000, 100000, 500000].map((cap) => (
                 <TouchableOpacity
-                  key={amt}
+                  key={cap}
                   activeOpacity={0.8}
-                  onPress={() => { h(); setCalcCapital(amt); }}
-                  style={[styles.calcPresetBtn, calcCapital === amt && styles.calcPresetBtnActive]}
+                  onPress={() => { h(); setCalcCapital(cap); }}
+                  style={[
+                    styles.calcPresetBtn,
+                    calcCapital === cap && (isDark ? styles.calcPresetBtnActiveDark : styles.calcPresetBtnActiveLight),
+                    { backgroundColor: calcCapital === cap ? (isDark ? '#ffffff' : '#0f172a') : (isDark ? '#0f172a' : '#f8fafc') }
+                  ]}
                 >
-                  <Text style={[styles.calcPresetBtnText, calcCapital === amt && styles.calcPresetBtnTextActive]}>
-                    ₹{(amt / 1000)}k
+                  <Text style={[styles.calcPresetBtnText, calcCapital === cap && (isDark ? styles.calcPresetBtnTextActiveDark : styles.calcPresetBtnTextActiveLight)]}>
+                    ₹{(cap / 1000).toFixed(0)}k
                   </Text>
                 </TouchableOpacity>
               ))}
             </View>
 
-            <View style={[styles.cardBox, { marginTop: 18 }]}>
-              <Text style={{ color: '#94a3b8', fontSize: 13, fontFamily: 'Inter_500Medium' }}>Target Return</Text>
-              <Text style={{ color: '#ffffff', fontSize: 26, fontFamily: 'Inter_700Bold', marginVertical: 4 }}>
-                {dailyTargetPct}% / Day
-              </Text>
-              <Text style={{ color: '#94a3b8', fontSize: 13, fontFamily: 'Inter_400Regular' }}>
-                Based on historical multi-pair grid execution.
-              </Text>
+            {/* Custom Capital Input */}
+            <Text style={[styles.inputLabel, { color: isDark ? '#cbd5e1' : '#334155', marginTop: 12 }]}>
+              OR ENTER EXACT CAPITAL (INR)
+            </Text>
+            <TextInput
+              style={[styles.textInput, { backgroundColor: isDark ? '#0f172a' : '#f8fafc', borderColor: isDark ? '#334155' : '#cbd5e1', color: isDark ? '#ffffff' : '#0f172a' }]}
+              keyboardType="number-pad"
+              value={String(calcCapital)}
+              onChangeText={(txt) => setCalcCapital(Number(txt.replace(/\D/g, '')) || 0)}
+            />
 
-              <View style={[styles.projectionRow, { marginTop: 18 }]}>
-                <View style={styles.projectionItem}>
-                  <Text style={styles.projectionLabel}>Est. Daily Gain</Text>
-                  <Text style={[styles.projectionValue, { color: '#10b981' }]}>
-                    +₹{dailyProfitEst.toLocaleString()}
-                  </Text>
-                </View>
-                <View style={styles.projectionItem}>
-                  <Text style={styles.projectionLabel}>Est. Monthly Gain</Text>
-                  <Text style={[styles.projectionValue, { color: '#10b981' }]}>
-                    +₹{monthlyProfitEst.toLocaleString()}
-                  </Text>
-                </View>
+            {/* Calculated Strip */}
+            <View style={[styles.calcResultsBox, { backgroundColor: isDark ? '#0f172a' : '#f8fafc', borderColor: isDark ? '#334155' : '#e2e8f0', marginTop: 14 }]}>
+              <View style={styles.calcResultItem}>
+                <Text style={styles.calcResultLabel}>Daily Return ({dailyTargetPct}%)</Text>
+                <Text style={[styles.calcResultVal, { color: '#10b981' }]}>₹{dailyProfitEst.toLocaleString()}</Text>
+              </View>
+              <View style={styles.calcResultItem}>
+                <Text style={styles.calcResultLabel}>Monthly Return (22 Days)</Text>
+                <Text style={[styles.calcResultVal, { color: '#0284c7' }]}>₹{monthlyProfitEst.toLocaleString()}</Text>
+              </View>
+              <View style={[styles.calcResultItem, { borderBottomWidth: 0 }]}>
+                <Text style={styles.calcResultLabel}>90-Day Compounded Projection</Text>
+                <Text style={[styles.calcResultValBig, { color: '#7c3aed' }]}>₹{compound90Days.toLocaleString()}</Text>
               </View>
             </View>
 
             <TouchableOpacity
-              activeOpacity={0.85}
-              onPress={() => { h(); setShowCalculator(false); }}
-              style={[styles.primaryActionBtn, { marginTop: 18 }]}
+              activeOpacity={0.8}
+              onPress={() => setShowCalculator(false)}
+              style={[styles.continueButton, { marginTop: 16 }]}
             >
-              <Text style={styles.primaryActionBtnText}>Apply & Close</Text>
+              <Text style={styles.continueButtonText}>Apply & Close Calculator</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -1108,16 +1449,12 @@ export default function AutoTradeSetupScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0a0a0c',
-  },
-  header: {
     backgroundColor: '#000000',
-    paddingHorizontal: 20,
-    paddingBottom: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.08)',
-    position: 'relative',
+  },
+  headerContainer: {
+    backgroundColor: '#000000',
     overflow: 'hidden',
+    paddingBottom: 44,
   },
   headerGlow: {
     position: 'absolute',
@@ -1125,931 +1462,1200 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     width: '100%',
-    opacity: 0.8,
+    height: 120,
+    opacity: 0.85,
   },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    paddingHorizontal: 16,
+    height: 56,
   },
   backButton: {
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  headerTitleWrap: {
-    flex: 1,
-    paddingHorizontal: 12,
   },
   headerTitle: {
-    color: '#ffffff',
     fontSize: 20,
     fontFamily: 'Inter_700Bold',
-    letterSpacing: -0.3,
+    color: '#ffffff',
+    letterSpacing: -0.4,
   },
-  headerSubtitle: {
-    color: '#94a3b8',
-    fontSize: 12,
-    fontFamily: 'Inter_400Regular',
-    marginTop: 2,
-  },
-  calcPillBtn: {
+  calcButton: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
     paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
+    paddingVertical: 7,
+    borderRadius: 16,
   },
-  calcPillText: {
-    color: '#ffffff',
+  calcButtonText: {
     fontSize: 12,
     fontFamily: 'Inter_600SemiBold',
+    color: '#ffffff',
   },
-  stepProgressContainer: {
-    marginTop: 4,
-    gap: 8,
+  /* Backside white card */
+  card: {
+    flex: 1,
+    marginTop: -34,
+    borderTopLeftRadius: 40,
+    borderTopRightRadius: 40,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  scrollContent: {
+    paddingTop: 20,
+    paddingHorizontal: 16,
+  },
+  titleSection: {
+    marginBottom: 12,
+  },
+  pageSubtitle: {
+    fontSize: 13,
+    fontFamily: 'Inter_500Medium',
+    lineHeight: 18,
+  },
+  /* Stepper */
+  stepperContainer: {
+    marginBottom: 16,
+  },
+  stepperMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  stepperMetaText: {
+    fontSize: 13,
+    fontFamily: 'Inter_700Bold',
+  },
+  stepperPercentText: {
+    fontSize: 13,
+    fontFamily: 'Inter_700Bold',
+    color: '#2563eb',
   },
   progressBarTrack: {
-    height: 3,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    borderRadius: 2,
+    width: '100%',
+    height: 6,
+    borderRadius: 3,
     overflow: 'hidden',
+    marginBottom: 10,
   },
   progressBarFill: {
     height: '100%',
-    backgroundColor: '#ffffff',
-    borderRadius: 2,
+    backgroundColor: '#2563eb',
+    borderRadius: 3,
   },
-  stepTabsGrid: {
+  milestoneGrid: {
     flexDirection: 'row',
     gap: 6,
   },
-  stepTab: {
+  milestoneTab: {
     flex: 1,
-    paddingVertical: 7,
-    paddingHorizontal: 4,
-    borderRadius: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    paddingVertical: 9,
+    paddingHorizontal: 2,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'transparent',
   },
-  stepTabActive: {
-    backgroundColor: '#ffffff',
-  },
-  stepTabDone: {
-    backgroundColor: 'rgba(16, 185, 129, 0.12)',
-    borderColor: 'rgba(16, 185, 129, 0.3)',
-  },
-  stepTabText: {
-    color: '#64748b',
+  milestoneTabText: {
     fontSize: 11,
-    fontFamily: 'Inter_600SemiBold',
-  },
-  stepTabTextActive: {
-    color: '#000000',
     fontFamily: 'Inter_700Bold',
   },
-  stepTabTextDone: {
-    color: '#10b981',
-    fontFamily: 'Inter_600SemiBold',
+  /* Step Panels */
+  stepContent: {
+    marginBottom: 16,
   },
-  scrollContent: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    gap: 16,
-  },
-  /* HERO TOP CARD */
-  heroCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
-    borderRadius: 20,
+  panelCard: {
+    borderRadius: 24,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    padding: 18,
-    overflow: 'hidden',
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    elevation: 2,
   },
-  heroTopRow: {
+  panelHeader: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: 14,
   },
-  heroBadge: {
+  panelTitle: {
+    fontSize: 17,
+    fontFamily: 'Inter_700Bold',
+    letterSpacing: -0.3,
+  },
+  panelDesc: {
+    fontSize: 12,
+    fontFamily: 'Inter_400Regular',
+    marginTop: 2,
+    lineHeight: 17,
+  },
+  verifiedBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    paddingHorizontal: 10,
+    gap: 4,
+    backgroundColor: '#ecfdf5',
+    paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 8,
-  },
-  pulseDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#10b981',
-  },
-  heroBadgeText: {
-    color: '#ffffff',
-    fontSize: 10,
-    fontFamily: 'Inter_700Bold',
-    letterSpacing: 0.6,
-  },
-  heroStatusPill: {
-    backgroundColor: 'rgba(16, 185, 129, 0.15)',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-  },
-  heroStatusText: {
-    color: '#10b981',
-    fontSize: 10,
-    fontFamily: 'Inter_700Bold',
-    letterSpacing: 0.5,
-  },
-  heroHeadline: {
-    color: '#ffffff',
-    fontSize: 18,
-    fontFamily: 'Inter_700Bold',
-    letterSpacing: -0.2,
-  },
-  heroDescription: {
-    color: '#94a3b8',
-    fontSize: 12.5,
-    fontFamily: 'Inter_400Regular',
-    lineHeight: 18,
-    marginTop: 6,
-  },
-  heroMetricsStrip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: 'rgba(0, 0, 0, 0.45)',
-    borderRadius: 14,
-    paddingVertical: 12,
-    paddingHorizontal: 8,
-    marginTop: 16,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
+    borderColor: 'rgba(16,185,129,0.3)',
   },
-  heroMetricItem: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  heroMetricDivider: {
-    width: 1,
-    height: 28,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-  },
-  heroMetricLabel: {
-    color: '#64748b',
-    fontSize: 9,
-    fontFamily: 'Inter_600SemiBold',
-    letterSpacing: 0.5,
-  },
-  heroMetricValue: {
-    color: '#ffffff',
-    fontSize: 14,
+  verifiedBadgeText: {
+    fontSize: 10.5,
     fontFamily: 'Inter_700Bold',
-    marginTop: 2,
+    color: '#047857',
   },
-  heroMetricSub: {
-    color: '#94a3b8',
-    fontSize: 10,
-    fontFamily: 'Inter_400Regular',
-    marginTop: 2,
-  },
-  sectionWrap: {
-    gap: 14,
-  },
-  segmentedContainer: {
+  pendingBadge: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 14,
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#fffbeb',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(245,158,11,0.3)',
+  },
+  pendingBadgeText: {
+    fontSize: 10.5,
+    fontFamily: 'Inter_700Bold',
+    color: '#b45309',
+  },
+  versionBadge: {
+    backgroundColor: '#eff6ff',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+  },
+  versionBadgeText: {
+    fontSize: 10.5,
+    fontFamily: 'Inter_700Bold',
+    color: '#0284c7',
+  },
+  /* Segmented control */
+  segmentedWrap: {
+    flexDirection: 'row',
     padding: 4,
+    borderRadius: 14,
     gap: 4,
   },
   segmentBtn: {
     flex: 1,
-    paddingVertical: 10,
+    paddingVertical: 8,
     alignItems: 'center',
+    justifyContent: 'center',
     borderRadius: 10,
+    flexDirection: 'row',
+    gap: 6,
   },
-  segmentBtnActive: {
+  segmentBtnActiveLight: {
     backgroundColor: '#ffffff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  segmentBtnActiveDark: {
+    backgroundColor: '#1e293b',
   },
   segmentBtnText: {
-    color: '#94a3b8',
-    fontSize: 12.5,
-    fontFamily: 'Inter_500Medium',
+    fontSize: 12,
+    fontFamily: 'Inter_600SemiBold',
+    color: '#64748b',
   },
   segmentBtnTextActive: {
-    color: '#000000',
     fontFamily: 'Inter_700Bold',
+    color: '#0f172a',
   },
-  subHeadingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 4,
-  },
-  sectionHeading: {
-    color: '#ffffff',
-    fontSize: 14.5,
-    fontFamily: 'Inter_700Bold',
-  },
-  subHeadingHint: {
-    color: '#64748b',
-    fontSize: 11,
-    fontFamily: 'Inter_500Medium',
-  },
-  brokersGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-  },
-  brokerCard: {
-    width: (SCREEN_WIDTH - 42) / 2,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-    borderRadius: 16,
-    padding: 12,
-  },
-  brokerCardSelected: {
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    borderColor: '#ffffff',
-  },
-  brokerCardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  brokerDot: {
-    width: 8,
-    height: 8,
+  recommendedBadge: {
+    backgroundColor: '#eff6ff',
+    paddingHorizontal: 5,
+    paddingVertical: 1.5,
     borderRadius: 4,
   },
-  brokerBadgePill: {
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  brokerBadgePillText: {
-    color: '#94a3b8',
+  recommendedBadgeText: {
     fontSize: 8.5,
     fontFamily: 'Inter_700Bold',
-    letterSpacing: 0.5,
+    color: '#0284c7',
   },
-  brokerName: {
-    color: '#ffffff',
-    fontSize: 13.5,
-    fontFamily: 'Inter_700Bold',
-  },
-  brokerTagline: {
-    color: '#94a3b8',
+  /* Broker scroll */
+  inputLabel: {
     fontSize: 10.5,
-    fontFamily: 'Inter_400Regular',
-    marginTop: 3,
-    lineHeight: 14,
+    fontFamily: 'Inter_700Bold',
+    letterSpacing: 0.5,
+    marginBottom: 6,
   },
-  brokerSelectedIndicator: {
+  brokerScroll: {
+    gap: 8,
+    paddingBottom: 6,
+  },
+  brokerPill: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    borderWidth: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    backgroundColor: '#ffffff',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 6,
-    alignSelf: 'flex-start',
-    marginTop: 8,
+    gap: 6,
   },
-  brokerSelectedText: {
-    color: '#000000',
-    fontSize: 9.5,
+  brokerPillText: {
+    fontSize: 12,
     fontFamily: 'Inter_700Bold',
   },
-  cardBox: {
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-    borderRadius: 18,
-    padding: 16,
+  brokerMiniTag: {
+    paddingHorizontal: 5,
+    paddingVertical: 2,
+    borderRadius: 4,
   },
-  cardHeaderRow: {
+  brokerMiniTagText: {
+    fontSize: 8.5,
+    fontFamily: 'Inter_700Bold',
+  },
+  /* Instruction Step Box */
+  instructionBox: {
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 14,
+    marginTop: 12,
+  },
+  instructionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    gap: 8,
+    marginBottom: 6,
+  },
+  instructionStepNum: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#0284c7',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  instructionStepNumGray: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#64748b',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 2,
+  },
+  instructionStepNumText: {
+    fontSize: 11,
+    fontFamily: 'Inter_700Bold',
+    color: '#ffffff',
+  },
+  instructionTitle: {
+    fontSize: 13,
+    fontFamily: 'Inter_700Bold',
+  },
+  instructionDesc: {
+    fontSize: 11.5,
+    fontFamily: 'Inter_400Regular',
+    lineHeight: 16,
     marginBottom: 10,
   },
-  badgePrimary: {
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
+  instructionActionRow: {
+    flexDirection: 'row',
+    gap: 8,
   },
-  badgePrimaryText: {
-    color: '#ffffff',
-    fontSize: 9.5,
-    fontFamily: 'Inter_700Bold',
-    letterSpacing: 0.5,
-  },
-  copyInlineBtn: {
+  primaryPillBtn: {
+    flex: 1,
+    backgroundColor: '#0284c7',
+    paddingVertical: 9,
+    paddingHorizontal: 12,
+    borderRadius: 10,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    justifyContent: 'center',
+    gap: 6,
   },
-  copyInlineText: {
-    color: '#94a3b8',
+  primaryPillBtnText: {
     fontSize: 11.5,
-    fontFamily: 'Inter_500Medium',
-  },
-  partnerInfoTitle: {
-    color: '#ffffff',
-    fontSize: 15,
     fontFamily: 'Inter_700Bold',
+    color: '#ffffff',
   },
-  partnerInfoDesc: {
-    color: '#94a3b8',
-    fontSize: 12,
-    fontFamily: 'Inter_400Regular',
-    marginTop: 3,
-    lineHeight: 17,
+  secondaryPillBtn: {
+    paddingVertical: 9,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
   },
-  codeBoxesRow: {
+  secondaryPillBtnText: {
+    fontSize: 11.5,
+    fontFamily: 'Inter_600SemiBold',
+  },
+  /* Requirements box */
+  requirementBox: {
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 14,
+    marginTop: 10,
     flexDirection: 'row',
     gap: 10,
-    marginVertical: 12,
-  },
-  codeItem: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.45)',
-    padding: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
-  },
-  codeItemLabel: {
-    color: '#64748b',
-    fontSize: 9.5,
-    fontFamily: 'Inter_600SemiBold',
-    letterSpacing: 0.5,
-  },
-  codeItemValue: {
-    color: '#ffffff',
-    fontSize: 15,
-    fontFamily: 'Inter_700Bold',
-    marginTop: 3,
-  },
-  openBrokerBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    paddingVertical: 12,
-    borderRadius: 12,
-  },
-  openBrokerBtnText: {
-    color: '#ffffff',
-    fontSize: 12.5,
-    fontFamily: 'Inter_600SemiBold',
-  },
-  inputWrapper: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    paddingHorizontal: 16,
-  },
-  textInput: {
-    color: '#ffffff',
-    fontSize: 15,
-    fontFamily: 'Inter_600SemiBold',
-    height: 48,
-  },
-  uploadArea: {
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
-    borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    borderStyle: 'dashed',
-    borderRadius: 16,
-    padding: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  uploadPlaceholder: {
-    alignItems: 'center',
-  },
-  uploadIconCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-  },
-  uploadMainText: {
-    color: '#ffffff',
-    fontSize: 13,
-    fontFamily: 'Inter_600SemiBold',
-  },
-  uploadSubText: {
-    color: '#64748b',
-    fontSize: 11,
-    fontFamily: 'Inter_400Regular',
-    marginTop: 3,
-  },
-  uploadedPreviewContainer: {
-    width: '100%',
-    height: 130,
-    borderRadius: 12,
-    overflow: 'hidden',
-    position: 'relative',
-  },
-  uploadedImagePreview: {
-    width: '100%',
-    height: '100%',
-  },
-  uploadSuccessOverlay: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: 'rgba(0,0,0,0.75)',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 7,
-  },
-  uploadSuccessText: {
-    color: '#ffffff',
-    fontSize: 11.5,
-    fontFamily: 'Inter_600SemiBold',
-  },
-  primaryActionBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: '#ffffff',
-    paddingVertical: 14,
-    borderRadius: 14,
-    marginTop: 6,
-  },
-  primaryActionBtnText: {
-    color: '#000000',
-    fontSize: 14,
-    fontFamily: 'Inter_700Bold',
-  },
-  secondaryActionBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
-    paddingVertical: 13,
-    borderRadius: 14,
-  },
-  secondaryActionBtnText: {
-    color: '#ffffff',
-    fontSize: 13,
-    fontFamily: 'Inter_600SemiBold',
-  },
-  downloadRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  downloadIconWrap: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  downloadTitle: {
-    color: '#ffffff',
-    fontSize: 13.5,
-    fontFamily: 'Inter_700Bold',
-  },
-  downloadSubtitle: {
-    color: '#94a3b8',
-    fontSize: 11,
-    fontFamily: 'Inter_400Regular',
-    marginTop: 2,
-  },
-  downloadSmallBtn: {
-    backgroundColor: '#ffffff',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-  },
-  downloadSmallBtnText: {
-    color: '#000000',
-    fontSize: 11.5,
-    fontFamily: 'Inter_700Bold',
-  },
-  divider: {
-    height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
-    marginVertical: 12,
-  },
-  licenseCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    padding: 16,
-  },
-  licenseCardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 10,
-  },
-  licenseCardTitle: {
-    color: '#ffffff',
-    fontSize: 12.5,
-    fontFamily: 'Inter_600SemiBold',
-  },
-  activePill: {
-    backgroundColor: 'rgba(16, 185, 129, 0.15)',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 6,
-  },
-  activePillText: {
-    color: '#10b981',
-    fontSize: 9.5,
-    fontFamily: 'Inter_700Bold',
-  },
-  licenseKeyText: {
-    color: '#ffffff',
-    fontSize: 15,
-    fontFamily: 'Inter_700Bold',
-    letterSpacing: 1.2,
-    textAlign: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    paddingVertical: 12,
-    paddingHorizontal: 10,
-    borderRadius: 12,
-    marginVertical: 8,
-  },
-  copyKeyBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    paddingVertical: 11,
-    borderRadius: 12,
-  },
-  copyKeyBtnText: {
-    color: '#ffffff',
-    fontSize: 12.5,
-    fontFamily: 'Inter_600SemiBold',
-  },
-  checklistCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-    padding: 14,
-    gap: 12,
-  },
-  checklistItem: {
-    flexDirection: 'row',
-    gap: 12,
     alignItems: 'flex-start',
   },
-  checklistStepNum: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 2,
-  },
-  checklistStepText: {
-    color: '#ffffff',
-    fontSize: 11,
+  requirementTitle: {
+    fontSize: 13,
     fontFamily: 'Inter_700Bold',
   },
-  checklistItemTitle: {
-    color: '#ffffff',
-    fontSize: 13,
-    fontFamily: 'Inter_600SemiBold',
-  },
-  checklistItemDesc: {
-    color: '#94a3b8',
+  requirementSub: {
     fontSize: 11.5,
     fontFamily: 'Inter_400Regular',
     marginTop: 2,
     lineHeight: 16,
   },
-  copyPillSmall: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+  minBadge: {
+    backgroundColor: '#fef3c7',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
     borderRadius: 6,
-    alignSelf: 'flex-start',
-    marginTop: 4,
+  },
+  minBadgeText: {
+    fontSize: 9.5,
+    fontFamily: 'Inter_700Bold',
+    color: '#b45309',
+  },
+  /* Submission Box */
+  submissionBox: {
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    padding: 14,
+    marginTop: 10,
   },
-  copyPillSmallText: {
-    color: '#cbd5e1',
-    fontSize: 11,
-    fontFamily: 'Inter_500Medium',
+  textInput: {
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 13,
+    fontFamily: 'Inter_600SemiBold',
+    marginBottom: 10,
   },
-  tierCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
-    borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-    borderRadius: 18,
-    padding: 16,
-  },
-  tierCardActive: {
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    borderColor: '#ffffff',
-  },
-  tierHeader: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    marginBottom: 6,
-  },
-  tierTagRow: {
+  checkboxRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    flexWrap: 'wrap',
+    marginBottom: 12,
   },
-  tierTitle: {
+  checkboxBox: {
+    width: 18,
+    height: 18,
+    borderRadius: 5,
+    borderWidth: 1.5,
+    borderColor: '#94a3b8',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkboxBoxActive: {
+    backgroundColor: '#0284c7',
+    borderColor: '#0284c7',
+  },
+  checkboxLabel: {
+    fontSize: 11.5,
+    fontFamily: 'Inter_400Regular',
+    flex: 1,
+    lineHeight: 16,
+  },
+  proofUploadBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    marginBottom: 12,
+  },
+  proofUploadText: {
+    fontSize: 11.5,
+    fontFamily: 'Inter_600SemiBold',
+  },
+  submitButton: {
+    backgroundColor: '#0284c7',
+    borderRadius: 12,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  submitButtonText: {
+    fontSize: 13,
+    fontFamily: 'Inter_700Bold',
     color: '#ffffff',
-    fontSize: 15,
+  },
+  /* Support Box */
+  supportBox: {
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 14,
+    marginTop: 12,
+  },
+  supportTitle: {
+    fontSize: 12.5,
     fontFamily: 'Inter_700Bold',
   },
-  tierSub: {
-    color: '#94a3b8',
+  priorityBadge: {
+    backgroundColor: '#eff6ff',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  priorityBadgeText: {
+    fontSize: 9.5,
+    fontFamily: 'Inter_700Bold',
+    color: '#0284c7',
+  },
+  supportSub: {
     fontSize: 11.5,
     fontFamily: 'Inter_400Regular',
     marginTop: 2,
+    marginBottom: 8,
   },
-  badgeRecommended: {
-    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+  supportBtnRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  supportBtn: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  supportBtnFull: {
+    paddingVertical: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  supportBtnText: {
+    fontSize: 11.5,
+    fontFamily: 'Inter_700Bold',
+  },
+  /* Stepper Bottom Actions */
+  continueButton: {
+    backgroundColor: '#0f172a',
+    borderRadius: 14,
+    paddingVertical: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginTop: 14,
+  },
+  continueButtonText: {
+    fontSize: 13,
+    fontFamily: 'Inter_700Bold',
+    color: '#ffffff',
+  },
+  navRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 16,
+  },
+  backNavBtn: {
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  backNavBtnText: {
+    fontSize: 12,
+    fontFamily: 'Inter_600SemiBold',
+  },
+  forwardNavBtn: {
+    flex: 1,
+    backgroundColor: '#0f172a',
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  forwardNavBtnText: {
+    fontSize: 12,
+    fontFamily: 'Inter_700Bold',
+    color: '#ffffff',
+  },
+  /* STEP 2 SPECS */
+  specsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 12,
+  },
+  specTile: {
+    width: (SCREEN_WIDTH - 72) / 2,
+    borderRadius: 14,
+    borderWidth: 1,
+    padding: 10,
+  },
+  specTileHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  specTileLabel: {
+    fontSize: 9.5,
+    fontFamily: 'Inter_700Bold',
+    color: '#64748b',
+    letterSpacing: 0.5,
+  },
+  specTileValue: {
+    fontSize: 13,
+    fontFamily: 'Inter_700Bold',
+  },
+  specTileSub: {
+    fontSize: 10,
+    fontFamily: 'Inter_400Regular',
+    color: '#64748b',
+    marginTop: 2,
+  },
+  safetyCard: {
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 12,
+    marginBottom: 12,
+  },
+  safetyTitle: {
+    fontSize: 12.5,
+    fontFamily: 'Inter_700Bold',
+  },
+  guardActiveBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#ecfdf5',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  guardActiveBadgeText: {
+    fontSize: 9.5,
+    fontFamily: 'Inter_700Bold',
+    color: '#047857',
+  },
+  quantRow: {
+    flexDirection: 'row',
+    gap: 6,
+    marginTop: 4,
+  },
+  quantBox: {
+    flex: 1,
+    padding: 8,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  quantLabel: {
+    fontSize: 9,
+    fontFamily: 'Inter_600SemiBold',
+    color: '#94a3b8',
+    textTransform: 'uppercase',
+  },
+  quantVal: {
+    fontSize: 12,
+    fontFamily: 'Inter_700Bold',
+    marginTop: 2,
+  },
+  downloadSection: {
+    borderRadius: 16,
+    paddingVertical: 8,
+    marginBottom: 8,
+  },
+  fileCodeText: {
+    fontSize: 12,
+    fontFamily: 'Inter_700Bold',
+  },
+  fileSizeText: {
+    fontSize: 10.5,
+    fontFamily: 'Inter_500Medium',
+    color: '#64748b',
+  },
+  downloadBtnRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 4,
+  },
+  downloadSubBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  downloadSubBtnText: {
+    fontSize: 12,
+    fontFamily: 'Inter_700Bold',
+  },
+  downloadMainBtn: {
+    flex: 1,
+    backgroundColor: '#0f172a',
+    paddingVertical: 10,
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  downloadMainBtnText: {
+    fontSize: 12,
+    fontFamily: 'Inter_700Bold',
+    color: '#ffffff',
+  },
+  webrequestBox: {
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 12,
+    marginTop: 6,
+  },
+  webrequestTitle: {
+    fontSize: 12,
+    fontFamily: 'Inter_700Bold',
+  },
+  realtimeBadge: {
+    backgroundColor: '#dbeafe',
+    paddingHorizontal: 6,
+    paddingVertical: 1.5,
+    borderRadius: 4,
+  },
+  realtimeBadgeText: {
+    fontSize: 8.5,
+    fontFamily: 'Inter_700Bold',
+    color: '#1d4ed8',
+  },
+  webrequestDesc: {
+    fontSize: 11,
+    fontFamily: 'Inter_400Regular',
+    lineHeight: 15,
+    marginBottom: 8,
+  },
+  urlCopyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 6,
+    paddingLeft: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  urlText: {
+    fontSize: 11,
+    fontFamily: 'Inter_600SemiBold',
+    color: '#0284c7',
+    flex: 1,
+    marginRight: 6,
+  },
+  urlCopyBtn: {
+    backgroundColor: '#0284c7',
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    borderRadius: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  urlCopyBtnText: {
+    fontSize: 10,
+    fontFamily: 'Inter_700Bold',
+    color: '#ffffff',
+  },
+  /* STEP 3 TIERS */
+  tierGrid: {
+    gap: 10,
+    marginTop: 4,
+  },
+  tierCard: {
+    borderRadius: 16,
+    borderWidth: 2,
+    padding: 14,
+  },
+  tierCardActivePurple: {
+    borderColor: '#7c3aed',
+  },
+  tierCardActiveBlue: {
+    borderColor: '#0284c7',
+  },
+  tierTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  tierBadgePurple: {
+    backgroundColor: '#f5f3ff',
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
   },
-  badgeRecommendedText: {
-    color: '#10b981',
+  tierBadgePurpleText: {
+    fontSize: 9,
+    fontFamily: 'Inter_800ExtraBold',
+    color: '#7c3aed',
+  },
+  tierBadgeBlue: {
+    backgroundColor: '#eff6ff',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  tierBadgeBlueText: {
+    fontSize: 9,
+    fontFamily: 'Inter_800ExtraBold',
+    color: '#0284c7',
+  },
+  radioCircle: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 2,
+    borderColor: '#cbd5e1',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  radioCircleActivePurple: {
+    backgroundColor: '#7c3aed',
+    borderColor: '#7c3aed',
+  },
+  radioCircleActiveBlue: {
+    backgroundColor: '#0284c7',
+    borderColor: '#0284c7',
+  },
+  tierTitle: {
+    fontSize: 15,
+    fontFamily: 'Inter_700Bold',
+  },
+  tierSub: {
+    fontSize: 11.5,
+    fontFamily: 'Inter_400Regular',
+    marginTop: 2,
+    lineHeight: 16,
+  },
+  tierPriceStrip: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'space-between',
+    paddingTop: 8,
+    marginTop: 8,
+    borderTopWidth: 1,
+  },
+  tierPriceLabel: {
+    fontSize: 9.5,
+    fontFamily: 'Inter_700Bold',
+    color: '#94a3b8',
+  },
+  tierPriceVal: {
+    fontSize: 17,
+    fontFamily: 'Inter_800ExtraBold',
+  },
+  paymentDetailsBox: {
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 14,
+    marginTop: 12,
+  },
+  qrTitle: {
+    fontSize: 13,
+    fontFamily: 'Inter_700Bold',
+  },
+  qrSub: {
+    fontSize: 11,
+    fontFamily: 'Inter_400Regular',
+    marginTop: 2,
+    marginBottom: 10,
+  },
+  upiIdRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginBottom: 10,
+  },
+  upiIdLabel: {
     fontSize: 9,
     fontFamily: 'Inter_700Bold',
-    letterSpacing: 0.5,
-  },
-  tierPriceBadge: {
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-  },
-  tierPriceText: {
-    color: '#ffffff',
-    fontSize: 11,
-    fontFamily: 'Inter_700Bold',
-  },
-  tierDesc: {
     color: '#94a3b8',
-    fontSize: 12,
-    fontFamily: 'Inter_400Regular',
-    lineHeight: 17,
   },
-  tierSelectedPill: {
+  upiIdVal: {
+    fontSize: 13,
+    fontFamily: 'Inter_700Bold',
+    marginTop: 2,
+  },
+  copyPillBtn: {
+    backgroundColor: '#0284c7',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: '#ffffff',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-    alignSelf: 'flex-start',
-    marginTop: 10,
   },
-  tierSelectedPillText: {
-    color: '#000000',
+  copyPillBtnText: {
+    fontSize: 10.5,
+    fontFamily: 'Inter_700Bold',
+    color: '#ffffff',
+  },
+  paymentSummaryStrip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#e2e8f0',
+  },
+  summaryLabel: {
     fontSize: 10,
     fontFamily: 'Inter_700Bold',
+    color: '#64748b',
   },
-  botStatusCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
-    borderRadius: 20,
+  summaryAmount: {
+    fontSize: 18,
+    fontFamily: 'Inter_800ExtraBold',
+  },
+  bankDetailItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f5f9',
+  },
+  bankLabel: {
+    fontSize: 11,
+    fontFamily: 'Inter_500Medium',
+    color: '#64748b',
+  },
+  bankValue: {
+    fontSize: 11.5,
+    fontFamily: 'Inter_700Bold',
+  },
+  bankValueMono: {
+    fontSize: 11.5,
+    fontFamily: 'Inter_700Bold',
+  },
+  /* STEP 4 ACTIVATE */
+  licenseCard: {
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    padding: 16,
+    padding: 14,
   },
-  botStatusHeader: {
+  licenseHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  greenPulseDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#10b981',
+  },
+  licenseCardTitle: {
+    fontSize: 13,
+    fontFamily: 'Inter_700Bold',
+  },
+  accountPill: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  accountPillText: {
+    fontSize: 10.5,
+    fontFamily: 'Inter_700Bold',
+  },
+  lifetimeActiveText: {
+    fontSize: 11,
+    fontFamily: 'Inter_700Bold',
+    color: '#10b981',
+  },
+  keyDisplayRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    marginBottom: 10,
+  },
+  licenseKeyText: {
+    fontSize: 13,
+    fontFamily: 'Inter_700Bold',
+    flex: 1,
+    marginRight: 8,
+  },
+  copyKeyBtn: {
+    backgroundColor: '#0f172a',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  copyKeyBtnText: {
+    fontSize: 10.5,
+    fontFamily: 'Inter_700Bold',
+    color: '#ffffff',
+  },
+  boundBox: {
+    flexDirection: 'row',
+    gap: 8,
+    alignItems: 'center',
+    padding: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  boundBoxText: {
+    fontSize: 11,
+    fontFamily: 'Inter_500Medium',
+    flex: 1,
+    lineHeight: 15,
+  },
+  botControlCard: {
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 14,
+  },
+  botControlHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  statusIndicatorCircle: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    backgroundColor: '#ef4444',
-  },
-  statusIndicatorRunning: {
-    backgroundColor: '#10b981',
-  },
-  botStatusTitle: {
-    color: '#ffffff',
-    fontSize: 15,
+  botControlTitle: {
+    fontSize: 13.5,
     fontFamily: 'Inter_700Bold',
   },
-  botStatusSubtitle: {
-    color: '#94a3b8',
-    fontSize: 11.5,
-    fontFamily: 'Inter_400Regular',
+  botControlSub: {
+    fontSize: 11,
+    fontFamily: 'Inter_500Medium',
     marginTop: 2,
   },
-  botToggleBtn: {
+  botSwitchBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
     paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingVertical: 7,
     borderRadius: 10,
   },
-  botToggleBtnActive: {
-    backgroundColor: '#ef4444',
-  },
-  botToggleBtnPaused: {
-    backgroundColor: '#10b981',
-  },
-  botToggleBtnText: {
-    color: '#ffffff',
-    fontSize: 12,
+  botSwitchBtnText: {
+    fontSize: 11.5,
     fontFamily: 'Inter_700Bold',
-  },
-  telemetryDivider: {
-    height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
-    marginVertical: 14,
-  },
-  telemetryGrid: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  telemetryItem: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  telemetryLabel: {
-    color: '#64748b',
-    fontSize: 9.5,
-    fontFamily: 'Inter_600SemiBold',
-    letterSpacing: 0.5,
-  },
-  telemetryVal: {
     color: '#ffffff',
-    fontSize: 14,
-    fontFamily: 'Inter_700Bold',
-    marginTop: 2,
   },
-  targetPillRow: {
+  targetRow: {
     flexDirection: 'row',
-    gap: 8,
+    gap: 6,
+    marginTop: 4,
   },
   targetPill: {
     flex: 1,
-    paddingVertical: 12,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    paddingVertical: 8,
+    borderRadius: 10,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  targetPillActive: {
+  targetPillActiveLight: {
+    backgroundColor: '#0f172a',
+    borderColor: '#0f172a',
+  },
+  targetPillActiveDark: {
     backgroundColor: '#ffffff',
+    borderColor: '#ffffff',
   },
   targetPillText: {
-    color: '#94a3b8',
-    fontSize: 13,
+    fontSize: 12,
     fontFamily: 'Inter_600SemiBold',
-  },
-  targetPillTextActive: {
-    color: '#000000',
-    fontFamily: 'Inter_700Bold',
-  },
-  projectionRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  projectionItem: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.45)',
-    borderRadius: 12,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
-  },
-  projectionLabel: {
     color: '#64748b',
-    fontSize: 10,
-    fontFamily: 'Inter_600SemiBold',
   },
-  projectionValue: {
-    fontSize: 16,
+  targetPillTextActiveLight: {
+    color: '#ffffff',
     fontFamily: 'Inter_700Bold',
-    marginTop: 3,
   },
-  /* MODAL */
+  targetPillTextActiveDark: {
+    color: '#0f172a',
+    fontFamily: 'Inter_700Bold',
+  },
+  telemetryRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 12,
+  },
+  telemetryBox: {
+    flex: 1,
+    padding: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  telemetryLabel: {
+    fontSize: 9,
+    fontFamily: 'Inter_700Bold',
+    color: '#94a3b8',
+  },
+  telemetryVal: {
+    fontSize: 15,
+    fontFamily: 'Inter_800ExtraBold',
+    marginTop: 2,
+  },
+  launchButton: {
+    backgroundColor: '#0284c7',
+    borderRadius: 14,
+    paddingVertical: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    shadowColor: '#0284c7',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  launchButtonText: {
+    fontSize: 13.5,
+    fontFamily: 'Inter_700Bold',
+    color: '#ffffff',
+  },
+  /* Calculator Modal */
   modalBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    backgroundColor: 'rgba(0,0,0,0.6)',
     justifyContent: 'flex-end',
   },
-  modalContent: {
-    backgroundColor: '#121215',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+  modalCard: {
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
     padding: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 10,
   },
   modalHeader: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
   },
   modalTitle: {
-    color: '#ffffff',
     fontSize: 17,
     fontFamily: 'Inter_700Bold',
   },
-  modalSubtitle: {
-    color: '#94a3b8',
-    fontSize: 12,
+  modalSub: {
+    fontSize: 11.5,
     fontFamily: 'Inter_400Regular',
     marginTop: 2,
   },
   modalCloseBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
   },
   calcPresetsRow: {
     flexDirection: 'row',
     gap: 8,
-    marginTop: 8,
+    marginTop: 4,
   },
   calcPresetBtn: {
     flex: 1,
-    paddingVertical: 10,
+    paddingVertical: 9,
     borderRadius: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
-  calcPresetBtnActive: {
+  calcPresetBtnActiveLight: {
+    backgroundColor: '#0f172a',
+    borderColor: '#0f172a',
+  },
+  calcPresetBtnActiveDark: {
     backgroundColor: '#ffffff',
+    borderColor: '#ffffff',
   },
   calcPresetBtnText: {
-    color: '#94a3b8',
-    fontSize: 13,
+    fontSize: 12,
     fontFamily: 'Inter_600SemiBold',
+    color: '#64748b',
   },
-  calcPresetBtnTextActive: {
-    color: '#000000',
+  calcPresetBtnTextActiveLight: {
+    color: '#ffffff',
     fontFamily: 'Inter_700Bold',
+  },
+  calcPresetBtnTextActiveDark: {
+    color: '#0f172a',
+    fontFamily: 'Inter_700Bold',
+  },
+  calcResultsBox: {
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 12,
+  },
+  calcResultItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f5f9',
+  },
+  calcResultLabel: {
+    fontSize: 11.5,
+    fontFamily: 'Inter_500Medium',
+    color: '#64748b',
+  },
+  calcResultVal: {
+    fontSize: 13.5,
+    fontFamily: 'Inter_700Bold',
+  },
+  calcResultValBig: {
+    fontSize: 16,
+    fontFamily: 'Inter_800ExtraBold',
   },
 });
