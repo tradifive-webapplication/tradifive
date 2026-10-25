@@ -355,18 +355,18 @@ const HomePostCard = ({
   const isVideo = post.post_type === 'video' || post.media_type === 'video';
 
   return (
-    <View style={{ marginBottom: 14, marginHorizontal: 12 }}>
+    <View style={{ marginBottom: 14, marginHorizontal: 16 }}>
       <View
         style={{
           backgroundColor: isDark ? '#14171f' : '#ffffff',
-          borderRadius: 22,
+          borderRadius: 24,
           padding: 16,
           borderWidth: 1,
-          borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)',
-          shadowColor: '#000',
+          borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#e2e8f0',
+          shadowColor: '#0f172a',
           shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: isDark ? 0.35 : 0.05,
-          shadowRadius: 10,
+          shadowOpacity: isDark ? 0.35 : 0.06,
+          shadowRadius: 14,
           elevation: 3,
         }}
       >
@@ -384,13 +384,13 @@ const HomePostCard = ({
             <Image
               source={{ uri: post.avatar }}
               style={{
-                width: 42,
-                height: 42,
-                borderRadius: 21,
-                marginRight: 10,
-                backgroundColor: isDark ? '#1e2433' : '#e2e8f0',
+                width: 44,
+                height: 44,
+                borderRadius: 22,
+                marginRight: 12,
+                backgroundColor: isDark ? '#1e2433' : '#f1f5f9',
                 borderWidth: 1.5,
-                borderColor: isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.06)',
+                borderColor: isDark ? 'rgba(255, 255, 255, 0.12)' : '#e2e8f0',
               }}
             />
             <View style={{ flex: 1 }}>
@@ -405,9 +405,9 @@ const HomePostCard = ({
                 >
                   {post.user}
                 </Text>
-                <BadgeCheck size={14} color="#38bdf8" />
+                <BadgeCheck size={16} color="#38bdf8" />
               </View>
-              <Text style={{ fontSize: 12, color: '#94a3b8', fontFamily: 'Inter_400Regular', marginTop: 1 }}>
+              <Text style={{ fontSize: 12.5, color: '#64748b', fontFamily: 'Inter_500Medium', marginTop: 2 }}>
                 {post.handle} · {post.time}
               </Text>
             </View>
@@ -418,7 +418,7 @@ const HomePostCard = ({
               h();
               setActivePostMenu(activePostMenu === post.id ? null : post.id);
             }}
-            style={{ width: 34, height: 34, alignItems: 'center', justifyContent: 'center', borderRadius: 17, backgroundColor: isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.03)' }}
+            style={{ width: 34, height: 34, alignItems: 'center', justifyContent: 'center', borderRadius: 17, backgroundColor: isDark ? 'rgba(255, 255, 255, 0.04)' : '#f1f5f9' }}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
             <MoreVertical size={18} color="#94a3b8" />
@@ -427,14 +427,14 @@ const HomePostCard = ({
 
         {/* Text Content */}
         {post.content ? (
-          <View style={{ marginBottom: 12 }}>
+          <View style={{ marginBottom: 14 }}>
             <Text style={{ fontSize: 15, color: isDark ? '#e2e8f0' : '#1e293b', fontFamily: 'Inter_400Regular', lineHeight: 22 }}>
-              {post.content && post.content.length > 180 && !isExpanded
-                ? `${post.content.substring(0, 180)}...`
+              {post.content && post.content.length > 200 && !isExpanded
+                ? `${post.content.substring(0, 200)}...`
                 : post.content}
             </Text>
-            {post.content && post.content.length > 180 && (
-              <TouchableOpacity onPress={() => setIsExpanded(!isExpanded)} style={{ marginTop: 4 }}>
+            {post.content && post.content.length > 200 && (
+              <TouchableOpacity onPress={() => setIsExpanded(!isExpanded)} style={{ marginTop: 6 }}>
                 <Text style={{ color: isExpanded ? '#94a3b8' : '#38bdf8', fontFamily: 'Inter_600SemiBold', fontSize: 13 }}>
                   {isExpanded ? 'Show less' : 'Read more'}
                 </Text>
@@ -445,9 +445,9 @@ const HomePostCard = ({
 
         {/* Algorithmic Pill */}
         {(post.content?.toLowerCase().includes('fialgo') || post.content?.toLowerCase().includes('2-5%') || post.content?.toLowerCase().includes('mt5')) && (
-          <View style={{ alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 9, paddingVertical: 4, borderRadius: 8, backgroundColor: 'rgba(16, 185, 129, 0.12)', borderWidth: 1, borderColor: 'rgba(16, 185, 129, 0.25)', marginBottom: 12 }}>
-            <Sparkles size={11} color="#10b981" />
-            <Text style={{ color: '#10b981', fontSize: 10.5, fontFamily: 'Inter_700Bold', letterSpacing: 0.3 }}>
+          <View style={{ alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 10, backgroundColor: isDark ? 'rgba(16, 185, 129, 0.15)' : '#ecfdf5', borderWidth: 1, borderColor: isDark ? 'rgba(16, 185, 129, 0.3)' : '#a7f3d0', marginBottom: 14 }}>
+            <Sparkles size={12} color="#10b981" />
+            <Text style={{ color: '#059669', fontSize: 11, fontFamily: 'Inter_700Bold', letterSpacing: 0.3 }}>
               FIALGO V1 · VERIFIED SETUP
             </Text>
           </View>
@@ -461,11 +461,11 @@ const HomePostCard = ({
                 <video
                   src={mediaUrl}
                   controls
-                  style={{ width: '100%', height: 260, objectFit: 'cover', borderRadius: 16, backgroundColor: '#090d16' }}
+                  style={{ width: '100%', height: 260, objectFit: 'cover', borderRadius: 18, backgroundColor: '#090d16' }}
                 />
               ) : (
                 <TouchableOpacity onPress={() => onImagePress && onImagePress(post.id)} activeOpacity={0.9}>
-                  <View style={{ width: '100%', height: 260, backgroundColor: '#0a0f1e', borderRadius: 16, overflow: 'hidden', justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
+                  <View style={{ width: '100%', height: 260, backgroundColor: '#0a0f1e', borderRadius: 18, overflow: 'hidden', justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
                     <View style={{
                       width: 58,
                       height: 58,
@@ -488,12 +488,12 @@ const HomePostCard = ({
                 onPress={() => onImagePress && onImagePress(post.id)}
                 style={{
                   width: '100%',
-                  height: 270,
-                  borderRadius: 16,
+                  height: 280,
+                  borderRadius: 18,
                   overflow: 'hidden',
                   backgroundColor: isDark ? '#090d16' : '#f1f5f9',
                   borderWidth: 1,
-                  borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)',
+                  borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#e2e8f0',
                   position: 'relative',
                 }}
               >
@@ -506,14 +506,14 @@ const HomePostCard = ({
                   position: 'absolute',
                   bottom: 10,
                   right: 10,
-                  backgroundColor: 'rgba(0, 0, 0, 0.65)',
-                  paddingHorizontal: 8,
-                  paddingVertical: 4,
-                  borderRadius: 8,
+                  backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                  paddingHorizontal: 10,
+                  paddingVertical: 5,
+                  borderRadius: 10,
                   borderWidth: 1,
-                  borderColor: 'rgba(255, 255, 255, 0.15)',
+                  borderColor: 'rgba(255, 255, 255, 0.2)',
                 }}>
-                  <Text style={{ color: '#ffffff', fontSize: 10, fontFamily: 'Inter_600SemiBold' }}>Tap to view</Text>
+                  <Text style={{ color: '#ffffff', fontSize: 11, fontFamily: 'Inter_600SemiBold' }}>Tap to expand</Text>
                 </View>
               </TouchableOpacity>
             )}
@@ -543,7 +543,7 @@ const HomePostCard = ({
         ) : null}
 
         {/* Divider */}
-        <View style={{ height: 1, backgroundColor: isDark ? 'rgba(255, 255, 255, 0.06)' : '#f1f5f9', marginBottom: 12 }} />
+        <View style={{ height: 1, backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#f1f5f9', marginBottom: 14 }} />
 
         {/* Action Row */}
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -555,9 +555,9 @@ const HomePostCard = ({
               activeOpacity={0.7}
             >
               <Animated.View style={{ transform: [{ scale: likeScale }] }}>
-                <IconlyHeart size={20} color={post.isLiked ? '#ef4444' : '#94a3b8'} set={post.isLiked ? 'bold' : 'curved'} stroke="bold" />
+                <IconlyHeart size={20} color={post.isLiked ? '#ef4444' : (isDark ? '#94a3b8' : '#64748b')} set={post.isLiked ? 'bold' : 'curved'} stroke="bold" />
               </Animated.View>
-              <Text style={{ fontSize: 13, color: post.isLiked ? '#ef4444' : '#94a3b8', fontFamily: 'Inter_600SemiBold' }}>{post.likes}</Text>
+              <Text style={{ fontSize: 13, color: post.isLiked ? '#ef4444' : (isDark ? '#94a3b8' : '#64748b'), fontFamily: 'Inter_600SemiBold' }}>{post.likes}</Text>
             </TouchableOpacity>
 
             {/* Comment */}
@@ -567,9 +567,9 @@ const HomePostCard = ({
               activeOpacity={0.7}
             >
               <Animated.View style={{ transform: [{ scale: commentScale }] }}>
-                <IconlyChat size={20} color='#94a3b8' set="curved" stroke="bold" />
+                <IconlyChat size={20} color={isDark ? '#94a3b8' : '#64748b'} set="curved" stroke="bold" />
               </Animated.View>
-              <Text style={{ fontSize: 13, color: '#94a3b8', fontFamily: 'Inter_600SemiBold' }}>{post.comments}</Text>
+              <Text style={{ fontSize: 13, color: isDark ? '#94a3b8' : '#64748b', fontFamily: 'Inter_600SemiBold' }}>{post.comments}</Text>
             </TouchableOpacity>
 
             {/* Share */}
@@ -579,8 +579,11 @@ const HomePostCard = ({
               activeOpacity={0.7}
             >
               <Animated.View style={{ transform: [{ scale: shareScale }] }}>
-                <IcolySend size={18} color='#94a3b8' set="curved" stroke="bold" />
+                <IcolySend size={18} color={isDark ? '#94a3b8' : '#64748b'} set="curved" stroke="bold" />
               </Animated.View>
+              {post.shares && post.shares !== '0' ? (
+                <Text style={{ fontSize: 13, color: isDark ? '#94a3b8' : '#64748b', fontFamily: 'Inter_600SemiBold' }}>{post.shares}</Text>
+              ) : null}
             </TouchableOpacity>
           </View>
 
@@ -593,7 +596,7 @@ const HomePostCard = ({
             style={{ paddingVertical: 4 }}
             activeOpacity={0.7}
           >
-            <IconlyBookmark size={20} color={isBookmarked ? '#f59e0b' : '#94a3b8'} set={isBookmarked ? 'bold' : 'curved'} stroke="bold" />
+            <IconlyBookmark size={20} color={isBookmarked ? '#f59e0b' : (isDark ? '#94a3b8' : '#64748b')} set={isBookmarked ? 'bold' : 'curved'} stroke="bold" />
           </TouchableOpacity>
         </View>
       </View>
@@ -695,7 +698,8 @@ export default function DashboardScreen() {
   const [activeTab, setActiveTab] = useState<Tab>('feed');
   const [activePostMenu, setActivePostMenu] = useState<string | null>(null);
   const [activeChannel, setActiveChannel] = useState<string | null>(null);
-  const [feedSubTab, setFeedSubTab] = useState<'new' | 'following'>('new');
+  type FeedSubTab = 'for_you' | 'following' | 'setups';
+  const [feedSubTab, setFeedSubTab] = useState<FeedSubTab>('for_you');
 
   const mt5Account = useStore(state => state.mt5Account);
   const trades = useStore(state => state.trades);
@@ -1352,7 +1356,13 @@ export default function DashboardScreen() {
       }
     });
 
-    return Array.from(postMap.values());
+    const sorted = Array.from(postMap.values());
+    sorted.sort((a: any, b: any) => {
+      const timeA = new Date(a.created_at || 0).getTime();
+      const timeB = new Date(b.created_at || 0).getTime();
+      return timeB - timeA;
+    });
+    return sorted;
   }, [storePosts, feeds]);
 
   const mappedPosts = combinedPosts.map((p: any) => {
@@ -1400,6 +1410,18 @@ export default function DashboardScreen() {
     if (feedSubTab === 'following') {
       const filtered = feedPostsToRender.filter((p: any) => followingIds.includes(p.user_id));
       return filtered;
+    }
+    if (feedSubTab === 'setups') {
+      const filtered = feedPostsToRender.filter((p: any) =>
+        p.content?.toLowerCase().includes('fialgo') ||
+        p.content?.toLowerCase().includes('2-5%') ||
+        p.content?.toLowerCase().includes('mt5') ||
+        p.content?.toLowerCase().includes('setup') ||
+        p.content?.toLowerCase().includes('signal') ||
+        p.post_type === 'signal' ||
+        p.media_type === 'image'
+      );
+      return filtered.length > 0 ? filtered : feedPostsToRender;
     }
     return feedPostsToRender;
   }, [feedSubTab, feedPostsToRender, followingIds]);
@@ -1754,10 +1776,14 @@ export default function DashboardScreen() {
   };
 
   useEffect(() => {
-    if (view === 'community') {
-      switchTab('community');
-      setCommView('messages');
-    } else if (view === 'messages') {
+    const sub = DeviceEventEmitter.addListener('switchHomeTab', (tab: Tab) => {
+      switchTab(tab);
+    });
+    return () => sub.remove();
+  }, []);
+
+  useEffect(() => {
+    if (view === 'community' || view === 'messages') {
       switchTab('community');
       setCommView('messages');
     } else if (view === 'contests') {
@@ -1765,7 +1791,7 @@ export default function DashboardScreen() {
       setContestView('contests');
     } else if (view === 'dashboard') {
       switchTab('dashboard');
-    } else if (view === 'feed') {
+    } else {
       switchTab('feed');
     }
   }, [view]);
@@ -2019,7 +2045,7 @@ export default function DashboardScreen() {
           }),
           borderTopLeftRadius: headerStyle === 'simple' ? 0 : 40,
           borderTopRightRadius: headerStyle === 'simple' ? 0 : 40,
-          backgroundColor: activeCardId ? '#090d16' : (isDark ? theme.background : '#fff'),
+          backgroundColor: activeCardId ? '#090d16' : (isDark ? theme.background : (activeTab === 'feed' ? '#f8fafc' : '#fff')),
         }
       ]}>
         <Animated.View style={[StyleSheet.absoluteFillObject, { opacity: dashOp, pointerEvents: activeTab === 'dashboard' ? 'auto' : 'none' }]}>
@@ -2894,11 +2920,12 @@ export default function DashboardScreen() {
         </Animated.View>
 
         {/* ── FEED VIEW ── */}
-        <Animated.View style={[StyleSheet.absoluteFillObject, { opacity: feedOp, pointerEvents: activeTab === 'feed' ? 'auto' : 'none', backgroundColor: activeCardId ? '#090d16' : (isDark ? theme.background : '#fff') }]}>
+        <Animated.View style={[StyleSheet.absoluteFillObject, { opacity: feedOp, pointerEvents: activeTab === 'feed' ? 'auto' : 'none', backgroundColor: activeCardId ? '#090d16' : (isDark ? theme.background : '#f8fafc') }]}>
           <Animated.ScrollView
             showsVerticalScrollIndicator={false}
             scrollEnabled={true}
-            contentContainerStyle={{ paddingBottom: 140, paddingTop: 16 }}
+            style={{ backgroundColor: isDark ? theme.background : '#f8fafc' }}
+            contentContainerStyle={{ paddingBottom: 160, paddingTop: 16, backgroundColor: isDark ? theme.background : '#f8fafc' }}
             onScroll={Animated.event(
               [{ nativeEvent: { contentOffset: { y: scrollY } } }],
               { useNativeDriver: false }
@@ -2916,56 +2943,118 @@ export default function DashboardScreen() {
               />
             }
           >
-            <View style={{ flex: 1 }}>
+            <Animated.View style={{
+              flex: 1,
+              transform: headerStyle === 'simple' ? [] : [{
+                translateY: scrollY.interpolate({
+                  inputRange: [0, 150],
+                  outputRange: [0, 150],
+                  extrapolate: 'clamp'
+                })
+              }]
+            }}>
 
-              {/* Feed Sub Tabs: New & Following */}
+              {/* Quick Post Prompt Card */}
+              <TouchableOpacity
+                activeOpacity={0.85}
+                onPress={() => {
+                  hSelect();
+                  setCreatePostVisible(true);
+                }}
+                style={{
+                  marginHorizontal: 16,
+                  marginBottom: 16,
+                  backgroundColor: isDark ? '#14171f' : '#ffffff',
+                  borderRadius: 20,
+                  padding: 14,
+                  borderWidth: 1,
+                  borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#e2e8f0',
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 12,
+                  shadowColor: '#0f172a',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: isDark ? 0.2 : 0.04,
+                  shadowRadius: 8,
+                  elevation: 2,
+                }}
+              >
+                <Image
+                  source={{ uri: getAvatarUrl(currentUser?.avatar_url, currentUser?.email) }}
+                  style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: isDark ? '#1e2433' : '#f1f5f9' }}
+                />
+                <View style={{
+                  flex: 1,
+                  backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : '#f8fafc',
+                  paddingHorizontal: 14,
+                  paddingVertical: 10,
+                  borderRadius: 20,
+                  borderWidth: 1,
+                  borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#e2e8f0',
+                }}>
+                  <Text style={{ color: '#94a3b8', fontSize: 13.5, fontFamily: 'Inter_400Regular' }}>
+                    Share your trade setup or thought...
+                  </Text>
+                </View>
+                <View style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 18,
+                  backgroundColor: isDark ? '#ffffff' : '#0f172a',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}>
+                  <Plus size={18} color={isDark ? '#000000' : '#ffffff'} />
+                </View>
+              </TouchableOpacity>
+
+              {/* Feed Sub Tabs: For You, Following, Setups */}
               <View style={{
                 flexDirection: 'row',
-                justifyContent: 'center',
+                paddingHorizontal: 16,
                 marginBottom: 16,
-                borderBottomWidth: 1,
-                borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#f1f5f9',
-                paddingBottom: 0,
                 alignItems: 'center',
-                gap: 40,
+                gap: 8,
               }}>
-                <TouchableOpacity
-                  onPress={() => {
-                    hSelect();
-                    setFeedSubTab('new');
-                  }}
-                  style={{
-                    paddingBottom: 10,
-                    borderBottomWidth: feedSubTab === 'new' ? 2 : 0,
-                    borderBottomColor: isDark ? '#ffffff' : '#0f172a',
-                  }}
-                >
-                  <Text style={{
-                    fontSize: 15,
-                    fontFamily: feedSubTab === 'new' ? 'Inter_700Bold' : 'Inter_600SemiBold',
-                    color: feedSubTab === 'new' ? (isDark ? '#ffffff' : '#0f172a') : '#64748b'
-                  }}>New</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={() => {
-                    hSelect();
-                    setFeedSubTab('following');
-                  }}
-                  style={{
-                    paddingBottom: 10,
-                    borderBottomWidth: feedSubTab === 'following' ? 2 : 0,
-                    borderBottomColor: isDark ? '#ffffff' : '#0f172a',
-                  }}
-                >
-                  <Text style={{
-                    fontSize: 15,
-                    fontFamily: feedSubTab === 'following' ? 'Inter_700Bold' : 'Inter_600SemiBold',
-                    color: feedSubTab === 'following' ? (isDark ? '#ffffff' : '#0f172a') : '#64748b'
-                  }}>Following</Text>
-                </TouchableOpacity>
+                {[
+                  { key: 'for_you', label: 'For You' },
+                  { key: 'following', label: 'Following' },
+                  { key: 'setups', label: 'Verified Setups' }
+                ].map(tab => {
+                  const isActive = feedSubTab === tab.key;
+                  return (
+                    <TouchableOpacity
+                      key={tab.key}
+                      onPress={() => {
+                        hSelect();
+                        setFeedSubTab(tab.key as any);
+                      }}
+                      style={{
+                        paddingHorizontal: 16,
+                        paddingVertical: 8,
+                        borderRadius: 20,
+                        backgroundColor: isActive
+                          ? (isDark ? '#ffffff' : '#0f172a')
+                          : (isDark ? 'rgba(255, 255, 255, 0.06)' : '#ffffff'),
+                        borderWidth: 1,
+                        borderColor: isActive
+                          ? 'transparent'
+                          : (isDark ? 'rgba(255, 255, 255, 0.08)' : '#e2e8f0'),
+                      }}
+                    >
+                      <Text style={{
+                        fontSize: 13,
+                        fontFamily: isActive ? 'Inter_700Bold' : 'Inter_600SemiBold',
+                        color: isActive
+                          ? (isDark ? '#000000' : '#ffffff')
+                          : (isDark ? '#94a3b8' : '#64748b'),
+                      }}>
+                        {tab.label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
-
 
               {/* Posts */}
               {(feedsLoading || storeLoading) && displayedPosts.length === 0 ? (
@@ -3138,7 +3227,7 @@ export default function DashboardScreen() {
                   )}
                 </View>
               )}
-            </View>
+            </Animated.View>
           </Animated.ScrollView>
 
           {activePostMenu && (

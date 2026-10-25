@@ -563,6 +563,7 @@ export default function TabLayout() {
                       }
                       setActiveNavItem({ label: item.label, icon: item.icon });
                       if (item.label === 'Home') {
+                        DeviceEventEmitter.emit('switchHomeTab', 'feed');
                         setActiveTab('feed');
                         setPendingTab('feed');
                         if (isHome) {
@@ -571,6 +572,7 @@ export default function TabLayout() {
                           router.push({ pathname: '/(tabs)', params: { view: 'feed' } } as any);
                         }
                       } else if (item.label === 'Dashboard') {
+                        DeviceEventEmitter.emit('switchHomeTab', 'dashboard');
                         setActiveTab('dashboard');
                         setPendingTab('dashboard');
                         if (isHome) {
@@ -694,6 +696,11 @@ export default function TabLayout() {
                                 return;
                               }
                               if (sub.params) {
+                                if (sub.params.view === 'feed') {
+                                  DeviceEventEmitter.emit('switchHomeTab', 'feed');
+                                } else if (sub.params.view === 'dashboard') {
+                                  DeviceEventEmitter.emit('switchHomeTab', 'dashboard');
+                                }
                                 setActiveTab(sub.params.view === 'dashboard' ? 'dashboard' : 'feed');
                                 setPendingTab(sub.params.view === 'dashboard' ? 'dashboard' : 'feed');
                                 if (isHome) {
@@ -965,6 +972,7 @@ export default function TabLayout() {
                     {/* 1. HOME (FEED) */}
                     <TouchableOpacity
                       onPress={() => {
+                        DeviceEventEmitter.emit('switchHomeTab', 'feed');
                         setActiveTab('feed');
                         setPendingTab('feed');
                         if (isHome) router.setParams({ view: 'feed' });
@@ -984,6 +992,7 @@ export default function TabLayout() {
                     {/* 2. DASHBOARD */}
                     <TouchableOpacity
                       onPress={() => {
+                        DeviceEventEmitter.emit('switchHomeTab', 'dashboard');
                         setActiveTab('dashboard');
                         setPendingTab('dashboard');
                         if (isHome) router.setParams({ view: 'dashboard' });
@@ -1083,6 +1092,11 @@ export default function TabLayout() {
                               }
                               setActiveNavItem({ label: item.label, icon: item.icon });
                               if (item.params) {
+                                if (item.params.view === 'feed') {
+                                  DeviceEventEmitter.emit('switchHomeTab', 'feed');
+                                } else if (item.params.view === 'dashboard') {
+                                  DeviceEventEmitter.emit('switchHomeTab', 'dashboard');
+                                }
                                 if (isHome) {
                                   router.setParams(item.params);
                                 } else {
