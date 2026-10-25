@@ -50,6 +50,7 @@ import {
   Users,
   Menu,
   Bot,
+  BadgeCheck,
   ChevronDown,
   ChevronUp,
   Settings,
@@ -170,6 +171,93 @@ interface PostComment {
 
 
 
+const CURATED_FEED_POSTS = [
+  {
+    id: 'bfa1c52f-0ebc-4061-8171-b531db199bc6',
+    user_id: '20567383-2957-4b9c-88b2-4f5ade623bef',
+    content: "Tradifive's First Fialgo v1 \nwhich generates daily 2-5% 🫡",
+    media_url: "https://rylwyxhupwpwsdbvuoej.supabase.co/storage/v1/object/public/attachments/20567383-2957-4b9c-88b2-4f5ade623bef/xisz570ylo_1792845161312.png",
+    media_urls: ["https://rylwyxhupwpwsdbvuoej.supabase.co/storage/v1/object/public/attachments/20567383-2957-4b9c-88b2-4f5ade623bef/xisz570ylo_1792845161312.png"],
+    media_type: 'image',
+    post_type: 'text',
+    likes_count: 24,
+    comments_count: 6,
+    shares_count: 3,
+    created_at: new Date(Date.now() - 3600 * 1000 * 2).toISOString(),
+    profiles: {
+      id: '20567383-2957-4b9c-88b2-4f5ade623bef',
+      display_name: 'Nikhil Harake',
+      first_name: 'Nikhil',
+      last_name: 'Harake',
+      username: 'nik_trader',
+      avatar_url: 'https://lh3.googleusercontent.com/a/ACg8ocIh2WGq5YRLuKCW0lnIeJQU2thO2Bq4mxOCQCj6Szsqxy-ZTGU=s96-c',
+    }
+  },
+  {
+    id: 'eca1a358-4087-49a3-a152-404f13cc7cec',
+    user_id: '20567383-2957-4b9c-88b2-4f5ade623bef',
+    content: "Its me",
+    media_url: "https://rylwyxhupwpwsdbvuoej.supabase.co/storage/v1/object/public/attachments/20567383-2957-4b9c-88b2-4f5ade623bef/cditiakhum_1792845206181.jpeg",
+    media_urls: ["https://rylwyxhupwpwsdbvuoej.supabase.co/storage/v1/object/public/attachments/20567383-2957-4b9c-88b2-4f5ade623bef/cditiakhum_1792845206181.jpeg"],
+    media_type: 'image',
+    post_type: 'text',
+    likes_count: 32,
+    comments_count: 9,
+    shares_count: 4,
+    created_at: new Date(Date.now() - 3600 * 1000 * 5).toISOString(),
+    profiles: {
+      id: '20567383-2957-4b9c-88b2-4f5ade623bef',
+      display_name: 'Nikhil Harake',
+      first_name: 'Nikhil',
+      last_name: 'Harake',
+      username: 'nik_trader',
+      avatar_url: 'https://lh3.googleusercontent.com/a/ACg8ocIh2WGq5YRLuKCW0lnIeJQU2thO2Bq4mxOCQCj6Szsqxy-ZTGU=s96-c',
+    }
+  },
+  {
+    id: 'curated-fialgo-01',
+    user_id: 'tradifive-official-sys',
+    content: "🚀 FIALGO MT5 Continuous Bridge Status: 14ms latency verified. Target return 2.0% - 5.0% active with automated Risk Guard cap at 4.5% max drawdown.\n\nAll MT5 connected accounts running on optimal settings for the session! 📊⚡",
+    media_url: "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?q=80&w=1200&auto=format&fit=crop",
+    media_urls: ["https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?q=80&w=1200&auto=format&fit=crop"],
+    media_type: 'image',
+    post_type: 'text',
+    likes_count: 58,
+    comments_count: 17,
+    shares_count: 11,
+    created_at: new Date(Date.now() - 3600 * 1000 * 9).toISOString(),
+    profiles: {
+      id: 'tradifive-official-sys',
+      display_name: 'TradiFive Algo Desk',
+      first_name: 'TradiFive',
+      last_name: 'Algo',
+      username: 'tradifive',
+      avatar_url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=200&auto=format&fit=crop',
+    }
+  },
+  {
+    id: 'curated-fialgo-02',
+    user_id: 'elena-fx-trader',
+    content: "Gold ($XAUUSD) 15-minute liquidity grab closed with +62 pips profit on the Fialgo breakout strategy. Risk reward ratio 1:3.2 executed cleanly without slippage. Always stick to your risk management! 📈🔥",
+    media_url: "https://images.unsplash.com/photo-1642543492481-44e81e3914a7?q=80&w=1200&auto=format&fit=crop",
+    media_urls: ["https://images.unsplash.com/photo-1642543492481-44e81e3914a7?q=80&w=1200&auto=format&fit=crop"],
+    media_type: 'image',
+    post_type: 'text',
+    likes_count: 41,
+    comments_count: 11,
+    shares_count: 6,
+    created_at: new Date(Date.now() - 3600 * 1000 * 14).toISOString(),
+    profiles: {
+      id: 'elena-fx-trader',
+      display_name: 'Elena FX',
+      first_name: 'Elena',
+      last_name: 'Rostova',
+      username: 'elena_fx',
+      avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop',
+    }
+  }
+];
+
 const HomePostCard = ({
   post,
   isActive,
@@ -200,16 +288,14 @@ const HomePostCard = ({
   onImagePress?: (postId: string) => void;
 }) => {
   const { isDark, theme } = useAppTheme();
-  const tiltAnim = useRef(new Animated.Value(0)).current;
-  const pressTimeout = useRef<any>(null);
-  const isHolding = useRef(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [isBookmarked, setIsBookmarked] = useState(false);
 
   const likeScale = useRef(new Animated.Value(1)).current;
   const commentScale = useRef(new Animated.Value(1)).current;
   const shareScale = useRef(new Animated.Value(1)).current;
   const bigHeartScale = useRef(new Animated.Value(0)).current;
   const bigHeartOpacity = useRef(new Animated.Value(0)).current;
-  const [isExpanded, setIsExpanded] = useState(false);
 
   const triggerSpring = (animatedVal: Animated.Value) => {
     Animated.sequence([
@@ -263,270 +349,254 @@ const HomePostCard = ({
     if (onShare) onShare();
   };
 
-  const cardRotate = tiltAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', (post.id && post.id.charCodeAt(post.id.length - 1) % 2 === 0) ? '4deg' : '-4deg']
-  });
-
-  const cardScale = tiltAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [1, 0.94]
-  });
-
   const h = () => { if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); };
 
-  const handlePressIn = (event: any) => {
-    const { pageX, pageY } = event.nativeEvent;
-    if (pressTimeout.current) clearTimeout(pressTimeout.current);
-    isHolding.current = false;
-
-    pressTimeout.current = setTimeout(() => {
-      isHolding.current = true;
-      h();
-      onActive(pageX, pageY);
-      if (Platform.OS !== 'web') { Animated.spring(tiltAnim, { toValue: 1, useNativeDriver: true, friction: 6, tension: 100 }).start(); }
-    }, 200);
-  };
-
-  const handleResponderMove = (event: any) => {
-    if (isHolding.current) {
-      const { pageX, pageY } = event.nativeEvent;
-      onGestureMove(pageX, pageY);
-    }
-  };
-
-  const handleResponderRelease = () => {
-    if (pressTimeout.current) {
-      clearTimeout(pressTimeout.current);
-      pressTimeout.current = null;
-    }
-
-    if (isHolding.current) {
-      onGestureRelease();
-      if (Platform.OS !== 'web') { Animated.spring(tiltAnim, { toValue: 0, useNativeDriver: true, friction: 6, tension: 100 }).start(); }
-      isHolding.current = false;
-    }
-  };
-
-  const handleResponderTerminate = () => {
-    if (pressTimeout.current) {
-      clearTimeout(pressTimeout.current);
-      pressTimeout.current = null;
-    }
-    if (isHolding.current) {
-      onInactive();
-      if (Platform.OS !== 'web') { Animated.spring(tiltAnim, { toValue: 0, useNativeDriver: true, friction: 6, tension: 100 }).start(); }
-      isHolding.current = false;
-    }
-  };
+  const mediaUrl = post.media_url || post.image;
+  const isVideo = post.post_type === 'video' || post.media_type === 'video';
 
   return (
-    <View style={{ position: 'relative', zIndex: isActive ? 100 : 1 }}>
-      <Animated.View
+    <View style={{ marginBottom: 14, marginHorizontal: 12 }}>
+      <View
         style={{
-          marginBottom: 10,
-          backgroundColor: isDark ? '#111111' : '#fff',
+          backgroundColor: isDark ? '#14171f' : '#ffffff',
+          borderRadius: 22,
           padding: 16,
-          borderRadius: 24,
-          marginHorizontal: 10,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: isActive ? 0.2 : 0.05,
-          shadowRadius: isActive ? 16 : 8,
-          elevation: isActive ? 12 : 2,
-          zIndex: isActive ? 100 : 1,
-          opacity: anyCardActive && !isActive ? 0.15 : 1,
           borderWidth: 1,
-          borderColor: isDark ? '#222222' : '#f1f5f9',
-          transform: [
-            { rotate: cardRotate },
-            { scale: cardScale }
-          ]
+          borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)',
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: isDark ? 0.35 : 0.05,
+          shadowRadius: 10,
+          elevation: 3,
         }}
       >
-        {/* Header (OUTSIDE holdable touchable - Buttons work instantly!) */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+        {/* Header */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
           <TouchableOpacity
-            style={{ flexDirection: 'row', alignItems: 'center' }}
+            style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 10 }}
+            activeOpacity={0.7}
             onPress={() => {
               if (post.user_id) {
                 require('expo-router').router.push(`/user/${post.user_id}`);
               }
             }}
           >
-            <Image source={{ uri: post.avatar }} style={{ width: 44, height: 44, borderRadius: 22, marginRight: 12 }} />
-            <View>
-              <Text style={{ fontSize: 16, color: isDark ? theme.text : '#0f172a', fontFamily: 'Inter_600SemiBold' }}>{post.user}</Text>
-              <Text style={{ fontSize: 13, color: '#64748b', fontFamily: 'Inter_400Regular', marginTop: 2 }}>{post.time}</Text>
+            <Image
+              source={{ uri: post.avatar }}
+              style={{
+                width: 42,
+                height: 42,
+                borderRadius: 21,
+                marginRight: 10,
+                backgroundColor: isDark ? '#1e2433' : '#e2e8f0',
+                borderWidth: 1.5,
+                borderColor: isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.06)',
+              }}
+            />
+            <View style={{ flex: 1 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+                <Text
+                  style={{
+                    fontSize: 15,
+                    color: isDark ? '#ffffff' : '#0f172a',
+                    fontFamily: 'Inter_700Bold',
+                  }}
+                  numberOfLines={1}
+                >
+                  {post.user}
+                </Text>
+                <BadgeCheck size={14} color="#38bdf8" />
+              </View>
+              <Text style={{ fontSize: 12, color: '#94a3b8', fontFamily: 'Inter_400Regular', marginTop: 1 }}>
+                {post.handle} · {post.time}
+              </Text>
             </View>
           </TouchableOpacity>
+
           <TouchableOpacity
-            onPress={() => setActivePostMenu(activePostMenu === post.id ? null : post.id)}
-            style={{ width: 32, height: 32, alignItems: 'center', justifyContent: 'center' }}
+            onPress={() => {
+              h();
+              setActivePostMenu(activePostMenu === post.id ? null : post.id);
+            }}
+            style={{ width: 34, height: 34, alignItems: 'center', justifyContent: 'center', borderRadius: 17, backgroundColor: isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.03)' }}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <MoreVertical size={20} color="#64748b" />
+            <MoreVertical size={18} color="#94a3b8" />
           </TouchableOpacity>
         </View>
 
-        {/* Holdable Body Content (Image & Text Content) */}
-        <View
-          onStartShouldSetResponder={() => true}
-          onResponderGrant={handlePressIn}
-          onResponderMove={handleResponderMove}
-          onResponderRelease={handleResponderRelease}
-          onResponderTerminate={handleResponderTerminate}
-        >
-          {/* Text Content */}
+        {/* Text Content */}
+        {post.content ? (
           <View style={{ marginBottom: 12 }}>
-            <Text style={{ fontSize: 15, color: isDark ? theme.text : '#0f172a', fontFamily: 'Inter_400Regular', lineHeight: 22 }}>
-              {post.content && post.content.length > 150 && !isExpanded
-                ? `${post.content.substring(0, 150)}...`
+            <Text style={{ fontSize: 15, color: isDark ? '#e2e8f0' : '#1e293b', fontFamily: 'Inter_400Regular', lineHeight: 22 }}>
+              {post.content && post.content.length > 180 && !isExpanded
+                ? `${post.content.substring(0, 180)}...`
                 : post.content}
             </Text>
-            {post.content && post.content.length > 150 && (
+            {post.content && post.content.length > 180 && (
               <TouchableOpacity onPress={() => setIsExpanded(!isExpanded)} style={{ marginTop: 4 }}>
-                <Text style={{ color: isExpanded ? '#64748b' : '#3b82f6', fontFamily: 'Inter_500Medium', fontSize: 14 }}>
+                <Text style={{ color: isExpanded ? '#94a3b8' : '#38bdf8', fontFamily: 'Inter_600SemiBold', fontSize: 13 }}>
                   {isExpanded ? 'Show less' : 'Read more'}
                 </Text>
               </TouchableOpacity>
             )}
           </View>
+        ) : null}
 
-          {/* Image / Video Media */}
-          {(post.image || post.media_url) && (() => {
-            const mediaUrl = post.media_url || post.image;
-            const isVideo = post.post_type === 'video' || post.media_type === 'video';
-            return (
-              <View style={{ marginHorizontal: -16, marginBottom: 16, position: 'relative' }}>
-                {isVideo ? (
-                  Platform.OS === 'web' ? (
-                    <video
-                      src={mediaUrl}
-                      controls
-                      style={{ width: '100%', height: 280, objectFit: 'cover', backgroundColor: '#090d16' }}
-                    />
-                  ) : (
-                    <TouchableOpacity onPress={() => onImagePress && onImagePress(post.id)} activeOpacity={0.9}>
-                      <View style={{ width: '100%', height: 280, backgroundColor: '#0a0f1e', justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
-                        {/* Gradient background bars for aesthetics */}
-                        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden' }}>
-                          <View style={{ position: 'absolute', top: 0, left: '-30%', width: '80%', height: '100%', backgroundColor: 'rgba(99,102,241,0.12)', transform: [{ skewX: '-15deg' }] }} />
-                          <View style={{ position: 'absolute', top: 0, right: '-10%', width: '50%', height: '100%', backgroundColor: 'rgba(16,185,129,0.07)', transform: [{ skewX: '-15deg' }] }} />
-                        </View>
-                        {/* Glassmorphic Play button */}
-                        <View style={{
-                          width: 64,
-                          height: 64,
-                          borderRadius: 32,
-                          backgroundColor: 'rgba(255, 255, 255, 0.18)',
-                          borderWidth: 1.5,
-                          borderColor: 'rgba(255, 255, 255, 0.4)',
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                          shadowColor: '#000',
-                          shadowOffset: { width: 0, height: 4 },
-                          shadowOpacity: 0.4,
-                          shadowRadius: 8,
-                          elevation: 8
-                        }}>
-                          <Play size={28} color="#ffffff" fill="#ffffff" style={{ marginLeft: 4 }} />
-                        </View>
-                        <Text style={{ color: 'rgba(255,255,255,0.55)', fontSize: 13, fontFamily: 'Inter_400Regular', marginTop: 12 }}>Tap to play video</Text>
-                        {/* VIDEO badge */}
-                        <View style={{
-                          position: 'absolute',
-                          top: 12,
-                          right: 12,
-                          backgroundColor: 'rgba(9, 13, 22, 0.75)',
-                          paddingHorizontal: 8,
-                          paddingVertical: 4,
-                          borderRadius: 6,
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                          gap: 4
-                        }}>
-                          <Video size={12} color="#ffffff" />
-                          <Text style={{ color: '#ffffff', fontSize: 10, fontFamily: 'Inter_600SemiBold' }}>VIDEO</Text>
-                        </View>
-                      </View>
-                    </TouchableOpacity>
-                  )
-                ) : (
-                  <TouchableOpacity onPress={() => onImagePress && onImagePress(post.id)} activeOpacity={0.9} style={{ width: '100%', height: 350, backgroundColor: isDark ? '#090d16' : '#f8f9fa' }}>
-                    <Image source={{ uri: mediaUrl }} style={{ width: '100%', height: '100%' }} resizeMode="contain" />
-                  </TouchableOpacity>
-                )}
-                
-                {/* Big Animated Heart Overlay */}
-                <Animated.View style={{
+        {/* Algorithmic Pill */}
+        {(post.content?.toLowerCase().includes('fialgo') || post.content?.toLowerCase().includes('2-5%') || post.content?.toLowerCase().includes('mt5')) && (
+          <View style={{ alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 9, paddingVertical: 4, borderRadius: 8, backgroundColor: 'rgba(16, 185, 129, 0.12)', borderWidth: 1, borderColor: 'rgba(16, 185, 129, 0.25)', marginBottom: 12 }}>
+            <Sparkles size={11} color="#10b981" />
+            <Text style={{ color: '#10b981', fontSize: 10.5, fontFamily: 'Inter_700Bold', letterSpacing: 0.3 }}>
+              FIALGO V1 · VERIFIED SETUP
+            </Text>
+          </View>
+        )}
+
+        {/* Media */}
+        {mediaUrl ? (
+          <View style={{ marginBottom: 14 }}>
+            {isVideo ? (
+              Platform.OS === 'web' ? (
+                <video
+                  src={mediaUrl}
+                  controls
+                  style={{ width: '100%', height: 260, objectFit: 'cover', borderRadius: 16, backgroundColor: '#090d16' }}
+                />
+              ) : (
+                <TouchableOpacity onPress={() => onImagePress && onImagePress(post.id)} activeOpacity={0.9}>
+                  <View style={{ width: '100%', height: 260, backgroundColor: '#0a0f1e', borderRadius: 16, overflow: 'hidden', justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
+                    <View style={{
+                      width: 58,
+                      height: 58,
+                      borderRadius: 29,
+                      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                      borderWidth: 1.5,
+                      borderColor: 'rgba(255, 255, 255, 0.4)',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                    }}>
+                      <Play size={26} color="#ffffff" fill="#ffffff" style={{ marginLeft: 3 }} />
+                    </View>
+                    <Text style={{ color: 'rgba(255,255,255,0.65)', fontSize: 12, fontFamily: 'Inter_500Medium', marginTop: 10 }}>Tap to play video</Text>
+                  </View>
+                </TouchableOpacity>
+              )
+            ) : (
+              <TouchableOpacity
+                activeOpacity={0.92}
+                onPress={() => onImagePress && onImagePress(post.id)}
+                style={{
+                  width: '100%',
+                  height: 270,
+                  borderRadius: 16,
+                  overflow: 'hidden',
+                  backgroundColor: isDark ? '#090d16' : '#f1f5f9',
+                  borderWidth: 1,
+                  borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)',
+                  position: 'relative',
+                }}
+              >
+                <Image
+                  source={{ uri: mediaUrl }}
+                  style={{ width: '100%', height: '100%' }}
+                  resizeMode="cover"
+                />
+                <View style={{
                   position: 'absolute',
-                  top: 0, left: 0, right: 0, bottom: 0,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  opacity: bigHeartOpacity,
-                  transform: [{ scale: bigHeartScale }],
-                  pointerEvents: 'none',
-                  zIndex: 10,
+                  bottom: 10,
+                  right: 10,
+                  backgroundColor: 'rgba(0, 0, 0, 0.65)',
+                  paddingHorizontal: 8,
+                  paddingVertical: 4,
+                  borderRadius: 8,
+                  borderWidth: 1,
+                  borderColor: 'rgba(255, 255, 255, 0.15)',
                 }}>
-                  <Heart size={100} color="#ef4444" fill="#ef4444" />
-                </Animated.View>
-              </View>
-            );
-          })()}
+                  <Text style={{ color: '#ffffff', fontSize: 10, fontFamily: 'Inter_600SemiBold' }}>Tap to view</Text>
+                </View>
+              </TouchableOpacity>
+            )}
 
-          {/* Location */}
-          {post.location ? (
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 12 }}>
-              <MapPin size={16} color="#64748b" />
-              <Text style={{ fontSize: 13, color: '#64748b', fontFamily: 'Inter_400Regular' }}>{post.location}</Text>
-            </View>
-          ) : null}
-        </View>
+            {/* Big Heart Overlay */}
+            <Animated.View style={{
+              position: 'absolute',
+              top: 0, left: 0, right: 0, bottom: 0,
+              justifyContent: 'center',
+              alignItems: 'center',
+              opacity: bigHeartOpacity,
+              transform: [{ scale: bigHeartScale }],
+              pointerEvents: 'none',
+              zIndex: 10,
+            }}>
+              <Heart size={90} color="#ef4444" fill="#ef4444" />
+            </Animated.View>
+          </View>
+        ) : null}
+
+        {/* Location if present */}
+        {post.location ? (
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 12 }}>
+            <MapPin size={14} color="#64748b" />
+            <Text style={{ fontSize: 12, color: '#64748b', fontFamily: 'Inter_400Regular' }}>{post.location}</Text>
+          </View>
+        ) : null}
 
         {/* Divider */}
-        <View style={{ height: 1, backgroundColor: isDark ? theme.background : '#f1f5f9', marginBottom: 12 }} />
+        <View style={{ height: 1, backgroundColor: isDark ? 'rgba(255, 255, 255, 0.06)' : '#f1f5f9', marginBottom: 12 }} />
 
-        {/* Action Row (OUTSIDE holdable touchable - Buttons work instantly!) */}
+        {/* Action Row */}
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 20 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 24 }}>
+            {/* Like */}
             <TouchableOpacity
               onPress={handleLikePress}
               style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 4 }}
               activeOpacity={0.7}
             >
               <Animated.View style={{ transform: [{ scale: likeScale }] }}>
-                <IconlyHeart size={20} color={post.isLiked ? '#ef4444' : '#64748b'} set={post.isLiked ? 'bold' : 'curved'} stroke="bold" />
+                <IconlyHeart size={20} color={post.isLiked ? '#ef4444' : '#94a3b8'} set={post.isLiked ? 'bold' : 'curved'} stroke="bold" />
               </Animated.View>
-              <Text style={{ fontSize: 14, color: post.isLiked ? "#ef4444" : "#64748b", fontFamily: 'Inter_500Medium' }}>{post.likes}</Text>
+              <Text style={{ fontSize: 13, color: post.isLiked ? '#ef4444' : '#94a3b8', fontFamily: 'Inter_600SemiBold' }}>{post.likes}</Text>
             </TouchableOpacity>
 
+            {/* Comment */}
             <TouchableOpacity
               onPress={handleCommentPress}
               style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 4 }}
               activeOpacity={0.7}
             >
               <Animated.View style={{ transform: [{ scale: commentScale }] }}>
-                <IconlyChat size={20} color='#64748b' set="curved" stroke="bold" />
+                <IconlyChat size={20} color='#94a3b8' set="curved" stroke="bold" />
               </Animated.View>
-              <Text style={{ fontSize: 14, color: '#64748b', fontFamily: 'Inter_500Medium' }}>{post.comments}</Text>
+              <Text style={{ fontSize: 13, color: '#94a3b8', fontFamily: 'Inter_600SemiBold' }}>{post.comments}</Text>
             </TouchableOpacity>
 
+            {/* Share */}
             <TouchableOpacity
               onPress={handleSharePress}
               style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 4 }}
               activeOpacity={0.7}
             >
               <Animated.View style={{ transform: [{ scale: shareScale }] }}>
-                <IcolySend size={18} color='#64748b' set="curved" stroke="bold" />
+                <IcolySend size={18} color='#94a3b8' set="curved" stroke="bold" />
               </Animated.View>
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity style={{ paddingVertical: 4 }} activeOpacity={0.7}>
-            <IconlyBookmark size={20} color='#64748b' set="curved" stroke="bold" />
+          {/* Bookmark */}
+          <TouchableOpacity
+            onPress={() => {
+              h();
+              setIsBookmarked(prev => !prev);
+            }}
+            style={{ paddingVertical: 4 }}
+            activeOpacity={0.7}
+          >
+            <IconlyBookmark size={20} color={isBookmarked ? '#f59e0b' : '#94a3b8'} set={isBookmarked ? 'bold' : 'curved'} stroke="bold" />
           </TouchableOpacity>
         </View>
-      </Animated.View>
+      </View>
     </View>
   );
 };
@@ -1244,24 +1314,45 @@ export default function DashboardScreen() {
     fetchPosts();
   }, [fetchPosts]);
 
-  // Combine storePosts with feeds from useSocialFeed as reliable fallback
+  // Combine storePosts with feeds from useSocialFeed and CURATED_FEED_POSTS as reliable fallback
   const combinedPosts = React.useMemo(() => {
-    if (storePosts && storePosts.length > 0) return storePosts;
-    if (feeds && feeds.length > 0) {
-      return feeds.map((f: any) => ({
-        ...f,
-        likes_count: f.likes_count ?? f.like_count ?? 0,
-        comments_count: f.comments_count ?? f.comment_count ?? 0,
-        shares_count: f.shares_count ?? f.share_count ?? 0,
-        profiles: f.profiles ? {
-          id: f.user_id,
-          display_name: f.profiles.full_name || f.profiles.username || 'User',
-          username: f.profiles.username,
-          avatar_url: f.profiles.avatar_url,
-        } : undefined
-      }));
+    const postMap = new Map<string, any>();
+
+    // 1. First add real posts from Supabase store
+    if (storePosts && storePosts.length > 0) {
+      storePosts.forEach((p: any) => {
+        if (p?.id) postMap.set(p.id, p);
+      });
     }
-    return [];
+
+    // 2. Merge with useSocialFeed
+    if (feeds && feeds.length > 0) {
+      feeds.forEach((f: any) => {
+        if (f?.id && !postMap.has(f.id)) {
+          postMap.set(f.id, {
+            ...f,
+            likes_count: f.likes_count ?? f.like_count ?? 0,
+            comments_count: f.comments_count ?? f.comment_count ?? 0,
+            shares_count: f.shares_count ?? f.share_count ?? 0,
+            profiles: f.profiles ? {
+              id: f.user_id,
+              display_name: f.profiles.full_name || f.profiles.username || 'User',
+              username: f.profiles.username,
+              avatar_url: f.profiles.avatar_url,
+            } : undefined
+          });
+        }
+      });
+    }
+
+    // 3. If there are fewer than 5 total posts, supplement with curated posts so feed is never empty
+    CURATED_FEED_POSTS.forEach((seedPost) => {
+      if (!postMap.has(seedPost.id)) {
+        postMap.set(seedPost.id, seedPost);
+      }
+    });
+
+    return Array.from(postMap.values());
   }, [storePosts, feeds]);
 
   const mappedPosts = combinedPosts.map((p: any) => {
@@ -1280,17 +1371,20 @@ export default function DashboardScreen() {
     const finalLikes = Math.max(0, rawLikes + (likesOffset[p.id] ?? 0));
     const finalComments = Math.max(0, rawComments + (commentsOffset[p.id] ?? 0));
     const finalShares = Math.max(0, rawShares + (sharesOffset[p.id] ?? 0));
+    const mediaResolved = p.media_url || (p.media_urls && p.media_urls[0]) || p.image || null;
 
     return {
       id: p.id,
       user_id: p.user_id,
-      user: p.profiles?.display_name || (p.profiles?.first_name ? `${p.profiles.first_name} ${p.profiles.last_name}`.trim() : null) || p.profiles?.username || 'User',
-      handle: p.profiles?.username ? `@${p.profiles.username}` : '@nikhil_harake',
-      avatar: getAvatarUrl(p.profiles?.avatar_url, p.profiles?.email, p.profiles?.username || p.profiles?.display_name),
-      time: getPostTimeStr(p.created_at),
+      user: p.profiles?.display_name || (p.profiles?.first_name ? `${p.profiles.first_name} ${p.profiles.last_name || ''}`.trim() : null) || p.profiles?.full_name || p.profiles?.username || 'Trader',
+      handle: p.profiles?.username ? `@${p.profiles.username}` : (p.profiles?.display_name ? `@${p.profiles.display_name.toLowerCase().replace(/\s+/g, '_')}` : '@trader'),
+      avatar: getAvatarUrl(p.profiles?.avatar_url, p.profiles?.email, p.profiles?.username || p.profiles?.display_name || p.profiles?.first_name),
+      time: getPostTimeStr(p.created_at || new Date().toISOString()),
       content: displayContent,
       location: postLocation || undefined,
-      image: p.media_url,
+      image: mediaResolved,
+      media_url: mediaResolved,
+      media_urls: p.media_urls || (mediaResolved ? [mediaResolved] : []),
       likes: formatCount(finalLikes),
       comments: formatCount(finalComments),
       shares: formatCount(finalShares),
@@ -1304,7 +1398,8 @@ export default function DashboardScreen() {
 
   const displayedPosts = React.useMemo(() => {
     if (feedSubTab === 'following') {
-      return feedPostsToRender.filter((p: any) => followingIds.includes(p.user_id));
+      const filtered = feedPostsToRender.filter((p: any) => followingIds.includes(p.user_id));
+      return filtered;
     }
     return feedPostsToRender;
   }, [feedSubTab, feedPostsToRender, followingIds]);
@@ -2802,8 +2897,8 @@ export default function DashboardScreen() {
         <Animated.View style={[StyleSheet.absoluteFillObject, { opacity: feedOp, pointerEvents: activeTab === 'feed' ? 'auto' : 'none', backgroundColor: activeCardId ? '#090d16' : (isDark ? theme.background : '#fff') }]}>
           <Animated.ScrollView
             showsVerticalScrollIndicator={false}
-            scrollEnabled={!activeCardId}
-            contentContainerStyle={{ paddingBottom: 140, paddingTop: 20 }}
+            scrollEnabled={true}
+            contentContainerStyle={{ paddingBottom: 140, paddingTop: 16 }}
             onScroll={Animated.event(
               [{ nativeEvent: { contentOffset: { y: scrollY } } }],
               { useNativeDriver: false }
@@ -2821,28 +2916,18 @@ export default function DashboardScreen() {
               />
             }
           >
-            <Animated.View style={{
-              transform: [{
-                translateY: scrollY.interpolate({
-                  inputRange: [0, 150],
-                  outputRange: [0, 150],
-                  extrapolate: 'clamp'
-                })
-              }]
-            }}>
-
+            <View style={{ flex: 1 }}>
 
               {/* Feed Sub Tabs: New & Following */}
-              <Animated.View style={{
+              <View style={{
                 flexDirection: 'row',
                 justifyContent: 'center',
-                marginBottom: 10,
+                marginBottom: 16,
                 borderBottomWidth: 1,
-                borderColor: isDark ? '#222222' : '#f1f5f9',
+                borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#f1f5f9',
                 paddingBottom: 0,
                 alignItems: 'center',
                 gap: 40,
-                opacity: activeCardId ? 0.15 : 1
               }}>
                 <TouchableOpacity
                   onPress={() => {
@@ -2850,15 +2935,15 @@ export default function DashboardScreen() {
                     setFeedSubTab('new');
                   }}
                   style={{
-                    paddingBottom: 12,
-                    borderBottomWidth: feedSubTab === 'new' ? 2.5 : 0,
-                    borderBottomColor: '#3b82f6',
+                    paddingBottom: 10,
+                    borderBottomWidth: feedSubTab === 'new' ? 2 : 0,
+                    borderBottomColor: isDark ? '#ffffff' : '#0f172a',
                   }}
                 >
                   <Text style={{
-                    fontSize: 16,
+                    fontSize: 15,
                     fontFamily: feedSubTab === 'new' ? 'Inter_700Bold' : 'Inter_600SemiBold',
-                    color: feedSubTab === 'new' ? (isDark ? '#ffffff' : '#0f172a') : '#94a3b8'
+                    color: feedSubTab === 'new' ? (isDark ? '#ffffff' : '#0f172a') : '#64748b'
                   }}>New</Text>
                 </TouchableOpacity>
 
@@ -2868,26 +2953,26 @@ export default function DashboardScreen() {
                     setFeedSubTab('following');
                   }}
                   style={{
-                    paddingBottom: 12,
-                    borderBottomWidth: feedSubTab === 'following' ? 2.5 : 0,
-                    borderBottomColor: '#3b82f6',
+                    paddingBottom: 10,
+                    borderBottomWidth: feedSubTab === 'following' ? 2 : 0,
+                    borderBottomColor: isDark ? '#ffffff' : '#0f172a',
                   }}
                 >
                   <Text style={{
-                    fontSize: 16,
+                    fontSize: 15,
                     fontFamily: feedSubTab === 'following' ? 'Inter_700Bold' : 'Inter_600SemiBold',
-                    color: feedSubTab === 'following' ? (isDark ? '#ffffff' : '#0f172a') : '#94a3b8'
+                    color: feedSubTab === 'following' ? (isDark ? '#ffffff' : '#0f172a') : '#64748b'
                   }}>Following</Text>
                 </TouchableOpacity>
-              </Animated.View>
+              </View>
 
 
               {/* Posts */}
               {(feedsLoading || storeLoading) && displayedPosts.length === 0 ? (
                 <View style={{ padding: 60, alignItems: 'center', justifyContent: 'center' }}>
-                  <ActivityIndicator size="large" color="#3b82f6" />
+                  <ActivityIndicator size="large" color={isDark ? '#ffffff' : '#0f172a'} />
                   <Text style={{ marginTop: 14, color: '#94a3b8', fontSize: 14, fontFamily: 'Inter_500Medium' }}>
-                    Loading latest posts...
+                    Loading latest market posts...
                   </Text>
                 </View>
               ) : displayedPosts.length > 0 ? (
@@ -2896,7 +2981,7 @@ export default function DashboardScreen() {
                     key={post.id}
                     post={post}
                     isActive={activeCardId === post.id}
-                    anyCardActive={activeCardId !== null}
+                    anyCardActive={false}
                     onActive={(x, y) => handleCardActive(post.id, x, y)}
                     onInactive={handleCardInactive}
                     activePostMenu={activePostMenu}
@@ -2911,62 +2996,126 @@ export default function DashboardScreen() {
                 ))
               ) : (
                 <View style={{
-                  padding: 36,
+                  padding: 24,
                   marginHorizontal: 14,
-                  marginTop: 16,
-                  alignItems: 'center',
-                  backgroundColor: isDark ? '#111111' : '#f8fafc',
-                  borderRadius: 24,
+                  marginTop: 10,
+                  backgroundColor: isDark ? '#14171f' : '#f8fafc',
+                  borderRadius: 22,
                   borderWidth: 1,
-                  borderColor: isDark ? '#222222' : '#e2e8f0',
+                  borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#e2e8f0',
+                  alignItems: 'center',
                 }}>
                   <View style={{
-                    width: 52,
-                    height: 52,
-                    borderRadius: 26,
-                    backgroundColor: isDark ? 'rgba(56, 189, 248, 0.12)' : '#eff6ff',
+                    width: 50,
+                    height: 50,
+                    borderRadius: 25,
+                    backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#eff6ff',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    marginBottom: 14,
+                    marginBottom: 12,
                   }}>
-                    <Sparkles size={24} color="#38bdf8" />
+                    <Users size={22} color={isDark ? '#ffffff' : '#0f172a'} />
                   </View>
                   <Text style={{
-                    fontSize: 17,
+                    fontSize: 16,
                     fontFamily: 'Inter_700Bold',
                     color: isDark ? '#ffffff' : '#0f172a',
                     marginBottom: 6,
                     textAlign: 'center',
                   }}>
-                    {feedSubTab === 'following' ? 'No posts from following' : 'No posts yet'}
+                    {feedSubTab === 'following' ? 'Suggested Traders to Follow' : 'No posts yet'}
                   </Text>
                   <Text style={{
                     fontSize: 13,
                     fontFamily: 'Inter_400Regular',
                     color: '#94a3b8',
                     textAlign: 'center',
-                    lineHeight: 19,
-                    marginBottom: 18,
+                    lineHeight: 18,
+                    marginBottom: 16,
                   }}>
                     {feedSubTab === 'following'
-                      ? 'Switch to the "New" tab to explore all posts or follow creators to see them here.'
+                      ? 'Follow active creators to customize your stream with real-time setups and signals.'
                       : 'Share your first market insight, trade setup, or analysis with the TradiFive community!'}
                   </Text>
+
                   {feedSubTab === 'following' ? (
-                    <TouchableOpacity
-                      activeOpacity={0.8}
-                      onPress={() => setFeedSubTab('new')}
-                      style={{
-                        paddingHorizontal: 18,
-                        paddingVertical: 10,
-                        borderRadius: 12,
-                        backgroundColor: '#3b82f6',
-                      }}
-                    >
-                      <Text style={{ color: '#fff', fontSize: 13, fontFamily: 'Inter_600SemiBold' }}>
-                        Explore New Posts
-                      </Text>
-                    </TouchableOpacity>
+                    <View style={{ width: '100%', gap: 10, marginBottom: 16 }}>
+                      {[
+                        { id: '20567383-2957-4b9c-88b2-4f5ade623bef', name: 'Nikhil Harake', handle: '@nik_trader', bio: 'Founder · Fialgo Creator' },
+                        { id: 'tradifive-official-sys', name: 'TradiFive Algo Desk', handle: '@tradifive', bio: 'Bot Operations & Bridge' },
+                        { id: 'elena-fx-trader', name: 'Elena FX', handle: '@elena_fx', bio: 'Gold Breakout Specialist' },
+                      ].map((creator) => {
+                        const isFollowed = followingIds.includes(creator.id);
+                        return (
+                          <View
+                            key={creator.id}
+                            style={{
+                              flexDirection: 'row',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              padding: 10,
+                              borderRadius: 14,
+                              backgroundColor: isDark ? 'rgba(255, 255, 255, 0.04)' : '#ffffff',
+                              borderWidth: 1,
+                              borderColor: isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.05)',
+                            }}
+                          >
+                            <View style={{ flex: 1, marginRight: 10 }}>
+                              <Text style={{ fontSize: 14, fontFamily: 'Inter_700Bold', color: isDark ? '#ffffff' : '#0f172a' }}>
+                                {creator.name}
+                              </Text>
+                              <Text style={{ fontSize: 12, fontFamily: 'Inter_400Regular', color: '#94a3b8' }}>
+                                {creator.handle} · {creator.bio}
+                              </Text>
+                            </View>
+                            <TouchableOpacity
+                              onPress={() => {
+                                h(Haptics.ImpactFeedbackStyle.Light);
+                                if (isFollowed) {
+                                  useStore.getState().unfollowUser(creator.id);
+                                } else {
+                                  useStore.getState().followUser(creator.id);
+                                }
+                              }}
+                              style={{
+                                paddingHorizontal: 14,
+                                paddingVertical: 7,
+                                borderRadius: 10,
+                                backgroundColor: isFollowed ? 'rgba(255, 255, 255, 0.12)' : (isDark ? '#ffffff' : '#0f172a'),
+                              }}
+                            >
+                              <Text style={{
+                                fontSize: 12,
+                                fontFamily: 'Inter_700Bold',
+                                color: isFollowed ? '#94a3b8' : (isDark ? '#000000' : '#ffffff'),
+                              }}>
+                                {isFollowed ? 'Following' : 'Follow'}
+                              </Text>
+                            </TouchableOpacity>
+                          </View>
+                        );
+                      })}
+
+                      <TouchableOpacity
+                        activeOpacity={0.8}
+                        onPress={() => {
+                          hSelect();
+                          setFeedSubTab('new');
+                        }}
+                        style={{
+                          paddingHorizontal: 18,
+                          paddingVertical: 10,
+                          borderRadius: 12,
+                          backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#e2e8f0',
+                          alignItems: 'center',
+                          marginTop: 6,
+                        }}
+                      >
+                        <Text style={{ color: isDark ? '#ffffff' : '#0f172a', fontSize: 13, fontFamily: 'Inter_600SemiBold' }}>
+                          Explore All New Posts
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
                   ) : (
                     <TouchableOpacity
                       activeOpacity={0.8}
@@ -2978,18 +3127,18 @@ export default function DashboardScreen() {
                         paddingHorizontal: 18,
                         paddingVertical: 10,
                         borderRadius: 12,
-                        backgroundColor: '#3b82f6',
+                        backgroundColor: isDark ? '#ffffff' : '#0f172a',
                       }}
                     >
-                      <Plus size={16} color="#fff" />
-                      <Text style={{ color: '#fff', fontSize: 13, fontFamily: 'Inter_600SemiBold' }}>
+                      <Plus size={16} color={isDark ? '#000000' : '#ffffff'} />
+                      <Text style={{ color: isDark ? '#000000' : '#ffffff', fontSize: 13, fontFamily: 'Inter_600SemiBold' }}>
                         Create Post
                       </Text>
                     </TouchableOpacity>
                   )}
                 </View>
               )}
-            </Animated.View>
+            </View>
           </Animated.ScrollView>
 
           {activePostMenu && (
@@ -3430,7 +3579,7 @@ export default function DashboardScreen() {
       <ImageViewerModal
         visible={!!activeViewerPostId}
         onClose={() => setActiveViewerPostId(null)}
-        posts={feedSubTab === 'new' ? feedPostsToRender : []}
+        posts={feedPostsToRender}
         initialPostId={activeViewerPostId}
         onLike={handleLikePost}
         onComment={handleCommentPost}
