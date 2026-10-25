@@ -3,7 +3,7 @@ import {
   TrendingUp, TrendingDown, Wallet, Zap, ShieldCheck, Activity, 
   ArrowUpRight, ArrowDownLeft, Play, Pause, RefreshCw, Copy, Check, 
   Upload, X, CheckCircle2, AlertCircle, Clock, ExternalLink, QrCode, 
-  Image as ImageIcon, Trash2, Eye, Cpu, Radio, ChevronRight, ChevronLeft, DollarSign,
+  Image as ImageIcon, Trash2, Eye, Cpu, Radio, DollarSign,
   Layers, Sliders, ArrowRight, Crown, Sparkles, Lock, Award, Target, Coins, BarChart3
 } from "lucide-react";
 import { 
@@ -551,34 +551,7 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
     ];
   }, [chartTimeframe, accountBalance, todayProfit, netProfitAllTime, closedTrades, openPositions]);
 
-  // ── Pagination States (5 trades per page) ──
-  const TRADES_PER_PAGE = 5;
-  const [closedTradesPage, setClosedTradesPage] = useState<number>(1);
-  const [openPositionsPage, setOpenPositionsPage] = useState<number>(1);
 
-  const totalClosedPages = Math.max(1, Math.ceil(closedTrades.length / TRADES_PER_PAGE));
-  const currentClosedTrades = useMemo(() => {
-    const start = (closedTradesPage - 1) * TRADES_PER_PAGE;
-    return closedTrades.slice(start, start + TRADES_PER_PAGE);
-  }, [closedTrades, closedTradesPage]);
-
-  useEffect(() => {
-    if (closedTradesPage > totalClosedPages) {
-      setClosedTradesPage(totalClosedPages);
-    }
-  }, [totalClosedPages, closedTradesPage]);
-
-  const totalOpenPages = Math.max(1, Math.ceil(openPositions.length / TRADES_PER_PAGE));
-  const currentOpenPositions = useMemo(() => {
-    const start = (openPositionsPage - 1) * TRADES_PER_PAGE;
-    return openPositions.slice(start, start + TRADES_PER_PAGE);
-  }, [openPositions, openPositionsPage]);
-
-  useEffect(() => {
-    if (openPositionsPage > totalOpenPages) {
-      setOpenPositionsPage(totalOpenPages);
-    }
-  }, [totalOpenPages, openPositionsPage]);
 
   // ── Quantitative Performance Metrics (Pure Real Trades & Live Telemetry - No Demo Data) ──
   const quantMetrics = useMemo(() => {
@@ -1055,15 +1028,13 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
             <span className={`w-2 h-2 rounded-full ${isBotRunning ? 'bg-[#10B981] animate-pulse' : 'bg-amber-400'}`} />
             FiAlgo MT5 {displayAccount ? `#${displayAccount}` : "(Unconnected)"}
           </span>
-          <span className="text-slate-300 dark:text-slate-400">•</span>
-          {isCentAccount ? (
-            <span className="px-2 py-0.5 rounded-full text-[10.5px] font-extrabold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center gap-1 shadow-2xs" title="100 USC = $1.00 USD (Exness/Broker Cent Execution)">
-              🪙 Cent Account (USC)
-            </span>
-          ) : (
-            <span className="px-2 py-0.5 rounded-full text-[10.5px] font-extrabold bg-slate-100 text-slate-700 dark:bg-white/5 dark:text-slate-300 border border-slate-200/50 dark:border-white/5 flex items-center gap-1">
-              {accountCurrency === "INR" ? "🇮🇳 INR Account" : "💵 USD Standard Account"}
-            </span>
+          {isCentAccount && (
+            <>
+              <span className="text-slate-300 dark:text-slate-400">•</span>
+              <span className="px-2 py-0.5 rounded-full text-[10.5px] font-extrabold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center gap-1 shadow-2xs" title="100 USC = $1.00 USD (Exness/Broker Cent Execution)">
+                🪙 Cent Account (USC)
+              </span>
+            </>
           )}
           <span className="text-slate-300 dark:text-slate-400">•</span>
           <span className="font-semibold text-slate-600 dark:text-slate-300">{brokerServer}</span>
@@ -1076,59 +1047,7 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-auto shrink-0 flex-wrap">
-          {/* Currency Switcher: Native (USC/USD/INR) | USD | INR */}
-          <div className="h-[36px] p-0.5 shrink-0 rounded-[14px] border-2 border-white dark:border-white/5 bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:shadow-none flex items-center gap-0.5 text-[11px] font-bold select-none">
-            {isCentAccount && (
-              <button
-                type="button"
-                onClick={() => {
-                  setViewCurrency("NATIVE");
-                  try { localStorage.setItem("tradifive_view_currency", "NATIVE"); } catch (e) {}
-                  toast.success("Viewing in Native MT5 USC Cents (100 USC = $1.00)");
-                }}
-                className={`h-[28px] px-2 rounded-[10px] transition-all cursor-pointer flex items-center gap-1 ${
-                  viewCurrency === "NATIVE"
-                    ? "bg-amber-500 text-white shadow-xs font-extrabold"
-                    : "text-slate-400 hover:text-slate-700 dark:hover:text-white"
-                }`}
-                title="View in native MT5 Cent Account currency (USC)"
-              >
-                🪙 USC
-              </button>
-            )}
-            <button
-              type="button"
-              onClick={() => {
-                setViewCurrency("USD");
-                try { localStorage.setItem("tradifive_view_currency", "USD"); } catch (e) {}
-                toast.success("Viewing in US Dollars ($)");
-              }}
-              className={`h-[28px] px-2 rounded-[10px] transition-all cursor-pointer flex items-center gap-0.5 ${
-                viewCurrency === "USD" || (!isCentAccount && viewCurrency === "NATIVE" && accountCurrency === "USD")
-                  ? "bg-slate-900 dark:bg-slate-700 text-white shadow-xs font-extrabold"
-                  : "text-slate-400 hover:text-slate-700 dark:hover:text-white"
-              }`}
-              title="Convert and view in US Dollars ($)"
-            >
-              $ USD
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setViewCurrency("INR");
-                try { localStorage.setItem("tradifive_view_currency", "INR"); } catch (e) {}
-                toast.success("Viewing in Indian Rupees (₹)");
-              }}
-              className={`h-[28px] px-2 rounded-[10px] transition-all cursor-pointer flex items-center gap-0.5 ${
-                viewCurrency === "INR" || (!isCentAccount && viewCurrency === "NATIVE" && accountCurrency === "INR")
-                  ? "bg-emerald-600 text-white shadow-xs font-extrabold"
-                  : "text-slate-400 hover:text-slate-700 dark:hover:text-white"
-              }`}
-              title="Convert and view in Indian Rupees (₹)"
-            >
-              ₹ INR
-            </button>
-          </div>
+
 
           {/* Telemetry Refresh Button - 36px Fixed */}
           <button
@@ -1749,203 +1668,6 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
         </div>
       </div>
 
-      {/* ── LIVE ACTIVE BASKET POSITIONS & RECENT CLOSED TRADES SECTION ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
-        {/* CARD 1: LIVE BASKET POSITIONS */}
-        <div className={`${cardBoxStyle} flex flex-col justify-between`}>
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <span className="relative flex h-2.5 w-2.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-                </span>
-                <h3 className="text-[15px] font-bold text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
-                  Live Active Basket Positions
-                </h3>
-              </div>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200/50">
-                {openPositions.length} Active Orders
-              </span>
-            </div>
-            <p className="text-[11.5px] font-normal text-slate-400 mb-3.5">
-              Real-time floating positions managed by Tradifive Quant EA in your MT5 terminal.
-            </p>
-
-            {openPositions.length === 0 ? (
-              <div className="py-12 text-center flex flex-col items-center justify-center rounded-[16px] bg-slate-50/70 dark:bg-white/[0.02] border border-dashed border-slate-200 dark:border-white/5">
-                <Activity size={24} className="text-slate-300 dark:text-slate-600 mb-2 animate-pulse" />
-                <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">No active floating positions</p>
-                <p className="text-[11px] text-slate-400 mt-0.5">Tradifive EA is monitoring market ticks for the next high-probability setup.</p>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead>
-                    <tr className="border-b border-slate-200/80 dark:border-white/5 text-slate-400 uppercase text-[10px] font-extrabold tracking-wider">
-                      <th className="pb-2.5 font-extrabold">Ticket</th>
-                      <th className="pb-2.5 font-extrabold">Symbol</th>
-                      <th className="pb-2.5 font-extrabold">Type</th>
-                      <th className="pb-2.5 font-extrabold">Lots</th>
-                      <th className="pb-2.5 font-extrabold">Open Price</th>
-                      <th className="pb-2.5 font-extrabold">Current</th>
-                      <th className="pb-2.5 font-extrabold text-right">Floating P&L</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-white/5 font-mono text-[11px]">
-                    {currentOpenPositions.map((pos) => {
-                      const isProfit = pos.floatingPnl >= 0;
-                      return (
-                        <tr key={pos.ticket} className="hover:bg-slate-50/60 dark:hover:bg-white/[0.02] transition-colors">
-                          <td className="py-2.5 text-slate-900 dark:text-white font-medium">{pos.ticket}</td>
-                          <td className="py-2.5 font-sans font-bold text-slate-800 dark:text-slate-200">{pos.symbol}</td>
-                          <td className="py-2.5 font-sans">
-                            <span className={`inline-block px-1.5 py-0.5 rounded text-[9.5px] font-bold ${
-                              pos.type === "BUY"
-                                ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400"
-                                : "bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400"
-                            }`}>
-                              {pos.type}
-                            </span>
-                          </td>
-                          <td className="py-2.5 text-slate-600 dark:text-slate-300 font-semibold">{pos.lots.toFixed(2)}</td>
-                          <td className="py-2.5 text-slate-500 dark:text-slate-400">{pos.openPrice}</td>
-                          <td className="py-2.5 text-slate-700 dark:text-slate-300">{pos.currentPrice}</td>
-                          <td className={`py-2.5 text-right font-bold ${isProfit ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
-                            {isProfit ? "+" : ""}{formatMoney(pos.floatingPnl)}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-
-          {/* Open Positions Pagination */}
-          {openPositions.length > TRADES_PER_PAGE && (
-            <div className="flex items-center justify-between pt-3 mt-2 border-t border-slate-100 dark:border-white/5 text-[11px]">
-              <span className="text-slate-400 font-sans">
-                Showing {((openPositionsPage - 1) * TRADES_PER_PAGE) + 1} - {Math.min(openPositionsPage * TRADES_PER_PAGE, openPositions.length)} of {openPositions.length}
-              </span>
-              <div className="flex items-center gap-1 font-sans">
-                <button
-                  onClick={() => setOpenPositionsPage(p => Math.max(1, p - 1))}
-                  disabled={openPositionsPage === 1}
-                  className="p-1 rounded-md bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
-                >
-                  <ChevronLeft size={14} />
-                </button>
-                <span className="px-2 text-slate-700 dark:text-slate-300 font-bold">{openPositionsPage} / {totalOpenPages}</span>
-                <button
-                  onClick={() => setOpenPositionsPage(p => Math.min(totalOpenPages, p + 1))}
-                  disabled={openPositionsPage === totalOpenPages}
-                  className="p-1 rounded-md bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
-                >
-                  <ChevronRight size={14} />
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* CARD 2: RECENT CLOSED DEALS HISTORY */}
-        <div className={`${cardBoxStyle} flex flex-col justify-between`}>
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 size={15} className="text-emerald-500" />
-                <h3 className="text-[15px] font-bold text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
-                  Recent Closed Deals
-                </h3>
-              </div>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 border border-slate-200/50 dark:border-white/5">
-                {closedTrades.length} Deals Completed
-              </span>
-            </div>
-            <p className="text-[11.5px] font-normal text-slate-400 mb-3.5">
-              Audited trade executions closed by Tradifive Quant EA with verified execution.
-            </p>
-
-            {closedTrades.length === 0 ? (
-              <div className="py-12 text-center flex flex-col items-center justify-center rounded-[16px] bg-slate-50/70 dark:bg-white/[0.02] border border-dashed border-slate-200 dark:border-white/5">
-                <Clock size={24} className="text-slate-300 dark:text-slate-600 mb-2" />
-                <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">No closed trades yet today</p>
-                <p className="text-[11px] text-slate-400 mt-0.5">Real MT5 execution records will appear here automatically when positions take profit.</p>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead>
-                    <tr className="border-b border-slate-200/80 dark:border-white/5 text-slate-400 uppercase text-[10px] font-extrabold tracking-wider">
-                      <th className="pb-2.5 font-extrabold">Ticket</th>
-                      <th className="pb-2.5 font-extrabold">Symbol</th>
-                      <th className="pb-2.5 font-extrabold">Type</th>
-                      <th className="pb-2.5 font-extrabold">Lots</th>
-                      <th className="pb-2.5 font-extrabold">Open → Close</th>
-                      <th className="pb-2.5 font-extrabold">Time</th>
-                      <th className="pb-2.5 font-extrabold text-right">Net P&L</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-white/5 font-mono text-[11px]">
-                    {currentClosedTrades.map((t) => {
-                      const isProfit = t.pnl >= 0;
-                      return (
-                        <tr key={t.ticket} className="hover:bg-slate-50/60 dark:hover:bg-white/[0.02] transition-colors">
-                          <td className="py-2.5 text-slate-900 dark:text-white font-medium">{t.ticket}</td>
-                          <td className="py-2.5 font-sans font-bold text-slate-800 dark:text-slate-200">{t.symbol}</td>
-                          <td className="py-2.5 font-sans">
-                            <span className={`inline-block px-1.5 py-0.5 rounded text-[9.5px] font-bold ${
-                              t.type === "BUY"
-                                ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400"
-                                : "bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400"
-                            }`}>
-                              {t.type}
-                            </span>
-                          </td>
-                          <td className="py-2.5 text-slate-600 dark:text-slate-300 font-semibold">{t.lots.toFixed(2)}</td>
-                          <td className="py-2.5 text-slate-500 dark:text-slate-400">{t.openPrice} → {t.closePrice}</td>
-                          <td className="py-2.5 text-slate-400 font-sans text-[10px]">{t.closeTime || t.duration}</td>
-                          <td className={`py-2.5 text-right font-bold ${isProfit ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
-                            {isProfit ? "+" : ""}{formatMoney(t.pnl)}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-
-          {/* Closed Trades Pagination */}
-          {closedTrades.length > TRADES_PER_PAGE && (
-            <div className="flex items-center justify-between pt-3 mt-2 border-t border-slate-100 dark:border-white/5 text-[11px]">
-              <span className="text-slate-400 font-sans">
-                Showing {((closedTradesPage - 1) * TRADES_PER_PAGE) + 1} - {Math.min(closedTradesPage * TRADES_PER_PAGE, closedTrades.length)} of {closedTrades.length}
-              </span>
-              <div className="flex items-center gap-1 font-sans">
-                <button
-                  onClick={() => setClosedTradesPage(p => Math.max(1, p - 1))}
-                  disabled={closedTradesPage === 1}
-                  className="p-1 rounded-md bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
-                >
-                  <ChevronLeft size={14} />
-                </button>
-                <span className="px-2 text-slate-700 dark:text-slate-300 font-bold">{closedTradesPage} / {totalClosedPages}</span>
-                <button
-                  onClick={() => setClosedTradesPage(p => Math.min(totalClosedPages, p + 1))}
-                  disabled={closedTradesPage === totalClosedPages}
-                  className="p-1 rounded-md bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
-                >
-                  <ChevronRight size={14} />
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
       {isLifetime ? (
         <div className={cardBoxStyle}>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
