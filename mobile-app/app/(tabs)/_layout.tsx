@@ -110,6 +110,7 @@ const AI_SUGGESTIONS = [
 const SEARCH_DATA = [
   { label: 'Journal', type: 'tool', route: '/(tabs)/journal', icon: BookOpen },
   { label: 'Risk Guard', type: 'tool', route: '/(tabs)/risk-guard', icon: ShieldCheck },
+  { label: 'Auto Trade', type: 'tool', route: '/(tabs)/auto-trade-setup', icon: Activity },
   { label: 'Broker Connect', type: 'tool', route: '/broker-connect', icon: Zap },
   { label: 'Rewards', type: 'tool', route: '/(tabs)/rewards', icon: Gift },
   { label: 'Channels', type: 'community', route: '/(tabs)/channels', icon: Users },
@@ -393,7 +394,7 @@ export default function TabLayout() {
       label: 'Auto Trade',
       icon: Activity,
       subItems: [
-        { label: 'Auto Trade Setup', icon: Work, route: '/auto-trade-setup' },
+        { label: 'Auto Trade Setup', icon: Work, route: '/(tabs)/auto-trade-setup' },
         { label: 'Algo Marketplace', icon: Bag, route: '/(tabs)/marketplace' },
         { label: 'Order History', icon: Document, route: '/(tabs)/journal' },
       ],
@@ -591,7 +592,7 @@ export default function TabLayout() {
                       } else if (item.label === 'Auto Trade') {
                         setActiveTab('dynamic');
                         setPendingTab('dynamic');
-                        router.push('/auto-trade-setup');
+                        router.push('/(tabs)/auto-trade-setup');
                       } else if (item.label === 'Discover') {
                         setActiveTab('dynamic');
                         setPendingTab('dynamic');
@@ -906,10 +907,11 @@ export default function TabLayout() {
               <Tabs.Screen name="creator-studio" options={{ title: 'Creator Studio' }} />
               <Tabs.Screen name="my-store" options={{ title: 'My Store' }} />
               <Tabs.Screen name="referrals" options={{ title: 'Referrals' }} />
+              <Tabs.Screen name="auto-trade-setup" options={{ title: 'Auto Trade' }} />
             </Tabs>
 
             {/* GLOBAL TOP HEADER - Show for all tactical pages (Left Aligned Style) */}
-            {!isSettings && !isHome && !pathname.includes('channel') && !pathname.includes('journal') && !pathname.includes('risk-guard') && !pathname.includes('rewards') && !pathname.includes('inbox') && !pathname.includes('referrals') && !pathname.includes('notifications') && !pathname.includes('ai-coach') && !pathname.includes('creator-studio') && !pathname.includes('mentorship-hub') && !pathname.includes('my-store') && !pathname.includes('live-sessions') && (
+            {!isSettings && !isHome && !pathname.includes('channel') && !pathname.includes('journal') && !pathname.includes('risk-guard') && !pathname.includes('rewards') && !pathname.includes('inbox') && !pathname.includes('referrals') && !pathname.includes('notifications') && !pathname.includes('ai-coach') && !pathname.includes('creator-studio') && !pathname.includes('mentorship-hub') && !pathname.includes('my-store') && !pathname.includes('live-sessions') && !pathname.includes('auto-trade-setup') && (
               <View style={{ position: 'absolute', top: 0, width: '100%', zIndex: 1000, pointerEvents: 'box-none' }}>
                 <View style={{
                   paddingTop: insets.top + 20,
@@ -1018,6 +1020,7 @@ export default function TabLayout() {
                         setPendingTab('dynamic');
                         if (activeNavItem.label === 'Trading Journal' || activeNavItem.label === 'Journal') router.push('/(tabs)/journal');
                         else if (activeNavItem.label === 'Risk Guard') router.push('/(tabs)/risk-guard');
+                        else if (activeNavItem.label === 'Auto Trade' || activeNavItem.label === 'Auto Trade Setup') router.push('/(tabs)/auto-trade-setup');
                         else if (activeNavItem.label === 'Rewards') router.push('/(tabs)/rewards');
                         else if (activeNavItem.label === 'Broker Connect') router.push('/broker-connect' as any);
                         else if (activeNavItem.label === 'Channels') router.push('/(tabs)/channels');
