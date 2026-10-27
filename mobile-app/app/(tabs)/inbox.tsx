@@ -13,7 +13,7 @@ import {
   VolumeX, Volume2, User, X, Ticket,
   ShieldAlert, Sparkles, Folder, ChevronRight, Bell,
 } from 'lucide-react-native';
-import { Send as IconlySend } from 'react-native-iconly';
+import { Send as IconlySend } from '../../components/Iconly';
 import * as Haptics from 'expo-haptics';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useInboxData } from '../../hooks/useInboxData';

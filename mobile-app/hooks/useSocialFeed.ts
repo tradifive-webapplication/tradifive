@@ -15,6 +15,7 @@ export type FeedPost = {
   bookmark_count: number;
   profiles: {
     full_name: string | null;
+    display_name: string | null;
     username: string | null;
     avatar_url: string | null;
   } | null;
@@ -29,13 +30,17 @@ export function useSocialFeed() {
     try {
       const { data, error } = await supabase
         .from('social_posts')
-        .select('*, profiles(full_name, username, avatar_url)')
-        .neq('post_type', 'story')
+        .select('*, profiles(full_name, display_name, username, avatar_url)')
         .order('created_at', { ascending: false })
         .limit(50);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Feed fetch error:', error.message, error.details);
+        throw error;
+      }
       let finalData = (data as FeedPost[]) || [];
+      // Filter out stories client-side to avoid potential RLS conflicts
+      finalData = finalData.filter(p => p.post_type !== 'story');
       
       setFeeds(finalData);
     } catch (err) {
@@ -48,7 +53,7 @@ export function useSocialFeed() {
 
   useEffect(() => {
     fetchFeeds();
-  }, []);
+  }, [currentUser?.id]);
 
   const addPost = (post: FeedPost) => {
     setFeeds(prev => [post, ...prev]);

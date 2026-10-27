@@ -123,7 +123,7 @@ export const FeedCard: React.FC<FeedCardProps> = ({ post, onLike, onComment, onS
         />
         <View style={styles.headerText}>
           <Text style={[styles.name, { color: isDark ? '#e8e8e8' : '#0f172a' }]}>
-            {post.profiles?.full_name || post.profiles?.username || 'User'}
+            {post.profiles?.display_name || post.profiles?.full_name || post.profiles?.username || 'User'}
           </Text>
           <Text style={styles.time}>{formatDate(post.created_at)}</Text>
         </View>
