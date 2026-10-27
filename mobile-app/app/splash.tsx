@@ -8,12 +8,12 @@ import { AuthService } from './services/auth.service';
 const { width, height } = Dimensions.get('window');
 
 const topGlowSource = require('../assets/images/top-glow.png');
-const topGlowAsset = Image.resolveAssetSource(topGlowSource);
-const topGlowHeight = topGlowAsset ? (width * topGlowAsset.height) / topGlowAsset.width : 150;
+const topGlowAsset = typeof (Image as any)?.resolveAssetSource === 'function' ? (Image as any).resolveAssetSource(topGlowSource) : null;
+const topGlowHeight = topGlowAsset?.width ? (width * topGlowAsset.height) / topGlowAsset.width : Math.round((width * 571) / 1134);
 
 const bottomGlowSource = require('../assets/images/bottom-glow.png');
-const bottomGlowAsset = Image.resolveAssetSource(bottomGlowSource);
-const bottomGlowHeight = bottomGlowAsset ? (width * bottomGlowAsset.height) / bottomGlowAsset.width : 150;
+const bottomGlowAsset = typeof (Image as any)?.resolveAssetSource === 'function' ? (Image as any).resolveAssetSource(bottomGlowSource) : null;
+const bottomGlowHeight = bottomGlowAsset?.width ? (width * bottomGlowAsset.height) / bottomGlowAsset.width : Math.round((width * 571) / 1134);
 
 export default function SplashScreen() {
   const router = useRouter();
