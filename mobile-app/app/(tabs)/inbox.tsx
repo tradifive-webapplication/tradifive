@@ -3,7 +3,7 @@ import {
   View, Text, TextInput, TouchableOpacity, FlatList,
   StyleSheet, Dimensions, Platform, StatusBar, Image,
   KeyboardAvoidingView, Keyboard, Animated, ScrollView,
-  DeviceEventEmitter, Modal, TouchableWithoutFeedback, InteractionManager, ActivityIndicator
+  DeviceEventEmitter, Modal, TouchableWithoutFeedback, ActivityIndicator
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
@@ -231,15 +231,15 @@ export default function InboxScreen() {
 
   useEffect(() => {
     let isActive = true;
-    InteractionManager.runAfterInteractions(() => {
-      setTimeout(() => {
-        if (isActive) {
-          try { router.setParams({ chatOpen: showChat ? 'true' : undefined }); } catch (e) {}
-        }
-      }, 150);
-    });
+    // InteractionManager was removed in RN 0.88 — use setTimeout instead
+    const timer = setTimeout(() => {
+      if (isActive) {
+        try { router.setParams({ chatOpen: showChat ? 'true' : undefined }); } catch (e) {}
+      }
+    }, 150);
     return () => {
       isActive = false;
+      clearTimeout(timer);
       setTimeout(() => {
         try { router.setParams({ chatOpen: undefined }); } catch (e) {}
       }, 0);

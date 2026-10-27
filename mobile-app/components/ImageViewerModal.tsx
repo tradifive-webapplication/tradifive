@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Modal, View, Image, TouchableOpacity, Text, StyleSheet, Platform, SafeAreaView, Dimensions, FlatList, TouchableWithoutFeedback, Animated, ScrollView } from 'react-native';
-import { Heart, Chat, Send, Bookmark } from 'react-native-iconly';
+import { Heart, Chat, Send, Bookmark } from './Iconly';
 import { ChevronLeft, Play, Pause, MoreVertical, X } from 'lucide-react-native';
 import { VideoView, useVideoPlayer } from 'expo-video';
 import { LinearGradient } from 'expo-linear-gradient';

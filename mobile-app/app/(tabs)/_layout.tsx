@@ -884,9 +884,7 @@ export default function TabLayout() {
               screenOptions={{
                 headerShown: false,
                 tabBarStyle: { display: 'none' },
-                sceneStyle: { backgroundColor: 'transparent' }
               }}
-              {...({ sceneContainerStyle: { backgroundColor: 'transparent' } } as any)}
             >
               <Tabs.Screen name="index" options={{ title: 'Home' }} />
               <Tabs.Screen name="journal" options={{ title: 'Journal' }} />
