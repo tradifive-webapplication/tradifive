@@ -1381,7 +1381,20 @@ export default function DashboardScreen() {
     const finalLikes = Math.max(0, rawLikes + (likesOffset[p.id] ?? 0));
     const finalComments = Math.max(0, rawComments + (commentsOffset[p.id] ?? 0));
     const finalShares = Math.max(0, rawShares + (sharesOffset[p.id] ?? 0));
-    const mediaResolved = p.media_url || (p.media_urls && p.media_urls[0]) || p.image || null;
+    let rawUrls = p.media_urls;
+    if (typeof rawUrls === 'string') {
+      try { rawUrls = JSON.parse(rawUrls); } catch (e) { rawUrls = [rawUrls]; }
+    }
+    let mediaResolved = p.media_url || (Array.isArray(rawUrls) && rawUrls[0]) || p.image || null;
+    if (typeof mediaResolved === 'string' && (mediaResolved.startsWith('[') || mediaResolved.startsWith('{'))) {
+      try {
+        const parsed = JSON.parse(mediaResolved);
+        mediaResolved = Array.isArray(parsed) ? parsed[0] : parsed;
+      } catch (e) {}
+    }
+    if (typeof mediaResolved === 'string' && !mediaResolved.startsWith('http') && !mediaResolved.startsWith('file:') && !mediaResolved.startsWith('data:')) {
+      mediaResolved = null;
+    }
 
     return {
       id: p.id,
