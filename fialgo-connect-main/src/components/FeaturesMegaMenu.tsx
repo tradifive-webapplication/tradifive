@@ -22,7 +22,7 @@ interface FeaturesMegaMenuProps {
 const FEATURES: FeatureItem[] = [
   {
     id: "auto-trade",
-    title: "FiAlgo",
+    title: "FiAlgo V1",
     desc: "Hands-free automated execution bots",
     path: "/features/auto-trade",
   },
@@ -243,6 +243,22 @@ export default function FeaturesMegaMenu({
                 <div style={{ position: "relative", zIndex: 2 }}>
                   <div
                     style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 5,
+                      background: "rgba(56, 189, 248, 0.18)",
+                      border: "1px solid rgba(56, 189, 248, 0.35)",
+                      borderRadius: 100,
+                      padding: "2.5px 8px",
+                      marginBottom: 6,
+                      backdropFilter: "blur(8px)",
+                    }}
+                  >
+                    <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#38bdf8", boxShadow: "0 0 6px #38bdf8" }} />
+                    <span style={{ fontSize: 9.5, fontWeight: 800, color: "#38bdf8", letterSpacing: "0.08em", textTransform: "uppercase" }}>ALGO V1</span>
+                  </div>
+                  <div
+                    style={{
                       fontSize: 18,
                       fontWeight: 900,
                       color: "#ffffff",
@@ -251,13 +267,13 @@ export default function FeaturesMegaMenu({
                       textShadow: "0 2px 10px rgba(0,0,0,0.8)",
                     }}
                   >
-                    Next-Gen FiAlgo<br />
-                    Ecosystem
+                    FiAlgo V1<br />
+                    Quant Engine
                   </div>
                 </div>
               </div>
 
-              {/* Bottom: Editorial message + Talk to Sales button */}
+              {/* Bottom: Editorial message + Start Free button */}
               <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 10 }}>
                 <div>
                   <div
@@ -269,7 +285,7 @@ export default function FeaturesMegaMenu({
                       letterSpacing: "-0.01em",
                     }}
                   >
-                    Need customized trading infrastructure?
+                    Automate trades with FiAlgo V1
                   </div>
                   <div
                     style={{
@@ -279,46 +295,51 @@ export default function FeaturesMegaMenu({
                       marginTop: 3,
                     }}
                   >
-                    Connect with our technical team for institutional execution rules, quant algorithms & prop firm setups.
+                    Institutional MT5 Gold execution with built-in risk protection, automated news filtering & verified edge.
                   </div>
                 </div>
 
                 <button
                   type="button"
                   onClick={() => {
-                    onNavigate("/contact");
+                    onNavigate("/features/auto-trade");
                     onClose();
                   }}
                   style={{
                     display: "inline-flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    gap: 7,
-                    padding: "9px 18px",
+                    gap: 8,
+                    padding: "9px 20px",
                     borderRadius: 999,
-                    background: "#2563eb",
-                    border: "1px solid rgba(255, 255, 255, 0.15)",
-                    color: "#ffffff",
-                    fontSize: 12.5,
+                    background: "linear-gradient(135deg, #182236 0%, #0d1526 100%)",
+                    border: "1px solid rgba(56, 189, 248, 0.22)",
+                    boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 8px rgba(0, 0, 0, 0.4)",
+                    color: "#60a5fa",
+                    fontSize: 13,
                     fontWeight: 700,
                     cursor: "pointer",
                     transition: "all 0.2s ease",
-                    boxShadow: "0 4px 14px rgba(37, 99, 235, 0.35)",
                     width: "100%",
+                    outline: "none",
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "#1d4ed8";
+                    e.currentTarget.style.background = "linear-gradient(135deg, #22324f 0%, #111c34 100%)";
+                    e.currentTarget.style.color = "#93c5fd";
+                    e.currentTarget.style.borderColor = "rgba(56, 189, 248, 0.35)";
+                    e.currentTarget.style.boxShadow = "inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 4px 14px rgba(30, 58, 138, 0.4)";
                     e.currentTarget.style.transform = "translateY(-1px)";
-                    e.currentTarget.style.boxShadow = "0 6px 18px rgba(37, 99, 235, 0.5)";
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "#2563eb";
+                    e.currentTarget.style.background = "linear-gradient(135deg, #182236 0%, #0d1526 100%)";
+                    e.currentTarget.style.color = "#60a5fa";
+                    e.currentTarget.style.borderColor = "rgba(56, 189, 248, 0.22)";
+                    e.currentTarget.style.boxShadow = "inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 8px rgba(0, 0, 0, 0.4)";
                     e.currentTarget.style.transform = "translateY(0px)";
-                    e.currentTarget.style.boxShadow = "0 4px 14px rgba(37, 99, 235, 0.35)";
                   }}
                 >
-                  <span>Talk to Sales</span>
-                  <ArrowRight size={13} strokeWidth={2.5} />
+                  <span>Start Free</span>
+                  <ArrowRight size={14} strokeWidth={2.5} />
                 </button>
               </div>
             </div>

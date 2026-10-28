@@ -35,7 +35,7 @@ export default function PublicNavbar({
 
   const MOBILE_FEATURES = [
     {
-      title: "FiAlgo",
+      title: "FiAlgo V1",
       desc: "Automated MT5 Gold trading bots",
       path: "/features/auto-trade",
       icon: Cpu,
