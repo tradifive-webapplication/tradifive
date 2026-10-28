@@ -154,10 +154,8 @@ const dashboardMenu = [
 
 const journalMenu = [
   { path: "/journal", icon: WrappedIconly(Document), label: "Daily Journal" },
-  { path: "/charts", icon: WrappedIconly(Graph), label: "Performance Charts" },
   { path: "/journal/history", icon: wrapLucide(Clock), label: "Trade History" },
   { path: "/journal/mistakes", icon: WrappedIconly(ShieldDone), label: "Mistake Tracking" },
-  { path: "/journal/tags", icon: wrapLucide(Hash), label: "Tags & Filters" },
 ];
 
 const aiCoachMenu = [
@@ -688,10 +686,8 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
       case "journal":
         return [
           { path: "/journal", icon: WrappedIconly(Document), label: "Daily Journal" },
-          { path: "/charts", icon: WrappedIconly(Graph), label: "Performance Charts" },
           { path: "/journal/history", icon: WrappedIconly(TimeCircle), label: "Trade History" },
           { path: "/journal/mistakes", icon: WrappedIconly(ShieldDone), label: "Mistake Tracking" },
-          { path: "/journal/tags", icon: WrappedIconly(Filter), label: "Tags & Filters" },
         ];
       case "riskGuard":
         return [

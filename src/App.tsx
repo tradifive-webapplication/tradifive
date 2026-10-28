@@ -47,6 +47,7 @@ const AutoTradeDashboardPage = lazy(() => import('./pages/AutoTradeDashboardPage
 const MyRobots = lazy(() => import('./pages/MyRobots'));
 const StrategyBuilderPage = lazy(() => import('./pages/StrategyBuilderPage'));
 const TradeHistory = lazy(() => import('./pages/TradeHistory'));
+const MistakeTracking = lazy(() => import("./pages/MistakeTracking"));
 const EASetup = lazy(() => import('./pages/EASetup'));
 const ChallengeConsole = lazy(() => import("./pages/ChallengeConsole"));
 const Payouts = lazy(() => import("./pages/Payouts"));
@@ -195,8 +196,10 @@ const App = () => {
                   <Route path="/charts" element={<Navigate to="/journal" replace />} />
                   <Route path="/chart" element={<Navigate to="/journal" replace />} />
                   <Route path="/analytics" element={<Navigate to="/journal" replace />} />
-                  <Route path="/journal/history" element={<Navigate to="/journal" replace />} />
-                  <Route path="/journal/mistakes" element={<Navigate to="/journal" replace />} />
+                  <Route path="/journal/history" element={<TradeHistory />} />
+                  <Route path="/journal/mistakes" element={<MistakeTracking />} />
+                  <Route path="/mistakes" element={<MistakeTracking />} />
+                  <Route path="/mistake-tracking" element={<MistakeTracking />} />
                   <Route path="/journal/tags" element={<Navigate to="/journal" replace />} />
                   <Route path="/risk-guard" element={<RiskGuard />} />
                   <Route path="/risk-guard/limits" element={<Navigate to="/risk-guard" replace />} />
