@@ -4,7 +4,6 @@ import { PricingCards } from "@/components/PricingCards";
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
 import { CheckCircle2, Shield, TrendingUp, Users, ArrowRight, Activity, Cpu, Play, Layers, X, Zap, Trophy, Star, Globe, MessageSquare, Radio, MessageCircle, GraduationCap, Sparkles, BookText, Crown, ShieldCheck } from "lucide-react";
 import { ShieldDone, Graph, Activity as IconlyActivity, TwoUsers } from "react-iconly";
-import WaitlistModal from "../components/WaitlistModal";
 import PremiumBackground from "../components/PremiumBackground";
 import StarsBackground from "../components/StarsBackground";
 import { toast } from "sonner";
@@ -275,25 +274,6 @@ function HeroDashboard() {
    HERO TRUST SIGNALS
 ════════════════ */
 function HeroTrustSignals() {
-  const navigate = useNavigate();
-  const [clicks, setClicks] = useState(0);
-  const clickTimeout = useRef<NodeJS.Timeout | null>(null);
-
-  const handleBuiltTogetherClick = () => {
-    setClicks(prev => {
-      const next = prev + 1;
-      if (next >= 10) {
-        navigate("/login");
-        return 0;
-      }
-      return next;
-    });
-
-    if (clickTimeout.current) clearTimeout(clickTimeout.current);
-    clickTimeout.current = setTimeout(() => {
-      setClicks(0);
-    }, 2000);
-  };
 
   return (
     <motion.div
@@ -320,8 +300,7 @@ function HeroTrustSignals() {
           <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", lineHeight: 1.4 }}>Blazing fast execution with low latency.</div>
         </div>
         <div 
-          style={{ display: "flex", flexDirection: "column", gap: 8, cursor: "pointer" }}
-          onClick={handleBuiltTogetherClick}
+          style={{ display: "flex", flexDirection: "column", gap: 8 }}
         >
           <div style={{ color: "#6366f1" }}><TwoUsers set="light" size={18} /></div>
           <div style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>Built Together</div>
@@ -1554,7 +1533,6 @@ function MobileView({ onStart }: { onStart: () => void }) {
 ════════════════ */
 export default function TradiFive() {
   const [isMobile, setIsMobile] = useState(false);
-  const [showWaitlist, setShowWaitlist] = useState(false);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -1595,7 +1573,7 @@ export default function TradiFive() {
   }, [location]);
 
   const handleSignIn = () => navigate("/login", { state: { mode: "login" } });
-  const handleSignUp = () => setShowWaitlist(true);
+  const handleSignUp = () => navigate("/login", { state: { mode: "signup" } });
   const handleStart = handleSignUp;
 
   // Mobile view is allowed to see the landing page, so we don't block.
@@ -1624,13 +1602,6 @@ export default function TradiFive() {
       </main>
 
       <PublicFooter />
-
-      {showWaitlist && (
-        <WaitlistModal
-          isOpen={showWaitlist}
-          onClose={() => setShowWaitlist(false)}
-        />
-      )}
     </div>
   );
 }

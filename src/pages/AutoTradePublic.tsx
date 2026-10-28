@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import PublicNavbar from "@/components/PublicNavbar";
 import PublicFooter from "@/components/PublicFooter";
-import WaitlistModal from "@/components/WaitlistModal";
 import { Sparkles, Shield, Zap, ChevronDown, ArrowRight, CheckCircle2, Cpu, HelpCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -156,7 +155,6 @@ function SectionDivider({ my = 36 }: { my?: number }) {
 export default function AutoTradePublic() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const [showWaitlist, setShowWaitlist] = useState(false);
   const handleStart = (tier?: string) => {
     const chosenTier = tier || localStorage.getItem("tradifive_selected_tier") || "lifetime";
     navigate(`/auto-trade/setup?tier=${chosenTier}`);
@@ -175,8 +173,8 @@ export default function AutoTradePublic() {
       }}
     >
       <PublicNavbar
-        onSignIn={handleStart}
-        onSignUp={handleStart}
+        onSignIn={() => navigate("/login", { state: { mode: "login" } })}
+        onSignUp={() => navigate("/login", { state: { mode: "signup" } })}
         onDownloadClick={() => navigate("/download")}
       />
 
@@ -829,12 +827,6 @@ export default function AutoTradePublic() {
       </main>
 
       <PublicFooter />
-      {showWaitlist && (
-        <WaitlistModal
-          isOpen={showWaitlist}
-          onClose={() => setShowWaitlist(false)}
-        />
-      )}
     </div>
   );
 }

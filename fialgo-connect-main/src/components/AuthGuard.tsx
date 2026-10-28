@@ -54,8 +54,7 @@ export const AuthGuard = ({ children }: { children: React.ReactNode }) => {
         if (!session) {
           if (isMounted.current) {
             sessionStorage.removeItem("fialgo_loaded");
-            const isElectron = navigator.userAgent.toLowerCase().includes('electron');
-            navigate(isElectron ? "/login" : "/");
+            navigate("/login");
           }
           return;
         }

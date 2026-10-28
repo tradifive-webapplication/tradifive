@@ -2,7 +2,6 @@ import React, { useRef, useState } from "react";
 import PublicNavbar from "@/components/PublicNavbar";
 import LaserFlow from "@/components/LaserFlow";
 import PublicFooter from "@/components/PublicFooter";
-import WaitlistModal from "@/components/WaitlistModal";
 import { Sparkles, Brain, Shield, MessageCircle, BarChart3, Zap, Target, ChevronDown, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
@@ -154,8 +153,7 @@ function FAQItem({ item, isOpen, onToggle }: { item: typeof faqItems[0]; isOpen:
 export default function TradifiveAIPublic() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const [showWaitlist, setShowWaitlist] = useState(false);
-  const handleStart = () => setShowWaitlist(true);
+  const handleStart = () => navigate("/login", { state: { mode: "signup" } });
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   const imageContainerRef = useRef<HTMLDivElement>(null);
@@ -1209,12 +1207,6 @@ export default function TradifiveAIPublic() {
       </main>
 
       <PublicFooter />
-      {showWaitlist && (
-        <WaitlistModal
-          isOpen={showWaitlist}
-          onClose={() => setShowWaitlist(false)}
-        />
-      )}
     </div>
   );
 }

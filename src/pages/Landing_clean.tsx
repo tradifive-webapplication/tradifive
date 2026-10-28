@@ -7,7 +7,6 @@ import tradifiveLogo from "@/assets/tradifive-login-logo.png";
 import tradifiveNewLogo from "@/assets/tradifive-new-logo.png";
 import { supabase } from "@/lib/supabase";
 import { X, Send, Rocket, MessageSquare, User, Shield, Download, Sparkles, Image, Layers, Share2 } from "lucide-react";
-import WaitlistModal from "../components/WaitlistModal";
 import { toast } from "sonner";
 import PublicNavbar from "../components/PublicNavbar";
 import PublicFooter from "../components/PublicFooter";
@@ -1187,8 +1186,8 @@ export default function TradiFive() {
     return () => window.removeEventListener('resize', check);
   }, []);
 
-  const handleSignIn = () => setShowWaitlist(true);
-  const handleSignUp = () => setShowWaitlist(true);
+  const handleSignIn = () => navigate("/login", { state: { mode: "login" } });
+  const handleSignUp = () => navigate("/login", { state: { mode: "signup" } });
   const handleStart = handleSignUp;
 
   // Removed redirect to allow landing page to show on mobile

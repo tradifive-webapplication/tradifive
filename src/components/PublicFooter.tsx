@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Twitter, Linkedin, Github, Mail, ArrowUpRight, Heart } from "lucide-react";
+import { toast } from "sonner";
 
 const COLS = [
   {
@@ -55,8 +56,19 @@ const SOCIALS = [
 ];
 
 export default function PublicFooter() {
+  const [newsletterEmail, setNewsletterEmail] = useState("");
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleSubscribe = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newsletterEmail || !newsletterEmail.includes("@")) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+    toast.success("Thank you for subscribing to updates!");
+    setNewsletterEmail("");
   };
 
   return (
@@ -90,14 +102,17 @@ export default function PublicFooter() {
 
             {/* Newsletter Subscription */}
             <div className="w-full max-w-[280px] mt-2 mb-2">
-              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-3">Join the waitlist</p>
-              <div className="flex items-center relative">
+              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-3">Stay Updated</p>
+              <form onSubmit={handleSubscribe} className="flex items-center relative">
                 <input 
                   type="email" 
+                  value={newsletterEmail}
+                  onChange={(e) => setNewsletterEmail(e.target.value)}
                   placeholder="Enter your email" 
                   className="w-full bg-white/[0.03] border border-white/10 rounded-full py-2.5 pl-4 pr-24 text-[13px] text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500/50 focus:bg-white/[0.05] transition-all"
                 />
                 <button
+                  type="submit"
                   className="absolute right-1 top-1 bottom-1 px-4 text-[12px] font-bold rounded-full transition-all"
                   style={{
                     background: "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)",
@@ -116,9 +131,9 @@ export default function PublicFooter() {
                     e.currentTarget.style.color = "#60a5fa";
                   }}
                 >
-                  Join
+                  Subscribe
                 </button>
-              </div>
+              </form>
             </div>
 
             {/* Direct contact link */}

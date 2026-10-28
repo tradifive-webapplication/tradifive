@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Ic } from "./Ic";
 import { Download, Menu, X, ArrowRight, Sparkles, ChevronRight, ChevronDown, Tag, Smartphone, Mail, Brain, Cpu, Shield, BookOpen, Users, Radio } from "lucide-react";
 import AnimatedButton from "./AnimatedButton";
-import WaitlistModal from "./WaitlistModal";
 import FeaturesMegaMenu from "./FeaturesMegaMenu";
 
 export default function PublicNavbar({
@@ -27,7 +26,6 @@ export default function PublicNavbar({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [inDeepDives, setInDeepDives] = useState(false);
   const [isHoveredTop, setIsHoveredTop] = useState(false);
-  const [showWaitlist, setShowWaitlist] = useState(false);
 
   // Desktop Features Mega Dropdown State
   const [featuresDropdownOpen, setFeaturesDropdownOpen] = useState(false);
@@ -166,13 +164,13 @@ export default function PublicNavbar({
   }, [featuresDropdownOpen]);
 
   const handleSignIn = (e?: React.MouseEvent) => {
-    if (e?.shiftKey) {
-      navigate("/login");
-      return;
+    if (onSignIn) {
+      onSignIn();
+    } else {
+      navigate("/login", { state: { mode: "login" } });
     }
-    setShowWaitlist(true);
   };
-  const handleSignUp = onSignUp || (() => setShowWaitlist(true));
+  const handleSignUp = onSignUp || (() => navigate("/login", { state: { mode: "signup" } }));
   const handleDownload = onDownloadClick || (() => navigate("/download"));
 
   useEffect(() => {
@@ -493,11 +491,11 @@ export default function PublicNavbar({
 
             {/* Desktop Auth Buttons */}
             <div style={{ display: "flex", alignItems: "center", gap: 12 }} className="hide-on-mobile hide-sm">
-              <button onClick={(e) => handleSignIn(e)} className="nav-btn-signin" title="Shift+Click for team access">
+              <button onClick={(e) => handleSignIn(e)} className="nav-btn-signin">
                 Sign In
               </button>
               <button onClick={handleSignUp} className="nav-btn-get-started">
-                Join Waitlist
+                Get Started
               </button>
             </div>
 
@@ -880,15 +878,13 @@ export default function PublicNavbar({
                   }}
                 >
                   <Sparkles size={15} />
-                  <span>Join Waitlist</span>
+                  <span>Get Started</span>
                 </motion.button>
               </motion.div>
             </motion.div>
           </>
         )}
       </AnimatePresence>
-
-      <WaitlistModal isOpen={showWaitlist} onClose={() => setShowWaitlist(false)} />
     </>
   );
 }
