@@ -377,28 +377,7 @@ function Hero({ onStart, onSignIn }: { onStart: () => void; onSignIn: () => void
         />
       </div>
 
-      {/* LaserFlow beam — same style as TradifiveAI page */}
-      <div className="hidden md:block" style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none' }}>
-        <LaserFlow
-          horizontalBeamOffset={0.72}
-          verticalBeamOffset={-0.04}
-          color="#818cf8"
-          horizontalSizing={0.10}
-          verticalSizing={1.15}
-          wispDensity={0.8}
-          wispSpeed={14}
-          wispIntensity={4}
-          flowSpeed={0.3}
-          flowStrength={0.22}
-          fogIntensity={0.5}
-          fogScale={0.28}
-          fogFallSpeed={0.55}
-          decay={1.1}
-          falloffStart={1.2}
-        />
-      </div>
-
-      <PremiumBackground />
+            <PremiumBackground />
 
       <div className="hero-container">
         <div className="hero-grid">
