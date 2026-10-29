@@ -881,7 +881,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
         className={`${!isFullScreen ? 'dark-sidebar' : ''} ${isMobile
           ? 'flex h-full flex-col bg-[#f4f7fb] dark:bg-[#121214] w-full text-slate-900 dark:text-slate-100'
           : `fixed left-0 top-0 z-40 flex h-screen flex-row bg-transparent dark:bg-transparent ${isMounted ? "transition-[width] duration-300" : ""
-          } ${isCollapsed ? "w-[90px]" : "w-[340px]"}`
+          } ${isCollapsed ? "w-[90px]" : "w-[90px] xl:w-[340px]"}`
           }`}
         style={isFullScreen && !isMobile ? { borderTopRightRadius: 0, borderBottomRightRadius: 0 } : {}}
       >

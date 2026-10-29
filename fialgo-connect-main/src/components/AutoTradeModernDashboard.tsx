@@ -1225,7 +1225,7 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
       )}
 
       {/* ── CORE 5 METRIC BOXES (Consistent with AI Journal & RiskGuard) ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 sm:gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3.5 sm:gap-4 mb-6">
         {/* 1. Account Balance */}
         <div className={kpiBoxStyle}>
           <div className="flex items-center justify-between">
@@ -1411,9 +1411,9 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
       </div>
 
       {/* ── 2-COLUMN SECTION: Net Profit Growth Chart + 50/50 Profit Split Card ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 mb-6">
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-5 mb-6">
         {/* LEFT COLUMN: NET PROFIT GROWTH CHART (8 cols) */}
-        <div className={`lg:col-span-8 ${cardBoxStyle} flex flex-col justify-between`}>
+        <div className={`xl:col-span-8 ${cardBoxStyle} flex flex-col justify-between`}>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div>
               <div className="flex items-center gap-2">
@@ -1534,7 +1534,7 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
         </div>
 
         {/* RIGHT COLUMN: 1 LAKH LIFETIME OWNERSHIP (0% SHARE) vs 50/50 PROFIT SPLIT (4 cols) */}
-        <div className={`lg:col-span-4 ${cardBoxStyle} flex flex-col justify-between min-h-[460px]`}>
+        <div className={`xl:col-span-4 ${cardBoxStyle} flex flex-col justify-between min-h-[460px]`}>
           <div>
             <div className="flex items-center justify-between mb-2 min-h-[26px]">
               {isLifetime ? (

@@ -477,7 +477,7 @@ export default function Discover() {
                 </div>
 
                 {/* Grid Skeleton */}
-                <div className="w-full max-w-7xl mx-auto px-6 md:px-12 lg:px-20 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 md:px-8 xl:px-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6">
                     {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
                         <div key={i} className="bg-white dark:bg-[#1A1A1A] rounded-2xl overflow-hidden border border-slate-200/60 dark:border-white/5 flex flex-col h-[340px] relative">
                             {/* Cover */}
@@ -654,7 +654,7 @@ export default function Discover() {
                                     {searchResults.length === 0 && !searching ? (
                                         <p className="text-sm text-slate-500 py-6 text-center">No results found.</p>
                                     ) : (
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6">
                                             {searchResults.map(profile => {
                                                 const displayName = profile.full_name || profile.username || "Active User";
                                                 const displaySlug = profile.username || "user";

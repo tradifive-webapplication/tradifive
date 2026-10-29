@@ -363,10 +363,23 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
   }, []);
   useEffect(() => {
     setIsMounted(true);
+    const handleResize = () => {
+      const manual = localStorage.getItem("fialgo_sidebar_collapsed_user_manual");
+      if (!manual && typeof window !== "undefined") {
+        setIsCollapsed(window.innerWidth < 1280);
+      }
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
   const [isCollapsed, setIsCollapsed] = useState(() => {
     try {
-      return localStorage.getItem("fialgo_sidebar_collapsed") === "true";
+      const saved = localStorage.getItem("fialgo_sidebar_collapsed");
+      if (saved !== null) return saved === "true";
+      if (typeof window !== "undefined") {
+        return window.innerWidth < 1280;
+      }
+      return false;
     } catch (e) {
       return false;
     }
@@ -496,7 +509,7 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
         </div>
       )}
 
-      <div className={`flex-1 flex flex-col h-screen overflow-hidden ${isMounted ? 'transition-[margin-left] duration-300' : ''} ml-0 ${isCollapsed ? 'md:ml-[90px]' : 'md:ml-[340px]'}`}>
+      <div className={`flex-1 flex flex-col h-screen overflow-hidden ${isMounted ? 'transition-[margin-left] duration-300' : ''} ml-0 ${isCollapsed ? 'md:ml-[90px]' : 'md:ml-[90px] xl:ml-[340px]'}`}>
 
         {impersonatingUser && (
           <div className="bg-rose-500 text-white px-4 py-2 flex items-center justify-center gap-3 shrink-0 shadow-lg z-50">

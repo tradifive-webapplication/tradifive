@@ -38,7 +38,7 @@ function HomeSkeleton() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 h-full min-h-0 relative">
 
                 {/* --- COLUMN 1: LEFT SIDEBAR (col-span-3) --- */}
-                <div className="hidden lg:block lg:col-span-3 lg:col-start-1 h-full overflow-y-auto amazing-scrollbar space-y-6 px-4 pt-5 pb-4">
+                <div className="hidden xl:block xl:col-span-3 xl:col-start-1 h-full overflow-y-auto amazing-scrollbar space-y-6 px-4 pt-5 pb-4">
                     {/* Watchlist Skeleton */}
                     <div className="p-5 rounded-[28px] bg-white dark:bg-[#1C1C1E] border border-slate-100/50 dark:border-white/5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300">
                         <div className="h-5 w-28 bg-slate-200 dark:bg-slate-800/80 rounded-md mb-5" />
@@ -100,7 +100,7 @@ function HomeSkeleton() {
                 </div>
 
                 {/* --- COLUMN 2: MIDDLE MAIN CONTENT (col-span-6) --- */}
-                <div className="lg:col-span-6 lg:col-start-4 h-full overflow-y-auto amazing-scrollbar space-y-8 px-4 pt-5 pb-6">
+                <div className="col-span-12 lg:col-span-8 xl:col-span-6 xl:col-start-4 h-full overflow-y-auto amazing-scrollbar space-y-8 px-4 pt-5 pb-6">
 
 
                     {/* Feeds Skeleton */}
@@ -143,7 +143,7 @@ function HomeSkeleton() {
                 </div>
 
                 {/* --- COLUMN 3: RIGHT SIDEBAR (col-span-3) --- */}
-                <div className="lg:col-span-3 lg:col-start-10 h-full overflow-y-auto amazing-scrollbar space-y-6 px-4 pt-5 pb-4">
+                <div className="hidden lg:block lg:col-span-4 xl:col-span-3 xl:col-start-10 h-full overflow-y-auto amazing-scrollbar space-y-6 px-4 pt-5 pb-4">
                     {/* Requests Skeleton */}
                     <div className="p-5 rounded-[28px] bg-white dark:bg-[#1C1C1E] border border-slate-100/50 dark:border-white/5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300">
                         <div className="h-5 w-20 bg-slate-200 dark:bg-slate-800/80 rounded-md mb-5" />
@@ -1199,7 +1199,7 @@ export default function Home() {
 
                         {/* --- COLUMN 1: LEFT SIDEBAR (col-span-3) --- */}
                         {currentTab !== 'calendar' && (showWatchlist || showCalendar || showFollowers) && (
-                            <div className="hidden lg:block lg:col-span-3 lg:col-start-1 h-full overflow-y-auto amazing-scrollbar space-y-4 px-4 pt-5 pb-4">
+                            <div className="hidden xl:block xl:col-span-3 xl:col-start-1 h-full overflow-y-auto amazing-scrollbar space-y-4 px-4 pt-5 pb-4">
 
                                 {/* A. My Watchlist / Market Segment */}
                                 {showWatchlist && (
@@ -1331,7 +1331,7 @@ export default function Home() {
                             </div>
                         )}
                         {/* --- COLUMN 2: MIDDLE MAIN CONTENT --- */}
-                        <div className={`h-full relative overflow-hidden flex flex-col ${currentTab === 'calendar' ? 'lg:col-span-12 lg:col-start-1 px-8' : 'lg:col-span-6 lg:col-start-4'}`}>
+                        <div className={`h-full relative overflow-hidden flex flex-col ${currentTab === 'calendar' ? 'col-span-12 px-4 sm:px-8' : 'col-span-12 lg:col-span-8 xl:col-span-6 xl:col-start-4'}`}>
                             <AnimatePresence>
                                 {showNewPosts && (
                                     <motion.button
@@ -1483,7 +1483,7 @@ export default function Home() {
 
                         {/* --- COLUMN 3: RIGHT SIDEBAR (col-span-3) --- */}
                         {currentTab !== 'calendar' && (showRequests || showSuggestions || showStreaks || showDisciplined) && (
-                            <div className="hidden lg:block lg:col-span-3 lg:col-start-10 h-full overflow-y-auto amazing-scrollbar space-y-4 px-4 pt-5 pb-4">
+                            <div className="hidden xl:block xl:col-span-3 xl:col-start-10 h-full overflow-y-auto amazing-scrollbar space-y-4 px-4 pt-5 pb-4">
 
                                 {/* Requests Section */}
                                 {showRequests && (
