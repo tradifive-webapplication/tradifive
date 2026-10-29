@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Search, Bell, Clock, ChevronLeft, Sparkles, AlertTriangle, XCircle, ShieldAlert, Timer, X, Bot, Menu, Monitor } from "lucide-react";
 import AppSidebar from "./AppSidebar";
 import FloatingAICoach from "./FloatingAICoach";
+import ComingSoonVeil from "./ComingSoonVeil";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTrading } from "@/contexts/TradingContext";
@@ -29,6 +30,29 @@ interface DashboardLayoutProps {
   hideBottomNav?: boolean;
 }
 
+function getComingSoonInfo(pathname: string): { isSoon: boolean; title: string } {
+  const p = pathname.toLowerCase();
+  if (p.startsWith('/journal') || p === '/mistakes' || p === '/mistake-tracking' || p === '/charts' || p === '/chart' || p === '/analytics') {
+    return { isSoon: true, title: "Smart Trade Journal" };
+  }
+  if (p.startsWith('/risk-guard')) {
+    return { isSoon: true, title: "Risk Guard Protection" };
+  }
+  if (p.startsWith('/ai-coach')) {
+    return { isSoon: true, title: "AI Coach & Copilot" };
+  }
+  if (p.startsWith('/discover') || p.startsWith('/marketplace') || p === '/store' || p.startsWith('/competitions')) {
+    return { isSoon: true, title: "Discover & Competitions" };
+  }
+  if (p.startsWith('/creator')) {
+    return { isSoon: true, title: "Creator Studio & Mentors" };
+  }
+  if (p.startsWith('/upgrade') || p.startsWith('/subscription') || p.startsWith('/pricing') || p.startsWith('/billing')) {
+    return { isSoon: true, title: "Subscription Plans" };
+  }
+  return { isSoon: false, title: "" };
+}
+
 export default function DashboardLayout({ children, breadcrumbs, onBack, headerActions, noPadding = false, noScroll = false, hideBottomNav = false }: DashboardLayoutProps) {
   const location = useLocation();
   const navigate = useNavigate();
@@ -48,6 +72,12 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
   const [showRevengeFlash, setShowRevengeFlash] = useState(false);
   const [lastKnownTradeCount, setLastKnownTradeCount] = useState<number | null>(null);
   const { recentTrades } = useDashboardData();
+  const comingSoonInfo = getComingSoonInfo(location.pathname);
+  const [isPeeking, setIsPeeking] = useState(false);
+
+  useEffect(() => {
+    setIsPeeking(false);
+  }, [location.pathname]);
 
   useEffect(() => {
     const handleOpenFloatingAI = (e: Event) => {
@@ -390,7 +420,7 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
               } ${isFullScreen ? 'rounded-none border-l border-slate-200 dark:border-white/5' : 'rounded-none md:rounded-[2.5rem] border-0 md:border md:border-slate-100 dark:md:border-white/5 shadow-none md:shadow-[0_8px_30_rgb(0,0,0,0.04)]'} bg-white dark:bg-[#121212] font-sans`}
           >
             {/* Header (Moved Inside to Scroll) */}
-            <header className="h-[70px] flex items-center justify-between px-4 sm:px-10 border-b border-slate-100 dark:border-white/5 shrink-0">
+            <header className={`h-[70px] flex items-center justify-between px-4 sm:px-10 border-b border-slate-100 dark:border-white/5 shrink-0 transition-all duration-300 ${comingSoonInfo.isSoon && !isPeeking ? "filter blur-[3px] opacity-75 pointer-events-none select-none" : ""}`}>
               <div className="flex items-center gap-2 sm:gap-3">
                 <div className="md:hidden flex items-center">
                   <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
@@ -554,7 +584,13 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
                 transition={{ duration: location.pathname === '/settings' ? 0 : 0.4, ease: "easeOut" }}
                 className={noScroll ? "flex-1 h-full flex flex-col min-h-0" : ""}
               >
-                {children}
+                {comingSoonInfo.isSoon ? (
+                  <ComingSoonVeil featureTitle={comingSoonInfo.title} isPeeking={isPeeking} onPeekChange={setIsPeeking}>
+                    {children}
+                  </ComingSoonVeil>
+                ) : (
+                  children
+                )}
               </motion.div>
             </div>
 
