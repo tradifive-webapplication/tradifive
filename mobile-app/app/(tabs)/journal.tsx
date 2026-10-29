@@ -12,6 +12,7 @@ import UpgradeGate from '../components/UpgradeGate';
 import { useAppTheme } from '../../hooks/useAppTheme';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const h = () => { if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); };
+const hSelect = () => { if (Platform.OS !== 'web') Haptics.selectionAsync(); };
 
 
 export default function JournalScreen() {
@@ -182,7 +183,25 @@ export default function JournalScreen() {
   }, []);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: headerStyle === 'simple' ? (isDark ? theme.background : '#f4f4f6') : '#000' }]}>
+      {/* ── TOP BACKSIDE GLOW / ARTWORK IMAGE ── */}
+      {headerStyle !== 'simple' && (
+        <Image
+          source={require('../../assets/images/top-glow.png')}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            width: '100%',
+            height: insets.top + 160,
+            zIndex: 0,
+            opacity: 0.95,
+          }}
+          resizeMode="stretch"
+          pointerEvents="none"
+        />
+      )}
       {/* ── SMART-REVEAL HEADER ── */}
       {headerStyle !== 'simple' && (
         <Animated.View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: headerHeight, backgroundColor: '#000', zIndex: 2000, paddingTop: insets.top + 8, opacity: headerOpacity, transform: [{ translateY: headerTranslateY }], borderBottomLeftRadius: 40, borderBottomRightRadius: 40, overflow: 'hidden' }}>
@@ -232,22 +251,22 @@ export default function JournalScreen() {
 
               {/* ═══ ACTION TOGGLES (Scrollable) ═══ */}
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingHorizontal: 4, paddingBottom: 20 }}>
-                <TouchableOpacity onPress={() => setCurrency(currency.code === 'USD' ? {code: 'EUR', symbol: '€'} : {code: 'USD', symbol: '$'})} style={styles.actionBtn}>
+                <TouchableOpacity onPress={() => { hSelect(); setCurrency(currency.code === 'USD' ? {code: 'EUR', symbol: '€'} : {code: 'USD', symbol: '$'})} style={styles.actionBtn}>
                   <Text style={{ fontSize: 11, fontFamily: 'Inter_700Bold', color: isDark ? '#e8e8e8' : '#0f172a' }}>{currency.code}</Text>
                   <Text style={{ fontSize: 11, fontFamily: 'Inter_600SemiBold', color: '#94a3b8' }}>{currency.symbol}</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity onPress={() => setHideBalance(!hideBalance)} style={[styles.actionBtn, hideBalance && styles.actionBtnActiveAmber]}>
+                <TouchableOpacity onPress={() => { hSelect(); setHideBalance(!hideBalance)} style={[styles.actionBtn, hideBalance && styles.actionBtnActiveAmber]}>
                   {hideBalance ? <EyeOff size={13} color="#b45309" /> : <Eye size={13} color="#64748b" />}
                   <Text style={[styles.actionText, hideBalance && { color: isDark ? '#fbbf24' : '#b45309' }]}>{hideBalance ? "Hidden" : "Hide Balance"}</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity onPress={() => setHideOnlyBalance(!hideOnlyBalance)} style={[styles.actionBtn, hideOnlyBalance && styles.actionBtnActivePurple]}>
+                <TouchableOpacity onPress={() => { hSelect(); setHideOnlyBalance(!hideOnlyBalance)} style={[styles.actionBtn, hideOnlyBalance && styles.actionBtnActivePurple]}>
                   {hideOnlyBalance ? <EyeOff size={13} color="#7c3aed" /> : <Eye size={13} color="#64748b" />}
                   <Text style={[styles.actionText, hideOnlyBalance && { color: isDark ? '#a78bfa' : '#7c3aed' }]}>{hideOnlyBalance ? "Hidden Bal" : "Hide Only Balance"}</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity onPress={() => setPercentageOnly(!percentageOnly)} style={[styles.actionBtn, percentageOnly && styles.actionBtnActiveGreen]}>
+                <TouchableOpacity onPress={() => { hSelect(); setPercentageOnly(!percentageOnly)} style={[styles.actionBtn, percentageOnly && styles.actionBtnActiveGreen]}>
                   <Percent size={13} color={percentageOnly ? "#059669" : "#64748b"} />
                   <Text style={[styles.actionText, percentageOnly && { color: isDark ? '#34d399' : '#059669' }]}>{percentageOnly ? "Only" : "Show %"}</Text>
                 </TouchableOpacity>
@@ -368,7 +387,7 @@ export default function JournalScreen() {
                 title="Daily Net Cumulative P&L"
                 legend={<LegendRow items={[{ color: '#10b981', label: 'Cumulative P&L' }]} />}
                 filterValue={chartFilter}
-                onFilter={setChartFilter}
+                onFilter={(f: string) => { hSelect(); setChartFilter(f); }}
                 filters={['1W', '1M', 'All']}
               >
                 <SvgAreaChart
@@ -383,7 +402,7 @@ export default function JournalScreen() {
                 title="Net Daily P&L"
                 legend={<LegendRow items={[{ color: '#10b981', label: 'Profit' }, { color: '#ef4444', label: 'Loss' }]} />}
                 filterValue={chartFilter}
-                onFilter={setChartFilter}
+                onFilter={(f: string) => { hSelect(); setChartFilter(f); }}
                 filters={['1W', '1M', 'All']}
               >
                 <SvgBarChart
@@ -396,7 +415,7 @@ export default function JournalScreen() {
                 title="Account Balance"
                 legend={<LegendRow items={[{ color: '#10b981', label: 'Balance' }, { color: '#34d399', label: 'Deposits' }]} />}
                 filterValue={chartFilter}
-                onFilter={setChartFilter}
+                onFilter={(f: string) => { hSelect(); setChartFilter(f); }}
                 filters={['1W', '1M', 'All']}
               >
                 <SvgAreaChart
@@ -411,7 +430,7 @@ export default function JournalScreen() {
                 title="Drawdown"
                 legend={<LegendRow items={[{ color: '#ef4444', label: 'Max Drawdown Curve' }]} />}
                 filterValue={chartFilter}
-                onFilter={setChartFilter}
+                onFilter={(f: string) => { hSelect(); setChartFilter(f); }}
                 filters={['1W', '1M', 'All']}
               >
                 <SvgAreaChart
@@ -431,10 +450,10 @@ export default function JournalScreen() {
               <View style={[styles.chartCard, { padding: 0, overflow: 'hidden', marginBottom: 100 }]}>
                 {/* Tabs */}
                 <View style={{ flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: isDark ? '#222222' : '#f1f5f9' }}>
-                  <TouchableOpacity onPress={() => setTradeTab('recent')} style={{ flex: 1, paddingVertical: 14, alignItems: 'center', borderBottomWidth: tradeTab === 'recent' ? 2.5 : 0, borderBottomColor: '#6366f1' }}>
+                  <TouchableOpacity onPress={() => { hSelect(); setTradeTab('recent'); }} style={{ flex: 1, paddingVertical: 14, alignItems: 'center', borderBottomWidth: tradeTab === 'recent' ? 2.5 : 0, borderBottomColor: '#6366f1' }}>
                     <Text style={{ fontSize: 16, fontFamily: tradeTab === 'recent' ? 'Inter_700Bold' : 'Inter_500Medium', color: tradeTab === 'recent' ? '#6366f1' : '#94a3b8' }}>Recent Trades</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity onPress={() => setTradeTab('open')} style={{ flex: 1, paddingVertical: 14, alignItems: 'center', borderBottomWidth: tradeTab === 'open' ? 2.5 : 0, borderBottomColor: '#6366f1' }}>
+                  <TouchableOpacity onPress={() => { hSelect(); setTradeTab('open'); }} style={{ flex: 1, paddingVertical: 14, alignItems: 'center', borderBottomWidth: tradeTab === 'open' ? 2.5 : 0, borderBottomColor: '#6366f1' }}>
                     <Text style={{ fontSize: 16, fontFamily: tradeTab === 'open' ? 'Inter_700Bold' : 'Inter_500Medium', color: tradeTab === 'open' ? '#6366f1' : '#94a3b8' }}>Open Positions</Text>
                   </TouchableOpacity>
                 </View>

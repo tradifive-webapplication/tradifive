@@ -1704,7 +1704,7 @@ export default function DashboardScreen() {
   }, [fetchPosts, refetchFeeds]);
 
   const scrollY = React.useRef(new Animated.Value(0)).current;
-  const headerHeight = insets.top + 72;
+  const headerHeight = insets.top + 64;
 
   // Native DiffClamp for butter-smooth directional reveal
   const clampedScroll = Animated.diffClamp(
@@ -1890,12 +1890,13 @@ export default function DashboardScreen() {
         <Animated.View style={[
           styles.header,
           {
+            height: headerStyle === 'simple' ? insets.top + 56 : insets.top + 92,
             zIndex: 0,
             opacity: activeCardId ? 0.15 : 1,
             backgroundColor: headerStyle === 'simple' ? (activeCardId ? (isDark ? '#000' : '#090d16') : (isDark ? theme.background : '#ffffff')) : 'transparent',
             borderBottomWidth: headerStyle === 'simple' && !isDark ? 1 : 0,
             borderBottomColor: isDark ? theme.cardBorder : '#e2e8f0',
-            paddingBottom: headerStyle === 'simple' ? 16 : 28,
+            paddingBottom: 0,
             transform: headerStyle === 'simple' ? [] : [{
               scale: scrollY.interpolate({
                 inputRange: [0, 80],
@@ -1918,8 +1919,6 @@ export default function DashboardScreen() {
               style={StyleSheet.absoluteFillObject}
             />
           )}
-          {/* Spacer so header has height */}
-          <View style={{ height: headerStyle === 'simple' ? 44 : 48, marginTop: headerStyle === 'simple' ? insets.top + 18 : insets.top + 30 }} />
 
           {/* Fading container for all header content when scrolling or when AI is open */}
           <Animated.View style={[StyleSheet.absoluteFillObject, {
@@ -1934,10 +1933,10 @@ export default function DashboardScreen() {
           }]}>
             {/* Dashboard row — absolutely positioned so both rows overlap */}
             {activeTab === 'dashboard' && (
-              <Animated.View style={[styles.headerRow, { opacity: dashOp, zIndex: 10, paddingHorizontal: 20, bottom: headerStyle === 'simple' ? 16 : 38 }]}>
+              <Animated.View style={[styles.headerRow, { opacity: dashOp, zIndex: 10, paddingHorizontal: 20, bottom: headerStyle === 'simple' ? 12 : 38 }]}>
                 <Text style={{ color: headerStyle === 'simple' ? (isDark ? theme.text : '#000000') : '#fff', fontSize: 24, fontFamily: 'Inter_700Bold', letterSpacing: -0.5 }}>Dashboard</Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-                  <TouchableOpacity onPress={() => { h(); router.push('/notifications' as any); }} style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center' }}>
+                  <TouchableOpacity onPress={() => { hSelect(); router.push('/notifications' as any); }} style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center' }}>
                     <Bell size={22} color={headerStyle === 'simple' ? (isDark ? theme.text : '#000000') : 'white'} />
                   </TouchableOpacity>
                   <TouchableOpacity
@@ -1952,7 +1951,7 @@ export default function DashboardScreen() {
 
             {/* Feed row */}
             {activeTab === 'feed' && (
-              <Animated.View style={[styles.headerRow, { opacity: feedOp, zIndex: 10, paddingHorizontal: 20, bottom: headerStyle === 'simple' ? 16 : 38 }]}>
+              <Animated.View style={[styles.headerRow, { opacity: feedOp, zIndex: 10, paddingHorizontal: 20, bottom: headerStyle === 'simple' ? 12 : 38 }]}>
                 <Text style={{ color: headerStyle === 'simple' ? (isDark ? theme.text : '#000000') : '#fff', fontSize: 24, fontFamily: 'Inter_700Bold', letterSpacing: -0.5 }}>Home</Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
                   <TouchableOpacity onPress={() => { h(); router.push('/notifications' as any); }} style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center' }}>
@@ -1970,7 +1969,7 @@ export default function DashboardScreen() {
 
             {/* Community row */}
             {activeTab === 'community' && (
-              <Animated.View style={[styles.headerRow, { opacity: commOp, zIndex: 10, bottom: headerStyle === 'simple' ? 16 : 38 }]}>
+              <Animated.View style={[styles.headerRow, { opacity: commOp, zIndex: 10, bottom: headerStyle === 'simple' ? 12 : 38 }]}>
                 <TouchableOpacity
                   onPress={dropdownOpen ? closeDropdown : openDropdown}
                   style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
@@ -2002,7 +2001,7 @@ export default function DashboardScreen() {
 
             {/* Contests header */}
             {activeTab === 'contests' && (
-              <Animated.View style={[styles.headerRow, { opacity: contOp, zIndex: 10, bottom: headerStyle === 'simple' ? 16 : 38 }]}>
+              <Animated.View style={[styles.headerRow, { opacity: contOp, zIndex: 10, bottom: headerStyle === 'simple' ? 12 : 38 }]}>
                 <TouchableOpacity
                   onPress={dropdownOpen ? closeDropdown : openDropdown}
                   style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}

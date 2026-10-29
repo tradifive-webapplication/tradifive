@@ -990,7 +990,7 @@ export default function TabLayout() {
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
 
                   {/* 1. SEARCH CIRCLE PILL */}
-                  <TouchableOpacity style={[styles.pill, isDark && { backgroundColor: '#111111', borderColor: '#222222' }]} onPress={() => { h(); setSearchOpen(true); }}>
+                  <TouchableOpacity style={[styles.pill, isDark && { backgroundColor: '#111111', borderColor: '#222222' }]} onPress={() => { hSelect(); setSearchOpen(true); }}>
                     <Search size={20} color="#8E8E93" strokeWidth={2.5} />
                   </TouchableOpacity>
 

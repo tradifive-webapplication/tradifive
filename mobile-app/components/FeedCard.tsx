@@ -6,6 +6,8 @@ import { useVideoPlayer, VideoView } from 'expo-video';
 import { getAvatarUrl } from '../app/utils/avatar';
 import { FeedPost } from '../hooks/useSocialFeed';
 import { useAppTheme } from '../hooks/useAppTheme';
+import * as Haptics from 'expo-haptics';
+import { Platform } from 'react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -190,17 +192,17 @@ export const FeedCard: React.FC<FeedCardProps> = ({ post, onLike, onComment, onS
           </Text>
         </TouchableOpacity>
         
-        <TouchableOpacity style={styles.actionBtn} onPress={onComment} activeOpacity={0.7}>
+        <TouchableOpacity style={styles.actionBtn} onPress={() => { if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); onComment?.(); }} activeOpacity={0.7}>
           <Chat size={22} color='#64748b' set="curved" stroke="bold" />
           <Text style={styles.actionText}>{post.comment_count || 0}</Text>
         </TouchableOpacity>
         
-        <TouchableOpacity style={styles.actionBtn} onPress={onShare} activeOpacity={0.7}>
+        <TouchableOpacity style={styles.actionBtn} onPress={() => { if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); onShare?.(); }} activeOpacity={0.7}>
           <Send size={22} color='#64748b' set="curved" stroke="bold" />
           <Text style={styles.actionText}>{post.share_count || 0}</Text>
         </TouchableOpacity>
         
-        <TouchableOpacity style={[styles.actionBtn, { marginLeft: 'auto', marginRight: 0 }]} onPress={onBookmark} activeOpacity={0.7}>
+        <TouchableOpacity style={[styles.actionBtn, { marginLeft: 'auto', marginRight: 0 }]} onPress={() => { if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); onBookmark?.(); }} activeOpacity={0.7}>
           <Bookmark size={22} color='#64748b' set="curved" stroke="bold" />
         </TouchableOpacity>
       </View>
