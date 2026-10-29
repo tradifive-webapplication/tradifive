@@ -119,17 +119,18 @@ export interface NavItem {
 
 export const DEPARTMENT_ORDER = [
   "Overview",
-  "Content & Marketing",
-  "Marketplace",
+  "Users & CRM",
+  "Revenue & Finance",
   "Trading & Risk",
-  "Finance & Compliance",
-  "Sales",
-  "Support",
+  "Marketplace",
   "Operations",
+  "HR & People",
+  "Support & Feedback",
+  "Content & Marketing",
+  "Sales",
   "Technology",
   "AI Agents",
   "Mentors",
-  "HR & People",
   "My Workspace",
   "Config",
 ];
@@ -137,14 +138,55 @@ export const DEPARTMENT_ORDER = [
 const ALL_NAV_ITEMS: NavItem[] = [
   // OVERVIEW
   { id: "dashboard", label: "Executive Terminal", icon: Gauge, path: "/", department: "Overview" },
+  { id: "system_status", label: "System Health", icon: Cpu, path: "/system-status", department: "Overview" },
 
-  // USERS & CRM (mapped to Operations)
-  { id: "users", label: "User Registry", icon: Users, path: "/users", department: "Operations" },
-  { id: "deleted_records", label: "Deleted Records", icon: UserCog, path: "/deleted-records", department: "Operations" },
-  { id: "waitlist", label: "Waitlist Registry", icon: Users, path: "/waitlist", department: "Operations", badge: "NEW" },
-  { id: "subscription_manager", label: "Subscriptions", icon: Crown, path: "/subscriptions", department: "Finance & Compliance" },
-  { id: "referrals_manager", label: "Referrals & Affiliates", icon: Share2, path: "/referrals-admin", department: "Finance & Compliance" },
+  // USERS & CRM (Dedicated Executive User Control)
+  { id: "users", label: "User Registry", icon: Users, path: "/users", department: "Users & CRM" },
+  { id: "subscription_manager", label: "Subscriptions", icon: Crown, path: "/subscriptions", department: "Users & CRM" },
+  { id: "waitlist", label: "Waitlist Registry", icon: Users, path: "/waitlist", department: "Users & CRM", badge: "NEW" },
+  { id: "referrals_manager", label: "Referrals & Growth", icon: Share2, path: "/referrals-admin", department: "Users & CRM" },
+  { id: "deleted_records", label: "Deleted Records", icon: UserCog, path: "/deleted-records", department: "Users & CRM" },
+
+  // REVENUE & FINANCE (Dedicated Executive Financial Control)
+  { id: "payments", label: "Revenue Stream", icon: Landmark, path: "/payments", department: "Revenue & Finance" },
+  { id: "payout_approvals", label: "Payout Approvals", icon: Banknote, path: "/payouts", department: "Revenue & Finance", badge: "ACTION" },
+  { id: "transaction_ledger", label: "Transaction Ledger", icon: Receipt, path: "/transactions", department: "Revenue & Finance" },
+  { id: "audit_logs", label: "Financial Audit Logs", icon: FileText, path: "/audit-logs", department: "Revenue & Finance" },
+
+  // TRADING & RISK
+  { id: "auto_trade_manager", label: "Auto Trade Engine", icon: Bot, path: "/auto-trade-admin", department: "Trading & Risk", badge: "LIVE" },
+  { id: "trades", label: "Execution Feed", icon: Activity, path: "/trades", department: "Trading & Risk" },
+  { id: "mt5_monitor", label: "MT5 Monitor", icon: Monitor, path: "/mt5-monitor", department: "Trading & Risk" },
+  { id: "risk_control", label: "Risk Control & Limits", icon: ShieldAlert, path: "/risk-control", department: "Trading & Risk" },
+  { id: "journal_monitor", label: "Trade Journals", icon: BookMarked, path: "/journals-admin", department: "Trading & Risk" },
+  { id: "strategy_monitor", label: "Strategies", icon: Workflow, path: "/strategies-admin", department: "Trading & Risk" },
+  { id: "competition_manager", label: "Competitions", icon: Trophy, path: "/competitions", department: "Trading & Risk" },
+  { id: "rewards_manager", label: "Rewards & XP", icon: Star, path: "/rewards", department: "Trading & Risk" },
+  { id: "alerts", label: "System Alerts", icon: Bell, path: "/alerts", department: "Trading & Risk" },
+
+  // MARKETPLACE
+  { id: "marketplace_manager", label: "Algo Marketplace", icon: ShoppingBag, path: "/marketplace-admin", department: "Marketplace", badge: "LIVE" },
+
+  // OPERATIONS
+  { id: "operations_panel", label: "Mission Control", icon: Target, path: "/operations", department: "Operations" },
   { id: "roles_management", label: "Admin Personnel", icon: UserCog, path: "/roles", department: "Operations" },
+  { id: "task_protocol", label: "Task Protocol", icon: ClipboardList, path: "/tasks", department: "Operations" },
+
+  // HR & PEOPLE
+  { id: "team_tracker", label: "Team Tracker", icon: CalendarDays, path: "/ceo/team-tracker", department: "HR & People" },
+  { id: "task_assignment", label: "Task Assignment", icon: ClipboardList, path: "/ceo/task-assignment", department: "HR & People", badge: "NEW" },
+  { id: "attendance", label: "Attendance", icon: CalendarDays, path: "/hr/attendance", department: "HR & People" },
+  { id: "payroll", label: "Payroll & Salaries", icon: DollarSign, path: "/hr/payroll", department: "HR & People", badge: "ACTION" },
+  { id: "hr_dashboard", label: "HR Dashboard", icon: Building2, path: "/hr", department: "HR & People" },
+  { id: "employee_directory", label: "Employee Directory", icon: Users, path: "/hr/employees", department: "HR & People" },
+  { id: "departments_manager", label: "Departments", icon: Building2, path: "/hr/departments", department: "HR & People" },
+  { id: "hiring_pipeline", label: "Hiring Pipeline", icon: UserPlus, path: "/hr/hiring", department: "HR & People" },
+  { id: "roles_management_hr", label: "Admin Personnel (HR)", icon: UserCog, path: "/hr/roles", department: "HR & People" },
+  { id: "learning_manager_hr", label: "Employee Training", icon: BookOpen, path: "/hr/training", department: "HR & People", badge: "NEW" },
+
+  // SUPPORT & FEEDBACK
+  { id: "support_tickets", label: "Support Tickets", icon: Headphones, path: "/support-tickets", department: "Support & Feedback", badge: "LIVE" },
+  { id: "feedback_inbox", label: "Feedback Inbox", icon: MessageSquare, path: "/feedback", department: "Support & Feedback" },
 
   // COMMUNITY & CONTENT
   { id: "channel_manager", label: "Channel Directory", icon: Radio, path: "/channels-admin", department: "Content & Marketing" },
@@ -152,41 +194,12 @@ const ALL_NAV_ITEMS: NavItem[] = [
   { id: "notifications_broadcaster", label: "Broadcaster", icon: Megaphone, path: "/notifications-broadcast", department: "Content & Marketing" },
   { id: "learning_manager", label: "Learning Center", icon: BookOpen, path: "/learning-admin", department: "Content & Marketing" },
 
-  // MARKETPLACE
-  { id: "marketplace_manager", label: "Algo Marketplace", icon: ShoppingBag, path: "/marketplace-admin", department: "Marketplace", badge: "LIVE" },
-
-  // TRADING & RISK
-  { id: "auto_trade_manager", label: "Auto Trade", icon: Bot, path: "/auto-trade-admin", department: "Trading & Risk", badge: "LIVE" },
-  { id: "trades", label: "Execution Feed", icon: Activity, path: "/trades", department: "Trading & Risk" },
-  { id: "risk_control", label: "Risk Control", icon: ShieldAlert, path: "/risk-control", department: "Trading & Risk" },
-  { id: "mt5_monitor", label: "MT5 Monitor", icon: Monitor, path: "/mt5-monitor", department: "Trading & Risk" },
-  { id: "journal_monitor", label: "Trade Journals", icon: BookMarked, path: "/journals-admin", department: "Trading & Risk" },
-  { id: "strategy_monitor", label: "Strategies", icon: Workflow, path: "/strategies-admin", department: "Trading & Risk" },
-  { id: "competition_manager", label: "Competitions", icon: Trophy, path: "/competitions", department: "Trading & Risk" },
-  { id: "rewards_manager", label: "Rewards & XP", icon: Star, path: "/rewards", department: "Trading & Risk" },
-  { id: "alerts", label: "System Alerts", icon: Bell, path: "/alerts", department: "Trading & Risk" },
-
-  // FINANCE & COMPLIANCE
-  { id: "payments", label: "Revenue Stream", icon: Landmark, path: "/payments", department: "Finance & Compliance" },
-  { id: "payout_approvals", label: "Payout Approvals", icon: Banknote, path: "/payouts", department: "Finance & Compliance", badge: "ACTION" },
-  { id: "transaction_ledger", label: "Transaction Ledger", icon: Receipt, path: "/transactions", department: "Finance & Compliance" },
-  { id: "audit_logs", label: "Audit Logs", icon: FileText, path: "/audit-logs", department: "Finance & Compliance" },
-
   // SALES
   { id: "sales_dashboard", label: "Sales Dashboard", icon: BarChart3, path: "/sales", department: "Sales" },
   { id: "leads_manager", label: "Leads & Pipeline", icon: Users, path: "/sales/leads", department: "Sales", badge: "NEW" },
   { id: "sales_campaigns", label: "Outreach Campaigns", icon: Megaphone, path: "/sales/campaigns", department: "Sales" },
 
-  // SUPPORT
-  { id: "support_tickets", label: "Support Tickets", icon: Headphones, path: "/support-tickets", department: "Support", badge: "LIVE" },
-  { id: "feedback_inbox", label: "Feedback Inbox", icon: MessageSquare, path: "/feedback", department: "Support" },
-
-  // OPERATIONS
-  { id: "operations_panel", label: "Mission Control", icon: Target, path: "/operations", department: "Operations" },
-  { id: "task_protocol", label: "Task Protocol", icon: ClipboardList, path: "/tasks", department: "Operations" },
-
   // TECHNOLOGY
-  { id: "system_status", label: "System Health", icon: Cpu, path: "/system-status", department: "Technology" },
   { id: "tech_issues", label: "Incident Log", icon: Wrench, path: "/tech-issues", department: "Technology" },
   { id: "maintenance_master", label: "Maintenance Mode", icon: Zap, path: "/maintenance", department: "Technology" },
   { id: "ai_coach_monitor", label: "AI Coach Monitor", icon: Brain, path: "/ai-monitor", department: "Technology" },
@@ -197,20 +210,7 @@ const ALL_NAV_ITEMS: NavItem[] = [
   // MENTORS
   { id: "mentor_manager", label: "Mentor Roster", icon: GraduationCap, path: "/mentors", department: "Mentors" },
 
-  // HR & PEOPLE
-  { id: "hr_dashboard", label: "HR Dashboard", icon: Building2, path: "/hr", department: "HR & People" },
-  { id: "employee_directory", label: "Employee Directory", icon: Users, path: "/hr/employees", department: "HR & People" },
-  { id: "departments_manager", label: "Departments", icon: Building2, path: "/hr/departments", department: "HR & People" },
-  { id: "hiring_pipeline", label: "Hiring Pipeline", icon: UserPlus, path: "/hr/hiring", department: "HR & People" },
-  { id: "attendance", label: "Attendance", icon: CalendarDays, path: "/hr/attendance", department: "HR & People" },
-  { id: "payroll", label: "Payroll & Salaries", icon: DollarSign, path: "/hr/payroll", department: "HR & People", badge: "ACTION" },
-  { id: "roles_management_hr", label: "Admin Personnel", icon: UserCog, path: "/hr/roles", department: "HR & People" },
-  { id: "learning_manager_hr", label: "Employee Training", icon: BookOpen, path: "/hr/training", department: "HR & People", badge: "NEW" },
-  { id: "team_tracker", label: "Team Tracker", icon: CalendarDays, path: "/ceo/team-tracker", department: "HR & People" },
-  { id: "task_assignment", label: "Task Assignment", icon: ClipboardList, path: "/ceo/task-assignment", department: "HR & People", badge: "NEW" },
-
   // MY WORKSPACE (employee only)
-
   { id: "my_profile", label: "My Profile", icon: User, path: "/my-profile", department: "My Workspace" },
 
   // CONFIG
@@ -219,15 +219,57 @@ const ALL_NAV_ITEMS: NavItem[] = [
 
 const PAGE_ACCESS: Record<AdminRole, PageId[]> = {
   ceo: [
+    // Executive Overview
     "dashboard",
-    "marketplace_manager",
+    "system_status",
+
+    // Users & CRM (Master Control)
+    "users",
+    "subscription_manager",
+    "waitlist",
+    "referrals_manager",
+    "deleted_records",
+
+    // Revenue & Finance (Master Control)
+    "payments",
+    "payout_approvals",
+    "transaction_ledger",
+    "audit_logs",
+
+    // Trading & Risk
     "auto_trade_manager",
+    "trades",
+    "risk_control",
+    "mt5_monitor",
+    "journal_monitor",
+    "strategy_monitor",
+    "competition_manager",
+    "rewards_manager",
+    "alerts",
+
+    // Marketplace
+    "marketplace_manager",
+
+    // Operations
+    "operations_panel",
     "roles_management",
+    "task_protocol",
+
+    // HR & Team
     "team_tracker",
     "task_assignment",
     "attendance",
-    "agent_command",
+    "payroll",
+    "employee_directory",
+    "departments_manager",
+
+    // Support & Feedback
+    "support_tickets",
+    "feedback_inbox",
+
+    // Technology & Config
     "settings",
+    "agent_command",
   ],
 
   technical_lead: [
@@ -309,13 +351,13 @@ const PAGE_ACCESS: Record<AdminRole, PageId[]> = {
   ],
 
   employee: [
-
     "my_profile",
     "agent_command",
   ],
 };
 
 export function canAccessPage(role: AdminRole, pageId: PageId): boolean {
+  if (role === "ceo") return true; // CEO has master clearance across all sectors
   return PAGE_ACCESS[role]?.includes(pageId) ?? false;
 }
 

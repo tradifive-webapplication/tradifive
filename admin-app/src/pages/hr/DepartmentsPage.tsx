@@ -10,6 +10,9 @@ const DEPT_LABELS: Record<string, string> = {
   "Operations": "Operations (COO)",
   "Executive": "Executive (CEO)",
   "Trading & Risk": "Trading & Risk (CRO)",
+  "Users & CRM": "Users & CRM",
+  "Revenue & Finance": "Revenue & Finance (CFO)",
+  "Support & Feedback": "Support & Feedback",
   "Finance & Compliance": "Finance & Compliance (CFO)",
   "Content & Marketing": "Content & Marketing (CMO)",
   "Mentors": "Mentors (Head of Mentors)"
