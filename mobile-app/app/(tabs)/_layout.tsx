@@ -349,10 +349,21 @@ export default function TabLayout() {
     {
       label: 'Home',
       icon: Home,
+      badge: 'LIVE',
       subItems: [
         { label: 'Feed', icon: Home, route: '/(tabs)', params: { view: 'feed' } },
         { label: 'Inbox', icon: Message, route: '/(tabs)/inbox' },
         { label: 'Notifications', icon: Notification, route: '/notifications' },
+      ],
+    },
+    {
+      label: 'Auto Trade',
+      icon: Activity,
+      badge: 'LIVE',
+      subItems: [
+        { label: 'Auto Trade Setup', icon: Work, route: '/(tabs)/auto-trade-setup' },
+        { label: 'Algo Marketplace', icon: Bag, route: '/(tabs)/marketplace' },
+        { label: 'Order History', icon: Document, route: '/(tabs)/journal' },
       ],
     },
     {
@@ -367,6 +378,7 @@ export default function TabLayout() {
     {
       label: 'Journal',
       icon: Paper,
+      badge: 'SOON',
       subItems: [
         { label: 'Daily Journal', icon: Document, route: '/(tabs)/journal' },
         { label: 'Performance Analytics', icon: Chart, route: '/(tabs)/journal' },
@@ -376,6 +388,7 @@ export default function TabLayout() {
     {
       label: 'Risk Guard',
       icon: ShieldDone,
+      badge: 'SOON',
       subItems: [
         { label: 'Risk Dashboard', icon: ShieldDone, route: '/(tabs)/risk-guard' },
         { label: 'Drawdown Limits', icon: ShieldFail, route: '/(tabs)/risk-guard' },
@@ -385,23 +398,16 @@ export default function TabLayout() {
     {
       label: 'AI Coach',
       icon: SparklesIcon,
+      badge: 'SOON',
       subItems: [
         { label: 'AI Coach Insights', icon: SparklesIcon, action: 'ai' },
         { label: 'Trade Feedback & Chat', icon: Chat, action: 'ai' },
       ],
     },
     {
-      label: 'Auto Trade',
-      icon: Activity,
-      subItems: [
-        { label: 'Auto Trade Setup', icon: Work, route: '/(tabs)/auto-trade-setup' },
-        { label: 'Algo Marketplace', icon: Bag, route: '/(tabs)/marketplace' },
-        { label: 'Order History', icon: Document, route: '/(tabs)/journal' },
-      ],
-    },
-    {
       label: 'Discover',
       icon: Discovery,
+      badge: 'SOON',
       subItems: [
         { label: 'Algo Marketplace', icon: Bag, route: '/(tabs)/marketplace' },
         { label: 'Trading Contests', icon: Trophy, route: '/(tabs)/contests' },
@@ -645,6 +651,27 @@ export default function TabLayout() {
                     }}>
                       {item.label}
                     </Text>
+
+                    {item.badge && (
+                      <View style={{
+                        backgroundColor: item.badge === 'LIVE' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255, 255, 255, 0.1)',
+                        paddingHorizontal: 7,
+                        paddingVertical: 2,
+                        borderRadius: 6,
+                        marginRight: 6,
+                        borderWidth: 1,
+                        borderColor: item.badge === 'LIVE' ? 'rgba(16, 185, 129, 0.4)' : 'rgba(255, 255, 255, 0.15)',
+                      }}>
+                        <Text style={{
+                          color: item.badge === 'LIVE' ? '#34d399' : '#94a3b8',
+                          fontSize: 10,
+                          fontFamily: 'Inter_700Bold',
+                          letterSpacing: 0.5,
+                        }}>
+                          {item.badge}
+                        </Text>
+                      </View>
+                    )}
 
                     {hasSubItems && (
                       <TouchableOpacity

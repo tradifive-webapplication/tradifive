@@ -7,6 +7,8 @@ interface FeatureItem {
   title: string;
   desc: string;
   path: string;
+  badge?: "LIVE" | "SOON";
+  isLive?: boolean;
 }
 
 interface FeaturesMegaMenuProps {
@@ -22,33 +24,43 @@ interface FeaturesMegaMenuProps {
 const FEATURES: FeatureItem[] = [
   {
     id: "auto-trade",
-    title: "FiAlgo V1",
-    desc: "Hands-free automated execution bots",
+    title: "FiAlgo V1 Auto Trade",
+    desc: "Hands-free automated execution bots & MT5",
     path: "/features/auto-trade",
+    badge: "LIVE",
+    isLive: true,
+  },
+  {
+    id: "community-hub",
+    title: "Social Pulse & Feeds",
+    desc: "Connect with verified traders worldwide",
+    path: "/features/community-hub",
+    badge: "LIVE",
+    isLive: true,
   },
   {
     id: "risk-guard",
     title: "Risk Guard Protection",
     desc: "Drawdown kill-switch & daily loss limits",
     path: "/features/risk-guard",
+    badge: "SOON",
+    isLive: false,
   },
   {
     id: "smart-journal",
     title: "Smart Trade Journal",
     desc: "Auto broker sync & 40+ analytics metrics",
     path: "/features/smart-journal",
-  },
-  {
-    id: "community-hub",
-    title: "Community Hub",
-    desc: "Connect with verified traders worldwide",
-    path: "/features/community-hub",
+    badge: "SOON",
+    isLive: false,
   },
   {
     id: "channels",
-    title: "Creator Hub",
-    desc: "Curated creator broadcast rooms & verified signals",
+    title: "Creator Hub & Mentors",
+    desc: "Curated broadcast rooms & verified signals",
     path: "/features/channels",
+    badge: "SOON",
+    isLive: false,
   },
 ];
 
@@ -143,19 +155,37 @@ export default function FeaturesMegaMenu({
                       outline: "none",
                     }}
                   >
-                    <div
-                      style={{
-                        fontSize: 14.5,
-                        fontWeight: 700,
-                        color: "#ffffff",
-                        lineHeight: 1.25,
-                        letterSpacing: "-0.01em",
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                      }}
-                    >
-                      {feat.title}
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, width: "100%" }}>
+                      <div
+                        style={{
+                          fontSize: 14.5,
+                          fontWeight: 700,
+                          color: "#ffffff",
+                          lineHeight: 1.25,
+                          letterSpacing: "-0.01em",
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                      >
+                        {feat.title}
+                      </div>
+                      {feat.badge && (
+                        <span
+                          style={{
+                            fontSize: 9.5,
+                            fontWeight: 800,
+                            padding: "2px 6px",
+                            borderRadius: 6,
+                            letterSpacing: "0.04em",
+                            background: feat.badge === "LIVE" ? "rgba(16, 185, 129, 0.15)" : "rgba(255, 255, 255, 0.08)",
+                            color: feat.badge === "LIVE" ? "#34d399" : "#94a3b8",
+                            border: `1px solid ${feat.badge === "LIVE" ? "rgba(16, 185, 129, 0.3)" : "rgba(255, 255, 255, 0.1)"}`
+                          }}
+                        >
+                          {feat.badge}
+                        </span>
+                      )}
                     </div>
                     <div
                       style={{

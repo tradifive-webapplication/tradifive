@@ -35,14 +35,24 @@ export default function PublicNavbar({
 
   const MOBILE_FEATURES = [
     {
-      title: "FiAlgo V1",
+      title: "FiAlgo V1 Auto Trade",
       desc: "Automated MT5 Gold trading bots",
       path: "/features/auto-trade",
       icon: Cpu,
       color: "#38bdf8",
       bgColor: "rgba(56, 189, 248, 0.12)",
       borderColor: "rgba(56, 189, 248, 0.25)",
-      badge: "ALGO",
+      badge: "LIVE",
+    },
+    {
+      title: "Social Pulse & Feeds",
+      desc: "Verified social trader network",
+      path: "/features/community-hub",
+      icon: Users,
+      color: "#818cf8",
+      bgColor: "rgba(129, 140, 248, 0.12)",
+      borderColor: "rgba(129, 140, 248, 0.25)",
+      badge: "LIVE",
     },
     {
       title: "Risk Guard Protection",
@@ -52,6 +62,7 @@ export default function PublicNavbar({
       color: "#34d399",
       bgColor: "rgba(52, 211, 153, 0.12)",
       borderColor: "rgba(52, 211, 153, 0.25)",
+      badge: "SOON",
     },
     {
       title: "Smart Trade Journal",
@@ -61,15 +72,7 @@ export default function PublicNavbar({
       color: "#f472b6",
       bgColor: "rgba(244, 114, 182, 0.12)",
       borderColor: "rgba(244, 114, 182, 0.25)",
-    },
-    {
-      title: "Community Hub",
-      desc: "Verified social trader network",
-      path: "/features/community-hub",
-      icon: Users,
-      color: "#818cf8",
-      bgColor: "rgba(129, 140, 248, 0.12)",
-      borderColor: "rgba(129, 140, 248, 0.25)",
+      badge: "SOON",
     },
     {
       title: "Creator Hub",
@@ -79,6 +82,7 @@ export default function PublicNavbar({
       color: "#fb7185",
       bgColor: "rgba(251, 113, 133, 0.12)",
       borderColor: "rgba(251, 113, 133, 0.25)",
+      badge: "SOON",
     },
     {
       title: "TradiFive AI",
@@ -88,7 +92,7 @@ export default function PublicNavbar({
       color: "#c084fc",
       bgColor: "rgba(192, 132, 252, 0.14)",
       borderColor: "rgba(192, 132, 252, 0.3)",
-      badge: "AI",
+      badge: "SOON",
     },
   ];
   const dropdownTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -442,7 +446,10 @@ export default function PublicNavbar({
                 <AnimatedButton text="TradiFive AI" onClick={() => navigate("/features/tradifive-ai")} />
               </div>
 
-              <a href={isHome ? "#pricing" : "/#pricing"} onClick={(e) => handleScrollTo(e, "pricing")} className="nav-link-item">Pricing</a>
+              <a href={isHome ? "#pricing" : "/#pricing"} onClick={(e) => handleScrollTo(e, "pricing")} className="nav-link-item" style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+                <span>Pricing</span>
+                <span style={{ fontSize: 9, fontWeight: 700, padding: "1px 5px", borderRadius: 4, background: "rgba(255,255,255,0.08)", color: "#94a3b8" }}>SOON</span>
+              </a>
 
 
               <Link

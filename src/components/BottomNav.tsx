@@ -29,22 +29,6 @@ export default function BottomNav() {
       ),
     },
     {
-      id: "dashboard",
-      label: "Dashboard",
-      path: "/dashboard",
-      isActive: (p: string) =>
-        p.startsWith("/dashboard") ||
-        p.startsWith("/portfolio") ||
-        p.startsWith("/broker-connect"),
-      renderIcon: (active: boolean) => (
-        <Category
-          set={active ? "bold" : "curved"}
-          primaryColor={active ? "#2563EB" : "currentColor"}
-          size={22}
-        />
-      ),
-    },
-    {
       id: "autotrade",
       label: "AutoTrade",
       path: autoTradePath,
@@ -61,12 +45,15 @@ export default function BottomNav() {
       ),
     },
     {
-      id: "coach",
-      label: "AI Coach",
-      path: "/ai-coach",
-      isActive: (p: string) => p.startsWith("/ai-coach"),
+      id: "dashboard",
+      label: "Terminal",
+      path: "/dashboard",
+      isActive: (p: string) =>
+        p.startsWith("/dashboard") ||
+        p.startsWith("/portfolio") ||
+        p.startsWith("/broker-connect"),
       renderIcon: (active: boolean) => (
-        <Chat
+        <Category
           set={active ? "bold" : "curved"}
           primaryColor={active ? "#2563EB" : "currentColor"}
           size={22}

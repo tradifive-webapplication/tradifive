@@ -194,16 +194,16 @@ const creatorHubMenu = [
 const getPillars = (isCreator: boolean) => {
   const isAutoTradeSetup = typeof window !== 'undefined' && localStorage.getItem("tradifive_auto_trade_setup") === "true";
   return [
-  { id: "home", icon: WrappedIconly(Home), tooltip: "Home", defaultPath: "/home" },
-  { id: "dashboard", icon: WrappedIconly(Category), tooltip: "Dashboard", defaultPath: "/dashboard" },
-  { id: "journal", icon: WrappedIconly(Document), tooltip: "Journal", defaultPath: "/journal" },
-  { id: "riskGuard", icon: WrappedIconly(ShieldDone), tooltip: "Risk Guard", defaultPath: "/risk-guard" },
-  { id: "aiCoach", icon: WrappedSparkles, tooltip: "AI Coach", defaultPath: "/ai-coach" },
-  { id: "autoTrade", icon: WrappedIconly(Activity), tooltip: "Auto Trade", defaultPath: isAutoTradeSetup ? "/auto-trade/dashboard" : "/auto-trade/setup" },
-  { id: "discover", icon: WrappedIconly(Discovery), tooltip: "Discover", defaultPath: "/discover" },
-  { id: "community", icon: WrappedIconly(Chat), tooltip: "Channels", defaultPath: "/channel" },
-  ...(isCreator ? [{ id: "creatorHub", icon: WrappedIconly(Star), tooltip: "Creator Hub", defaultPath: "/creator/analytics" }] : []),
-];
+    { id: "home", icon: WrappedIconly(Home), tooltip: "Home Feed (Live)", defaultPath: "/home", isLive: true },
+    { id: "autoTrade", icon: WrappedIconly(Activity), tooltip: "Auto Trade (Live)", defaultPath: isAutoTradeSetup ? "/auto-trade/dashboard" : "/auto-trade/setup", isLive: true },
+    { id: "dashboard", icon: WrappedIconly(Category), tooltip: "Live Terminal", defaultPath: "/dashboard", isLive: true },
+    { id: "community", icon: WrappedIconly(Chat), tooltip: "Channels", defaultPath: "/channel", isLive: true },
+    { id: "journal", icon: WrappedIconly(Document), tooltip: "Smart Journal (Soon)", defaultPath: "/journal", isLocked: true },
+    { id: "riskGuard", icon: WrappedIconly(ShieldDone), tooltip: "Risk Guard (Soon)", defaultPath: "/risk-guard", isLocked: true },
+    { id: "aiCoach", icon: WrappedSparkles, tooltip: "AI Coach (Soon)", defaultPath: "/ai-coach", isLocked: true },
+    { id: "discover", icon: WrappedIconly(Discovery), tooltip: "Discover (Soon)", defaultPath: "/discover", isLocked: true },
+    ...(isCreator ? [{ id: "creatorHub", icon: WrappedIconly(Star), tooltip: "Creator Hub (Soon)", defaultPath: "/creator/analytics", isLocked: true }] : []),
+  ];
 };
 
 interface AppSidebarProps {
@@ -657,15 +657,15 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
   const isAutoTradeSetup = typeof window !== 'undefined' && localStorage.getItem("tradifive_auto_trade_setup") === "true";
 
   const mobilePillars = [
-    { id: "home", label: "Home", icon: WrappedIconly(Home) },
-    { id: "dashboard", label: "Dashboard", icon: WrappedIconly(Category) },
-    { id: "journal", label: "Journal", icon: WrappedIconly(Document) },
-    { id: "riskGuard", label: "Risk Guard", icon: WrappedIconly(ShieldDone) },
-    { id: "discover", label: "Discover", icon: WrappedIconly(Discovery) },
-    { id: "aiCoach", label: "AI Coach", icon: WrappedIconly(Chat) },
-    { id: "autoTrade", label: "Auto Trade", icon: WrappedIconly(Activity) },
-    { id: "community", label: "Channels", icon: WrappedIconly(Chat) },
-    ...(isCreator ? [{ id: "creatorHub", label: "Creator Hub", icon: WrappedIconly(Star) }] : [])
+    { id: "home", label: "Home Feed", icon: WrappedIconly(Home), isLive: true },
+    { id: "autoTrade", label: "Auto Trade", icon: WrappedIconly(Activity), isLive: true },
+    { id: "dashboard", label: "Dashboard", icon: WrappedIconly(Category), isLive: true },
+    { id: "community", label: "Channels", icon: WrappedIconly(Chat), isLive: true },
+    { id: "journal", label: "Journal", icon: WrappedIconly(Document), isLocked: true },
+    { id: "riskGuard", label: "Risk Guard", icon: WrappedIconly(ShieldDone), isLocked: true },
+    { id: "aiCoach", label: "AI Coach", icon: WrappedIconly(Chat), isLocked: true },
+    { id: "discover", label: "Discover", icon: WrappedIconly(Discovery), isLocked: true },
+    ...(isCreator ? [{ id: "creatorHub", label: "Creator Hub", icon: WrappedIconly(Star), isLocked: true }] : [])
   ];
 
   const getSecondaryPagesForPillar = (pillarId: string) => {
@@ -685,16 +685,16 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
         ];
       case "journal":
         return [
-          { path: "/journal", icon: WrappedIconly(Document), label: "Daily Journal" },
-          { path: "/journal/history", icon: WrappedIconly(TimeCircle), label: "Trade History" },
-          { path: "/journal/mistakes", icon: WrappedIconly(ShieldDone), label: "Mistake Tracking" },
+          { path: "/journal", icon: WrappedIconly(Document), label: "Daily Journal", isLocked: true },
+          { path: "/journal/history", icon: WrappedIconly(TimeCircle), label: "Trade History", isLocked: true },
+          { path: "/journal/mistakes", icon: WrappedIconly(ShieldDone), label: "Mistake Tracking", isLocked: true },
         ];
       case "riskGuard":
         return [
-          { path: "/risk-guard", icon: WrappedIconly(ShieldDone), label: "Risk Dashboard" },
-          { path: "/risk-guard/limits", icon: WrappedIconly(ShieldFail), label: "Drawdown Limits" },
-          { path: "/risk-guard/exposure", icon: WrappedIconly(Graph), label: "Position Exposure" },
-          { path: "/risk-guard/kill-switch", icon: WrappedIconly(Danger), label: "Kill Switch", isDanger: true },
+          { path: "/risk-guard", icon: WrappedIconly(ShieldDone), label: "Risk Dashboard", isLocked: true },
+          { path: "/risk-guard/limits", icon: WrappedIconly(ShieldFail), label: "Drawdown Limits", isLocked: true },
+          { path: "/risk-guard/exposure", icon: WrappedIconly(Graph), label: "Position Exposure", isLocked: true },
+          { path: "/risk-guard/kill-switch", icon: WrappedIconly(Danger), label: "Kill Switch", isDanger: true, isLocked: true },
         ];
       case "discover":
         return [
@@ -707,11 +707,11 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
         ];
       case "aiCoach":
         return [
-          { path: "/ai-coach", icon: WrappedIconly(Chat), label: "AI Coach Insights" },
-          { path: "/ai-coach/chat", icon: WrappedIconly(Message), label: "Coach Chat" },
-          { path: "/ai-coach/feedback", icon: WrappedIconly(Notification), label: "Trade Feedback" },
-          { path: "/ai-coach/goals", icon: WrappedIconly(TicketStar), label: "Trading Goals" },
-          { path: "/analytics", icon: WrappedIconly(Graph), label: "Performance Analytics" },
+          { path: "/ai-coach", icon: WrappedIconly(Chat), label: "AI Coach Insights", isLocked: true },
+          { path: "/ai-coach/chat", icon: WrappedIconly(Message), label: "Coach Chat", isLocked: true },
+          { path: "/ai-coach/feedback", icon: WrappedIconly(Notification), label: "Trade Feedback", isLocked: true },
+          { path: "/ai-coach/goals", icon: WrappedIconly(TicketStar), label: "Trading Goals", isLocked: true },
+          { path: "/analytics", icon: WrappedIconly(Graph), label: "Performance Analytics", isLocked: true },
         ];
       case "autoTrade":
         return [
@@ -1290,7 +1290,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
                   </p>
 
                   <button
-                    onClick={() => navigate("/upgrade")}
+                    onClick={() => toast.info("TradiFive Early Launch: Auto Trade and Social Feed are free! Subscriptions unlock in Phase 2.")}
                     className={`uiverse-pro-button ${userPlan === "intermediate" || userPlan === "pro" ? "elite-btn" : ""}`}
                   >
                     <span className="uiverse-pro-fold"></span>
@@ -1308,7 +1308,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
                     </div>
                     <span className="uiverse-pro-inner">
                       <Sparkles size={15} className={`icon ${(userPlan === "intermediate" || userPlan === "pro") ? "text-amber-100" : "text-indigo-100"}`} />
-                      {(userPlan === "intermediate" || userPlan === "pro") ? "Upgrade to Elite" : "Upgrade to Pro"}
+                      Pro Waitlist (Soon)
                     </span>
                   </button>
                 </div>
