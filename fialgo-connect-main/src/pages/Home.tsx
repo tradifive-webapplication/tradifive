@@ -364,6 +364,7 @@ export default function Home() {
 
     // Customize layout elements
     const [showCustomizeMenu, setShowCustomizeMenu] = useState(false);
+    const [showCustomizeModal, setShowCustomizeModal] = useState(false);
     const customizeMenuRef = useRef<HTMLDivElement>(null);
 
     const [customizeActiveTab, setCustomizeActiveTab] = useState<'layout' | 'watchlist' | 'calendar'>('layout');
@@ -389,7 +390,11 @@ export default function Home() {
     }, [calendarFilters]);
 
     const handleAddSymbol = async () => {
-        if (!newSymbolName.trim() || !user?.id) return;
+        if (!newSymbolName.trim()) return;
+        if (!user?.id) {
+            toast.error("Please sign in to customize your watchlist.");
+            return;
+        }
 
         const { symbol: sym } = detectSymbolDetails(newSymbolName);
 
@@ -941,7 +946,7 @@ export default function Home() {
             </button>
             <div className="relative hidden md:block" ref={customizeMenuRef}>
                 <button
-                    onClick={() => setShowCustomizeMenu(!showCustomizeMenu)}
+                    onClick={() => { setCustomizeActiveTab('layout'); setShowCustomizeModal(true); }}
                     className={`flex items-center justify-center w-10 h-10 rounded-full border shadow-sm transition-all active:scale-95 select-none ${showCustomizeMenu ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 border-blue-500/30' : 'bg-white dark:bg-[#1E1E1E] border-slate-200 dark:border-white/5 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-[#222] hover:text-slate-900 dark:hover:text-white'}`}
                     title="Customize Layout"
                 >
@@ -1170,10 +1175,24 @@ export default function Home() {
                                 {/* A. My Watchlist / Market Segment */}
                                 {showWatchlist && (
                                     <div className="p-5 rounded-[28px] bg-white dark:bg-[#1C1C1E] border border-slate-100/50 dark:border-white/5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300">
-                                        <h3 className="text-[16px] font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2 mb-5">
-                                            <IconlyGraph size={16} set="curved" primaryColor="currentColor" className="text-blue-500 shrink-0" />
-                                            <span>My Watchlist</span>
-                                        </h3>
+                                        <div className="flex items-center justify-between mb-5">
+                                            <h3 className="text-[16px] font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+                                                <IconlyGraph size={16} set="curved" primaryColor="currentColor" className="text-blue-500 shrink-0" />
+                                                <span>My Watchlist</span>
+                                            </h3>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setCustomizeActiveTab('watchlist');
+                                                    setShowCustomizeModal(true);
+                                                }}
+                                                className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-blue-50 hover:bg-blue-100 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 font-bold text-[11px] transition-all cursor-pointer select-none"
+                                                title="Add Pairs"
+                                            >
+                                                <Plus size={12} strokeWidth={2.5} />
+                                                <span>Add Pair</span>
+                                            </button>
+                                        </div>
 
                                         <div className="space-y-4">
                                             {watchlist.length === 0 ? (
@@ -1181,7 +1200,17 @@ export default function Home() {
                                                     <IconlyGraph size={24} set="curved" primaryColor="currentColor" className="text-slate-400 dark:text-slate-400 mb-3" />
                                                     <h4 className="text-[13px] font-bold text-slate-900 dark:text-white mb-1">Watchlist Empty</h4>
                                                     <p className="text-[12px] text-slate-500 dark:text-slate-400 mb-4 max-w-[180px]">Track forex, crypto, and commodity assets live.</p>
-                                                    <button onClick={() => navigate("/discover")} className="px-4 py-2 rounded-lg bg-white dark:bg-[#222] border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-[#2A2A2A] text-slate-700 dark:text-slate-300 font-medium text-[12px] transition-colors">Explore Markets</button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setCustomizeActiveTab('watchlist');
+                                                            setShowCustomizeModal(true);
+                                                        }}
+                                                        className="px-6 py-2 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-extrabold text-[11px] uppercase tracking-wider transition-all shadow-sm hover:shadow active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer select-none"
+                                                    >
+                                                        <Plus size={13} strokeWidth={2.5} />
+                                                        <span>+ ADD</span>
+                                                    </button>
                                                 </div>
                                             ) : (
                                                 watchlist.map((asset: any, i) => {
@@ -1558,7 +1587,235 @@ export default function Home() {
                 />
 
 
-            </DashboardLayout>
+            
+            {/* Modal Dialog for Customize Dashboard / Watchlist Manager (Image 2) */}
+            <AnimatePresence>
+                {showCustomizeModal && (
+                    <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
+                        {/* Backdrop */}
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setShowCustomizeModal(false)}
+                            className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"
+                        />
+
+                        {/* Modal Dialog Content (Exact 1:1 match of Image 2) */}
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                            transition={{ duration: 0.18, ease: "easeOut" }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="relative w-full max-w-[360px] p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#171719] border border-slate-200 dark:border-white/10 shadow-2xl z-10 text-slate-800 dark:text-slate-100 max-h-[90vh] overflow-y-auto amazing-scrollbar"
+                        >
+                            <div className="flex items-center justify-between mb-4">
+                                <h4 className="text-[15px] font-bold text-slate-900 dark:text-white tracking-tight">Customize Dashboard</h4>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowCustomizeModal(false)}
+                                    className="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                                    title="Close"
+                                >
+                                    <X size={16} />
+                                </button>
+                            </div>
+
+                            {/* Tabs Header */}
+                            <div className="flex bg-slate-100 dark:bg-white/5 p-1 rounded-xl mb-4 text-[10px] font-bold">
+                                {(['layout', 'watchlist', 'calendar'] as const).map((tab) => (
+                                    <button
+                                        key={tab}
+                                        type="button"
+                                        onClick={() => setCustomizeActiveTab(tab)}
+                                        className={`flex-1 py-1.5 rounded-lg uppercase tracking-wider transition-all cursor-pointer ${customizeActiveTab === tab
+                                            ? 'bg-white dark:bg-[#222] text-blue-600 dark:text-blue-400 shadow-sm border border-slate-200/50 dark:border-white/5'
+                                            : 'text-slate-400 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
+                                            }`}
+                                    >
+                                        {tab}
+                                    </button>
+                                ))}
+                            </div>
+
+                            {/* Tab 1: Layout Toggles */}
+                            {customizeActiveTab === 'layout' && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 5 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="space-y-4"
+                                >
+                                    <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-white/5">
+                                        <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Toggle Sections</span>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                const anyVisible = showWatchlist || showCalendar || showFollowers || showRequests || showSuggestions || showStreaks || showDisciplined;
+                                                if (anyVisible) {
+                                                    setShowWatchlist(false);
+                                                    setShowCalendar(false);
+                                                    setShowFollowers(false);
+                                                    setShowRequests(false);
+                                                    setShowSuggestions(false);
+                                                    setShowStreaks(false);
+                                                    setShowDisciplined(false);
+                                                } else {
+                                                    handleToggle(setShowWatchlist, true);
+                                                    handleToggle(setShowCalendar, true);
+                                                    handleToggle(setShowFollowers, true);
+                                                    handleToggle(setShowRequests, true);
+                                                    handleToggle(setShowSuggestions, true);
+                                                    handleToggle(setShowStreaks, true);
+                                                    handleToggle(setShowDisciplined, true);
+                                                }
+                                            }}
+                                            className="text-[10px] font-bold text-blue-600 dark:text-blue-400 hover:underline"
+                                        >
+                                            {(showWatchlist || showCalendar || showFollowers || showRequests || showSuggestions || showStreaks || showDisciplined) ? 'Hide All' : 'Show All'}
+                                        </button>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <ToggleRow label="Watchlist" checked={showWatchlist} onChange={(v) => handleToggle(setShowWatchlist, v)} />
+                                        <ToggleRow label="Economic Calendar" checked={showCalendar} onChange={(v) => handleToggle(setShowCalendar, v)} />
+                                        <ToggleRow label="Followers Stats" checked={showFollowers} onChange={(v) => handleToggle(setShowFollowers, v)} />
+                                        <ToggleRow label="Requests" checked={showRequests} onChange={(v) => handleToggle(setShowRequests, v)} />
+                                        <ToggleRow label="Suggestions" checked={showSuggestions} onChange={(v) => handleToggle(setShowSuggestions, v)} />
+                                        <ToggleRow label="Winning Streaks" checked={showStreaks} onChange={(v) => handleToggle(setShowStreaks, v)} />
+                                        <ToggleRow label="Top Disciplined" checked={showDisciplined} onChange={(v) => handleToggle(setShowDisciplined, v)} />
+                                    </div>
+                                </motion.div>
+                            )}
+
+                            {/* Tab 2: Watchlist Manager (Image 2) */}
+                            {customizeActiveTab === 'watchlist' && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 5 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="space-y-4"
+                                >
+                                    <div>
+                                        <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Add Watchlist Pair</h5>
+                                        <div className="space-y-2">
+                                            <input
+                                                type="text"
+                                                placeholder={activeMarket === 'indian' ? "e.g. RELIANCE, HDFCBANK" : "e.g. BTC/USDT, EUR/USD"}
+                                                value={newSymbolName}
+                                                onChange={(e) => setNewSymbolName(e.target.value)}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter') handleAddSymbol();
+                                                }}
+                                                className="w-full px-3 py-2 text-[12px] font-semibold bg-slate-50 dark:bg-[#1A1A1C] border border-slate-200 dark:border-white/5 rounded-xl outline-none focus:border-blue-500 transition-colors text-slate-800 dark:text-white placeholder:text-slate-400"
+                                                autoFocus
+                                            />
+                                            <div className="flex gap-2">
+                                                <div className="flex-1 bg-slate-100 dark:bg-white/5 p-0.5 rounded-lg flex text-[10px] font-bold border border-slate-200/50 dark:border-white/5">
+                                                    {(activeMarket === 'indian' ? ['index', 'equity'] : ['crypto', 'forex', 'commodity']).map((type) => (
+                                                        <button
+                                                            key={type}
+                                                            type="button"
+                                                            onClick={() => setNewSymbolType(type as any)}
+                                                            className={`flex-1 py-1 rounded-md uppercase tracking-wider transition-all cursor-pointer ${newSymbolType === type
+                                                                ? 'bg-white dark:bg-[#222] text-slate-900 dark:text-white shadow-xs'
+                                                                : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
+                                                                }`}
+                                                        >
+                                                            {type}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={handleAddSymbol}
+                                                    disabled={isAddingSymbol || !newSymbolName.trim()}
+                                                    className="px-4 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-extrabold text-[10px] uppercase tracking-wider transition-all disabled:opacity-50 select-none flex items-center gap-1 shadow-sm cursor-pointer"
+                                                >
+                                                    <Plus size={12} strokeWidth={2.5} />
+                                                    <span>+ ADD</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Active Pairs ({watchlist.length})</h5>
+                                        <div className="max-h-[160px] overflow-y-auto amazing-scrollbar pr-1 space-y-2">
+                                            {watchlist.length === 0 ? (
+                                                <p className="text-[11px] font-medium text-slate-400 dark:text-slate-400 text-center py-4 bg-slate-50/50 dark:bg-white/5 rounded-xl border border-dashed border-slate-200/60 dark:border-white/5">
+                                                    No active watchlist pairs
+                                                </p>
+                                            ) : (
+                                                watchlist.map((item: any) => (
+                                                    <div
+                                                        key={item.id}
+                                                        className="flex items-center justify-between p-2 rounded-xl bg-slate-50/70 dark:bg-white/5 border border-slate-200/40 dark:border-white/5 hover:bg-slate-100/50 dark:hover:bg-slate-900/60 transition-colors"
+                                                    >
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-[12px] font-bold text-slate-900 dark:text-white uppercase tracking-tight">{item.symbol}</span>
+                                                            <span className={`text-[8.5px] font-extrabold px-1.5 py-0.5 rounded uppercase tracking-wider ${item.symbol_type === 'commodity'
+                                                                ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/10"
+                                                                : item.symbol_type === 'crypto'
+                                                                    ? "bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/10"
+                                                                    : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/10"
+                                                                }`}>
+                                                                {item.symbol_type}
+                                                            </span>
+                                                        </div>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleDeleteSymbol(item.id)}
+                                                            className="p-1 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition-all active:scale-95 cursor-pointer"
+                                                            title="Delete symbol"
+                                                        >
+                                                            <Trash2 size={12} />
+                                                        </button>
+                                                    </div>
+                                                ))
+                                            )}
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            )}
+
+                            {/* Tab 3: Calendar Filters */}
+                            {customizeActiveTab === 'calendar' && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 5 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="space-y-4"
+                                >
+                                    <div>
+                                        <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Filter Events Impact</h5>
+                                        <p className="text-[10px] font-medium text-slate-400 dark:text-slate-400 mb-4 leading-normal">
+                                            Adjust calendar feed to only show events matching these risk levels.
+                                        </p>
+                                        <div className="space-y-3 bg-slate-50/50 dark:bg-white/5 p-3 rounded-2xl border border-slate-200/60 dark:border-white/5">
+                                            <ToggleRow
+                                                label="High Impact Risk"
+                                                checked={calendarFilters.high}
+                                                onChange={(v) => setCalendarFilters(prev => ({ ...prev, high: v }))}
+                                            />
+                                            <ToggleRow
+                                                label="Medium Impact Risk"
+                                                checked={calendarFilters.medium}
+                                                onChange={(v) => setCalendarFilters(prev => ({ ...prev, medium: v }))}
+                                            />
+                                            <ToggleRow
+                                                label="Low Impact Risk"
+                                                checked={calendarFilters.low}
+                                                onChange={(v) => setCalendarFilters(prev => ({ ...prev, low: v }))}
+                                            />
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+        </DashboardLayout>
         </>
     );
 }
