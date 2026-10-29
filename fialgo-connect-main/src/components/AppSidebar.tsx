@@ -1299,7 +1299,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
                   </p>
 
                   <button
-                    onClick={() => toast.info("TradiFive Early Launch: Auto Trade and Social Feed are free! Subscriptions unlock in Phase 2.")}
+                    onClick={(e) => { e.stopPropagation(); React.startTransition(() => navigate("/upgrade")); }}
                     className={`uiverse-pro-button ${userPlan === "intermediate" || userPlan === "pro" ? "elite-btn" : ""}`}
                   >
                     <span className="uiverse-pro-fold"></span>
@@ -1317,7 +1317,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
                     </div>
                     <span className="uiverse-pro-inner">
                       <Sparkles size={15} className={`icon ${(userPlan === "intermediate" || userPlan === "pro") ? "text-amber-100" : "text-indigo-100"}`} />
-                      Pro Waitlist (Soon)
+                      {(userPlan === "intermediate" || userPlan === "pro") ? "Upgrade Elite" : "Upgrade to Pro"}
                     </span>
                   </button>
                 </div>

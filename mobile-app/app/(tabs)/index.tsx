@@ -1868,6 +1868,23 @@ export default function DashboardScreen() {
     <View style={{ flex: 1, backgroundColor: activeCardId ? '#090d16' : 'transparent' }}>
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
 
+      {/* Top Backside Glow / Artwork Image */}
+      <Image
+        source={require('../../assets/images/top-glow.png')}
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          width: '100%',
+          height: insets.top + 170,
+          zIndex: 0,
+          opacity: headerStyle === 'simple' ? 0 : 0.95,
+        }}
+        resizeMode="stretch"
+        pointerEvents="none"
+      />
+
       {/* ── HEADER ── */}
       {(activeTab === 'dashboard' || activeTab === 'feed' || activeTab === 'community' || activeTab === 'contests') && (
         <Animated.View style={[

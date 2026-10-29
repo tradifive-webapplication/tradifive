@@ -937,7 +937,7 @@ export default function Profile() {
                     <div className="w-full h-full animate-pulse bg-slate-350 dark:bg-[#1E1E1E]" />
                   ) : (
                     <div className="w-full h-full relative">
-                      {(!profile?.banner_url || profile.banner_url === "/default-cover.png") ? (
+                      {(!profile?.banner_url) ? (
                         <div className="w-full h-full bg-gradient-to-r from-slate-800 to-slate-900" />
                       ) : (
                         <>

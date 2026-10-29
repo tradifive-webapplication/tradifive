@@ -150,7 +150,7 @@ export default function DashboardScreen() {
   const filtered = msgTab === 'Unread' ? messages.filter((m: any) => m.unread > 0) : messages;
 
   /* main fade */
-  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const fadeAnim = useRef(new Animated.Value(activeTab === "community" ? 1 : (activeTab === "contests" ? 2 : 0))).current;
   const switchTab = (tab: Tab) => {
     hSelect();
     setActiveTab(tab);
@@ -234,7 +234,7 @@ export default function DashboardScreen() {
             right: 0,
             width: '100%',
             height: insets.top + 90,
-            opacity: headerStyle === 'top_glow' ? 1 : 0
+            opacity: headerStyle === 'simple' ? 0 : 1
           }}
           resizeMode="stretch"
         />

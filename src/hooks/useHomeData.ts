@@ -74,8 +74,6 @@ export function useHomeData(userId: string) {
   const { activeMarket, finishSwitching, isSwitching } = useMarket();
 
   const fetchAll = async () => {
-    if (!userId) return;
-
     try {
       const [
         { data: feedData, error: feedErr },
@@ -87,9 +85,9 @@ export function useHomeData(userId: string) {
         { data: discData, error: discErr }
       ] = await Promise.all([
         supabase.from('social_posts').select('*, profiles(full_name, username, avatar_url)').neq('post_type', 'story').order('created_at', { ascending: false }).limit(50),
-        supabase.from('feed_watchlist').select('*').eq('user_id', userId).order('sort_order', { ascending: true }).limit(20),
+        userId ? supabase.from('feed_watchlist').select('*').eq('user_id', userId).order('sort_order', { ascending: true }).limit(20) : Promise.resolve({ data: [] } as any),
         supabase.from('economic_calendar').select('*').order('event_time', { ascending: true }).limit(20),
-        supabase.from('social_follows').select('follower_id, profiles!social_follows_follower_id_fkey(avatar_url)', { count: 'exact' }).eq('following_id', userId).limit(5),
+        userId ? supabase.from('social_follows').select('follower_id, profiles!social_follows_follower_id_fkey(avatar_url)', { count: 'exact' }).eq('following_id', userId).limit(5) : Promise.resolve({ data: [], count: 0 } as any),
         supabase.from('profiles').select('id, full_name, username, avatar_url, location, streak_days, win_rate, total_trades').neq('id', userId).limit(5),
         supabase.from('profiles').select('id, full_name, username, avatar_url, location, streak_days, win_rate, total_trades').order('streak_days', { ascending: false }).limit(3),
         supabase.from('profiles').select('id, full_name, username, avatar_url, location, streak_days, win_rate, total_trades').order('win_rate', { ascending: false }).limit(3)
