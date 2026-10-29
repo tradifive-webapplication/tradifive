@@ -414,9 +414,9 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
         )}
 
         {/* Main Content Area */}
-        <div className={`flex-1 ${isFullScreen || (noScroll && hideBottomNav) ? 'pl-0 pr-0 pt-0 pb-0' : `px-0 md:px-5 ${impersonatingUser ? 'pt-0 md:pt-3' : 'pt-0 md:pt-5'} pb-20 md:pb-5`} ${noScroll ? 'overflow-hidden h-full flex flex-col' : 'overflow-y-auto scrollbar-hide'}`}>
+        <div className={`flex-1 ${isFullScreen || (noScroll && hideBottomNav) ? 'pl-0 pr-0 pt-0 pb-0' : `px-0 md:px-5 ${impersonatingUser ? 'pt-0 md:pt-3' : 'pt-0 md:pt-5'} pb-20 md:pb-5`} ${noScroll || (comingSoonInfo.isSoon && !isPeeking) ? 'overflow-hidden h-full flex flex-col' : 'overflow-y-auto scrollbar-hide'}`}>
           <main
-            className={`${noScroll ? 'flex-1 h-full flex flex-col overflow-hidden' : 'min-h-full'
+            className={`relative ${noScroll || (comingSoonInfo.isSoon && !isPeeking) ? 'flex-1 h-full flex flex-col overflow-hidden' : 'min-h-full'
               } ${isFullScreen ? 'rounded-none border-l border-slate-200 dark:border-white/5' : 'rounded-none md:rounded-[2.5rem] border-0 md:border md:border-slate-100 dark:md:border-white/5 shadow-none md:shadow-[0_8px_30_rgb(0,0,0,0.04)]'} bg-white dark:bg-[#121212] font-sans`}
           >
             {/* Header (Moved Inside to Scroll) */}
@@ -582,17 +582,20 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
                 initial={{ opacity: location.pathname === '/settings' ? 1 : 0, y: location.pathname === '/settings' ? 0 : 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: location.pathname === '/settings' ? 0 : 0.4, ease: "easeOut" }}
-                className={noScroll ? "flex-1 h-full flex flex-col min-h-0" : ""}
+                className={`${noScroll || (comingSoonInfo.isSoon && !isPeeking) ? "flex-1 h-full flex flex-col min-h-0" : ""} transition-all duration-300 ${comingSoonInfo.isSoon && !isPeeking ? "filter blur-[3.5px] opacity-75 pointer-events-none select-none" : ""}`}
               >
-                {comingSoonInfo.isSoon ? (
-                  <ComingSoonVeil featureTitle={comingSoonInfo.title} isPeeking={isPeeking} onPeekChange={setIsPeeking}>
-                    {children}
-                  </ComingSoonVeil>
-                ) : (
-                  children
-                )}
+                {children}
               </motion.div>
             </div>
+
+            {/* Coming Soon Veil Overlay - Confined strictly to THIS page (<main>) */}
+            {comingSoonInfo.isSoon && (
+              <ComingSoonVeil
+                featureTitle={comingSoonInfo.title}
+                isPeeking={isPeeking}
+                onPeekChange={setIsPeeking}
+              />
+            )}
 
             {/* Global Floating AI Coach Widget */}
             <FloatingAICoach
