@@ -539,30 +539,59 @@ export default function Home() {
     const [feedSort, setFeedSort] = useState<'popular' | 'latest'>('latest');
     const [feedMarketFilter, setFeedMarketFilter] = useState<'for_you' | 'forex' | 'indian' | 'psychology'>('for_you');
 
-    const handleDeletePost = useCallback((postId: string) => {
-        if (postId.startsWith('local-')) {
-            const localPosts = JSON.parse(localStorage.getItem('fialgo_local_posts') || '[]');
-            const updated = localPosts.filter((p: any) => p.id !== postId);
-            localStorage.setItem('fialgo_local_posts', JSON.stringify(updated));
-            toast.success("Post deleted successfully!");
-            removePost(postId);
-            refetch();
-            return;
-        }
+    const handleDeletePost = useCallback(async (postId: string) => {
+        const postIdStr = String(postId);
 
-        // Optimistic UI deletion
+        // 1. Immediately remove from state & optimistic UI
         removePost(postId);
 
-        supabase.from('social_posts').delete().eq('id', postId).then(({ error }) => {
-            if (error) {
-                toast.error("Failed to delete post");
-                refetch(); // restore if failed
-            } else {
-                toast.success("Post deleted successfully!");
-                refetch();
+        // 2. Permanently clean from all local storage caches
+        try {
+            const localPosts = JSON.parse(localStorage.getItem('fialgo_local_posts') || '[]');
+            const updatedLocal = localPosts.filter((p: any) => String(p.id) !== postIdStr);
+            localStorage.setItem('fialgo_local_posts', JSON.stringify(updatedLocal));
+
+            const cachedFeeds = JSON.parse(localStorage.getItem('home_cache_feeds') || '[]');
+            const updatedCache = cachedFeeds.filter((p: any) => String(p.id) !== postIdStr);
+            localStorage.setItem('home_cache_feeds', JSON.stringify(updatedCache));
+
+            for (let i = 0; i < localStorage.length; i++) {
+                const k = localStorage.key(i);
+                if (k && k.startsWith('prof_cache_posts_')) {
+                    try {
+                        const arr = JSON.parse(localStorage.getItem(k) || '[]');
+                        const filtered = arr.filter((p: any) => String(p.id) !== postIdStr);
+                        localStorage.setItem(k, JSON.stringify(filtered));
+                    } catch (_) {}
+                }
             }
-        });
-    }, [refetch, removePost]);
+
+            const deletedIds = JSON.parse(localStorage.getItem('tradifive_deleted_post_ids') || '[]');
+            if (!deletedIds.includes(postIdStr)) {
+                deletedIds.push(postIdStr);
+                localStorage.setItem('tradifive_deleted_post_ids', JSON.stringify(deletedIds.slice(-500)));
+            }
+        } catch (_) {}
+
+        toast.success("Post deleted successfully!");
+
+        // 3. Delete from Supabase with cascaded foreign rows
+        try {
+            if (!postIdStr.startsWith('local-')) {
+                await Promise.allSettled([
+                    supabase.from('social_post_likes').delete().eq('post_id', postId),
+                    supabase.from('social_post_bookmarks').delete().eq('post_id', postId),
+                    supabase.from('social_post_comments').delete().eq('post_id', postId),
+                ]);
+                const { error } = await supabase.from('social_posts').delete().eq('id', postId);
+                if (error) {
+                    console.error("Supabase post delete error:", error);
+                }
+            }
+        } catch (err) {
+            console.error("Error executing post delete on database:", err);
+        }
+    }, [removePost]);
 
     const handleVote = useCallback(async (postId: string, updatedMediaUrl: string) => {
         try {

@@ -229,7 +229,13 @@ export default function UserProfilePublic() {
           .neq('post_type', 'story')
           .order('created_at', { ascending: false });
         if (!postsErr && postsData) {
-          setPosts(postsData);
+          let deletedSet = new Set<string>();
+          try {
+            const delArr = JSON.parse(localStorage.getItem('tradifive_deleted_post_ids') || '[]');
+            deletedSet = new Set(delArr.map(String));
+          } catch (_) {}
+          const safePosts = postsData.filter((p: any) => p && !deletedSet.has(String(p.id)));
+          setPosts(safePosts);
           setOwnPostsCount(postsData.length);
         } else {
           setPosts([]);
@@ -662,14 +668,50 @@ export default function UserProfilePublic() {
     }
   }, []);
 
-  const handleDeletePost = useCallback(async (postId) => {
+  const handleDeletePost = useCallback(async (postId: any) => {
+    const postIdStr = String(postId);
+    setPosts(prev => prev.filter(p => String(p.id) !== postIdStr));
+
     try {
-      await supabase.from('social_posts').delete().eq('id', postId);
-      setPosts(prev => prev.filter(p => p.id !== postId));
-      toast.success("Post deleted successfully!");
+      const localPosts = JSON.parse(localStorage.getItem('fialgo_local_posts') || '[]');
+      const updatedLocal = localPosts.filter((p: any) => String(p.id) !== postIdStr);
+      localStorage.setItem('fialgo_local_posts', JSON.stringify(updatedLocal));
+
+      const cachedFeeds = JSON.parse(localStorage.getItem('home_cache_feeds') || '[]');
+      const updatedCache = cachedFeeds.filter((p: any) => String(p.id) !== postIdStr);
+      localStorage.setItem('home_cache_feeds', JSON.stringify(updatedCache));
+
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith('prof_cache_posts_')) {
+          try {
+            const arr = JSON.parse(localStorage.getItem(k) || '[]');
+            const filtered = arr.filter((p: any) => String(p.id) !== postIdStr);
+            localStorage.setItem(k, JSON.stringify(filtered));
+          } catch (_) {}
+        }
+      }
+
+      const deletedIds = JSON.parse(localStorage.getItem('tradifive_deleted_post_ids') || '[]');
+      if (!deletedIds.includes(postIdStr)) {
+        deletedIds.push(postIdStr);
+        localStorage.setItem('tradifive_deleted_post_ids', JSON.stringify(deletedIds.slice(-500)));
+      }
+    } catch (_) {}
+
+    toast.success("Post deleted successfully!");
+
+    try {
+      if (!postIdStr.startsWith('local-')) {
+        await Promise.allSettled([
+          supabase.from('social_post_likes').delete().eq('post_id', postId),
+          supabase.from('social_post_bookmarks').delete().eq('post_id', postId),
+          supabase.from('social_post_comments').delete().eq('post_id', postId),
+        ]);
+        await supabase.from('social_posts').delete().eq('id', postId);
+      }
     } catch (error) {
       console.error("Error deleting post:", error);
-      toast.error("Failed to delete post.");
     }
   }, []);
 

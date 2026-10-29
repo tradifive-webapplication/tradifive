@@ -47,7 +47,13 @@ export function useHomeData(userId: string) {
 
   const [feeds, setFeeds] = useState<FeedPost[]>(() => {
     const cached = getCache('home_cache_feeds', []);
-    return cached;
+    try {
+      const deletedArr = JSON.parse(localStorage.getItem('tradifive_deleted_post_ids') || '[]');
+      const deletedSet = new Set(deletedArr.map(String));
+      return (cached || []).filter((p: any) => p && p.id && !deletedSet.has(String(p.id)));
+    } catch (_) {
+      return cached;
+    }
   });
 
   const [watchlist, setWatchlist] = useState<WatchItem[]>(() => getCache('home_cache_watchlist', []));
@@ -108,6 +114,12 @@ export function useHomeData(userId: string) {
       setTopDisciplined((discData as ProfileShort[]) || []);
       localStorage.setItem('home_cache_topDisciplined', JSON.stringify(discData || []));
 
+      let deletedPostIds = new Set<string>();
+      try {
+        const deletedArr = JSON.parse(localStorage.getItem('tradifive_deleted_post_ids') || '[]');
+        deletedPostIds = new Set(deletedArr.map(String));
+      } catch (_) {}
+
       // removed unsafe localPosts parse
 
       const dbSignaturesFeeds = new Set(feedData?.map((f: any) => `${f.user_id}-${f.content}-${f.media_url}`) || []);
@@ -125,6 +137,7 @@ export function useHomeData(userId: string) {
         }
 
         unresolvedLocalPosts = unresolvedLocalPosts.filter((p: any) => {
+          if (deletedPostIds.has(String(p.id))) return false;
           if (p.user_id && p.user_id !== userId) return false;
           if (p.profiles && (!p.profiles.avatar_url || p.profiles.avatar_url.includes('dicebear'))) {
             p.profiles.avatar_url = '/nikil_avatar.jpg';
@@ -136,7 +149,7 @@ export function useHomeData(userId: string) {
 
       const localFeeds = unresolvedLocalPosts.filter((p: any) => p.post_type !== 'story');
 
-      const combinedFeeds = [...localFeeds, ...((feedData as any) ?? [])];
+      const combinedFeeds = [...localFeeds, ...((feedData as any) ?? [])].filter((p: any) => p && p.id && !deletedPostIds.has(String(p.id)));
 
       combinedFeeds.sort((a: any, b: any) => {
         const timeA = a && a.created_at ? new Date(a.created_at).getTime() : 0;
@@ -412,9 +425,30 @@ export function useHomeData(userId: string) {
   });
 
   const removePost = (postId: string) => {
-    const newFeeds = feeds.filter(f => String(f.id) !== String(postId));
-    setFeeds(newFeeds);
-    localStorage.setItem('home_cache_feeds', JSON.stringify(newFeeds));
+    const postIdStr = String(postId);
+    setFeeds(prev => {
+      const updated = prev.filter(f => String(f.id) !== postIdStr);
+      try {
+        localStorage.setItem('home_cache_feeds', JSON.stringify(updated));
+      } catch (_) {}
+      return updated;
+    });
+
+    // Permanently remove from fialgo_local_posts
+    try {
+      const localPosts = JSON.parse(localStorage.getItem('fialgo_local_posts') || '[]');
+      const updatedLocal = localPosts.filter((p: any) => String(p.id) !== postIdStr);
+      localStorage.setItem('fialgo_local_posts', JSON.stringify(updatedLocal));
+    } catch (_) {}
+
+    // Record in deleted posts tombstone to prevent resurrection
+    try {
+      const deleted = JSON.parse(localStorage.getItem('tradifive_deleted_post_ids') || '[]');
+      if (!deleted.includes(postIdStr)) {
+        deleted.push(postIdStr);
+        localStorage.setItem('tradifive_deleted_post_ids', JSON.stringify(deleted.slice(-500)));
+      }
+    } catch (_) {}
   };
 
   return {

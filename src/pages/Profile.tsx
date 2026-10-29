@@ -146,26 +146,7 @@ function PollBlock({
         <span>Total: {totalPollVotes} vote{totalPollVotes !== 1 ? 's' : ''}</span>
         {post.user_id === currentUserId && <span className="text-blue-500">Your Poll</span>}
       </div>
-      {/* Delete Confirmation Modal */}
-      <AlertDialog open={!!postToDelete} onOpenChange={(open) => !open && setPostToDelete(null)}>
-        <AlertDialogPopup className="bg-white dark:bg-[#121212] border-slate-200 dark:border-white/5 p-6 rounded-2xl shadow-xl max-w-sm">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-slate-900 dark:text-white font-bold text-xl mb-2">Delete Post</AlertDialogTitle>
-            <AlertDialogDescription className="text-slate-500 dark:text-slate-400">
-              Are you sure you want to delete this post? This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="mt-6 flex justify-end gap-3">
-            <AlertDialogClose render={<button className="bg-slate-100 dark:bg-[#1E1E1E] hover:bg-slate-200 dark:hover:bg-[#222] text-slate-800 dark:text-slate-200 border-none px-4 py-2 rounded-lg font-medium transition-colors" />}>Cancel</AlertDialogClose>
-            <AlertDialogClose 
-              onClick={executeDeletePost}
-              render={<button className="bg-rose-500 hover:bg-rose-600 text-white border-none px-4 py-2 rounded-lg font-medium transition-colors" />}
-            >
-              Yes, Delete
-            </AlertDialogClose>
-          </AlertDialogFooter>
-        </AlertDialogPopup>
-      </AlertDialog>
+      
     </div>
   );
 }
@@ -195,7 +176,14 @@ export default function Profile() {
   });
   const [posts, setPosts] = useState<any[]>(() => {
     const cached = localStorage.getItem(`prof_cache_posts_${userIdSync}`);
-    return cached ? JSON.parse(cached) : [];
+    if (!cached) return [];
+    try {
+      const deletedArr = JSON.parse(localStorage.getItem('tradifive_deleted_post_ids') || '[]');
+      const deletedSet = new Set(deletedArr.map(String));
+      return JSON.parse(cached).filter((p: any) => p && !deletedSet.has(String(p.id)));
+    } catch (_) {
+      return JSON.parse(cached);
+    }
   });
   const [loadingProfile, setLoadingProfile] = useState(() => {
     return localStorage.getItem(`prof_cache_data_${userIdSync}`) === null;
@@ -268,49 +256,57 @@ export default function Profile() {
   const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
   const [commentsCounts, setCommentsCounts] = useState<Record<string, number>>({});
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
-  const [postToDelete, setPostToDelete] = useState<string | null>(null);
 
-  const handleDeletePost = (postId: string) => {
-    setPostToDelete(postId);
-  };
+  const handleDeletePost = async (postId: string) => {
+    const postIdStr = String(postId);
 
-  const executeDeletePost = async () => {
-    if (!postToDelete) return;
-    const postId = postToDelete;
-    
-    if (postId.startsWith('local-')) {
-      const localPosts = JSON.parse(localStorage.getItem('fialgo_local_posts') || '[]');
-      const updated = localPosts.filter((p: any) => p.id !== postId);
-      localStorage.setItem('fialgo_local_posts', JSON.stringify(updated));
-      toast.success("Post deleted successfully!");
-      
-      // Optimistic UI updates for local posts
-      setPosts(prev => prev.filter(p => String(p.id) !== String(postId)));
-      setSavedPosts(prev => prev.filter(p => String(p.id) !== String(postId)));
-      
-      fetchProfileAndData();
-      setPostToDelete(null);
-      return;
-    }
-    
-    // Optimistic UI updates for DB posts
-    setPosts(prev => prev.filter(p => String(p.id) !== String(postId)));
-    setSavedPosts(prev => prev.filter(p => String(p.id) !== String(postId)));
+    // 1. Immediately remove from state
+    setPosts(prev => prev.filter(p => String(p.id) !== postIdStr));
+    setSavedPosts(prev => prev.filter(p => String(p.id) !== postIdStr));
 
+    // 2. Permanently purge from all localStorage stores
     try {
-      const { error } = await supabase
-        .from('social_posts')
-        .delete()
-        .eq('id', postId);
-      if (error) throw error;
-      toast.success("Post deleted successfully!");
-      fetchProfileAndData();
-    } catch (err: any) {
+      const localPosts = JSON.parse(localStorage.getItem('fialgo_local_posts') || '[]');
+      const updatedLocal = localPosts.filter((p: any) => String(p.id) !== postIdStr);
+      localStorage.setItem('fialgo_local_posts', JSON.stringify(updatedLocal));
+
+      const cachedFeeds = JSON.parse(localStorage.getItem('home_cache_feeds') || '[]');
+      const updatedCache = cachedFeeds.filter((p: any) => String(p.id) !== postIdStr);
+      localStorage.setItem('home_cache_feeds', JSON.stringify(updatedCache));
+
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith('prof_cache_posts_')) {
+          try {
+            const arr = JSON.parse(localStorage.getItem(k) || '[]');
+            const filtered = arr.filter((p: any) => String(p.id) !== postIdStr);
+            localStorage.setItem(k, JSON.stringify(filtered));
+          } catch (_) {}
+        }
+      }
+
+      const deletedIds = JSON.parse(localStorage.getItem('tradifive_deleted_post_ids') || '[]');
+      if (!deletedIds.includes(postIdStr)) {
+        deletedIds.push(postIdStr);
+        localStorage.setItem('tradifive_deleted_post_ids', JSON.stringify(deletedIds.slice(-500)));
+      }
+    } catch (_) {}
+
+    toast.success("Post deleted successfully!");
+
+    // 3. Delete from Supabase
+    try {
+      if (!postIdStr.startsWith('local-')) {
+        await Promise.allSettled([
+          supabase.from('social_post_likes').delete().eq('post_id', postId),
+          supabase.from('social_post_bookmarks').delete().eq('post_id', postId),
+          supabase.from('social_post_comments').delete().eq('post_id', postId),
+        ]);
+        await supabase.from('social_posts').delete().eq('id', postId);
+      }
+    } catch (err) {
       console.error("Error deleting post:", err);
-      toast.error("Failed to delete post.");
-      fetchProfileAndData(); // Revert optimistic update on failure
     }
-    setPostToDelete(null);
   };
 
   // Edit Profile and Privacy States
@@ -552,9 +548,15 @@ export default function Profile() {
         const localPosts = JSON.parse(localStorage.getItem('fialgo_local_posts') || '[]').filter(p => !p.user_id || p.user_id === user.id);
         
         setPosts(prev => {
-           const newPosts = page === 0 ? postsRes.data : [...prev, ...postsRes.data];
+           let deletedPostIds = new Set<string>();
+      try {
+        const deletedArr = JSON.parse(localStorage.getItem('tradifive_deleted_post_ids') || '[]');
+        deletedPostIds = new Set(deletedArr.map(String));
+      } catch (_) {}
+      const safeData = (postsRes.data || []).filter((p: any) => p && !deletedPostIds.has(String(p.id)));
+      const newPosts = page === 0 ? safeData : [...prev, ...safeData];
            const dbIds = new Set(newPosts.map(f => String(f.id)));
-           const filteredLocal = localPosts.filter(p => !dbIds.has(String(p.id)));
+           const filteredLocal = localPosts.filter(p => !deletedPostIds.has(String(p.id)) && !dbIds.has(String(p.id)));
            const combined = [...filteredLocal, ...newPosts];
            combined.sort((a, b) => {
              const timeA = a && a.created_at ? new Date(a.created_at).getTime() : 0;

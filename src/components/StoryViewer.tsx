@@ -286,9 +286,18 @@ export default function StoryViewer({
         await supabase.from("social_posts").delete().eq("id", currentStory.id);
       }
 
+      const storyIdStr = String(currentStory.id);
       const localPosts = JSON.parse(localStorage.getItem('fialgo_local_posts') || '[]');
-      const updatedLocalPosts = localPosts.filter((p: any) => p.id !== currentStory.id);
+      const updatedLocalPosts = localPosts.filter((p: any) => String(p.id) !== storyIdStr);
       localStorage.setItem('fialgo_local_posts', JSON.stringify(updatedLocalPosts));
+
+      try {
+        const deletedIds = JSON.parse(localStorage.getItem('tradifive_deleted_post_ids') || '[]');
+        if (!deletedIds.includes(storyIdStr)) {
+          deletedIds.push(storyIdStr);
+          localStorage.setItem('tradifive_deleted_post_ids', JSON.stringify(deletedIds.slice(-500)));
+        }
+      } catch (_) {}
 
       toast.success("Story deleted");
 
