@@ -420,7 +420,7 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
               } ${isFullScreen ? 'rounded-none border-l border-slate-200 dark:border-white/5' : 'rounded-none md:rounded-[2.5rem] border-0 md:border md:border-slate-100 dark:md:border-white/5 shadow-none md:shadow-[0_8px_30_rgb(0,0,0,0.04)]'} bg-white dark:bg-[#121212] font-sans`}
           >
             {/* Header (Moved Inside to Scroll) */}
-            <header className={`h-[70px] flex items-center justify-between px-4 sm:px-10 border-b border-slate-100 dark:border-white/5 shrink-0 transition-all duration-300 ${comingSoonInfo.isSoon && !isPeeking ? "filter blur-[3px] opacity-75 pointer-events-none select-none" : ""}`}>
+            <header className={`h-[70px] flex items-center justify-between px-4 sm:px-10 border-b border-slate-100 dark:border-white/5 shrink-0 transition-all duration-300 ${comingSoonInfo.isSoon && !isPeeking ? "filter blur-[1.5px] opacity-85 pointer-events-none select-none" : ""}`}>
               <div className="flex items-center gap-2 sm:gap-3">
                 <div className="md:hidden flex items-center">
                   <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
@@ -582,7 +582,7 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
                 initial={{ opacity: location.pathname === '/settings' ? 1 : 0, y: location.pathname === '/settings' ? 0 : 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: location.pathname === '/settings' ? 0 : 0.4, ease: "easeOut" }}
-                className={`${noScroll || (comingSoonInfo.isSoon && !isPeeking) ? "flex-1 h-full flex flex-col min-h-0" : ""} transition-all duration-300 ${comingSoonInfo.isSoon && !isPeeking ? "filter blur-[3.5px] opacity-75 pointer-events-none select-none" : ""}`}
+                className={`${noScroll || (comingSoonInfo.isSoon && !isPeeking) ? "flex-1 h-full flex flex-col min-h-0" : ""} transition-all duration-300 ${comingSoonInfo.isSoon && !isPeeking ? "filter blur-[2px] opacity-85 pointer-events-none select-none" : ""}`}
               >
                 {children}
               </motion.div>

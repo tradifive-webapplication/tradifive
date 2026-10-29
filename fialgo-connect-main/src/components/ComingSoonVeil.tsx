@@ -34,56 +34,30 @@ export default function ComingSoonVeil({
           className="absolute inset-0 z-30 rounded-[inherit] pointer-events-none overflow-hidden"
         >
           {/* 
-            1. Frosted Backdrop Veil:
+            Clean Frosted Backdrop Veil:
             Confined strictly to THIS page container (<main>).
-            Does NOT cover or blur the AppSidebar or outer layout.
+            Pure, smooth, gentle blur across the page with clean borders.
+            No dark vignette, no dirty corners.
           */}
-          <div className="absolute inset-0 backdrop-blur-[5px] bg-slate-900/[0.08] dark:bg-black/35 pointer-events-none rounded-[inherit]" />
+          <div className="absolute inset-0 backdrop-blur-[2px] bg-white/20 dark:bg-black/25 pointer-events-none rounded-[inherit]" />
 
           {/* 
-            2. Atmospheric Vignette & Corner Shadow Falloff for this page:
-            Soft ambient shadow along top, bottom, left, right, and 4 corners of the page container.
-          */}
-          <div
-            className="absolute inset-0 pointer-events-none select-none rounded-[inherit]"
-            style={{
-              background:
-                "radial-gradient(ellipse at center, rgba(15, 23, 42, 0) 30%, rgba(15, 23, 42, 0.16) 68%, rgba(15, 23, 42, 0.42) 100%)",
-              boxShadow: "inset 0 0 100px 25px rgba(15, 23, 42, 0.22)",
-            }}
-          />
-          <div
-            className="absolute inset-0 pointer-events-none select-none hidden dark:block rounded-[inherit]"
-            style={{
-              background:
-                "radial-gradient(ellipse at center, rgba(0, 0, 0, 0) 25%, rgba(0, 0, 0, 0.38) 65%, rgba(0, 0, 0, 0.75) 100%)",
-              boxShadow: "inset 0 0 130px 35px rgba(0, 0, 0, 0.6)",
-            }}
-          />
-
-          {/* 
-            3. Centered Organic Glassmorphic Card:
-            Dead center in THIS PAGE area (not full screen across the sidebar).
-            Pebble-soft rounded corners, diffused ambient halo, no harsh box outline.
+            Centered Card:
+            Dead center in this page area.
+            Smooth, soft elevation shadow and clean rounded borders.
           */}
           <div className="absolute inset-0 z-40 flex items-center justify-center p-4 sm:p-6 pointer-events-none overflow-y-auto">
             <motion.div
-              initial={{ opacity: 0, scale: 0.94, y: 10 }}
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.94, y: 10 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
               transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
               className="relative max-w-lg w-full pointer-events-auto my-auto"
             >
-              {/* Feathered ambient shadow halo behind the card to dissolve hard box edges */}
-              <div className="absolute -inset-6 sm:-inset-8 bg-slate-900/15 dark:bg-black/60 rounded-[50px] blur-3xl pointer-events-none -z-10" />
-
-              {/* Glassmorphic body with soft organic curves */}
-              <div className="relative bg-white/85 dark:bg-[#12151e]/90 backdrop-blur-3xl border border-white/70 dark:border-white/10 rounded-[36px] sm:rounded-[42px] p-7 sm:p-9 shadow-[0_25px_70px_-15px_rgba(15,23,42,0.18),0_0_50px_rgba(255,255,255,0.4)] dark:shadow-[0_30px_90px_-20px_rgba(0,0,0,0.85),0_0_35px_rgba(255,255,255,0.03)] text-center overflow-hidden">
-                {/* Subtle top light sheen */}
-                <div className="absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/80 dark:via-white/20 to-transparent" />
-
+              {/* Clean card body with smooth shadows and rounded corners */}
+              <div className="relative bg-white/95 dark:bg-[#13161f]/95 backdrop-blur-2xl border border-slate-200/70 dark:border-white/10 rounded-[32px] sm:rounded-[36px] p-7 sm:p-9 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.12),0_4px_16px_-4px_rgba(0,0,0,0.06)] dark:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7)] text-center overflow-hidden">
                 {/* Badge */}
-                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-100/90 dark:bg-white/[0.07] border border-slate-200/60 dark:border-white/10 text-slate-700 dark:text-slate-300 text-xs font-semibold tracking-wide mb-4 shadow-sm">
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-100 dark:bg-white/[0.07] border border-slate-200/60 dark:border-white/10 text-slate-700 dark:text-slate-300 text-xs font-semibold tracking-wide mb-4 shadow-sm">
                   <Sparkles size={13} className="text-amber-500 animate-pulse" />
                   <span>Coming Up Next</span>
                 </div>
@@ -105,7 +79,7 @@ export default function ComingSoonVeil({
                 </div>
 
                 {/* Systematic 2-Step Roadmap Indicator */}
-                <div className="bg-slate-50/90 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/5 rounded-2xl p-3 mb-6 text-left">
+                <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/5 rounded-2xl p-3 mb-6 text-left">
                   <div className="flex items-center gap-3 text-xs mb-2">
                     <span className="flex h-2 w-2 rounded-full bg-emerald-500 ring-4 ring-emerald-500/20" />
                     <span className="font-semibold text-slate-800 dark:text-slate-200">Stage 1 (Live Now):</span>
