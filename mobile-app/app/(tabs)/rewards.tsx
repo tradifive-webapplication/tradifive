@@ -4,6 +4,7 @@ import {
   Dimensions, Platform, StatusBar, Image, DeviceEventEmitter, RefreshControl, Alert, TextInput, Clipboard
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import ComingSoonVeil from '../../components/ComingSoonVeil';
 import { getHeaderStyle, HeaderStyle } from '../utils/headerStore';
 import {
   Star, Zap, Crown, Target, CircleDollarSign, Check, Bell, Flame, Calendar,
@@ -320,6 +321,7 @@ export default function Rewards() {
 
       {/* ── WHITE CONTENT CARD ── */}
       <Animated.View style={[s.mainCard, { marginTop: headerStyle === 'simple' ? 0 : scrollY.interpolate({ inputRange: [0, 150], outputRange: [-34, -184], extrapolate: 'clamp' }), borderTopLeftRadius: headerStyle === 'simple' ? 0 : 40, borderTopRightRadius: headerStyle === 'simple' ? 0 : 40 }]}>
+        <ComingSoonVeil featureTitle="Rewards Hub" />
         <Animated.ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 260, paddingTop: 24 }}

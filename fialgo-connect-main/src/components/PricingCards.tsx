@@ -270,7 +270,7 @@ export function PricingCards({ selectedPlan, onSelectPlan, onUpgradeClick, isSta
             className={`w-full flex items-center justify-center h-12 rounded-full font-bold text-[13px] transition-all active:scale-95 mb-4 ${isCurrentPlan('pro') ? 'opacity-60 cursor-not-allowed saturate-50 bg-amber-600 text-white' : 'btn-glow-primary'}`}
             style={!isCurrentPlan('pro') ? { background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', boxShadow: '0 0 30px rgba(245, 158, 11, 0.35), 0 8px 30px rgba(0, 0, 0, 0.3)' } : {}}
           >
-            {isCurrentPlan('pro') ? 'Current Plan' : (!isStandalone && activePlan === 'elite') ? 'Downgrade to Pro' : 'Pro Waitlist (Soon)'}
+            {isCurrentPlan('pro') ? 'Current Plan' : (!isStandalone && activePlan === 'elite') ? 'Downgrade to Pro' : 'Get Pro'}
           </button>
 
           <div className="mb-1 mt-2">
@@ -308,7 +308,7 @@ export function PricingCards({ selectedPlan, onSelectPlan, onUpgradeClick, isSta
               disabled={isCurrentPlan('elite')}
               className={`w-full flex items-center justify-center h-10 rounded-full border border-slate-300 dark:border-white/5 bg-slate-200 dark:bg-[#1E1E1E] text-slate-800 dark:text-white font-bold text-[13px] hover:bg-slate-300 dark:hover:bg-[#2A2A2A] transition-all active:scale-95 mb-4 ${isCurrentPlan('elite') ? 'opacity-60 cursor-not-allowed' : ''}`}
             >
-              {isCurrentPlan('elite') ? 'Current Plan' : 'Elite Waitlist (Soon)'}
+              {isCurrentPlan('elite') ? 'Current Plan' : 'Get Elite'}
             </button>
 
             <div className="mb-1 mt-2">

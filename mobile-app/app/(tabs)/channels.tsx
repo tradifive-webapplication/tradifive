@@ -12,6 +12,7 @@ import {
   Zap, ArrowLeft, Send, Hash, MoreVertical, Phone, Video,
 } from 'lucide-react-native';
 import { BlurView } from 'expo-blur';
+import ComingSoonVeil from '../../components/ComingSoonVeil';
 import * as Haptics from 'expo-haptics';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useStore } from '../store';
@@ -346,6 +347,7 @@ export default function Channels() {
         overflow: 'hidden',
         zIndex: 5,
       }}>
+        <ComingSoonVeil featureTitle="Trading Channels" />
         <Animated.ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingTop: 20, paddingBottom: insets.bottom + 140 }}

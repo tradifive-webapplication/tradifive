@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { BlurView } from 'expo-blur';
 import { View, Text, ScrollView, TouchableOpacity, Dimensions, Platform, StatusBar, Image, Switch, Animated, DeviceEventEmitter, Alert, StyleSheet, TextInput, PanResponder, Modal, FlatList, TouchableWithoutFeedback } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import ComingSoonVeil from '../../components/ComingSoonVeil';
 import { getHeaderStyle, HeaderStyle } from '../utils/headerStore';
 import { useRouter } from 'expo-router';
 import UpgradeGate from '../components/UpgradeGate';
@@ -352,7 +353,8 @@ export default function RiskGuardScreen() {
   );
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { position: 'relative' }]}>
+      <ComingSoonVeil featureTitle="Risk Guard Protection" />
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
       
       {/* ── SMART-REVEAL HEADER ── */}

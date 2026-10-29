@@ -115,6 +115,7 @@ import { getHeaderStyle, HeaderStyle } from '../utils/headerStore';
 import { useStore } from '../store';
 import { getAvatarUrl } from '../utils/avatar';
 import { useAppTheme } from '../../hooks/useAppTheme';
+import ComingSoonVeil from '../../components/ComingSoonVeil';
 import { useSocialFeed } from '../../hooks/useSocialFeed';
 import { useDashboardData } from '../../hooks/useDashboardData';
 import { useChannelData } from '../../hooks/useChannelData';
@@ -1890,13 +1891,13 @@ export default function DashboardScreen() {
         <Animated.View style={[
           styles.header,
           {
-            height: headerStyle === 'simple' ? insets.top + 56 : insets.top + 92,
-            zIndex: 0,
+            zIndex: 10,
             opacity: activeCardId ? 0.15 : 1,
+            height: headerStyle === 'simple' ? insets.top + 74 : insets.top + 104,
             backgroundColor: headerStyle === 'simple' ? (activeCardId ? (isDark ? '#000' : '#090d16') : (isDark ? theme.background : '#ffffff')) : 'transparent',
             borderBottomWidth: headerStyle === 'simple' && !isDark ? 1 : 0,
             borderBottomColor: isDark ? theme.cardBorder : '#e2e8f0',
-            paddingBottom: 0,
+            position: 'relative',
             transform: headerStyle === 'simple' ? [] : [{
               scale: scrollY.interpolate({
                 inputRange: [0, 80],
@@ -1920,8 +1921,16 @@ export default function DashboardScreen() {
             />
           )}
 
-          {/* Fading container for all header content when scrolling or when AI is open */}
-          <Animated.View style={[StyleSheet.absoluteFillObject, {
+          {/* Static Header Row — sitting cleanly right above the white card */}
+          <Animated.View style={{
+            position: 'absolute',
+            bottom: headerStyle === 'simple' ? 16 : 38,
+            left: 0,
+            right: 0,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingHorizontal: 20,
             opacity: headerStyle === 'simple' ? 1 : Animated.multiply(
               aiHeaderFade,
               scrollY.interpolate({
@@ -1930,94 +1939,50 @@ export default function DashboardScreen() {
                 extrapolate: 'clamp'
               })
             )
-          }]}>
-            {/* Dashboard row — absolutely positioned so both rows overlap */}
-            {activeTab === 'dashboard' && (
-              <Animated.View style={[styles.headerRow, { opacity: dashOp, zIndex: 10, paddingHorizontal: 20, bottom: headerStyle === 'simple' ? 12 : 38 }]}>
-                <Text style={{ color: headerStyle === 'simple' ? (isDark ? theme.text : '#000000') : '#fff', fontSize: 24, fontFamily: 'Inter_700Bold', letterSpacing: -0.5 }}>Dashboard</Text>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-                  <TouchableOpacity onPress={() => { hSelect(); router.push('/notifications' as any); }} style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center' }}>
-                    <Bell size={22} color={headerStyle === 'simple' ? (isDark ? theme.text : '#000000') : 'white'} />
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={() => router.setParams({ openProfile: 'true' })}
-                    style={{ width: 34, height: 34, borderRadius: 17, borderWidth: 1.5, borderColor: headerStyle === 'simple' ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.2)', overflow: 'hidden' }}
-                  >
-                    <Image source={{ uri: getAvatarUrl(currentUser?.avatar_url, currentUser?.email) }} style={{ width: '100%', height: '100%' }} />
-                  </TouchableOpacity>
-                </View>
-              </Animated.View>
+          }}>
+            {activeTab === 'community' ? (
+              <TouchableOpacity
+                onPress={dropdownOpen ? closeDropdown : openDropdown}
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
+              >
+                <Text style={{ color: headerStyle === 'simple' ? '#000000' : '#fff', fontSize: 22, fontFamily: 'Inter_600SemiBold' }}>{headerTitle}</Text>
+                {dropdownOpen
+                  ? <ChevronUp size={18} color={headerStyle === 'simple' ? '#000000' : '#fff'} />
+                  : <ChevronDown size={18} color={headerStyle === 'simple' ? '#000000' : '#fff'} />}
+              </TouchableOpacity>
+            ) : activeTab === 'contests' ? (
+              <TouchableOpacity
+                onPress={dropdownOpen ? closeDropdown : openDropdown}
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
+              >
+                <Text style={{ color: headerStyle === 'simple' ? '#000000' : '#fff', fontSize: 22, fontFamily: 'Inter_600SemiBold' }}>
+                  {contestView === 'contests' ? 'Contests' : contestView === 'profile' ? 'Profile' : 'Leaderboard'}
+                </Text>
+                {dropdownOpen
+                  ? <ChevronUp size={18} color={headerStyle === 'simple' ? '#000000' : '#fff'} />
+                  : <ChevronDown size={18} color={headerStyle === 'simple' ? '#000000' : '#fff'} />}
+              </TouchableOpacity>
+            ) : (
+              <Text style={{ color: headerStyle === 'simple' ? (isDark ? theme.text : '#000000') : '#fff', fontSize: 24, fontFamily: 'Inter_700Bold', letterSpacing: -0.5 }}>
+                {activeTab === 'dashboard' ? 'Dashboard' : 'Home'}
+              </Text>
             )}
 
-            {/* Feed row */}
-            {activeTab === 'feed' && (
-              <Animated.View style={[styles.headerRow, { opacity: feedOp, zIndex: 10, paddingHorizontal: 20, bottom: headerStyle === 'simple' ? 12 : 38 }]}>
-                <Text style={{ color: headerStyle === 'simple' ? (isDark ? theme.text : '#000000') : '#fff', fontSize: 24, fontFamily: 'Inter_700Bold', letterSpacing: -0.5 }}>Home</Text>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-                  <TouchableOpacity onPress={() => { h(); router.push('/notifications' as any); }} style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center' }}>
-                    <Bell size={22} color={headerStyle === 'simple' ? (isDark ? theme.text : '#000000') : 'white'} />
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={() => router.setParams({ openProfile: 'true' })}
-                    style={{ width: 34, height: 34, borderRadius: 17, borderWidth: 1.5, borderColor: headerStyle === 'simple' ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.2)', overflow: 'hidden' }}
-                  >
-                    <Image source={{ uri: getAvatarUrl(currentUser?.avatar_url, currentUser?.email) }} style={{ width: '100%', height: '100%' }} />
-                  </TouchableOpacity>
-                </View>
-              </Animated.View>
-            )}
-
-            {/* Community row */}
-            {activeTab === 'community' && (
-              <Animated.View style={[styles.headerRow, { opacity: commOp, zIndex: 10, bottom: headerStyle === 'simple' ? 12 : 38 }]}>
-                <TouchableOpacity
-                  onPress={dropdownOpen ? closeDropdown : openDropdown}
-                  style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
-                >
-                  <Text style={{ color: headerStyle === 'simple' ? '#000000' : '#fff', fontSize: 22, fontFamily: 'Inter_600SemiBold' }}>{headerTitle}</Text>
-                  {dropdownOpen
-                    ? <ChevronUp size={18} color={headerStyle === 'simple' ? '#000000' : '#fff'} />
-                    : <ChevronDown size={18} color={headerStyle === 'simple' ? '#000000' : '#fff'} />}
-                </TouchableOpacity>
-
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                  {activeTab === 'community' && commView === 'messages' ? (
-                    <>
-                      <TouchableOpacity onPress={() => h()} style={{ width: 18, height: 18, borderRadius: 9, borderWidth: 1, borderColor: headerStyle === 'simple' ? '#000000' : '#fff', alignItems: 'center', justifyContent: 'center' }}>
-                        <Plus size={10} color={headerStyle === 'simple' ? '#000000' : '#fff'} />
-                      </TouchableOpacity>
-                      <TouchableOpacity onPress={() => h()}>
-                        <Text style={{ color: headerStyle === 'simple' ? '#000000' : '#fff', fontSize: 13, fontFamily: 'Inter_400Regular' }}>Select</Text>
-                      </TouchableOpacity>
-                    </>
-                  ) : (
-                    <TouchableOpacity style={{ width: 34, height: 34, alignItems: 'center', justifyContent: 'center' }}>
-                      <Cpu size={22} color={headerStyle === 'simple' ? '#000000' : '#fff'} />
-                    </TouchableOpacity>
-                  )}
-                </View>
-              </Animated.View>
-            )}
-
-            {/* Contests header */}
-            {activeTab === 'contests' && (
-              <Animated.View style={[styles.headerRow, { opacity: contOp, zIndex: 10, bottom: headerStyle === 'simple' ? 12 : 38 }]}>
-                <TouchableOpacity
-                  onPress={dropdownOpen ? closeDropdown : openDropdown}
-                  style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
-                >
-                  <Text style={{ color: headerStyle === 'simple' ? '#000000' : '#fff', fontSize: 22, fontFamily: 'Inter_600SemiBold' }}>
-                    {contestView === 'contests' ? 'Contests' : contestView === 'profile' ? 'Profile' : 'Leaderboard'}
-                  </Text>
-                  {dropdownOpen
-                    ? <ChevronUp size={18} color={headerStyle === 'simple' ? '#000000' : '#fff'} />
-                    : <ChevronDown size={18} color={headerStyle === 'simple' ? '#000000' : '#fff'} />}
-                </TouchableOpacity>
-              </Animated.View>
-            )}
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
+              <TouchableOpacity onPress={() => { h(); router.push('/notifications' as any); }} style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center' }}>
+                <Bell size={22} color={headerStyle === 'simple' ? (isDark ? theme.text : '#000000') : 'white'} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => router.setParams({ openProfile: 'true' })}
+                style={{ width: 34, height: 34, borderRadius: 17, borderWidth: 1.5, borderColor: headerStyle === 'simple' ? (isDark ? theme.cardBorder : 'rgba(0,0,0,0.1)') : 'rgba(255,255,255,0.2)', overflow: 'hidden' }}
+              >
+                <Image source={{ uri: getAvatarUrl(currentUser?.avatar_url, currentUser?.email) }} style={{ width: '100%', height: '100%' }} />
+              </TouchableOpacity>
+            </View>
           </Animated.View>
         </Animated.View>
       )}
+
       {/* ── NATIVE SMART-REVEAL HEADER ── */}
       {headerStyle !== 'simple' && (
         <Animated.View style={{
@@ -2078,7 +2043,8 @@ export default function DashboardScreen() {
         }
       ]}>
         {activeTab === 'dashboard' && (
-          <View style={{ flex: 1, width: '100%' }}>
+          <View style={{ flex: 1, width: '100%', position: 'relative' }}>
+            <ComingSoonVeil featureTitle="Trading Dashboard" />
             <Animated.ScrollView
               showsVerticalScrollIndicator={false}
               style={{ flex: 1, width: '100%' }}

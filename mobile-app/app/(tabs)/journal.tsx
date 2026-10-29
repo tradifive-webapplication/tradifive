@@ -8,6 +8,7 @@ import { getHeaderStyle, HeaderStyle } from '../utils/headerStore';
 import { WinRateRing, ProfitFactorGauge, WinLossBar, TradingCalendar, SvgAreaChart, SvgBarChart, ChartCardWrapper, LegendRow } from '../components/JournalCharts';
 import { useStore } from '../store';
 import UpgradeGate from '../components/UpgradeGate';
+import ComingSoonVeil from '../../components/ComingSoonVeil';
 
 import { useAppTheme } from '../../hooks/useAppTheme';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -227,6 +228,7 @@ export default function JournalScreen() {
 
       {/* ── WHITE CONTENT CARD ── */}
       <Animated.View style={[styles.card, { marginTop: headerStyle === 'simple' ? 0 : scrollY.interpolate({ inputRange: [0, 150], outputRange: [-34, -184], extrapolate: 'clamp' }), borderTopLeftRadius: headerStyle === 'simple' ? 0 : 40, borderTopRightRadius: headerStyle === 'simple' ? 0 : 40 }]}>
+        <ComingSoonVeil featureTitle="Smart Trade Journal" />
         <Animated.ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 140, paddingTop: 24 }} onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: false })} scrollEventThrottle={16} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#8E8E93" progressViewOffset={10} />}>
           <Animated.View style={{ transform: headerStyle === 'simple' ? [] : [{ translateY: scrollY.interpolate({ inputRange: [0, 150], outputRange: [0, 150], extrapolate: 'clamp' }) }] }}>
             <View style={{ paddingHorizontal: 16 }}>

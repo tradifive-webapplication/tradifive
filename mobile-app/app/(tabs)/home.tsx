@@ -219,33 +219,35 @@ export default function DashboardScreen() {
 
       {/* ── HEADER ── */}
       <View style={[styles.header, {
-        height: headerStyle === 'simple' ? insets.top + 56 : insets.top + 92,
-        backgroundColor: headerStyle === 'simple' ? '#ffffff' : '#000000',
+        backgroundColor: headerStyle === 'simple' ? '#ffffff' : 'transparent',
         borderBottomWidth: headerStyle === 'simple' ? 1 : 0,
         borderBottomColor: isDark ? '#1e2a3a' : '#e2e8f0',
-        paddingBottom: 0,
+        paddingBottom: headerStyle === 'simple' ? 16 : 28,
       }]}>
-        <Image
-          source={require('../../assets/images/top-glow.png')}
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            width: '100%',
-            height: insets.top + 160,
-            opacity: headerStyle === 'simple' ? 0 : 0.95
-          }}
-          resizeMode="stretch"
-          pointerEvents="none"
-        />
+        {headerStyle !== 'simple' && (
+          <Image
+            source={require('../../assets/images/top-glow.png')}
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              width: '100%',
+              height: insets.top + 160,
+              opacity: 0.95
+            }}
+            resizeMode="stretch"
+            pointerEvents="none"
+          />
+        )}
+        <View style={{ height: headerStyle === 'simple' ? 44 : 48, marginTop: headerStyle === 'simple' ? insets.top + 18 : insets.top + 30 }} />
 
         {/* Fading container for all header content when AI is open */}
         <Animated.View style={[StyleSheet.absoluteFillObject, { opacity: aiHeaderFade }]}>
           {/* Dashboard row — absolutely positioned so both rows overlap */}
           <Animated.View style={[
             styles.headerRow,
-            { bottom: headerStyle === 'simple' ? 12 : 38 },
+            { bottom: headerStyle === 'simple' ? 16 : 38 },
             { opacity: dashOp }
           ]}>
             <Text style={{
@@ -274,7 +276,7 @@ export default function DashboardScreen() {
           {/* Community row */}
           <Animated.View style={[
             styles.headerRow,
-            { bottom: headerStyle === 'simple' ? 12 : 38 },
+            { bottom: headerStyle === 'simple' ? 16 : 38 },
             { opacity: commOp, zIndex: 10 }
           ]}>
             <TouchableOpacity
@@ -351,7 +353,7 @@ export default function DashboardScreen() {
           {/* Contests header */}
           <Animated.View style={[
             styles.headerRow,
-            { bottom: headerStyle === 'simple' ? 12 : 38 },
+            { bottom: headerStyle === 'simple' ? 16 : 38 },
             { opacity: contOp, zIndex: activeTab === 'contests' ? 10 : 0 }
           ]}>
             <TouchableOpacity

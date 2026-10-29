@@ -369,6 +369,7 @@ export default function TabLayout() {
     {
       label: 'Dashboard',
       icon: Category,
+      badge: 'SOON',
       subItems: [
         { label: 'Overview & Stats', icon: Category, route: '/(tabs)', params: { view: 'dashboard' } },
         { label: 'Portfolio', icon: Wallet, route: '/(tabs)/portfolio' },
@@ -417,10 +418,21 @@ export default function TabLayout() {
     {
       label: 'Channels',
       icon: TwoUsers,
+      badge: 'SOON',
       subItems: [
         { label: 'Trading Channels', icon: Chat, route: '/(tabs)/channels' },
         { label: 'Mentorship Hub', icon: Crown, route: '/(tabs)/mentorship-hub' },
         { label: 'Live Sessions', icon: Video, route: '/(tabs)/live-sessions' },
+      ],
+    },
+    {
+      label: 'Rewards',
+      icon: Gift,
+      badge: 'SOON',
+      route: '/(tabs)/rewards',
+      subItems: [
+        { label: 'Refer & Earn', icon: TwoUsers, route: '/(tabs)/referrals' },
+        { label: 'Rewards Hub', icon: Gift, route: '/(tabs)/rewards' },
       ],
     },
   ];
@@ -436,8 +448,7 @@ export default function TabLayout() {
     } as any);
   }
 
-  const DRAWER_FOOTER = [
-    { label: 'Rewards', icon: Gift, route: '/(tabs)/rewards' },
+  const DRAWER_FOOTER = [
     { label: 'Settings and privacy', icon: SettingsIcon, route: '/(tabs)/settings' },
     { label: 'Help Centre', icon: HelpCircle, route: '/help' },
     { label: 'Log Out', icon: Logout, action: 'signout' },
@@ -627,9 +638,7 @@ export default function TabLayout() {
                       paddingHorizontal: 8,
                       borderRadius: 12,
                       gap: 16,
-                      backgroundColor: isAnySubActive && !isExpanded
-                        ? 'rgba(255, 255, 255, 0.08)'
-                        : 'transparent',
+                      backgroundColor: 'transparent',
                     }}
                   >
                     {/* Fixed container for Iconly Icon ensuring guaranteed gap */}
@@ -751,9 +760,7 @@ export default function TabLayout() {
                               paddingHorizontal: 12,
                               borderRadius: 10,
                               marginVertical: 2,
-                              backgroundColor: isSubActive
-                                ? 'rgba(255, 255, 255, 0.08)'
-                                : 'transparent',
+                              backgroundColor: 'transparent',
                               gap: 14,
                             }}
                           >
@@ -999,69 +1006,44 @@ export default function TabLayout() {
                     {/* 1. HOME (FEED) */}
                     <TouchableOpacity
                       onPress={() => {
+                        h();
                         DeviceEventEmitter.emit('switchHomeTab', 'feed');
                         setActiveTab('feed');
                         setPendingTab('feed');
                         if (isHome) router.setParams({ view: 'feed' });
                         else router.push({ pathname: '/(tabs)', params: { view: 'feed' } } as any);
                       }}
-                      style={isFeedActive ? [styles.clusterActive, isDark && { backgroundColor: '#222222' }] : styles.clusterBtn}
+                      style={styles.clusterBtn}
                     >
                       <Home
                         key={isFeedActive ? 'feed-active' : 'feed-inactive'}
-                        size={20}
-                        color={isFeedActive ? (isDark ? '#ffffff' : '#000') : '#8E8E93'}
+                        size={22}
+                        color={isFeedActive ? (isDark ? '#ffffff' : '#000000') : '#8E8E93'}
                         set={isFeedActive ? 'bold' : 'curved'}
                         stroke="bold"
                       />
                     </TouchableOpacity>
 
-                    {/* 2. DASHBOARD */}
+                    {/* 2. AUTO TRADE */}
                     <TouchableOpacity
-                      onPress={() => {
-                        DeviceEventEmitter.emit('switchHomeTab', 'dashboard');
-                        setActiveTab('dashboard');
-                        setPendingTab('dashboard');
-                        if (isHome) router.setParams({ view: 'dashboard' });
-                        else router.push({ pathname: '/(tabs)', params: { view: 'dashboard' } } as any);
-                      }}
-                      style={isDashActive ? [styles.clusterActive, isDark && { backgroundColor: '#222222' }] : styles.clusterBtn}
-                    >
-                      <LayoutGrid
-                        key={isDashActive ? 'dash-active' : 'dash-inactive'}
-                        size={20}
-                        color={isDashActive ? (isDark ? '#ffffff' : '#000') : '#8E8E93'}
-                        set={isDashActive ? 'bold' : 'curved'}
-                        stroke="bold"
-                      />
-                    </TouchableOpacity>
-
-                    {/* 3. DYNAMIC SLOT */}
-                    <TouchableOpacity
-                      style={isDynamicActive ? [styles.clusterActive, isDark && { backgroundColor: '#222222' }] : styles.clusterBtn}
                       onPress={() => {
                         h();
                         setActiveTab('dynamic');
                         setPendingTab('dynamic');
-                        if (activeNavItem.label === 'Trading Journal' || activeNavItem.label === 'Journal') router.push('/(tabs)/journal');
-                        else if (activeNavItem.label === 'Risk Guard') router.push('/(tabs)/risk-guard');
-                        else if (activeNavItem.label === 'Auto Trade' || activeNavItem.label === 'Auto Trade Setup') router.push('/(tabs)/auto-trade-setup');
-                        else if (activeNavItem.label === 'Rewards') router.push('/(tabs)/rewards');
-                        else if (activeNavItem.label === 'Broker Connect') router.push('/broker-connect' as any);
-                        else if (activeNavItem.label === 'Channels') router.push('/(tabs)/channels');
-                        else if (activeNavItem.label === 'Marketplace') router.push('/(tabs)/marketplace');
-                        else if (activeNavItem.label === 'Settings') router.push('/(tabs)/settings');
+                        router.push('/(tabs)/auto-trade-setup');
                       }}
+                      style={styles.clusterBtn}
                     >
-                      <activeNavItem.icon
-                        key={isDynamicActive ? 'dynamic-active' : 'dynamic-inactive'}
-                        size={20}
-                        color={isDynamicActive ? (isDark ? '#ffffff' : '#000') : '#8E8E93'}
-                        set={isDynamicActive ? 'bold' : 'curved'}
+                      <Activity
+                        key={pathname.includes('auto-trade') ? 'auto-active' : 'auto-inactive'}
+                        size={22}
+                        color={pathname.includes('auto-trade') ? (isDark ? '#ffffff' : '#000000') : '#8E8E93'}
+                        set={pathname.includes('auto-trade') ? 'bold' : 'curved'}
                         stroke="bold"
                       />
                     </TouchableOpacity>
 
+                    {/* 3. INBOX */}
                     <TouchableOpacity
                       onPress={() => {
                         h();
@@ -1069,17 +1051,16 @@ export default function TabLayout() {
                         setPendingTab('dynamic');
                         router.push('/(tabs)/inbox' as any);
                       }}
-                      style={isInboxActive ? [styles.clusterActive, isDark && { backgroundColor: '#222222' }] : styles.clusterBtn}
+                      style={styles.clusterBtn}
                     >
                       <MessageCircle
                         key={isInboxActive ? 'inbox-active' : 'inbox-inactive'}
-                        size={20}
-                        color={isInboxActive ? (isDark ? '#ffffff' : '#000') : '#8E8E93'}
+                        size={22}
+                        color={isInboxActive ? (isDark ? '#ffffff' : '#000000') : '#8E8E93'}
                         set={isInboxActive ? 'bold' : 'curved'}
                         stroke="bold"
                       />
                     </TouchableOpacity>
-
                   </View>
 
                   {/* AI BOT PILL */}
@@ -1142,7 +1123,7 @@ export default function TabLayout() {
                             paddingHorizontal: 14,
                             borderRadius: 12,
                             gap: 16,
-                            backgroundColor: isAnySubActive ? 'rgba(56, 189, 248, 0.12)' : 'rgba(255,255,255,0.05)',
+                            backgroundColor: 'transparent',
                           }}
                         >
                           <View style={{ width: 24, alignItems: 'center', justifyContent: 'center' }}>
@@ -1218,7 +1199,7 @@ export default function TabLayout() {
                                     paddingHorizontal: 10,
                                     borderRadius: 10,
                                     marginVertical: 1.5,
-                                    backgroundColor: isSubActive ? 'rgba(56, 189, 248, 0.14)' : 'transparent',
+                                    backgroundColor: 'transparent',
                                     gap: 14,
                                   }}
                                 >
@@ -1249,13 +1230,7 @@ export default function TabLayout() {
                 </ScrollView>
                 <View style={{ position: 'absolute', bottom: insets.bottom + 20, left: 20, right: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                   <View style={{ flexDirection: 'row', gap: 16 }}>
-                    <TouchableOpacity
-                      onPress={() => { closeMenu(); router.push('/(tabs)/rewards'); }}
-                      style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
-                    >
-                      <Gift size={18} color="#fff" strokeWidth={1.5} />
-                      <Text style={{ color: '#fff', fontSize: 14, fontFamily: 'Inter_500Medium' }}>Rewards</Text>
-                    </TouchableOpacity>
+                    
 
                     <TouchableOpacity
                       onPress={() => { closeMenu(); router.push('/(tabs)/settings'); }}
@@ -1463,7 +1438,7 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: 'rgba(0,0,0,0.05)', gap: 2,
   },
   clusterActive: {
-    width: 46, height: 46, backgroundColor: '#F2F2F7',
+    width: 46, height: 46, backgroundColor: 'transparent',
     borderRadius: 23, alignItems: 'center', justifyContent: 'center',
   },
   clusterBtn: {
