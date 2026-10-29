@@ -382,7 +382,7 @@ const HomePostCard = ({
             }}
           >
             <Image
-              source={{ uri: post.avatar }}
+              source={post.avatar ? { uri: post.avatar } : require('../../assets/images/avatar.png')}
               style={{
                 width: 44,
                 height: 44,
@@ -2061,10 +2061,12 @@ export default function DashboardScreen() {
           backgroundColor: activeCardId ? '#090d16' : (isDark ? theme.background : (activeTab === 'feed' ? '#f8fafc' : '#fff')),
         }
       ]}>
-        <Animated.View style={[StyleSheet.absoluteFillObject, { opacity: dashOp, pointerEvents: activeTab === 'dashboard' ? 'auto' : 'none' }]}>
-          <Animated.ScrollView
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: 140, paddingTop: 24 }}
+        {activeTab === 'dashboard' && (
+          <View style={{ flex: 1, width: '100%' }}>
+            <Animated.ScrollView
+              showsVerticalScrollIndicator={false}
+              style={{ flex: 1, width: '100%' }}
+              contentContainerStyle={{ flexGrow: 1, paddingBottom: 140, paddingTop: 24 }}
             onScroll={Animated.event(
               [{ nativeEvent: { contentOffset: { y: scrollY } } }],
               { useNativeDriver: false }
@@ -2520,10 +2522,12 @@ export default function DashboardScreen() {
 
             </Animated.View>
           </Animated.ScrollView>
-        </Animated.View>
+          </View>
+        )}
 
         {/* ── COMMUNITY VIEW ── */}
-        <Animated.View style={[StyleSheet.absoluteFillObject, { opacity: commOp, pointerEvents: activeTab === 'community' ? 'auto' : 'none' }]}>
+        {activeTab === 'community' && (
+          <View style={{ flex: 1, width: '100%' }}>
           {activeChannel ? (
             <View style={{ flex: 1, backgroundColor: isDark ? '#111111' : '#fff' }}>
               {/* Channel Header */}
@@ -2601,14 +2605,17 @@ export default function DashboardScreen() {
               ))}
             </Animated.ScrollView>
           )}
-        </Animated.View>
+          </View>
+        )}
 
         {/* ── CONTESTS VIEW ── */}
-        <Animated.View style={[StyleSheet.absoluteFillObject, { opacity: contOp, pointerEvents: activeTab === 'contests' ? 'auto' : 'none' }]}>
-          {contestView === 'contests' ? (
-            <Animated.ScrollView
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={{ paddingBottom: 140 }}
+        {activeTab === 'contests' && (
+          <View style={{ flex: 1, width: '100%' }}>
+            {contestView === 'contests' ? (
+              <Animated.ScrollView
+                showsVerticalScrollIndicator={false}
+                style={{ flex: 1, width: '100%' }}
+                contentContainerStyle={{ flexGrow: 1, paddingBottom: 140 }}
               onScroll={Animated.event(
                 [{ nativeEvent: { contentOffset: { y: scrollY } } }],
                 { useNativeDriver: false }
@@ -2930,33 +2937,35 @@ export default function DashboardScreen() {
               </Animated.View>
             </Animated.ScrollView>
           )}
-        </Animated.View>
+          </View>
+        )}
 
         {/* ── FEED VIEW ── */}
-        <Animated.View style={[StyleSheet.absoluteFillObject, { opacity: feedOp, pointerEvents: activeTab === 'feed' ? 'auto' : 'none', backgroundColor: activeCardId ? '#090d16' : (isDark ? theme.background : '#f8fafc') }]}>
-          <Animated.ScrollView
-            showsVerticalScrollIndicator={false}
-            scrollEnabled={true}
-            style={{ backgroundColor: isDark ? theme.background : '#f8fafc' }}
-            contentContainerStyle={{ paddingBottom: 160, paddingTop: 16, backgroundColor: isDark ? theme.background : '#f8fafc' }}
-            onScroll={Animated.event(
-              [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-              { useNativeDriver: false }
-            )}
-            onScrollBeginDrag={() => {
-              setActivePostMenu(null);
-            }}
-            scrollEventThrottle={16}
-            refreshControl={
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={onRefresh}
-                tintColor="#8E8E93"
-                progressViewOffset={10}
-              />
-            }
-          >
-            <View style={{ flex: 1 }}>
+        {activeTab === 'feed' && (
+          <View style={{ flex: 1, width: '100%', backgroundColor: activeCardId ? '#090d16' : (isDark ? theme.background : '#f8fafc') }}>
+            <Animated.ScrollView
+              showsVerticalScrollIndicator={false}
+              scrollEnabled={true}
+              style={{ flex: 1, width: '100%', backgroundColor: isDark ? theme.background : '#f8fafc' }}
+              contentContainerStyle={{ flexGrow: 1, paddingBottom: 160, paddingTop: 16, backgroundColor: isDark ? theme.background : '#f8fafc' }}
+              onScroll={Animated.event(
+                [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+                { useNativeDriver: false }
+              )}
+              onScrollBeginDrag={() => {
+                setActivePostMenu(null);
+              }}
+              scrollEventThrottle={16}
+              refreshControl={
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={onRefresh}
+                  tintColor="#8E8E93"
+                  progressViewOffset={10}
+                />
+              }
+            >
+              <View style={{ width: '100%' }}>
 
               {/* Quick Post Prompt Card */}
               <TouchableOpacity
@@ -3266,7 +3275,8 @@ export default function DashboardScreen() {
               </TouchableWithoutFeedback>
             </TouchableOpacity>
           )}
-        </Animated.View>
+          </View>
+        )}
       </Animated.View>
 
       {dropdownOpen && (
