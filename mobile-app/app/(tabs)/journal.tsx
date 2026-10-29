@@ -251,22 +251,22 @@ export default function JournalScreen() {
 
               {/* ═══ ACTION TOGGLES (Scrollable) ═══ */}
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingHorizontal: 4, paddingBottom: 20 }}>
-                <TouchableOpacity onPress={() => { hSelect(); setCurrency(currency.code === 'USD' ? {code: 'EUR', symbol: '€'} : {code: 'USD', symbol: '$'})} style={styles.actionBtn}>
+                <TouchableOpacity onPress={() => { hSelect(); setCurrency(currency.code === 'USD' ? {code: 'EUR', symbol: '€'} : {code: 'USD', symbol: '$'}); }} style={styles.actionBtn}>
                   <Text style={{ fontSize: 11, fontFamily: 'Inter_700Bold', color: isDark ? '#e8e8e8' : '#0f172a' }}>{currency.code}</Text>
                   <Text style={{ fontSize: 11, fontFamily: 'Inter_600SemiBold', color: '#94a3b8' }}>{currency.symbol}</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity onPress={() => { hSelect(); setHideBalance(!hideBalance)} style={[styles.actionBtn, hideBalance && styles.actionBtnActiveAmber]}>
+                <TouchableOpacity onPress={() => { hSelect(); setHideBalance(!hideBalance); }} style={[styles.actionBtn, hideBalance && styles.actionBtnActiveAmber]}>
                   {hideBalance ? <EyeOff size={13} color="#b45309" /> : <Eye size={13} color="#64748b" />}
                   <Text style={[styles.actionText, hideBalance && { color: isDark ? '#fbbf24' : '#b45309' }]}>{hideBalance ? "Hidden" : "Hide Balance"}</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity onPress={() => { hSelect(); setHideOnlyBalance(!hideOnlyBalance)} style={[styles.actionBtn, hideOnlyBalance && styles.actionBtnActivePurple]}>
+                <TouchableOpacity onPress={() => { hSelect(); setHideOnlyBalance(!hideOnlyBalance); }} style={[styles.actionBtn, hideOnlyBalance && styles.actionBtnActivePurple]}>
                   {hideOnlyBalance ? <EyeOff size={13} color="#7c3aed" /> : <Eye size={13} color="#64748b" />}
                   <Text style={[styles.actionText, hideOnlyBalance && { color: isDark ? '#a78bfa' : '#7c3aed' }]}>{hideOnlyBalance ? "Hidden Bal" : "Hide Only Balance"}</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity onPress={() => { hSelect(); setPercentageOnly(!percentageOnly)} style={[styles.actionBtn, percentageOnly && styles.actionBtnActiveGreen]}>
+                <TouchableOpacity onPress={() => { hSelect(); setPercentageOnly(!percentageOnly); }} style={[styles.actionBtn, percentageOnly && styles.actionBtnActiveGreen]}>
                   <Percent size={13} color={percentageOnly ? "#059669" : "#64748b"} />
                   <Text style={[styles.actionText, percentageOnly && { color: isDark ? '#34d399' : '#059669' }]}>{percentageOnly ? "Only" : "Show %"}</Text>
                 </TouchableOpacity>
