@@ -49,7 +49,7 @@ export default function ComingSoonVeil({ featureTitle }: ComingSoonVeilProps) {
               </p>
 
               {/* Clean Human Actions */}
-              <div className="flex items-center justify-center gap-3">
+              <div className="flex flex-wrap items-center justify-center gap-3">
                 <button
                   onClick={() => navigate("/auto-trade/dashboard")}
                   className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 text-xs font-semibold transition-all shadow-sm active:scale-95 cursor-pointer"

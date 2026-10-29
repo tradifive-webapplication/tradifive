@@ -446,7 +446,7 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
             {/* Header (Moved Inside to Scroll) */}
             <header className={`h-[70px] flex items-center justify-between px-4 sm:px-10 border-b border-slate-100 dark:border-white/5 shrink-0 transition-all duration-300 ${comingSoonInfo.isSoon && !isPeeking ? "filter blur-[1.5px] opacity-85 pointer-events-none select-none" : ""}`}>
               <div className="flex items-center gap-2 sm:gap-3">
-                <div className="md:hidden flex items-center">
+                <div className="md:hidden flex items-center pointer-events-auto">
                   <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
                     <SheetTrigger asChild>
                       <button className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] text-[#393939] dark:text-[#E2E8F0] font-extrabold transition-all border-2 border-white dark:border-white/5 shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),_0_0_0_2px_#E7E7E7] dark:shadow-none active:scale-95 select-none mr-2">
@@ -461,7 +461,7 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
                 {location.pathname !== '/home' && (
                   <button
                     onClick={onBack ? onBack : () => navigate(-1)}
-                    className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] text-[#393939] dark:text-[#E2E8F0] font-extrabold transition-all border-2 border-white dark:border-white/5 shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),_0_0_0_2px_#E7E7E7] dark:shadow-none hover:shadow-[0_6px_10px_-4px_rgba(0,0,0,0.15),_0_0_0_2px_#D4D4D4] dark:hover:shadow-none active:scale-95 select-none mr-2"
+                    className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] text-[#393939] dark:text-[#E2E8F0] font-extrabold transition-all border-2 border-white dark:border-white/5 shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),_0_0_0_2px_#E7E7E7] dark:shadow-none hover:shadow-[0_6px_10px_-4px_rgba(0,0,0,0.15),_0_0_0_2px_#D4D4D4] dark:hover:shadow-none active:scale-95 select-none mr-2 pointer-events-auto"
                     title="Go Back"
                   >
                     <ChevronLeft size={16} />
