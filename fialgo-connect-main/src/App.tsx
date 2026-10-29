@@ -154,6 +154,7 @@ const App = () => {
                   <Route path="/home" element={<Home />} />
                   <Route path="/discover" element={<Discover />} />
                   <Route path="/marketplace" element={<Discover />} />
+                  <Route path="/auto-trade/marketplace" element={<Discover />} />
                   <Route path="/marketplace/store" element={<Discover />} />
                   <Route path="/marketplace/signals" element={<Discover />} />
                   <Route path="/store" element={<Discover />} />
@@ -203,7 +204,8 @@ const App = () => {
                   <Route path="/inbox" element={<Inbox />} />
                   <Route path="/messages" element={<Navigate to="/inbox" replace />} />
                   <Route path="/channels/messages" element={<Navigate to="/inbox" replace />} />
-                  <Route path="/learning" element={<Navigate to="/discover" replace />} />
+                  <Route path="/learning" element={<Discover />} />
+                  <Route path="/courses" element={<Discover />} />
                   <Route path="/discover/strategies" element={<Navigate to="/discover" replace />} />
                   <Route path="/discover/traders" element={<Navigate to="/discover" replace />} />
                   <Route path="/finance" element={<Navigate to="/dashboard/portfolio" replace />} />

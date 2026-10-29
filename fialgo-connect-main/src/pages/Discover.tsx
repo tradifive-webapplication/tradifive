@@ -134,44 +134,67 @@ export default function Discover() {
         const tabParam = searchParams.get("tab");
         if (tabParam && CATEGORIES.includes(tabParam)) {
             setActiveTab(tabParam);
-        } else if (location.pathname.startsWith('/marketplace') || location.pathname === '/store') {
+        } else if (
+            location.pathname.startsWith('/marketplace') ||
+            location.pathname === '/store' ||
+            location.pathname.startsWith('/auto-trade/marketplace')
+        ) {
             setActiveTab("Marketplace");
+        } else if (location.pathname === "/discover" && !tabParam) {
+            setActiveTab("All");
         }
     }, [searchParams, location.pathname]);
 
     const handleTabChange = (category: string) => {
         setActiveTab(category);
-        if (category === "Marketplace") {
-            setSearchParams({ tab: "Marketplace" });
-        } else if (category === "All") {
-            setSearchParams({});
+        if (location.pathname.startsWith("/auto-trade")) {
+            if (category === "Marketplace") {
+                navigate("/auto-trade/marketplace");
+            } else if (category === "All") {
+                navigate("/discover");
+            } else {
+                navigate(`/discover?tab=${category}`);
+            }
         } else {
-            setSearchParams({ tab: category });
+            if (category === "Marketplace") {
+                setSearchParams({ tab: "Marketplace" });
+            } else if (category === "All") {
+                setSearchParams({});
+            } else {
+                setSearchParams({ tab: category });
+            }
         }
     };
 
     useEffect(() => {
         const checkUser = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!session?.user) {
-                navigate("/login");
-            } else {
-                setUser(session.user);
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (session?.user) {
+                    setUser(session.user);
+                    setAuthChecked(true);
+
+                    // Fetch follows
+                    const { data: followsData } = await supabase
+                        .from('social_follows')
+                        .select('following_id')
+                        .eq('follower_id', session.user.id);
+                    if (followsData) setAddedUsers(followsData.map(f => f.following_id));
+
+                    // Fetch joined channels
+                    const { data: channelsData } = await supabase
+                        .from('channel_members')
+                        .select('channel_id')
+                        .eq('user_id', session.user.id);
+                    if (channelsData) setJoinedChannels(channelsData.map(c => c.channel_id!));
+                } else {
+                    setUser(null);
+                    setAuthChecked(true);
+                }
+            } catch (err) {
+                console.error("Error checking user in Discover:", err);
+                setUser(null);
                 setAuthChecked(true);
-
-                // Fetch follows
-                const { data: followsData } = await supabase
-                    .from('social_follows')
-                    .select('following_id')
-                    .eq('follower_id', session.user.id);
-                if (followsData) setAddedUsers(followsData.map(f => f.following_id));
-
-                // Fetch joined channels
-                const { data: channelsData } = await supabase
-                    .from('channel_members')
-                    .select('channel_id')
-                    .eq('user_id', session.user.id);
-                if (channelsData) setJoinedChannels(channelsData.map(c => c.channel_id!));
             }
         };
         checkUser();

@@ -59,6 +59,21 @@ function getComingSoonInfo(pathname: string): { isSoon: boolean; title: string }
   if (p.startsWith('/upgrade') || p.startsWith('/subscription') || p.startsWith('/pricing') || p.startsWith('/billing')) {
     return { isSoon: true, title: "Subscription Plans" };
   }
+  if (p.startsWith('/auto-trade/active-bots')) {
+    return { isSoon: true, title: "Active Trading Bots" };
+  }
+  if (p.startsWith('/strategy-builder') || p.startsWith('/auto-trade/builder')) {
+    return { isSoon: true, title: "Strategy Builder" };
+  }
+  if (p.startsWith('/auto-trade/history') || p === '/order-history') {
+    return { isSoon: true, title: "Order History" };
+  }
+  if (p.startsWith('/auto-trade/license') || p === '/license') {
+    return { isSoon: true, title: "License & Activation" };
+  }
+  if (p.startsWith('/learning') || p.startsWith('/courses')) {
+    return { isSoon: true, title: "TradiFive Academy & Courses" };
+  }
   return { isSoon: false, title: "" };
 }
 

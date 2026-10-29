@@ -115,21 +115,21 @@ const homeMenu = [
 const discoverMenu = [
   { path: "/discover", icon: WrappedIconly(Discovery), label: "Discover Hub" },
   { path: "/marketplace", icon: WrappedIconly(Bag), label: "Algo Marketplace" },
-  { path: "/discover/strategies", icon: WrappedIconly(Category), label: "Top Strategies" },
-  { path: "/discover/traders", icon: WrappedIconly(TwoUsers), label: "Top Traders" },
+  { path: "/discover?tab=Marketplace", icon: WrappedIconly(Category), label: "Top Strategies" },
+  { path: "/discover?tab=People", icon: WrappedIconly(TwoUsers), label: "Top Traders" },
   { path: "/competitions/dashboard", icon: WrappedIconly(Scan), label: "Contests", isLocked: true },
-  { path: "/learning", icon: wrapLucide(GraduationCap), label: "Courses" },
+  { path: "/learning", icon: wrapLucide(GraduationCap), label: "Courses", isLocked: true },
 ];
 
 const getAutoTradeMenu = () => {
   const isSetup = typeof window !== 'undefined' && localStorage.getItem("tradifive_auto_trade_setup") === "true";
   return [
     { path: isSetup ? "/auto-trade/dashboard" : "/auto-trade/setup", icon: WrappedIconly(Category), label: "Dashboard" },
-    { path: "/auto-trade/active-bots", icon: WrappedIconly(Activity), label: "Active Bots", isLocked: !isSetup },
-    { path: "/marketplace", icon: WrappedIconly(Bag), label: "Algo Marketplace" },
-    { path: "/auto-trade/builder", icon: WrappedIconly(Setting), label: "Strategy Builder", isLocked: !isSetup },
-    { path: "/auto-trade/history", icon: WrappedIconly(Document), label: "Order History", isLocked: !isSetup },
-    { path: "/auto-trade/license", icon: WrappedIconly(ShieldDone), label: "License & Activation", isLocked: !isSetup },
+    { path: "/auto-trade/active-bots", icon: WrappedIconly(Activity), label: "Active Bots", isLocked: true },
+    { path: "/auto-trade/marketplace", icon: WrappedIconly(Bag), label: "Algo Marketplace" },
+    { path: "/strategy-builder", icon: WrappedIconly(Setting), label: "Strategy Builder", isLocked: true },
+    { path: "/auto-trade/history", icon: WrappedIconly(Document), label: "Order History", isLocked: true },
+    { path: "/auto-trade/license", icon: WrappedIconly(ShieldDone), label: "License & Activation", isLocked: true },
   ];
 };
 
@@ -700,10 +700,10 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
         return [
           { path: "/discover", icon: WrappedIconly(Discovery), label: "Discover Hub" },
           { path: "/marketplace", icon: WrappedIconly(Bag), label: "Algo Marketplace" },
-          { path: "/discover/strategies", icon: WrappedIconly(Category), label: "Top Strategies" },
-          { path: "/discover/traders", icon: WrappedIconly(TwoUsers), label: "Top Traders" },
-          { path: "/competitions/dashboard", icon: WrappedIconly(Scan), label: "Trading Contests", isLocked: true },
-          { path: "/learning", icon: WrappedIconly(Paper), label: "Trader Academy" },
+          { path: "/discover?tab=Marketplace", icon: WrappedIconly(Category), label: "Top Strategies" },
+          { path: "/discover?tab=People", icon: WrappedIconly(TwoUsers), label: "Top Traders" },
+          { path: "/competitions/dashboard", icon: WrappedIconly(Scan), label: "Contests", isLocked: true },
+          { path: "/learning", icon: wrapLucide(GraduationCap), label: "Courses", isLocked: true },
         ];
       case "aiCoach":
         return [
@@ -714,14 +714,23 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
           { path: "/analytics", icon: WrappedIconly(Graph), label: "Performance Analytics", isLocked: true },
         ];
       case "autoTrade":
+
         return [
-          { path: isAutoTradeSetup ? "/auto-trade/dashboard" : "/auto-trade/setup", icon: WrappedIconly(Category), label: "AutoTrade Dashboard" },
-          { path: "/auto-trade/active-bots", icon: WrappedIconly(Activity), label: "Active Bots", isLocked: !isAutoTradeSetup },
-          { path: "/strategy-builder", icon: WrappedIconly(Setting), label: "Strategy Builder", isLocked: !isAutoTradeSetup },
-          { path: "/marketplace", icon: WrappedIconly(Bag), label: "Algo Marketplace" },
-          { path: "/auto-trade/history", icon: WrappedIconly(Document), label: "Order History", isLocked: !isAutoTradeSetup },
-          { path: "/auto-trade/license", icon: WrappedIconly(ShieldDone), label: "License & Activation", isLocked: !isAutoTradeSetup },
+
+          { path: isAutoTradeSetup ? "/auto-trade/dashboard" : "/auto-trade/setup", icon: WrappedIconly(Category), label: "Dashboard" },
+
+          { path: "/auto-trade/active-bots", icon: WrappedIconly(Activity), label: "Active Bots", isLocked: true },
+
+          { path: "/auto-trade/marketplace", icon: WrappedIconly(Bag), label: "Algo Marketplace" },
+
+          { path: "/strategy-builder", icon: WrappedIconly(Setting), label: "Strategy Builder", isLocked: true },
+
+          { path: "/auto-trade/history", icon: WrappedIconly(Document), label: "Order History", isLocked: true },
+
+          { path: "/auto-trade/license", icon: WrappedIconly(ShieldDone), label: "License & Activation", isLocked: true },
+
         ];
+
       case "community":
         return [
           { path: "/channel", icon: WrappedIconly(Chat), label: "Channels & Chat", isLocked: true },
