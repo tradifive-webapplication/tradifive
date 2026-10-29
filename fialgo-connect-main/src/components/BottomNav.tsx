@@ -46,7 +46,7 @@ export default function BottomNav() {
     },
     {
       id: "dashboard",
-      label: "Terminal",
+      label: "Dashboard",
       path: "/dashboard",
       isActive: (p: string) =>
         p.startsWith("/dashboard") ||

@@ -41,8 +41,14 @@ function getComingSoonInfo(pathname: string): { isSoon: boolean; title: string }
   if (p.startsWith('/ai-coach')) {
     return { isSoon: true, title: "AI Coach & Copilot" };
   }
-  if (p.startsWith('/discover') || p.startsWith('/marketplace') || p === '/store' || p.startsWith('/competitions')) {
-    return { isSoon: true, title: "Discover & Competitions" };
+  if (p.startsWith('/channel')) {
+    return { isSoon: true, title: "Trading Channels" };
+  }
+  if (p.startsWith('/rewards')) {
+    return { isSoon: true, title: "Rewards Hub" };
+  }
+  if (p.startsWith('/competitions')) {
+    return { isSoon: true, title: "Trading Competitions" };
   }
   if (p.startsWith('/creator')) {
     return { isSoon: true, title: "Creator Studio & Mentors" };
@@ -590,11 +596,7 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
 
             {/* Coming Soon Veil Overlay - Confined strictly to THIS page (<main>) */}
             {comingSoonInfo.isSoon && (
-              <ComingSoonVeil
-                featureTitle={comingSoonInfo.title}
-                isPeeking={isPeeking}
-                onPeekChange={setIsPeeking}
-              />
+              <ComingSoonVeil featureTitle={comingSoonInfo.title} />
             )}
 
             {/* Global Floating AI Coach Widget */}

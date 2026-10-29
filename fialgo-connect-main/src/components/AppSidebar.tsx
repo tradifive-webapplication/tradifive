@@ -196,12 +196,12 @@ const getPillars = (isCreator: boolean) => {
   return [
     { id: "home", icon: WrappedIconly(Home), tooltip: "Home Feed (Live)", defaultPath: "/home", isLive: true },
     { id: "autoTrade", icon: WrappedIconly(Activity), tooltip: "Auto Trade (Live)", defaultPath: isAutoTradeSetup ? "/auto-trade/dashboard" : "/auto-trade/setup", isLive: true },
-    { id: "dashboard", icon: WrappedIconly(Category), tooltip: "Live Terminal", defaultPath: "/dashboard", isLive: true },
-    { id: "community", icon: WrappedIconly(Chat), tooltip: "Channels", defaultPath: "/channel", isLive: true },
+    { id: "dashboard", icon: WrappedIconly(Category), tooltip: "Dashboard", defaultPath: "/dashboard", isLive: true },
+    { id: "community", icon: WrappedIconly(Chat), tooltip: "Channels (Soon)", defaultPath: "/channel", isLocked: true },
     { id: "journal", icon: WrappedIconly(Document), tooltip: "Smart Journal (Soon)", defaultPath: "/journal", isLocked: true },
     { id: "riskGuard", icon: WrappedIconly(ShieldDone), tooltip: "Risk Guard (Soon)", defaultPath: "/risk-guard", isLocked: true },
     { id: "aiCoach", icon: WrappedSparkles, tooltip: "AI Coach (Soon)", defaultPath: "/ai-coach", isLocked: true },
-    { id: "discover", icon: WrappedIconly(Discovery), tooltip: "Discover (Soon)", defaultPath: "/discover", isLocked: true },
+    { id: "discover", icon: WrappedIconly(Discovery), tooltip: "Discover", defaultPath: "/discover", isLive: true },
     ...(isCreator ? [{ id: "creatorHub", icon: WrappedIconly(Star), tooltip: "Creator Hub (Soon)", defaultPath: "/creator/analytics", isLocked: true }] : []),
   ];
 };
@@ -678,7 +678,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
         ];
       case "dashboard":
         return [
-          { path: "/dashboard", icon: WrappedIconly(Category), label: "Live Terminal" },
+          { path: "/dashboard", icon: WrappedIconly(Category), label: "Dashboard" },
           { path: "/dashboard?tab=portfolio", icon: WrappedIconly(Wallet), label: "Portfolio & Holdings" },
           { path: "/broker-connect", icon: WrappedIconly(Activity), label: "Connected Brokers" },
           { path: "/dashboard?tab=reports", icon: WrappedIconly(Document), label: "Reports & Statements" },
@@ -737,7 +737,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
         ];
       default:
         return [
-          { path: "/dashboard", icon: WrappedIconly(Category), label: "Live Terminal" },
+          { path: "/dashboard", icon: WrappedIconly(Category), label: "Dashboard" },
           { path: "/journal", icon: WrappedIconly(Document), label: "Daily Journal" },
           { path: "/ai-coach", icon: WrappedIconly(Chat), label: "AI Coach" },
         ];
@@ -747,7 +747,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
   const allMobileSecondaryItems = [
     ...mobilePillars.flatMap(p => getSecondaryPagesForPillar(p.id)),
     { path: "/referrals", icon: WrappedIconly(AddUser), label: "Refer & Earn" },
-    { path: "/rewards", icon: WrappedIconly(TicketStar), label: "Rewards Hub" },
+    { path: "/rewards", icon: WrappedIconly(TicketStar), label: "Rewards Hub (Soon)", isLocked: true },
     { path: "/settings", icon: WrappedIconly(Setting), label: "Settings" },
     { path: "/upgrade", icon: wrapLucide(Crown), label: "Upgrade Plan" },
     {
