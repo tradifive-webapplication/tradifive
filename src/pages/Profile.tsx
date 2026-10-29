@@ -1246,7 +1246,7 @@ export default function Profile() {
 
               {/* Underline Tabs Bar Selector */}
               <div className="flex items-center gap-6 border-b-2 border-slate-200/50 dark:border-white/5 px-2 relative z-10 mb-6 select-none overflow-x-auto scrollbar-hide">
-                {["Posts", "Trades", "Saved", "Videos", "Mentions", ...(profile?.achievements && (profile.achievements as any).length > 0 ? ["Achievements"] : [])].map((tab) => (
+                {["Posts", "Trades", "Videos", "Mentions", ...(profile?.achievements && (profile.achievements as any).length > 0 ? ["Achievements"] : [])].map((tab) => (
                   <div
                     key={tab}
                     onClick={() => setActiveTab(tab)}

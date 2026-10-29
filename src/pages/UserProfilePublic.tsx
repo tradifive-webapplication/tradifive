@@ -1123,9 +1123,7 @@ export default function UserProfilePublic() {
                 ) : (
                   (() => {
                     const tabs = ["Posts", "Trades", "Videos", "Mentions", ...(profile?.achievements && (profile.achievements as any).length > 0 ? ["Achievements"] : [])];
-                    if (currentUserId === profile?.id) {
-                      tabs.splice(2, 0, "Saved");
-                    }
+
                     return tabs;
                   })().map((tab) => (
                     <div

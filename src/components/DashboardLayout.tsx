@@ -32,6 +32,9 @@ interface DashboardLayoutProps {
 
 function getComingSoonInfo(pathname: string): { isSoon: boolean; title: string } {
   const p = pathname.toLowerCase();
+  if (p === '/dashboard' || p.startsWith('/dashboard/') || p.startsWith('/portfolio')) {
+    return { isSoon: true, title: "Trading Dashboard" };
+  }
   if (p.startsWith('/journal') || p === '/mistakes' || p === '/mistake-tracking' || p === '/charts' || p === '/chart' || p === '/analytics') {
     return { isSoon: true, title: "Smart Trade Journal" };
   }
