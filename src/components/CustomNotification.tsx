@@ -90,40 +90,40 @@ export const CustomNotification: React.FC<CustomNotificationProps> = ({
 
   // Design tokens based on the provided images
   const config = {
-    info: { // Pending (Blue)
-      bg: 'bg-[#F1FAFF]', 
-      border: 'border-[#CAE8F6]',
-      iconBg: 'bg-[#CAE8F6]',
-      iconBorder: 'border-[#0EA5E9]',
-      iconColor: 'text-[#0EA5E9]',
+    info: {
+      bg: 'bg-white dark:bg-[#14151e]', 
+      border: 'border-slate-200/90 dark:border-white/10',
+      iconBg: 'bg-blue-50 dark:bg-blue-500/10',
+      iconBorder: 'border-blue-200 dark:border-blue-500/20',
+      iconColor: 'text-blue-600 dark:text-blue-400',
       Icon: Hourglass,
-      badgeText: 'Pending',
-      badgeBg: 'bg-[#0EA5E9]',
+      badgeText: 'Update',
+      badgeBg: 'bg-blue-600',
       badgeTextColor: 'text-white',
       BadgeIcon: Loader2,
     },
-    error: { // Warning (Yellow)
-      bg: 'bg-[#FEF9C3]', 
-      border: 'border-[#FDE68A]',
-      iconBg: 'bg-[#FDE68A]',
-      iconBorder: 'border-[#F59E0B]', 
-      iconColor: 'text-[#B45309]',
+    error: {
+      bg: 'bg-white dark:bg-[#14151e]', 
+      border: 'border-rose-200/90 dark:border-rose-500/20',
+      iconBg: 'bg-rose-50 dark:bg-rose-500/10',
+      iconBorder: 'border-rose-200 dark:border-rose-500/20', 
+      iconColor: 'text-rose-600 dark:text-rose-400',
       Icon: AlertTriangle,
-      badgeText: 'Warning',
-      badgeBg: 'bg-[#F59E0B]',
-      badgeTextColor: 'text-black',
+      badgeText: 'Alert',
+      badgeBg: 'bg-rose-600',
+      badgeTextColor: 'text-white',
       BadgeIcon: AlertTriangle,
     },
-    success: { // Update Made (Gray)
-      bg: 'bg-[#F5F5F5]', 
-      border: 'border-[#E5E5E5]',
-      iconBg: 'bg-[#E5E5E5]',
-      iconBorder: 'border-[#D4D4D8]',
-      iconColor: 'text-[#3F3F46]',
+    success: {
+      bg: 'bg-white dark:bg-[#14151e]', 
+      border: 'border-emerald-200/90 dark:border-emerald-500/20',
+      iconBg: 'bg-emerald-50 dark:bg-emerald-500/10',
+      iconBorder: 'border-emerald-200 dark:border-emerald-500/20',
+      iconColor: 'text-emerald-600 dark:text-emerald-400',
       Icon: RotateCcw,
-      badgeText: null, 
-      badgeBg: '',
-      badgeTextColor: '',
+      badgeText: 'Success', 
+      badgeBg: 'bg-emerald-600',
+      badgeTextColor: 'text-white',
       BadgeIcon: null,
     }
   };
@@ -132,7 +132,7 @@ export const CustomNotification: React.FC<CustomNotificationProps> = ({
   const { Icon, BadgeIcon } = style;
 
   return (
-    <div className={`relative w-[420px] p-5 rounded-2xl border ${style.bg} ${style.border} shadow-[0_15px_40px_rgba(0,0,0,0.06)] pointer-events-auto mt-4 font-sans`}>
+    <div className={`relative w-full max-w-[420px] p-4 sm:p-5 rounded-2xl border ${style.bg} ${style.border} shadow-[0_20px_50px_rgba(0,0,0,0.12)] backdrop-blur-xl pointer-events-auto mt-2 font-sans`}>
       {/* Absolute Badge at Top Center */}
       {style.badgeText && (
         <div className={`absolute -top-3.5 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-3 py-1 rounded-full text-[13px] font-semibold ${style.badgeBg} ${style.badgeTextColor} shadow-sm`}>

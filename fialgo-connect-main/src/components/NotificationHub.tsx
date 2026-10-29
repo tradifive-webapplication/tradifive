@@ -89,7 +89,7 @@ export default function NotificationHub() {
           setUnreadCount(prev => prev + 1);
 
           let toastType: 'info' | 'error' | 'success' = 'info';
-          if (newNotif.type === 'SECURITY' || newNotif.priority === 'high') toastType = 'error';
+          if (newNotif.type === 'SECURITY') toastType = 'error';
           else if (newNotif.type === 'SYSTEM' || newNotif.type === 'ACCOUNT') toastType = 'success';
 
           triggerCustomNotification({

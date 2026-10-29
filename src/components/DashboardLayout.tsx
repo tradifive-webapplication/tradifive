@@ -119,7 +119,7 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
     return () => window.removeEventListener("open-floating-ai-coach", handleOpenFloatingAI);
   }, []);
 
-  // Global Direct Message Notifications
+    // Global Direct Message Notifications — Big-Tech Apple / Slack style incoming message banner
   useEffect(() => {
     let channel: any;
     const setupDMNotifications = async () => {
@@ -131,49 +131,125 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
           'postgres_changes',
           { event: 'INSERT', schema: 'public', table: 'direct_messages', filter: `receiver_id=eq.${user.id}` },
           async (payload) => {
-            // Play notification sound
-            try {
-              // Modern subtle pop notification sound
-              const audio = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3");
-              audio.volume = 0.6;
-              const playPromise = audio.play();
-              if (playPromise !== undefined) {
-                playPromise.catch(e => console.log("Audio play blocked by browser:", e));
-              }
-            } catch (e) {
-              console.log("Audio play error:", e);
+            // Suppress notification if user is already on /inbox
+            if (window.location.pathname.startsWith('/inbox')) {
+              return;
             }
 
-            // Get sender details
+            // Play gentle Apple-style subtle dual-tone message chime
+            try {
+              const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+              if (AudioContext) {
+                const ctx = new AudioContext();
+                const now = ctx.currentTime;
+                const osc1 = ctx.createOscillator();
+                const osc2 = ctx.createOscillator();
+                const gain = ctx.createGain();
+
+                osc1.type = 'sine';
+                osc2.type = 'sine';
+                osc1.frequency.setValueAtTime(587.33, now); // D5
+                osc2.frequency.setValueAtTime(880, now + 0.08); // A5
+
+                gain.gain.setValueAtTime(0, now);
+                gain.gain.linearRampToValueAtTime(0.18, now + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+
+                osc1.connect(gain);
+                osc2.connect(gain);
+                gain.connect(ctx.destination);
+
+                osc1.start(now);
+                osc1.stop(now + 0.12);
+                osc2.start(now + 0.08);
+                osc2.stop(now + 0.35);
+              }
+            } catch (_) {}
+
+            // Get sender profile details
             const { data: sender } = await supabase
               .from('profiles')
-              .select('display_name, username')
+              .select('id, display_name, username, avatar_url')
               .eq('id', payload.new.sender_id)
-              .single();
+              .maybeSingle();
 
-            const senderName = sender?.display_name || 'Someone';
+            const senderName = sender?.display_name || sender?.username || 'Trader';
+            const senderAvatar = sender?.avatar_url || '/default-avatar.svg';
 
             toast.custom((t) => (
-              <div className="bg-white dark:bg-[#1E1E1E] border border-slate-100 dark:border-white/5 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] dark:shadow-none flex flex-col p-4 w-full sm:w-[350px] gap-2.5 relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-1.5 h-full bg-blue-500"></div>
-                <div className="flex justify-between items-start gap-3">
-                  <div className="flex flex-col gap-1.5 flex-1 min-w-0">
-                    <h4 className="text-[14px] font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                      <span className="text-[16px]">📩</span> New message from {senderName}
-                    </h4>
-                    <p className="text-[14px] text-slate-600 dark:text-slate-300 font-medium line-clamp-1 truncate pr-2">
-                      {payload.new.content}
-                    </p>
+              <div 
+                onClick={() => {
+                  toast.dismiss(t);
+                  navigate('/inbox', { state: { targetUserId: payload.new.sender_id } });
+                }}
+                className="w-full sm:w-[380px] p-3.5 bg-white/95 dark:bg-[#14151e]/95 backdrop-blur-xl border border-slate-200/90 dark:border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.14),0_4px_12px_rgba(0,0,0,0.06)] flex items-start gap-3 relative overflow-hidden cursor-pointer select-none transition-all hover:scale-[1.01] active:scale-[0.99] group font-sans"
+              >
+                {/* Sender Avatar with Messenger Status Pill */}
+                <div className="relative shrink-0 mt-0.5">
+                  <img
+                    src={senderAvatar}
+                    alt={senderName}
+                    className="w-10 h-10 rounded-full object-cover border border-slate-200 dark:border-white/10 shadow-xs"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = '/default-avatar.svg';
+                    }}
+                  />
+                  <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-blue-600 border-2 border-white dark:border-[#14151e] flex items-center justify-center shadow-xs">
+                    <span className="w-1.5 h-1.5 rounded-full bg-white" />
                   </div>
-                  <button
-                    onClick={() => { toast.dismiss(t); navigate(`/inbox`); }}
-                    className="bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 px-4 py-1.5 rounded-xl text-[13px] font-bold hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors shrink-0 shadow-sm"
-                  >
-                    Reply
-                  </button>
                 </div>
+
+                {/* Message Body */}
+                <div className="flex-1 min-w-0 pr-1">
+                  <div className="flex items-center justify-between gap-2">
+                    <h4 className="text-[13.5px] font-bold text-slate-900 dark:text-white truncate">
+                      {senderName}
+                    </h4>
+                    <span className="text-[10.5px] font-semibold text-slate-400 dark:text-slate-400 shrink-0">
+                      now
+                    </span>
+                  </div>
+                  <p className="text-[12.5px] text-slate-600 dark:text-slate-300 font-normal line-clamp-2 mt-0.5 leading-snug break-words">
+                    {payload.new.content}
+                  </p>
+                  
+                  {/* Action Buttons */}
+                  <div className="flex items-center gap-2 mt-2.5">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toast.dismiss(t);
+                        navigate('/inbox', { state: { targetUserId: payload.new.sender_id } });
+                      }}
+                      className="px-3 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-[11.5px] font-bold transition-all active:scale-95 shadow-xs"
+                    >
+                      Reply
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toast.dismiss(t);
+                      }}
+                      className="px-2.5 py-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-[11.5px] font-medium transition-colors"
+                    >
+                      Dismiss
+                    </button>
+                  </div>
+                </div>
+
+                {/* Top-right close button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toast.dismiss(t);
+                  }}
+                  className="shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-colors -mr-1 -mt-1"
+                  title="Close"
+                >
+                  <X size={13} strokeWidth={2.5} />
+                </button>
               </div>
-            ), { duration: 5000, id: `msg-${payload.new.id}` });
+            ), { duration: 6000, id: `msg-${payload.new.id}` });
           }
         )
         .subscribe();
