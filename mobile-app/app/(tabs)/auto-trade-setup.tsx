@@ -467,9 +467,6 @@ export default function AutoTradeSetupScreen() {
             <Text style={{ fontSize: 24, fontFamily: 'Inter_700Bold', color: headerStyle === 'simple' ? (isDark ? theme.text : '#000') : '#fff', letterSpacing: -0.5 }}>
               Auto Trade
             </Text>
-            <Text style={{ fontSize: 11, fontFamily: 'Inter_500Medium', color: headerStyle === 'simple' ? '#64748b' : 'rgba(255,255,255,0.7)', marginTop: 1 }}>
-              FiAlgo V1 Institutional Engine · Gold Specialist
-            </Text>
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             <TouchableOpacity
@@ -821,7 +818,7 @@ export default function AutoTradeSetupScreen() {
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
                         <Shield size={12} color="#10b981" />
                         <Text style={{ fontSize: 11, fontFamily: 'Inter_700Bold', color: '#10b981' }}>
-                          Gold Specialist · MT5 Build
+                          Official Flagship EA · MT5 Build
                         </Text>
                       </View>
                       <Text style={[styles.formTitle, { color: isDark ? '#ffffff' : '#0f172a' }]}>

@@ -11,6 +11,7 @@ import { useAppTheme } from '../hooks/useAppTheme';
 import { TimeCircle, ArrowDown, Send } from '../components/Iconly';
 import { useAICoachData, Message as AIMessage, ChatSession } from '../hooks/useAICoachData';
 import { supabase } from '../app/utils/supabase';
+import ComingSoonVeil from './ComingSoonVeil';
 
 const { width } = Dimensions.get('window');
 
@@ -282,6 +283,34 @@ USER CONTEXT: Mobile App User. KEEP RESPONSES VERY SHORT. Max 2-3 sentences.`;
         }}
       >
         <View style={{ flex: 1, paddingBottom: keyboardHeight }}>
+          {/* Top-Right Dismiss Button positioned above blur */}
+          <TouchableOpacity
+            onPress={() => {
+              h();
+              onClose();
+            }}
+            activeOpacity={0.8}
+            style={{
+              position: 'absolute',
+              top: 14,
+              right: 16,
+              zIndex: 1000001,
+              width: 36,
+              height: 36,
+              borderRadius: 18,
+              backgroundColor: isDark ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.08)',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <X size={18} color={isDark ? '#ffffff' : '#0f172a'} />
+          </TouchableOpacity>
+
+          {/* Full Screen Coming Soon Blur Veil */}
+          <ComingSoonVeil
+            featureTitle="AI Trading Coach"
+            subtitle="Automated real-time trade feedback, smart journaling analysis & risk guardian coaching are launching soon."
+          />
       
       {/* Header */}
       <View style={[s.header, { backgroundColor: isDark ? '#0a0a0a' : '#ffffff', borderBottomColor: isDark ? '#1a1a1a' : '#f1f5f9' }]}>

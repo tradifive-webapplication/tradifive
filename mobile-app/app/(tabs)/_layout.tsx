@@ -645,7 +645,7 @@ export default function TabLayout() {
                     <View style={{ width: 26, alignItems: 'center', justifyContent: 'center' }}>
                       <item.icon
                         size={22}
-                        color="#ffffff"
+                        color={item.label === "AI Coach" ? "#38bdf8" : "#ffffff"}
                         set="curved"
                         stroke="bold"
                       />
@@ -1066,8 +1066,17 @@ export default function TabLayout() {
                   </View>
 
                   {/* AI BOT PILL */}
-                  <TouchableOpacity style={[styles.pill, isDark && { backgroundColor: '#111111', borderColor: '#222222' }]} onPress={openAI}>
-                    <Sparkles size={20} color={isDark ? '#ffffff' : '#000'} strokeWidth={2} />
+                  <TouchableOpacity
+                    style={[
+                      styles.pill,
+                      {
+                        backgroundColor: isDark ? 'rgba(56, 189, 248, 0.16)' : 'rgba(2, 132, 199, 0.12)',
+                        borderColor: isDark ? 'rgba(56, 189, 248, 0.45)' : 'rgba(2, 132, 199, 0.35)',
+                      },
+                    ]}
+                    onPress={openAI}
+                  >
+                    <Sparkles size={20} color={isDark ? '#38bdf8' : '#0284c7'} strokeWidth={2.2} />
                   </TouchableOpacity>
                 </View>
               </Animated.View>
@@ -1129,10 +1138,10 @@ export default function TabLayout() {
                           }}
                         >
                           <View style={{ width: 24, alignItems: 'center', justifyContent: 'center' }}>
-                            <item.icon size={20} color={isAnySubActive ? '#38bdf8' : '#fff'} set={isAnySubActive ? 'bold' : 'curved'} stroke="bold" />
+                            <item.icon size={20} color={item.label === 'AI Coach' ? '#38bdf8' : (isAnySubActive ? '#38bdf8' : '#fff')} set={isAnySubActive ? 'bold' : 'curved'} stroke="bold" />
                           </View>
                           <Text style={{
-                            color: isAnySubActive ? '#38bdf8' : '#fff',
+                            color: item.label === 'AI Coach' ? '#38bdf8' : (isAnySubActive ? '#38bdf8' : '#fff'),
                             fontSize: 16,
                             flex: 1,
                             fontFamily: isAnySubActive ? 'Inter_700Bold' : 'Inter_600SemiBold',
