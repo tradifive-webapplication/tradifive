@@ -1646,7 +1646,7 @@ export default function AutoTradeSetupScreen() {
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
                   <View style={{ flexDirection: 'row', gap: 12, flex: 1 }}>
                     <Image
-                      source={require('../assets/images/fialgo-v1-box.png')}
+                      source={require('../../assets/images/fialgo-v1-box.png')}
                       style={{ width: 52, height: 52, borderRadius: 12 }}
                       resizeMode="contain"
                     />
