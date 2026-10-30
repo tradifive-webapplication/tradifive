@@ -350,12 +350,12 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
       const pay = localStorage.getItem("tradifive_payment_status");
       if (pay === "approved") return "lifetime";
     } catch (e) {}
-    return "lifetime"; // Default: Full 1 Lakh Lifetime Owner
+    return "profit_share_50"; // Default: 50/50 Profit Share Partner
   });
 
-  const isLifetime = licenseTier === "lifetime";
-  const clientSplitPercent = isLifetime ? 100 : 50;
-  const adminSplitPercent = isLifetime ? 0 : 50;
+  const isLifetime = false;
+  const clientSplitPercent = 50;
+  const adminSplitPercent = 50;
   const clientShareToday = useMemo(() => {
     return Math.max(0, todayProfit * (clientSplitPercent / 100));
   }, [todayProfit, clientSplitPercent]);

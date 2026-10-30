@@ -109,7 +109,7 @@ export const EXISTING_OFFICIAL_ALGOS: MarketplaceProduct[] = [
     drawdown: '3.2%',
     monthlyReturn: '+18–42%',
     description: 'The official Tradifive Expert Advisor for MetaTrader 5. Fully automated XAUUSD trading with 8 built-in risk modules, tick-by-tick breakout logic, real-time economic news filter, and sub-3ms direct MT5 execution. Includes 3-Day Risk-Free Trial & 100% Profit Money-Back Guarantee.',
-    price: 99999,
+    price: 10000,
     currency: '₹',
     creatorName: 'TradiFive Official',
     isOfficial: true,
@@ -120,7 +120,7 @@ export const EXISTING_OFFICIAL_ALGOS: MarketplaceProduct[] = [
       '8 built-in institutional risk & safety modules',
       'Tick-by-tick breakout & dynamic basket tracking',
       'Automated economic news filter (FOMC, CPI, NFP)',
-      'Lifetime license · Unlimited MT5 updates',
+      '₹10,000 Setup Fee + Daily 50/50% Profit Share',
     ],
   },
   {
@@ -703,7 +703,7 @@ export default function DiscoverMarketplaceScreen() {
                     <View style={styles.productFooter}>
                       <View>
                         <Text style={{ fontSize: 9.5, fontFamily: 'Inter_600SemiBold', color: '#94a3b8', textTransform: 'uppercase' }}>
-                          Price
+                          Setup Fee
                         </Text>
                         <Text style={[styles.productPrice, { color: isDark ? '#38bdf8' : '#0284c7' }]}>
                           {algo.currency} {algo.price.toLocaleString('en-IN')}

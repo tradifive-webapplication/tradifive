@@ -424,10 +424,10 @@ export default function OrderHistoryScreen() {
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 }}>
                       <View style={[styles.verifiedBadge, { backgroundColor: 'rgba(56,189,248,0.12)' }]}>
                         <Sparkles size={10} color="#38bdf8" />
-                        <Text style={[styles.verifiedText, { color: '#38bdf8' }]}>VIP Lifetime</Text>
+                        <Text style={[styles.verifiedText, { color: '#38bdf8' }]}>Performance License</Text>
                       </View>
                       <Text style={{ fontSize: 11, fontFamily: 'Inter_700Bold', color: '#10b981' }}>
-                        ₹99,999
+                        ₹10,000 Setup (50/50 Share)
                       </Text>
                     </View>
                   </View>

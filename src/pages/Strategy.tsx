@@ -499,7 +499,7 @@ export default function Strategy() {
                               License Approved & Verified
                             </span>
                             <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100">
-                              {licenseTier === "lifetime" ? "1 Lakh Lifetime License (0% Share)" : "Daily 50% Profit Share Partner"}
+                              "Performance Partner (₹10,000 Setup + Daily 50% Share)"
                             </h4>
                           </div>
                         </div>

@@ -51,7 +51,7 @@ export const EXISTING_OFFICIAL_ALGOS: MarketplaceProduct[] = [
         drawdown: "3.2%",
         monthlyReturn: "+18–42%",
         description: "The official Tradifive Expert Advisor for MetaTrader 5. Fully automated XAUUSD trading with 8 built-in risk modules, tick-by-tick breakout logic, real-time economic news filter (FOMC, CPI, NFP), and sub-3ms direct MT5 execution. Includes 3-Day Risk-Free Trial & 100% Profit Money-Back Guarantee.",
-        price: 99999,
+        price: 10000,
         currency: "₹",
         thumbnailUrl: "/fialgo-v1-box.png",
         creatorId: "tradifive-core",
@@ -66,7 +66,7 @@ export const EXISTING_OFFICIAL_ALGOS: MarketplaceProduct[] = [
             "Automated economic news filter (FOMC, CPI, NFP)",
             "3-Day Risk-Free Trial & 100% Profit Money-Back Guarantee",
             "Sub-3ms execution speed with zero-lag socket streaming",
-            "Lifetime license · One account · Unlimited MT5 updates"
+            "₹10,000 one-time setup fee + Daily 50/50% profit share"
         ]
     }
 ];
@@ -105,7 +105,7 @@ export default function Discover() {
     const [searchQuery, setSearchQuery] = useState("");
     const [marketplaceFilter, setMarketplaceFilter] = useState("All");
 
-    // Pull real store listings created via Creator MyStore and pre-populate with official algos at 99,999
+    // Pull real store listings created via Creator MyStore and pre-populate with official algos at 10,000
     const [storeListings, setStoreListings] = useState<MarketplaceProduct[]>(EXISTING_OFFICIAL_ALGOS);
     const [purchasedItems, setPurchasedItems] = useState<string[]>(() => {
         try {
@@ -209,7 +209,7 @@ export default function Discover() {
                         name: p.title,
                         category: p.product_type || 'Algo',
                         description: p.description,
-                        price: p.price || 99999,
+                        price: p.price || 10000,
                         currency: p.currency || '₹',
                         thumbnailUrl: p.thumbnail_url,
                         creatorId: p.creator_id,
@@ -1104,7 +1104,7 @@ export default function Discover() {
                                                     </span>
                                                     <div className="text-xl font-black text-slate-900 dark:text-white tracking-tight flex items-baseline gap-0.5">
                                                         <span className="text-base text-slate-500 font-bold">{product.currency || "₹"}</span>
-                                                        <span>{Number(product.price || 99999).toLocaleString("en-IN")}</span>
+                                                        <span>{Number(product.price || 10000).toLocaleString("en-IN")}</span>
                                                     </div>
                                                 </div>
 
@@ -1292,7 +1292,7 @@ export default function Discover() {
                                         LIFETIME ACCESS
                                     </span>
                                     <div className="text-2xl font-black text-slate-900 dark:text-white">
-                                        {detailsModalProduct.currency || "₹"}{Number(detailsModalProduct.price || 99999).toLocaleString("en-IN")}
+                                        {detailsModalProduct.currency || "₹"}{Number(detailsModalProduct.price || 10000).toLocaleString("en-IN")}
                                     </div>
                                 </div>
 
@@ -1443,7 +1443,7 @@ export default function Discover() {
                                         </div>
                                         <div className="flex items-baseline justify-between">
                                             <span className="text-2xl font-black text-slate-900 dark:text-white">
-                                                {purchaseModalProduct.currency || "₹"}{Number(purchaseModalProduct.price || 99999).toLocaleString("en-IN")}
+                                                {purchaseModalProduct.currency || "₹"}{Number(purchaseModalProduct.price || 10000).toLocaleString("en-IN")}
                                             </span>
                                             <span className="text-xs text-slate-500 dark:text-slate-400">Includes 18% GST</span>
                                         </div>

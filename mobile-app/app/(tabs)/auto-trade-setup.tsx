@@ -205,7 +205,7 @@ export default function AutoTradeSetupScreen() {
   const [transferStatus, setTransferStatus] = useState<'none' | 'pending' | 'approved'>('approved');
 
   // Step 3 Payment State
-  const [selectedTier, setSelectedTier] = useState<'lifetime' | 'profit_share'>('lifetime');
+  const [selectedTier, setSelectedTier] = useState<'profit_share'>('profit_share');
   const [paymentMethod, setPaymentMethod] = useState<'upi' | 'bank'>('upi');
   const [utrNumber, setUtrNumber] = useState('');
   const [paymentProofUri, setPaymentProofUri] = useState<string | null>(null);
@@ -982,66 +982,39 @@ export default function AutoTradeSetupScreen() {
                     Complete payment via PhonePe / UPI or Bank Transfer to request your personal license key.
                   </Text>
 
-                  {/* 2 Plan Tiers */}
-                  <View style={{ gap: 8, marginVertical: 10 }}>
-                    <TouchableOpacity
-                      activeOpacity={0.85}
-                      onPress={() => {
-                        hSelect();
-                        setSelectedTier('lifetime');
-                      }}
+                  {/* Single Plan: ₹10,000 Setup Fee + Daily 50/50% Profit Share */}
+                  <View style={{ marginVertical: 10 }}>
+                    <View
                       style={[
                         styles.tierCard,
-                        selectedTier === 'lifetime' && styles.tierCardActive,
-                        { backgroundColor: isDark ? '#0c0e14' : '#f8fafc', borderColor: selectedTier === 'lifetime' ? '#f59e0b' : (isDark ? '#1e2433' : '#e2e8f0') },
+                        styles.tierCardActive,
+                        { backgroundColor: isDark ? '#0c0e14' : '#f0fdf4', borderColor: '#10b981' },
                       ]}
                     >
                       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                        <View>
+                        <View style={{ flex: 1, paddingRight: 10 }}>
                           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                             <Text style={{ fontSize: 15, fontFamily: 'Inter_800ExtraBold', color: isDark ? '#ffffff' : '#0f172a' }}>
-                              Lifetime VIP License
+                              FiAlgo V1 Institutional Engine
                             </Text>
-                            <View style={styles.popularBadge}>
-                              <Text style={styles.popularText}>BEST VALUE</Text>
+                            <View style={[styles.popularBadge, { backgroundColor: 'rgba(16,185,129,0.15)', borderColor: 'rgba(16,185,129,0.3)' }]}>
+                              <Text style={[styles.popularText, { color: '#10b981' }]}>OFFICIAL PLAN</Text>
                             </View>
                           </View>
-                          <Text style={{ fontSize: 11.5, fontFamily: 'Inter_500Medium', color: '#94a3b8', marginTop: 2 }}>
-                            0% Profit Share · Unlimited Trading · Lifetime Updates
+                          <Text style={{ fontSize: 11.5, fontFamily: 'Inter_500Medium', color: '#64748b', marginTop: 3, lineHeight: 16 }}>
+                            ₹10,000 One-Time Setup Fee · Daily 50/50% Profit Share on net green days (0% commission on red days)
                           </Text>
                         </View>
-                        <Text style={{ fontSize: 17, fontFamily: 'Inter_800ExtraBold', color: '#f59e0b' }}>
-                          ₹99,999
-                        </Text>
-                      </View>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      activeOpacity={0.85}
-                      onPress={() => {
-                        hSelect();
-                        setSelectedTier('profit_share');
-                      }}
-                      style={[
-                        styles.tierCard,
-                        selectedTier === 'profit_share' && styles.tierCardActive,
-                        { backgroundColor: isDark ? '#0c0e14' : '#f8fafc', borderColor: selectedTier === 'profit_share' ? '#38bdf8' : (isDark ? '#1e2433' : '#e2e8f0') },
-                      ]}
-                    >
-                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                        <View>
-                          <Text style={{ fontSize: 15, fontFamily: 'Inter_800ExtraBold', color: isDark ? '#ffffff' : '#0f172a' }}>
-                            Performance Partner Plan
+                        <View style={{ alignItems: 'flex-end' }}>
+                          <Text style={{ fontSize: 18, fontFamily: 'Inter_800ExtraBold', color: '#10b981' }}>
+                            ₹10,000
                           </Text>
-                          <Text style={{ fontSize: 11.5, fontFamily: 'Inter_500Medium', color: '#94a3b8', marginTop: 2 }}>
-                            ₹5,000 Setup Fee + Daily 50% Profit Share
+                          <Text style={{ fontSize: 10, fontFamily: 'Inter_600SemiBold', color: '#94a3b8' }}>
+                            Setup Fee
                           </Text>
                         </View>
-                        <Text style={{ fontSize: 17, fontFamily: 'Inter_800ExtraBold', color: isDark ? '#ffffff' : '#0f172a' }}>
-                          ₹5,000
-                        </Text>
                       </View>
-                    </TouchableOpacity>
+                    </View>
                   </View>
 
                   {/* Payment Details Box */}

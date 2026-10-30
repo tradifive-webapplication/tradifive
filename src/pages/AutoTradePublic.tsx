@@ -30,16 +30,16 @@ const fialgoFaqItems = [
     answer: "FiAlgo V1 is a fully automated Expert Advisor (.ex5) engineered specifically for MetaTrader 5 (MT5). It automates trade analysis, entry execution, stop loss placement, and trailing profit management primarily on Gold (XAUUSD) and major currency pairs without requiring manual intervention.",
   },
   {
-    question: "What are the two pricing options for FiAlgo V1?",
-    answer: "We offer two transparent pricing models: (1) Lifetime VIP License at ₹99,999 one-time with 0% profit share forever (keep 100% of all profits with zero recurring fees), and (2) Performance Partner at ₹5,000 initial setup fee + 50% daily profit share on net green trading days (zero commission on red days). For Performance accounts, the daily 50% profit share is settled daily via UPI; unpaid keys are automatically suspended until cleared.",
+    question: "What is the pricing model for FiAlgo V1?",
+    answer: "We offer one transparent, performance-driven model: a one-time ₹10,000 setup fee + daily 50/50% profit share on net green trading days (0% commission on red days). The 50% profit share is settled daily via UPI; you keep 50% of all profits with total account safety.",
   },
   {
     question: "Do I need a VPS to run FiAlgo V1?",
     answer: "While you can run FiAlgo V1 on your personal laptop or desktop during market hours, we strongly recommend a low-latency Windows VPS (Virtual Private Server) with under 20ms ping to your broker. This ensures your algorithms execute 24/5 even when your personal computer is turned off.",
   },
   {
-    question: "What is the difference between the Free Demo, Backtest, and Lifetime License?",
-    answer: "The Free Demo build lets you run FiAlgo V1 on any MT5 demo account with all 8 risk modules active and zero risk. The Backtest build lets you run fast historical simulations inside MT5 Strategy Tester. The Lifetime License unlocks live trading on real accounts, unlimited demo accounts, lifetime algorithm updates, and 1-on-1 setup assistance.",
+    question: "What is the difference between the Free Demo, Backtest, and Live Performance License?",
+    answer: "The Free Demo build lets you run FiAlgo V1 on any MT5 demo account with all 8 risk modules active and zero risk. The Backtest build lets you run fast historical simulations inside MT5 Strategy Tester. The Live Performance License unlocks live trading on real accounts with ₹10,000 setup fee and daily 50/50% profit share.",
   },
   {
     question: "Which brokers and account types are supported?",
@@ -156,7 +156,7 @@ export default function AutoTradePublic() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const handleStart = (tier?: string) => {
-    const chosenTier = tier || localStorage.getItem("tradifive_selected_tier") || "lifetime";
+    const chosenTier = tier || localStorage.getItem("tradifive_selected_tier") || "profit_share_50";
     navigate(`/auto-trade/setup?tier=${chosenTier}`);
   };
   const [openFaq, setOpenFaq] = useState<number | null>(null);

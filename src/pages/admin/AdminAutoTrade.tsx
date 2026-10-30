@@ -70,7 +70,7 @@ export interface LicensePaymentRequest {
   mt5_account_number?: string;
   algo_id: string;
   algo_name: string;
-  amount: string; // "99999"
+  amount: string; // "10000"
   currency: string; // "INR"
   method: "upi" | "bank";
   upi_id?: string;
@@ -216,7 +216,7 @@ export default function AdminAutoTrade() {
   const [rejectModalProof, setRejectModalProof] = useState<IbTransferProofRequest | null>(null);
   const [rejectReasonInput, setRejectReasonInput] = useState("");
 
-  // ₹99,999 License Payments State
+  // ₹10,000 Setup Fee Payments State
   const [licensePayments, setLicensePayments] = useState<LicensePaymentRequest[]>(getInitialPayments);
   const [paymentFilter, setPaymentFilter] = useState<"all" | "pending" | "approved" | "rejected">("pending");
   const [paymentMethodFilter, setPaymentMethodFilter] = useState<"all" | "upi" | "bank">("all");
@@ -279,7 +279,7 @@ export default function AdminAutoTrade() {
         localStorage.setItem("tradifive_cached_ib_proofs", JSON.stringify(proofs));
       } catch (e) {}
 
-      // 1.8 Fetch License Payment Requests (₹99,999 UPI / Bank)
+      // 1.8 Fetch License Payment Requests (₹10,000 UPI / Bank)
       const { data: licensePayData } = await supabase
         .from("system_settings")
         .select("*")
@@ -460,7 +460,7 @@ export default function AdminAutoTrade() {
             algo_manifest: override.algo_manifest || "FiAlgo_v1.0.4.ex5",
             algo_pair: override.algo_pair || "XAUUSD · M15",
             purchase_tier: (override.purchase_tier as any) || (hasPurchased ? "Lifetime License" : "None"),
-            price_paid: override.price_paid !== undefined ? override.price_paid : (hasPurchased ? 99999 : 0),
+            price_paid: override.price_paid !== undefined ? override.price_paid : (hasPurchased ? 10000 : 0),
             payment_status: override.payment_status || (hasPurchased ? "paid" : "pending"),
             purchase_date: override.purchase_date || p.created_at || new Date().toISOString(),
             binary_downloaded: override.binary_downloaded !== undefined ? override.binary_downloaded : hasPurchased,
@@ -609,7 +609,7 @@ export default function AdminAutoTrade() {
     return `TF-${lgHex}-${expHex}-${chkHex}`;
   };
 
-  // Approve ₹99,999 Lifetime Payment & Issue License Key
+  // Approve ₹10,000 Setup Payment & Issue License Key
   const handleApprovePayment = async (payment: LicensePaymentRequest) => {
     const cleanAccount = String(payment.mt5_account_number || "").replace(/\D/g, "");
     const existingRec = records.find(r => 
@@ -660,14 +660,14 @@ export default function AdminAutoTrade() {
         mt5_account_number: targetAccountNum || existingRec.mt5_account_number,
         has_purchased: true,
         purchase_tier: "Lifetime License",
-        price_paid: 99999,
+        price_paid: 10000,
         payment_status: "paid",
         license_key: generatedKey,
         license_status: "active",
         license_expiry: "Lifetime",
         algo_name: "FiAlgo V1 (Gold Scalper & Trend)",
         algo_id: "fialgo_v1",
-        admin_notes: `₹99,999 Lifetime Payment verified via ${payment.method === "upi" ? "PhonePe/UPI" : "Bank Transfer"} (UTR: ${payment.utr_number}). Personal MT5 license key issued.`
+        admin_notes: `₹10,000 Setup Payment verified via ${payment.method === "upi" ? "PhonePe/UPI" : "Bank Transfer"} (UTR: ${payment.utr_number}). Personal MT5 license key issued.`
       };
       await persistUpdate(updatedRec);
     }
@@ -685,12 +685,12 @@ export default function AdminAutoTrade() {
       setPreviewPaymentProof(updatedPayment);
     }
 
-    toast.success(`Payment Verified! ₹99,999 License Key Issued`, {
+    toast.success(`Payment Verified! ₹10,000 License Key Issued`, {
       description: `Key ${generatedKey} generated for MT5 #${targetAccountNum}. User Step 4 is now active.`
     });
   };
 
-  // Reject ₹99,999 Payment
+  // Reject ₹10,000 Payment
   const handleRejectPayment = async (payment: LicensePaymentRequest, reason: string) => {
     const updatedPayment: LicensePaymentRequest = {
       ...payment,
@@ -975,7 +975,7 @@ export default function AdminAutoTrade() {
     const pending = licensePayments.filter(p => p.status === "pending").length;
     const approved = licensePayments.filter(p => p.status === "approved").length;
     const rejected = licensePayments.filter(p => p.status === "rejected").length;
-    const revenueInr = approved * 99999;
+    const revenueInr = approved * 10000;
     return { total, pending, approved, rejected, revenueInr };
   }, [licensePayments]);
 
@@ -1031,7 +1031,7 @@ export default function AdminAutoTrade() {
             </div>
             <div>
               <h4 className="text-sm font-bold text-emerald-300 flex items-center gap-2">
-                <span>{pendingPaymentsCount} ₹99,999 License Payment{pendingPaymentsCount > 1 ? "s" : ""} Awaiting Verification</span>
+                <span>{pendingPaymentsCount} ₹10,000 Setup Payment{pendingPaymentsCount > 1 ? "s" : ""} Awaiting Verification</span>
                 <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/30 text-emerald-200 uppercase font-black">
                   Action Required
                 </span>
@@ -1134,7 +1134,7 @@ export default function AdminAutoTrade() {
           }`}
         >
           <CreditCard size={14} className={activeMainTab === "payments" ? "text-white" : "text-emerald-400"} />
-          <span>₹99,999 Payments</span>
+          <span>₹10,000 Payments</span>
           {pendingPaymentsCount > 0 ? (
             <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-400 text-black flex items-center gap-1 animate-pulse">
               <span className="w-1.5 h-1.5 rounded-full bg-black" />
@@ -1745,7 +1745,7 @@ export default function AdminAutoTrade() {
         </div>
       )}
 
-      {/* ── TAB 3: ₹99,999 LICENSE PAYMENTS (UPI & BANK TRANSFER) ── */}
+      {/* ── TAB 3: ₹10,000 SETUP PAYMENTS (UPI & BANK TRANSFER) ── */}
       {activeMainTab === "payments" && (
         <div className="space-y-6">
           {/* ── Official Receiving Account Details Strip ── */}
@@ -1759,7 +1759,7 @@ export default function AdminAutoTrade() {
                   <div className="flex items-center gap-2">
                     <h3 className="text-base font-black text-white">Official TradiFive Payment Accounts</h3>
                     <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                      Amount: ₹99,999 (Lifetime)
+                      Amount: ₹10,000 (Setup Fee)
                     </span>
                   </div>
                   <p className="text-xs text-neutral-400 mt-0.5">
@@ -1987,7 +1987,7 @@ export default function AdminAutoTrade() {
                         <p className="text-xs text-slate-600 mt-0.5">
                           {paymentSearchQuery || paymentFilter !== "all"
                             ? "Try adjusting your filters or search query"
-                            : "New ₹99,999 PhonePe / UPI or Bank transfer requests will appear here in real-time."}
+                            : "New ₹10,000 PhonePe / UPI or Bank transfer requests will appear here in real-time."}
                         </p>
                       </td>
                     </tr>
@@ -2056,7 +2056,7 @@ export default function AdminAutoTrade() {
                         {/* Amount */}
                         <td className="px-5 py-4">
                           <div className="font-mono font-black text-white text-sm">
-                            ₹{Number(payment.amount || 99999).toLocaleString()}
+                            ₹{Number(payment.amount || 10000).toLocaleString()}
                           </div>
                           <span className="text-[10px] text-slate-500 font-semibold uppercase">100% Paid</span>
                         </td>
@@ -2328,7 +2328,7 @@ export default function AdminAutoTrade() {
                           ...selectedRecord,
                           purchase_tier: newTier,
                           has_purchased: newTier !== "None",
-                          price_paid: newTier === "Lifetime License" ? 99999 : 0,
+                          price_paid: newTier === "Performance License" ? 10000 : 0,
                           updated_at: new Date().toISOString()
                         };
                         await persistUpdate(updated);
@@ -2691,7 +2691,7 @@ export default function AdminAutoTrade() {
                   </div>
                   <div>
                     <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                      ₹99,999 Payment Proof · UTR #{previewPaymentProof.utr_number}
+                      ₹10,000 Payment Proof · UTR #{previewPaymentProof.utr_number}
                     </h3>
                     <p className="text-[11px] text-neutral-400">
                       Client: <strong className="text-white">{previewPaymentProof.user_name}</strong> ({previewPaymentProof.user_email}) · MT5: <strong className="font-mono text-emerald-400">{previewPaymentProof.mt5_account_number || "Unbound"}</strong>
@@ -2722,7 +2722,7 @@ export default function AdminAutoTrade() {
                 <div className="text-xs">
                   <span className="text-[10px] text-neutral-500 uppercase block font-semibold">Payment Method & Amount</span>
                   <span className="font-bold text-white">
-                    {previewPaymentProof.method === "upi" ? "PhonePe / UPI" : "Bank Transfer"} · <strong className="font-mono text-emerald-400">₹99,999</strong>
+                    {previewPaymentProof.method === "upi" ? "PhonePe / UPI" : "Bank Transfer"} · <strong className="font-mono text-emerald-400">₹10,000</strong>
                   </span>
                 </div>
 
@@ -2767,7 +2767,7 @@ export default function AdminAutoTrade() {
                   <XCircle size={20} />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-white">Reject ₹99,999 Payment</h3>
+                  <h3 className="text-sm font-bold text-white">Reject ₹10,000 Payment</h3>
                   <p className="text-xs text-neutral-400">
                     UTR: <strong className="text-white font-mono">{rejectModalPayment.utr_number}</strong> ({rejectModalPayment.user_name})
                   </p>
@@ -2781,7 +2781,7 @@ export default function AdminAutoTrade() {
                 <div className="space-y-1.5">
                   {[
                     "UTR / Reference number not found in Axis Bank / UPI statement.",
-                    "Transferred amount does not match ₹99,999 Lifetime fee.",
+                    "Transferred amount does not match ₹10,000 setup fee.",
                     "Payment screenshot is blurry or does not show completed transaction status.",
                     "Duplicate UTR submitted."
                   ].map((preset) => (

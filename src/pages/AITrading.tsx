@@ -641,9 +641,9 @@ export default function AITrading() {
       mt5_account_number: accountForPayment,
       algo_id: "fialgo_v1",
       algo_name: selectedTier === "lifetime" ? "FiAlgo V1 Lifetime VIP" : "FiAlgo V1 Performance Partner (50% Daily Share)",
-      amount: selectedTier === "lifetime" ? "99999" : "5000",
+      amount: "10000",
       plan_tier: selectedTier,
-      plan_name: selectedTier === "lifetime" ? "VIP Lifetime License (0% Profit Share)" : "Performance Partner (₹5,000 Setup + Daily 50% Profit Share)",
+      plan_name: "Performance License (₹10,000 Setup + Daily 50/50% Profit Share)",
       currency: "INR",
       method: paymentMethod,
       upi_id: paymentMethod === "upi" ? "9731980756@axisbank" : undefined,
@@ -689,7 +689,7 @@ export default function AITrading() {
     localStorage.setItem("tradifive_payment_status", "approved");
     localStorage.setItem("tradifive_auto_trade_setup", "true");
     toast.success("License Key Unlocked!", {
-      description: "₹99,999 payment verified. Personal MT5 key is now active."
+      description: "₹10,000 setup payment verified. Personal MT5 key is now active."
     });
   };
 
@@ -2032,7 +2032,7 @@ MagicNumber=789104
                   </div>
                   <div>
                     <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">
-                      ₹99,999 Lifetime License Payment Confirmed
+                      ₹10,000 Performance Setup Payment Confirmed
                     </h3>
                     <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5">
                       Your payment has been verified. Proceed to Step 4 to activate and view your MetaTrader 5 license key.
@@ -2139,7 +2139,7 @@ MagicNumber=789104
                   <div className="pt-1 flex flex-col sm:flex-row items-center gap-2">
                     <a
                       href={`https://wa.me/?text=${encodeURIComponent(
-                        `Hello TradiFive Team! I have completed the ₹99,999 payment for FiAlgo V1 via PhonePe/UPI. My UTR number is ${paymentUtr}. Please expedite and issue my license key.`
+                        `Hello TradiFive Team! I have completed the ₹10,000 setup fee payment for FiAlgo V1 via PhonePe/UPI. My UTR number is ${paymentUtr}. Please expedite and issue my license key.`
                       )}`}
                       target="_blank"
                       rel="noreferrer"
@@ -2194,93 +2194,32 @@ MagicNumber=789104
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {/* TIER 1: VIP LIFETIME LICENSE (₹1,00,000 / ₹99,999) */}
-                    <div
-                      onClick={() => setSelectedTier("lifetime")}
-                      className={`p-3.5 sm:p-4 rounded-xl cursor-pointer transition-all border-2 relative flex flex-col justify-between ${
-                        selectedTier === "lifetime"
-                          ? "bg-purple-50/50 dark:bg-purple-950/20 border-purple-600 dark:border-purple-500 shadow-md"
-                          : "bg-white dark:bg-[#161618] border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20"
-                      }`}
-                    >
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="px-2 py-0.5 rounded text-[9.5px] font-extrabold uppercase tracking-wide bg-purple-100 text-purple-800 dark:bg-purple-500/20 dark:text-purple-300 border border-purple-300 dark:border-purple-500/30">
-                            VIP Lifetime (0% Share)
-                          </span>
-                          <span className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                            selectedTier === "lifetime" ? "border-purple-600 bg-purple-600 text-white" : "border-slate-300 dark:border-neutral-600"
-                          }`}>
-                            {selectedTier === "lifetime" && <Check size={10} />}
-                          </span>
-                        </div>
-
-                        <div>
-                          <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
-                            Lifetime VIP License
-                          </h3>
-                          <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed mt-0.5">
-                            Pay once, keep <strong className="text-purple-600 dark:text-purple-400">100% of all profits</strong> forever. No profit sharing, no recurring fees. Best for high-capital traders.
-                          </p>
-                        </div>
+                  <div className="p-4 sm:p-5 rounded-2xl border-2 border-emerald-500 bg-emerald-50/30 dark:bg-emerald-950/20 relative flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
+                    <div className="space-y-1.5 text-center sm:text-left">
+                      <div className="flex items-center justify-center sm:justify-start gap-2">
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wide bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/30">
+                          Official Performance Plan
+                        </span>
+                        <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+                          Daily 50/50% Profit Share
+                        </span>
                       </div>
-
-                      <div className="pt-3 mt-3 border-t border-slate-200/70 dark:border-white/5 flex items-baseline justify-between">
-                        <span className="text-[10px] font-bold uppercase text-slate-400">One-Time Price</span>
-                        <div className="text-right">
-                          <span className="text-lg sm:text-xl font-mono font-black text-slate-900 dark:text-white">
-                            ₹99,999
-                          </span>
-                          <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold block">
-                            0% Profit Cut Forever
-                          </span>
-                        </div>
-                      </div>
+                      <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">
+                        FiAlgo V1 Institutional Engine
+                      </h3>
+                      <p className="text-xs text-slate-600 dark:text-slate-300 max-w-lg leading-relaxed">
+                        Pay a one-time <strong className="text-emerald-600 dark:text-emerald-400">₹10,000 setup fee</strong> to deploy and connect your MT5 account. Share 50% profit daily on net green trading days (0% commission on red days).
+                      </p>
                     </div>
 
-                    {/* TIER 2: PERFORMANCE PARTNER (₹5,000 SETUP + DAILY 50% PROFIT SHARE) */}
-                    <div
-                      onClick={() => setSelectedTier("profit_share_50")}
-                      className={`p-3.5 sm:p-4 rounded-xl cursor-pointer transition-all border-2 relative flex flex-col justify-between ${
-                        selectedTier === "profit_share_50"
-                          ? "bg-blue-50/50 dark:bg-blue-950/20 border-blue-600 dark:border-blue-500 shadow-md"
-                          : "bg-white dark:bg-[#161618] border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20"
-                      }`}
-                    >
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="px-2 py-0.5 rounded text-[9.5px] font-extrabold uppercase tracking-wide bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-300 border border-blue-300 dark:border-blue-500/30">
-                            Low Entry Setup
-                          </span>
-                          <span className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                            selectedTier === "profit_share_50" ? "border-blue-600 bg-blue-600 text-white" : "border-slate-300 dark:border-neutral-600"
-                          }`}>
-                            {selectedTier === "profit_share_50" && <Check size={10} />}
-                          </span>
-                        </div>
-
-                        <div>
-                          <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
-                            Performance Partner (50% Daily)
-                          </h3>
-                          <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed mt-0.5">
-                            <strong className="text-blue-600 dark:text-blue-400">₹5,000 setup fee</strong> + Daily 50% profit share on green days. <span className="text-rose-500 font-semibold">Strict Rule:</span> If daily 50% profit share is not settled, license key is suspended until cleared.
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="pt-3 mt-3 border-t border-slate-200/70 dark:border-white/5 flex items-baseline justify-between">
-                        <span className="text-[10px] font-bold uppercase text-slate-400">Setup Fee Today</span>
-                        <div className="text-right">
-                          <span className="text-lg sm:text-xl font-mono font-black text-slate-900 dark:text-white">
-                            ₹5,000
-                          </span>
-                          <span className="text-[10px] text-amber-500 font-bold block">
-                            + Daily 50% Profit Share
-                          </span>
-                        </div>
-                      </div>
+                    <div className="text-center sm:text-right shrink-0 p-3 rounded-xl bg-white dark:bg-[#161618] border border-slate-200/70 dark:border-white/5 min-w-[140px]">
+                      <span className="text-[10px] font-bold uppercase text-slate-400 block tracking-wider">Setup Fee Today</span>
+                      <span className="text-2xl font-mono font-black text-slate-900 dark:text-white block mt-0.5">
+                        ₹10,000
+                      </span>
+                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold block mt-0.5">
+                        + Daily 50% Profit Share
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -2361,7 +2300,7 @@ MagicNumber=789104
                         </div>
 
                         <p className="text-[11.5px] text-slate-500 dark:text-slate-400">
-                          Transfer Amount: <strong className="text-slate-900 dark:text-white font-mono">{selectedTier === "lifetime" ? "₹99,999" : "₹5,000"}</strong> · Zero additional processing fees
+                          Transfer Amount: <strong className="text-slate-900 dark:text-white font-mono">₹10,000</strong> · Zero additional processing fees
                         </p>
                       </div>
                     </div>
@@ -2372,7 +2311,7 @@ MagicNumber=789104
                 {paymentMethod === "bank" && (
                   <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 space-y-3 text-xs">
                     <div className="text-xs text-slate-600 dark:text-slate-400 font-medium">
-                      Transfer <strong className="text-slate-900 dark:text-white font-mono">{selectedTier === "lifetime" ? "₹99,999" : "₹5,000"}</strong> via NEFT, RTGS, IMPS, or Net Banking to bank account details below:
+                      Transfer <strong className="text-slate-900 dark:text-white font-mono">₹10,000</strong> via NEFT, RTGS, IMPS, or Net Banking to bank account details below:
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -2612,7 +2551,7 @@ MagicNumber=789104
                       FiAlgo V1 License Key Locked
                     </h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-xl">
-                      Complete payment of <strong className="text-slate-900 dark:text-white">{selectedTier === "lifetime" ? "₹99,999 (Lifetime VIP)" : "₹5,000 Setup (Performance Partner)"}</strong> in Step 3 via PhonePe / UPI (<strong className="font-mono text-slate-800 dark:text-slate-200">9731980756@axisbank</strong>) or Bank Transfer to request your license key.
+                      Complete payment of <strong className="text-slate-900 dark:text-white">"₹10,000 Setup Fee (Daily 50/50% Profit Share)"</strong> in Step 3 via PhonePe / UPI (<strong className="font-mono text-slate-800 dark:text-slate-200">9731980756@axisbank</strong>) or Bank Transfer to request your license key.
                     </p>
                   </div>
                 </div>
@@ -2623,7 +2562,7 @@ MagicNumber=789104
                   className="w-full py-3 px-4 rounded-xl text-xs sm:text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center gap-2 cursor-pointer shadow-xs transition-all"
                 >
                   <CreditCard size={14} />
-                  <span>Go to Step 3: Complete Payment ({selectedTier === "lifetime" ? "₹99,999" : "₹5,000"}) →</span>
+                  <span>Go to Step 3: Complete Payment (₹10,000) →</span>
                 </button>
               </div>
             ) : paymentStatus === "pending" ? (
@@ -2660,7 +2599,7 @@ MagicNumber=789104
                         <span className="text-slate-600 dark:text-slate-400">Plan &amp; Fee:</span>
                       </div>
                       <span className="font-bold text-amber-600 dark:text-amber-400">
-                        {selectedTier === "lifetime" ? "₹99,999 Lifetime (Under Review)" : "₹5,000 Setup + Daily 50% Share"}
+                        "₹10,000 Setup + Daily 50/50% Share"
                       </span>
                     </div>
 
@@ -2715,7 +2654,7 @@ MagicNumber=789104
                   <div className="grid grid-cols-2 gap-2 pt-0.5">
                     <a
                       href={`https://wa.me/?text=${encodeURIComponent(
-                        `Hello TradiFive Team! I have completed the ${selectedTier === "lifetime" ? "₹99,999 payment for FiAlgo V1 Lifetime VIP" : "₹5,000 setup fee for FiAlgo V1 Performance Partner (50% Daily Profit Share)"} (UTR: ${paymentUtr || "[Your UTR]"}). Please verify and issue my license key.`
+                        `Hello TradiFive Team! I have completed the ₹10,000 setup fee for FiAlgo V1 Performance Partner (50% Daily Profit Share) (UTR: ${paymentUtr || "[Your UTR]"}). Please verify and issue my license key.`
                       )}`}
                       target="_blank"
                       rel="noreferrer"
@@ -2729,7 +2668,7 @@ MagicNumber=789104
                       href={`mailto:support@tradifive.in?subject=${encodeURIComponent(
                         `Verify License Payment UTR #${paymentUtr || ""}`
                       )}&body=${encodeURIComponent(
-                        `Hello Support Team,\n\nPlease verify my payment of ${selectedTier === "lifetime" ? "₹99,999" : "₹5,000"} for FiAlgo V1.\nUTR Number: ${paymentUtr || ""}\nPlan: ${selectedTier === "lifetime" ? "Lifetime VIP" : "Performance Partner (50% Daily)"}\n\nPlease issue my license key.\n\nThank you!`
+                        `Hello Support Team,\n\nPlease verify my payment of ₹10,000 for FiAlgo V1.\nUTR Number: ${paymentUtr || ""}\nPlan: Performance Partner (50/50% Daily Share)\n\nPlease issue my license key.\n\nThank you!`
                       )}`}
                       className="py-2.5 px-3 rounded-xl text-xs font-semibold bg-white dark:bg-white/10 hover:bg-slate-100 text-slate-800 dark:text-white border border-slate-200 dark:border-white/10 flex items-center justify-center gap-1.5 transition-all shadow-2xs"
                     >
@@ -2768,7 +2707,7 @@ MagicNumber=789104
                       FiAlgo V1 License Key Locked
                     </h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-xl">
-                      Payment of {selectedTier === "lifetime" ? "₹99,999" : "₹5,000"} is confirmed! Your license key will unlock once your MT5 account is verified under Partner IB <strong className="text-slate-800 dark:text-slate-200">27863221</strong> with a <strong className="text-slate-800 dark:text-slate-200">minimum balance of $500 USD</strong>.
+                      Payment of ₹10,000 is confirmed! Your license key will unlock once your MT5 account is verified under Partner IB <strong className="text-slate-800 dark:text-slate-200">27863221</strong> with a <strong className="text-slate-800 dark:text-slate-200">minimum balance of $500 USD</strong>.
                     </p>
                   </div>
                 </div>
@@ -2786,7 +2725,7 @@ MagicNumber=789104
                         <span className="text-slate-600 dark:text-slate-400">License Payment:</span>
                       </div>
                       <span className="font-bold text-emerald-600 dark:text-emerald-400">
-                        {selectedTier === "lifetime" ? "₹99,999 Paid ✓" : "₹5,000 Setup Paid ✓"}
+                        "₹10,000 Setup Paid ✓"
                       </span>
                     </div>
 
