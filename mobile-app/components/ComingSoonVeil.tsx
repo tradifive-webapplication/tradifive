@@ -9,7 +9,7 @@ interface ComingSoonVeilProps {
   topOffset?: number;
 }
 
-export default function ComingSoonVeil({ featureTitle, topOffset }: ComingSoonVeilProps) {
+export default function ComingSoonVeil({ featureTitle, subtitle, topOffset }: ComingSoonVeilProps) {
   const { isDark } = useAppTheme();
 
   return (
@@ -60,16 +60,16 @@ export default function ComingSoonVeil({ featureTitle, topOffset }: ComingSoonVe
         ]}
       />
 
-      {/* ── FLOATING "COMING SOON" INDICATOR BADGE ── */}
+      {/* ── FIXED "COMING SOON" INDICATOR IN MIDDLE OF PAGE (PERSISTS ON SCROLL) ── */}
       <View style={styles.badgeWrapper} pointerEvents="none">
         <View
           style={[
             styles.badgePill,
             {
-              backgroundColor: isDark ? 'rgba(15, 23, 42, 0.90)' : 'rgba(255, 255, 255, 0.92)',
-              borderColor: isDark ? 'rgba(56, 189, 248, 0.35)' : 'rgba(56, 189, 248, 0.40)',
+              backgroundColor: isDark ? 'rgba(15, 23, 42, 0.94)' : 'rgba(255, 255, 255, 0.96)',
+              borderColor: isDark ? 'rgba(56, 189, 248, 0.40)' : 'rgba(56, 189, 248, 0.45)',
               shadowColor: '#000',
-              shadowOpacity: isDark ? 0.35 : 0.08,
+              shadowOpacity: isDark ? 0.45 : 0.12,
             },
           ]}
         >
@@ -78,6 +78,17 @@ export default function ComingSoonVeil({ featureTitle, topOffset }: ComingSoonVe
             {featureTitle ? `${featureTitle} · ` : ''}Coming Soon
           </Text>
         </View>
+
+        {subtitle ? (
+          <Text
+            style={[
+              styles.badgeSubtitle,
+              { color: isDark ? 'rgba(226, 232, 240, 0.85)' : 'rgba(71, 85, 105, 0.85)' },
+            ]}
+          >
+            {subtitle}
+          </Text>
+        ) : null}
       </View>
     </View>
   );
@@ -90,34 +101,45 @@ const styles = StyleSheet.create({
   },
   badgeWrapper: {
     position: 'absolute',
-    top: 14,
+    top: 0,
+    bottom: 0,
     left: 0,
     right: 0,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingHorizontal: 28,
+    paddingBottom: 40, // Optical center above bottom floating navigation bar
     zIndex: 1000000,
   },
   badgePill: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 7,
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: 20,
-    borderWidth: 1,
-    shadowOffset: { width: 0, height: 3 },
-    shadowRadius: 8,
-    elevation: 4,
+    gap: 8,
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 24,
+    borderWidth: 1.5,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 14,
+    elevation: 8,
   },
   pulseDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
     backgroundColor: '#38bdf8',
   },
   badgeText: {
-    fontSize: 12,
+    fontSize: 13.5,
     fontFamily: 'Inter_700Bold',
     letterSpacing: 0.3,
+  },
+  badgeSubtitle: {
+    fontSize: 12,
+    fontFamily: 'Inter_500Medium',
+    textAlign: 'center',
+    maxWidth: 290,
+    marginTop: 10,
+    lineHeight: 18,
   },
 });
