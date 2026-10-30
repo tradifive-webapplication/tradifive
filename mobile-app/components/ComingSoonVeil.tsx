@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Platform, Dimensions } from '
 import { BlurView } from 'expo-blur';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { Sparkles, ArrowRight, Activity } from 'lucide-react-native';
+import { Sparkles, ArrowRight, Activity, Home } from 'lucide-react-native';
 import { useAppTheme } from '../hooks/useAppTheme';
 
 interface ComingSoonVeilProps {
@@ -25,17 +25,24 @@ export default function ComingSoonVeil({ featureTitle, subtitle }: ComingSoonVei
     <View style={styles.overlayContainer} pointerEvents="auto">
       {/* ── NATIVE BACKDROP BLUR ── */}
       <BlurView
-        intensity={Platform.OS === 'ios' ? 75 : 90}
+        intensity={Platform.OS === 'ios' ? 80 : 95}
         tint={isDark ? 'dark' : 'light'}
+        experimentalBlurMethod="dimezisBlurView"
         style={StyleSheet.absoluteFillObject}
       />
 
-      {/* Semi-transparent tint overlay to give depth and contrast */}
+      {/* Semi-transparent frosted tint overlay to guarantee 100% visible depth across all platforms */}
       <View
         style={[
           StyleSheet.absoluteFillObject,
           {
-            backgroundColor: isDark ? 'rgba(5, 7, 15, 0.78)' : 'rgba(244, 246, 251, 0.82)',
+            backgroundColor: isDark ? 'rgba(9, 13, 22, 0.82)' : 'rgba(244, 246, 251, 0.85)',
+            ...(Platform.OS === 'web'
+              ? ({
+                  backdropFilter: 'blur(24px)',
+                  WebkitBackdropFilter: 'blur(24px)',
+                } as any)
+              : {}),
           },
         ]}
       />
@@ -46,14 +53,22 @@ export default function ComingSoonVeil({ featureTitle, subtitle }: ComingSoonVei
           style={[
             styles.card,
             {
-              backgroundColor: isDark ? 'rgba(18, 21, 31, 0.94)' : 'rgba(255, 255, 255, 0.95)',
-              borderColor: isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.08)',
+              backgroundColor: isDark ? 'rgba(17, 22, 37, 0.96)' : 'rgba(255, 255, 255, 0.98)',
+              borderColor: isDark ? 'rgba(56, 189, 248, 0.25)' : 'rgba(0, 0, 0, 0.1)',
               shadowColor: isDark ? '#000000' : '#0f172a',
             },
           ]}
         >
           {/* Status Badge */}
-          <View style={[styles.badge, { backgroundColor: isDark ? 'rgba(245, 158, 11, 0.15)' : '#fffbeb', borderColor: isDark ? 'rgba(245, 158, 11, 0.3)' : 'rgba(245, 158, 11, 0.35)' }]}>
+          <View
+            style={[
+              styles.badge,
+              {
+                backgroundColor: isDark ? 'rgba(245, 158, 11, 0.15)' : '#fffbeb',
+                borderColor: isDark ? 'rgba(245, 158, 11, 0.35)' : 'rgba(245, 158, 11, 0.4)',
+              },
+            ]}
+          >
             <View style={styles.pulseDot} />
             <Text style={styles.badgeText}>COMING SOON</Text>
             <Sparkles size={11} color="#f59e0b" />
@@ -80,15 +95,15 @@ export default function ComingSoonVeil({ featureTitle, subtitle }: ComingSoonVei
               style={[
                 styles.primaryBtn,
                 {
-                  backgroundColor: isDark ? '#38bdf8' : '#0f172a',
+                  backgroundColor: '#38bdf8',
                 },
               ]}
             >
-              <Activity size={16} color={isDark ? '#0f172a' : '#ffffff'} strokeWidth={2.5} />
-              <Text style={[styles.primaryBtnText, { color: isDark ? '#0f172a' : '#ffffff' }]}>
+              <Activity size={16} color="#0f172a" strokeWidth={2.5} />
+              <Text style={[styles.primaryBtnText, { color: '#0f172a' }]}>
                 Go to Auto Trade
               </Text>
-              <ArrowRight size={15} color={isDark ? '#0f172a' : '#ffffff'} />
+              <ArrowRight size={15} color="#0f172a" />
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -101,10 +116,11 @@ export default function ComingSoonVeil({ featureTitle, subtitle }: ComingSoonVei
                 styles.secondaryBtn,
                 {
                   backgroundColor: isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.04)',
-                  borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.08)',
+                  borderColor: isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.1)',
                 },
               ]}
             >
+              <Home size={15} color={isDark ? '#e2e8f0' : '#334155'} />
               <Text style={[styles.secondaryBtnText, { color: isDark ? '#e2e8f0' : '#334155' }]}>
                 View Home Feed
               </Text>
@@ -123,28 +139,30 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    zIndex: 99999,
-  },
-  centerWrapper: {
-    flex: 1,
     width: '100%',
     height: '100%',
+    zIndex: 999999,
+    elevation: 99999,
+  },
+  centerWrapper: {
+    ...StyleSheet.absoluteFillObject,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 20,
+    zIndex: 1000000,
   },
   card: {
     width: '100%',
     maxWidth: 340,
     borderRadius: 28,
     borderWidth: 1.5,
-    paddingVertical: 28,
-    paddingHorizontal: 22,
+    paddingVertical: 32,
+    paddingHorizontal: 24,
     alignItems: 'center',
     shadowOffset: { width: 0, height: 16 },
-    shadowOpacity: 0.25,
+    shadowOpacity: 0.35,
     shadowRadius: 30,
-    elevation: 20,
+    elevation: 25,
   },
   badge: {
     flexDirection: 'row',
@@ -209,6 +227,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 7,
     width: '100%',
     height: 44,
     borderRadius: 16,

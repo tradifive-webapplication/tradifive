@@ -363,7 +363,7 @@ export default function TabLayout() {
       subItems: [
         { label: 'Auto Trade Setup', icon: Work, route: '/(tabs)/auto-trade-setup' },
         { label: 'Algo Marketplace', icon: Bag, route: '/(tabs)/marketplace' },
-        { label: 'Order History', icon: Document, route: '/(tabs)/journal' },
+        { label: 'Order History', icon: Document, route: '/(tabs)/auto-trade-setup' },
       ],
     },
     {
@@ -408,7 +408,7 @@ export default function TabLayout() {
     {
       label: 'Discover',
       icon: Discovery,
-      badge: 'SOON',
+      badge: 'LIVE',
       subItems: [
         { label: 'Algo Marketplace', icon: Bag, route: '/(tabs)/marketplace' },
         { label: 'Trading Contests', icon: Trophy, route: '/(tabs)/contests' },

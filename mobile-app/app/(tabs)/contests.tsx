@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import ComingSoonVeil from '../../components/ComingSoonVeil';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
   Platform, StatusBar, Image, ActivityIndicator, RefreshControl
@@ -202,7 +203,11 @@ export default function Contests() {
             </ScrollView>
           )}
         </View>
-      </View>
+      <ComingSoonVeil
+        featureTitle="Trading Contests"
+        subtitle="Weekly and monthly trading tournaments with cash and funded account prizes are launching soon."
+      />
+    </View>
     </UpgradeGate>
   );
 }

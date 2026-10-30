@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import ComingSoonVeil from '../../components/ComingSoonVeil';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
   Platform, StatusBar, Image, ActivityIndicator, RefreshControl
@@ -172,7 +173,11 @@ export default function Learning() {
             </ScrollView>
           )}
         </View>
-      </View>
+      <ComingSoonVeil
+        featureTitle="Trading Academy"
+        subtitle="Algorithmic trading masterclasses, video tutorials & quant tools are launching soon."
+      />
+    </View>
     </UpgradeGate>
   );
 }

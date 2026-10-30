@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import ComingSoonVeil from '../../components/ComingSoonVeil';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
   Platform, StatusBar, Image, Alert, ActivityIndicator, RefreshControl
@@ -264,9 +265,13 @@ export default function Finance() {
                             <Text style={[s.statusTxt, { color: statusConf.color }]}>{statusConf.label}</Text>
                           </View>
                         </View>
-                      </View>
-                    );
-                  })
+      <ComingSoonVeil
+        featureTitle="Finance & Payouts"
+        subtitle="Integrated trading wallet, automated profit payouts and financial reports are launching soon."
+      />
+    </View>
+  );
+})
                 )}
                 {filteredTxns.length > 0 && (
                   <TouchableOpacity style={s.exportBtn} onPress={() => { h(); Alert.alert('Export', 'CSV export coming soon!'); }}>

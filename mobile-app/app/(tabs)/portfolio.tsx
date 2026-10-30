@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import ComingSoonVeil from '../../components/ComingSoonVeil';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Platform, StatusBar, Image, RefreshControl } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight, PackageOpen } from 'lucide-react-native';
@@ -172,9 +173,13 @@ export default function Portfolio() {
                     <View style={s.tradeFooter}>
                       <Text style={s.metaTxt}>{t.time}</Text>
                     </View>
-                  </View>
-                );
-              })}
+      <ComingSoonVeil
+        featureTitle="Multi-Broker Portfolio"
+        subtitle="Consolidated multi-broker portfolio tracking, equity curves & risk allocation are launching soon."
+      />
+    </View>
+  );
+})}
             </View>
           )}
         </ScrollView>

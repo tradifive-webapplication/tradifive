@@ -503,7 +503,10 @@ export default function JournalScreen() {
           </Animated.View>
         </Animated.ScrollView>
       </Animated.View>
-      
+      <ComingSoonVeil
+        featureTitle="Trading Journal"
+        subtitle="Daily trade logging, win-rate analytics, calendar breakdown & equity curve tracking are launching soon."
+      />
     </View>
   );
 }

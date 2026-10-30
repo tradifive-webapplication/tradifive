@@ -1,27 +1,17 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { usePlan, PlanFeature } from '../hooks/usePlan';
+import { PlanFeature } from '../hooks/usePlan';
 import ComingSoonVeil from '../../components/ComingSoonVeil';
 
 interface UpgradeGateProps {
-  feature: PlanFeature;
+  feature?: PlanFeature;
   children: React.ReactNode;
   fallback?: React.ReactNode;
   title?: string;
   description?: string;
 }
 
-export default function UpgradeGate({ feature, children, fallback, title, description }: UpgradeGateProps) {
-  const { canAccess } = usePlan();
-
-  if (canAccess(feature)) {
-    return <>{children}</>;
-  }
-
-  if (fallback) {
-    return <>{fallback}</>;
-  }
-
+export default function UpgradeGate({ children, title, description }: UpgradeGateProps) {
   return (
     <View style={s.container}>
       {children}

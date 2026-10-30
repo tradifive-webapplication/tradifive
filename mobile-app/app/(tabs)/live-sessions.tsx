@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import ComingSoonVeil from '../../components/ComingSoonVeil';
 import { View, Text, StyleSheet, TouchableOpacity, Image, Platform, ScrollView, StatusBar, ActivityIndicator, RefreshControl } from 'react-native';
 import { Video, Calendar, Clock, Radio, Users, PlayCircle, PackageOpen } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -194,7 +195,11 @@ export default function LiveSessionsScreen() {
             </ScrollView>
           )}
         </View>
-      </View>
+      <ComingSoonVeil
+        featureTitle="Live Trading Sessions"
+        subtitle="London & New York market open live streams and interactive webinars are launching soon."
+      />
+    </View>
     </UpgradeGate>
   );
 }
