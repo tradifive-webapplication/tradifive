@@ -1069,10 +1069,7 @@ export default function TabLayout() {
                   <TouchableOpacity
                     style={[
                       styles.pill,
-                      {
-                        backgroundColor: isDark ? 'rgba(56, 189, 248, 0.16)' : 'rgba(2, 132, 199, 0.12)',
-                        borderColor: isDark ? 'rgba(56, 189, 248, 0.45)' : 'rgba(2, 132, 199, 0.35)',
-                      },
+                      isDark && { backgroundColor: '#111111', borderColor: '#222222' },
                     ]}
                     onPress={openAI}
                   >
