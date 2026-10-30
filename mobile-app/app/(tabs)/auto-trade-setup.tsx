@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   Text,
+  Animated,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
@@ -173,6 +174,25 @@ export default function AutoTradeSetupScreen() {
 
   // Wizard active step: 1 (Connect), 2 (Download), 3 (Payment), 4 (Activate)
   const [activeStep, setActiveStep] = useState<number>(1);
+
+  // Scroll and collapsible header animations matching other pages
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const headerHeight = insets.top + 72;
+  const clampedScroll = Animated.diffClamp(
+    scrollY.interpolate({ inputRange: [0, 1], outputRange: [0, 1], extrapolateLeft: 'clamp' }),
+    0,
+    headerHeight
+  );
+  const headerTranslateY = clampedScroll.interpolate({
+    inputRange: [0, headerHeight],
+    outputRange: [0, -headerHeight],
+    extrapolate: 'clamp',
+  });
+  const headerOpacity = scrollY.interpolate({
+    inputRange: [140, 180],
+    outputRange: [0, 1],
+    extrapolate: 'clamp',
+  });
 
   // Setup Form State
   const [setupPath, setSetupPath] = useState<'new' | 'transfer'>('new');
@@ -352,25 +372,97 @@ export default function AutoTradeSetupScreen() {
         />
       )}
 
-      {/* ── STATIC HEADER (Matching Inbox and Journal) ── */}
-      <View
-        style={[
-          styles.header,
-          {
-            backgroundColor: headerStyle === 'simple' ? (isDark ? theme.background : '#ffffff') : 'transparent',
-            borderBottomWidth: headerStyle === 'simple' ? 1 : 0,
-            borderBottomColor: isDark ? '#1e2a3a' : '#e2e8f0',
-            paddingBottom: headerStyle === 'simple' ? 16 : 28,
-            height: headerStyle === 'simple' ? insets.top + 74 : insets.top + 104,
-          },
-        ]}
+      {/* ── SMART-REVEAL HEADER ── */}
+      {headerStyle !== 'simple' && (
+        <Animated.View
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: headerHeight,
+            backgroundColor: '#000',
+            zIndex: 2000,
+            paddingTop: insets.top + 8,
+            opacity: headerOpacity,
+            transform: [{ translateY: headerTranslateY }],
+            borderBottomLeftRadius: 40,
+            borderBottomRightRadius: 40,
+            overflow: 'hidden',
+          }}
+        >
+          <Image
+            source={require('../../assets/images/top-glow.png')}
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, width: '100%', height: 80, opacity: 0.8 }}
+            resizeMode="stretch"
+          />
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, height: 56 }}>
+            <Text style={{ fontSize: 24, fontFamily: 'Inter_700Bold', color: '#fff', letterSpacing: -0.5 }}>
+              Auto Trade
+            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
+              <TouchableOpacity
+                onPress={() => {
+                  hSelect();
+                  router.push('/notifications' as any);
+                }}
+                style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center' }}
+              >
+                <Bell size={22} color="#fff" />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Animated.View>
+      )}
+
+      {/* ── COLLAPSIBLE HEADER (Matching Other Pages) ── */}
+      <Animated.View
+        style={{
+          height: headerStyle === 'simple' ? insets.top + 74 : insets.top + 104,
+          backgroundColor: headerStyle === 'simple' ? (isDark ? theme.background : '#ffffff') : 'transparent',
+          borderBottomWidth: headerStyle === 'simple' ? 1 : 0,
+          borderBottomColor: isDark ? '#1e2a3a' : '#e2e8f0',
+          position: 'relative',
+          transform: headerStyle === 'simple' ? [] : [
+            {
+              scale: scrollY.interpolate({
+                inputRange: [0, 80],
+                outputRange: [1, 0.85],
+                extrapolate: 'clamp',
+              }),
+            },
+            {
+              translateY: scrollY.interpolate({
+                inputRange: [0, 80],
+                outputRange: [0, -60],
+                extrapolate: 'clamp',
+              }),
+            },
+          ],
+        }}
       >
         {headerStyle !== 'simple' && (
           <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFillObject} />
         )}
 
         {/* Content Row */}
-        <View style={[styles.headerRow, { bottom: headerStyle === 'simple' ? 16 : 38 }]}>
+        <Animated.View
+          style={{
+            position: 'absolute',
+            bottom: headerStyle === 'simple' ? 16 : 38,
+            left: 0,
+            right: 0,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingHorizontal: 20,
+            opacity: headerStyle === 'simple' ? 1 : scrollY.interpolate({
+              inputRange: [0, 140],
+              outputRange: [1, 0],
+              extrapolate: 'clamp',
+            }),
+          }}
+        >
           <View>
             <Text style={{ fontSize: 24, fontFamily: 'Inter_700Bold', color: headerStyle === 'simple' ? (isDark ? theme.text : '#000') : '#fff', letterSpacing: -0.5 }}>
               Auto Trade
@@ -390,8 +482,8 @@ export default function AutoTradeSetupScreen() {
               <Bell size={22} color={headerStyle === 'simple' ? (isDark ? theme.text : '#000') : 'white'} />
             </TouchableOpacity>
           </View>
-        </View>
-      </View>
+        </Animated.View>
+      </Animated.View>
 
       {/* ── MAIN CONTENT CARD ── */}
       <View
@@ -405,9 +497,11 @@ export default function AutoTradeSetupScreen() {
           },
         ]}
       >
-        <ScrollView
+        <Animated.ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 14, paddingBottom: 130 }}
+          onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: false })}
+          scrollEventThrottle={16}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#8E8E93" />}
         >
           <View style={{ gap: 14 }}>
@@ -1090,7 +1184,7 @@ export default function AutoTradeSetupScreen() {
                 </View>
               )}
           </View>
-        </ScrollView>
+        </Animated.ScrollView>
       </View>
     </View>
   );

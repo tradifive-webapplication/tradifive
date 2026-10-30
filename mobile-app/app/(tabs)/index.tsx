@@ -2032,11 +2032,7 @@ export default function DashboardScreen() {
       <Animated.View style={[
         styles.card,
         {
-          marginTop: headerStyle === 'simple' ? 0 : scrollY.interpolate({
-            inputRange: [0, 150],
-            outputRange: [activeTab === 'dashboard' || activeTab === 'feed' ? -34 : insets.top + 80, (activeTab === 'dashboard' || activeTab === 'feed' ? -34 : insets.top + 80) - 150],
-            extrapolate: 'clamp'
-          }),
+          marginTop: headerStyle === 'simple' ? 0 : (activeTab === 'dashboard' || activeTab === 'feed' ? -34 : insets.top + 80),
           borderTopLeftRadius: headerStyle === 'simple' ? 0 : 40,
           borderTopRightRadius: headerStyle === 'simple' ? 0 : 40,
           backgroundColor: activeCardId ? '#090d16' : (isDark ? theme.background : (activeTab === 'feed' ? '#f8fafc' : '#fff')),
@@ -2062,15 +2058,7 @@ export default function DashboardScreen() {
               />
             }
           >
-            <Animated.View style={{
-              transform: [{
-                translateY: scrollY.interpolate({
-                  inputRange: [0, 150],
-                  outputRange: [0, 150],
-                  extrapolate: 'clamp'
-                })
-              }]
-            }}>
+            <Animated.View style={{ flex: 1 }}>
               {/* ── IMAGE DASHBOARD REPLICATION ── */}
 
               {/* Total Equity Card */}
@@ -2605,15 +2593,7 @@ export default function DashboardScreen() {
               scrollEventThrottle={16}
               refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#8E8E93" progressViewOffset={10} />}
             >
-              <Animated.View style={{
-                transform: [{
-                  translateY: scrollY.interpolate({
-                    inputRange: [0, 150],
-                    outputRange: [0, 150],
-                    extrapolate: 'clamp'
-                  })
-                }]
-              }}>
+              <Animated.View style={{ flex: 1 }}>
                 {/* Win Big Rewards Banner */}
                 <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
                   <View style={{ backgroundColor: '#1e293b', borderRadius: 28, padding: 24, flexDirection: 'row', alignItems: 'center', overflow: 'hidden' }}>
@@ -2736,15 +2716,7 @@ export default function DashboardScreen() {
               )}
               scrollEventThrottle={16}
             >
-              <Animated.View style={{
-                transform: [{
-                  translateY: scrollY.interpolate({
-                    inputRange: [0, 150],
-                    outputRange: [0, 150],
-                    extrapolate: 'clamp'
-                  })
-                }]
-              }}>
+              <Animated.View style={{ flex: 1 }}>
                 <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
                   <View style={{ backgroundColor: '#1e293b', borderRadius: 28, padding: 24 }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 24 }}>
@@ -2838,15 +2810,7 @@ export default function DashboardScreen() {
               )}
               scrollEventThrottle={16}
             >
-              <Animated.View style={{
-                transform: [{
-                  translateY: scrollY.interpolate({
-                    inputRange: [0, 150],
-                    outputRange: [0, 150],
-                    extrapolate: 'clamp'
-                  })
-                }]
-              }}>
+              <Animated.View style={{ flex: 1 }}>
                 <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
                   <View style={{ backgroundColor: '#1e293b', borderRadius: 28, padding: 20 }}>
                     <View style={{ alignItems: 'center', marginTop: 10 }}>
