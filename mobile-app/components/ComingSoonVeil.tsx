@@ -31,24 +31,24 @@ export default function ComingSoonVeil({ topOffset }: ComingSoonVeilProps) {
       ]}
       pointerEvents="auto"
     >
-      {/* ── NATIVE BACKDROP BLUR ── */}
+      {/* ── NATIVE BACKDROP BLUR (Soft translucent frosted glass) ── */}
       <BlurView
-        intensity={Platform.OS === 'ios' ? 70 : 85}
+        intensity={Platform.OS === 'ios' ? 22 : 28}
         tint={isDark ? 'dark' : 'light'}
         experimentalBlurMethod="dimezisBlurView"
         style={StyleSheet.absoluteFill}
       />
 
-      {/* Semi-transparent frosted tint overlay across all platforms */}
+      {/* Subtle translucent frosted tint overlay so content & images remain visible */}
       <View
         style={[
           StyleSheet.absoluteFill,
           {
-            backgroundColor: isDark ? 'rgba(9, 13, 22, 0.45)' : 'rgba(244, 246, 251, 0.55)',
+            backgroundColor: isDark ? 'rgba(9, 13, 22, 0.18)' : 'rgba(255, 255, 255, 0.20)',
             ...(Platform.OS === 'web'
               ? ({
-                  backdropFilter: 'blur(20px)',
-                  WebkitBackdropFilter: 'blur(20px)',
+                  backdropFilter: 'blur(6px)',
+                  WebkitBackdropFilter: 'blur(6px)',
                 } as any)
               : {}),
           },
