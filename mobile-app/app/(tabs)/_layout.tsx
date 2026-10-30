@@ -935,6 +935,7 @@ export default function TabLayout() {
               <Tabs.Screen name="inbox" options={{ title: 'Inbox' }} />
               <Tabs.Screen name="finance" options={{ title: 'Finance' }} />
               <Tabs.Screen name="marketplace" options={{ title: 'Marketplace' }} />
+              <Tabs.Screen name="discover" options={{ title: 'Discover' }} />
               <Tabs.Screen name="settings" options={{ title: 'Settings' }} />
               <Tabs.Screen name="creator-studio" options={{ title: 'Creator Studio' }} />
               <Tabs.Screen name="my-store" options={{ title: 'My Store' }} />
@@ -944,7 +945,7 @@ export default function TabLayout() {
             </Tabs>
 
             {/* GLOBAL TOP HEADER - Show for all tactical pages (Left Aligned Style) */}
-            {!isSettings && !isHome && !pathname.includes('channel') && !pathname.includes('journal') && !pathname.includes('risk-guard') && !pathname.includes('rewards') && !pathname.includes('inbox') && !pathname.includes('referrals') && !pathname.includes('notifications') && !pathname.includes('ai-coach') && !pathname.includes('creator-studio') && !pathname.includes('mentorship-hub') && !pathname.includes('my-store') && !pathname.includes('live-sessions') && !pathname.includes('auto-trade-setup') && (
+            {!isSettings && !isHome && !pathname.includes('channel') && !pathname.includes('journal') && !pathname.includes('risk-guard') && !pathname.includes('rewards') && !pathname.includes('inbox') && !pathname.includes('referrals') && !pathname.includes('notifications') && !pathname.includes('ai-coach') && !pathname.includes('creator-studio') && !pathname.includes('mentorship-hub') && !pathname.includes('my-store') && !pathname.includes('live-sessions') && !pathname.includes('auto-trade-setup') && !pathname.includes('order-history') && !pathname.includes('marketplace') && !pathname.includes('discover') && (
               <View style={{ position: 'absolute', top: 0, width: '100%', zIndex: 1000, pointerEvents: 'box-none' }}>
                 <View style={{
                   paddingTop: insets.top + 20,

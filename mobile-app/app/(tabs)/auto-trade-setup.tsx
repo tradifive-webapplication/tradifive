@@ -486,11 +486,15 @@ export default function AutoTradeSetupScreen() {
       </Animated.View>
 
       {/* ── MAIN CONTENT CARD ── */}
-      <View
+      <Animated.View
         style={[
           styles.card,
           {
-            marginTop: headerStyle === 'simple' ? 0 : -34,
+            marginTop: headerStyle === 'simple' ? 0 : scrollY.interpolate({
+              inputRange: [0, 150],
+              outputRange: [-34, -184],
+              extrapolate: 'clamp',
+            }),
             borderTopLeftRadius: headerStyle === 'simple' ? 0 : 40,
             borderTopRightRadius: headerStyle === 'simple' ? 0 : 40,
             backgroundColor: isDark ? theme.background : '#f8fafc',
@@ -504,7 +508,18 @@ export default function AutoTradeSetupScreen() {
           scrollEventThrottle={16}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#8E8E93" />}
         >
-          <View style={{ gap: 14 }}>
+          <Animated.View
+            style={{
+              transform: headerStyle === 'simple' ? [] : [{
+                translateY: scrollY.interpolate({
+                  inputRange: [0, 150],
+                  outputRange: [0, 150],
+                  extrapolate: 'clamp',
+                }),
+              }],
+            }}
+          >
+            <View style={{ gap: 14 }}>
             {/* ── 4-STEP PROGRESSOR HEADER ── */}
               <View style={[styles.processorCard, { backgroundColor: isDark ? '#11131a' : '#ffffff', borderColor: isDark ? '#1e293b' : '#e2e8f0' }]}>
                 {/* Step header title */}
@@ -1184,8 +1199,9 @@ export default function AutoTradeSetupScreen() {
                 </View>
               )}
           </View>
+          </Animated.View>
         </Animated.ScrollView>
-      </View>
+      </Animated.View>
     </View>
   );
 }

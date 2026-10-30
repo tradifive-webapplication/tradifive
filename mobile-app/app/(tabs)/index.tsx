@@ -2032,7 +2032,13 @@ export default function DashboardScreen() {
       <Animated.View style={[
         styles.card,
         {
-          marginTop: headerStyle === 'simple' ? 0 : (activeTab === 'dashboard' || activeTab === 'feed' ? -34 : insets.top + 80),
+          marginTop: headerStyle === 'simple' ? 0 : (activeTab === 'dashboard' || activeTab === 'feed'
+            ? scrollY.interpolate({
+                inputRange: [0, 150],
+                outputRange: [-34, -184],
+                extrapolate: 'clamp',
+              })
+            : insets.top + 80),
           borderTopLeftRadius: headerStyle === 'simple' ? 0 : 40,
           borderTopRightRadius: headerStyle === 'simple' ? 0 : 40,
           backgroundColor: activeCardId ? '#090d16' : (isDark ? theme.background : (activeTab === 'feed' ? '#f8fafc' : '#fff')),
@@ -2058,7 +2064,16 @@ export default function DashboardScreen() {
               />
             }
           >
-            <Animated.View style={{ flex: 1 }}>
+            <Animated.View style={{
+              flex: 1,
+              transform: headerStyle === 'simple' ? [] : [{
+                translateY: scrollY.interpolate({
+                  inputRange: [0, 150],
+                  outputRange: [0, 150],
+                  extrapolate: 'clamp',
+                }),
+              }],
+            }}>
               {/* ── IMAGE DASHBOARD REPLICATION ── */}
 
               {/* Total Equity Card */}
@@ -2593,7 +2608,16 @@ export default function DashboardScreen() {
               scrollEventThrottle={16}
               refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#8E8E93" progressViewOffset={10} />}
             >
-              <Animated.View style={{ flex: 1 }}>
+              <Animated.View style={{
+              flex: 1,
+              transform: headerStyle === 'simple' ? [] : [{
+                translateY: scrollY.interpolate({
+                  inputRange: [0, 150],
+                  outputRange: [0, 150],
+                  extrapolate: 'clamp',
+                }),
+              }],
+            }}>
                 {/* Win Big Rewards Banner */}
                 <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
                   <View style={{ backgroundColor: '#1e293b', borderRadius: 28, padding: 24, flexDirection: 'row', alignItems: 'center', overflow: 'hidden' }}>
@@ -2716,7 +2740,16 @@ export default function DashboardScreen() {
               )}
               scrollEventThrottle={16}
             >
-              <Animated.View style={{ flex: 1 }}>
+              <Animated.View style={{
+              flex: 1,
+              transform: headerStyle === 'simple' ? [] : [{
+                translateY: scrollY.interpolate({
+                  inputRange: [0, 150],
+                  outputRange: [0, 150],
+                  extrapolate: 'clamp',
+                }),
+              }],
+            }}>
                 <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
                   <View style={{ backgroundColor: '#1e293b', borderRadius: 28, padding: 24 }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 24 }}>
@@ -2810,7 +2843,16 @@ export default function DashboardScreen() {
               )}
               scrollEventThrottle={16}
             >
-              <Animated.View style={{ flex: 1 }}>
+              <Animated.View style={{
+              flex: 1,
+              transform: headerStyle === 'simple' ? [] : [{
+                translateY: scrollY.interpolate({
+                  inputRange: [0, 150],
+                  outputRange: [0, 150],
+                  extrapolate: 'clamp',
+                }),
+              }],
+            }}>
                 <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
                   <View style={{ backgroundColor: '#1e293b', borderRadius: 28, padding: 20 }}>
                     <View style={{ alignItems: 'center', marginTop: 10 }}>
@@ -2911,7 +2953,16 @@ export default function DashboardScreen() {
                 />
               }
             >
-              <View style={{ width: '100%' }}>
+              <Animated.View style={{
+                width: '100%',
+                transform: headerStyle === 'simple' ? [] : [{
+                  translateY: scrollY.interpolate({
+                    inputRange: [0, 150],
+                    outputRange: [0, 150],
+                    extrapolate: 'clamp',
+                  }),
+                }],
+              }}>
 
               {/* Quick Post Prompt Card */}
               <TouchableOpacity
@@ -3186,7 +3237,7 @@ export default function DashboardScreen() {
                   )}
                 </View>
               )}
-            </View>
+            </Animated.View>
           </Animated.ScrollView>
 
           {activePostMenu && (
