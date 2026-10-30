@@ -49,12 +49,22 @@ export default function VerifyEmailScreen() {
       }
       
       await AuthService.verifyOtp(email, otp);
-      await useStore.getState().init();
+      // Sign out temporary session so user logs in with their credentials
+      await AuthService.signOut();
       
       if (Platform.OS !== 'web') {
         await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       }
-      router.replace('/(tabs)');
+      Alert.alert(
+        'Email Verified!',
+        'Your email has been verified successfully. Please log in with your credentials to access your account.',
+        [
+          {
+            text: 'Log In Now',
+            onPress: () => router.replace('/login'),
+          },
+        ]
+      );
     } catch (err: any) {
       Alert.alert('Verification Failed', err.message || 'Invalid code.');
     } finally {

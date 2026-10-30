@@ -101,19 +101,23 @@ export default function SignupScreen() {
         last_name: lastName.trim()
       });
 
-      if (!data?.session) {
-        console.log('[Signup] No session returned (email confirm is ON). Redirecting to OTP...');
-        router.push({ pathname: '/verify-email', params: { email } });
-        return;
-      }
-
-      await useStore.getState().init();
+      // As requested: After signup, email verification is sent, then user must log in
+      await AuthService.signOut();
 
       if (Platform.OS !== 'web') {
         await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       }
 
-      router.replace('/(tabs)');
+      Alert.alert(
+        'Verification Code Sent',
+        'A verification code has been sent to your email. Please verify your email, then sign in with your credentials.',
+        [
+          {
+            text: 'Verify Email',
+            onPress: () => router.push({ pathname: '/verify-email', params: { email: email.trim() } }),
+          },
+        ]
+      );
     } catch (err: any) {
       let msg = err.message || 'Could not complete registration.';
       

@@ -363,7 +363,7 @@ export default function TabLayout() {
       subItems: [
         { label: 'Auto Trade Setup', icon: Work, route: '/(tabs)/auto-trade-setup' },
         { label: 'Algo Marketplace', icon: Bag, route: '/(tabs)/marketplace' },
-        { label: 'Order History', icon: Document, route: '/(tabs)/auto-trade-setup' },
+        { label: 'Order History', icon: Document, route: '/(tabs)/order-history' },
       ],
     },
     {
@@ -940,6 +940,7 @@ export default function TabLayout() {
               <Tabs.Screen name="my-store" options={{ title: 'My Store' }} />
               <Tabs.Screen name="referrals" options={{ title: 'Referrals' }} />
               <Tabs.Screen name="auto-trade-setup" options={{ title: 'Auto Trade' }} />
+              <Tabs.Screen name="order-history" options={{ title: 'Order History' }} />
             </Tabs>
 
             {/* GLOBAL TOP HEADER - Show for all tactical pages (Left Aligned Style) */}
