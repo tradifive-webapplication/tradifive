@@ -18,27 +18,42 @@ export default function ComingSoonVeil({ topOffset }: ComingSoonVeilProps) {
         StyleSheet.absoluteFill,
         styles.overlayContainer,
         topOffset !== undefined && { top: topOffset },
+        {
+          borderTopLeftRadius: 40,
+          borderTopRightRadius: 40,
+          overflow: 'hidden',
+        },
       ]}
-      pointerEvents="auto"
+      pointerEvents="none"
     >
-      {/* ── NATIVE BACKDROP BLUR (Soft Intensity 15) ── */}
+      {/* ── NATIVE BACKDROP BLUR (Soft Intensity 10) ── */}
       <BlurView
-        intensity={15}
+        intensity={10}
         tint={isDark ? 'dark' : 'light'}
         experimentalBlurMethod="dimezisBlurView"
-        style={StyleSheet.absoluteFill}
+        style={[
+          StyleSheet.absoluteFill,
+          {
+            borderTopLeftRadius: 40,
+            borderTopRightRadius: 40,
+            overflow: 'hidden',
+          },
+        ]}
       />
 
-      {/* Subtle translucent frosted tint so images, cards & text remain clearly visible */}
+      {/* Subtle translucent frosted tint so images, cards & text remain clearly visible & scrollable */}
       <View
         style={[
           StyleSheet.absoluteFill,
           {
-            backgroundColor: isDark ? 'rgba(9, 13, 22, 0.12)' : 'rgba(255, 255, 255, 0.15)',
+            backgroundColor: isDark ? 'rgba(9, 13, 22, 0.08)' : 'rgba(255, 255, 255, 0.10)',
+            borderTopLeftRadius: 40,
+            borderTopRightRadius: 40,
+            overflow: 'hidden',
             ...(Platform.OS === 'web'
               ? ({
-                  backdropFilter: 'blur(5px)',
-                  WebkitBackdropFilter: 'blur(5px)',
+                  backdropFilter: 'blur(3px)',
+                  WebkitBackdropFilter: 'blur(3px)',
                 } as any)
               : {}),
           },
