@@ -502,8 +502,8 @@ export default function JournalScreen() {
             </View>
           </Animated.View>
         </Animated.ScrollView>
-      <ComingSoonVeil featureTitle="Smart Trade Journal" subtitle="Multi-asset trade logging, automatic PnL analytics & calendar heatmaps are launching soon." />
       </Animated.View>
+      
     </View>
   );
 }

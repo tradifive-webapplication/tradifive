@@ -227,7 +227,7 @@ export default function Rewards() {
   };
 
   // Smart Reveal Header Calculations
-  const headerHeight = insets.top + 72;
+  const headerHeight = insets.top + 64;
 
   const clampedScroll = Animated.diffClamp(
     scrollY.interpolate({
@@ -271,14 +271,14 @@ export default function Rewards() {
           height: headerHeight,
           backgroundColor: '#000',
           zIndex: 2000,
-          paddingTop: insets.top + 8,
+          paddingTop: insets.top,
           opacity: smartHeaderOpacity,
           transform: [{ translateY: headerTranslateY }],
           borderBottomLeftRadius: 40,
           borderBottomRightRadius: 40,
           overflow: 'hidden'
         }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, height: 56 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, height: 60 }}>
             <Text style={{ fontSize: 24, fontFamily: 'Inter_700Bold', color: '#fff', letterSpacing: -0.5 }}>
               Rewards
             </Text>
@@ -303,8 +303,8 @@ export default function Rewards() {
       )}
 
       {/* ── STATIC HEADER ── */}
-      <Animated.View style={{ height: headerStyle === 'simple' ? insets.top + 74 : insets.top + 104, backgroundColor: headerStyle === 'simple' ? (isDark ? theme.card : '#ffffff') : 'transparent', borderBottomWidth: headerStyle === 'simple' ? 1 : 0, borderBottomColor: isDark ? theme.cardBorder : '#e2e8f0', position: 'relative', transform: headerStyle === 'simple' ? [] : [{ scale: scrollY.interpolate({ inputRange: [0, 80], outputRange: [1, 0.85], extrapolate: 'clamp' }) }, { translateY: scrollY.interpolate({ inputRange: [0, 80], outputRange: [0, -60], extrapolate: 'clamp' }) }] }}>
-        <Animated.View style={{ position: 'absolute', bottom: headerStyle === 'simple' ? 16 : 38, left: 0, right: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, opacity: headerStyle === 'simple' ? 1 : scrollY.interpolate({ inputRange: [0, 140], outputRange: [1, 0], extrapolate: 'clamp' }) }}>
+      <Animated.View style={{ height: headerStyle === 'simple' ? insets.top + 56 : insets.top + 92, backgroundColor: headerStyle === 'simple' ? (isDark ? theme.card : '#ffffff') : 'transparent', borderBottomWidth: headerStyle === 'simple' ? 1 : 0, borderBottomColor: isDark ? theme.cardBorder : '#e2e8f0', position: 'relative', transform: headerStyle === 'simple' ? [] : [{ scale: scrollY.interpolate({ inputRange: [0, 80], outputRange: [1, 0.85], extrapolate: 'clamp' }) }, { translateY: scrollY.interpolate({ inputRange: [0, 80], outputRange: [0, -60], extrapolate: 'clamp' }) }] }}>
+        <Animated.View style={{ position: 'absolute', bottom: headerStyle === 'simple' ? 12 : 38, left: 0, right: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, opacity: headerStyle === 'simple' ? 1 : scrollY.interpolate({ inputRange: [0, 140], outputRange: [1, 0], extrapolate: 'clamp' }) }}>
           <Text style={{ color: headerStyle === 'simple' ? (isDark ? theme.text : '#000000') : '#fff', fontSize: 24, fontFamily: 'Inter_700Bold', letterSpacing: -0.5 }}>Rewards</Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
             <TouchableOpacity onPress={() => { h(); router.push('/notifications' as any); }} style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center' }}><Bell size={22} color={headerStyle === 'simple' ? (isDark ? theme.text : '#000000') : 'white'} /></TouchableOpacity>
@@ -586,8 +586,8 @@ export default function Rewards() {
             </View>
           </Animated.View>
         </Animated.ScrollView>
-      <ComingSoonVeil featureTitle="Rewards Hub" subtitle="XP streaks, trader milestone rewards & affiliate earnings are launching soon." />
       </Animated.View>
+      <ComingSoonVeil featureTitle="Rewards Hub" subtitle="XP streaks, trader milestone rewards & affiliate earnings are launching soon." />
     </View>
   );
 }

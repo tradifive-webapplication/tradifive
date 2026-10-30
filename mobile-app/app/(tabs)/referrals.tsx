@@ -1,3 +1,4 @@
+import ComingSoonVeil from '../../components/ComingSoonVeil';
 import React, { useState, useRef } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
@@ -169,7 +170,7 @@ export default function Referrals() {
 
       {/* ── STATIC HEADER ── */}
       <Animated.View style={{ 
-        height: headerStyle === 'simple' ? insets.top + 74 : insets.top + 104, 
+        height: headerStyle === 'simple' ? insets.top + 56 : insets.top + 92, 
         backgroundColor: headerStyle === 'simple' ? '#ffffff' : 'transparent', 
         borderBottomWidth: headerStyle === 'simple' ? 1 : 0, 
         borderBottomColor: isDark ? '#1e2a3a' : '#e2e8f0', 
@@ -182,7 +183,7 @@ export default function Referrals() {
       }}>
         <Animated.View style={{ 
           position: 'absolute', 
-          bottom: headerStyle === 'simple' ? 16 : 38, 
+          bottom: headerStyle === 'simple' ? 12 : 38, 
           left: 0, 
           right: 0, 
           flexDirection: 'row', 
@@ -336,6 +337,7 @@ export default function Referrals() {
           </Animated.View>
         </Animated.ScrollView>
       </Animated.View>
+      <ComingSoonVeil featureTitle="Partner Referrals" subtitle="Affiliate tracking, Tier 2 rev-share & referral commission payouts are launching soon." />
     </View>
   );
 }
