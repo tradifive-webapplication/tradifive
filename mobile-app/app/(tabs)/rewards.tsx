@@ -586,9 +586,9 @@ export default function Rewards() {
             </View>
           </Animated.View>
         </Animated.ScrollView>
-      </Animated.View>
-      <ComingSoonVeil featureTitle="Rewards Hub" subtitle="XP streaks, trader milestone rewards & affiliate earnings are launching soon." />
-    </View>
+        <ComingSoonVeil featureTitle="Rewards Hub" subtitle="XP streaks, trader milestone rewards & affiliate earnings are launching soon." />
+        </Animated.View>
+      </View>
   );
 }
 

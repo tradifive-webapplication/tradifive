@@ -202,13 +202,12 @@ export default function Contests() {
               <EmptyState isDark={isDark} />
             </ScrollView>
           )}
+          <ComingSoonVeil
+            featureTitle="Trading Contests"
+            subtitle="Weekly and monthly trading tournaments with cash and funded account prizes are launching soon."
+          />
         </View>
-      <ComingSoonVeil
-        featureTitle="Trading Contests"
-        subtitle="Weekly and monthly trading tournaments with cash and funded account prizes are launching soon."
-        topOffset={insets.top + 100}
-      />
-    </View>
+      </View>
     </UpgradeGate>
   );
 }

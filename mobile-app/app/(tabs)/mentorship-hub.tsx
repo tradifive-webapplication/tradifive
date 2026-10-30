@@ -223,9 +223,9 @@ export default function MentorshipHubScreen() {
             </View>
           </Animated.View>
         </Animated.ScrollView>
-      </Animated.View>
-      <ComingSoonVeil featureTitle="Mentorship Hub" subtitle="1-on-1 trader mentoring, student cohorts & review sessions are launching soon." />
-    </View>
+        <ComingSoonVeil featureTitle="Mentorship Hub" subtitle="1-on-1 trader mentoring, student cohorts & review sessions are launching soon." />
+        </Animated.View>
+      </View>
   );
 }
 

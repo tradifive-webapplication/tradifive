@@ -175,9 +175,9 @@ export default function MyStoreScreen() {
             </View>
           </Animated.View>
         </Animated.ScrollView>
-      </Animated.View>
-      <ComingSoonVeil featureTitle="My Store" subtitle="Custom trading products, digital indicators & subscription storefronts are launching soon." />
-    </View>
+        <ComingSoonVeil featureTitle="My Store" subtitle="Custom trading products, digital indicators & subscription storefronts are launching soon." />
+        </Animated.View>
+      </View>
   );
 }
 

@@ -830,11 +830,8 @@ export default function RiskGuardScreen() {
 
           </Animated.View>
         </Animated.ScrollView>
-      </Animated.View>
-      <ComingSoonVeil
-        featureTitle="Risk Guard"
-        subtitle="Automated kill-switch, daily loss limits & live broker margin protection are launching soon."
-      />
-    </View>
+        <ComingSoonVeil featureTitle="Risk Guard" subtitle="Automated kill-switch, daily loss limits & live broker margin protection are launching soon." />
+        </Animated.View>
+      </View>
   );
 }

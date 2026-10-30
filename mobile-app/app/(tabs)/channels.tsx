@@ -494,11 +494,11 @@ export default function Channels() {
 
           </Animated.View>
         </Animated.ScrollView>
-      </Animated.View>
-      <ComingSoonVeil
-        featureTitle="Trading Channels"
-        subtitle="Institutional trader groups, verified live trade signals & community chat channels are launching soon."
-      />
-    </View>
+        <ComingSoonVeil
+            featureTitle="Trading Channels"
+            subtitle="Institutional trader groups, verified live trade signals & community chat channels are launching soon."
+          />
+        </Animated.View>
+      </View>
   );
 }

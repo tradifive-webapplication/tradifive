@@ -336,9 +336,9 @@ export default function Referrals() {
 
           </Animated.View>
         </Animated.ScrollView>
-      </Animated.View>
-      <ComingSoonVeil featureTitle="Partner Referrals" subtitle="Affiliate tracking, Tier 2 rev-share & referral commission payouts are launching soon." />
-    </View>
+        <ComingSoonVeil featureTitle="Partner Referrals" subtitle="Affiliate tracking, Tier 2 rev-share & referral commission payouts are launching soon." />
+        </Animated.View>
+      </View>
   );
 }
 

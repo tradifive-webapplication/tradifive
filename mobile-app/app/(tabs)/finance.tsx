@@ -290,13 +290,12 @@ export default function Finance() {
             <EmptyState isDark={isDark} label="Payouts" />
           </ScrollView>
         )}
+        <ComingSoonVeil
+            featureTitle="Finance & Payouts"
+            subtitle="Integrated trading wallet, automated profit payouts and financial reports are launching soon."
+          />
+        </View>
       </View>
-      <ComingSoonVeil
-        featureTitle="Finance & Payouts"
-        subtitle="Integrated trading wallet, automated profit payouts and financial reports are launching soon."
-        topOffset={insets.top + 180}
-      />
-    </View>
   );
 }
 

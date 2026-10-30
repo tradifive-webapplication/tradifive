@@ -179,13 +179,12 @@ export default function Portfolio() {
             </View>
           )}
         </ScrollView>
+        <ComingSoonVeil
+            featureTitle="Multi-Broker Portfolio"
+            subtitle="Consolidated multi-broker portfolio tracking, equity curves & risk allocation are launching soon."
+          />
+        </View>
       </View>
-      <ComingSoonVeil
-        featureTitle="Multi-Broker Portfolio"
-        subtitle="Consolidated multi-broker portfolio tracking, equity curves & risk allocation are launching soon."
-        topOffset={insets.top + 98}
-      />
-    </View>
   );
 }
 

@@ -292,9 +292,9 @@ export default function CreatorStudio() {
             </View>
           </Animated.View>
         </Animated.ScrollView>
-      </Animated.View>
-      <ComingSoonVeil featureTitle="Creator Studio" subtitle="Content monetization, course publishing & audience metrics are launching soon." />
-    </View>
+        <ComingSoonVeil featureTitle="Creator Studio" subtitle="Content monetization, course publishing & audience metrics are launching soon." />
+        </Animated.View>
+      </View>
   );
 }
 

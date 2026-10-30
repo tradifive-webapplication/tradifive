@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, Platform } from 'react-native';
 import { BlurView } from 'expo-blur';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppTheme } from '../hooks/useAppTheme';
 
 interface ComingSoonVeilProps {
@@ -11,44 +10,35 @@ interface ComingSoonVeilProps {
 }
 
 export default function ComingSoonVeil({ topOffset }: ComingSoonVeilProps) {
-  const insets = useSafeAreaInsets();
   const { isDark } = useAppTheme();
-
-  // If topOffset is not specified, default to right below the header (insets.top + 72).
-  // This ensures the top backside glow artwork and header remain 100% visible, vibrant & interactive!
-  const top = topOffset !== undefined ? topOffset : insets.top + 72;
 
   return (
     <View
       style={[
+        StyleSheet.absoluteFill,
         styles.overlayContainer,
-        {
-          top,
-          borderTopLeftRadius: topOffset === 0 ? 0 : 36,
-          borderTopRightRadius: topOffset === 0 ? 0 : 36,
-          overflow: 'hidden',
-        },
+        topOffset !== undefined && { top: topOffset },
       ]}
       pointerEvents="auto"
     >
-      {/* ── NATIVE BACKDROP BLUR (Soft translucent frosted glass) ── */}
+      {/* ── NATIVE BACKDROP BLUR (Soft Intensity 15) ── */}
       <BlurView
-        intensity={Platform.OS === 'ios' ? 22 : 28}
+        intensity={15}
         tint={isDark ? 'dark' : 'light'}
         experimentalBlurMethod="dimezisBlurView"
         style={StyleSheet.absoluteFill}
       />
 
-      {/* Subtle translucent frosted tint overlay so content & images remain visible */}
+      {/* Subtle translucent frosted tint so images, cards & text remain clearly visible */}
       <View
         style={[
           StyleSheet.absoluteFill,
           {
-            backgroundColor: isDark ? 'rgba(9, 13, 22, 0.18)' : 'rgba(255, 255, 255, 0.20)',
+            backgroundColor: isDark ? 'rgba(9, 13, 22, 0.12)' : 'rgba(255, 255, 255, 0.15)',
             ...(Platform.OS === 'web'
               ? ({
-                  backdropFilter: 'blur(6px)',
-                  WebkitBackdropFilter: 'blur(6px)',
+                  backdropFilter: 'blur(5px)',
+                  WebkitBackdropFilter: 'blur(5px)',
                 } as any)
               : {}),
           },
@@ -60,11 +50,6 @@ export default function ComingSoonVeil({ topOffset }: ComingSoonVeilProps) {
 
 const styles = StyleSheet.create({
   overlayContainer: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    width: '100%',
     zIndex: 999999,
     elevation: 99999,
   },
