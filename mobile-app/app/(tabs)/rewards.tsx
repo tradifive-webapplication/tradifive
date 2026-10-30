@@ -321,7 +321,6 @@ export default function Rewards() {
 
       {/* ── WHITE CONTENT CARD ── */}
       <Animated.View style={[s.mainCard, { marginTop: headerStyle === 'simple' ? 0 : scrollY.interpolate({ inputRange: [0, 150], outputRange: [-34, -184], extrapolate: 'clamp' }), borderTopLeftRadius: headerStyle === 'simple' ? 0 : 40, borderTopRightRadius: headerStyle === 'simple' ? 0 : 40 }]}>
-        <ComingSoonVeil featureTitle="Rewards Hub" />
         <Animated.ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 260, paddingTop: 24 }}
@@ -587,6 +586,7 @@ export default function Rewards() {
             </View>
           </Animated.View>
         </Animated.ScrollView>
+      <ComingSoonVeil featureTitle="Rewards Hub" subtitle="XP streaks, trader milestone rewards & affiliate earnings are launching soon." />
       </Animated.View>
     </View>
   );

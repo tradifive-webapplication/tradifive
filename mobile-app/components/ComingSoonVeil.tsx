@@ -1,15 +1,17 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Platform, Dimensions } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
+import { Sparkles, ArrowRight, Activity } from 'lucide-react-native';
 import { useAppTheme } from '../hooks/useAppTheme';
 
 interface ComingSoonVeilProps {
   featureTitle: string;
+  subtitle?: string;
 }
 
-export default function ComingSoonVeil({ featureTitle }: ComingSoonVeilProps) {
+export default function ComingSoonVeil({ featureTitle, subtitle }: ComingSoonVeilProps) {
   const router = useRouter();
   const { isDark } = useAppTheme();
 
@@ -20,53 +22,92 @@ export default function ComingSoonVeil({ featureTitle }: ComingSoonVeilProps) {
   };
 
   return (
-    <View style={StyleSheet.absoluteFillObject} pointerEvents="box-none">
-      {/* Soft blur overlay */}
+    <View style={styles.overlayContainer} pointerEvents="auto">
+      {/* ── NATIVE BACKDROP BLUR ── */}
       <BlurView
-        intensity={Platform.OS === 'ios' ? 25 : 40}
+        intensity={Platform.OS === 'ios' ? 75 : 90}
         tint={isDark ? 'dark' : 'light'}
-        style={[StyleSheet.absoluteFillObject, { backgroundColor: isDark ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.45)' }]}
+        style={StyleSheet.absoluteFillObject}
       />
 
-      {/* Centered Glass Card */}
-      <View style={styles.centerContainer} pointerEvents="box-none">
-        <View style={[styles.card, { backgroundColor: isDark ? 'rgba(20, 22, 31, 0.95)' : 'rgba(255, 255, 255, 0.95)', borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)' }]}>
-          {/* Status Tag */}
-          <View style={styles.tag}>
+      {/* Semi-transparent tint overlay to give depth and contrast */}
+      <View
+        style={[
+          StyleSheet.absoluteFillObject,
+          {
+            backgroundColor: isDark ? 'rgba(5, 7, 15, 0.78)' : 'rgba(244, 246, 251, 0.82)',
+          },
+        ]}
+      />
+
+      {/* ── DEAD-CENTERED FROSTED CARD ── */}
+      <View style={styles.centerWrapper} pointerEvents="box-none">
+        <View
+          style={[
+            styles.card,
+            {
+              backgroundColor: isDark ? 'rgba(18, 21, 31, 0.94)' : 'rgba(255, 255, 255, 0.95)',
+              borderColor: isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.08)',
+              shadowColor: isDark ? '#000000' : '#0f172a',
+            },
+          ]}
+        >
+          {/* Status Badge */}
+          <View style={[styles.badge, { backgroundColor: isDark ? 'rgba(245, 158, 11, 0.15)' : '#fffbeb', borderColor: isDark ? 'rgba(245, 158, 11, 0.3)' : 'rgba(245, 158, 11, 0.35)' }]}>
             <View style={styles.pulseDot} />
-            <Text style={styles.tagText}>COMING SOON</Text>
+            <Text style={styles.badgeText}>COMING SOON</Text>
+            <Sparkles size={11} color="#f59e0b" />
           </View>
 
           {/* Feature Title */}
-          <Text style={[styles.title, { color: isDark ? '#ffffff' : '#0f172a' }]}>{featureTitle}</Text>
-
-          {/* Description */}
-          <Text style={[styles.desc, { color: isDark ? '#94a3b8' : '#64748b' }]}>
-            We're actively finalizing this feature for launch. In the meantime, you can explore Auto Trade or check the community feed.
+          <Text style={[styles.title, { color: isDark ? '#ffffff' : '#0f172a' }]}>
+            {featureTitle}
           </Text>
 
-          {/* Actions */}
-          <View style={styles.btnRow}>
+          {/* Description */}
+          <Text style={[styles.description, { color: isDark ? '#94a3b8' : '#64748b' }]}>
+            {subtitle || "We're actively finalizing this module for public launch. In the meantime, explore live Auto Trade or our community feed."}
+          </Text>
+
+          {/* Action Buttons */}
+          <View style={styles.buttonStack}>
             <TouchableOpacity
-              activeOpacity={0.8}
+              activeOpacity={0.85}
               onPress={() => {
                 hSelect();
                 router.push('/(tabs)/auto-trade-setup' as any);
               }}
-              style={[styles.primaryBtn, { backgroundColor: isDark ? '#ffffff' : '#0f172a' }]}
+              style={[
+                styles.primaryBtn,
+                {
+                  backgroundColor: isDark ? '#38bdf8' : '#0f172a',
+                },
+              ]}
             >
-              <Text style={[styles.primaryBtnText, { color: isDark ? '#0f172a' : '#ffffff' }]}>Go to Auto Trade</Text>
+              <Activity size={16} color={isDark ? '#0f172a' : '#ffffff'} strokeWidth={2.5} />
+              <Text style={[styles.primaryBtnText, { color: isDark ? '#0f172a' : '#ffffff' }]}>
+                Go to Auto Trade
+              </Text>
+              <ArrowRight size={15} color={isDark ? '#0f172a' : '#ffffff'} />
             </TouchableOpacity>
 
             <TouchableOpacity
-              activeOpacity={0.7}
+              activeOpacity={0.75}
               onPress={() => {
                 hSelect();
                 router.push({ pathname: '/(tabs)', params: { view: 'feed' } } as any);
               }}
-              style={styles.secondaryBtn}
+              style={[
+                styles.secondaryBtn,
+                {
+                  backgroundColor: isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.04)',
+                  borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.08)',
+                },
+              ]}
             >
-              <Text style={[styles.secondaryBtnText, { color: isDark ? '#cbd5e1' : '#475569' }]}>View Feed →</Text>
+              <Text style={[styles.secondaryBtnText, { color: isDark ? '#e2e8f0' : '#334155' }]}>
+                View Home Feed
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -76,37 +117,43 @@ export default function ComingSoonVeil({ featureTitle }: ComingSoonVeilProps) {
 }
 
 const styles = StyleSheet.create({
-  centerContainer: {
-    ...StyleSheet.absoluteFillObject,
+  overlayContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 99999,
+  },
+  centerWrapper: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 24,
-    zIndex: 100,
+    paddingHorizontal: 20,
   },
   card: {
     width: '100%',
     maxWidth: 340,
     borderRadius: 28,
-    borderWidth: 1,
+    borderWidth: 1.5,
     paddingVertical: 28,
     paddingHorizontal: 22,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.18,
-    shadowRadius: 24,
-    elevation: 10,
+    shadowOffset: { width: 0, height: 16 },
+    shadowOpacity: 0.25,
+    shadowRadius: 30,
+    elevation: 20,
   },
-  tag: {
+  badge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
     borderRadius: 20,
-    backgroundColor: 'rgba(245, 158, 11, 0.12)',
     borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.25)',
     marginBottom: 14,
   },
   pulseDot: {
@@ -115,8 +162,8 @@ const styles = StyleSheet.create({
     borderRadius: 3,
     backgroundColor: '#f59e0b',
   },
-  tagText: {
-    fontSize: 10,
+  badgeText: {
+    fontSize: 10.5,
     fontFamily: 'Inter_700Bold',
     color: '#d97706',
     letterSpacing: 0.8,
@@ -128,42 +175,47 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 10,
   },
-  desc: {
+  description: {
     fontSize: 13,
     fontFamily: 'Inter_400Regular',
-    lineHeight: 19,
+    lineHeight: 19.5,
     textAlign: 'center',
-    marginBottom: 22,
-    paddingHorizontal: 6,
+    marginBottom: 24,
+    paddingHorizontal: 4,
   },
-  btnRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
+  buttonStack: {
     width: '100%',
-    justifyContent: 'center',
+    gap: 10,
   },
   primaryBtn: {
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-    borderRadius: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    width: '100%',
+    height: 48,
+    borderRadius: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    elevation: 3,
   },
   primaryBtnText: {
-    fontSize: 13,
-    fontFamily: 'Inter_600SemiBold',
+    fontSize: 14,
+    fontFamily: 'Inter_700Bold',
   },
   secondaryBtn: {
-    paddingHorizontal: 14,
-    paddingVertical: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    height: 44,
+    borderRadius: 16,
+    borderWidth: 1,
   },
   secondaryBtnText: {
-    fontSize: 13,
+    fontSize: 13.5,
     fontFamily: 'Inter_600SemiBold',
   },
 });
-

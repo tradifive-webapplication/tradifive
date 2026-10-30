@@ -347,7 +347,6 @@ export default function Channels() {
         overflow: 'hidden',
         zIndex: 5,
       }}>
-        <ComingSoonVeil featureTitle="Trading Channels" />
         <Animated.ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingTop: 20, paddingBottom: insets.bottom + 140 }}
@@ -476,6 +475,7 @@ export default function Channels() {
 
           </Animated.View>
         </Animated.ScrollView>
+      <ComingSoonVeil featureTitle="Trading Channels" subtitle="Verified mentor signals, community audio rooms & strategy channels are launching soon." />
       </Animated.View>
     </View>
   );

@@ -354,7 +354,6 @@ export default function RiskGuardScreen() {
 
   return (
     <View style={[styles.container, { position: 'relative' }]}>
-      <ComingSoonVeil featureTitle="Risk Guard Protection" />
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
       
       {/* ── SMART-REVEAL HEADER ── */}
@@ -812,6 +811,7 @@ export default function RiskGuardScreen() {
 
           </Animated.View>
         </Animated.ScrollView>
+      <ComingSoonVeil featureTitle="Risk Guard Protection" subtitle="Advanced drawdown limits, automated kill switch & behavioral pacing are launching soon." />
       </Animated.View>
     </View>
   );

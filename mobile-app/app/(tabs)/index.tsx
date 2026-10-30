@@ -2044,7 +2044,6 @@ export default function DashboardScreen() {
       ]}>
         {activeTab === 'dashboard' && (
           <View style={{ flex: 1, width: '100%', position: 'relative' }}>
-            <ComingSoonVeil featureTitle="Trading Dashboard" />
             <Animated.ScrollView
               showsVerticalScrollIndicator={false}
               style={{ flex: 1, width: '100%' }}
@@ -2504,6 +2503,7 @@ export default function DashboardScreen() {
 
             </Animated.View>
           </Animated.ScrollView>
+            <ComingSoonVeil featureTitle="Trading Dashboard" subtitle="Real-time multi-asset portfolio, live PnL & automated broker terminal is launching soon." />
           </View>
         )}
 
