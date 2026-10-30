@@ -10,10 +10,14 @@ import { useFonts, Inter_900Black, Inter_800ExtraBold, Inter_700Bold, Inter_600S
 
 // CRITICAL: Must be called at the app root BEFORE any component renders.
 // This allows the in-app browser to properly dismiss after OAuth redirect.
-WebBrowser.maybeCompleteAuthSession();
+try {
+  WebBrowser.maybeCompleteAuthSession();
+} catch (e) {}
 
 // Keep the splash screen visible while we fetch resources
-SplashScreen.preventAutoHideAsync().catch(() => {});
+try {
+  SplashScreen.preventAutoHideAsync().catch(() => {});
+} catch (e) {}
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({

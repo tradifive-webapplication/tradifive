@@ -4,7 +4,9 @@ import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
 
 // Required by WebBrowser to cleanly dismiss the in-app modal and return to the application on redirect
-WebBrowser.maybeCompleteAuthSession();
+try {
+  WebBrowser.maybeCompleteAuthSession();
+} catch (e) {}
 
 // Timeout helper with cleanup
 const withTimeout = (promise: any, ms: number, label: string): Promise<any> => {

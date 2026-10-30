@@ -645,7 +645,7 @@ export default function TabLayout() {
                     <View style={{ width: 26, alignItems: 'center', justifyContent: 'center' }}>
                       <item.icon
                         size={22}
-                        color={item.label === "AI Coach" ? "#38bdf8" : "#ffffff"}
+                        color="#ffffff"
                         set="curved"
                         stroke="bold"
                       />
@@ -1073,7 +1073,7 @@ export default function TabLayout() {
                     ]}
                     onPress={openAI}
                   >
-                    <Sparkles size={20} color={isDark ? '#38bdf8' : '#0284c7'} strokeWidth={2.2} />
+                    <Sparkles size={20} color={aiOpen ? (isDark ? '#ffffff' : '#000000') : '#8E8E93'} strokeWidth={2.5} />
                   </TouchableOpacity>
                 </View>
               </Animated.View>
@@ -1135,10 +1135,10 @@ export default function TabLayout() {
                           }}
                         >
                           <View style={{ width: 24, alignItems: 'center', justifyContent: 'center' }}>
-                            <item.icon size={20} color={item.label === 'AI Coach' ? '#38bdf8' : (isAnySubActive ? '#38bdf8' : '#fff')} set={isAnySubActive ? 'bold' : 'curved'} stroke="bold" />
+                            <item.icon size={20} color={isAnySubActive ? '#38bdf8' : '#fff'} set={isAnySubActive ? 'bold' : 'curved'} stroke="bold" />
                           </View>
                           <Text style={{
-                            color: item.label === 'AI Coach' ? '#38bdf8' : (isAnySubActive ? '#38bdf8' : '#fff'),
+                            color: isAnySubActive ? '#38bdf8' : '#fff',
                             fontSize: 16,
                             flex: 1,
                             fontFamily: isAnySubActive ? 'Inter_700Bold' : 'Inter_600SemiBold',

@@ -10,7 +10,8 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "tunnel": "expo start --go --tunnel -c",
-    "dev": "expo start --go -c"
+    "dev": "expo start --go -c",
+    "postinstall": "node ./scripts/patch-expo-asset.js"
   },
   "dependencies": {
     "@expo-google-fonts/inter": "^0.4.2",
@@ -26,6 +27,7 @@
     "base64-arraybuffer": "^1.0.2",
     "date-fns": "^4.2.1",
     "expo": "^58.0.0",
+    "expo-asset": "~58.0.18",
     "expo-auth-session": "~58.0.14",
     "expo-blur": "~58.0.5",
     "expo-constants": "~58.0.13",
