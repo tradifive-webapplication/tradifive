@@ -104,7 +104,7 @@ export default function Portfolio() {
 
       <View style={s.mainCard}>
         {/* Summary Bar — real data */}
-        <View style={s.summaryBox}>
+        <View pointerEvents="none" style={s.summaryBox}>
           <View style={{ flex: 1 }}>
             <Text style={s.summaryLabel}>Total P&L</Text>
             <Text style={[s.summaryVal, { color: totalPnL >= 0 ? '#10b981' : '#ef4444' }]}>
@@ -120,7 +120,7 @@ export default function Portfolio() {
           </View>
         </View>
 
-        <View style={s.filtersContainer}>
+        <View pointerEvents="none" style={s.filtersContainer}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 24, gap: 8 }}>
             {filters.map(f => (
               <TouchableOpacity key={f} onPress={() => { h(); setFilter(f); }}
@@ -136,6 +136,7 @@ export default function Portfolio() {
           contentContainerStyle={{ paddingBottom: insets.bottom + 120, paddingTop: 10 }}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#6366f1" />}
         >
+          <View pointerEvents="none">
           {filtered.length === 0 ? (
             <EmptyState isDark={isDark} label={filter === 'All' ? '' : filter} />
           ) : (
@@ -178,6 +179,7 @@ export default function Portfolio() {
 })}
             </View>
           )}
+          </View>
         </ScrollView>
         <ComingSoonVeil
             featureTitle="Multi-Broker Portfolio"

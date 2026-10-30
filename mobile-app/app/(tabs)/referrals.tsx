@@ -226,7 +226,7 @@ export default function Referrals() {
           scrollEventThrottle={16}
           contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + 250 }}
         >
-          <Animated.View style={headerStyle === 'simple' ? [] : { transform: [{ translateY: scrollY.interpolate({ inputRange: [0, 150], outputRange: [0, 150], extrapolate: 'clamp' }) }] }}>
+          <Animated.View pointerEvents="none" style={headerStyle === 'simple' ? [] : { transform: [{ translateY: scrollY.interpolate({ inputRange: [0, 150], outputRange: [0, 150], extrapolate: 'clamp' }) }] }}>
             
             {/* Header Description */}
             <View style={[s.card, { flexDirection: 'row', alignItems: 'center', padding: 20, marginBottom: 20 }]}>

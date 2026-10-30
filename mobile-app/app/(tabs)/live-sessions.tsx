@@ -125,7 +125,7 @@ export default function LiveSessionsScreen() {
 
         <View style={s.mainCard}>
           {/* Tabs */}
-          <View style={s.tabRow}>
+          <View pointerEvents="none" style={s.tabRow}>
             {(['upcoming', 'recordings'] as const).map(t => (
               <TouchableOpacity key={t} style={[s.tab, tab === t && s.tabActive]} onPress={() => { h(); setTab(t); }}>
                 <Text style={[s.tabTxt, tab === t && s.tabTxtActive]}>
@@ -145,6 +145,7 @@ export default function LiveSessionsScreen() {
               contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: insets.bottom + 120, paddingTop: 8 }}
               refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#6366f1" />}
             >
+              <View pointerEvents="none">
               {tab === 'upcoming' && (
                 sessions.length === 0 ? <EmptyState isDark={isDark} label="sessions" /> :
                 sessions.map(sess => (
@@ -192,6 +193,7 @@ export default function LiveSessionsScreen() {
                   </TouchableOpacity>
                 ))
               )}
+              </View>
             </ScrollView>
           )}
           <ComingSoonVeil

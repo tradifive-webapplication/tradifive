@@ -216,7 +216,7 @@ export default function Finance() {
 
       <View style={s.mainCard}>
         {/* Tabs */}
-        <View style={s.tabRow}>
+        <View pointerEvents="none" style={s.tabRow}>
           {(['Transactions', 'Payouts'] as const).map(t => (
             <TouchableOpacity key={t} style={[s.tab, activeTab === t && s.tabActive]} onPress={() => { h(); setActiveTab(t); }}>
               <Text style={[s.tabTxt, activeTab === t && s.tabTxtActive]}>{t}</Text>
@@ -226,7 +226,7 @@ export default function Finance() {
 
         {activeTab === 'Transactions' && (
           <>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingHorizontal: 20, paddingBottom: 12 }}>
+            <ScrollView horizontal pointerEvents="none" showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingHorizontal: 20, paddingBottom: 12 }}>
               {FILTERS.map(f => (
                 <TouchableOpacity key={f} style={[s.filterPill, filter === f && s.filterPillActive]} onPress={() => { h(); setFilter(f); }}>
                   <Text style={[s.filterPillTxt, filter === f && s.filterPillTxtActive]}>{f}</Text>
@@ -245,6 +245,7 @@ export default function Finance() {
                 contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: insets.bottom + 120 }}
                 refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#6366f1" />}
               >
+                <View pointerEvents="none">
                 {filteredTxns.length === 0 ? (
                   <EmptyState isDark={isDark} label="Transactions" />
                 ) : (
@@ -275,6 +276,7 @@ export default function Finance() {
                     <Text style={s.exportTxt}>Export CSV</Text>
                   </TouchableOpacity>
                 )}
+                </View>
               </ScrollView>
             )}
           </>
@@ -282,12 +284,14 @@ export default function Finance() {
 
         {activeTab === 'Payouts' && (
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: insets.bottom + 120, paddingTop: 16 }}>
+          <View pointerEvents="none">
             <TouchableOpacity style={s.requestPayoutBtn} onPress={() => { h(); Alert.alert('Request Payout', 'Payout requests will be available soon. Contact support for manual payouts.'); }}>
               <ArrowUpRight size={18} color="#fff" />
               <Text style={s.requestPayoutTxt}>Request Payout</Text>
             </TouchableOpacity>
             <Text style={[s.sectionTitle, { marginTop: 20 }]}>Payout History</Text>
             <EmptyState isDark={isDark} label="Payouts" />
+          </View>
           </ScrollView>
         )}
         <ComingSoonVeil

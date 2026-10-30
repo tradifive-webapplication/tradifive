@@ -175,7 +175,7 @@ export default function CreatorStudio() {
           scrollEventThrottle={16}
           contentContainerStyle={{ paddingBottom: 260, paddingTop: 24 }}
         >
-          <Animated.View style={{ transform: headerStyle === 'simple' ? [] : [{ translateY: scrollY.interpolate({ inputRange: [0, 150], outputRange: [0, 150], extrapolate: 'clamp' }) }] }}>
+          <Animated.View pointerEvents="none" style={{ transform: headerStyle === 'simple' ? [] : [{ translateY: scrollY.interpolate({ inputRange: [0, 150], outputRange: [0, 150], extrapolate: 'clamp' }) }] }}>
             <View style={{ paddingTop: headerStyle === 'simple' ? 20 : 0 }}>
 
               {/* Timeframes moved below the tools, right above Stats */}

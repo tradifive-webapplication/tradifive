@@ -2064,7 +2064,7 @@ export default function DashboardScreen() {
               />
             }
           >
-            <Animated.View style={{
+            <Animated.View pointerEvents="none" style={{
               flex: 1,
               transform: headerStyle === 'simple' ? [] : [{
                 translateY: scrollY.interpolate({

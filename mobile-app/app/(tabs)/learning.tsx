@@ -117,7 +117,7 @@ export default function Learning() {
         </View>
 
         <View style={s.mainCard}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingHorizontal: 20, paddingVertical: 14 }}>
+          <ScrollView horizontal pointerEvents="none" showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingHorizontal: 20, paddingVertical: 14 }}>
             {LEVELS.map(l => (
               <TouchableOpacity key={l} style={[s.levelPill, level === l && s.levelActive]} onPress={() => { h(); setLevel(l); }}>
                 <Text style={[s.levelTxt, level === l && s.levelTxtActive]}>{l}</Text>
@@ -136,6 +136,7 @@ export default function Learning() {
               contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: insets.bottom + 120 }}
               refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#6366f1" />}
             >
+              <View pointerEvents="none">
               {filtered.length === 0 ? (
                 <EmptyState isDark={isDark} />
               ) : (
@@ -170,6 +171,7 @@ export default function Learning() {
                   </TouchableOpacity>
                 ))
               )}
+              </View>
             </ScrollView>
           )}
           <ComingSoonVeil

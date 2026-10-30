@@ -126,7 +126,7 @@ export default function Contests() {
 
         <View style={s.mainCard}>
           {/* Tabs */}
-          <View style={s.tabRow}>
+          <View pointerEvents="none" style={s.tabRow}>
             {(['Contests', 'Leaderboard'] as const).map(t => (
               <TouchableOpacity key={t} style={[s.tab, view === t && s.tabActive]} onPress={() => { h(); setView(t); }}>
                 <Text style={[s.tabTxt, view === t && s.tabTxtActive]}>{t}</Text>
@@ -137,7 +137,7 @@ export default function Contests() {
           {view === 'Contests' && (
             <>
               {/* Filter pills */}
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingHorizontal: 20, paddingBottom: 12 }}>
+              <ScrollView horizontal pointerEvents="none" showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingHorizontal: 20, paddingBottom: 12 }}>
                 {FILTERS.map(f => (
                   <TouchableOpacity key={f} style={[s.filterPill, filter === f && s.filterPillActive]} onPress={() => { h(); setFilter(f); }}>
                     <Text style={[s.filterPillTxt, filter === f && s.filterPillTxtActive]}>{f}</Text>
@@ -155,6 +155,7 @@ export default function Contests() {
                   contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: insets.bottom + 120 }}
                   refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#6366f1" />}
                 >
+                  <View pointerEvents="none">
                   {filtered.length === 0 ? (
                     <EmptyState isDark={isDark} />
                   ) : (
@@ -189,6 +190,7 @@ export default function Contests() {
                       );
                     })
                   )}
+                  </View>
                 </ScrollView>
               )}
             </>
