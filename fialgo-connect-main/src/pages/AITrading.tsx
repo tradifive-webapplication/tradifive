@@ -2136,7 +2136,7 @@ MagicNumber=789104
           </motion.div>
         )}
 
-        {/* ── STEP 3: ONLY SHOWN WHEN activeStep === 3 (LIFETIME LICENSE PAYMENT ₹99,999) ── */}
+        {/* ── STEP 3: ONLY SHOWN WHEN activeStep === 3 (ALGO SETUP FEE ₹10,000 + DAILY 50/50% PROFIT SHARE) ── */}
         {activeStep === 3 && (
           <motion.div
             key="step3"
@@ -2148,10 +2148,10 @@ MagicNumber=789104
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/5">
               <div>
                 <h2 className="text-base sm:text-xl font-bold text-slate-900 dark:text-white">
-                  Lifetime License Payment
+                  Algo Setup & Activation Fee
                 </h2>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  Complete the ₹99,999 one-time payment via PhonePe / UPI or Bank Transfer to request your license key.
+                  Complete the ₹10,000 setup fee payment via PhonePe / UPI or Bank Transfer to request your license key.
                 </p>
               </div>
 
@@ -2335,7 +2335,7 @@ MagicNumber=789104
                       Choose Your Algo Access Plan
                     </span>
                     <span className="text-[10.5px] font-bold text-blue-600 dark:text-blue-400">
-                      2 Official Licensing Options
+                      Standard Setup & Profit Share
                     </span>
                   </div>
 
