@@ -4,7 +4,6 @@ import { View, Platform } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import * as WebBrowser from 'expo-web-browser';
-import { Asset } from 'expo-asset';
 import '../global.css';
 
 import { useFonts, Inter_900Black, Inter_800ExtraBold, Inter_700Bold, Inter_600SemiBold, Inter_500Medium, Inter_400Regular } from '@expo-google-fonts/inter';
@@ -13,16 +12,8 @@ import { useFonts, Inter_900Black, Inter_800ExtraBold, Inter_700Bold, Inter_600S
 // This allows the in-app browser to properly dismiss after OAuth redirect.
 WebBrowser.maybeCompleteAuthSession();
 
-// Preload critical branding assets
-Asset.loadAsync([
-  require('../assets/images/Tradifive-logo-1.bmp'),
-  require('../assets/images/bottom-glow.png'),
-  require('../assets/images/top-glow.png'),
-  require('../assets/images/onboarding-1.png.png'),
-]);
-
 // Keep the splash screen visible while we fetch resources
-SplashScreen.preventAutoHideAsync();
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
