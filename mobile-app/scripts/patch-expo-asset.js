@@ -34,3 +34,4 @@ try {
 } else {
   console.log('ExpoAsset.js not found, skipping patch.');
 }
+

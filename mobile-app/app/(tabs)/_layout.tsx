@@ -1073,7 +1073,7 @@ export default function TabLayout() {
                     ]}
                     onPress={openAI}
                   >
-                    <Sparkles size={20} color={aiOpen ? (isDark ? '#ffffff' : '#000000') : '#8E8E93'} strokeWidth={2.5} />
+                    <Sparkles size={20} color="#8E8E93" strokeWidth={2.5} />
                   </TouchableOpacity>
                 </View>
               </Animated.View>
@@ -1135,10 +1135,10 @@ export default function TabLayout() {
                           }}
                         >
                           <View style={{ width: 24, alignItems: 'center', justifyContent: 'center' }}>
-                            <item.icon size={20} color={isAnySubActive ? '#38bdf8' : '#fff'} set={isAnySubActive ? 'bold' : 'curved'} stroke="bold" />
+                            <item.icon size={20} color="#ffffff" set={isAnySubActive ? "bold" : "curved"} stroke="bold" />
                           </View>
                           <Text style={{
-                            color: isAnySubActive ? '#38bdf8' : '#fff',
+                            color: '#ffffff',
                             fontSize: 16,
                             flex: 1,
                             fontFamily: isAnySubActive ? 'Inter_700Bold' : 'Inter_600SemiBold',
@@ -1164,7 +1164,7 @@ export default function TabLayout() {
                             marginTop: 4,
                             marginBottom: 4,
                             borderLeftWidth: 1.5,
-                            borderLeftColor: 'rgba(56, 189, 248, 0.3)',
+                            borderLeftColor: 'rgba(255, 255, 255, 0.15)',
                           }}>
                             {item.subItems.map((sub: any, sIdx: number) => {
                               const isSubActive =
@@ -1212,16 +1212,11 @@ export default function TabLayout() {
                                   }}
                                 >
                                   <View style={{ width: 20, alignItems: 'center', justifyContent: 'center' }}>
-                                    <SubIcon
-                                      size={16}
-                                      color={isSubActive ? '#38bdf8' : '#94a3b8'}
-                                      set={isSubActive ? 'bold' : 'curved'}
-                                      stroke="bold"
-                                    />
+                                    <SubIcon size={16} color={isSubActive ? "#ffffff" : "#94a3b8"} set={isSubActive ? "bold" : "curved"} stroke="bold" />
                                   </View>
                                   <Text style={{
                                     flex: 1,
-                                    color: isSubActive ? '#38bdf8' : '#e2e8f0',
+                                    color: isSubActive ? '#ffffff' : '#e2e8f0',
                                     fontSize: 14,
                                     fontFamily: isSubActive ? 'Inter_700Bold' : 'Inter_500Medium',
                                   }}>
