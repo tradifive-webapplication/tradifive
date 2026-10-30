@@ -215,7 +215,7 @@ export default function SignupScreen() {
                     ]}>
                       <TextInput
                         style={styles.input}
-                        placeholder="John"
+                        placeholder="Alex"
                         placeholderTextColor="#98A2B3"
                         value={firstName}
                         onChangeText={(val) => { setFirstName(val); if (errors.firstName) validate(); }}
@@ -236,7 +236,7 @@ export default function SignupScreen() {
                     ]}>
                       <TextInput
                         style={styles.input}
-                        placeholder="Doe"
+                        placeholder="Morgan"
                         placeholderTextColor="#98A2B3"
                         value={lastName}
                         onChangeText={(val) => { setLastName(val); if (errors.lastName) validate(); }}

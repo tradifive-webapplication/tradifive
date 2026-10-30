@@ -10,6 +10,7 @@ import {
 } from "react-iconly";
 
 
+import { Mail, RefreshCw, CheckCircle2 } from "lucide-react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -45,6 +46,30 @@ export default function Login() {
   const [isResetSent, setIsResetSent] = useState(false);
   const [lockoutSeconds, setLockoutSeconds] = useState(0);
   const [tempUser, setTempUser] = useState<any>(null);
+  const [resendCooldown, setResendCooldown] = useState(0);
+
+  useEffect(() => {
+    if (resendCooldown > 0) {
+      const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [resendCooldown]);
+
+  // Handle email verification callback from verification link
+  useEffect(() => {
+    const verifiedParam = searchParams.get('verified');
+    const hash = window.location.hash;
+    const isSignupCallback = verifiedParam === 'true' || hash.includes('type=signup') || hash.includes('confirmation_token');
+    if (isSignupCallback) {
+      setIsLogin(true);
+      setStep('auth');
+      supabase.auth.signOut().catch(() => {});
+      toast.success("Email verified successfully! Please enter your password to sign in.", { duration: 8000 });
+      try {
+        window.history.replaceState({}, document.title, window.location.pathname);
+      } catch (e) {}
+    }
+  }, [location.search, location.hash]);
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
@@ -153,6 +178,32 @@ export default function Login() {
     navigate("/home");
   };
 
+  const handleResendSignupEmail = async () => {
+    if (resendCooldown > 0) return;
+    const targetEmail = tempUser?.email || email;
+    if (!targetEmail) {
+      toast.error("No email address found to resend to.");
+      return;
+    }
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: targetEmail,
+        options: {
+          emailRedirectTo: `${window.location.origin}/login?verified=true`,
+        }
+      });
+      if (error) {
+        toast.error(error.message);
+      } else {
+        toast.success("Verification email resent! Please check your inbox and spam folder.");
+        setResendCooldown(60);
+      }
+    } catch {
+      toast.error("Failed to resend verification email.");
+    }
+  };
+
   const handleVerifyOTP = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -198,6 +249,20 @@ export default function Login() {
               new_user_id: tempUser.profileData.id 
             });
           }
+        }
+
+        if (isSignup) {
+          // As requested: Once email is verified, sign out and transition to Login so they log in with credentials
+          await supabase.auth.signOut().catch(() => {});
+          setStep('auth');
+          setIsLogin(true);
+          setEmail(tempUser.email);
+          setPassword("");
+          setConfirmPassword("");
+          setOtpCode("");
+          setIsLoading(false);
+          toast.success("Email verified successfully! Please enter your password to sign in.", { duration: 6000 });
+          return;
         }
 
         await finalizeLogin(data?.user || tempUser);
@@ -279,9 +344,11 @@ export default function Login() {
           email: cleanEmail,
           password,
           options: {
+            emailRedirectTo: `${window.location.origin}/login?verified=true`,
             data: {
               first_name: cleanFirstName,
               last_name: cleanLastName,
+              full_name: `${cleanFirstName} ${cleanLastName}`.trim(),
               referred_by: referralCode,
             },
           },
@@ -307,28 +374,34 @@ export default function Login() {
             created_at: new Date().toISOString(),
           };
 
-          if (data.session) {
-            // Email verification is disabled, user is logged in immediately
+          // Pre-populate profile record
+          try {
             await supabase.from('profiles').upsert(profileData, { onConflict: 'id' });
-            if (referralCode) {
-              const { error: rpcError } = await supabase.rpc('register_referral', {
+          } catch (profileErr) {
+            console.warn("Profile pre-creation warning:", profileErr);
+          }
+
+          if (referralCode) {
+            try {
+              await supabase.rpc('register_referral', {
                 referral_code_input: referralCode,
                 new_user_id: data.user.id
               });
-              if (rpcError) console.error('Failed to register referral:', rpcError);
+            } catch (refErr) {
+              console.warn("Referral registration warning:", refErr);
             }
-            toast.success("Account created successfully!");
-            navigate("/home");
-          } else {
-            // Email verification is required, user is NOT logged in yet
-            setTempUser({ 
-              email: cleanEmail,
-              profileData,
-              referralCode
-            });
-            setStep('verify_signup');
-            toast.success("Verification email sent! Please check your inbox.");
           }
+
+          // In all cases, sign out immediately so the user verifies email and logs in as requested
+          await supabase.auth.signOut().catch(() => {});
+
+          setTempUser({ 
+            email: cleanEmail,
+            profileData,
+            referralCode
+          });
+          setStep('verify_signup');
+          toast.success("Verification email sent! Please check your email to activate your account.", { duration: 7000 });
         }
       } else {
         // Sign In
@@ -338,14 +411,21 @@ export default function Login() {
         });
 
         if (error) {
-          // Record failed attempt for rate limiting
-          const isNowLocked = loginLimiter.recordFailedAttempt();
-          if (isNowLocked) {
-            const secs = loginLimiter.getRemainingLockoutSeconds();
-            toast.error(`Too many failed attempts. Account locked for ${secs} seconds.`);
+          const errMsg = (error.message || "").toLowerCase();
+          if (errMsg.includes('email not confirmed') || errMsg.includes('not confirmed') || errMsg.includes('verify your email')) {
+            toast.error("Email not verified yet. Please check your inbox and verify your email before logging in.", {
+              duration: 8000,
+            });
           } else {
-            const remaining = loginLimiter.attemptsRemaining();
-            toast.error(`${error.message}${remaining <= 2 ? ` (${remaining} attempt${remaining === 1 ? '' : 's'} remaining)` : ''}`);
+            // Record failed attempt for rate limiting
+            const isNowLocked = loginLimiter.recordFailedAttempt();
+            if (isNowLocked) {
+              const secs = loginLimiter.getRemainingLockoutSeconds();
+              toast.error(`Too many failed attempts. Account locked for ${secs} seconds.`);
+            } else {
+              const remaining = loginLimiter.attemptsRemaining();
+              toast.error(`${error.message}${remaining <= 2 ? ` (${remaining} attempt${remaining === 1 ? '' : 's'} remaining)` : ''}`);
+            }
           }
         } else {
           // Check if 2FA is enabled for this user
@@ -498,10 +578,10 @@ export default function Login() {
 
           <div className="mb-6 lg:mb-10 text-left">
             <h2 className="text-3xl lg:text-4xl font-black tracking-tighter text-slate-900 dark:text-white mb-1.5 lg:mb-2">
-              {step === 'otp' || step === 'verify_signup' ? "Verify" : step === 'forgot_password' ? "Forgot" : isLogin ? "Welcome" : "Get"} <span className="text-primary">{step === 'otp' ? "Identity" : step === 'verify_signup' ? "Email" : step === 'forgot_password' ? "Password?" : isLogin ? "Back" : "Started"}</span>
+              {step === 'verify_signup' ? "Verify" : step === 'otp' ? "Verify" : step === 'forgot_password' ? "Forgot" : isLogin ? "Welcome" : "Get"} <span className="text-primary">{step === 'verify_signup' ? "Your Email" : step === 'otp' ? "Identity" : step === 'forgot_password' ? "Password?" : isLogin ? "Back" : "Started"}</span>
             </h2>
             <p className="text-slate-500 text-xs lg:text-sm font-semibold">
-              {step === 'otp' ? "Enter the institutional 2FA code to continue." : step === 'verify_signup' ? `Check your inbox for the 6-digit code sent to ${tempUser?.email}` : step === 'forgot_password' ? (isResetSent ? "Check your inbox for the reset link." : "Enter your email to receive reset instructions.") : isLogin ? "Please enter your details to sign in." : "Fill in the information to get started."}
+              {step === 'verify_signup' ? "Activate your account to start trading." : step === 'otp' ? "Enter the institutional 2FA code to continue." : step === 'forgot_password' ? (isResetSent ? "Check your inbox for the reset link." : "Enter your email to receive reset instructions.") : isLogin ? "Please enter your details to sign in." : "Fill in the information to get started."}
             </p>
           </div>
 
@@ -576,7 +656,7 @@ export default function Login() {
                               value={firstName}
                               onChange={(e) => setFirstName(e.target.value)}
                               className="w-full bg-white lg:bg-slate-50 dark:bg-[#141414] border border-slate-200 lg:border-slate-100 dark:border-[#333333] rounded-xl py-2.5 lg:py-3 pl-10 pr-3.5 lg:pr-4 text-slate-900 dark:text-white placeholder:text-slate-400 lg:placeholder:text-slate-300 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors duration-200 text-[13px] lg:text-sm font-semibold lg:font-medium shadow-sm"
-                              placeholder="John"
+                              placeholder="Alex"
                               required={!isLogin}
                             />
                           </div>
@@ -592,7 +672,7 @@ export default function Login() {
                               value={lastName}
                               onChange={(e) => setLastName(e.target.value)}
                               className="w-full bg-white lg:bg-slate-50 dark:bg-[#141414] border border-slate-200 lg:border-slate-100 dark:border-[#333333] rounded-xl py-2.5 lg:py-3 pl-10 pr-3.5 lg:pr-4 text-slate-900 dark:text-white placeholder:text-slate-400 lg:placeholder:text-slate-300 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors duration-200 text-[13px] lg:text-sm font-semibold lg:font-medium shadow-sm"
-                              placeholder="Doe"
+                              placeholder="Morgan"
                               required={!isLogin}
                             />
                           </div>
@@ -810,7 +890,117 @@ export default function Login() {
                   </div>
                 )}
               </motion.div>
-            ) : step === 'otp' || step === 'verify_signup' ? (
+            ) : step === 'verify_signup' ? (
+              <motion.div
+                key="verify-signup-view"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+                className="flex flex-col items-center text-center"
+              >
+                {/* Mail Icon with Success Badge */}
+                <div className="relative mb-4">
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-600/15 to-indigo-600/25 border border-blue-500/30 flex items-center justify-center text-primary shadow-inner">
+                    <Mail className="w-8 h-8 text-primary" />
+                  </div>
+                  <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center text-white ring-2 ring-white dark:ring-[#141414]">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                  </div>
+                </div>
+
+                <div className="px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-[#1E1E1E] text-slate-800 dark:text-slate-100 font-bold text-xs lg:text-sm border border-slate-200 dark:border-[#333333] mb-3 max-w-full truncate shadow-sm">
+                  {tempUser?.email || email}
+                </div>
+
+                <p className="text-slate-500 dark:text-slate-400 text-xs lg:text-[13px] font-medium leading-relaxed mb-6 max-w-[360px]">
+                  We sent a verification link to your email address. Please click the link to verify your account, then log in below.
+                </p>
+
+                <div className="w-full space-y-3" style={{ perspective: '600px' }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setStep('auth');
+                      setIsLogin(true);
+                      setEmail(tempUser?.email || email);
+                      setPassword("");
+                      toast.info("Please sign in after verifying your email.");
+                    }}
+                    className="w-full text-white font-bold uppercase tracking-wide text-xs lg:text-sm py-3 lg:py-3.5 rounded-xl flex items-center justify-center shadow-lg transition-all"
+                    style={{
+                      background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 50%, #3b82f6 100%)',
+                      boxShadow: '0 4px 14px rgba(37,99,235,0.35), 0 1px 3px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.2)',
+                      transition: 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
+                      transformStyle: 'preserve-3d',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px) rotateX(6deg) scale(1.02)'; e.currentTarget.style.boxShadow = '0 12px 30px rgba(37,99,235,0.4), 0 4px 10px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.25)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0) rotateX(0deg) scale(1)'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(37,99,235,0.35), 0 1px 3px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.2)'; }}
+                    onMouseDown={e => { e.currentTarget.style.transform = 'translateY(-1px) rotateX(2deg) scale(0.98)'; }}
+                    onMouseUp={e => { e.currentTarget.style.transform = 'translateY(-4px) rotateX(6deg) scale(1.02)'; }}
+                  >
+                    Proceed to Sign In
+                    <IconlyArrowRight set="curved" primaryColor="currentColor" size={18} stroke="bold" strokeWidth={2} className="ml-2" />
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={resendCooldown > 0}
+                    onClick={handleResendSignupEmail}
+                    className="w-full py-2.5 text-[11px] lg:text-xs font-bold text-primary hover:text-primary/80 transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${resendCooldown > 0 ? 'animate-spin' : ''}`} />
+                    {resendCooldown > 0 ? `Resend email in ${resendCooldown}s` : "Resend verification email"}
+                  </button>
+                </div>
+
+                {/* Optional 6-digit OTP code entry */}
+                <div className="w-full border-t border-slate-200/80 dark:border-white/10 mt-6 pt-5">
+                  <p className="text-[11px] font-semibold text-slate-400 mb-3">
+                    Received a 6-digit confirmation code instead?
+                  </p>
+                  <form onSubmit={handleVerifyOTP} className="w-full space-y-3 flex flex-col items-center">
+                    <InputOTP
+                      maxLength={6}
+                      value={otpCode}
+                      onChange={(val) => setOtpCode(val)}
+                    >
+                      <InputOTPGroup className="gap-1.5 lg:gap-2">
+                        {[0, 1, 2, 3, 4, 5].map((index) => (
+                          <InputOTPSlot
+                            key={index}
+                            index={index}
+                            className="w-9 lg:w-10 h-10 lg:h-12 text-base lg:text-lg font-black border-slate-200 dark:border-[#333333] rounded-xl bg-white dark:bg-[#1E1E1E] text-slate-900 dark:text-white focus:ring-2 focus:ring-primary/20"
+                          />
+                        ))}
+                      </InputOTPGroup>
+                    </InputOTP>
+
+                    {otpCode.length === 6 && (
+                      <button
+                        type="submit"
+                        disabled={isLoading}
+                        className="w-full py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-xs font-bold uppercase tracking-wider hover:opacity-90 transition-opacity"
+                      >
+                        {isLoading ? "Verifying..." : "Verify Code"}
+                      </button>
+                    )}
+                  </form>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStep('auth');
+                    setIsLogin(false);
+                  }}
+                  className="mt-6 text-[10px] lg:text-[11px] font-bold text-slate-400 uppercase tracking-widest hover:text-slate-600 transition-colors flex items-center justify-center gap-1.5"
+                >
+                  <IconlyArrowLeft set="bold" primaryColor="currentColor" size={14} />
+                  Change Email / Back
+                </button>
+              </motion.div>
+            ) : step === 'otp' ? (
               <motion.div
                 key="otp-form"
                 initial={{ opacity: 0, x: 20 }}
@@ -857,7 +1047,7 @@ export default function Login() {
                       >
                         {isLoading ? "Verifying..." : (
                           <>
-                            {step === 'verify_signup' ? "Verify Account" : "Authorize Access"}
+                            Authorize Access
                             <IconlyArrowRight set="curved" primaryColor="currentColor" size={18} stroke="bold" strokeWidth={2} className="ml-2" />
                           </>
                         )}

@@ -166,7 +166,7 @@ export const MarketSelectorModal = () => {
                           type="text" 
                           value={username}
                           onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
-                          placeholder="johndoe"
+                          placeholder="alexmorgan"
                           className="w-full bg-slate-50 dark:bg-[#111] border border-slate-200 dark:border-white/5 text-slate-900 dark:text-white pl-10 pr-4 py-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all font-semibold text-lg placeholder:text-slate-300 dark:placeholder:text-[#444]"
                           autoFocus
                           maxLength={20}

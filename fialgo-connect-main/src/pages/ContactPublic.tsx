@@ -381,7 +381,7 @@ export default function ContactPublic() {
                     <input
                       type="text"
                       required
-                      placeholder="John Doe"
+                      placeholder="Alex Morgan"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       className="contact-input"
@@ -394,7 +394,7 @@ export default function ContactPublic() {
                     <input
                       type="email"
                       required
-                      placeholder="john@example.com"
+                      placeholder="alex@example.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="contact-input"

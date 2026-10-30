@@ -242,7 +242,7 @@ export default function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
                     id="waitlist-name"
                     type="text"
                     required
-                    placeholder="John Doe"
+                    placeholder="Alex Morgan"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     style={{
@@ -275,7 +275,7 @@ export default function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
                     id="waitlist-email"
                     type="email"
                     required
-                    placeholder="john@example.com"
+                    placeholder="alex@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     style={{
