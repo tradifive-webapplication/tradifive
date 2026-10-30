@@ -3,12 +3,14 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "scripts": {
-    "start": "expo start",
+    "start": "expo start --go",
     "reset-project": "node ./scripts/reset-project.js",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "tunnel": "expo start --go --tunnel -c",
+    "dev": "expo start --go -c"
   },
   "dependencies": {
     "@expo-google-fonts/inter": "^0.4.2",

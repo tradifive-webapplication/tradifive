@@ -52,8 +52,7 @@
       "expo-status-bar"
     ],
     "experiments": {
-      "typedRoutes": true,
-      "baseUrl": "/mobile"
+      "typedRoutes": true
     },
     "extra": {
       "supabaseUrl": "https://rylwyxhupwpwsdbvuoej.supabase.co",
