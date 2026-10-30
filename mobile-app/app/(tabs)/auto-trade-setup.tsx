@@ -1,8 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
-  Package,
-  Receipt,
-  ShieldAlert,
   View,
   Text,
   StyleSheet,
@@ -61,6 +58,9 @@ import {
   Wallet,
   Send,
   RefreshCw,
+  Package,
+  Receipt,
+  ShieldAlert,
 } from 'lucide-react-native';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import { useStore } from '../store';
