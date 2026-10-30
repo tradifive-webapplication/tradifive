@@ -356,7 +356,7 @@ const HomePostCard = ({
   const isVideo = post.post_type === 'video' || post.media_type === 'video';
 
   return (
-    <View style={{ marginBottom: 14, marginHorizontal: 16 }}>
+    <View style={{ marginBottom: 12, marginHorizontal: 8 }}>
       <View
         style={{
           backgroundColor: isDark ? '#14171f' : '#ffffff',
@@ -406,7 +406,6 @@ const HomePostCard = ({
                 >
                   {post.user}
                 </Text>
-                <BadgeCheck size={16} color="#38bdf8" />
               </View>
               <Text style={{ fontSize: 12.5, color: '#64748b', fontFamily: 'Inter_500Medium', marginTop: 2 }}>
                 {post.handle} · {post.time}
@@ -444,15 +443,7 @@ const HomePostCard = ({
           </View>
         ) : null}
 
-        {/* Algorithmic Pill */}
-        {(post.content?.toLowerCase().includes('fialgo') || post.content?.toLowerCase().includes('2-5%') || post.content?.toLowerCase().includes('mt5')) && (
-          <View style={{ alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 10, backgroundColor: isDark ? 'rgba(16, 185, 129, 0.15)' : '#ecfdf5', borderWidth: 1, borderColor: isDark ? 'rgba(16, 185, 129, 0.3)' : '#a7f3d0', marginBottom: 14 }}>
-            <Sparkles size={12} color="#10b981" />
-            <Text style={{ color: '#059669', fontSize: 11, fontFamily: 'Inter_700Bold', letterSpacing: 0.3 }}>
-              FIALGO V1 · VERIFIED SETUP
-            </Text>
-          </View>
-        )}
+        
 
         {/* Media */}
         {mediaUrl ? (
@@ -485,37 +476,25 @@ const HomePostCard = ({
               )
             ) : (
               <TouchableOpacity
-                activeOpacity={0.92}
+                activeOpacity={0.94}
                 onPress={() => onImagePress && onImagePress(post.id)}
                 style={{
                   width: '100%',
-                  height: 280,
-                  borderRadius: 18,
+                  borderRadius: 16,
                   overflow: 'hidden',
-                  backgroundColor: isDark ? '#090d16' : '#f1f5f9',
+                  backgroundColor: isDark ? '#080a10' : '#f8fafc',
                   borderWidth: 1,
                   borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#e2e8f0',
                   position: 'relative',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 }}
               >
                 <Image
                   source={{ uri: mediaUrl }}
-                  style={{ width: '100%', height: '100%' }}
-                  resizeMode="cover"
+                  style={{ width: '100%', height: 340 }}
+                  resizeMode="contain"
                 />
-                <View style={{
-                  position: 'absolute',
-                  bottom: 10,
-                  right: 10,
-                  backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                  paddingHorizontal: 10,
-                  paddingVertical: 5,
-                  borderRadius: 10,
-                  borderWidth: 1,
-                  borderColor: 'rgba(255, 255, 255, 0.2)',
-                }}>
-                  <Text style={{ color: '#ffffff', fontSize: 11, fontFamily: 'Inter_600SemiBold' }}>Tap to expand</Text>
-                </View>
               </TouchableOpacity>
             )}
 
@@ -699,7 +678,7 @@ export default function DashboardScreen() {
   const [activeTab, setActiveTab] = useState<Tab>('feed');
   const [activePostMenu, setActivePostMenu] = useState<string | null>(null);
   const [activeChannel, setActiveChannel] = useState<string | null>(null);
-  type FeedSubTab = 'for_you' | 'following' | 'setups';
+  type FeedSubTab = 'for_you' | 'following';
   const [feedSubTab, setFeedSubTab] = useState<FeedSubTab>('for_you');
 
   const mt5Account = useStore(state => state.mt5Account);
@@ -1424,18 +1403,6 @@ export default function DashboardScreen() {
     if (feedSubTab === 'following') {
       const filtered = feedPostsToRender.filter((p: any) => followingIds.includes(p.user_id));
       return filtered;
-    }
-    if (feedSubTab === 'setups') {
-      const filtered = feedPostsToRender.filter((p: any) =>
-        p.content?.toLowerCase().includes('fialgo') ||
-        p.content?.toLowerCase().includes('2-5%') ||
-        p.content?.toLowerCase().includes('mt5') ||
-        p.content?.toLowerCase().includes('setup') ||
-        p.content?.toLowerCase().includes('signal') ||
-        p.post_type === 'signal' ||
-        p.media_type === 'image'
-      );
-      return filtered.length > 0 ? filtered : feedPostsToRender;
     }
     return feedPostsToRender;
   }, [feedSubTab, feedPostsToRender, followingIds]);
@@ -2965,23 +2932,15 @@ export default function DashboardScreen() {
               }}>
 
               {/* Quick Post Prompt Card */}
-              <TouchableOpacity
-                activeOpacity={0.85}
-                onPress={() => {
-                  hSelect();
-                  setCreatePostVisible(true);
-                }}
+              <View
                 style={{
-                  marginHorizontal: 16,
-                  marginBottom: 16,
+                  marginHorizontal: 8,
+                  marginBottom: 12,
                   backgroundColor: isDark ? '#14171f' : '#ffffff',
                   borderRadius: 20,
                   padding: 14,
                   borderWidth: 1,
                   borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#e2e8f0',
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 12,
                   shadowColor: '#0f172a',
                   shadowOffset: { width: 0, height: 2 },
                   shadowOpacity: isDark ? 0.2 : 0.04,
@@ -2989,34 +2948,110 @@ export default function DashboardScreen() {
                   elevation: 2,
                 }}
               >
-                <Image
-                  source={{ uri: getAvatarUrl(currentUser?.avatar_url, currentUser?.email) }}
-                  style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: isDark ? '#1e2433' : '#f1f5f9' }}
-                />
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={() => {
+                    hSelect();
+                    setCreatePostVisible(true);
+                  }}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 12,
+                  }}
+                >
+                  <Image
+                    source={{ uri: getAvatarUrl(currentUser?.avatar_url, currentUser?.email) }}
+                    style={{
+                      width: 42,
+                      height: 42,
+                      borderRadius: 21,
+                      backgroundColor: isDark ? '#1e2433' : '#f1f5f9',
+                      borderWidth: 1.5,
+                      borderColor: isDark ? 'rgba(255, 255, 255, 0.12)' : '#e2e8f0',
+                    }}
+                  />
+                  <View style={{
+                    flex: 1,
+                    backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : '#f8fafc',
+                    paddingHorizontal: 16,
+                    paddingVertical: 12,
+                    borderRadius: 22,
+                    borderWidth: 1,
+                    borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#e2e8f0',
+                  }}>
+                    <Text style={{ color: isDark ? '#94a3b8' : '#64748b', fontSize: 14, fontFamily: 'Inter_400Regular' }}>
+                      Share your trade setup or thought...
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+
+                {/* Quick Action Shortcuts */}
                 <View style={{
-                  flex: 1,
-                  backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : '#f8fafc',
-                  paddingHorizontal: 14,
-                  paddingVertical: 10,
-                  borderRadius: 20,
-                  borderWidth: 1,
-                  borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#e2e8f0',
-                }}>
-                  <Text style={{ color: '#94a3b8', fontSize: 13.5, fontFamily: 'Inter_400Regular' }}>
-                    Share your trade setup or thought...
-                  </Text>
-                </View>
-                <View style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 18,
-                  backgroundColor: isDark ? '#ffffff' : '#0f172a',
+                  flexDirection: 'row',
                   alignItems: 'center',
-                  justifyContent: 'center',
+                  justifyContent: 'space-between',
+                  marginTop: 12,
+                  paddingTop: 10,
+                  borderTopWidth: 1,
+                  borderTopColor: isDark ? 'rgba(255, 255, 255, 0.06)' : '#f1f5f9',
                 }}>
-                  <Plus size={18} color={isDark ? '#000000' : '#ffffff'} />
+                  <TouchableOpacity
+                    activeOpacity={0.75}
+                    onPress={() => {
+                      hSelect();
+                      setCreatePostType('image');
+                      setCreatePostVisible(true);
+                      pickMedia();
+                    }}
+                    style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 4, paddingHorizontal: 8 }}
+                  >
+                    <IconlyImage size={18} color="#10b981" set="bold" />
+                    <Text style={{ fontSize: 12.5, fontFamily: 'Inter_600SemiBold', color: isDark ? '#cbd5e1' : '#475569' }}>
+                      Photo / Chart
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    activeOpacity={0.75}
+                    onPress={() => {
+                      hSelect();
+                      setCreatePostType('video');
+                      setCreatePostVisible(true);
+                      pickMedia();
+                    }}
+                    style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 4, paddingHorizontal: 8 }}
+                  >
+                    <IconlyVideo size={18} color="#f59e0b" set="bold" />
+                    <Text style={{ fontSize: 12.5, fontFamily: 'Inter_600SemiBold', color: isDark ? '#cbd5e1' : '#475569' }}>
+                      Video
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    activeOpacity={0.75}
+                    onPress={() => {
+                      hSelect();
+                      setCreatePostType('twit');
+                      setCreatePostVisible(true);
+                    }}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 6,
+                      backgroundColor: isDark ? '#ffffff' : '#0f172a',
+                      paddingVertical: 6,
+                      paddingHorizontal: 14,
+                      borderRadius: 14,
+                    }}
+                  >
+                    <Send size={13} color={isDark ? '#000000' : '#ffffff'} />
+                    <Text style={{ fontSize: 12, fontFamily: 'Inter_700Bold', color: isDark ? '#000000' : '#ffffff' }}>
+                      Post
+                    </Text>
+                  </TouchableOpacity>
                 </View>
-              </TouchableOpacity>
+              </View>
 
               {/* Feed Sub Tabs: For You, Following, Setups */}
               <View style={{
@@ -4010,32 +4045,7 @@ export default function DashboardScreen() {
         </View>
       </Modal>
 
-      {/* FAB - Post/Twit/Video */}
-      <TouchableOpacity
-        onPress={() => {
-          h(Haptics.ImpactFeedbackStyle.Light);
-          setCreatePostVisible(true);
-        }}
-        style={{
-          position: 'absolute',
-          bottom: Platform.OS === 'ios' ? 100 : 80,
-          right: 20,
-          width: 56,
-          height: 56,
-          borderRadius: 28,
-          backgroundColor: '#3b82f6',
-          alignItems: 'center',
-          justifyContent: 'center',
-          shadowColor: '#3b82f6',
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.4,
-          shadowRadius: 8,
-          elevation: 6,
-          zIndex: 1000,
-        }}
-      >
-        <Plus size={28} color="#ffffff" />
-      </TouchableOpacity>
+      
     </View>
   );
 }

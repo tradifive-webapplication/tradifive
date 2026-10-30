@@ -161,7 +161,7 @@ export const FeedCard: React.FC<FeedCardProps> = ({ post, onLike, onComment, onS
             <Image 
               source={{ uri: post.media_url }} 
               style={styles.media} 
-              resizeMode="cover"
+              resizeMode="contain"
             />
           )}
         </View>
@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
   container: {
     borderWidth: 1,
     borderRadius: 20,
-    marginHorizontal: 16,
+    marginHorizontal: 8,
     marginBottom: 16,
     paddingTop: 16,
     shadowColor: '#000',
@@ -258,7 +258,7 @@ const styles = StyleSheet.create({
   },
   mediaContainer: {
     width: '100%',
-    height: width * 0.75, // 4:3 aspect ratio roughly
+    height: 340, backgroundColor: "#080a10", // 4:3 aspect ratio roughly
     marginBottom: 12,
   },
   media: {
