@@ -156,9 +156,9 @@ export default function OrderHistoryScreen() {
             left: 0,
             right: 0,
             width: '100%',
-            height: insets.top + 160,
+            height: insets.top + 180,
             zIndex: 0,
-            opacity: 0.95,
+            opacity: 1,
           }}
           resizeMode="stretch"
           pointerEvents="none"
@@ -245,7 +245,7 @@ export default function OrderHistoryScreen() {
         }}
       >
         {headerStyle !== 'simple' && (
-          <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFillObject} />
+          <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFill} />
         )}
 
         <Animated.View
@@ -808,6 +808,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
   },
   card: {
     flex: 1,

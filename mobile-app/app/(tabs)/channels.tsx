@@ -277,6 +277,25 @@ export default function Channels() {
     <View style={{ flex: 1, backgroundColor: isDark ? theme.background : '#000' }}>
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
 
+      {/* ── TOP BACKSIDE GLOW / ARTWORK IMAGE ── */}
+      {headerStyle !== 'simple' && (
+        <Image
+          source={require('../../assets/images/top-glow.png')}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            width: '100%',
+            height: insets.top + 180,
+            zIndex: 0,
+            opacity: 0.95,
+          }}
+          resizeMode="stretch"
+          pointerEvents="none"
+        />
+      )}
+
       {/* ── COLLAPSIBLE HERO HEADER ── */}
       <Animated.View style={{
         backgroundColor: headerStyle === 'simple' ? card : 'transparent',
@@ -289,7 +308,7 @@ export default function Channels() {
           { translateY: scrollY.interpolate({ inputRange: [0, 80], outputRange: [0, -60], extrapolate: 'clamp' }) }
         ]
       }}>
-        {headerStyle !== 'simple' && <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFillObject} />}
+        {headerStyle !== 'simple' && <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFill} />}
         <View style={{ height: headerStyle === 'simple' ? 24 : 40, marginTop: headerStyle === 'simple' ? insets.top + 8 : insets.top + 24 }} />
         <Animated.View style={[StyleSheet.absoluteFillObject, {
           opacity: headerStyle === 'simple' ? 1 : scrollY.interpolate({ inputRange: [0, 140], outputRange: [1, 0], extrapolate: 'clamp' })

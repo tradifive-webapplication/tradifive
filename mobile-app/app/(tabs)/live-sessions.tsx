@@ -198,6 +198,7 @@ export default function LiveSessionsScreen() {
       <ComingSoonVeil
         featureTitle="Live Trading Sessions"
         subtitle="London & New York market open live streams and interactive webinars are launching soon."
+        topOffset={insets.top + 100}
       />
     </View>
     </UpgradeGate>

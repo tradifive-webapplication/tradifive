@@ -265,11 +265,7 @@ export default function Finance() {
                             <Text style={[s.statusTxt, { color: statusConf.color }]}>{statusConf.label}</Text>
                           </View>
                         </View>
-      <ComingSoonVeil
-        featureTitle="Finance & Payouts"
-        subtitle="Integrated trading wallet, automated profit payouts and financial reports are launching soon."
-      />
-    </View>
+      </View>
   );
 })
                 )}
@@ -295,6 +291,11 @@ export default function Finance() {
           </ScrollView>
         )}
       </View>
+      <ComingSoonVeil
+        featureTitle="Finance & Payouts"
+        subtitle="Integrated trading wallet, automated profit payouts and financial reports are launching soon."
+        topOffset={insets.top + 180}
+      />
     </View>
   );
 }

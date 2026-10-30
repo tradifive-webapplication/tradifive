@@ -355,6 +355,25 @@ export default function RiskGuardScreen() {
   return (
     <View style={[styles.container, { position: 'relative' }]}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
+
+      {/* ── TOP BACKSIDE GLOW / ARTWORK IMAGE ── */}
+      {headerStyle !== 'simple' && (
+        <Image
+          source={require('../../assets/images/top-glow.png')}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            width: '100%',
+            height: insets.top + 180,
+            zIndex: 0,
+            opacity: 0.95,
+          }}
+          resizeMode="stretch"
+          pointerEvents="none"
+        />
+      )}
       
       {/* ── SMART-REVEAL HEADER ── */}
       {headerStyle !== 'simple' && (

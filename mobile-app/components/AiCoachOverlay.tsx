@@ -310,6 +310,7 @@ USER CONTEXT: Mobile App User. KEEP RESPONSES VERY SHORT. Max 2-3 sentences.`;
           <ComingSoonVeil
             featureTitle="AI Trading Coach"
             subtitle="Automated real-time trade feedback, smart journaling analysis & risk guardian coaching are launching soon."
+            topOffset={0}
           />
       
       {/* Header */}

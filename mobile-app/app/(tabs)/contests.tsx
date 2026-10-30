@@ -206,6 +206,7 @@ export default function Contests() {
       <ComingSoonVeil
         featureTitle="Trading Contests"
         subtitle="Weekly and monthly trading tournaments with cash and funded account prizes are launching soon."
+        topOffset={insets.top + 100}
       />
     </View>
     </UpgradeGate>

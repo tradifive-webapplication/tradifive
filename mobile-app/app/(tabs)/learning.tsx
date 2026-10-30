@@ -176,6 +176,7 @@ export default function Learning() {
       <ComingSoonVeil
         featureTitle="Trading Academy"
         subtitle="Algorithmic trading masterclasses, video tutorials & quant tools are launching soon."
+        topOffset={insets.top + 100}
       />
     </View>
     </UpgradeGate>

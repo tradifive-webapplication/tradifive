@@ -173,17 +173,18 @@ export default function Portfolio() {
                     <View style={s.tradeFooter}>
                       <Text style={s.metaTxt}>{t.time}</Text>
                     </View>
-      <ComingSoonVeil
-        featureTitle="Multi-Broker Portfolio"
-        subtitle="Consolidated multi-broker portfolio tracking, equity curves & risk allocation are launching soon."
-      />
-    </View>
+      </View>
   );
 })}
             </View>
           )}
         </ScrollView>
       </View>
+      <ComingSoonVeil
+        featureTitle="Multi-Broker Portfolio"
+        subtitle="Consolidated multi-broker portfolio tracking, equity curves & risk allocation are launching soon."
+        topOffset={insets.top + 98}
+      />
     </View>
   );
 }

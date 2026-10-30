@@ -442,7 +442,7 @@ export default function AutoTradeSetupScreen() {
         }}
       >
         {headerStyle !== 'simple' && (
-          <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFillObject} />
+          <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFill} />
         )}
 
         {/* Content Row */}
