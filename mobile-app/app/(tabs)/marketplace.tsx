@@ -13,6 +13,7 @@ import {
   RefreshControl,
   TextInput,
   Animated,
+  DeviceEventEmitter,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -425,7 +426,7 @@ export default function DiscoverMarketplaceScreen() {
         }}
       >
         {headerStyle !== 'simple' && (
-          <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFillObject} />
+          <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFill} />
         )}
 
         <Animated.View

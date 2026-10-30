@@ -43,7 +43,7 @@ export const EXISTING_OFFICIAL_ALGOS: MarketplaceProduct[] = [
         id: "algo-fialgo-v1",
         name: "FiAlgo V1",
         category: "Algo",
-        badge: "⭐ Official Flagship EA · Gold Specialist",
+        badge: "⭐ Official Flagship EA",
         version: "v1.0.4 Live",
         timeframe: "1 Min (M1) / M15",
         pairs: ["XAUUSD (Gold)"],
@@ -51,7 +51,7 @@ export const EXISTING_OFFICIAL_ALGOS: MarketplaceProduct[] = [
         drawdown: "3.2%",
         monthlyReturn: "+18–42%",
         description: "The official Tradifive Expert Advisor for MetaTrader 5. Fully automated XAUUSD trading with 8 built-in risk modules, tick-by-tick breakout logic, real-time economic news filter (FOMC, CPI, NFP), and sub-3ms direct MT5 execution. Includes 3-Day Risk-Free Trial & 100% Profit Money-Back Guarantee.",
-        price: 99999,
+        price: 10000,
         currency: "₹",
         thumbnailUrl: "/fialgo-v1-box.png",
         creatorId: "tradifive-core",
@@ -66,7 +66,7 @@ export const EXISTING_OFFICIAL_ALGOS: MarketplaceProduct[] = [
             "Automated economic news filter (FOMC, CPI, NFP)",
             "3-Day Risk-Free Trial & 100% Profit Money-Back Guarantee",
             "Sub-3ms execution speed with zero-lag socket streaming",
-            "Lifetime license · One account · Unlimited MT5 updates"
+            "₹10,000 one-time setup fee + Daily 50/50% profit share"
         ]
     }
 ];
@@ -105,7 +105,7 @@ export default function Discover() {
     const [searchQuery, setSearchQuery] = useState("");
     const [marketplaceFilter, setMarketplaceFilter] = useState("All");
 
-    // Pull real store listings created via Creator MyStore and pre-populate with official algos at 99,999
+    // Pull real store listings created via Creator MyStore and pre-populate with official algos at 10,000
     const [storeListings, setStoreListings] = useState<MarketplaceProduct[]>(EXISTING_OFFICIAL_ALGOS);
     const [purchasedItems, setPurchasedItems] = useState<string[]>(() => {
         try {
@@ -209,7 +209,7 @@ export default function Discover() {
                         name: p.title,
                         category: p.product_type || 'Algo',
                         description: p.description,
-                        price: p.price || 99999,
+                        price: p.price || 10000,
                         currency: p.currency || '₹',
                         thumbnailUrl: p.thumbnail_url,
                         creatorId: p.creator_id,
@@ -260,9 +260,9 @@ export default function Discover() {
                 setStoreListings(EXISTING_OFFICIAL_ALGOS);
             }
         };
-
-        supabase.auth.getUser().then(({ data }) => {
-            if (data.user) fetchStoreData(data.user.id);
+        
+        supabase.auth.getUser().then(({data}) => {
+            if(data.user) fetchStoreData(data.user.id);
         });
     }, [navigate]);
 
@@ -276,7 +276,7 @@ export default function Discover() {
         setUtrNumber("");
         if (!product.isOfficial && product.creatorId !== 'tradifive-core') {
             const { data } = await supabase.from('profiles').select('payment_qr_url, payment_details').eq('id', product.creatorId).single();
-            if (data) setCreatorPaymentDetails(data);
+            if(data) setCreatorPaymentDetails(data);
         }
     };
 
@@ -284,7 +284,7 @@ export default function Discover() {
         const isFiAlgo = product.name?.includes("FiAlgo") || product.id?.includes("fialgo");
         const prefix = isFiAlgo ? "FIALGO-V1" : product.name?.includes("Scalper") ? "SCALP" : product.name?.includes("Swing") ? "SWING" : product.name?.includes("HFT") ? "HFT" : "GRID";
         const randomHex = Math.random().toString(36).substring(2, 6).toUpperCase();
-        const key = isFiAlgo
+        const key = isFiAlgo 
             ? `FIALGO-V1-99K-${randomHex}-${Date.now().toString().slice(-4)}`
             : `TRDF-${prefix}-${randomHex}-${Date.now().toString().slice(-4)}`;
         setGeneratedLicenseKey(key);
@@ -292,7 +292,7 @@ export default function Discover() {
             const updated = Array.from(new Set([...prev, product.id]));
             try {
                 localStorage.setItem("tradifive_purchased_algos", JSON.stringify(updated));
-            } catch (e) { }
+            } catch (e) {}
             return updated;
         });
         setPurchaseStep("activated");
@@ -300,21 +300,21 @@ export default function Discover() {
     };
 
     const submitPurchaseProof = async () => {
-        if (!purchaseModalProduct || !user) return;
-        if (!paymentProofFile) { toast.error("Please upload payment proof"); return; }
+        if(!purchaseModalProduct || !user) return;
+        if(!paymentProofFile) { toast.error("Please upload payment proof"); return; }
         setSubmittingPurchase(true);
-
+        
         let fileUrl = '';
         try {
             const fileExt = paymentProofFile.name.split('.').pop();
             const fileName = `${user.id}-proof-${Math.random()}.${fileExt}`;
             const { error: uploadError } = await supabase.storage.from('creator_assets').upload(fileName, paymentProofFile);
-            if (!uploadError) {
+            if(!uploadError) {
                 const { data: publicData } = supabase.storage.from('creator_assets').getPublicUrl(fileName);
                 fileUrl = publicData.publicUrl;
             }
-        } catch (e) { }
-
+        } catch(e) {}
+        
         const { error } = await supabase.from('creator_orders').insert({
             product_id: purchaseModalProduct.id,
             buyer_id: user.id,
@@ -325,7 +325,7 @@ export default function Discover() {
         } as any);
 
         setSubmittingPurchase(false);
-        if (error) {
+        if(error) {
             toast.error("Failed to submit order");
         } else {
             toast.success("Order submitted! Waiting for creator approval.");
@@ -461,14 +461,14 @@ export default function Discover() {
             <div className="w-full font-sans pb-32 bg-[#F8FAFC] dark:bg-[#000000] text-slate-800 dark:text-slate-100 h-full overflow-y-auto overflow-x-hidden relative scrollbar-hide select-none animate-pulse">
                 {/* Hero Section Skeleton */}
                 <div className="w-full relative overflow-hidden h-[240px] sm:h-[300px]">
-                    <div className="absolute inset-0 bg-slate-200/60 dark:bg-[#1E1E1E]" />
-                    <div className="relative z-10 pt-16 px-6 md:px-12 lg:px-20 max-w-7xl mx-auto flex flex-col items-center sm:items-start text-center sm:text-left space-y-4">
+                     <div className="absolute inset-0 bg-slate-200/60 dark:bg-[#1E1E1E]" />
+                     <div className="relative z-10 pt-16 px-6 md:px-12 lg:px-20 max-w-7xl mx-auto flex flex-col items-center sm:items-start text-center sm:text-left space-y-4">
                         <div className="h-10 sm:h-12 w-64 sm:w-96 bg-slate-300 dark:bg-slate-700 rounded-xl" />
                         <div className="h-5 sm:h-6 w-full max-w-2xl bg-slate-300 dark:bg-slate-700/60 rounded-md" />
                         <div className="h-5 sm:h-6 w-3/4 max-w-xl bg-slate-300 dark:bg-slate-700/60 rounded-md" />
-                    </div>
+                     </div>
                 </div>
-
+                
                 {/* Tabs Skeleton */}
                 <div className="w-full max-w-7xl mx-auto px-6 md:px-12 lg:px-20 mt-8 mb-6 flex gap-3 overflow-x-auto scrollbar-hide">
                     {[1, 2, 3, 4, 5].map((i) => (
@@ -546,8 +546,8 @@ export default function Discover() {
                                             key={category}
                                             onClick={() => handleTabChange(category)}
                                             className={`relative px-3 flex items-center gap-1.5 text-sm font-semibold transition-all shrink-0 ${isActive
-                                                ? "text-slate-900 dark:text-white font-bold"
-                                                : "text-[#5C5E66] hover:text-slate-900 dark:text-[#B5BAC1] dark:hover:text-white"
+                                                    ? "text-slate-900 dark:text-white font-bold"
+                                                    : "text-[#5C5E66] hover:text-slate-900 dark:text-[#B5BAC1] dark:hover:text-white"
                                                 }`}
                                         >
                                             {isLeaderboard && <IconlyTicketStar set="curved" primaryColor="currentColor" size={13} className={isActive ? "text-amber-500" : "text-slate-400"} stroke="bold" />}
@@ -693,17 +693,17 @@ export default function Discover() {
                             <h2 className="text-xl font-bold text-[#060607] dark:text-[#F2F3F5]">
                                 People
                             </h2>
-                            <div className="grid grid-cols-2 min-[440px]:grid-cols-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                                 {finalPeople.map((person, index) => {
                                     const userSlug = person.username;
                                     return (
                                         <div
                                             key={person.id}
-                                            className="relative group bg-[#FFFFFF] dark:bg-[#1E1E1E] rounded-2xl p-3 sm:p-4 border border-slate-200/60 dark:border-white/5 shadow-[0_2px_4px_rgba(0,0,0,0.02)] hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex flex-col items-center sm:items-stretch justify-between text-center sm:text-left h-auto sm:h-[136px]"
+                                            className="relative group bg-[#FFFFFF] dark:bg-[#1E1E1E] rounded-2xl p-4 border border-slate-200/60 dark:border-white/5 shadow-[0_2px_4px_rgba(0,0,0,0.02)] hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex flex-col justify-between h-[136px]"
                                         >
-                                            {/* Profile Info: Centered column on mobile, Row on desktop */}
-                                            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 w-full z-10">
-                                                <div className="w-12 h-12 sm:w-10 sm:h-10 rounded-full overflow-hidden bg-white border border-slate-100 dark:border-slate-800 shadow-sm shrink-0">
+                                            {/* Top Row: Avatar + Name + Follow Button */}
+                                            <div className="flex items-center gap-3 w-full z-10">
+                                                <div className="w-10 h-10 rounded-full overflow-hidden bg-white border border-slate-100 dark:border-slate-800 shadow-sm shrink-0">
                                                     <img
                                                         src={person.avatar || '/default-avatar.svg'}
                                                         alt={person.name}
@@ -711,16 +711,15 @@ export default function Discover() {
                                                         onError={handleImageError}
                                                     />
                                                 </div>
-                                                <div className="flex-grow min-w-0 w-full sm:w-auto">
-                                                    <span className="text-xs sm:text-sm font-extrabold text-[#060607] dark:text-[#F2F3F5] leading-tight line-clamp-1 group-hover:text-blue-500 transition-colors block">
+                                                <div className="flex-grow min-w-0">
+                                                    <span className="text-sm font-extrabold text-[#060607] dark:text-[#F2F3F5] leading-tight line-clamp-1 group-hover:text-blue-500 transition-colors">
                                                         {person.name}
                                                     </span>
-                                                    <p className="text-[10px] sm:text-[11px] font-semibold text-[#4E5058] dark:text-[#B5BAC1] truncate block mt-0.5">
+                                                    <p className="text-[11px] font-semibold text-[#4E5058] dark:text-[#B5BAC1] truncate">
                                                         {person.handle}
                                                     </p>
                                                 </div>
-                                                {/* Desktop Follow Button */}
-                                                <div className="hidden sm:block shrink-0">
+                                                <div className="shrink-0">
                                                     <FollowButton
                                                         isFollowing={addedUsers.includes(person.id)}
                                                         onToggleFollow={(e) => handleAddUser(e, person.id)}
@@ -729,18 +728,8 @@ export default function Discover() {
                                                 </div>
                                             </div>
 
-                                            {/* Mobile Follow Button */}
-                                            <div className="sm:hidden w-full mt-2.5 z-20">
-                                                <FollowButton
-                                                    className="w-full py-1 text-[10px]"
-                                                    isFollowing={addedUsers.includes(person.id)}
-                                                    onToggleFollow={(e) => handleAddUser(e, person.id)}
-                                                    disabled={addedUsers.includes(person.id)}
-                                                />
-                                            </div>
-
-                                            {/* Bottom Row: Stats (Desktop Only) */}
-                                            <div className="hidden sm:block space-y-1.5 z-10">
+                                            {/* Bottom Row: Stats & Mutual Connections */}
+                                            <div className="space-y-1.5 z-10">
                                                 {/* Stats grid */}
                                                 <div className="grid grid-cols-2 gap-2 text-xs font-semibold text-[#4E5058] dark:text-[#B5BAC1]">
                                                     <div className="bg-slate-50 dark:bg-white/5 rounded-lg px-2.5 py-1 border border-slate-100 dark:border-white/5 flex justify-between items-center">
@@ -766,6 +755,14 @@ export default function Discover() {
                         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-4 pt-2">
                             <div className="flex items-center justify-between">
                                 <div>
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <span className="text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                                            Institutional Algos
+                                        </span>
+                                        <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500">
+                                            MT5 Compatible · Lifetime License
+                                        </span>
+                                    </div>
                                     <h2 className="text-xl font-bold text-slate-900 dark:text-[#F2F3F5] tracking-tight">
                                         Featured Trading Algorithms
                                     </h2>
@@ -865,8 +862,13 @@ export default function Discover() {
 
                                             {/* Price & Action Footer */}
                                             <div className="pt-3 border-t border-slate-100 dark:border-white/5 flex items-center justify-between mt-auto">
-                                                <div className="text-xl font-black text-slate-900 dark:text-white tracking-tight">
-                                                    {algo.currency}{algo.price.toLocaleString("en-IN")}
+                                                <div>
+                                                    <span className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500 block leading-none mb-1">
+                                                        ONE-TIME LICENSE
+                                                    </span>
+                                                    <div className="text-xl font-black text-slate-900 dark:text-white tracking-tight">
+                                                        {algo.currency}{algo.price.toLocaleString("en-IN")}
+                                                    </div>
                                                 </div>
 
                                                 {isPurchased ? (
@@ -882,7 +884,7 @@ export default function Discover() {
                                                         onClick={() => handlePurchase(algo)}
                                                         className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[12px] font-black shadow-md shadow-blue-500/25 transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer"
                                                     >
-                                                        <span>Buy</span>
+                                                        <span>Buy License</span>
                                                         <ArrowRight size={13} strokeWidth={2.5} />
                                                     </button>
                                                 )}
@@ -976,8 +978,8 @@ export default function Discover() {
                                             key={cat}
                                             onClick={() => setMarketplaceFilter(cat)}
                                             className={`px-4 py-1.5 rounded-full text-xs font-extrabold transition-all shrink-0 border ${marketplaceFilter === cat
-                                                ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-slate-900 dark:border-white shadow-sm'
-                                                : 'bg-white dark:bg-[#1E1E1E] text-slate-600 dark:text-[#B5BAC1] border-slate-200/80 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20'
+                                                    ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-slate-900 dark:border-white shadow-sm'
+                                                    : 'bg-white dark:bg-[#1E1E1E] text-slate-600 dark:text-[#B5BAC1] border-slate-200/80 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20'
                                                 }`}
                                         >
                                             {cat} {count > 0 ? `(${count})` : ''}
@@ -995,19 +997,21 @@ export default function Discover() {
                                     return (
                                         <div
                                             key={product.id}
-                                            className={`rounded-[22px] p-5 flex flex-col justify-between hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 relative group min-h-[400px] ${isFlagship
-                                                ? 'border-2 border-blue-400/80 bg-gradient-to-b from-blue-500/[0.04] to-white dark:bg-none dark:bg-[#1E1E1E] dark:border-blue-500/40 shadow-sm'
-                                                : 'border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:shadow-none'
-                                                }`}
+                                            className={`rounded-[22px] p-5 flex flex-col justify-between hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 relative group min-h-[400px] ${
+                                                isFlagship
+                                                    ? 'border-2 border-blue-400/80 bg-gradient-to-b from-blue-500/[0.04] to-white dark:bg-none dark:bg-[#1E1E1E] dark:border-blue-500/40 shadow-sm'
+                                                    : 'border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:shadow-none'
+                                            }`}
                                         >
                                             <div>
                                                 {/* Top Row: Category Badge + Star Rating */}
                                                 <div className="flex items-center justify-between gap-2 mb-3">
                                                     <div className="flex items-center gap-1.5 flex-wrap">
-                                                        <span className={`text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-0.5 rounded-full border ${isFlagship
-                                                            ? 'bg-blue-600 text-white border-blue-600'
-                                                            : 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20'
-                                                            }`}>
+                                                        <span className={`text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-0.5 rounded-full border ${
+                                                            isFlagship
+                                                                ? 'bg-blue-600 text-white border-blue-600'
+                                                                : 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20'
+                                                        }`}>
                                                             {isFlagship ? 'MAIN EA' : product.category}
                                                         </span>
                                                         {product.badge && (
@@ -1094,9 +1098,14 @@ export default function Discover() {
 
                                             {/* Price & Action Row */}
                                             <div className="pt-3 border-t border-slate-100 dark:border-white/5 flex items-center justify-between mt-auto">
-                                                <div className="text-xl font-black text-slate-900 dark:text-white tracking-tight flex items-baseline gap-0.5">
-                                                    <span className="text-base text-slate-500 font-bold">{product.currency || "₹"}</span>
-                                                    <span>{Number(product.price || 99999).toLocaleString("en-IN")}</span>
+                                                <div>
+                                                    <span className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500 block leading-none mb-1">
+                                                        ONE-TIME LICENSE
+                                                    </span>
+                                                    <div className="text-xl font-black text-slate-900 dark:text-white tracking-tight flex items-baseline gap-0.5">
+                                                        <span className="text-base text-slate-500 font-bold">{product.currency || "₹"}</span>
+                                                        <span>{Number(product.price || 10000).toLocaleString("en-IN")}</span>
+                                                    </div>
                                                 </div>
 
                                                 <div className="flex items-center gap-2">
@@ -1278,8 +1287,13 @@ export default function Discover() {
 
                             {/* Bottom Action Footer */}
                             <div className="pt-4 border-t border-slate-100 dark:border-white/10 flex items-center justify-between mt-1">
-                                <div className="text-2xl font-black text-slate-900 dark:text-white">
-                                    {detailsModalProduct.currency || "₹"}{Number(detailsModalProduct.price || 99999).toLocaleString("en-IN")}
+                                <div>
+                                    <span className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500 block leading-none mb-1">
+                                        LIFETIME ACCESS
+                                    </span>
+                                    <div className="text-2xl font-black text-slate-900 dark:text-white">
+                                        {detailsModalProduct.currency || "₹"}{Number(detailsModalProduct.price || 10000).toLocaleString("en-IN")}
+                                    </div>
                                 </div>
 
                                 <div className="flex items-center gap-2">
@@ -1429,7 +1443,7 @@ export default function Discover() {
                                         </div>
                                         <div className="flex items-baseline justify-between">
                                             <span className="text-2xl font-black text-slate-900 dark:text-white">
-                                                {purchaseModalProduct.currency || "₹"}{Number(purchaseModalProduct.price || 99999).toLocaleString("en-IN")}
+                                                {purchaseModalProduct.currency || "₹"}{Number(purchaseModalProduct.price || 10000).toLocaleString("en-IN")}
                                             </span>
                                             <span className="text-xs text-slate-500 dark:text-slate-400">Includes 18% GST</span>
                                         </div>

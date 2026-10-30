@@ -43,7 +43,7 @@ export const EXISTING_OFFICIAL_ALGOS: MarketplaceProduct[] = [
         id: "algo-fialgo-v1",
         name: "FiAlgo V1",
         category: "Algo",
-        badge: "⭐ Official Flagship EA · Gold Specialist",
+        badge: "⭐ Official Flagship EA",
         version: "v1.0.4 Live",
         timeframe: "1 Min (M1) / M15",
         pairs: ["XAUUSD (Gold)"],
