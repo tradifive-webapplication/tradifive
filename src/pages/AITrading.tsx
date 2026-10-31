@@ -995,86 +995,107 @@ MagicNumber=789104
 
   return (
     <DashboardLayout>
-      <div className="max-w-3xl mx-auto w-full px-0 sm:px-6 pt-3 pb-32 sm:py-6 space-y-4 sm:space-y-5">
+      <div className="w-full max-w-[1580px] mx-auto px-2 sm:px-6 lg:px-8 xl:px-10 pt-2 pb-24 space-y-6">
 
-        {/* ── HEADER (CLEAN & COMPACT ON ALL SCREENS) ── */}
-        <div className="px-1 sm:px-0 flex items-center justify-between gap-3 pb-3 border-b border-slate-200/80 dark:border-white/10">
+        {/* ── HEADER (EXPANSIVE BIG-TECH ENTERPRISE CONSOLE) ── */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200/80 dark:border-white/10">
           <div>
-            <h1 className="text-lg sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+                Enterprise Setup Console
+              </span>
+              <span className="text-[11px] font-mono text-slate-400 dark:text-slate-500 hidden sm:inline">
+                Build v1.0.4 · MetaTrader 5 Bridge
+              </span>
+            </div>
+            <h1 className="text-xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
               AI Trading Setup
             </h1>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              Connect your MT5 broker and activate automated trading.
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+              Connect your MT5 broker, download the FiAlgo V1 Expert Advisor, and activate automated execution.
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={() => setShowCalculator(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 text-xs font-semibold text-slate-700 dark:text-slate-200 transition-colors shrink-0 cursor-pointer"
-            title="Open Profit Calculator"
-          >
-            <Calculator size={13} className="text-blue-500" />
-            <span>Calculator</span>
-          </button>
+          <div className="flex items-center gap-2.5 shrink-0">
+            <span className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span>&lt; 3ms Direct Relay</span>
+            </span>
+
+            <button
+              type="button"
+              onClick={() => setShowCalculator(true)}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 text-xs font-bold transition-all shrink-0 cursor-pointer shadow-xs active:scale-95"
+              title="Open Profit Simulator"
+            >
+              <Calculator size={13} className="text-amber-400 dark:text-blue-600" />
+              <span>Profit Simulator</span>
+            </button>
+          </div>
         </div>
 
-        {/* ── SLEEK PROGRESS BAR (MOBILE-OPTIMIZED) ── */}
-        <div className="px-1 sm:px-0 space-y-2">
+        {/* ── SLEEK PROGRESS BAR & MILESTONES (FULL-WIDTH BIG-TECH CONSOLE) ── */}
+        <div className="space-y-2.5">
           {/* Progress Header Meta */}
           <div className="flex items-center justify-between text-xs px-0.5">
-            <span className="font-semibold text-slate-700 dark:text-slate-300">
-              Step {activeStep} of 4: {activeStep === 1 ? "Connect MT5" : activeStep === 2 ? "Download FiAlgo" : activeStep === 3 ? "License Payment" : "Activate License"}
-            </span>
-            <span className="font-bold font-mono text-slate-900 dark:text-white text-xs">
-              {activeStep === 1 ? "25%" : activeStep === 2 ? "50%" : activeStep === 3 ? "75%" : "100%"}
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-slate-900 dark:text-white">
+                Step {activeStep} of 4:
+              </span>
+              <span className="text-slate-600 dark:text-slate-400 font-medium">
+                {activeStep === 1 ? "Connect MT5 Broker" : activeStep === 2 ? "Download FiAlgo V1 & Presets" : activeStep === 3 ? "License Setup Payment" : "Activate Hardware-Bound Key"}
+              </span>
+            </div>
+            <span className="font-mono font-bold text-blue-600 dark:text-blue-400 text-xs bg-blue-50 dark:bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-200/60 dark:border-blue-500/20">
+              {activeStep === 1 ? "25% Complete" : activeStep === 2 ? "50% Complete" : activeStep === 3 ? "75% Complete" : "100% Ready"}
             </span>
           </div>
 
           {/* Progress Bar Track */}
-          <div className="relative w-full h-1.5 bg-slate-100 dark:bg-white/10 rounded-full overflow-hidden">
+          <div className="relative w-full h-2 bg-slate-100 dark:bg-white/10 rounded-full overflow-hidden">
             <div 
-              className="h-full bg-blue-600 dark:bg-blue-500 rounded-full transition-all duration-300 ease-out"
+              className="h-full bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-500 dark:to-indigo-400 rounded-full transition-all duration-300 ease-out"
               style={{ width: activeStep === 1 ? "25%" : activeStep === 2 ? "50%" : activeStep === 3 ? "75%" : "100%" }}
             />
           </div>
 
-          {/* 4 Step Milestone Tabs (Clean & touch-friendly on mobile) */}
-          <div className="grid grid-cols-4 gap-1.5 pt-1 text-xs">
+          {/* 4 Step Milestone Tabs */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-xs">
             <button
               type="button"
               onClick={() => setActiveStep(1)}
-              className={`py-1.5 px-1 sm:px-2 rounded-xl font-semibold flex items-center justify-center gap-1 transition-all cursor-pointer text-center text-[11px] sm:text-xs truncate ${
+              className={`py-2 px-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer text-center text-xs truncate ${
                 activeStep === 1
-                  ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs"
+                  ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs ring-2 ring-blue-500/20"
                   : ibVerified
                     ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-500/20"
                     : "bg-slate-100 text-slate-500 hover:text-slate-900 dark:bg-white/5 dark:text-slate-400"
               }`}
             >
-              <span>{ibVerified ? "✓" : "1."} Connect</span>
+              <span>{ibVerified ? "✓" : "1."} Connect MT5</span>
             </button>
 
             <button
               type="button"
               onClick={() => setActiveStep(2)}
-              className={`py-1.5 px-1 sm:px-2 rounded-xl font-semibold flex items-center justify-center gap-1 transition-all cursor-pointer text-center text-[11px] sm:text-xs truncate ${
+              className={`py-2 px-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer text-center text-xs truncate ${
                 activeStep === 2
-                  ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs"
+                  ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs ring-2 ring-blue-500/20"
                   : hasDownloaded
                     ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-500/20"
                     : "bg-slate-100 text-slate-500 hover:text-slate-900 dark:bg-white/5 dark:text-slate-400"
               }`}
             >
-              <span>{hasDownloaded ? "✓" : "2."} Download</span>
+              <span>{hasDownloaded ? "✓" : "2."} Download EA</span>
             </button>
 
             <button
               type="button"
               onClick={() => setActiveStep(3)}
-              className={`py-1.5 px-1 sm:px-2 rounded-xl font-semibold flex items-center justify-center gap-1 transition-all cursor-pointer text-center text-[11px] sm:text-xs truncate ${
+              className={`py-2 px-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer text-center text-xs truncate ${
                 activeStep === 3
-                  ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs"
+                  ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs ring-2 ring-blue-500/20"
                   : paymentStatus === "approved"
                     ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-500/20"
                     : paymentStatus === "pending"
@@ -1082,26 +1103,30 @@ MagicNumber=789104
                       : "bg-slate-100 text-slate-500 hover:text-slate-900 dark:bg-white/5 dark:text-slate-400"
               }`}
             >
-              <span>{paymentStatus === "approved" ? "✓" : paymentStatus === "pending" ? "⌛" : "3."} Pay ₹99k</span>
+              <span>{paymentStatus === "approved" ? "✓" : paymentStatus === "pending" ? "⌛" : "3."} Pay Setup Fee</span>
             </button>
 
             <button
               type="button"
               onClick={() => setActiveStep(4)}
-              className={`py-1.5 px-1 sm:px-2 rounded-xl font-semibold flex items-center justify-center gap-1 transition-all cursor-pointer text-center text-[11px] sm:text-xs truncate ${
+              className={`py-2 px-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer text-center text-xs truncate ${
                 activeStep === 4
-                  ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs"
+                  ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs ring-2 ring-blue-500/20"
                   : (hasPaid && ibVerified)
                     ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-500/20"
                     : "bg-slate-100 text-slate-500 hover:text-slate-900 dark:bg-white/5 dark:text-slate-400"
               }`}
             >
-              <span>{(hasPaid && ibVerified) ? "✓" : "4."} Activate</span>
+              <span>{(hasPaid && ibVerified) ? "✓" : "4."} Activate Key</span>
             </button>
           </div>
         </div>
 
-        {/* ── STEP 1: ONLY SHOWN WHEN activeStep === 1 ── */}
+        {/* ── EXPANSIVE 2-COLUMN BIG-TECH CONSOLE GRID (8 COLS MAIN + 4 COLS SIDEBAR) ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+          {/* MAIN 8-COLUMN SETUP WORKSPACE */}
+          <div className="lg:col-span-8 space-y-6">
+            {/* ── STEP 1: ONLY SHOWN WHEN activeStep === 1 ── */}
         {activeStep === 1 && (
           <motion.div
             key="step1"
@@ -3035,11 +3060,212 @@ MagicNumber=789104
             </div>
           </motion.div>
         )}
-
-
       </div>
 
-      {/* ── PHOTO PROOF PREVIEW MODAL LIGHTBOX ── */}
+      {/* ── ENTERPRISE SIDEBAR TELEMETRY & SPECIFICATIONS (4 COLS) ── */}
+      <div className="lg:col-span-4 space-y-5 lg:sticky lg:top-6">
+        
+        {/* CARD 1: FIALGO V1 PRODUCT & ALGORITHM SPECIFICATIONS */}
+        <div className="rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#161618] p-4 sm:p-5 shadow-xs space-y-4">
+          <div className="flex items-start justify-between gap-3">
+            <div className="space-y-1 min-w-0 flex-1">
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 truncate">
+                  System Active · v1.0.4
+                </span>
+              </div>
+              <h3 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight truncate">
+                FiAlgo V1 Institutional
+              </h3>
+              <p className="text-[11.5px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                Automated Gold (XAUUSD) M1 High-Precision Basket Algorithm.
+              </p>
+            </div>
+
+            <div className="shrink-0 p-1.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200/80 dark:border-white/5">
+              <img
+                src="/fialgo-v1-box.png"
+                alt="FiAlgo V1 3D Box"
+                className="h-16 w-auto object-contain drop-shadow-md"
+              />
+            </div>
+          </div>
+
+          {/* Algorithmic Key Metrics */}
+          <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-100 dark:border-white/5 text-xs">
+            <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/5">
+              <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Asset Pair</span>
+              <strong className="text-xs text-slate-900 dark:text-white mt-0.5 block font-bold">XAUUSD (Gold)</strong>
+              <span className="text-[9.5px] text-slate-500">Spot USD Structure</span>
+            </div>
+
+            <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/5">
+              <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Timeframe</span>
+              <strong className="text-xs text-slate-900 dark:text-white mt-0.5 block font-bold">1-Min (M1)</strong>
+              <span className="text-[9.5px] text-slate-500">Tick-Level Feed</span>
+            </div>
+
+            <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/5">
+              <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Relay Latency</span>
+              <strong className="text-xs text-emerald-600 dark:text-emerald-400 mt-0.5 flex items-center gap-1 font-bold">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                &lt; 3.0ms Direct
+              </strong>
+              <span className="text-[9.5px] text-slate-500">Zero Server Relay</span>
+            </div>
+
+            <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/5">
+              <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Engine Mode</span>
+              <strong className="text-xs text-slate-900 dark:text-white mt-0.5 block font-bold">Dynamic Basket</strong>
+              <span className="text-[9.5px] text-slate-500">Adaptive Protection</span>
+            </div>
+          </div>
+
+          {/* Quick Binary Actions */}
+          <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-100 dark:border-white/5">
+            <button
+              type="button"
+              onClick={handleDownloadEA}
+              className="py-2 px-2.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 transition-all flex items-center justify-center gap-1.5 shadow-xs cursor-pointer active:scale-95"
+              title="Download FiAlgo .ex5"
+            >
+              <Download size={12} />
+              <span>Download EA</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleDownloadPreset}
+              className="py-2 px-2.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-800 dark:bg-white/10 dark:hover:bg-white/15 dark:text-white border border-slate-200/80 dark:border-white/10 transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
+              title="Download .set preset"
+            >
+              <Sliders size={12} />
+              <span>Chart Preset</span>
+            </button>
+          </div>
+        </div>
+
+        {/* CARD 2: RISK GUARD & CAPITAL DISCIPLINE */}
+        <div className="rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#161618] p-4 sm:p-5 shadow-xs space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                <Shield size={14} />
+              </div>
+              <span className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                Safety &amp; Risk Guard
+              </span>
+            </div>
+            <span className="text-[10px] font-mono font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+              Disciplined
+            </span>
+          </div>
+
+          <div className="space-y-2 text-xs">
+            <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/5">
+              <span className="text-slate-500 dark:text-slate-400">Min. Deposit:</span>
+              <span className="font-mono font-bold text-slate-900 dark:text-white">$500.00 USD</span>
+            </div>
+
+            <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/5">
+              <span className="text-slate-500 dark:text-slate-400">Recommended Base Lot:</span>
+              <span className="font-mono font-bold text-slate-900 dark:text-white">0.01 per $500</span>
+            </div>
+
+            <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/5">
+              <span className="text-slate-500 dark:text-slate-400">Hard Daily Stop:</span>
+              <span className="font-mono font-bold text-rose-600 dark:text-rose-400">Max 3.0% Drawdown</span>
+            </div>
+
+            <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/5">
+              <span className="text-slate-500 dark:text-slate-400">High-Impact News Filter:</span>
+              <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">±30 Min Blackout Active</span>
+            </div>
+          </div>
+
+          {/* Profit Simulator CTA */}
+          <button
+            type="button"
+            onClick={() => setShowCalculator(true)}
+            className="w-full py-2.5 px-3 rounded-xl text-xs font-bold bg-blue-50 hover:bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 dark:text-blue-300 border border-blue-200/80 dark:border-blue-500/20 flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-2xs active:scale-95"
+          >
+            <Calculator size={13} className="text-blue-600 dark:text-blue-400" />
+            <span>Simulate Returns in Calculator →</span>
+          </button>
+        </div>
+
+        {/* CARD 3: BROKER & PARTNER TELEMETRY */}
+        <div className="rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#161618] p-4 sm:p-5 shadow-xs space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+              Partner Broker Status
+            </span>
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+              ibVerified
+                ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-500/20"
+                : "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 border border-amber-500/20"
+            }`}>
+              {ibVerified ? "Connected ✓" : "Pending Verification"}
+            </span>
+          </div>
+
+          <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/5 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <BrokerLogo id={selectedBroker} size={16} />
+              <div>
+                <h5 className="text-xs font-bold text-slate-900 dark:text-white">{currentBroker.name}</h5>
+                <p className="text-[10px] text-slate-500">{currentBroker.tagline}</p>
+              </div>
+            </div>
+            <span className="text-[11px] font-mono font-bold text-slate-700 dark:text-slate-300">
+              IB: {currentBroker.ibNumber || "27863221"}
+            </span>
+          </div>
+
+          {/* WebRequest Endpoint helper */}
+          <div className="p-2.5 rounded-xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200/60 dark:border-blue-500/20 space-y-1.5 text-xs">
+            <div className="flex items-center justify-between">
+              <span className="text-[10.5px] font-bold text-slate-700 dark:text-slate-300">MT5 WebRequest URL</span>
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText("https://rylwyxhupwpwsdbvuoej.supabase.co");
+                  toast.success("Webhook URL Copied!");
+                }}
+                className="text-[10px] font-bold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 cursor-pointer"
+              >
+                <Copy size={10} />
+                <span>Copy</span>
+              </button>
+            </div>
+            <code className="text-[10.5px] font-mono font-semibold text-blue-600 dark:text-blue-400 truncate block select-all">
+              https://rylwyxhupwpwsdbvuoej.supabase.co
+            </code>
+          </div>
+
+          {/* Fast-Track Desk Contact */}
+          <div className="pt-1 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+            <span>Need fast approval?</span>
+            <a
+              href={`https://wa.me/?text=${encodeURIComponent(
+                `Hello TradiFive Desk! I am setting up FiAlgo V1 for MT5 account #${mt5Account || ""}. Please assist.`
+              )}`}
+              target="_blank"
+              rel="noreferrer"
+              className="font-bold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1"
+            >
+              <MessageCircle size={12} />
+              <span>WhatsApp Desk →</span>
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  {/* ── PHOTO PROOF PREVIEW MODAL LIGHTBOX ── */}
       <AnimatePresence>
         {showProofPreviewModal && proofFile && (
           <div 

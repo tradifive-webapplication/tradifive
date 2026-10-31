@@ -610,13 +610,20 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
               <div className="flex items-center gap-2 sm:gap-3">
                 {headerActions}
                 <NotificationHub />
-                <button
-                  onClick={() => setIsAIOpen(!isAIOpen)}
-                  className="hidden md:flex items-center justify-center gap-2 px-4 h-10 rounded-full bg-white dark:bg-[#1E1E1E] border border-slate-200 dark:border-white/5 text-slate-700 dark:text-slate-300 font-bold text-[13px] transition-all shadow-sm hover:bg-slate-50 dark:hover:bg-[#222] hover:text-slate-900 dark:hover:text-white active:scale-95 select-none"
-                  title="Toggle AI Coach"
-                >
-                  <Sparkles size={16} strokeWidth={2.5} /> <span>AI Coach</span>
-                </button>
+                <div className="relative hidden md:inline-flex items-center group">
+                  <button
+                    type="button"
+                    disabled
+                    aria-disabled="true"
+                    className="flex items-center justify-center gap-2 px-4 h-10 rounded-full bg-white dark:bg-[#1E1E1E] border border-slate-200 dark:border-white/5 text-slate-400 dark:text-slate-500 font-bold text-[13px] shadow-sm select-none filter blur-[1.5px] opacity-70 cursor-not-allowed pointer-events-none"
+                    title="AI Coach (Coming Soon)"
+                  >
+                    <Sparkles size={16} strokeWidth={2.5} /> <span>AI Coach</span>
+                  </button>
+                  <span className="absolute -top-1.5 -right-1 px-1.5 py-0.5 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[8.5px] font-black uppercase tracking-wider shadow pointer-events-none">
+                    Soon
+                  </span>
+                </div>
               </div>
             </header>
 
