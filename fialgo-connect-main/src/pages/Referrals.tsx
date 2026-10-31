@@ -4,11 +4,18 @@ import {
   Users, Share2, Copy, CheckCircle2, Gift, DollarSign, ArrowRight,
   ShieldCheck, Sparkles, Send, ExternalLink, HelpCircle, ChevronRight,
   TrendingUp, Wallet, Check, AlertCircle, MessageCircle, QrCode, X,
-  Trophy, Award, Zap, Phone, Landmark, Percent, Clock
+  Trophy, Award, Zap, Phone, Landmark, Percent, Clock, UserPlus, ArrowUpRight
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
+
+// ── Consistent Card Box & KPI Box Styles (Shared with Dashboard, AI Journal, & RiskGuard) ──
+const kpiBoxStyle = "min-h-[126px] p-4 sm:px-5 sm:py-4 rounded-[22px] border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] flex flex-col justify-between transition-all duration-300 dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:rounded-[20px] dark:shadow-none hover:scale-[1.01] hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#D0D0D5] dark:hover:shadow-none overflow-hidden";
+
+const cardBoxStyle = "p-5 sm:p-6 rounded-[22px] border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:rounded-[20px] dark:shadow-none transition-all";
+
+const innerBoxStyle = "p-3.5 sm:p-4 rounded-[16px] bg-[#F4F6F9]/80 dark:bg-white/[0.03] border border-slate-200/70 dark:border-white/5";
 
 // ─── PARTNERSHIP TIERS CONFIGURATION ──────────────────────────────────────────
 const AFFILIATE_TIERS = [
@@ -267,121 +274,167 @@ Please verify and process my remittance. Thank you!`;
   const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&margin=10&data=${encodeURIComponent(referralLink || "https://www.tradifive.in")}`;
 
   return (
-    <DashboardLayout>
-      <div className="w-full max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6 sm:space-y-8 select-none font-sans">
+    <DashboardLayout breadcrumbs={[{ label: 'Affiliate & Referrals' }]}>
+      <div className="w-full max-w-[1600px] mx-auto px-3 sm:px-6 md:px-8 pb-12 space-y-5 select-none font-sans min-h-screen">
         
-        {/* ── 1. EXPANSIVE HEADER & PARTNER PROGRAM BADGE ── */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 sm:p-7 rounded-2xl bg-white dark:bg-[#161618] border border-slate-200/80 dark:border-white/10 shadow-xs">
-          <div className="space-y-1.5">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span>TradiFive Partner Network · Live</span>
-              </span>
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-500/20">
-                <ShieldCheck size={12} />
-                <span>Weekly Payouts Every {settlementDay}</span>
-              </span>
+        {/* ── 1. SIGNATURE HEADER & PARTNER NETWORK STRIP ── */}
+        <div className={cardBoxStyle}>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="space-y-1.5">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span>TradiFive Partner Network · Live</span>
+                </span>
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-mono font-extrabold bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20">
+                  <ShieldCheck size={12} />
+                  <span>Weekly Payouts Every {settlementDay}</span>
+                </span>
+              </div>
+
+              <h1
+                className="text-[24px] sm:text-[26px] font-extrabold text-slate-900 dark:text-white tracking-tight"
+                style={{ fontFamily: "'Inter', sans-serif" }}
+              >
+                Partner &amp; Referral Program
+              </h1>
+              <p className="text-xs sm:text-[13px] text-slate-500 dark:text-slate-400 font-medium max-w-2xl leading-relaxed">
+                Earn up to <strong className="text-slate-800 dark:text-slate-200 font-bold">₹2,000 instant cash bonus</strong> per trader + <strong className="text-emerald-600 dark:text-emerald-400 font-bold">10% weekly profit share overrides</strong> when friends activate FiAlgo V1 automated trading.
+              </p>
             </div>
 
-            <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-              Partner &amp; Referral Program
-            </h1>
-            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-2xl leading-relaxed">
-              Earn up to <strong className="text-slate-800 dark:text-slate-200 font-bold">₹2,000 instant cash bonus</strong> per trader + <strong className="text-emerald-600 dark:text-emerald-400 font-bold">10% weekly profit share overrides</strong> when friends activate FiAlgo V1 automated trading.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2.5 shrink-0">
-            <button
-              type="button"
-              onClick={handleRequestPayout}
-              className="w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-xs flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-95"
-            >
-              <Wallet size={15} />
-              <span>Withdraw Commissions</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowQrModal(true)}
-              className="p-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 hover:bg-slate-100 text-slate-700 dark:text-slate-300 transition-all cursor-pointer"
-              title="Show QR Code for mobile scanning"
-            >
-              <QrCode size={18} />
-            </button>
+            <div className="flex items-center gap-2.5 shrink-0">
+              <button
+                type="button"
+                onClick={handleRequestPayout}
+                className="h-[38px] px-4 rounded-[14px] border-2 border-white dark:border-white/5 bg-gradient-to-b from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white shadow-[0_4px_7px_-5px_rgba(16,185,129,0.4),0_0_0_2px_#059669] text-xs font-bold tracking-tight cursor-pointer hover:shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-1.5 whitespace-nowrap"
+              >
+                <Wallet size={15} />
+                <span>Withdraw Commissions</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowQrModal(true)}
+                className="h-[38px] w-[38px] rounded-[14px] border-2 border-white dark:border-white/5 bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:shadow-none flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-blue-600 transition-colors cursor-pointer"
+                title="Show QR Code for mobile scanning"
+              >
+                <QrCode size={16} />
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* ── 2. METRICS ROW (FLUID & MOBILE OPTIMIZED) ── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
-          {/* Total Earnings */}
-          <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#161618] border border-slate-200/80 dark:border-white/10 shadow-xs space-y-2">
-            <div className="flex items-center justify-between text-slate-400">
-              <span className="text-[10.5px] uppercase font-bold tracking-wider">Settled Earnings</span>
-              <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
-                <DollarSign size={16} />
+        {/* ── 2. METRICS ROW (CORE 4 KPI BOXES MATCHING DASHBOARD) ── */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
+          
+          {/* 1. Settled Earnings */}
+          <div className={kpiBoxStyle}>
+            <div className="flex items-center justify-between">
+              <p className="text-[10.5px] sm:text-[11px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                Settled Earnings
+              </p>
+              <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center shrink-0">
+                <DollarSign className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
               </div>
             </div>
             <div>
-              <div className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+              <h3
+                className="text-[20px] sm:text-[22px] xl:text-[24px] font-bold text-slate-900 dark:text-white tracking-tight leading-none whitespace-nowrap mb-1"
+                style={{ fontFamily: "'Inter', sans-serif" }}
+              >
                 ₹{earnedCash.toLocaleString()}
-              </div>
-              <p className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 mt-0.5">
-                {activeBrokers > 0 ? `${activeBrokers} Active FiAlgo bots generating profit` : "100% direct cash payout"}
-              </p>
-            </div>
-          </div>
-
-          {/* Pending Commissions */}
-          <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#161618] border border-slate-200/80 dark:border-white/10 shadow-xs space-y-2">
-            <div className="flex items-center justify-between text-slate-400">
-              <span className="text-[10.5px] uppercase font-bold tracking-wider">Pipeline Pipeline</span>
-              <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center">
-                <Clock size={16} />
-              </div>
-            </div>
-            <div>
-              <div className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-                ₹{pendingCash.toLocaleString()}
-              </div>
-              <p className="text-[11px] font-semibold text-amber-600 dark:text-amber-400 mt-0.5">
-                {totalReferred - activeBrokers} registered · Pending MT5 setup
-              </p>
-            </div>
-          </div>
-
-          {/* Active Traders Referred */}
-          <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#161618] border border-slate-200/80 dark:border-white/10 shadow-xs space-y-2">
-            <div className="flex items-center justify-between text-slate-400">
-              <span className="text-[10.5px] uppercase font-bold tracking-wider">Active Traders</span>
-              <div className="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center">
-                <Users size={16} />
-              </div>
-            </div>
-            <div>
-              <div className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-                {activeBrokers} <span className="text-sm font-semibold text-slate-400">/ {totalReferred}</span>
-              </div>
-              <p className="text-[11px] font-semibold text-blue-600 dark:text-blue-400 mt-0.5">
-                Live MetaTrader 5 engine verified
-              </p>
-            </div>
-          </div>
-
-          {/* Current Partner Level */}
-          <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#161618] border border-slate-200/80 dark:border-white/10 shadow-xs space-y-2">
-            <div className="flex items-center justify-between text-slate-400">
-              <span className="text-[10.5px] uppercase font-bold tracking-wider">Affiliate Tier</span>
-              <div className="w-8 h-8 rounded-xl bg-violet-500/10 text-violet-500 flex items-center justify-center">
-                <Trophy size={16} />
-              </div>
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tight">
-                  {currentTier.name}
+              </h3>
+              <div className="flex items-center justify-between mt-1 pt-0.5">
+                <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400 truncate">
+                  {activeBrokers > 0 ? `${activeBrokers} Active FiAlgo bot${activeBrokers > 1 ? 's' : ''}` : "100% direct cash payout"}
                 </span>
-                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-violet-500/15 text-violet-600 dark:text-violet-400">
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 shrink-0">
+                  Cleared
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* 2. Pipeline Commissions */}
+          <div className={kpiBoxStyle}>
+            <div className="flex items-center justify-between">
+              <p className="text-[10.5px] sm:text-[11px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                Pipeline Commissions
+              </p>
+              <div className="w-8 h-8 rounded-lg bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center shrink-0">
+                <Clock className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+              </div>
+            </div>
+            <div>
+              <h3
+                className="text-[20px] sm:text-[22px] xl:text-[24px] font-bold text-slate-900 dark:text-white tracking-tight leading-none whitespace-nowrap mb-1"
+                style={{ fontFamily: "'Inter', sans-serif" }}
+              >
+                ₹{pendingCash.toLocaleString()}
+              </h3>
+              <div className="flex items-center justify-between mt-1 pt-0.5">
+                <span className="text-[11px] font-medium text-amber-600 dark:text-amber-400 truncate">
+                  {totalReferred - activeBrokers} registered · Pending setup
+                </span>
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/15 text-amber-700 dark:text-amber-400 shrink-0">
+                  In Queue
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* 3. Active Traders */}
+          <div className={kpiBoxStyle}>
+            <div className="flex items-center justify-between">
+              <p className="text-[10.5px] sm:text-[11px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                Active Traders
+              </p>
+              <div className="w-8 h-8 rounded-lg bg-sky-50 dark:bg-sky-500/10 flex items-center justify-center shrink-0">
+                <Users className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+              </div>
+            </div>
+            <div>
+              <div className="flex items-baseline gap-1.5 mb-1">
+                <h3
+                  className="text-[20px] sm:text-[22px] xl:text-[24px] font-bold text-slate-900 dark:text-white tracking-tight leading-none whitespace-nowrap"
+                  style={{ fontFamily: "'Inter', sans-serif" }}
+                >
+                  {activeBrokers}
+                </h3>
+                <span className="text-xs font-semibold text-slate-400">
+                  / {totalReferred} Total
+                </span>
+              </div>
+              <div className="flex items-center justify-between mt-1 pt-0.5">
+                <span className="text-[11px] font-medium text-sky-600 dark:text-sky-400 truncate">
+                  Verified MT5 Engine
+                </span>
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-sky-100 dark:bg-sky-500/15 text-sky-700 dark:text-sky-400 shrink-0">
+                  Live
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* 4. Current Affiliate Tier */}
+          <div className={kpiBoxStyle}>
+            <div className="flex items-center justify-between">
+              <p className="text-[10.5px] sm:text-[11px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                Affiliate Tier
+              </p>
+              <div className="w-8 h-8 rounded-lg bg-violet-50 dark:bg-violet-500/10 flex items-center justify-center shrink-0">
+                <Trophy className="w-4 h-4 text-violet-600 dark:text-violet-400" />
+              </div>
+            </div>
+            <div>
+              <div className="flex items-center justify-between gap-2 mb-1">
+                <h3
+                  className="text-[18px] sm:text-[20px] font-bold text-slate-900 dark:text-white tracking-tight leading-none whitespace-nowrap truncate"
+                  style={{ fontFamily: "'Inter', sans-serif" }}
+                >
+                  {currentTier.name}
+                </h3>
+                <span className="text-[10px] font-mono font-extrabold text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-500/10 px-2 py-0.5 rounded-full border border-violet-200/60 dark:border-violet-500/20 shrink-0">
                   {currentTier.profitOverride}
                 </span>
               </div>
@@ -392,461 +445,499 @@ Please verify and process my remittance. Thank you!`;
                     style={{ width: `${progressToNext}%` }}
                   />
                 </div>
-                <div className="flex justify-between text-[10px] text-slate-400">
-                  <span>{nextTier ? `${activeBrokers} / ${nextTier.minTraders} for ${nextTier.name}` : "Maximum VIP Level"}</span>
-                  <span>{progressToNext}%</span>
+                <div className="flex justify-between text-[10px] text-slate-400 font-medium">
+                  <span>{nextTier ? `${activeBrokers} / ${nextTier.minTraders} for ${nextTier.name}` : "Max VIP Level"}</span>
+                  <span className="font-bold">{progressToNext}%</span>
                 </div>
               </div>
             </div>
           </div>
+
         </div>
 
-        {/* ── 3. INVITE WORKSTATION & VIRAL 1-CLICK SHARING (PERFECT MOBILE FIT) ── */}
-        <div className="p-4 sm:p-6 lg:p-7 rounded-2xl bg-white dark:bg-[#161618] border border-slate-200/80 dark:border-white/10 shadow-xs space-y-5">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <Share2 size={16} className="text-blue-500" />
-                <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight">
-                  Your Unique Referral Workstation
-                </h2>
+        {/* ── 3. INVITE WORKSTATION & VIRAL 1-CLICK SHARING ── */}
+        <div className={cardBoxStyle}>
+          <div className="space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
+                    <Share2 size={15} />
+                  </div>
+                  <h2
+                    className="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight"
+                    style={{ fontFamily: "'Inter', sans-serif" }}
+                  >
+                    Your Unique Referral Workstation
+                  </h2>
+                </div>
+                <p className="text-xs sm:text-[13px] text-slate-500 dark:text-slate-400 font-medium">
+                  Share your personalized link or 8-digit partner code. Any trader signing up is permanently credited to your account.
+                </p>
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Share your personalized link or 8-digit code. Any trader registering through it is permanently bound to your account.
-              </p>
+
+              {/* Toggle Link / Code */}
+              <div className="flex items-center p-1 rounded-[12px] bg-[#F4F6F9] dark:bg-white/5 border border-slate-200/80 dark:border-white/5 self-start sm:self-center shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("link")}
+                  className={`px-3 py-1.5 rounded-[9px] text-xs font-bold transition-all cursor-pointer ${
+                    activeTab === "link"
+                      ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs"
+                      : "text-slate-500 hover:text-slate-800 dark:text-slate-400"
+                  }`}
+                >
+                  Referral Link
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("code")}
+                  className={`px-3 py-1.5 rounded-[9px] text-xs font-bold transition-all cursor-pointer ${
+                    activeTab === "code"
+                      ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs"
+                      : "text-slate-500 hover:text-slate-800 dark:text-slate-400"
+                  }`}
+                >
+                  Partner Code
+                </button>
+              </div>
             </div>
 
-            {/* Toggle Link / Code */}
-            <div className="flex items-center p-1 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/5 self-start sm:self-center shrink-0">
+            {/* Copyable Input Row */}
+            <div className="flex flex-col sm:flex-row gap-2.5 items-stretch">
+              <div className="flex-1 relative flex items-center">
+                <input
+                  ref={inputRef}
+                  type="text"
+                  readOnly
+                  value={loading ? "Generating..." : displayValue}
+                  onClick={() => inputRef.current?.select()}
+                  className="w-full h-11 px-4 rounded-[14px] bg-slate-50 dark:bg-white/[0.03] border border-slate-200/90 dark:border-white/10 text-xs sm:text-sm font-mono font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all select-all shadow-inner"
+                />
+              </div>
+
               <button
                 type="button"
-                onClick={() => setActiveTab("link")}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  activeTab === "link"
-                    ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs"
-                    : "text-slate-500 hover:text-slate-800 dark:text-slate-400"
+                onClick={() => handleCopy()}
+                className={`h-11 px-6 rounded-[14px] text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shrink-0 shadow-[0_4px_7px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#2563EB] active:scale-95 ${
+                  copied
+                    ? "bg-emerald-600 text-white"
+                    : "bg-gradient-to-b from-blue-600 to-blue-700 text-white hover:from-blue-500 hover:to-blue-600"
                 }`}
               >
-                Referral Link
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab("code")}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  activeTab === "code"
-                    ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs"
-                    : "text-slate-500 hover:text-slate-800 dark:text-slate-400"
-                }`}
-              >
-                Partner Code
+                {copied ? <CheckCircle2 size={16} /> : <Copy size={16} />}
+                <span>{copied ? "Copied to Clipboard!" : "Copy Link"}</span>
               </button>
             </div>
-          </div>
 
-          {/* Copyable Input Row */}
-          <div className="flex flex-col sm:flex-row gap-2.5 items-stretch">
-            <div className="flex-1 relative flex items-center">
-              <input
-                ref={inputRef}
-                type="text"
-                readOnly
-                value={loading ? "Generating..." : displayValue}
-                onClick={() => inputRef.current?.select()}
-                className="w-full h-12 px-4 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/90 dark:border-white/10 text-xs sm:text-sm font-mono font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all select-all"
-              />
-            </div>
+            {/* Social Share Buttons (WhatsApp, Telegram, X, Native) */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-slate-100 dark:border-white/5">
+              <span className="text-[10.5px] sm:text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
+                1-Click Instant Share:
+              </span>
 
-            <button
-              type="button"
-              onClick={() => handleCopy()}
-              className={`h-12 px-6 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shrink-0 shadow-xs active:scale-95 ${
-                copied
-                  ? "bg-emerald-600 text-white"
-                  : "bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100"
-              }`}
-            >
-              {copied ? <CheckCircle2 size={16} /> : <Copy size={16} />}
-              <span>{copied ? "Copied to Clipboard!" : "Copy Link"}</span>
-            </button>
-          </div>
+              <div className="flex flex-wrap items-center gap-2">
+                {/* WhatsApp */}
+                <a
+                  href={`https://wa.me/?text=${encodeURIComponent(shareText)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-[12px] text-xs font-bold bg-[#25D366]/15 hover:bg-[#25D366]/25 text-[#128C7E] dark:text-[#25D366] border border-[#25D366]/30 transition-all cursor-pointer"
+                >
+                  <MessageCircle size={14} />
+                  <span>WhatsApp</span>
+                </a>
 
-          {/* Social Share Buttons (WhatsApp, Telegram, X, Native) */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-slate-100 dark:border-white/5">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-              1-Click Instant Share:
-            </span>
+                {/* Telegram */}
+                <a
+                  href={`https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent("Join TradiFive Automated Gold AI Trading")}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-[12px] text-xs font-bold bg-[#0088cc]/15 hover:bg-[#0088cc]/25 text-[#0088cc] border border-[#0088cc]/30 transition-all cursor-pointer"
+                >
+                  <Send size={14} />
+                  <span>Telegram</span>
+                </a>
 
-            <div className="flex flex-wrap items-center gap-2">
-              {/* WhatsApp */}
-              <a
-                href={`https://wa.me/?text=${encodeURIComponent(shareText)}`}
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-[#25D366]/15 hover:bg-[#25D366]/25 text-[#128C7E] dark:text-[#25D366] border border-[#25D366]/30 transition-all cursor-pointer"
-              >
-                <MessageCircle size={14} />
-                <span>WhatsApp</span>
-              </a>
+                {/* Twitter / X */}
+                <a
+                  href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-[12px] text-xs font-bold bg-black/10 dark:bg-white/10 hover:bg-black/20 text-slate-900 dark:text-white border border-slate-200 dark:border-white/10 transition-all cursor-pointer"
+                >
+                  <span>𝕏 Post</span>
+                </a>
 
-              {/* Telegram */}
-              <a
-                href={`https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent("Join TradiFive Automated Gold AI Trading")}`}
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-[#0088cc]/15 hover:bg-[#0088cc]/25 text-[#0088cc] border border-[#0088cc]/30 transition-all cursor-pointer"
-              >
-                <Send size={14} />
-                <span>Telegram</span>
-              </a>
+                {/* Mobile Native Share Sheet */}
+                <button
+                  type="button"
+                  onClick={handleNativeShare}
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-[12px] text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 transition-all cursor-pointer border border-slate-200/80 dark:border-white/10"
+                >
+                  <Share2 size={13} />
+                  <span>More</span>
+                </button>
 
-              {/* Twitter / X */}
-              <a
-                href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`}
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-black/10 dark:bg-white/10 hover:bg-black/20 text-slate-900 dark:text-white border border-slate-200 dark:border-white/10 transition-all cursor-pointer"
-              >
-                <span>𝕏 Post</span>
-              </a>
-
-              {/* Mobile Native Share Sheet */}
-              <button
-                type="button"
-                onClick={handleNativeShare}
-                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 transition-all cursor-pointer"
-              >
-                <Share2 size={13} />
-                <span>More</span>
-              </button>
-
-              {/* QR Code */}
-              <button
-                type="button"
-                onClick={() => setShowQrModal(true)}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 transition-all cursor-pointer"
-              >
-                <QrCode size={13} />
-                <span>QR Code</span>
-              </button>
+                {/* QR Code */}
+                <button
+                  type="button"
+                  onClick={() => setShowQrModal(true)}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-[12px] text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 transition-all cursor-pointer border border-slate-200/80 dark:border-white/10"
+                >
+                  <QrCode size={13} />
+                  <span>QR Code</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
 
         {/* ── 4. EXPANSIVE 2-COLUMN SECTION: TIERS + TABLE & RIGHT SIDEBAR ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
           
           {/* LEFT 8 COLUMNS: TIERS, HOW IT WORKS & REFERRED TRADERS */}
-          <div className="lg:col-span-8 space-y-6">
+          <div className="lg:col-span-8 space-y-5">
             
             {/* 3 Affiliate Partnership Tiers */}
-            <div className="p-5 sm:p-7 rounded-2xl bg-white dark:bg-[#161618] border border-slate-200/80 dark:border-white/10 shadow-xs space-y-5">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-                    <Trophy size={18} className="text-amber-500" />
-                    <span>Affiliate Commission Tiers</span>
-                  </h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Your commissions automatically elevate as your referred network of traders scales.
-                  </p>
-                </div>
-                <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400">
-                  {activeBrokers} Active Traders
-                </span>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-                {AFFILIATE_TIERS.map((tier) => {
-                  const isCurrent = currentTier.name === tier.name;
-                  return (
-                    <div
-                      key={tier.name}
-                      className={`relative p-4 sm:p-5 rounded-2xl border transition-all space-y-3 flex flex-col justify-between ${
-                        isCurrent
-                          ? "bg-white dark:bg-[#1A1A1E] border-blue-500 ring-2 ring-blue-500/20 shadow-md"
-                          : "bg-slate-50/60 dark:bg-white/[0.02] border-slate-200/70 dark:border-white/5"
-                      }`}
+            <div className={cardBoxStyle}>
+              <div className="space-y-5">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <h3
+                      className="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2"
+                      style={{ fontFamily: "'Inter', sans-serif" }}
                     >
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
-                            {tier.tier} · {tier.milestone}
-                          </span>
-                          {isCurrent && (
-                            <span className="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-blue-500 text-white shadow-2xs">
-                              Your Tier
+                      <Trophy size={18} className="text-amber-500" />
+                      <span>Affiliate Commission Tiers</span>
+                    </h3>
+                    <p className="text-xs sm:text-[13px] text-slate-500 dark:text-slate-400 font-medium">
+                      Your commissions automatically elevate as your referred network of traders scales.
+                    </p>
+                  </div>
+                  <span className="text-[10px] font-mono font-extrabold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 px-2.5 py-1 rounded-full border border-blue-200/60 dark:border-blue-500/20">
+                    {activeBrokers} Active Traders
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                  {AFFILIATE_TIERS.map((tier) => {
+                    const isCurrent = currentTier.name === tier.name;
+                    return (
+                      <div
+                        key={tier.name}
+                        className={`relative p-4 sm:p-5 rounded-[18px] border-2 transition-all space-y-3 flex flex-col justify-between ${
+                          isCurrent
+                            ? "bg-white dark:bg-[#1A1A1E] border-blue-500 ring-2 ring-blue-500/20 shadow-md"
+                            : "bg-[#F8F9FC]/80 dark:bg-white/[0.02] border-white dark:border-white/5 shadow-xs"
+                        }`}
+                      >
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                              {tier.tier} · {tier.milestone}
                             </span>
-                          )}
-                        </div>
-
-                        <h4 className="text-base font-black text-slate-900 dark:text-white">
-                          {tier.name}
-                        </h4>
-
-                        <div className="pt-1 pb-1">
-                          <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
-                            {tier.upfrontBonus}
-                            <span className="text-xs font-semibold text-slate-400 font-sans ml-1">/ Trader</span>
+                            {isCurrent && (
+                              <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-blue-500 text-white shadow-2xs">
+                                Your Tier
+                              </span>
+                            )}
                           </div>
-                          <div className="text-xs font-bold text-blue-600 dark:text-blue-400">
-                            + {tier.profitOverride} Weekly Override
-                          </div>
-                        </div>
 
-                        <ul className="space-y-1.5 pt-2 border-t border-slate-200/60 dark:border-white/5 text-[11px] text-slate-600 dark:text-slate-400">
-                          {tier.perks.map((p, idx) => (
-                            <li key={idx} className="flex items-start gap-1.5">
-                              <CheckCircle2 size={12} className="text-emerald-500 shrink-0 mt-0.5" />
-                              <span>{p}</span>
-                            </li>
-                          ))}
-                        </ul>
+                          <h4
+                            className="text-base font-bold text-slate-900 dark:text-white"
+                            style={{ fontFamily: "'Inter', sans-serif" }}
+                          >
+                            {tier.name}
+                          </h4>
+
+                          <div className="pt-1 pb-1">
+                            <div
+                              className="text-[22px] sm:text-[24px] font-bold text-emerald-600 dark:text-emerald-400"
+                              style={{ fontFamily: "'Inter', sans-serif" }}
+                            >
+                              {tier.upfrontBonus}
+                              <span className="text-xs font-semibold text-slate-400 ml-1">/ Trader</span>
+                            </div>
+                            <div className="text-xs font-bold text-blue-600 dark:text-blue-400 mt-0.5">
+                              + {tier.profitOverride} Weekly Override
+                            </div>
+                          </div>
+
+                          <ul className="space-y-1.5 pt-2 border-t border-slate-200/60 dark:border-white/5 text-[11px] text-slate-600 dark:text-slate-400">
+                            {tier.perks.map((p, idx) => (
+                              <li key={idx} className="flex items-start gap-1.5">
+                                <CheckCircle2 size={12} className="text-emerald-500 shrink-0 mt-0.5" />
+                                <span>{p}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
             </div>
 
             {/* Systematic 3-Step Process */}
-            <div className="p-5 sm:p-7 rounded-2xl bg-white dark:bg-[#161618] border border-slate-200/80 dark:border-white/10 shadow-xs space-y-5">
-              <div className="space-y-0.5">
-                <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight">
-                  How The Referral Program Works
-                </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Fully automated, verified on-chain and directly into your bank every week.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 relative">
-                <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/5 space-y-2">
-                  <div className="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 font-black text-sm flex items-center justify-center">
-                    1
-                  </div>
-                  <h4 className="text-xs font-bold text-slate-900 dark:text-white">
-                    Share Your Link
-                  </h4>
-                  <p className="text-[11.5px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                    Send your invite link to fellow traders via WhatsApp, Telegram, or social feeds.
+            <div className={cardBoxStyle}>
+              <div className="space-y-4">
+                <div className="space-y-0.5">
+                  <h3
+                    className="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight"
+                    style={{ fontFamily: "'Inter', sans-serif" }}
+                  >
+                    How The Referral Program Works
+                  </h3>
+                  <p className="text-xs sm:text-[13px] text-slate-500 dark:text-slate-400 font-medium">
+                    Fully automated, verified via MetaTrader 5 and directly paid to your bank every {settlementDay}.
                   </p>
                 </div>
 
-                <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/5 space-y-2">
-                  <div className="w-8 h-8 rounded-lg bg-violet-500/10 text-violet-600 dark:text-violet-400 font-black text-sm flex items-center justify-center">
-                    2
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                  <div className={innerBoxStyle}>
+                    <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold text-sm flex items-center justify-center mb-2">
+                      1
+                    </div>
+                    <h4 className="text-xs font-bold text-slate-900 dark:text-white mb-1">
+                      Share Your Link
+                    </h4>
+                    <p className="text-[11.5px] text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
+                      Send your partner link to fellow traders via WhatsApp, Telegram, or social media.
+                    </p>
                   </div>
-                  <h4 className="text-xs font-bold text-slate-900 dark:text-white">
-                    They Connect MT5
-                  </h4>
-                  <p className="text-[11.5px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                    Your friend activates FiAlgo V1 with ₹9,999 setup fee. The system instantly credits your commission.
-                  </p>
-                </div>
 
-                <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/5 space-y-2">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-black text-sm flex items-center justify-center">
-                    3
+                  <div className={innerBoxStyle}>
+                    <div className="w-8 h-8 rounded-lg bg-violet-50 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400 font-bold text-sm flex items-center justify-center mb-2">
+                      2
+                    </div>
+                    <h4 className="text-xs font-bold text-slate-900 dark:text-white mb-1">
+                      They Connect MT5
+                    </h4>
+                    <p className="text-[11.5px] text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
+                      Your friend activates FiAlgo V1 with ₹9,999 setup fee. The system instantly credits your commission.
+                    </p>
                   </div>
-                  <h4 className="text-xs font-bold text-slate-900 dark:text-white">
-                    Weekly Direct Payout
-                  </h4>
-                  <p className="text-[11.5px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                    Earn up to ₹2,000 cash per setup + ongoing weekly 50/50 profit overrides every {settlementDay}.
-                  </p>
+
+                  <div className={innerBoxStyle}>
+                    <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-sm flex items-center justify-center mb-2">
+                      3
+                    </div>
+                    <h4 className="text-xs font-bold text-slate-900 dark:text-white mb-1">
+                      Weekly Direct Payout
+                    </h4>
+                    <p className="text-[11.5px] text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
+                      Earn up to ₹2,000 cash per setup + ongoing weekly 50/50 profit overrides every {settlementDay}.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
 
             {/* Referred Friends Real Table */}
-            <div className="p-5 sm:p-7 rounded-2xl bg-white dark:bg-[#161618] border border-slate-200/80 dark:border-white/10 shadow-xs space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-                    <Users size={17} className="text-blue-500" />
-                    <span>Your Referred Traders Log</span>
-                  </h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Live ledger of traders registered under your partner code.
-                  </p>
-                </div>
-                <span className="text-xs font-bold text-slate-400">
-                  {referredList.length} Total
-                </span>
-              </div>
-
-              {loading ? (
-                <div className="space-y-2">
-                  {[1, 2, 3].map((n) => (
-                    <div key={n} className="h-14 rounded-xl bg-slate-100 dark:bg-white/5 animate-pulse" />
-                  ))}
-                </div>
-              ) : referredList.length === 0 ? (
-                <div className="py-10 text-center space-y-3 bg-slate-50/50 dark:bg-white/[0.01] rounded-2xl border border-dashed border-slate-200 dark:border-white/5">
-                  <div className="w-12 h-12 rounded-full bg-blue-50 dark:bg-blue-500/10 text-blue-500 flex items-center justify-center mx-auto">
-                    <UserPlus size={22} />
-                  </div>
-                  <div className="space-y-1">
-                    <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200">
-                      No referred traders yet
-                    </h4>
-                    <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                      Share your referral link on WhatsApp or trading groups to earn ₹2,000 cash for every new automated trading terminal.
+            <div className={cardBoxStyle}>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3
+                      className="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2"
+                      style={{ fontFamily: "'Inter', sans-serif" }}
+                    >
+                      <Users size={17} className="text-blue-500" />
+                      <span>Your Referred Traders Log</span>
+                    </h3>
+                    <p className="text-xs sm:text-[13px] text-slate-500 dark:text-slate-400 font-medium">
+                      Live ledger of traders registered under your partner code.
                     </p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => handleCopy()}
-                    className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs hover:opacity-90 transition-all cursor-pointer inline-flex items-center gap-1.5"
-                  >
-                    <Copy size={13} />
-                    <span>Copy Your Referral Link</span>
-                  </button>
+                  <span className="text-[11px] font-mono font-bold text-slate-500 dark:text-slate-400 bg-[#F4F6F9] dark:bg-white/5 px-2.5 py-1 rounded-full border border-slate-200/80 dark:border-white/5">
+                    {referredList.length} Total Registered
+                  </span>
                 </div>
-              ) : (
-                <div className="overflow-x-auto amazing-scrollbar">
-                  <table className="w-full text-left text-xs">
-                    <thead>
-                      <tr className="border-b border-slate-100 dark:border-white/5 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
-                        <th className="py-2.5 px-3">Trader</th>
-                        <th className="py-2.5 px-3">Registered</th>
-                        <th className="py-2.5 px-3">Bot Status</th>
-                        <th className="py-2.5 px-3 text-right">Commission</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100 dark:divide-white/5">
-                      {referredList.map((trader) => (
-                        <tr key={trader.id} className="hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors">
-                          <td className="py-3 px-3">
-                            <div className="font-bold text-slate-900 dark:text-white">
-                              {trader.name}
-                            </div>
-                            <div className="text-[10px] text-slate-400 font-mono">
-                              {trader.username}
-                            </div>
-                          </td>
-                          <td className="py-3 px-3 text-slate-500">
-                            {trader.date}
-                          </td>
-                          <td className="py-3 px-3">
-                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                              trader.status === "active"
-                                ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
-                                : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
-                            }`}>
-                              <span className={`w-1.5 h-1.5 rounded-full ${trader.status === "active" ? "bg-emerald-500" : "bg-amber-500"}`} />
-                              <span>{trader.status === "active" ? "FiAlgo Active" : "Pending Setup"}</span>
-                            </span>
-                          </td>
-                          <td className="py-3 px-3 text-right">
-                            <span className={`font-mono font-bold ${
-                              trader.status === "active" ? "text-emerald-600 dark:text-emerald-400" : "text-slate-400"
-                            }`}>
-                              {trader.commission}
-                            </span>
-                          </td>
+
+                {loading ? (
+                  <div className="space-y-2">
+                    {[1, 2, 3].map((n) => (
+                      <div key={n} className="h-14 rounded-[14px] bg-slate-100 dark:bg-white/5 animate-pulse" />
+                    ))}
+                  </div>
+                ) : referredList.length === 0 ? (
+                  <div className="py-10 text-center space-y-3 bg-[#F8F9FC]/60 dark:bg-white/[0.01] rounded-[18px] border border-dashed border-slate-200 dark:border-white/10">
+                    <div className="w-12 h-12 rounded-full bg-blue-50 dark:bg-blue-500/10 text-blue-500 flex items-center justify-center mx-auto">
+                      <UserPlus size={22} />
+                    </div>
+                    <div className="space-y-1">
+                      <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200">
+                        No referred traders yet
+                      </h4>
+                      <p className="text-xs text-slate-500 max-w-sm mx-auto font-medium">
+                        Share your referral link on WhatsApp or trading groups to earn ₹2,000 cash for every new automated trading terminal.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleCopy()}
+                      className="h-9 px-4 rounded-[12px] text-xs font-bold bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs hover:opacity-90 transition-all cursor-pointer inline-flex items-center gap-1.5"
+                    >
+                      <Copy size={13} />
+                      <span>Copy Your Referral Link</span>
+                    </button>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto amazing-scrollbar">
+                    <table className="w-full text-left text-xs">
+                      <thead>
+                        <tr className="border-b border-slate-100 dark:border-white/5 text-slate-400 font-extrabold uppercase tracking-wider text-[10px]">
+                          <th className="py-2.5 px-3">Trader</th>
+                          <th className="py-2.5 px-3">Registered</th>
+                          <th className="py-2.5 px-3">Bot Status</th>
+                          <th className="py-2.5 px-3 text-right">Commission</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+                        {referredList.map((trader) => (
+                          <tr key={trader.id} className="hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors">
+                            <td className="py-3 px-3">
+                              <div className="font-bold text-slate-900 dark:text-white">
+                                {trader.name}
+                              </div>
+                              <div className="text-[10px] text-slate-400 font-mono">
+                                {trader.username}
+                              </div>
+                            </td>
+                            <td className="py-3 px-3 text-slate-500 font-medium">
+                              {trader.date}
+                            </td>
+                            <td className="py-3 px-3">
+                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                trader.status === "active"
+                                  ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+                                  : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
+                              }`}>
+                                <span className={`w-1.5 h-1.5 rounded-full ${trader.status === "active" ? "bg-emerald-500" : "bg-amber-500"}`} />
+                                <span>{trader.status === "active" ? "FiAlgo Active" : "Pending Setup"}</span>
+                              </span>
+                            </td>
+                            <td className="py-3 px-3 text-right">
+                              <span className={`font-mono font-bold ${
+                                trader.status === "active" ? "text-emerald-600 dark:text-emerald-400" : "text-slate-400"
+                              }`}>
+                                {trader.commission}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
             </div>
 
           </div>
 
           {/* RIGHT 4 COLUMNS: PAYOUT DESK, MARKETING COPY & FAQ */}
-          <div className="lg:col-span-4 space-y-6 lg:sticky lg:top-6">
+          <div className="lg:col-span-4 space-y-5 lg:sticky lg:top-6">
             
             {/* Payout & Withdrawal Action Card */}
-            <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#161618] border border-slate-200/80 dark:border-white/10 shadow-xs space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400">
-                  Commission Wallet
-                </span>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-500/20">
-                  Guaranteed Clearance
-                </span>
+            <div className={cardBoxStyle}>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10.5px] sm:text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
+                    Commission Wallet
+                  </span>
+                  <span className="text-[10px] font-mono font-extrabold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-500/20">
+                    Guaranteed Clearance
+                  </span>
+                </div>
+
+                <div>
+                  <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Available For Withdrawal:</span>
+                  <div
+                    className="text-[26px] sm:text-[28px] font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 leading-none"
+                    style={{ fontFamily: "'Inter', sans-serif" }}
+                  >
+                    ₹{earnedCash.toLocaleString()}
+                  </div>
+                </div>
+
+                <div className={innerBoxStyle + " space-y-2 text-xs"}>
+                  <div className="flex justify-between text-slate-600 dark:text-slate-400">
+                    <span>Settlement Schedule:</span>
+                    <strong className="text-slate-900 dark:text-white font-bold">Every {settlementDay}</strong>
+                  </div>
+                  <div className="flex justify-between text-slate-600 dark:text-slate-400">
+                    <span>Transfer Method:</span>
+                    <strong className="text-slate-900 dark:text-white font-bold">Direct UPI / NEFT</strong>
+                  </div>
+                  <div className="flex justify-between text-slate-600 dark:text-slate-400">
+                    <span>Min. Withdrawal:</span>
+                    <strong className="text-slate-900 dark:text-white font-bold">₹1,000 (1 Trader)</strong>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleRequestPayout}
+                  className="w-full h-11 rounded-[14px] border-2 border-white dark:border-white/5 bg-gradient-to-b from-slate-900 to-slate-800 hover:from-slate-800 hover:to-slate-700 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 flex items-center justify-center gap-2 shadow-[0_4px_7px_-5px_rgba(0,0,0,0.2),0_0_0_2px_#334155] text-xs sm:text-sm font-bold transition-all cursor-pointer active:scale-95"
+                >
+                  <Landmark size={15} />
+                  <span>Request Payout Transfer →</span>
+                </button>
+
+                <p className="text-[11px] text-center text-slate-400 font-medium">
+                  Direct WhatsApp finance desk confirmation upon submission.
+                </p>
               </div>
-
-              <div>
-                <span className="text-xs text-slate-500 dark:text-slate-400">Available For Withdrawal:</span>
-                <div className="text-3xl font-black text-emerald-600 dark:text-emerald-400 font-mono mt-0.5">
-                  ₹{earnedCash.toLocaleString()}
-                </div>
-              </div>
-
-              <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/5 space-y-2 text-xs">
-                <div className="flex justify-between text-slate-600 dark:text-slate-400">
-                  <span>Settlement Schedule:</span>
-                  <strong className="text-slate-900 dark:text-white font-bold">Every {settlementDay}</strong>
-                </div>
-                <div className="flex justify-between text-slate-600 dark:text-slate-400">
-                  <span>Transfer Method:</span>
-                  <strong className="text-slate-900 dark:text-white font-bold">Direct UPI / NEFT</strong>
-                </div>
-                <div className="flex justify-between text-slate-600 dark:text-slate-400">
-                  <span>Min. Withdrawal:</span>
-                  <strong className="text-slate-900 dark:text-white font-bold">₹1,000 (1 Trader)</strong>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={handleRequestPayout}
-                className="w-full py-3 px-4 rounded-xl text-xs sm:text-sm font-bold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer active:scale-95"
-              >
-                <Landmark size={15} />
-                <span>Request Payout Transfer →</span>
-              </button>
-
-              <p className="text-[11px] text-center text-slate-400">
-                Direct WhatsApp finance desk confirmation upon submission.
-              </p>
             </div>
 
             {/* Quick Pitch Bullet Points for Traders */}
-            <div className="p-5 rounded-2xl bg-white dark:bg-[#161618] border border-slate-200/80 dark:border-white/10 shadow-xs space-y-3 text-xs">
-              <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
-                <Sparkles size={14} className="text-blue-500" />
-                <span>How to Pitch FiAlgo V1</span>
-              </h4>
+            <div className={cardBoxStyle}>
+              <div className="space-y-3 text-xs">
+                <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
+                  <Sparkles size={14} className="text-blue-500" />
+                  <span>How to Pitch FiAlgo V1</span>
+                </h4>
 
-              <div className="space-y-2 text-slate-600 dark:text-slate-400 leading-relaxed">
-                <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/5">
-                  <strong className="text-slate-900 dark:text-white block font-bold">1. Zero Manual Work:</strong>
-                  FiAlgo V1 executes M1 gold trades automatically with hardware stop-loss protection.
-                </div>
-                <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/5">
-                  <strong className="text-slate-900 dark:text-white block font-bold">2. Aligned Interests:</strong>
-                  Only a ₹9,999 setup fee with weekly 50/50 profit share. Zero commission on red days.
-                </div>
-                <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/5">
-                  <strong className="text-slate-900 dark:text-white block font-bold">3. Capital Safety:</strong>
-                  100% of user capital stays locked in their own verified broker account.
+                <div className="space-y-2 text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+                  <div className={innerBoxStyle}>
+                    <strong className="text-slate-900 dark:text-white block font-bold mb-0.5">1. Zero Manual Work:</strong>
+                    FiAlgo V1 executes M1 gold trades automatically with hardware stop-loss protection.
+                  </div>
+                  <div className={innerBoxStyle}>
+                    <strong className="text-slate-900 dark:text-white block font-bold mb-0.5">2. Aligned Interests:</strong>
+                    Only a ₹9,999 setup fee with weekly 50/50 profit share. Zero commission on red days.
+                  </div>
+                  <div className={innerBoxStyle}>
+                    <strong className="text-slate-900 dark:text-white block font-bold mb-0.5">3. Capital Safety:</strong>
+                    100% of user capital stays locked in their own verified broker account.
+                  </div>
                 </div>
               </div>
             </div>
 
             {/* Partner Program FAQ */}
-            <div className="p-5 rounded-2xl bg-white dark:bg-[#161618] border border-slate-200/80 dark:border-white/10 shadow-xs space-y-3 text-xs">
-              <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
-                <HelpCircle size={14} className="text-violet-500" />
-                <span>Affiliate FAQ</span>
-              </h4>
+            <div className={cardBoxStyle}>
+              <div className="space-y-3 text-xs">
+                <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
+                  <HelpCircle size={14} className="text-violet-500" />
+                  <span>Affiliate FAQ</span>
+                </h4>
 
-              <div className="space-y-2.5 text-slate-600 dark:text-slate-400">
-                <div>
-                  <strong className="text-slate-800 dark:text-slate-200 block font-bold">When is commission paid?</strong>
-                  Commissions are settled every {settlementDay} directly to your UPI ID or bank account.
-                </div>
-                <div>
-                  <strong className="text-slate-800 dark:text-slate-200 block font-bold">Is there any referral limit?</strong>
-                  No limit! Refer unlimited traders and unlock Tier 3 VIP 10% overrides forever.
-                </div>
-                <div>
-                  <strong className="text-slate-800 dark:text-slate-200 block font-bold">How do I track referred friends?</strong>
-                  Your dashboard log updates in real-time as friends register and link MT5.
+                <div className="space-y-2.5 text-slate-600 dark:text-slate-400 font-medium">
+                  <div>
+                    <strong className="text-slate-800 dark:text-slate-200 block font-bold mb-0.5">When is commission paid?</strong>
+                    Commissions are settled every {settlementDay} directly to your UPI ID or bank account.
+                  </div>
+                  <div>
+                    <strong className="text-slate-800 dark:text-slate-200 block font-bold mb-0.5">Is there any referral limit?</strong>
+                    No limit! Refer unlimited traders and unlock Tier 3 VIP 10% overrides forever.
+                  </div>
+                  <div>
+                    <strong className="text-slate-800 dark:text-slate-200 block font-bold mb-0.5">How do I track referred friends?</strong>
+                    Your dashboard log updates in real-time as friends register and link MT5.
+                  </div>
                 </div>
               </div>
             </div>
@@ -863,7 +954,7 @@ Please verify and process my remittance. Thank you!`;
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="w-full max-w-sm rounded-2xl bg-white dark:bg-[#161618] border border-slate-200 dark:border-white/10 p-6 space-y-5 shadow-2xl relative text-center"
+                className="w-full max-w-sm rounded-[22px] border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-2xl dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/10 p-6 space-y-5 relative text-center"
               >
                 <button
                   type="button"
@@ -874,15 +965,18 @@ Please verify and process my remittance. Thank you!`;
                 </button>
 
                 <div className="space-y-1 pt-2">
-                  <h3 className="text-base font-black text-slate-900 dark:text-white">
+                  <h3
+                    className="text-base font-bold text-slate-900 dark:text-white"
+                    style={{ fontFamily: "'Inter', sans-serif" }}
+                  >
                     Scan to Join TradiFive
                   </h3>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-slate-500 font-medium">
                     Scan with any smartphone camera to open your referral link.
                   </p>
                 </div>
 
-                <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-inner inline-block">
+                <div className="p-4 bg-white rounded-[18px] border border-slate-200 shadow-inner inline-block">
                   <img
                     src={qrImageUrl}
                     alt="Referral QR Code"
@@ -891,7 +985,7 @@ Please verify and process my remittance. Thank you!`;
                 </div>
 
                 <div className="space-y-2">
-                  <div className="text-xs font-mono font-bold text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-white/5 py-1.5 px-3 rounded-lg border border-slate-200/80 dark:border-white/5">
+                  <div className="text-xs font-mono font-bold text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-white/5 py-2 px-3 rounded-[12px] border border-slate-200/80 dark:border-white/5">
                     {referralCode}
                   </div>
                   <button
@@ -900,7 +994,7 @@ Please verify and process my remittance. Thank you!`;
                       handleCopy();
                       setShowQrModal(false);
                     }}
-                    className="w-full py-2.5 rounded-xl text-xs font-bold bg-slate-900 text-white dark:bg-white dark:text-slate-900 cursor-pointer shadow-xs"
+                    className="w-full h-10 rounded-[12px] text-xs font-bold bg-slate-900 text-white dark:bg-white dark:text-slate-900 cursor-pointer shadow-xs active:scale-95 transition-all"
                   >
                     Copy Link Instead
                   </button>
@@ -918,7 +1012,7 @@ Please verify and process my remittance. Thank you!`;
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="w-full max-w-md rounded-2xl bg-white dark:bg-[#161618] border border-slate-200 dark:border-white/10 p-6 space-y-5 shadow-2xl relative"
+                className="w-full max-w-md rounded-[22px] border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-2xl dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/10 p-6 space-y-5 relative"
               >
                 <button
                   type="button"
@@ -931,19 +1025,25 @@ Please verify and process my remittance. Thank you!`;
                 <div className="space-y-1">
                   <div className="flex items-center gap-2 text-emerald-600">
                     <Wallet size={18} />
-                    <span className="text-xs font-bold uppercase tracking-wider">Fast-Track Payout</span>
+                    <span className="text-[10.5px] font-extrabold uppercase tracking-wider">Fast-Track Payout</span>
                   </div>
-                  <h3 className="text-lg font-black text-slate-900 dark:text-white">
+                  <h3
+                    className="text-lg font-bold text-slate-900 dark:text-white"
+                    style={{ fontFamily: "'Inter', sans-serif" }}
+                  >
                     Withdraw Referral Commissions
                   </h3>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-slate-500 font-medium">
                     Direct clearance processed to your verified Indian UPI ID or Bank account.
                   </p>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200/60 dark:border-emerald-500/20 flex items-center justify-between">
+                <div className="p-3.5 rounded-[16px] bg-emerald-50/80 dark:bg-emerald-500/10 border border-emerald-200/60 dark:border-emerald-500/20 flex items-center justify-between">
                   <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Withdrawable Balance:</span>
-                  <span className="text-xl font-black text-emerald-600 font-mono">
+                  <span
+                    className="text-xl font-bold text-emerald-600"
+                    style={{ fontFamily: "'Inter', sans-serif" }}
+                  >
                     ₹{earnedCash.toLocaleString()}
                   </span>
                 </div>
@@ -957,9 +1057,9 @@ Please verify and process my remittance. Thank you!`;
                     placeholder="e.g. 9876543210@paytm or name@oksbi"
                     value={payoutUpi}
                     onChange={(e) => setPayoutUpi(e.target.value)}
-                    className="w-full h-11 px-3.5 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 text-xs font-mono font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                    className="w-full h-11 px-3.5 rounded-[14px] bg-slate-50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 text-xs font-mono font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
                   />
-                  <span className="text-[10.5px] text-slate-400">
+                  <span className="text-[10.5px] text-slate-400 font-medium">
                     Clearance schedule: Every {settlementDay} at 18:00 IST.
                   </span>
                 </div>
@@ -968,7 +1068,7 @@ Please verify and process my remittance. Thank you!`;
                   <button
                     type="button"
                     onClick={() => setShowPayoutModal(false)}
-                    className="flex-1 py-2.5 rounded-xl text-xs font-bold border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 cursor-pointer"
+                    className="flex-1 h-11 rounded-[14px] text-xs font-bold border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 cursor-pointer"
                   >
                     Cancel
                   </button>
@@ -976,7 +1076,7 @@ Please verify and process my remittance. Thank you!`;
                     type="button"
                     onClick={handleConfirmPayout}
                     disabled={isSubmittingPayout}
-                    className="flex-1 py-2.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                    className="flex-1 h-11 rounded-[14px] text-xs font-bold bg-gradient-to-b from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white shadow-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
                   >
                     <MessageCircle size={14} />
                     <span>Confirm via WhatsApp →</span>
