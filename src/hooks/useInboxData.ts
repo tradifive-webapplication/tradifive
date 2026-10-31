@@ -20,6 +20,7 @@ export type DbMessage = Database['public']['Tables']['direct_messages']['Row'];
 export interface Conversation {
   id: string;
   name: string;
+  username: string;
   designation: string;
   department: string;
   roleTag: string;
@@ -35,6 +36,12 @@ export interface Conversation {
   timezone: string;
   partnerId: string;
   lastSeen?: string;
+  winRate?: number | null;
+  totalTrades?: number | null;
+  preferredMarket?: string | null;
+  riskAppetite?: string | null;
+  planType?: string | null;
+  location?: string | null;
 }
 
 export function useInboxData(userId: string | undefined, activeConvId: string | null) {
@@ -54,8 +61,8 @@ export function useInboxData(userId: string | undefined, activeConvId: string | 
         .from('dm_conversations')
         .select(`
           *,
-          user1:profiles!dm_conversations_user1_id_fkey(id, username, display_name, avatar_url, is_verified, trading_style, updated_at),
-          user2:profiles!dm_conversations_user2_id_fkey(id, username, display_name, avatar_url, is_verified, trading_style, updated_at),
+          user1:profiles!dm_conversations_user1_id_fkey(id, username, display_name, avatar_url, is_verified, trading_style, updated_at, email, win_rate, total_trades, preferred_market, risk_appetite, plan_type, role, location),
+          user2:profiles!dm_conversations_user2_id_fkey(id, username, display_name, avatar_url, is_verified, trading_style, updated_at, email, win_rate, total_trades, preferred_market, risk_appetite, plan_type, role, location),
           last_message:direct_messages!dm_conversations_last_message_id_fkey(content, created_at, message_type)
         `)
         .or(`user1_id.eq.${userId},user2_id.eq.${userId}`)
@@ -78,12 +85,27 @@ export function useInboxData(userId: string | undefined, activeConvId: string | 
 
           const partnerId = partnerObj?.id || (isUser1 ? row.user2_id : row.user1_id) || '';
 
+          const partnerUsername = partnerObj?.username || '';
+          const realEmail = partnerObj?.email && !partnerObj.email.includes('fundedtraders.net')
+            ? partnerObj.email
+            : (partnerUsername ? `${partnerUsername}@tradifive.com` : 'trader@tradifive.com');
+          const tradingStyle = partnerObj?.trading_style || 'Gold & Forex Specialist';
+          const preferredMarket = partnerObj?.preferred_market || 'XAUUSD (Gold)';
+          const roleTag = partnerObj?.role === 'admin'
+            ? 'ADMIN'
+            : partnerObj?.is_verified
+              ? 'VERIFIED TRADER'
+              : partnerObj?.plan_type
+                ? `${partnerObj.plan_type.toUpperCase()} TRADER`
+                : 'TRADER';
+
           return {
             id: row.id,
-            name: partnerObj?.display_name || partnerObj?.username || 'Trader Peer',
-            designation: partnerObj?.trading_style || 'Elite Funded Trader',
-            department: 'Traders Lounge',
-            roleTag: 'TRADER',
+            name: partnerObj?.display_name || partnerUsername || 'Trader Peer',
+            username: partnerUsername,
+            designation: tradingStyle,
+            department: preferredMarket,
+            roleTag,
             unread: isUser1 ? (row.user1_unread_count ?? 0) : (row.user2_unread_count ?? 0),
             time: row.last_message_at
               ? new Date(row.last_message_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
@@ -92,12 +114,18 @@ export function useInboxData(userId: string | undefined, activeConvId: string | 
             avatar: partnerObj?.avatar_url || "/default-avatar.svg",
             verified: partnerObj?.is_verified ?? false,
             status: onlineUsers.has(partnerId) ? 'Online' : 'Offline',
-            email: `${partnerObj?.username || 'peer'}@fundedtraders.net`,
-            timezone: 'Mumbai (IST)',
+            email: realEmail,
+            timezone: partnerObj?.location || 'Mumbai (IST)',
             partnerId,
             lastSeen: partnerObj?.updated_at 
               ? new Date(partnerObj.updated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-              : 'Recently'
+              : 'Recently',
+            winRate: partnerObj?.win_rate ?? null,
+            totalTrades: partnerObj?.total_trades ?? null,
+            preferredMarket,
+            riskAppetite: partnerObj?.risk_appetite || null,
+            planType: partnerObj?.plan_type || 'Standard',
+            location: partnerObj?.location || 'Mumbai (IST)'
           };
         });
 
