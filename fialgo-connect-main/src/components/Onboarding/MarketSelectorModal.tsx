@@ -250,7 +250,10 @@ export const MarketSelectorModal = () => {
                       <div className="w-16 h-16 rounded-2xl bg-orange-50 dark:bg-orange-500/10 flex items-center justify-center mb-5 group-hover:scale-110 group-hover:bg-orange-100 dark:group-hover:bg-orange-500/20 transition-all duration-300">
                         <TrendingUp className="w-8 h-8 text-orange-500" />
                       </div>
-                      <h3 className="text-[18px] font-black text-slate-900 dark:text-white mb-2">Indian Market</h3>
+                      <h3 className="text-[18px] font-black text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+                        <span>Indian Market</span>
+                        <span className="text-[9.5px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20">Soon</span>
+                      </h3>
                       <p className="text-[13px] font-medium text-slate-500 dark:text-slate-400 text-center leading-relaxed">
                         NSE, BSE & F&O.<br/>Dhan, Kite, Upstox.
                       </p>

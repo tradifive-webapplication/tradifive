@@ -880,10 +880,15 @@ export default function CreatePostModal({
                               <button 
                                   type="button"
                                   onClick={() => { setPostMarket('indian'); setShowMarketDropdown(false); }} 
-                                  className="w-full flex items-center gap-2 px-4 py-2 hover:bg-slate-50 dark:hover:bg-zinc-800 text-slate-700 dark:text-slate-300 text-left font-medium"
+                                  className="w-full flex items-center justify-between px-4 py-2 hover:bg-slate-50 dark:hover:bg-zinc-800 text-slate-700 dark:text-slate-300 text-left font-medium"
                               >
-                                  <IndianRupee size={14} className="text-slate-500" />
-                                  Indian Market
+                                  <div className="flex items-center gap-2">
+                                      <IndianRupee size={14} className="text-slate-500" />
+                                      <span>Indian Market</span>
+                                  </div>
+                                  <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.2 rounded-full bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-white/10">
+                                      Soon
+                                  </span>
                               </button>
                               <button 
                                   type="button"
