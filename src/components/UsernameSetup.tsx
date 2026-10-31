@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
-import { CheckCircle2, AlertCircle, Loader2, Globe, TrendingUp } from "lucide-react";
+import { CheckCircle2, AlertCircle, Loader2, AtSign } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useMarket } from "@/contexts/MarketContext";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -21,10 +21,7 @@ interface UsernameSetupProps {
   onComplete: () => void;
 }
 
-export const UsernameSetup = ({ user, initialStep = 'username', onComplete }: UsernameSetupProps) => {
-  const [step, setStep] = useState<'username' | 'market'>(initialStep);
-  const { setActiveMarket } = useMarket();
-
+export const UsernameSetup = ({ user, onComplete }: UsernameSetupProps) => {
   // Username State
   const [username, setUsername] = useState("");
   const [isChecking, setIsChecking] = useState(false);
@@ -32,15 +29,8 @@ export const UsernameSetup = ({ user, initialStep = 'username', onComplete }: Us
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Market State
-  const [isSavingMarket, setIsSavingMarket] = useState(false);
-
   // Debounce validation timer
   const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(null);
-
-  useEffect(() => {
-    setStep(initialStep);
-  }, [initialStep]);
 
   const checkAvailability = async (value: string) => {
     if (!value) {
@@ -90,7 +80,7 @@ export const UsernameSetup = ({ user, initialStep = 'username', onComplete }: Us
   };
 
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.toLowerCase();
+    const value = e.target.value.toLowerCase().replace(/\s+/g, '');
     setUsername(value);
 
     setIsAvailable(null);
@@ -101,7 +91,7 @@ export const UsernameSetup = ({ user, initialStep = 'username', onComplete }: Us
     setTypingTimeout(
       setTimeout(() => {
         checkAvailability(value);
-      }, 500)
+      }, 300)
     );
   };
 
@@ -115,7 +105,8 @@ export const UsernameSetup = ({ user, initialStep = 'username', onComplete }: Us
         .from('profiles')
         .update({
           username,
-          has_chosen_username: true
+          has_chosen_username: true,
+          preferred_market: 'forex'
         })
         .eq('id', user.id);
 
@@ -125,32 +116,13 @@ export const UsernameSetup = ({ user, initialStep = 'username', onComplete }: Us
       localStorage.setItem("tradifive_cached_username", username);
       window.dispatchEvent(new Event("tradifive_profile_update"));
 
-      setStep('market');
+      toast.success(`Welcome to TradiFive, @${username}!`);
+      onComplete();
     } catch (err) {
       console.error(err);
       setError("Failed to save username. Please try again.");
     } finally {
       setIsSaving(false);
-    }
-  };
-
-  const handleSelectMarket = async (market: 'forex' | 'indian') => {
-    setIsSavingMarket(true);
-    setError(null);
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ preferred_market: market })
-        .eq('id', user.id);
-        
-      if (error) throw error;
-      
-      setActiveMarket(market);
-      onComplete();
-    } catch (err) {
-      console.error(err);
-      setError("Failed to save market preference.");
-      setIsSavingMarket(false);
     }
   };
 
@@ -160,128 +132,82 @@ export const UsernameSetup = ({ user, initialStep = 'username', onComplete }: Us
         showCloseButton={false}
         onInteractOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
-        className="sm:max-w-[425px]"
+        className="sm:max-w-[420px] rounded-2xl p-6"
       >
-        {step === 'username' ? (
-          <>
-            <DialogHeader>
-              <div className="flex items-center justify-between">
-                <DialogTitle>Claim Your Username</DialogTitle>
-                <span className="text-xs font-semibold text-muted-foreground bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-full">Step 1 of 2</span>
-              </div>
-              <DialogDescription>
-                Choose a unique handle so other traders can find you and follow your trades.
-              </DialogDescription>
-            </DialogHeader>
+        <DialogHeader>
+          <div className="flex items-center gap-2.5 mb-1">
+            <div className="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center shrink-0">
+              <AtSign size={18} />
+            </div>
+            <DialogTitle className="text-lg font-bold text-slate-900 dark:text-white">
+              Choose Your Username
+            </DialogTitle>
+          </div>
+          <DialogDescription className="text-xs text-slate-500">
+            Pick your unique trader handle so other traders and community members can recognize you.
+          </DialogDescription>
+        </DialogHeader>
 
-            <form onSubmit={handleSubmitUsername}>
-              <div className="grid gap-4 py-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="username">Username</Label>
-                  <div className="relative">
-                    <Input
-                      id="username"
-                      value={username}
-                      onChange={handleUsernameChange}
-                      placeholder="@trader_name"
-                      className={
-                        isAvailable === true
-                          ? 'border-green-500/50 focus-visible:ring-green-500'
-                          : isAvailable === false
-                            ? 'border-red-500/50 focus-visible:ring-red-500'
-                            : 'focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-slate-500 dark:focus-visible:border-slate-600'
-                      }
-                      autoFocus
-                    />
-                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                      {isChecking && <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />}
-                      {!isChecking && isAvailable === true && <CheckCircle2 className="h-4 w-4 text-green-500" />}
-                      {!isChecking && isAvailable === false && <AlertCircle className="h-4 w-4 text-red-500" />}
-                    </div>
-                  </div>
-                  {error && (
-                    <p className="text-[13px] font-medium text-red-500">
-                      {error}
-                    </p>
-                  )}
+        <form onSubmit={handleSubmitUsername}>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="username" className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                Trader Handle
+              </Label>
+              <div className="relative flex items-center">
+                <span className="absolute left-3 text-slate-400 font-bold text-sm pointer-events-none">
+                  @
+                </span>
+                <Input
+                  id="username"
+                  value={username}
+                  onChange={handleUsernameChange}
+                  placeholder="your_handle"
+                  className={`pl-8 pr-10 text-sm font-semibold rounded-xl ${
+                    isAvailable === true
+                      ? 'border-green-500/60 focus-visible:ring-green-500'
+                      : isAvailable === false
+                        ? 'border-red-500/60 focus-visible:ring-red-500'
+                        : 'border-slate-200 dark:border-white/10'
+                  }`}
+                  autoFocus
+                />
+                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                  {isChecking && <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />}
+                  {!isChecking && isAvailable === true && <CheckCircle2 className="h-4 w-4 text-green-500" />}
+                  {!isChecking && isAvailable === false && <AlertCircle className="h-4 w-4 text-red-500" />}
                 </div>
               </div>
-
-              <DialogFooter>
-                <Button variant="outline" type="button" disabled={isSaving} onClick={async () => {
-                  setIsSaving(true);
-                  try {
-                    // Call RPC to completely delete the un-setup account
-                    await supabase.rpc('delete_my_account');
-                  } catch (e) {
-                    console.error("Failed to delete account", e);
-                  } finally {
-                    await supabase.auth.signOut();
-                    setIsSaving(false);
-                  }
-                }}>
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={!isAvailable || isSaving}>
-                  {isSaving ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Saving...
-                    </>
-                  ) : (
-                    "Save changes"
-                  )}
-                </Button>
-              </DialogFooter>
-            </form>
-          </>
-        ) : (
-          <>
-            <DialogHeader>
-              <div className="flex items-center justify-between">
-                <DialogTitle>Choose Your Arena</DialogTitle>
-                <span className="text-xs font-semibold text-muted-foreground bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-full">Step 2 of 2</span>
-              </div>
-              <DialogDescription>
-                Select your primary market to personalize your experience. You can always switch later.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
-                <Button 
-                  variant="outline" 
-                  disabled={isSavingMarket}
-                  className="h-auto flex-col p-4 items-center justify-center gap-2 rounded-2xl hover:border-indigo-500 hover:bg-indigo-50/50 dark:hover:bg-indigo-500/10 transition-colors"
-                  onClick={() => handleSelectMarket('forex')}
-                >
-                  <Globe className="h-6 w-6 text-indigo-500 mb-1" />
-                  <span className="font-semibold text-[15px]">Global Market</span>
-                  <span className="text-[11px] text-muted-foreground text-center font-normal">Forex, Crypto & Indices</span>
-                </Button>
-                <Button 
-                  variant="outline" 
-                  disabled={isSavingMarket}
-                  className="h-auto flex-col p-4 items-center justify-center gap-2 rounded-2xl hover:border-orange-500 hover:bg-orange-50/50 dark:hover:bg-orange-500/10 transition-colors"
-                  onClick={() => handleSelectMarket('indian')}
-                >
-                  <TrendingUp className="h-6 w-6 text-orange-500 mb-1" />
-                  <span className="font-semibold text-[15px]">Indian Market</span>
-                  <span className="text-[11px] text-muted-foreground text-center font-normal">NSE, BSE & F&O</span>
-                </Button>
-              </div>
               {error && (
-                <p className="text-[13px] font-medium text-red-500 text-center mt-2">
+                <p className="text-[12px] font-medium text-red-500">
                   {error}
                 </p>
               )}
+              {isAvailable && (
+                <p className="text-[12px] font-medium text-green-600">
+                  @{username} is available!
+                </p>
+              )}
             </div>
-            {isSavingMarket && (
-              <div className="flex justify-center mt-2 pb-2">
-                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-              </div>
-            )}
-          </>
-        )}
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-0 pt-2">
+            <Button
+              type="submit"
+              disabled={!isAvailable || isSaving}
+              className="w-full rounded-xl py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs uppercase tracking-wider cursor-pointer"
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving Handle...
+                </>
+              ) : (
+                "Save & Continue"
+              )}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );

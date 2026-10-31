@@ -138,9 +138,6 @@ export const AuthGuard = ({ children }: { children: React.ReactNode }) => {
               if (existingProfile.has_chosen_username === false || existingProfile.has_chosen_username === null) {
                 setSetupInitialStep('username');
                 setRequiresSetup(true);
-              } else if (!existingProfile.preferred_market) {
-                setSetupInitialStep('market');
-                setRequiresSetup(true);
               }
             }
             sessionStorage.setItem(`fialgo_profile_checked_${user.id}`, "true");
@@ -168,9 +165,6 @@ export const AuthGuard = ({ children }: { children: React.ReactNode }) => {
             } else {
               if (existingProfile.has_chosen_username === false || existingProfile.has_chosen_username === null) {
                 setSetupInitialStep('username');
-                setRequiresSetup(true);
-              } else if (!existingProfile.preferred_market) {
-                setSetupInitialStep('market');
                 setRequiresSetup(true);
               }
             }
@@ -273,49 +267,12 @@ export const AuthGuard = ({ children }: { children: React.ReactNode }) => {
     if (!showBar || barDone) return;
 
     let currentProgress = 0;
-    let stuckTimer = 0;
 
     const interval = setInterval(() => {
-      if (stuckTimer > 0) {
-        stuckTimer -= 50;
-        return;
-      }
+      // Smooth, crisp progression (~700ms total, responsive and fast)
+      currentProgress += 3.5;
+      if (currentProgress > 100) currentProgress = 100;
 
-      // Determine dynamic organic increment step
-      let increment = 0;
-      if (currentProgress < 30) {
-        // Fast start
-        increment = Math.random() * 3 + 2.0;
-      } else if (currentProgress >= 30 && currentProgress < 34) {
-        // Stuck/stutter at first checkpoint (30-34%)
-        if (Math.random() < 0.2) {
-          stuckTimer = 500; // pause for 500ms
-        }
-        increment = Math.random() * 0.8 + 0.1;
-      } else if (currentProgress >= 34 && currentProgress < 75) {
-        // Normal pace
-        increment = Math.random() * 4 + 1.2;
-      } else if (currentProgress >= 75 && currentProgress < 79) {
-        // Stuck/stutter at second checkpoint (75-79%)
-        if (Math.random() < 0.25) {
-          stuckTimer = 700; // pause for 700ms
-        }
-        increment = Math.random() * 0.5 + 0.1;
-      } else if (currentProgress >= 79 && currentProgress < 95) {
-        // Normal pace
-        increment = Math.random() * 2 + 0.5;
-      } else if (currentProgress >= 95 && currentProgress < 99) {
-        // Slow down slightly near the end
-        if (Math.random() < 0.15) {
-          stuckTimer = 400; // pause for 400ms
-        }
-        increment = 0.25;
-      } else {
-        // Final push to 100%
-        increment = 1.0;
-      }
-
-      currentProgress = Math.min(currentProgress + increment, 100);
       setProgress(currentProgress);
 
       const stepProgress = 100 / loadingSteps.length;
@@ -327,9 +284,9 @@ export const AuthGuard = ({ children }: { children: React.ReactNode }) => {
         setTimeout(() => {
           setBarDone(true);
           sessionStorage.setItem("fialgo_loaded", "true");
-        }, 400); // Smooth fade transition
+        }, 150); // Seamless transition to dashboard & username card
       }
-    }, 50);
+    }, 20);
 
     return () => clearInterval(interval);
   }, [showBar, barDone]);
