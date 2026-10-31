@@ -225,12 +225,27 @@ export default function Login() {
 
     try {
       const isSignup = step === 'verify_signup';
+      const cleanToken = otpCode.trim();
+
       // Verify using Supabase server-side email OTP
-      const { data, error } = await supabase.auth.verifyOtp({
+      let { data, error } = await supabase.auth.verifyOtp({
         email: tempUser.email,
-        token: otpCode,
+        token: cleanToken,
         type: isSignup ? 'signup' : 'email',
       });
+
+      // Dual-token fallback for signup: if 'signup' type fails, try 'email' type
+      if (error && isSignup) {
+        const fallback = await supabase.auth.verifyOtp({
+          email: tempUser.email,
+          token: cleanToken,
+          type: 'email',
+        });
+        if (!fallback.error) {
+          data = fallback.data;
+          error = null;
+        }
+      }
 
       if (error) {
         otpLimiter.recordFailedAttempt();
@@ -413,7 +428,19 @@ export default function Login() {
         if (error) {
           const errMsg = (error.message || "").toLowerCase();
           if (errMsg.includes('email not confirmed') || errMsg.includes('not confirmed') || errMsg.includes('verify your email')) {
-            toast.error("Email not verified yet. Please check your inbox and verify your email before logging in.", {
+            // Automatically resend verification OTP and transition straight to OTP screen
+            await supabase.auth.resend({
+              type: 'signup',
+              email: cleanEmail,
+              options: {
+                emailRedirectTo: `${window.location.origin}/login?verified=true`,
+              }
+            }).catch(() => {});
+            setTempUser({ email: cleanEmail });
+            setStep('verify_signup');
+            setOtpCode("");
+            toast.info("Email verification required", {
+              description: `A 6-digit verification OTP has been sent to ${cleanEmail}. Please enter it below to activate your account.`,
               duration: 8000,
             });
           } else {
@@ -897,10 +924,10 @@ export default function Login() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.3 }}
-                className="flex flex-col items-center text-center"
+                className="flex flex-col items-center text-center w-full"
               >
                 {/* Mail Icon with Success Badge */}
-                <div className="relative mb-4">
+                <div className="relative mb-3">
                   <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-600/15 to-indigo-600/25 border border-blue-500/30 flex items-center justify-center text-primary shadow-inner">
                     <Mail className="w-8 h-8 text-primary" />
                   </div>
@@ -909,15 +936,67 @@ export default function Login() {
                   </div>
                 </div>
 
-                <div className="px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-[#1E1E1E] text-slate-800 dark:text-slate-100 font-bold text-xs lg:text-sm border border-slate-200 dark:border-[#333333] mb-3 max-w-full truncate shadow-sm">
+                <div className="px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-[#1E1E1E] text-slate-800 dark:text-slate-100 font-bold text-xs lg:text-sm border border-slate-200 dark:border-[#333333] mb-2 max-w-full truncate shadow-sm">
                   {tempUser?.email || email}
                 </div>
 
                 <p className="text-slate-500 dark:text-slate-400 text-xs lg:text-[13px] font-medium leading-relaxed mb-6 max-w-[360px]">
-                  We sent a verification link to your email address. Please click the link to verify your account, then log in below.
+                  Please enter the 6-digit verification OTP code sent to your email address to activate your account.
                 </p>
 
-                <div className="w-full space-y-3" style={{ perspective: '600px' }}>
+                {/* 6-Digit OTP Form as PRIMARY Interface */}
+                <form onSubmit={handleVerifyOTP} className="w-full space-y-5 flex flex-col items-center">
+                  <InputOTP
+                    maxLength={6}
+                    value={otpCode}
+                    onChange={(val) => setOtpCode(val)}
+                  >
+                    <InputOTPGroup className="gap-2 sm:gap-2.5">
+                      {[0, 1, 2, 3, 4, 5].map((index) => (
+                        <InputOTPSlot
+                          key={index}
+                          index={index}
+                          className="w-10 sm:w-12 h-12 sm:h-14 text-lg sm:text-xl font-black border-2 border-slate-200 dark:border-[#333333] rounded-xl bg-white dark:bg-[#1E1E1E] text-slate-900 dark:text-white focus:ring-2 focus:ring-primary/20 shadow-xs"
+                        />
+                      ))}
+                    </InputOTPGroup>
+                  </InputOTP>
+
+                  <div className="w-full space-y-3 pt-2" style={{ perspective: '600px' }}>
+                    <button
+                      type="submit"
+                      disabled={isLoading || otpCode.length !== 6}
+                      className="w-full text-white font-bold uppercase tracking-wide text-xs lg:text-sm py-3 lg:py-3.5 rounded-xl flex items-center justify-center shadow-lg transition-all disabled:opacity-50 cursor-pointer"
+                      style={{
+                        background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 50%, #3b82f6 100%)',
+                        boxShadow: '0 4px 14px rgba(37,99,235,0.35), 0 1px 3px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.2)',
+                        transition: 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
+                        transformStyle: 'preserve-3d',
+                      }}
+                      onMouseEnter={e => { if (otpCode.length === 6) { e.currentTarget.style.transform = 'translateY(-3px) scale(1.01)'; } }}
+                      onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0) scale(1)'; }}
+                    >
+                      {isLoading ? "Verifying OTP..." : "Verify OTP & Continue"}
+                      <IconlyArrowRight set="curved" primaryColor="currentColor" size={18} stroke="bold" strokeWidth={2} className="ml-2" />
+                    </button>
+
+                    <button
+                      type="button"
+                      disabled={resendCooldown > 0}
+                      onClick={handleResendSignupEmail}
+                      className="w-full py-2.5 text-[11px] lg:text-xs font-bold text-primary hover:text-primary/80 transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer"
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 ${resendCooldown > 0 ? 'animate-spin' : ''}`} />
+                      {resendCooldown > 0 ? `Resend OTP in ${resendCooldown}s` : "Resend 6-Digit OTP"}
+                    </button>
+                  </div>
+                </form>
+
+                {/* Alternative: Direct verification link note */}
+                <div className="w-full border-t border-slate-200/80 dark:border-white/10 mt-6 pt-4 text-center">
+                  <p className="text-[11px] text-slate-400">
+                    You can also click the verification link in the email, then return here to log in.
+                  </p>
                   <button
                     type="button"
                     onClick={() => {
@@ -927,65 +1006,10 @@ export default function Login() {
                       setPassword("");
                       toast.info("Please sign in after verifying your email.");
                     }}
-                    className="w-full text-white font-bold uppercase tracking-wide text-xs lg:text-sm py-3 lg:py-3.5 rounded-xl flex items-center justify-center shadow-lg transition-all"
-                    style={{
-                      background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 50%, #3b82f6 100%)',
-                      boxShadow: '0 4px 14px rgba(37,99,235,0.35), 0 1px 3px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.2)',
-                      transition: 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
-                      transformStyle: 'preserve-3d',
-                    }}
-                    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px) rotateX(6deg) scale(1.02)'; e.currentTarget.style.boxShadow = '0 12px 30px rgba(37,99,235,0.4), 0 4px 10px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.25)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0) rotateX(0deg) scale(1)'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(37,99,235,0.35), 0 1px 3px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.2)'; }}
-                    onMouseDown={e => { e.currentTarget.style.transform = 'translateY(-1px) rotateX(2deg) scale(0.98)'; }}
-                    onMouseUp={e => { e.currentTarget.style.transform = 'translateY(-4px) rotateX(6deg) scale(1.02)'; }}
+                    className="mt-2 text-[11.5px] font-bold text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white underline cursor-pointer"
                   >
-                    Proceed to Sign In
-                    <IconlyArrowRight set="curved" primaryColor="currentColor" size={18} stroke="bold" strokeWidth={2} className="ml-2" />
+                    Already clicked the link? Proceed to Sign In
                   </button>
-
-                  <button
-                    type="button"
-                    disabled={resendCooldown > 0}
-                    onClick={handleResendSignupEmail}
-                    className="w-full py-2.5 text-[11px] lg:text-xs font-bold text-primary hover:text-primary/80 transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
-                  >
-                    <RefreshCw className={`w-3.5 h-3.5 ${resendCooldown > 0 ? 'animate-spin' : ''}`} />
-                    {resendCooldown > 0 ? `Resend email in ${resendCooldown}s` : "Resend verification email"}
-                  </button>
-                </div>
-
-                {/* Optional 6-digit OTP code entry */}
-                <div className="w-full border-t border-slate-200/80 dark:border-white/10 mt-6 pt-5">
-                  <p className="text-[11px] font-semibold text-slate-400 mb-3">
-                    Received a 6-digit confirmation code instead?
-                  </p>
-                  <form onSubmit={handleVerifyOTP} className="w-full space-y-3 flex flex-col items-center">
-                    <InputOTP
-                      maxLength={6}
-                      value={otpCode}
-                      onChange={(val) => setOtpCode(val)}
-                    >
-                      <InputOTPGroup className="gap-1.5 lg:gap-2">
-                        {[0, 1, 2, 3, 4, 5].map((index) => (
-                          <InputOTPSlot
-                            key={index}
-                            index={index}
-                            className="w-9 lg:w-10 h-10 lg:h-12 text-base lg:text-lg font-black border-slate-200 dark:border-[#333333] rounded-xl bg-white dark:bg-[#1E1E1E] text-slate-900 dark:text-white focus:ring-2 focus:ring-primary/20"
-                          />
-                        ))}
-                      </InputOTPGroup>
-                    </InputOTP>
-
-                    {otpCode.length === 6 && (
-                      <button
-                        type="submit"
-                        disabled={isLoading}
-                        className="w-full py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-xs font-bold uppercase tracking-wider hover:opacity-90 transition-opacity"
-                      >
-                        {isLoading ? "Verifying..." : "Verify Code"}
-                      </button>
-                    )}
-                  </form>
                 </div>
 
                 <button
@@ -993,8 +1017,9 @@ export default function Login() {
                   onClick={() => {
                     setStep('auth');
                     setIsLogin(false);
+                    setOtpCode("");
                   }}
-                  className="mt-6 text-[10px] lg:text-[11px] font-bold text-slate-400 uppercase tracking-widest hover:text-slate-600 transition-colors flex items-center justify-center gap-1.5"
+                  className="mt-5 text-[10px] lg:text-[11px] font-bold text-slate-400 uppercase tracking-widest hover:text-slate-600 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <IconlyArrowLeft set="bold" primaryColor="currentColor" size={14} />
                   Change Email / Back
