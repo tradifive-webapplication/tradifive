@@ -70,7 +70,7 @@ export interface LicensePaymentRequest {
   mt5_account_number?: string;
   algo_id: string;
   algo_name: string;
-  amount: string; // "10000"
+  amount: string; // "9999"
   currency: string; // "INR"
   method: "upi" | "bank";
   upi_id?: string;
@@ -89,6 +89,8 @@ export interface LicensePaymentRequest {
 
 export interface AutoTradeRecord {
   id: string;
+  tradifive_id?: string;
+  settlement_day?: "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday" | "Sunday";
   user_id: string;
   user_name: string;
   user_email: string;
@@ -201,6 +203,7 @@ export default function AdminAutoTrade() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterIbStatus, setFilterIbStatus] = useState<"all" | "under_tradifive" | "outside_tradifive">("all");
   const [filterAlgo, setFilterAlgo] = useState<string>("all");
+  const [filterSettlementDay, setFilterSettlementDay] = useState<string>("all");
   const [selectedRecord, setSelectedRecord] = useState<AutoTradeRecord | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [drawerTab, setDrawerTab] = useState<"overview" | "ib_broker" | "algo_purchase" | "license" | "notes">("overview");
@@ -216,7 +219,7 @@ export default function AdminAutoTrade() {
   const [rejectModalProof, setRejectModalProof] = useState<IbTransferProofRequest | null>(null);
   const [rejectReasonInput, setRejectReasonInput] = useState("");
 
-  // ₹10,000 Setup Fee Payments State
+  // ₹9,999 Setup Fee Payments State
   const [licensePayments, setLicensePayments] = useState<LicensePaymentRequest[]>(getInitialPayments);
   const [paymentFilter, setPaymentFilter] = useState<"all" | "pending" | "approved" | "rejected">("pending");
   const [paymentMethodFilter, setPaymentMethodFilter] = useState<"all" | "upi" | "bank">("all");
@@ -279,7 +282,7 @@ export default function AdminAutoTrade() {
         localStorage.setItem("tradifive_cached_ib_proofs", JSON.stringify(proofs));
       } catch (e) {}
 
-      // 1.8 Fetch License Payment Requests (₹10,000 UPI / Bank)
+      // 1.8 Fetch License Payment Requests (₹9,999 UPI / Bank)
       const { data: licensePayData } = await supabase
         .from("system_settings")
         .select("*")
@@ -459,8 +462,10 @@ export default function AdminAutoTrade() {
             algo_name: override.algo_name || "FiAlgo V1 (Gold Scalper & Trend)",
             algo_manifest: override.algo_manifest || "FiAlgo_v1.0.4.ex5",
             algo_pair: override.algo_pair || "XAUUSD · M15",
+            tradifive_id: override.tradifive_id || (effectiveAccount ? `TRDF-${effectiveAccount.slice(-6).padStart(6, "0")}` : `TRDF-${p.id.slice(0, 6).toUpperCase()}`),
+            settlement_day: override.settlement_day || "Wednesday",
             purchase_tier: (override.purchase_tier as any) || (hasPurchased ? "Lifetime License" : "None"),
-            price_paid: override.price_paid !== undefined ? override.price_paid : (hasPurchased ? 10000 : 0),
+            price_paid: override.price_paid !== undefined ? override.price_paid : (hasPurchased ? 9999 : 0),
             payment_status: override.payment_status || (hasPurchased ? "paid" : "pending"),
             purchase_date: override.purchase_date || p.created_at || new Date().toISOString(),
             binary_downloaded: override.binary_downloaded !== undefined ? override.binary_downloaded : hasPurchased,
@@ -588,13 +593,13 @@ export default function AdminAutoTrade() {
   };
 
   // Cryptographic Key Generator matching Tradifive.mq5 FNV-1a algorithm & TF_SALT
-  const generateTradifiveLicenseKey = (mt5AccountNumber?: string | number, expDays: number = 10000): string => {
+  const generateTradifiveLicenseKey = (mt5AccountNumber?: string | number, expDays: number = 9999): string => {
     const salt = "TFv1-Zk39xQ-7mLpA2";
     const numClean = String(mt5AccountNumber || "4820194").replace(/\D/g, "");
     const login = BigInt(numClean || "4820194");
 
     let h = 0xCBF29CE484222325n;
-    const prime = 0x100000001B3n;
+    const prime = 0x99990001B3n;
     const mask64 = 0xFFFFFFFFFFFFFFFFn;
     const str = `${salt}:${login}:${expDays}`;
     for (let i = 0; i < str.length; i++) {
@@ -609,7 +614,7 @@ export default function AdminAutoTrade() {
     return `TF-${lgHex}-${expHex}-${chkHex}`;
   };
 
-  // Approve ₹10,000 Setup Payment & Issue License Key
+  // Approve ₹9,999 Setup Payment & Issue License Key
   const handleApprovePayment = async (payment: LicensePaymentRequest) => {
     const cleanAccount = String(payment.mt5_account_number || "").replace(/\D/g, "");
     const existingRec = records.find(r => 
@@ -660,14 +665,14 @@ export default function AdminAutoTrade() {
         mt5_account_number: targetAccountNum || existingRec.mt5_account_number,
         has_purchased: true,
         purchase_tier: "Lifetime License",
-        price_paid: 10000,
+        price_paid: 9999,
         payment_status: "paid",
         license_key: generatedKey,
         license_status: "active",
         license_expiry: "Lifetime",
         algo_name: "FiAlgo V1 (Gold Scalper & Trend)",
         algo_id: "fialgo_v1",
-        admin_notes: `₹10,000 Setup Payment verified via ${payment.method === "upi" ? "PhonePe/UPI" : "Bank Transfer"} (UTR: ${payment.utr_number}). Personal MT5 license key issued.`
+        admin_notes: `₹9,999 Setup Payment verified via ${payment.method === "upi" ? "PhonePe/UPI" : "Bank Transfer"} (UTR: ${payment.utr_number}). Personal MT5 license key issued.`
       };
       await persistUpdate(updatedRec);
     }
@@ -685,12 +690,12 @@ export default function AdminAutoTrade() {
       setPreviewPaymentProof(updatedPayment);
     }
 
-    toast.success(`Payment Verified! ₹10,000 License Key Issued`, {
+    toast.success(`Payment Verified! ₹9,999 License Key Issued`, {
       description: `Key ${generatedKey} generated for MT5 #${targetAccountNum}. User Step 4 is now active.`
     });
   };
 
-  // Reject ₹10,000 Payment
+  // Reject ₹9,999 Payment
   const handleRejectPayment = async (payment: LicensePaymentRequest, reason: string) => {
     const updatedPayment: LicensePaymentRequest = {
       ...payment,
@@ -882,6 +887,52 @@ export default function AdminAutoTrade() {
     });
   };
 
+    // WhatsApp Settlement Reminder Sender
+  const handleSendWhatsAppReminder = (record: AutoTradeRecord) => {
+    let phone = (record.user_phone || "").replace(/\D/g, "");
+    if (!phone) {
+      const prompted = window.prompt(
+        `Enter WhatsApp phone number with country code (e.g. 919876543210) for ${record.user_name}:`
+      );
+      if (!prompted) return;
+      phone = prompted.replace(/\D/g, "");
+      if (phone) {
+        record.user_phone = phone;
+        persistUpdate(record);
+      } else {
+        return;
+      }
+    }
+
+    const tid = record.tradifive_id || (record.mt5_account_number ? `TRDF-${record.mt5_account_number.slice(-6).padStart(6, '0')}` : 'TRDF-849201');
+    const day = record.settlement_day || "Wednesday";
+    const msg = `Hello ${record.user_name}!
+Your TradiFive ID: ${tid}
+MT5 Account: #${record.mt5_account_number}
+
+This is a friendly reminder from TradiFive Operations Desk:
+Your Weekly 50/50% Profit Share Settlement & Withdrawal window is scheduled for this ${day}.
+
+Please review your open trades and weekly net profit on your dashboard:
+https://www.tradifive.in/auto-trade/dashboard
+
+If you have any questions or wish to remit USDT/INR, reply directly to this chat. Thank you!`;
+
+    const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+    window.open(url, "_blank");
+    toast.success(`WhatsApp reminder opened for ${record.user_name} (${phone})`);
+  };
+
+  const handleUpdateSettlementDay = async (record: AutoTradeRecord, newDay: string) => {
+    const updated: AutoTradeRecord = {
+      ...record,
+      settlement_day: newDay as any,
+      updated_at: new Date().toISOString()
+    };
+    await persistUpdate(updated);
+    toast.success(`Settlement day for ${record.user_name} updated to ${newDay}`);
+  };
+
   // Revoke / Suspend License Key (Real-Time Kill Switch)
   const toggleLicenseStatus = async (record: AutoTradeRecord) => {
     const nextStatus = record.license_status === "active" ? "suspended" : "active";
@@ -975,7 +1026,7 @@ export default function AdminAutoTrade() {
     const pending = licensePayments.filter(p => p.status === "pending").length;
     const approved = licensePayments.filter(p => p.status === "approved").length;
     const rejected = licensePayments.filter(p => p.status === "rejected").length;
-    const revenueInr = approved * 10000;
+    const revenueInr = approved * 9999;
     return { total, pending, approved, rejected, revenueInr };
   }, [licensePayments]);
 
@@ -1031,7 +1082,7 @@ export default function AdminAutoTrade() {
             </div>
             <div>
               <h4 className="text-sm font-bold text-emerald-300 flex items-center gap-2">
-                <span>{pendingPaymentsCount} ₹10,000 Setup Payment{pendingPaymentsCount > 1 ? "s" : ""} Awaiting Verification</span>
+                <span>{pendingPaymentsCount} ₹9,999 Setup Payment{pendingPaymentsCount > 1 ? "s" : ""} Awaiting Verification</span>
                 <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/30 text-emerald-200 uppercase font-black">
                   Action Required
                 </span>
@@ -1134,7 +1185,7 @@ export default function AdminAutoTrade() {
           }`}
         >
           <CreditCard size={14} className={activeMainTab === "payments" ? "text-white" : "text-emerald-400"} />
-          <span>₹10,000 Payments</span>
+          <span>₹9,999 Payments</span>
           {pendingPaymentsCount > 0 ? (
             <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-400 text-black flex items-center gap-1 animate-pulse">
               <span className="w-1.5 h-1.5 rounded-full bg-black" />
@@ -1234,19 +1285,57 @@ export default function AdminAutoTrade() {
         </select>
       </div>
 
+            {/* ── STAGGERED WEEKLY SETTLEMENT COHORT TABS ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-slate-900/60 border border-slate-800 rounded-2xl">
+        <div className="flex items-center gap-2">
+          <Calendar size={15} className="text-blue-400" />
+          <span className="text-xs font-bold text-white uppercase tracking-wider">
+            Settlement Cohorts:
+          </span>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-1.5">
+          {["all", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((day) => {
+            const count = day === "all"
+              ? records.length
+              : records.filter(r => (r.settlement_day || "Wednesday") === day).length;
+            const isSelected = filterSettlementDay === day;
+            return (
+              <button
+                key={day}
+                type="button"
+                onClick={() => setFilterSettlementDay(day)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  isSelected
+                    ? "bg-blue-600 text-white shadow-xs"
+                    : "bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/60"
+                }`}
+              >
+                <span>{day === "all" ? "All Days" : day.slice(0, 3)}</span>
+                <span className={`ml-1.5 px-1.5 py-0.2 rounded-full text-[10px] ${
+                  isSelected ? "bg-white/20 text-white" : "bg-black/30 text-slate-400"
+                }`}>
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Main Table */}
       <div className="bg-slate-900/50 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
         <div className="overflow-hidden">
           <table className="w-full text-left border-collapse table-fixed">
             <thead>
               <tr className="border-b border-slate-800 bg-slate-950/40 text-[10px] font-bold uppercase tracking-wider text-slate-400 select-none">
-                <th className="px-3.5 py-3.5 w-[18%]">User</th>
-                <th className="px-3.5 py-3.5 w-[17%]">MT5 Account & Broker</th>
-                <th className="px-3.5 py-3.5 w-[12%]">Under Tradifive?</th>
-                <th className="px-3.5 py-3.5 w-[17%]">Algo Purchased</th>
-                <th className="px-3.5 py-3.5 w-[17%]">License Key</th>
+                <th className="px-3.5 py-3.5 w-[18%]">User &amp; TradiFive ID</th>
+                <th className="px-3.5 py-3.5 w-[15%]">MT5 Account &amp; Broker</th>
+                <th className="px-3.5 py-3.5 w-[11%]">Under Tradifive?</th>
+                <th className="px-3.5 py-3.5 w-[13%]">Settlement Day</th>
+                <th className="px-3.5 py-3.5 w-[16%]">License Key &amp; Status</th>
                 <th className="px-3.5 py-3.5 w-[10%]">Balance</th>
-                <th className="px-3.5 py-3.5 w-[9%] text-right">Actions</th>
+                <th className="px-3.5 py-3.5 w-[17%] text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60 text-xs">
@@ -1273,8 +1362,19 @@ export default function AdminAutoTrade() {
                     }}
                   >
                     <td className="px-5 py-4">
-                      <div className="font-bold text-white">{r.user_name}</div>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="font-bold text-white">{r.user_name}</span>
+                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-400 border border-blue-500/25 font-bold">
+                          {r.tradifive_id || (r.mt5_account_number ? `TRDF-${r.mt5_account_number.slice(-6).padStart(6, '0')}` : 'TRDF-849201')}
+                        </span>
+                      </div>
                       <div className="text-[11px] text-slate-400 font-mono">{r.user_email}</div>
+                      {r.user_phone && (
+                        <div className="text-[10px] text-emerald-400 font-mono flex items-center gap-1 mt-0.5">
+                          <MessageCircle size={10} />
+                          <span>{r.user_phone}</span>
+                        </div>
+                      )}
                     </td>
 
                     <td className="px-5 py-4">
@@ -1305,9 +1405,20 @@ export default function AdminAutoTrade() {
                       </div>
                     </td>
 
-                    <td className="px-5 py-4">
-                      <div className="font-semibold text-white">{r.algo_name}</div>
-                      <div className="text-[11px] text-slate-400">{r.purchase_tier} {r.price_paid > 0 && `($${r.price_paid})`}</div>
+                    <td className="px-5 py-4" onClick={(e) => e.stopPropagation()}>
+                      <div className="space-y-1">
+                        <select
+                          value={r.settlement_day || "Wednesday"}
+                          onChange={(e) => handleUpdateSettlementDay(r, e.target.value)}
+                          className="bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1 text-xs font-bold text-slate-200 focus:outline-none focus:border-blue-500 cursor-pointer"
+                          title="Assign user weekly withdrawal & profit settlement cohort"
+                        >
+                          {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map(day => (
+                            <option key={day} value={day}>{day}</option>
+                          ))}
+                        </select>
+                        <span className="block text-[10px] text-slate-500">Weekly 50/50%</span>
+                      </div>
                     </td>
 
                     <td className="px-5 py-4 font-mono font-bold text-neutral-300">
@@ -1338,6 +1449,17 @@ export default function AdminAutoTrade() {
 
                     <td className="px-5 py-4 text-right whitespace-nowrap align-middle" onClick={(e) => e.stopPropagation()}>
                       <div className="inline-flex items-center justify-end gap-1.5 shrink-0 whitespace-nowrap">
+                        {/* WhatsApp Settlement Reminder Button */}
+                        <button
+                          type="button"
+                          onClick={() => handleSendWhatsAppReminder(r)}
+                          className="h-7 px-2.5 rounded text-[11px] font-bold inline-flex items-center gap-1.5 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 transition-all cursor-pointer shrink-0 shadow-2xs"
+                          title="Send WhatsApp Settlement Reminder"
+                        >
+                          <MessageCircle size={12} className="text-emerald-400" />
+                          <span>Remind</span>
+                        </button>
+
                         {/* Suspend / Reactivate Quick Toggle Button */}
                         <button
                           type="button"
@@ -1745,7 +1867,7 @@ export default function AdminAutoTrade() {
         </div>
       )}
 
-      {/* ── TAB 3: ₹10,000 SETUP PAYMENTS (UPI & BANK TRANSFER) ── */}
+      {/* ── TAB 3: ₹9,999 SETUP PAYMENTS (UPI & BANK TRANSFER) ── */}
       {activeMainTab === "payments" && (
         <div className="space-y-6">
           {/* ── Official Receiving Account Details Strip ── */}
@@ -1759,7 +1881,7 @@ export default function AdminAutoTrade() {
                   <div className="flex items-center gap-2">
                     <h3 className="text-base font-black text-white">Official TradiFive Payment Accounts</h3>
                     <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                      Amount: ₹10,000 (Setup Fee)
+                      Amount: ₹9,999 (Setup Fee)
                     </span>
                   </div>
                   <p className="text-xs text-neutral-400 mt-0.5">
@@ -1987,7 +2109,7 @@ export default function AdminAutoTrade() {
                         <p className="text-xs text-slate-600 mt-0.5">
                           {paymentSearchQuery || paymentFilter !== "all"
                             ? "Try adjusting your filters or search query"
-                            : "New ₹10,000 PhonePe / UPI or Bank transfer requests will appear here in real-time."}
+                            : "New ₹9,999 PhonePe / UPI or Bank transfer requests will appear here in real-time."}
                         </p>
                       </td>
                     </tr>
@@ -2056,7 +2178,7 @@ export default function AdminAutoTrade() {
                         {/* Amount */}
                         <td className="px-5 py-4">
                           <div className="font-mono font-black text-white text-sm">
-                            ₹{Number(payment.amount || 10000).toLocaleString()}
+                            ₹{Number(payment.amount || 9999).toLocaleString()}
                           </div>
                           <span className="text-[10px] text-slate-500 font-semibold uppercase">100% Paid</span>
                         </td>
@@ -2328,7 +2450,7 @@ export default function AdminAutoTrade() {
                           ...selectedRecord,
                           purchase_tier: newTier,
                           has_purchased: newTier !== "None",
-                          price_paid: newTier === "Performance License" ? 10000 : 0,
+                          price_paid: newTier === "Performance License" ? 9999 : 0,
                           updated_at: new Date().toISOString()
                         };
                         await persistUpdate(updated);
@@ -2691,7 +2813,7 @@ export default function AdminAutoTrade() {
                   </div>
                   <div>
                     <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                      ₹10,000 Payment Proof · UTR #{previewPaymentProof.utr_number}
+                      ₹9,999 Payment Proof · UTR #{previewPaymentProof.utr_number}
                     </h3>
                     <p className="text-[11px] text-neutral-400">
                       Client: <strong className="text-white">{previewPaymentProof.user_name}</strong> ({previewPaymentProof.user_email}) · MT5: <strong className="font-mono text-emerald-400">{previewPaymentProof.mt5_account_number || "Unbound"}</strong>
@@ -2722,7 +2844,7 @@ export default function AdminAutoTrade() {
                 <div className="text-xs">
                   <span className="text-[10px] text-neutral-500 uppercase block font-semibold">Payment Method & Amount</span>
                   <span className="font-bold text-white">
-                    {previewPaymentProof.method === "upi" ? "PhonePe / UPI" : "Bank Transfer"} · <strong className="font-mono text-emerald-400">₹10,000</strong>
+                    {previewPaymentProof.method === "upi" ? "PhonePe / UPI" : "Bank Transfer"} · <strong className="font-mono text-emerald-400">₹9,999</strong>
                   </span>
                 </div>
 
@@ -2767,7 +2889,7 @@ export default function AdminAutoTrade() {
                   <XCircle size={20} />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-white">Reject ₹10,000 Payment</h3>
+                  <h3 className="text-sm font-bold text-white">Reject ₹9,999 Payment</h3>
                   <p className="text-xs text-neutral-400">
                     UTR: <strong className="text-white font-mono">{rejectModalPayment.utr_number}</strong> ({rejectModalPayment.user_name})
                   </p>
@@ -2781,7 +2903,7 @@ export default function AdminAutoTrade() {
                 <div className="space-y-1.5">
                   {[
                     "UTR / Reference number not found in Axis Bank / UPI statement.",
-                    "Transferred amount does not match ₹10,000 setup fee.",
+                    "Transferred amount does not match ₹9,999 setup fee.",
                     "Payment screenshot is blurry or does not show completed transaction status.",
                     "Duplicate UTR submitted."
                   ].map((preset) => (

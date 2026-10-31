@@ -139,7 +139,7 @@ export default function AITrading() {
   // Bot State & Setup Flags
   const [hasDownloaded, setHasDownloaded] = useState(false);
   const [showCalculator, setShowCalculator] = useState(false);
-  // Step 3: Lifetime License Payment State (₹99,999)
+  // Step 3: Lifetime License Payment State (₹9,999)
   const [paymentStatus, setPaymentStatus] = useState<"none" | "pending" | "approved">(() => {
     try {
       const req = localStorage.getItem("tradifive_payment_request");
@@ -155,24 +155,27 @@ export default function AITrading() {
 
   const hasPaid = paymentStatus === "approved";
   const [searchParams] = useSearchParams();
-  const [selectedTier, setSelectedTier] = useState<"lifetime" | "profit_share_50">(() => {
+  
+  // Single official plan: ₹9,999 Setup Fee + Weekly 50/50% Profit Share
+  const [selectedTier] = useState<"performance_weekly_50">("performance_weekly_50");
+  
+  // Weekly Settlement & Withdrawal Cohort Day (Mon–Sun)
+  const [settlementDay, setSettlementDay] = useState<string>(() => {
     try {
-      const q = new URLSearchParams(window.location.search).get("tier");
-      if (q === "lifetime") return "lifetime";
-      if (q === "performance" || q === "profit_share_50") return "profit_share_50";
-      const saved = localStorage.getItem("tradifive_selected_tier");
-      if (saved === "lifetime") return "lifetime";
-      return "profit_share_50";
+      return localStorage.getItem("tradifive_settlement_day") || "Wednesday";
     } catch (e) {
-      return "profit_share_50";
+      return "Wednesday";
     }
   });
 
-  useEffect(() => {
-    const q = searchParams.get("tier");
-    if (q === "lifetime") setSelectedTier("lifetime");
-    else if (q === "performance" || q === "profit_share_50") setSelectedTier("profit_share_50");
-  }, [searchParams]);
+  const tradifiveId = React.useMemo(() => {
+    const clean = String(mt5Account || (typeof window !== "undefined" ? localStorage.getItem("tradifive_connected_mt5_account") : "") || "").replace(/\D/g, "");
+    if (clean.length >= 4) {
+      return `TRDF-${clean.slice(-6).padStart(6, "0")}`;
+    }
+    return (typeof window !== "undefined" ? localStorage.getItem("tradifive_user_id_short") : "") || "TRDF-849201";
+  }, [mt5Account]);
+
   const [paymentMethod, setPaymentMethod] = useState<"upi" | "bank">("upi");
   const [paymentUtr, setPaymentUtr] = useState<string>(() => {
     try {
@@ -704,7 +707,7 @@ export default function AITrading() {
       algo_name: selectedTier === "lifetime" ? "FiAlgo V1 Lifetime VIP" : "FiAlgo V1 Performance Partner (50% Daily Share)",
       amount: selectedTier === "lifetime" ? "99999" : "5000",
       plan_tier: selectedTier,
-      plan_name: selectedTier === "lifetime" ? "VIP Lifetime License (0% Profit Share)" : "Performance Partner (₹5,000 Setup + Daily 50% Profit Share)",
+      plan_name: selectedTier === "lifetime" ? "VIP Lifetime License (0% Profit Share)" : "Performance Partner (₹5,000 Setup + Weekly 50/50% Profit Share)",
       currency: "INR",
       method: paymentMethod,
       upi_id: paymentMethod === "upi" ? "9731980756@axisbank" : undefined,
@@ -760,7 +763,7 @@ export default function AITrading() {
     localStorage.setItem("tradifive_payment_status", "approved");
     localStorage.setItem("tradifive_auto_trade_setup", "true");
     toast.success("License Key Unlocked!", {
-      description: "₹99,999 payment verified. Personal MT5 key is now active."
+      description: "₹9,999 payment verified. Personal MT5 key is now active."
     });
   };
 
@@ -1139,8 +1142,8 @@ MagicNumber=789104
     : "Pending Review";
 
   return (
-    <DashboardLayout>
-      <div className="w-full max-w-[1580px] mx-auto px-2 sm:px-6 lg:px-8 xl:px-10 pt-2 pb-24 space-y-6">
+    <DashboardLayout fullScreen={true}>
+      <div className="w-full max-w-[1720px] mx-auto px-3 sm:px-6 lg:px-10 py-6 space-y-6">
 
         {/* ── HEADER (EXPANSIVE BIG-TECH ENTERPRISE CONSOLE) ── */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200/80 dark:border-white/10">
@@ -1154,9 +1157,14 @@ MagicNumber=789104
                 Build v1.0.4 · MetaTrader 5 Bridge
               </span>
             </div>
-            <h1 className="text-xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-              AI Trading Setup
-            </h1>
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <h1 className="text-xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                AI Trading Setup
+              </h1>
+              <span className="px-2.5 py-0.5 rounded-lg font-mono text-xs font-extrabold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                ID: {tradifiveId}
+              </span>
+            </div>
             <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
               Connect your MT5 broker, download the FiAlgo V1 Expert Advisor, and activate automated execution.
             </p>
@@ -1248,7 +1256,7 @@ MagicNumber=789104
                       : "bg-slate-100 text-slate-500 hover:text-slate-900 dark:bg-white/5 dark:text-slate-400"
               }`}
             >
-              <span>{paymentStatus === "approved" ? "✓" : paymentStatus === "pending" ? "⌛" : "3."} Pay Setup Fee</span>
+              <span>{paymentStatus === "approved" ? "✓" : paymentStatus === "pending" ? "⌛" : "3."} Pay ₹9,999</span>
             </button>
 
             <button
@@ -1884,262 +1892,310 @@ MagicNumber=789104
           </motion.div>
         )}
 
-        {/* ── STEP 2: ONLY SHOWN WHEN activeStep === 2 ── */}
+        {/* ── STEP 2: EXPANSIVE 2-COLUMN ENTERPRISE WORKSTATION (BIG-TECH CONSOLE) ── */}
         {activeStep === 2 && (
           <motion.div
             key="step2"
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            className="rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:bg-[#161618] dark:border-white/10 p-3 sm:p-6 space-y-4 sm:space-y-6"
+            className="space-y-6"
           >
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/5">
-              <div>
-                <h2 className="text-base sm:text-xl font-bold text-slate-900 dark:text-white">
-                  Download FiAlgo V1 Expert Advisor
+            {/* Top Step Header with Live Telemetry */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 sm:p-6 rounded-2xl bg-white dark:bg-[#161618] border border-slate-200/80 dark:border-white/10 shadow-xs">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">
+                    Step 2 · Institutional Binary Release
+                  </span>
+                </div>
+                <h2 className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+                  Download FiAlgo V1 Expert Advisor &amp; Presets
                 </h2>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  Download the EA file and chart preset for MetaTrader 5.
+                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+                  Deploy the precision Gold (XAUUSD M1) algorithmic engine directly onto MetaTrader 5.
                 </p>
               </div>
 
-              {hasDownloaded && (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 shrink-0">
-                  <CheckCircle2 size={13} />
-                  Downloaded
-                </span>
-              )}
+              <div className="flex items-center gap-2 shrink-0">
+                {hasDownloaded ? (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25">
+                    <CheckCircle2 size={14} />
+                    <span>Binaries Downloaded</span>
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-500/20">
+                    <Cpu size={14} />
+                    <span>MT5 v1.0.4 Ready</span>
+                  </span>
+                )}
+              </div>
             </div>
 
-            {/* FiAlgo V1 Product Card - Systemic Institutional White Mode */}
-            <div className="relative overflow-hidden rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#121215] p-3 sm:p-6 space-y-3 sm:space-y-4 shadow-[0_4px_24px_-4px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.04)] dark:shadow-none transition-all">
-              {/* Subtle top hairline */}
-              <div className="absolute top-0 inset-x-0 h-0.5 bg-slate-900 dark:bg-white/20" />
+            {/* 2-Column Expansive Enterprise Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+              
+              {/* Left Column: Primary Product Showcase, 3D Hardware Pedestal, Telemetry & 1-Click Downloads (7 cols) */}
+              <div className="lg:col-span-7 space-y-5">
+                <div className="rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#161618] p-5 sm:p-7 space-y-6 shadow-xs relative overflow-hidden">
+                  <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-500" />
 
-              {/* Header: Compact Side-by-Side Telemetry & 3D Packaging on Mobile */}
-              <div className="flex items-start justify-between gap-3 pt-1">
-                <div className="space-y-1.5 text-left flex-1 min-w-0">
-                  {/* Status & Badge Row */}
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-white/10 border border-slate-200/80 dark:border-white/10">
-                      <Shield size={10} className="text-slate-600 dark:text-slate-400" />
-                      <span>Gold Specialist · MT5 EA</span>
-                    </span>
+                  {/* Header & 3D Packaging Showcase */}
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-5 pt-1">
+                    <div className="space-y-2 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10.5px] font-bold text-slate-900 dark:text-slate-100 bg-slate-100 dark:bg-white/10 border border-slate-200 dark:border-white/10">
+                          <Shield size={12} className="text-blue-600 dark:text-blue-400" />
+                          <span>Gold Specialist · MT5 EA</span>
+                        </span>
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10.5px] font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-500/20">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                          <span>Verified v1.0.4 Release</span>
+                        </span>
+                      </div>
 
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold text-slate-700 dark:text-slate-300 bg-slate-100/70 dark:bg-white/5 border border-slate-200/60 dark:border-white/10">
-                      <span className="relative flex h-1.5 w-1.5">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
-                      </span>
-                      <span>Verified v1.0.4</span>
-                    </span>
-                  </div>
+                      <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+                        FiAlgo V1 <span className="text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400 font-sans">(MetaTrader 5 Build)</span>
+                      </h3>
 
-                  {/* Title */}
-                  <h3 className="text-base sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-                    FiAlgo V1 <span className="text-[11px] sm:text-sm font-semibold text-slate-500 dark:text-slate-400 font-sans">(MetaTrader 5 Build)</span>
-                  </h3>
-
-                  {/* Algorithmic Purpose */}
-                  <p className="text-[11.5px] sm:text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                    Precision Gold (XAUUSD) algorithm with automated risk management and capital protection.
-                  </p>
-                </div>
-
-                {/* 3D Product Box in clean showcase pedestal */}
-                <div className="shrink-0 self-center sm:self-start">
-                  <div className="relative group p-2 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 shadow-2xs">
-                    <img
-                      src="/fialgo-v1-box.png"
-                      alt="FiAlgo V1 3D Box"
-                      className="h-20 sm:h-28 w-auto object-contain drop-shadow-[0_8px_14px_rgba(0,0,0,0.12)] dark:drop-shadow-[0_12px_20px_rgba(0,0,0,0.4)] transition-transform duration-300 group-hover:scale-105"
-                    />
-                    <span className="absolute bottom-1 right-1 text-[7.5px] font-mono font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 bg-white/90 dark:bg-black/80 px-1 rounded border border-slate-200/70 dark:border-white/10">
-                      v1.0.4
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Specifications Grid - Unified Institutional Tiles */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 border-t border-slate-100 dark:border-white/5 text-xs">
-                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 flex flex-col justify-between min-h-[68px]">
-                  <div className="flex items-center justify-between mb-0.5">
-                    <span className="text-[10px] text-slate-500 dark:text-slate-400 block font-semibold uppercase tracking-wider">Asset Pair</span>
-                    <Coins size={12} className="text-slate-400" />
-                  </div>
-                  <div>
-                    <strong className="text-slate-900 dark:text-white text-xs block font-bold leading-tight">XAUUSD (Gold)</strong>
-                    <span className="text-[10px] text-slate-500 dark:text-slate-400">Spot / USD Structure</span>
-                  </div>
-                </div>
-
-                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 flex flex-col justify-between min-h-[68px]">
-                  <div className="flex items-center justify-between mb-0.5">
-                    <span className="text-[10px] text-slate-500 dark:text-slate-400 block font-semibold uppercase tracking-wider">Timeframe</span>
-                    <Clock size={12} className="text-slate-400" />
-                  </div>
-                  <div>
-                    <strong className="text-slate-900 dark:text-white text-xs block font-bold leading-tight">1-Min (M1)</strong>
-                    <span className="text-[10px] text-slate-500 dark:text-slate-400">Tick-Level Accuracy</span>
-                  </div>
-                </div>
-
-                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 flex flex-col justify-between min-h-[68px]">
-                  <div className="flex items-center justify-between mb-0.5">
-                    <span className="text-[10px] text-slate-500 dark:text-slate-400 block font-semibold uppercase tracking-wider">Execution</span>
-                    <Zap size={12} className="text-slate-400" />
-                  </div>
-                  <div>
-                    <strong className="text-slate-900 dark:text-white text-xs block font-bold flex items-center gap-1.5 leading-tight">
-                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                      &lt; 3ms Direct MT5
-                    </strong>
-                    <span className="text-[10px] text-slate-500 dark:text-slate-400">Zero Broker Relay</span>
-                  </div>
-                </div>
-
-                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 flex flex-col justify-between min-h-[68px]">
-                  <div className="flex items-center justify-between mb-0.5">
-                    <span className="text-[10px] text-slate-500 dark:text-slate-400 block font-semibold uppercase tracking-wider">Engine</span>
-                    <Layers size={12} className="text-slate-400" />
-                  </div>
-                  <div>
-                    <strong className="text-slate-900 dark:text-white text-xs block font-bold leading-tight">Dynamic Basket</strong>
-                    <span className="text-[10px] text-slate-500 dark:text-slate-400">Adaptive Risk Guard</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Account Size & Lot Sizing Recommendation - Systemic 3-Column Quant Matrix */}
-              <div className="rounded-xl bg-slate-50/90 dark:bg-[#161619] border border-slate-200/80 dark:border-white/10 p-3 space-y-2.5 text-xs">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5 font-bold text-slate-800 dark:text-slate-200">
-                    <Shield size={13} className="text-slate-500" />
-                    <span className="text-[11px] uppercase tracking-wider text-slate-600 dark:text-slate-400">Safety Specifications</span>
-                  </div>
-                  <span className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-200/60 dark:border-emerald-500/20">
-                    <CheckCircle2 size={11} className="text-emerald-500" />
-                    <span>Risk Guard Active</span>
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-3 gap-1.5 sm:gap-2 pt-1 border-t border-slate-200/60 dark:border-white/5 text-center">
-                  <div className="p-2 rounded-lg bg-white dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/5">
-                    <span className="block text-[10px] text-slate-400 uppercase font-semibold">Min. Deposit</span>
-                    <strong className="text-xs font-bold text-slate-900 dark:text-white font-mono">$500 USD</strong>
-                  </div>
-                  <div className="p-2 rounded-lg bg-white dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/5">
-                    <span className="block text-[10px] text-slate-400 uppercase font-semibold">Base Lot</span>
-                    <strong className="text-xs font-bold text-slate-900 dark:text-white font-mono">0.01</strong>
-                  </div>
-                  <div className="p-2 rounded-lg bg-white dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/5">
-                    <span className="block text-[10px] text-slate-400 uppercase font-semibold">Leverage</span>
-                    <strong className="text-xs font-bold text-slate-900 dark:text-white font-mono">1:100+</strong>
-                  </div>
-                </div>
-              </div>
-
-              {/* 3-Day Profit Guarantee - Systemic Responsive Card */}
-              <div className="p-3 sm:p-3.5 rounded-xl bg-slate-50/90 dark:bg-white/[0.02] border border-slate-200/90 dark:border-white/10 space-y-2.5 sm:space-y-0 sm:flex sm:items-center sm:justify-between sm:gap-3">
-                <div className="flex items-start gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 flex items-center justify-center shrink-0 shadow-xs mt-0.5 sm:mt-0">
-                    <Shield size={15} />
-                  </div>
-                  <div className="space-y-0.5">
-                    <div className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white leading-tight">
-                      Automated Risk Guard &amp; Profit Discipline
+                      <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                        Institutional quantitative algorithm with automated risk management, dynamic tick-level basket hedging, and real-time capital protection.
+                      </p>
                     </div>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-normal">
-                      Pre-configured stops, news filter, and daily drawdown protection.
-                    </p>
+
+                    <div className="shrink-0 self-center sm:self-start">
+                      <div className="relative group p-3 rounded-2xl bg-gradient-to-b from-slate-50 to-slate-100 dark:from-[#1c1c20] dark:to-[#161618] border border-slate-200/80 dark:border-white/10 shadow-sm">
+                        <img
+                          src="/fialgo-v1-box.png"
+                          alt="FiAlgo V1 3D Box"
+                          className="h-28 sm:h-36 w-auto object-contain drop-shadow-[0_12px_20px_rgba(0,0,0,0.14)] dark:drop-shadow-[0_16px_28px_rgba(0,0,0,0.5)] transition-transform duration-300 group-hover:scale-105"
+                        />
+                        <span className="absolute bottom-1.5 right-1.5 text-[8.5px] font-mono font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 bg-white/95 dark:bg-black/90 px-1.5 py-0.5 rounded border border-slate-200 dark:border-white/10 shadow-2xs">
+                          v1.0.4
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 4-Cell Telemetry Specifications Matrix */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1 text-xs">
+                    <div className="p-3 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 flex flex-col justify-between min-h-[74px]">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider">Asset Pair</span>
+                        <Coins size={13} className="text-amber-500" />
+                      </div>
+                      <div>
+                        <strong className="text-slate-900 dark:text-white text-xs block font-bold">XAUUSD (Gold)</strong>
+                        <span className="text-[10.5px] text-slate-500 dark:text-slate-400">Spot USD Tick</span>
+                      </div>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 flex flex-col justify-between min-h-[74px]">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider">Timeframe</span>
+                        <Clock size={13} className="text-blue-500" />
+                      </div>
+                      <div>
+                        <strong className="text-slate-900 dark:text-white text-xs block font-bold">1-Min (M1)</strong>
+                        <span className="text-[10.5px] text-slate-500 dark:text-slate-400">Tick Precision</span>
+                      </div>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 flex flex-col justify-between min-h-[74px]">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider">Execution</span>
+                        <Zap size={13} className="text-emerald-500" />
+                      </div>
+                      <div>
+                        <strong className="text-slate-900 dark:text-white text-xs block font-bold flex items-center gap-1.5">
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                          &lt; 3ms Direct MT5
+                        </strong>
+                        <span className="text-[10.5px] text-slate-500 dark:text-slate-400">Zero Relay Lag</span>
+                      </div>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 flex flex-col justify-between min-h-[74px]">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider">Engine</span>
+                        <Layers size={13} className="text-purple-500" />
+                      </div>
+                      <div>
+                        <strong className="text-slate-900 dark:text-white text-xs block font-bold">Dynamic Basket</strong>
+                        <span className="text-[10.5px] text-slate-500 dark:text-slate-400">Trailing Guard</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Safety Quant Matrix */}
+                  <div className="p-3.5 sm:p-4 rounded-xl bg-slate-50/90 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <ShieldCheck size={15} className="text-emerald-500" />
+                        <span className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
+                          Automated Safety Specifications
+                        </span>
+                      </div>
+                      <span className="text-[10.5px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">
+                        Risk Guard Active
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-2 text-center">
+                      <div className="p-2.5 rounded-lg bg-white dark:bg-[#161618] border border-slate-200/70 dark:border-white/5">
+                        <span className="block text-[10px] text-slate-400 uppercase font-semibold">Min. Deposit</span>
+                        <strong className="text-sm font-bold text-slate-900 dark:text-white font-mono">$500 USD</strong>
+                      </div>
+                      <div className="p-2.5 rounded-lg bg-white dark:bg-[#161618] border border-slate-200/70 dark:border-white/5">
+                        <span className="block text-[10px] text-slate-400 uppercase font-semibold">Base Lot</span>
+                        <strong className="text-sm font-bold text-slate-900 dark:text-white font-mono">0.01</strong>
+                      </div>
+                      <div className="p-2.5 rounded-lg bg-white dark:bg-[#161618] border border-slate-200/70 dark:border-white/5">
+                        <span className="block text-[10px] text-slate-400 uppercase font-semibold">Leverage</span>
+                        <strong className="text-sm font-bold text-slate-900 dark:text-white font-mono">1:100+</strong>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Download Action Suite */}
+                  <div className="space-y-3 pt-2 border-t border-slate-100 dark:border-white/5">
+                    <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <FileCode size={14} className="text-slate-400 shrink-0" />
+                        <span>Binary:</span>
+                        <code className="font-mono text-[11px] font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-white/10 px-2 py-0.5 rounded border border-slate-200/80 dark:border-white/5">
+                          FiAlgo_v1.0.4.ex5
+                        </code>
+                      </div>
+                      <div className="font-mono text-[11px]">
+                        Size: <strong className="text-emerald-600 dark:text-emerald-400 font-bold">248 KB</strong> (Compiled MT5)
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        onClick={handleDownloadEA}
+                        className="py-3 px-4 rounded-xl text-xs sm:text-sm font-bold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 transition-all flex items-center justify-center gap-2 shadow-sm hover:shadow-md cursor-pointer active:scale-[0.99]"
+                      >
+                        <Download size={15} />
+                        <span>Download FiAlgo EA (.ex5)</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleDownloadPreset}
+                        className="py-3 px-4 rounded-xl text-xs sm:text-sm font-bold bg-slate-100 hover:bg-slate-200 text-slate-800 dark:bg-white/10 dark:hover:bg-white/15 dark:text-white border border-slate-200/90 dark:border-white/10 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-2xs active:scale-[0.99]"
+                      >
+                        <Sliders size={15} />
+                        <span>Download Chart Presets (.set)</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
-
-                <button
-                  type="button"
-                  onClick={() => setShowCalculator(true)}
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-slate-800 hover:text-slate-900 bg-white hover:bg-slate-100 border border-slate-200 dark:bg-white/10 dark:text-slate-200 dark:border-white/10 dark:hover:bg-white/15 transition-all cursor-pointer shadow-2xs shrink-0"
-                >
-                  <Calculator size={12} className="text-slate-500" />
-                  <span>Profit Calculator →</span>
-                </button>
               </div>
 
-              {/* Action Buttons & Binary Manifest - Ergonomic Mobile Grid */}
-              <div className="space-y-2.5 pt-1 border-t border-slate-100 dark:border-white/5">
-                <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-                  <div className="flex items-center gap-1.5 min-w-0">
-                    <FileCode size={13} className="text-slate-400 shrink-0" />
-                    <span className="text-[11px]">File:</span>
-                    <code className="font-mono text-[11px] font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-white/10 px-2 py-0.5 rounded border border-slate-200/80 dark:border-white/5 truncate">
-                      FiAlgo_v1.0.4.ex5
-                    </code>
-                  </div>
-                  <div className="text-[11px] text-slate-500 shrink-0 font-mono">
-                    <span>Size: <strong className="text-emerald-600 dark:text-emerald-400 font-bold">248 KB</strong></span>
-                    <span className="hidden sm:inline"> · Real Compiled MT5 Binary</span>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={handleDownloadPreset}
-                    className="py-2.5 px-3 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-800 dark:bg-white/10 dark:hover:bg-white/15 dark:text-white border border-slate-200/90 dark:border-white/10 transition-all inline-flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs active:scale-95"
-                  >
-                    <Sliders size={13} />
-                    <span>Presets (.set)</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleDownloadEA}
-                    className="py-2.5 px-3 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 transition-all inline-flex items-center justify-center gap-1.5 shadow-xs hover:shadow-md active:scale-95 cursor-pointer"
-                    title="Download real compiled 236 KB binary for MetaTrader 5"
-                  >
-                    <Download size={14} />
-                    <span>Download (.ex5)</span>
-                  </button>
-                </div>
-
-                {/* MT5 WebRequest Prerequisite Card */}
-                <div className="p-3.5 sm:p-4 rounded-xl bg-blue-50/70 dark:bg-blue-950/20 border border-blue-200/80 dark:border-blue-500/20 space-y-2 text-xs">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                      <Zap size={14} className="text-blue-600 dark:text-blue-400" />
-                      <span>Required MT5 WebRequest Setup (1-Time)</span>
-                    </span>
-                    <span className="text-[10px] font-bold text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-500/20 px-2 py-0.5 rounded-full">
-                      Enables Real-Time Feed
+              {/* Right Column: Interactive MT5 Installation & WebRequest Setup Guide (5 cols) */}
+              <div className="lg:col-span-5 space-y-5">
+                <div className="rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#161618] p-5 sm:p-6 space-y-4 shadow-xs">
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/5">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+                        <Terminal size={15} />
+                      </div>
+                      <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
+                        MT5 Quick Installation Guide
+                      </h4>
+                    </div>
+                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-white/10 px-2 py-0.5 rounded-full">
+                      4 Easy Steps
                     </span>
                   </div>
-                  <p className="text-[11.5px] text-slate-600 dark:text-slate-300 leading-relaxed">
-                    Open MT5 → <strong>Tools → Options → Experts</strong> (or press <kbd className="px-1 py-0.5 rounded bg-slate-200 dark:bg-white/10 font-mono text-[10px]">Ctrl+O</kbd>). Check <strong>"Allow WebRequest for listed URL"</strong> and add:
-                  </p>
-                  <div className="flex items-center justify-between bg-white dark:bg-[#161618] border border-blue-200/70 dark:border-blue-500/30 rounded-lg p-2 px-3">
-                    <code className="text-xs font-mono font-bold text-blue-600 dark:text-blue-400 select-all truncate">
-                      https://rylwyxhupwpwsdbvuoej.supabase.co
-                    </code>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        navigator.clipboard.writeText("https://rylwyxhupwpwsdbvuoej.supabase.co");
-                        toast.success("Webhook URL Copied!", {
-                          description: "Paste into MT5 Tools → Options → Experts → WebRequest"
-                        });
-                      }}
-                      className="px-2.5 py-1 rounded-md text-[10.5px] font-bold bg-blue-600 hover:bg-blue-700 text-white inline-flex items-center gap-1 shrink-0 cursor-pointer"
+
+                  {/* Checklist Steps */}
+                  <div className="space-y-3 text-xs">
+                    <div className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/5">
+                      <span className="w-5 h-5 rounded-full bg-slate-900 text-white dark:bg-white dark:text-slate-900 font-bold text-[10.5px] flex items-center justify-center shrink-0 mt-0.5">1</span>
+                      <div className="space-y-1">
+                        <strong className="text-slate-900 dark:text-white block font-semibold">Copy EA into MT5 folder</strong>
+                        <p className="text-[11.5px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                          In MT5: click <strong>File → Open Data Folder → MQL5 → Experts</strong> and paste <code className="font-mono text-slate-800 dark:text-slate-200">FiAlgo_v1.0.4.ex5</code>.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/5">
+                      <span className="w-5 h-5 rounded-full bg-slate-900 text-white dark:bg-white dark:text-slate-900 font-bold text-[10.5px] flex items-center justify-center shrink-0 mt-0.5">2</span>
+                      <div className="space-y-1">
+                        <strong className="text-slate-900 dark:text-white block font-semibold">Enable Algo Trading</strong>
+                        <p className="text-[11.5px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                          Click the <strong>Algo Trading</strong> button on the MT5 top toolbar (it should display a green play icon).
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="p-3.5 rounded-xl bg-blue-50/70 dark:bg-blue-950/20 border border-blue-200/80 dark:border-blue-500/20 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                          <span className="w-5 h-5 rounded-full bg-blue-600 text-white font-bold text-[10.5px] flex items-center justify-center shrink-0">3</span>
+                          <span>Allow WebRequest (Required)</span>
+                        </span>
+                        <span className="text-[10px] font-mono text-blue-600 dark:text-blue-400 font-bold">Ctrl+O</span>
+                      </div>
+                      <p className="text-[11.5px] text-slate-600 dark:text-slate-300 leading-relaxed">
+                        Go to <strong>Tools → Options → Experts</strong>. Check <em>"Allow WebRequest for listed URL"</em> and add:
+                      </p>
+                      <div className="flex items-center justify-between bg-white dark:bg-[#161618] border border-blue-200/80 dark:border-blue-500/30 rounded-lg p-2 px-2.5">
+                        <code className="text-xs font-mono font-bold text-blue-600 dark:text-blue-400 select-all truncate">
+                          https://rylwyxhupwpwsdbvuoej.supabase.co
+                        </code>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText("https://rylwyxhupwpwsdbvuoej.supabase.co");
+                            toast.success("Webhook URL Copied!", {
+                              description: "Paste into MT5 Tools → Options → Experts → WebRequest"
+                            });
+                          }}
+                          className="px-2.5 py-1 rounded-md text-[10.5px] font-bold bg-blue-600 hover:bg-blue-700 text-white inline-flex items-center gap-1 shrink-0 cursor-pointer ml-2"
+                        >
+                          <Copy size={11} />
+                          <span>Copy</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/5">
+                      <span className="w-5 h-5 rounded-full bg-slate-900 text-white dark:bg-white dark:text-slate-900 font-bold text-[10.5px] flex items-center justify-center shrink-0 mt-0.5">4</span>
+                      <div className="space-y-1">
+                        <strong className="text-slate-900 dark:text-white block font-semibold">Attach to XAUUSD (Gold) M1</strong>
+                        <p className="text-[11.5px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                          Drag FiAlgo onto an M1 chart. In the Inputs tab, click <strong>Load</strong> to select the downloaded <code className="font-mono text-slate-800 dark:text-slate-200">XAUUSD_M1_Preset.set</code>.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Priority Support Desk */}
+                  <div className="pt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between">
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400">Need installation help?</span>
+                    <a
+                      href="https://wa.me/?text=Hello%20TradiFive%20Team!%20I%20need%20assistance%20installing%20FiAlgo%20V1%20on%20my%20MT5."
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1 cursor-pointer"
                     >
-                      <Copy size={11} />
-                      <span>Copy URL</span>
-                    </button>
+                      <MessageCircle size={12} />
+                      <span>WhatsApp Setup Desk →</span>
+                    </a>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Stepper Navigation: Back to Step 1 & Forward to Step 3 */}
-            <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-2.5">
+            <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3">
               <button
                 type="button"
                 onClick={() => setActiveStep(1)}
@@ -2152,16 +2208,16 @@ MagicNumber=789104
               <button
                 type="button"
                 onClick={() => setActiveStep(3)}
-                className="w-full sm:w-auto px-5 py-2.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:hover:bg-slate-200 dark:text-slate-900 inline-flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+                className="w-full sm:w-auto px-6 py-3 rounded-xl text-xs sm:text-sm font-bold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 inline-flex items-center justify-center gap-2 cursor-pointer shadow-xs"
               >
-                <span>Continue to Step 3: License Payment</span>
+                <span>Continue to Step 3: Pay ₹9,999 Setup Fee</span>
                 <ArrowRight size={14} />
               </button>
             </div>
           </motion.div>
         )}
 
-        {/* ── STEP 3: ONLY SHOWN WHEN activeStep === 3 (ALGO SETUP FEE ₹10,000 + DAILY 50/50% PROFIT SHARE) ── */}
+        {/* ── STEP 3: ONLY SHOWN WHEN activeStep === 3 (ALGO SETUP FEE ₹9,999 + DAILY 50/50% PROFIT SHARE) ── */}
         {activeStep === 3 && (
           <motion.div
             key="step3"
@@ -2176,7 +2232,7 @@ MagicNumber=789104
                   Algo Setup & Activation Fee
                 </h2>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  Complete the ₹10,000 setup fee payment via PhonePe / UPI or Bank Transfer to request your license key.
+                  Complete the ₹9,999 setup fee payment via PhonePe / UPI or Bank Transfer to request your license key.
                 </p>
               </div>
 
@@ -2202,7 +2258,7 @@ MagicNumber=789104
                   </div>
                   <div>
                     <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">
-                      ₹99,999 Lifetime License Payment Confirmed
+                      ₹9,999 Lifetime License Payment Confirmed
                     </h3>
                     <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5">
                       Your payment has been verified. Proceed to Step 4 to activate and view your MetaTrader 5 license key.
@@ -2309,7 +2365,7 @@ MagicNumber=789104
                   <div className="pt-1 flex flex-col sm:flex-row items-center gap-2">
                     <a
                       href={`https://wa.me/?text=${encodeURIComponent(
-                        `Hello TradiFive Team! I have completed the ₹99,999 payment for FiAlgo V1 via PhonePe/UPI. My UTR number is ${paymentUtr}. Please expedite and issue my license key.`
+                        `Hello TradiFive Team! I have completed the ₹9,999 payment for FiAlgo V1 via PhonePe/UPI. My UTR number is ${paymentUtr}. Please expedite and issue my license key.`
                       )}`}
                       target="_blank"
                       rel="noreferrer"
@@ -2353,110 +2409,103 @@ MagicNumber=789104
             ) : (
               /* STATE 3C: PAYMENT REQUIRED - FORM WITH PHONEPE / UPI & BANK TRANSFER */
               <div className="space-y-4">
-                {/* ── 2 TIER PLAN SELECTOR: LIFETIME ₹1,00,000 VS PERFORMANCE ₹5,000 + DAILY 50% PROFIT SHARE ── */}
-                <div className="space-y-3">
+                {/* ── SINGLE OFFICIAL PLAN: ₹9,999 ONE-TIME SETUP + WEEKLY 50/50% PROFIT SHARE ── */}
+                <div className="space-y-3.5">
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-[10.5px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                      Choose Your Algo Access Plan
+                      Official Algo Access Plan
                     </span>
-                    <span className="text-[10.5px] font-bold text-blue-600 dark:text-blue-400">
-                      Standard Setup & Profit Share
+                    <span className="text-[10.5px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      Weekly 50/50% Profit Share
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {/* TIER 1: VIP LIFETIME LICENSE (₹1,00,000 / ₹99,999) */}
-                    <div
-                      onClick={() => setSelectedTier("lifetime")}
-                      className={`p-3.5 sm:p-4 rounded-xl cursor-pointer transition-all border-2 relative flex flex-col justify-between ${
-                        selectedTier === "lifetime"
-                          ? "bg-purple-50/50 dark:bg-purple-950/20 border-purple-600 dark:border-purple-500 shadow-md"
-                          : "bg-white dark:bg-[#161618] border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20"
-                      }`}
-                    >
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="px-2 py-0.5 rounded text-[9.5px] font-extrabold uppercase tracking-wide bg-purple-100 text-purple-800 dark:bg-purple-500/20 dark:text-purple-300 border border-purple-300 dark:border-purple-500/30">
-                            VIP Lifetime (0% Share)
-                          </span>
-                          <span className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                            selectedTier === "lifetime" ? "border-purple-600 bg-purple-600 text-white" : "border-slate-300 dark:border-neutral-600"
-                          }`}>
-                            {selectedTier === "lifetime" && <Check size={10} />}
-                          </span>
-                        </div>
-
-                        <div>
-                          <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
-                            Lifetime VIP License
-                          </h3>
-                          <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed mt-0.5">
-                            Pay once, keep <strong className="text-purple-600 dark:text-purple-400">100% of all profits</strong> forever. No profit sharing, no recurring fees. Best for high-capital traders.
-                          </p>
-                        </div>
+                  <div className="p-4 sm:p-5 rounded-2xl border-2 border-emerald-500 bg-emerald-50/40 dark:bg-emerald-950/20 relative flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
+                    <div className="space-y-1.5 text-center sm:text-left flex-1">
+                      <div className="flex items-center justify-center sm:justify-start gap-2 flex-wrap">
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wide bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/30">
+                          Single Official Plan
+                        </span>
+                        <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+                          Weekly 50/50% Profit Split
+                        </span>
                       </div>
-
-                      <div className="pt-3 mt-3 border-t border-slate-200/70 dark:border-white/5 flex items-baseline justify-between">
-                        <span className="text-[10px] font-bold uppercase text-slate-400">One-Time Price</span>
-                        <div className="text-right">
-                          <span className="text-lg sm:text-xl font-mono font-black text-slate-900 dark:text-white">
-                            ₹99,999
-                          </span>
-                          <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold block">
-                            0% Profit Cut Forever
-                          </span>
-                        </div>
-                      </div>
+                      <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">
+                        FiAlgo V1 Institutional Performance Plan
+                      </h3>
+                      <p className="text-xs text-slate-600 dark:text-slate-300 max-w-lg leading-relaxed">
+                        Pay a one-time <strong className="text-emerald-600 dark:text-emerald-400 font-mono font-bold">₹9,999 setup fee</strong> to deploy the EA and lock your MT5 account. Profit is split 50/50% weekly on your designated settlement day. 0% commission on non-profitable weeks.
+                      </p>
                     </div>
 
-                    {/* TIER 2: PERFORMANCE PARTNER (₹5,000 SETUP + DAILY 50% PROFIT SHARE) */}
-                    <div
-                      onClick={() => setSelectedTier("profit_share_50")}
-                      className={`p-3.5 sm:p-4 rounded-xl cursor-pointer transition-all border-2 relative flex flex-col justify-between ${
-                        selectedTier === "profit_share_50"
-                          ? "bg-blue-50/50 dark:bg-blue-950/20 border-blue-600 dark:border-blue-500 shadow-md"
-                          : "bg-white dark:bg-[#161618] border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20"
-                      }`}
-                    >
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="px-2 py-0.5 rounded text-[9.5px] font-extrabold uppercase tracking-wide bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-300 border border-blue-300 dark:border-blue-500/30">
-                            Low Entry Setup
-                          </span>
-                          <span className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                            selectedTier === "profit_share_50" ? "border-blue-600 bg-blue-600 text-white" : "border-slate-300 dark:border-neutral-600"
-                          }`}>
-                            {selectedTier === "profit_share_50" && <Check size={10} />}
-                          </span>
-                        </div>
+                    <div className="text-center sm:text-right shrink-0 p-3 rounded-xl bg-white dark:bg-[#161618] border border-slate-200/80 dark:border-white/5 min-w-[150px] shadow-2xs">
+                      <span className="text-[10px] font-bold uppercase text-slate-400 block tracking-wider">One-Time Setup Fee</span>
+                      <span className="text-2xl sm:text-3xl font-mono font-black text-slate-900 dark:text-white block mt-0.5">
+                        ₹9,999
+                      </span>
+                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold block mt-0.5">
+                        + Weekly 50% Profit Share
+                      </span>
+                    </div>
+                  </div>
 
+                  {/* ── STAGGERED WEEKLY SETTLEMENT & WITHDRAWAL COHORT SELECTOR ── */}
+                  <div className="p-4 rounded-2xl border border-slate-200/90 dark:border-white/10 bg-slate-50/80 dark:bg-white/[0.02] space-y-3">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+                          <Calendar size={14} />
+                        </div>
                         <div>
-                          <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
-                            Performance Partner (50% Daily)
-                          </h3>
-                          <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed mt-0.5">
-                            <strong className="text-blue-600 dark:text-blue-400">₹5,000 setup fee</strong> + Daily 50% profit share on green days. <span className="text-rose-500 font-semibold">Strict Rule:</span> If daily 50% profit share is not settled, license key is suspended until cleared.
+                          <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                            Select Weekly Settlement &amp; Withdrawal Day
+                          </h4>
+                          <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                            Withdrawals &amp; 50/50% profit share are settled weekly on your designated cohort day (Mon–Sun).
                           </p>
                         </div>
                       </div>
+                      <span className="text-[10px] font-mono font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 px-2.5 py-1 rounded-full border border-blue-200 dark:border-blue-500/20">
+                        Staggered Weekly Cohorts
+                      </span>
+                    </div>
 
-                      <div className="pt-3 mt-3 border-t border-slate-200/70 dark:border-white/5 flex items-baseline justify-between">
-                        <span className="text-[10px] font-bold uppercase text-slate-400">Setup Fee Today</span>
-                        <div className="text-right">
-                          <span className="text-lg sm:text-xl font-mono font-black text-slate-900 dark:text-white">
-                            ₹5,000
-                          </span>
-                          <span className="text-[10px] text-amber-500 font-bold block">
-                            + Daily 50% Profit Share
-                          </span>
-                        </div>
+                    <div className="grid grid-cols-7 gap-1.5 pt-1">
+                      {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((day) => (
+                        <button
+                          key={day}
+                          type="button"
+                          onClick={() => {
+                            setSettlementDay(day);
+                            try { localStorage.setItem("tradifive_settlement_day", day); } catch (e) {}
+                            toast.success(`Weekly settlement day set to ${day}`);
+                          }}
+                          className={`py-2 px-1 rounded-xl text-xs font-bold transition-all text-center cursor-pointer ${
+                            settlementDay === day
+                              ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-md ring-2 ring-blue-500/30 scale-[1.02]"
+                              : "bg-white dark:bg-[#161618] border border-slate-200/80 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5"
+                          }`}
+                        >
+                          <span className="block text-[10px] font-bold sm:hidden">{day.slice(0, 3)}</span>
+                          <span className="hidden sm:block text-xs font-bold">{day}</span>
+                        </button>
+                      ))}
+                    </div>
+
+                    <div className="text-[11px] text-slate-600 dark:text-slate-300 font-medium flex items-center justify-between p-2.5 rounded-xl bg-white dark:bg-[#121214] border border-slate-200/60 dark:border-white/5">
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span>Your Assigned Cohort: <strong className="text-slate-900 dark:text-white">Every {settlementDay}</strong></span>
                       </div>
+                      <span className="text-[10.5px] font-mono text-slate-500 dark:text-slate-400">
+                        TradiFive ID: <strong className="text-blue-600 dark:text-blue-400 font-bold">{tradifiveId}</strong>
+                      </span>
                     </div>
                   </div>
                 </div>
 
-                {/* Payment Method Selector (2 Options) */}
-                <div className="grid grid-cols-2 gap-1.5 p-1 bg-slate-100 dark:bg-white/5 rounded-xl text-xs font-semibold">
+                {/* Payment Method Selector (2 Options) */}                <div className="grid grid-cols-2 gap-1.5 p-1 bg-slate-100 dark:bg-white/5 rounded-xl text-xs font-semibold">
                   <button
                     type="button"
                     onClick={() => setPaymentMethod("upi")}
@@ -2531,7 +2580,7 @@ MagicNumber=789104
                         </div>
 
                         <p className="text-[11.5px] text-slate-500 dark:text-slate-400">
-                          Transfer Amount: <strong className="text-slate-900 dark:text-white font-mono">{selectedTier === "lifetime" ? "₹99,999" : "₹5,000"}</strong> · Zero additional processing fees
+                          Transfer Amount: <strong className="text-slate-900 dark:text-white font-mono">"₹9,999"</strong> · Zero additional processing fees
                         </p>
                       </div>
                     </div>
@@ -2542,7 +2591,7 @@ MagicNumber=789104
                 {paymentMethod === "bank" && (
                   <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 space-y-3 text-xs">
                     <div className="text-xs text-slate-600 dark:text-slate-400 font-medium">
-                      Transfer <strong className="text-slate-900 dark:text-white font-mono">{selectedTier === "lifetime" ? "₹99,999" : "₹5,000"}</strong> via NEFT, RTGS, IMPS, or Net Banking to bank account details below:
+                      Transfer <strong className="text-slate-900 dark:text-white font-mono">"₹9,999"</strong> via NEFT, RTGS, IMPS, or Net Banking to bank account details below:
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -2782,7 +2831,7 @@ MagicNumber=789104
                       FiAlgo V1 License Key Locked
                     </h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-xl">
-                      Complete payment of <strong className="text-slate-900 dark:text-white">{selectedTier === "lifetime" ? "₹99,999 (Lifetime VIP)" : "₹5,000 Setup (Performance Partner)"}</strong> in Step 3 via PhonePe / UPI (<strong className="font-mono text-slate-800 dark:text-slate-200">9731980756@axisbank</strong>) or Bank Transfer to request your license key.
+                      Complete payment of <strong className="text-slate-900 dark:text-white">"₹9,999 One-Time Setup Fee"</strong> in Step 3 via PhonePe / UPI (<strong className="font-mono text-slate-800 dark:text-slate-200">9731980756@axisbank</strong>) or Bank Transfer to request your license key.
                     </p>
                   </div>
                 </div>
@@ -2793,7 +2842,7 @@ MagicNumber=789104
                   className="w-full py-3 px-4 rounded-xl text-xs sm:text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center gap-2 cursor-pointer shadow-xs transition-all"
                 >
                   <CreditCard size={14} />
-                  <span>Go to Step 3: Complete Payment ({selectedTier === "lifetime" ? "₹99,999" : "₹5,000"}) →</span>
+                  <span>Go to Step 3: Complete Payment ("₹9,999") →</span>
                 </button>
               </div>
             ) : paymentStatus === "pending" ? (
@@ -2830,7 +2879,7 @@ MagicNumber=789104
                         <span className="text-slate-600 dark:text-slate-400">Plan &amp; Fee:</span>
                       </div>
                       <span className="font-bold text-amber-600 dark:text-amber-400">
-                        {selectedTier === "lifetime" ? "₹99,999 Lifetime (Under Review)" : "₹5,000 Setup + Daily 50% Share"}
+                        "₹9,999 Setup + Weekly 50/50% Share"
                       </span>
                     </div>
 
@@ -2885,7 +2934,7 @@ MagicNumber=789104
                   <div className="grid grid-cols-2 gap-2 pt-0.5">
                     <a
                       href={`https://wa.me/?text=${encodeURIComponent(
-                        `Hello TradiFive Team! I have completed the ${selectedTier === "lifetime" ? "₹99,999 payment for FiAlgo V1 Lifetime VIP" : "₹5,000 setup fee for FiAlgo V1 Performance Partner (50% Daily Profit Share)"} (UTR: ${paymentUtr || "[Your UTR]"}). Please verify and issue my license key.`
+                        `Hello TradiFive Team! I have completed the $"₹9,999 payment for FiAlgo V1 Institutional Setup (Weekly 50/50% Profit Share)" (UTR: ${paymentUtr || "[Your UTR]"}). Please verify and issue my license key.`
                       )}`}
                       target="_blank"
                       rel="noreferrer"
@@ -2899,7 +2948,7 @@ MagicNumber=789104
                       href={`mailto:support@tradifive.in?subject=${encodeURIComponent(
                         `Verify License Payment UTR #${paymentUtr || ""}`
                       )}&body=${encodeURIComponent(
-                        `Hello Support Team,\n\nPlease verify my payment of ${selectedTier === "lifetime" ? "₹99,999" : "₹5,000"} for FiAlgo V1.\nUTR Number: ${paymentUtr || ""}\nPlan: ${selectedTier === "lifetime" ? "Lifetime VIP" : "Performance Partner (50% Daily)"}\n\nPlease issue my license key.\n\nThank you!`
+                        `Hello Support Team,\n\nPlease verify my payment of $"₹9,999" for FiAlgo V1.\nUTR Number: ${paymentUtr || ""}\nPlan: $"Institutional Setup (Weekly 50/50%)"\n\nPlease issue my license key.\n\nThank you!`
                       )}`}
                       className="py-2.5 px-3 rounded-xl text-xs font-semibold bg-white dark:bg-white/10 hover:bg-slate-100 text-slate-800 dark:text-white border border-slate-200 dark:border-white/10 flex items-center justify-center gap-1.5 transition-all shadow-2xs"
                     >
@@ -2938,7 +2987,7 @@ MagicNumber=789104
                       FiAlgo V1 License Key Locked
                     </h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-xl">
-                      Payment of {selectedTier === "lifetime" ? "₹99,999" : "₹5,000"} is confirmed! Your license key will unlock once your MT5 account is verified under Partner IB <strong className="text-slate-800 dark:text-slate-200">27863221</strong> with a <strong className="text-slate-800 dark:text-slate-200">minimum balance of $500 USD</strong>.
+                      Payment of "₹9,999" is confirmed! Your license key will unlock once your MT5 account is verified under Partner IB <strong className="text-slate-800 dark:text-slate-200">27863221</strong> with a <strong className="text-slate-800 dark:text-slate-200">minimum balance of $500 USD</strong>.
                     </p>
                   </div>
                 </div>
@@ -2956,7 +3005,7 @@ MagicNumber=789104
                         <span className="text-slate-600 dark:text-slate-400">License Payment:</span>
                       </div>
                       <span className="font-bold text-emerald-600 dark:text-emerald-400">
-                        {selectedTier === "lifetime" ? "₹99,999 Paid ✓" : "₹5,000 Setup Paid ✓"}
+                        "₹9,999 Setup Paid ✓"
                       </span>
                     </div>
 

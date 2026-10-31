@@ -28,6 +28,7 @@ interface DashboardLayoutProps {
   noPadding?: boolean;
   noScroll?: boolean;
   hideBottomNav?: boolean;
+  fullScreen?: boolean;
 }
 
 function getComingSoonInfo(pathname: string): { isSoon: boolean; title: string } {
@@ -59,25 +60,10 @@ function getComingSoonInfo(pathname: string): { isSoon: boolean; title: string }
   if (p.startsWith('/upgrade') || p.startsWith('/subscription') || p.startsWith('/pricing') || p.startsWith('/billing')) {
     return { isSoon: true, title: "Subscription Plans" };
   }
-  if (p.startsWith('/auto-trade/active-bots')) {
-    return { isSoon: true, title: "Active Trading Bots" };
-  }
-  if (p.startsWith('/strategy-builder') || p.startsWith('/auto-trade/builder')) {
-    return { isSoon: true, title: "Strategy Builder" };
-  }
-  if (p.startsWith('/auto-trade/history') || p === '/order-history') {
-    return { isSoon: true, title: "Order History" };
-  }
-  if (p.startsWith('/auto-trade/license') || p === '/license') {
-    return { isSoon: true, title: "License & Activation" };
-  }
-  if (p.startsWith('/learning') || p.startsWith('/courses')) {
-    return { isSoon: true, title: "TradiFive Academy & Courses" };
-  }
   return { isSoon: false, title: "" };
 }
 
-export default function DashboardLayout({ children, breadcrumbs, onBack, headerActions, noPadding = false, noScroll = false, hideBottomNav = false }: DashboardLayoutProps) {
+export default function DashboardLayout({ children, breadcrumbs, onBack, headerActions, noPadding = false, noScroll = false, hideBottomNav = false, fullScreen = false }: DashboardLayoutProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
@@ -119,7 +105,7 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
     return () => window.removeEventListener("open-floating-ai-coach", handleOpenFloatingAI);
   }, []);
 
-    // Global Direct Message Notifications — Big-Tech Apple / Slack style incoming message banner
+  // Global Direct Message Notifications
   useEffect(() => {
     let channel: any;
     const setupDMNotifications = async () => {
@@ -131,125 +117,49 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
           'postgres_changes',
           { event: 'INSERT', schema: 'public', table: 'direct_messages', filter: `receiver_id=eq.${user.id}` },
           async (payload) => {
-            // Suppress notification if user is already on /inbox
-            if (window.location.pathname.startsWith('/inbox')) {
-              return;
+            // Play notification sound
+            try {
+              // Modern subtle pop notification sound
+              const audio = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3");
+              audio.volume = 0.6;
+              const playPromise = audio.play();
+              if (playPromise !== undefined) {
+                playPromise.catch(e => console.log("Audio play blocked by browser:", e));
+              }
+            } catch (e) {
+              console.log("Audio play error:", e);
             }
 
-            // Play gentle Apple-style subtle dual-tone message chime
-            try {
-              const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
-              if (AudioContext) {
-                const ctx = new AudioContext();
-                const now = ctx.currentTime;
-                const osc1 = ctx.createOscillator();
-                const osc2 = ctx.createOscillator();
-                const gain = ctx.createGain();
-
-                osc1.type = 'sine';
-                osc2.type = 'sine';
-                osc1.frequency.setValueAtTime(587.33, now); // D5
-                osc2.frequency.setValueAtTime(880, now + 0.08); // A5
-
-                gain.gain.setValueAtTime(0, now);
-                gain.gain.linearRampToValueAtTime(0.18, now + 0.02);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
-
-                osc1.connect(gain);
-                osc2.connect(gain);
-                gain.connect(ctx.destination);
-
-                osc1.start(now);
-                osc1.stop(now + 0.12);
-                osc2.start(now + 0.08);
-                osc2.stop(now + 0.35);
-              }
-            } catch (_) {}
-
-            // Get sender profile details
+            // Get sender details
             const { data: sender } = await supabase
               .from('profiles')
-              .select('id, display_name, username, avatar_url')
+              .select('display_name, username')
               .eq('id', payload.new.sender_id)
-              .maybeSingle();
+              .single();
 
-            const senderName = sender?.display_name || sender?.username || 'Trader';
-            const senderAvatar = sender?.avatar_url || '/default-avatar.svg';
+            const senderName = sender?.display_name || 'Someone';
 
             toast.custom((t) => (
-              <div 
-                onClick={() => {
-                  toast.dismiss(t);
-                  navigate('/inbox', { state: { targetUserId: payload.new.sender_id } });
-                }}
-                className="w-full sm:w-[380px] p-3.5 bg-white/95 dark:bg-[#14151e]/95 backdrop-blur-xl border border-slate-200/90 dark:border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.14),0_4px_12px_rgba(0,0,0,0.06)] flex items-start gap-3 relative overflow-hidden cursor-pointer select-none transition-all hover:scale-[1.01] active:scale-[0.99] group font-sans"
-              >
-                {/* Sender Avatar with Messenger Status Pill */}
-                <div className="relative shrink-0 mt-0.5">
-                  <img
-                    src={senderAvatar}
-                    alt={senderName}
-                    className="w-10 h-10 rounded-full object-cover border border-slate-200 dark:border-white/10 shadow-xs"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = '/default-avatar.svg';
-                    }}
-                  />
-                  <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-blue-600 border-2 border-white dark:border-[#14151e] flex items-center justify-center shadow-xs">
-                    <span className="w-1.5 h-1.5 rounded-full bg-white" />
-                  </div>
-                </div>
-
-                {/* Message Body */}
-                <div className="flex-1 min-w-0 pr-1">
-                  <div className="flex items-center justify-between gap-2">
-                    <h4 className="text-[13.5px] font-bold text-slate-900 dark:text-white truncate">
-                      {senderName}
+              <div className="bg-white dark:bg-[#1E1E1E] border border-slate-100 dark:border-white/5 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] dark:shadow-none flex flex-col p-4 w-full sm:w-[350px] gap-2.5 relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-1.5 h-full bg-blue-500"></div>
+                <div className="flex justify-between items-start gap-3">
+                  <div className="flex flex-col gap-1.5 flex-1 min-w-0">
+                    <h4 className="text-[14px] font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                      <span className="text-[16px]">📩</span> New message from {senderName}
                     </h4>
-                    <span className="text-[10.5px] font-semibold text-slate-400 dark:text-slate-400 shrink-0">
-                      now
-                    </span>
+                    <p className="text-[14px] text-slate-600 dark:text-slate-300 font-medium line-clamp-1 truncate pr-2">
+                      {payload.new.content}
+                    </p>
                   </div>
-                  <p className="text-[12.5px] text-slate-600 dark:text-slate-300 font-normal line-clamp-2 mt-0.5 leading-snug break-words">
-                    {payload.new.content}
-                  </p>
-                  
-                  {/* Action Buttons */}
-                  <div className="flex items-center gap-2 mt-2.5">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toast.dismiss(t);
-                        navigate('/inbox', { state: { targetUserId: payload.new.sender_id } });
-                      }}
-                      className="px-3 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-[11.5px] font-bold transition-all active:scale-95 shadow-xs"
-                    >
-                      Reply
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toast.dismiss(t);
-                      }}
-                      className="px-2.5 py-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-[11.5px] font-medium transition-colors"
-                    >
-                      Dismiss
-                    </button>
-                  </div>
+                  <button
+                    onClick={() => { toast.dismiss(t); navigate(`/inbox`); }}
+                    className="bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 px-4 py-1.5 rounded-xl text-[13px] font-bold hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors shrink-0 shadow-sm"
+                  >
+                    Reply
+                  </button>
                 </div>
-
-                {/* Top-right close button */}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toast.dismiss(t);
-                  }}
-                  className="shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-colors -mr-1 -mt-1"
-                  title="Close"
-                >
-                  <X size={13} strokeWidth={2.5} />
-                </button>
               </div>
-            ), { duration: 6000, id: `msg-${payload.new.id}` });
+            ), { duration: 5000, id: `msg-${payload.new.id}` });
           }
         )
         .subscribe();
@@ -363,23 +273,10 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
   }, []);
   useEffect(() => {
     setIsMounted(true);
-    const handleResize = () => {
-      const manual = localStorage.getItem("fialgo_sidebar_collapsed_user_manual");
-      if (!manual && typeof window !== "undefined") {
-        setIsCollapsed(window.innerWidth < 1280);
-      }
-    };
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
   }, []);
   const [isCollapsed, setIsCollapsed] = useState(() => {
     try {
-      const saved = localStorage.getItem("fialgo_sidebar_collapsed");
-      if (saved !== null) return saved === "true";
-      if (typeof window !== "undefined") {
-        return window.innerWidth < 1280;
-      }
-      return false;
+      return localStorage.getItem("fialgo_sidebar_collapsed") === "true";
     } catch (e) {
       return false;
     }
@@ -392,6 +289,9 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
       return false;
     }
   });
+
+  // Effective Full Screen: True if toggled, passed via prop, or on AutoTrade setup route
+  const isEffectiveFullScreen = isFullScreen || fullScreen || location.pathname.startsWith('/auto-trade/setup') || location.pathname.startsWith('/ai-trading');
 
   const [bgFadeStyle, setBgFadeStyle] = useState(() => {
     try {
@@ -505,11 +405,11 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
 
       {!isMobile && (
         <div className="hidden md:block">
-          <AppSidebar isCollapsed={isCollapsed} toggleCollapse={handleToggleCollapse} isFullScreen={isFullScreen} />
+          <AppSidebar isCollapsed={isCollapsed} toggleCollapse={handleToggleCollapse} isFullScreen={isEffectiveFullScreen} />
         </div>
       )}
 
-      <div className={`flex-1 flex flex-col h-screen overflow-hidden ${isMounted ? 'transition-[margin-left] duration-300' : ''} ml-0 ${isCollapsed ? 'md:ml-[90px]' : 'md:ml-[90px] xl:ml-[340px]'}`}>
+      <div className={`flex-1 flex flex-col h-screen overflow-hidden ${isMounted ? 'transition-[margin-left] duration-300' : ''} ml-0 ${isCollapsed ? 'md:ml-[90px]' : 'md:ml-[340px]'}`}>
 
         {impersonatingUser && (
           <div className="bg-rose-500 text-white px-4 py-2 flex items-center justify-center gap-3 shrink-0 shadow-lg z-50">
@@ -526,16 +426,16 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
           </div>
         )}
 
-        {/* Main Content Area */}
-        <div className={`flex-1 ${isFullScreen || (noScroll && hideBottomNav) ? 'pl-0 pr-0 pt-0 pb-0' : `px-0 md:px-5 ${impersonatingUser ? 'pt-0 md:pt-3' : 'pt-0 md:pt-5'} pb-20 md:pb-5`} ${noScroll || (comingSoonInfo.isSoon && !isPeeking) ? 'overflow-hidden h-full flex flex-col' : 'overflow-y-auto scrollbar-hide'}`}>
+        {/* Main Content Area - Full Screen for Big-Tech Enterprise Feel */}
+        <div className={`flex-1 ${isEffectiveFullScreen || (noScroll && hideBottomNav) ? 'p-0' : `px-0 md:px-5 ${impersonatingUser ? 'pt-0 md:pt-3' : 'pt-0 md:pt-5'} pb-20 md:pb-5`} ${noScroll || (comingSoonInfo.isSoon && !isPeeking) ? 'overflow-hidden h-full flex flex-col' : 'overflow-y-auto scrollbar-hide'}`}>
           <main
             className={`relative ${noScroll || (comingSoonInfo.isSoon && !isPeeking) ? 'flex-1 h-full flex flex-col overflow-hidden' : 'min-h-full'
-              } ${isFullScreen ? 'rounded-none border-l border-slate-200 dark:border-white/5' : 'rounded-none md:rounded-[2.5rem] border-0 md:border md:border-slate-100 dark:md:border-white/5 shadow-none md:shadow-[0_8px_30_rgb(0,0,0,0.04)]'} bg-white dark:bg-[#121212] font-sans`}
+              } ${isEffectiveFullScreen ? 'rounded-none border-0 shadow-none' : 'rounded-none md:rounded-[2.5rem] border-0 md:border md:border-slate-100 dark:md:border-white/5 shadow-none md:shadow-[0_8px_30_rgb(0,0,0,0.04)]'} bg-white dark:bg-[#121212] font-sans`}
           >
             {/* Header (Moved Inside to Scroll) */}
-            <header className={`h-[70px] flex items-center justify-between px-4 sm:px-10 border-b border-slate-100 dark:border-white/5 shrink-0 transition-all duration-300 ${comingSoonInfo.isSoon && !isPeeking ? "filter blur-[1.5px] opacity-85 pointer-events-none select-none" : ""}`}>
+            <header className={`h-[70px] flex items-center justify-between px-4 sm:px-8 lg:px-10 border-b border-slate-100 dark:border-white/5 shrink-0 transition-all duration-300 ${comingSoonInfo.isSoon && !isPeeking ? "filter blur-[1.5px] opacity-85 pointer-events-none select-none" : ""}`}>
               <div className="flex items-center gap-2 sm:gap-3">
-                <div className="md:hidden flex items-center pointer-events-auto">
+                <div className="md:hidden flex items-center">
                   <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
                     <SheetTrigger asChild>
                       <button className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] text-[#393939] dark:text-[#E2E8F0] font-extrabold transition-all border-2 border-white dark:border-white/5 shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),_0_0_0_2px_#E7E7E7] dark:shadow-none active:scale-95 select-none mr-2">
@@ -550,7 +450,7 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
                 {location.pathname !== '/home' && (
                   <button
                     onClick={onBack ? onBack : () => navigate(-1)}
-                    className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] text-[#393939] dark:text-[#E2E8F0] font-extrabold transition-all border-2 border-white dark:border-white/5 shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),_0_0_0_2px_#E7E7E7] dark:shadow-none hover:shadow-[0_6px_10px_-4px_rgba(0,0,0,0.15),_0_0_0_2px_#D4D4D4] dark:hover:shadow-none active:scale-95 select-none mr-2 pointer-events-auto"
+                    className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] text-[#393939] dark:text-[#E2E8F0] font-extrabold transition-all border-2 border-white dark:border-white/5 shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),_0_0_0_2px_#E7E7E7] dark:shadow-none hover:shadow-[0_6px_10px_-4px_rgba(0,0,0,0.15),_0_0_0_2px_#D4D4D4] dark:hover:shadow-none active:scale-95 select-none mr-2"
                     title="Go Back"
                   >
                     <ChevronLeft size={16} />
@@ -590,15 +490,15 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
                   {location.pathname === '/home' ? (
                     <div onClick={() => navigate('/home')} className="flex items-center gap-2.5 cursor-pointer">
                       <img src="/tf-logo.png" alt="Logo" className="w-[34px] h-[34px] object-contain shrink-0" />
-                      <img 
-                        src="/Tradifive_logo1.png" 
-                        alt="Tradifive" 
-                        className="h-[28px] w-auto object-contain dark:hidden" 
+                      <img
+                        src="/Tradifive_logo1.png"
+                        alt="Tradifive"
+                        className="h-[28px] w-auto object-contain dark:hidden"
                       />
-                      <img 
-                        src="/Dark mode logo with white.png" 
-                        alt="Tradifive" 
-                        className="h-[28px] w-auto object-contain hidden dark:block" 
+                      <img
+                        src="/Dark mode logo with white.png"
+                        alt="Tradifive"
+                        className="h-[28px] w-auto object-contain hidden dark:block"
                       />
                     </div>
                   ) : (
@@ -610,17 +510,17 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
               <div className="flex items-center gap-2 sm:gap-3">
                 {headerActions}
                 <NotificationHub />
-                <div className="relative hidden md:inline-flex items-center group">
-                  <button
-                    type="button"
-                    disabled
-                    aria-disabled="true"
-                    className="flex items-center justify-center gap-2 px-4 h-10 rounded-full bg-white dark:bg-[#1E1E1E] border border-slate-200 dark:border-white/5 text-slate-400 dark:text-slate-500 font-bold text-[13px] shadow-sm select-none filter blur-[1.5px] opacity-70 cursor-not-allowed pointer-events-none"
-                    title="AI Coach (Coming Soon)"
+                
+                {/* AI Coach Top-Right Button (Visibly Blurred & Coming Soon) */}
+                <div className="relative inline-flex items-center select-none" title="AI Coach (Coming Soon)">
+                  <div
+                    aria-hidden="true"
+                    className="flex items-center justify-center gap-2 px-3 sm:px-4 h-9 sm:h-10 rounded-full bg-white/70 dark:bg-[#1E1E1E]/70 border border-slate-200/80 dark:border-white/10 text-slate-400 dark:text-slate-500 font-bold text-[13px] shadow-2xs filter blur-[3.5px] opacity-40 select-none pointer-events-none cursor-not-allowed"
                   >
-                    <Sparkles size={16} strokeWidth={2.5} /> <span>AI Coach</span>
-                  </button>
-                  <span className="absolute -top-1.5 -right-1 px-1.5 py-0.5 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[8.5px] font-black uppercase tracking-wider shadow pointer-events-none">
+                    <Sparkles size={15} strokeWidth={2.5} className="text-slate-400" />
+                    <span>AI Coach</span>
+                  </div>
+                  <span className="absolute -top-1.5 -right-1 px-1.5 py-0.5 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[8.5px] font-black uppercase tracking-wider shadow-xs pointer-events-none flex items-center gap-0.5">
                     Soon
                   </span>
                 </div>
@@ -697,7 +597,7 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
             </AnimatePresence>
 
             {/* Internal Content Padding - stretch flex dynamically if noScroll is active */}
-            <div className={`${noPadding || noScroll ? "p-0" : "p-3 pb-24 md:p-10 md:pb-20"} ${noScroll ? "flex-1 min-h-0 flex flex-col overflow-hidden" : ""}`}>
+            <div className={`${noPadding || noScroll ? "p-0" : isEffectiveFullScreen ? "p-0 sm:p-4 lg:p-6 pb-20" : "p-3 pb-24 md:p-10 md:pb-20"} ${noScroll ? "flex-1 min-h-0 flex flex-col overflow-hidden" : ""}`}>
               <motion.div
                 initial={{ opacity: location.pathname === '/settings' ? 1 : 0, y: location.pathname === '/settings' ? 0 : 15 }}
                 animate={{ opacity: 1, y: 0 }}

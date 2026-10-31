@@ -28,6 +28,7 @@ interface DashboardLayoutProps {
   noPadding?: boolean;
   noScroll?: boolean;
   hideBottomNav?: boolean;
+  fullScreen?: boolean;
 }
 
 function getComingSoonInfo(pathname: string): { isSoon: boolean; title: string } {
@@ -77,7 +78,7 @@ function getComingSoonInfo(pathname: string): { isSoon: boolean; title: string }
   return { isSoon: false, title: "" };
 }
 
-export default function DashboardLayout({ children, breadcrumbs, onBack, headerActions, noPadding = false, noScroll = false, hideBottomNav = false }: DashboardLayoutProps) {
+export default function DashboardLayout({ children, breadcrumbs, onBack, headerActions, noPadding = false, noScroll = false, hideBottomNav = false, fullScreen = false }: DashboardLayoutProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
@@ -393,6 +394,9 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
     }
   });
 
+  // Effective Full Screen: True if toggled, passed via prop, or on AutoTrade setup route
+  const isEffectiveFullScreen = isFullScreen || fullScreen || location.pathname.startsWith('/auto-trade/setup') || location.pathname.startsWith('/ai-trading');
+
   const [bgFadeStyle, setBgFadeStyle] = useState(() => {
     try {
       return localStorage.getItem("fialgo_bg_fade_style") || "purple";
@@ -505,7 +509,7 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
 
       {!isMobile && (
         <div className="hidden md:block">
-          <AppSidebar isCollapsed={isCollapsed} toggleCollapse={handleToggleCollapse} isFullScreen={isFullScreen} />
+          <AppSidebar isCollapsed={isCollapsed} toggleCollapse={handleToggleCollapse} isFullScreen={isEffectiveFullScreen} />
         </div>
       )}
 
@@ -526,14 +530,14 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
           </div>
         )}
 
-        {/* Main Content Area */}
-        <div className={`flex-1 ${isFullScreen || (noScroll && hideBottomNav) ? 'pl-0 pr-0 pt-0 pb-0' : `px-0 md:px-5 ${impersonatingUser ? 'pt-0 md:pt-3' : 'pt-0 md:pt-5'} pb-20 md:pb-5`} ${noScroll || (comingSoonInfo.isSoon && !isPeeking) ? 'overflow-hidden h-full flex flex-col' : 'overflow-y-auto scrollbar-hide'}`}>
+        {/* Main Content Area - Full Screen for Big-Tech Enterprise Feel */}
+        <div className={`flex-1 ${isEffectiveFullScreen || (noScroll && hideBottomNav) ? 'p-0' : `px-0 md:px-5 ${impersonatingUser ? 'pt-0 md:pt-3' : 'pt-0 md:pt-5'} pb-20 md:pb-5`} ${noScroll || (comingSoonInfo.isSoon && !isPeeking) ? 'overflow-hidden h-full flex flex-col' : 'overflow-y-auto scrollbar-hide'}`}>
           <main
             className={`relative ${noScroll || (comingSoonInfo.isSoon && !isPeeking) ? 'flex-1 h-full flex flex-col overflow-hidden' : 'min-h-full'
-              } ${isFullScreen ? 'rounded-none border-l border-slate-200 dark:border-white/5' : 'rounded-none md:rounded-[2.5rem] border-0 md:border md:border-slate-100 dark:md:border-white/5 shadow-none md:shadow-[0_8px_30_rgb(0,0,0,0.04)]'} bg-white dark:bg-[#121212] font-sans`}
+              } ${isEffectiveFullScreen ? 'rounded-none border-0 shadow-none' : 'rounded-none md:rounded-[2.5rem] border-0 md:border md:border-slate-100 dark:md:border-white/5 shadow-none md:shadow-[0_8px_30_rgb(0,0,0,0.04)]'} bg-white dark:bg-[#121212] font-sans`}
           >
             {/* Header (Moved Inside to Scroll) */}
-            <header className={`h-[70px] flex items-center justify-between px-4 sm:px-10 border-b border-slate-100 dark:border-white/5 shrink-0 transition-all duration-300 ${comingSoonInfo.isSoon && !isPeeking ? "filter blur-[1.5px] opacity-85 pointer-events-none select-none" : ""}`}>
+            <header className={`h-[70px] flex items-center justify-between px-4 sm:px-8 lg:px-10 border-b border-slate-100 dark:border-white/5 shrink-0 transition-all duration-300 ${comingSoonInfo.isSoon && !isPeeking ? "filter blur-[1.5px] opacity-85 pointer-events-none select-none" : ""}`}>
               <div className="flex items-center gap-2 sm:gap-3">
                 <div className="md:hidden flex items-center pointer-events-auto">
                   <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
@@ -610,17 +614,17 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
               <div className="flex items-center gap-2 sm:gap-3">
                 {headerActions}
                 <NotificationHub />
-                <div className="relative hidden md:inline-flex items-center group">
-                  <button
-                    type="button"
-                    disabled
-                    aria-disabled="true"
-                    className="flex items-center justify-center gap-2 px-4 h-10 rounded-full bg-white dark:bg-[#1E1E1E] border border-slate-200 dark:border-white/5 text-slate-400 dark:text-slate-500 font-bold text-[13px] shadow-sm select-none filter blur-[1.5px] opacity-70 cursor-not-allowed pointer-events-none"
-                    title="AI Coach (Coming Soon)"
+                
+                {/* AI Coach Top-Right Button (Visibly Blurred & Coming Soon) */}
+                <div className="relative inline-flex items-center select-none" title="AI Coach (Coming Soon)">
+                  <div
+                    aria-hidden="true"
+                    className="flex items-center justify-center gap-2 px-3 sm:px-4 h-9 sm:h-10 rounded-full bg-white/70 dark:bg-[#1E1E1E]/70 border border-slate-200/80 dark:border-white/10 text-slate-400 dark:text-slate-500 font-bold text-[13px] shadow-2xs filter blur-[3.5px] opacity-40 select-none pointer-events-none cursor-not-allowed"
                   >
-                    <Sparkles size={16} strokeWidth={2.5} /> <span>AI Coach</span>
-                  </button>
-                  <span className="absolute -top-1.5 -right-1 px-1.5 py-0.5 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[8.5px] font-black uppercase tracking-wider shadow pointer-events-none">
+                    <Sparkles size={15} strokeWidth={2.5} className="text-slate-400" />
+                    <span>AI Coach</span>
+                  </div>
+                  <span className="absolute -top-1.5 -right-1 px-1.5 py-0.5 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[8.5px] font-black uppercase tracking-wider shadow-xs pointer-events-none flex items-center gap-0.5">
                     Soon
                   </span>
                 </div>
@@ -697,7 +701,7 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
             </AnimatePresence>
 
             {/* Internal Content Padding - stretch flex dynamically if noScroll is active */}
-            <div className={`${noPadding || noScroll ? "p-0" : "p-3 pb-24 md:p-10 md:pb-20"} ${noScroll ? "flex-1 min-h-0 flex flex-col overflow-hidden" : ""}`}>
+            <div className={`${noPadding || noScroll ? "p-0" : isEffectiveFullScreen ? "p-0 sm:p-4 lg:p-6 pb-20" : "p-3 pb-24 md:p-10 md:pb-20"} ${noScroll ? "flex-1 min-h-0 flex flex-col overflow-hidden" : ""}`}>
               <motion.div
                 initial={{ opacity: location.pathname === '/settings' ? 1 : 0, y: location.pathname === '/settings' ? 0 : 15 }}
                 animate={{ opacity: 1, y: 0 }}
