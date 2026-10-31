@@ -4,7 +4,7 @@ import {
 
   Search, PanelLeftClose, PanelLeftOpen, Lock, ChevronDown, ChevronRight, ChevronLeft, Inbox, Moon, Sun, Palette, ChevronsUpDown, Clock, User, CreditCard, MessageSquare, UserCheck,
 
-  Plus, Users, LayoutGrid, Shield, Gift, Compass, BookText, Brain, ShieldCheck, Target, Award, Mail, Crown, PlusCircle, X, GraduationCap, ShoppingBag, Video, Hash, Globe, TrendingUp, Home as LucideHome, UserPlus, Share2, Server, Box, Rocket
+  Plus, Users, LayoutGrid, Shield, Gift, Compass, BookText, Brain, ShieldCheck, Target, Award, Mail, Crown, PlusCircle, X, GraduationCap, ShoppingBag, Video, Hash, Globe, TrendingUp, Home as LucideHome, UserPlus, Share2, Server, Box, Rocket, Receipt, ReceiptText
 
 } from "lucide-react";
 
@@ -252,6 +252,8 @@ const getAutoTradeMenu = () => {
 
     { path: isSetup ? "/auto-trade/dashboard" : "/auto-trade/setup", icon: WrappedIconly(Category), label: "Dashboard" },
 
+    { path: "/weekly-settlements", icon: wrapLucide(ReceiptText), label: "Weekly Profit Settlement" },
+
     { path: "/auto-trade/active-bots", icon: WrappedIconly(Activity), label: "Active Bots", isLocked: true },
 
     { path: "/auto-trade/marketplace", icon: WrappedIconly(Bag), label: "Algo Marketplace" },
@@ -393,6 +395,8 @@ const getPillars = (isCreator: boolean) => {
     { id: "home", icon: WrappedIconly(Home), tooltip: "Home Feed (Live)", defaultPath: "/home", isLive: true },
 
     { id: "autoTrade", icon: WrappedIconly(Activity), tooltip: "Auto Trade (Live)", defaultPath: isAutoTradeSetup ? "/auto-trade/dashboard" : "/auto-trade/setup", isLive: true },
+
+    { id: "settlements", icon: wrapLucide(ReceiptText), tooltip: "Weekly Profit Settlement", defaultPath: "/weekly-settlements", isLive: true },
 
     { id: "dashboard", icon: WrappedIconly(Category), tooltip: "Dashboard (Soon)", defaultPath: "/dashboard", isLocked: true },
 
@@ -581,6 +585,8 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
     if (path.startsWith("/ai-coach")) return "aiCoach";
 
     if (path.startsWith("/auto-trade") || path.startsWith("/strategy-builder")) return "autoTrade";
+
+    if (path.startsWith("/weekly-settlements") || path.startsWith("/settlements")) return "settlements";
 
     if (path.startsWith("/discover") || path.startsWith("/marketplace")) return "discover";
 
@@ -1324,11 +1330,11 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
     { id: "community", label: "Channels (Soon)", icon: WrappedIconly(Chat), isLocked: true },
 
-    { id: "journal", label: "Journal", icon: WrappedIconly(Document), isLocked: true },
+    { id: "journal", label: "Journal (Soon)", icon: WrappedIconly(Document), isLocked: true },
 
-    { id: "riskGuard", label: "Risk Guard", icon: WrappedIconly(ShieldDone), isLocked: true },
+    { id: "riskGuard", label: "Risk Guard (Soon)", icon: WrappedIconly(ShieldDone), isLocked: true },
 
-    { id: "aiCoach", label: "AI Coach", icon: WrappedIconly(Chat), isLocked: true },
+    { id: "aiCoach", label: "AI Coach (Soon)", icon: WrappedIconly(Chat), isLocked: true },
 
     { id: "discover", label: "Discover", icon: WrappedIconly(Discovery), isLive: true },
 
@@ -1438,6 +1444,8 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
           { path: isAutoTradeSetup ? "/auto-trade/dashboard" : "/auto-trade/setup", icon: WrappedIconly(Category), label: "Dashboard" },
 
+          { path: "/weekly-settlements", icon: wrapLucide(ReceiptText), label: "Weekly Profit Settlement" },
+
 
 
           { path: "/auto-trade/active-bots", icon: WrappedIconly(Activity), label: "Active Bots", isLocked: true },
@@ -1463,6 +1471,16 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
         ];
 
 
+
+      case "settlements":
+
+        return [
+
+          { path: "/weekly-settlements", icon: wrapLucide(ReceiptText), label: "My Settlements" },
+
+          { path: isAutoTradeSetup ? "/auto-trade/dashboard" : "/auto-trade/setup", icon: WrappedIconly(Category), label: "Auto Trade Dashboard" },
+
+        ];
 
       case "community":
 

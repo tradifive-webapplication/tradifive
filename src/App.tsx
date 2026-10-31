@@ -90,13 +90,14 @@ const AdminFinance = lazy(() => import("./pages/admin/AdminFinance"));
 const AdminSupport = lazy(() => import("./pages/admin/AdminSupport"));
 const AdminLogs = lazy(() => import("./pages/admin/AdminLogs"));
 const AdminWaitlist = lazy(() => import("./pages/admin/AdminWaitlist"));
+const AdminSettlements = lazy(() => import("./pages/admin/AdminSettlements"));
+const WeeklySettlements = lazy(() => import("./pages/WeeklySettlements"));
 const BrokerAuth = lazy(() => import("./pages/BrokerAuth"));
 
 
 import { MarketProvider } from "@/contexts/MarketContext";
 import { PresenceProvider } from "@/contexts/PresenceContext";
 import { initGlobalHaptics } from "@/utils/haptics";
-import { supabase } from "@/lib/supabase";
 
 const queryClient = new QueryClient();
 
@@ -106,35 +107,6 @@ const AppRouter = isElectron ? HashRouter : BrowserRouter;
 const App = () => {
   useEffect(() => {
     return initGlobalHaptics();
-  }, []);
-
-  // Cross-user session isolation: if a DIFFERENT user logs in or on logout,
-  // purge all auto-trade keys so stale account numbers and license data never leak to other accounts.
-  useEffect(() => {
-    const autoTradeKeys = [
-      'tradifive_connected_mt5_account',
-      'tradifive_ib_proof_request',
-      'tradifive_payment_request',
-      'tradifive_payment_status',
-      'tradifive_auto_trade_setup'
-    ];
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session?.user) {
-        const newUserId = session.user.id;
-        const lastUserId = localStorage.getItem('tradifive_last_user_id');
-        if (lastUserId !== newUserId) {
-          // Different user or new login — wipe stale auto-trade keys
-          autoTradeKeys.forEach((k) => localStorage.removeItem(k));
-        }
-        localStorage.setItem('tradifive_last_user_id', newUserId);
-      }
-      if (event === 'SIGNED_OUT') {
-        localStorage.removeItem('tradifive_last_user_id');
-        autoTradeKeys.forEach((k) => localStorage.removeItem(k));
-      }
-    });
-    return () => subscription.unsubscribe();
   }, []);
 
   return (
@@ -250,6 +222,8 @@ const App = () => {
                   <Route path="/competitions/transaction" element={<Transactions />} />
                   <Route path="/competitions/rewards" element={<CompetitionsRewards />} />
                   <Route path="/referrals" element={<Referrals />} />
+                  <Route path="/weekly-settlements" element={<WeeklySettlements />} />
+                  <Route path="/settlements" element={<Navigate to="/weekly-settlements" replace />} />
                   <Route path="/creator/analytics" element={<CreatorAnalytics />} />
                   <Route path="/creator/mentorship" element={<MentorshipHub />} />
                   <Route path="/creator/store" element={<MyStore />} />
@@ -259,6 +233,7 @@ const App = () => {
                 {/* Admin Routes */}
                 <Route path="/admin" element={<AdminRoute><AdminOverview /></AdminRoute>} />
                 <Route path="/admin/auto-trade" element={<AdminRoute><AdminAutoTrade /></AdminRoute>} />
+                <Route path="/admin/settlements" element={<AdminRoute><AdminSettlements /></AdminRoute>} />
                 <Route path="/admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
                 <Route path="/admin/deleted" element={<AdminRoute><AdminDeleted /></AdminRoute>} />
                 <Route path="/admin/trading" element={<AdminRoute><AdminTrading /></AdminRoute>} />

@@ -90,6 +90,8 @@ const AdminFinance = lazy(() => import("./pages/admin/AdminFinance"));
 const AdminSupport = lazy(() => import("./pages/admin/AdminSupport"));
 const AdminLogs = lazy(() => import("./pages/admin/AdminLogs"));
 const AdminWaitlist = lazy(() => import("./pages/admin/AdminWaitlist"));
+const AdminSettlements = lazy(() => import("./pages/admin/AdminSettlements"));
+const WeeklySettlements = lazy(() => import("./pages/WeeklySettlements"));
 const BrokerAuth = lazy(() => import("./pages/BrokerAuth"));
 
 
@@ -220,6 +222,8 @@ const App = () => {
                   <Route path="/competitions/transaction" element={<Transactions />} />
                   <Route path="/competitions/rewards" element={<CompetitionsRewards />} />
                   <Route path="/referrals" element={<Referrals />} />
+                  <Route path="/weekly-settlements" element={<WeeklySettlements />} />
+                  <Route path="/settlements" element={<Navigate to="/weekly-settlements" replace />} />
                   <Route path="/creator/analytics" element={<CreatorAnalytics />} />
                   <Route path="/creator/mentorship" element={<MentorshipHub />} />
                   <Route path="/creator/store" element={<MyStore />} />
@@ -229,6 +233,7 @@ const App = () => {
                 {/* Admin Routes */}
                 <Route path="/admin" element={<AdminRoute><AdminOverview /></AdminRoute>} />
                 <Route path="/admin/auto-trade" element={<AdminRoute><AdminAutoTrade /></AdminRoute>} />
+                <Route path="/admin/settlements" element={<AdminRoute><AdminSettlements /></AdminRoute>} />
                 <Route path="/admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
                 <Route path="/admin/deleted" element={<AdminRoute><AdminDeleted /></AdminRoute>} />
                 <Route path="/admin/trading" element={<AdminRoute><AdminTrading /></AdminRoute>} />

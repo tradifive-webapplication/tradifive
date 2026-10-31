@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, UserX, CreditCard, Activity, LifeBuoy, Terminal, LogOut, ChevronLeft, ClipboardList, Bot } from "lucide-react";
+import { LayoutDashboard, Users, UserX, CreditCard, Activity, LifeBuoy, Terminal, LogOut, ChevronLeft, ClipboardList, Bot, Receipt } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 const adminMenu = [
   { path: "/admin/overview", icon: LayoutDashboard, label: "Overview" },
   { path: "/admin/auto-trade", icon: Bot, label: "Auto Trade & Licenses" },
+  { path: "/admin/settlements", icon: Receipt, label: "Weekly Settlements" },
   { path: "/admin/users", icon: Users, label: "Users" },
   { path: "/admin/deleted", icon: UserX, label: "Deleted Records" },
   { path: "/admin/finance", icon: CreditCard, label: "Subscriptions" },
