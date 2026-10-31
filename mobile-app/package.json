@@ -6,6 +6,8 @@
     "start": "expo start --go",
     "reset-project": "node ./scripts/reset-project.js",
     "android": "expo start --android",
+    "build:android:apk": "eas build --platform android --profile preview",
+    "build:android:bundle": "eas build --platform android --profile production",
     "ios": "expo start --ios",
     "web": "expo start --web",
     "lint": "expo lint",

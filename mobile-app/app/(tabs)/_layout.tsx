@@ -519,7 +519,13 @@ export default function TabLayout() {
                       "Select Market",
                       "Choose your preferred trading market",
                       [
-                        { text: "Indian Market", onPress: () => setCurrentMarket("Indian Market") },
+                        { 
+                          text: "Indian Market (Soon)", 
+                          onPress: () => Alert.alert(
+                            "Coming Soon", 
+                            "Indian Market (NSE / BSE) automated trading is coming soon. FiAlgo V1 automated trading is currently live on Global Forex & Gold."
+                          ) 
+                        },
                         { text: "Global Market", onPress: () => setCurrentMarket("Global Market") },
                         { text: "Cancel", style: "cancel" }
                       ]
