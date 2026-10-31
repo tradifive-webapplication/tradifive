@@ -228,7 +228,6 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
   const [downloadingDemo, setDownloadingDemo] = useState(false);
   const [downloadingBacktest, setDownloadingBacktest] = useState(false);
   const [mobileTab, setMobileTab] = useState<'specs' | 'license'>('license');
-  const [selectedTier, setSelectedTier] = useState<"lifetime" | "profit_share_50">("lifetime");
 
   const specRow1 = [
     { label: "Product Name", value: "FiAlgo V1", badge: "Official Build" },
@@ -245,34 +244,23 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
   const specRow4 = [
     { label: "Timeframe", value: "1 Min (M1)" },
     { label: "Execution Speed", value: "< 3ms Direct MT5 Execution" },
-    { label: "License Options", value: "Lifetime (0% Cut) or 50% Share" },
+    { label: "Official Plan", value: "₹9,999 Setup + Weekly 50/50% Split" },
   ];
 
-  const lifetimeIncludes = [
-    "100% Profits Kept (0% profit share cut forever)",
+  const planIncludes = [
+    "One-time ₹9,999 Setup Fee for EA activation & MT5 binding",
+    "Weekly 50/50% Profit Share on Net Positive Weeks Only",
+    "Zero Fee on Red or Flat Weeks (No profit = ₹0 commission)",
+    "Assigned Weekly Settlement Day (Mon–Sun Cohort Allocation)",
     "FiAlgo V1 Compiled Expert Advisor (.ex5)",
-    "Instant License Key Generation & MT5 Account Binding",
+    "Hardware-Bound MT5 License Key & Instant Server Relay",
     "Automated MT5 Economic News Calendar Filter",
     "All 8 Institutional Risk Protection Modules",
-    "Institutional Presets & Setfiles (.set for XAUUSD)",
-    "Free Lifetime Algorithm Updates & EA Upgrades",
-    "VIP Priority Remote Setup & Technical Support",
   ];
 
-  const performanceIncludes = [
-    "Low Upfront Setup Fee: Only ₹5,000 to get started",
-    "50% Daily Profit Share on Net Positive Days Only",
-    "Zero Fee on Red or Flat Days (No profit = ₹0 cut)",
-    "Automated Daily MT5 Profit Statements & Settlement",
-    "FiAlgo V1 Compiled Expert Advisor (.ex5)",
-    "Instant License Key Generation & MT5 Account Binding",
-    "Automated MT5 Economic News Calendar Filter",
-    "Upgrade to Lifetime VIP anytime to remove profit share",
-  ];
-
-  const handleProceed = (tier: "lifetime" | "profit_share_50") => {
+  const handleProceed = () => {
     try {
-      localStorage.setItem("tradifive_selected_tier", tier);
+      localStorage.setItem("tradifive_selected_tier", "profit_share_50");
     } catch (e) {}
     if (onGetStarted) {
       onGetStarted();
@@ -890,137 +878,37 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                   </button>
                 </div>
 
-                {/* 2-Tier Selector Buttons */}
+                {/* Single Official Plan Badge */}
                 <div
                   style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 1fr",
-                    gap: 6,
-                    background: "rgba(255, 255, 255, 0.03)",
-                    padding: 4,
+                    background: "rgba(16, 185, 129, 0.08)",
+                    border: "1px solid rgba(16, 185, 129, 0.25)",
                     borderRadius: 12,
-                    border: "1px solid rgba(255, 255, 255, 0.08)",
+                    padding: "8px 12px",
                     marginBottom: 14,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
                   }}
                 >
-                  <button
-                    type="button"
-                    onClick={() => setSelectedTier("lifetime")}
-                    style={{
-                      padding: "9px 8px",
-                      borderRadius: 10,
-                      border: "none",
-                      cursor: "pointer",
-                      background:
-                        selectedTier === "lifetime"
-                          ? "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)"
-                          : "transparent",
-                      boxShadow:
-                        selectedTier === "lifetime"
-                          ? "inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 4px rgba(0, 0, 0, 0.3)"
-                          : "none",
-                      color: selectedTier === "lifetime" ? "#60a5fa" : "rgba(255, 255, 255, 0.55)",
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      gap: 2,
-                      transition: "all 0.2s ease",
-                      outline: "none",
-                    }}
-                    onMouseEnter={(e) => {
-                      if (selectedTier === "lifetime") {
-                        e.currentTarget.style.background = "linear-gradient(135deg, #253347 0%, #131c33 100%)";
-                        e.currentTarget.style.color = "#93c5fd";
-                      } else {
-                        e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)";
-                        e.currentTarget.style.color = "#ffffff";
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (selectedTier === "lifetime") {
-                        e.currentTarget.style.background = "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)";
-                        e.currentTarget.style.color = "#60a5fa";
-                      } else {
-                        e.currentTarget.style.background = "transparent";
-                        e.currentTarget.style.color = "rgba(255, 255, 255, 0.55)";
-                      }
-                    }}
-                  >
-                    <span style={{ fontSize: 11.5, fontWeight: 800 }}>👑 Lifetime</span>
-                    <span
-                      style={{
-                        fontSize: 9.5,
-                        fontWeight: 700,
-                        color: selectedTier === "lifetime" ? "#93c5fd" : "rgba(255, 255, 255, 0.4)",
-                      }}
-                    >
-                      ₹99,999 · 0% Cut
+                  <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                    <span style={{ fontSize: 13 }}>⚡</span>
+                    <span style={{ fontSize: 11.5, fontWeight: 800, color: "#6ee7b7" }}>
+                      Official Performance Plan
                     </span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setSelectedTier("profit_share_50")}
-                    style={{
-                      padding: "9px 8px",
-                      borderRadius: 10,
-                      border: "none",
-                      cursor: "pointer",
-                      background:
-                        selectedTier === "profit_share_50"
-                          ? "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)"
-                          : "transparent",
-                      boxShadow:
-                        selectedTier === "profit_share_50"
-                          ? "inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 4px rgba(0, 0, 0, 0.3)"
-                          : "none",
-                      color: selectedTier === "profit_share_50" ? "#60a5fa" : "rgba(255, 255, 255, 0.55)",
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      gap: 2,
-                      transition: "all 0.2s ease",
-                      outline: "none",
-                    }}
-                    onMouseEnter={(e) => {
-                      if (selectedTier === "profit_share_50") {
-                        e.currentTarget.style.background = "linear-gradient(135deg, #253347 0%, #131c33 100%)";
-                        e.currentTarget.style.color = "#93c5fd";
-                      } else {
-                        e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)";
-                        e.currentTarget.style.color = "#ffffff";
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (selectedTier === "profit_share_50") {
-                        e.currentTarget.style.background = "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)";
-                        e.currentTarget.style.color = "#60a5fa";
-                      } else {
-                        e.currentTarget.style.background = "transparent";
-                        e.currentTarget.style.color = "rgba(255, 255, 255, 0.55)";
-                      }
-                    }}
-                  >
-                    <span style={{ fontSize: 11.5, fontWeight: 800 }}>⚡ Performance</span>
-                    <span
-                      style={{
-                        fontSize: 9.5,
-                        fontWeight: 700,
-                        color: selectedTier === "profit_share_50" ? "#93c5fd" : "rgba(255, 255, 255, 0.4)",
-                      }}
-                    >
-                      ₹5,000 Setup
-                    </span>
-                  </button>
+                  </div>
+                  <span style={{ fontSize: 10.5, fontWeight: 700, color: "rgba(255, 255, 255, 0.55)" }}>
+                    ₹9,999 Setup · Weekly 50/50%
+                  </span>
                 </div>
 
                 {/* Product Badge */}
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
                   <span
                     style={{
-                      background: "rgba(59, 130, 246, 0.12)",
-                      border: "1px solid rgba(59, 130, 246, 0.25)",
-                      color: "#93c5fd",
+                      background: "rgba(16, 185, 129, 0.12)",
+                      border: "1px solid rgba(16, 185, 129, 0.25)",
+                      color: "#6ee7b7",
                       fontSize: 10,
                       fontWeight: 700,
                       padding: "3px 10px",
@@ -1029,10 +917,10 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                       textTransform: "uppercase",
                     }}
                   >
-                    {selectedTier === "lifetime" ? "LIFETIME · 0% PROFIT CUT" : "PERFORMANCE · 50% DAILY SHARE"}
+                    PERFORMANCE · WEEKLY 50/50% SHARE
                   </span>
-                  <span style={{ fontSize: 11, color: "#60a5fa", fontWeight: 700 }}>
-                    {selectedTier === "lifetime" ? "100% Profits Kept" : "Pay On Green Days"}
+                  <span style={{ fontSize: 11, color: "#34d399", fontWeight: 700 }}>
+                    Pay On Green Weeks Only
                   </span>
                 </div>
 
@@ -1045,12 +933,10 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                     fontFamily: "'Outfit', sans-serif",
                   }}
                 >
-                  {selectedTier === "lifetime" ? "FiAlgo V1 Lifetime" : "FiAlgo V1 Performance"}
+                  FiAlgo V1 Performance License
                 </h3>
                 <p style={{ fontSize: 12.5, color: "rgba(255, 255, 255, 0.55)", margin: "0 0 14px", lineHeight: 1.5 }}>
-                  {selectedTier === "lifetime"
-                    ? "Full algorithmic engine on MT5 with 0% profit cut forever. You keep 100% of all profits."
-                    : "Full algorithmic engine on MT5 with ₹5,000 setup fee. Share 50% profit only on green days."}
+                  Full algorithmic Gold execution engine on MT5 with a one-time ₹9,999 setup fee. Split 50% profits weekly only when your account is in green. Zero fees on non-profitable weeks.
                 </p>
 
                 {/* Price Tag */}
@@ -1068,31 +954,31 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                 >
                   <div>
                     <div style={{ fontSize: 10, color: "rgba(255, 255, 255, 0.4)", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.8 }}>
-                      {selectedTier === "lifetime" ? "ONE-TIME PAYMENT" : "INITIAL SETUP FEE"}
+                      ONE-TIME SETUP FEE
                     </div>
                     <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 3 }}>
                       <span
                         style={{
                           fontSize: 28,
                           fontWeight: 900,
-                          color: selectedTier === "lifetime" ? "#ffffff" : "#34d399",
+                          color: "#34d399",
                           fontFamily: "'Outfit', sans-serif",
                           letterSpacing: "-0.02em",
                         }}
                       >
-                        {selectedTier === "lifetime" ? "₹99,999" : "₹5,000"}
+                        ₹9,999
                       </span>
                       <span style={{ fontSize: 12, color: "rgba(255, 255, 255, 0.45)" }}>
-                        {selectedTier === "lifetime" ? "/ Lifetime" : "+ Daily 50% Share"}
+                        + Weekly 50/50% Split
                       </span>
                     </div>
                   </div>
                   <div style={{ textAlign: "right" }}>
                     <span
                       style={{
-                        background: selectedTier === "lifetime" ? "rgba(168, 85, 247, 0.15)" : "rgba(16, 185, 129, 0.15)",
-                        border: selectedTier === "lifetime" ? "1px solid rgba(168, 85, 247, 0.3)" : "1px solid rgba(16, 185, 129, 0.3)",
-                        color: selectedTier === "lifetime" ? "#d8b4fe" : "#6ee7b7",
+                        background: "rgba(16, 185, 129, 0.15)",
+                        border: "1px solid rgba(16, 185, 129, 0.3)",
+                        color: "#6ee7b7",
                         fontSize: 10,
                         fontWeight: 700,
                         padding: "3px 8px",
@@ -1100,62 +986,60 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                         letterSpacing: 0.4,
                       }}
                     >
-                      {selectedTier === "lifetime" ? "0% PROFIT CUT" : "PAY ON PROFIT"}
+                      PAY ONLY ON PROFIT
                     </span>
                   </div>
                 </div>
 
-                {/* Daily 50% Settlement Notice for Performance Partner */}
-                {selectedTier === "profit_share_50" && (
+                {/* Weekly 50% Settlement Notice */}
+                <div
+                  style={{
+                    padding: "10px 14px",
+                    borderRadius: 12,
+                    background: "rgba(234, 179, 8, 0.05)",
+                    border: "1px solid rgba(234, 179, 8, 0.2)",
+                    marginBottom: 16,
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: 10,
+                  }}
+                >
                   <div
                     style={{
-                      padding: "10px 14px",
-                      borderRadius: 12,
-                      background: "rgba(234, 179, 8, 0.05)",
-                      border: "1px solid rgba(234, 179, 8, 0.2)",
-                      marginBottom: 16,
+                      width: 26,
+                      height: 26,
+                      borderRadius: 8,
+                      background: "rgba(234, 179, 8, 0.1)",
                       display: "flex",
-                      alignItems: "flex-start",
-                      gap: 10,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                      marginTop: 1,
                     }}
                   >
-                    <div
-                      style={{
-                        width: 26,
-                        height: 26,
-                        borderRadius: 8,
-                        background: "rgba(234, 179, 8, 0.1)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        flexShrink: 0,
-                        marginTop: 1,
-                      }}
-                    >
-                      <AlertTriangle size={14} color="#facc15" />
+                    <AlertTriangle size={14} color="#facc15" />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 11.5, fontWeight: 700, color: "#fef08a", letterSpacing: 0.2 }}>
+                      Weekly 50% Settlement Policy
                     </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 11.5, fontWeight: 700, color: "#fef08a", letterSpacing: 0.2 }}>
-                        Daily 50% Settlement Policy
-                      </div>
-                      <div style={{ fontSize: 10.5, color: "rgba(255, 255, 255, 0.6)", marginTop: 2, lineHeight: 1.4 }}>
-                        Daily 50% profit share must be settled via UPI on green days. If unpaid, the MT5 EA license is automatically suspended until cleared.
-                      </div>
+                    <div style={{ fontSize: 10.5, color: "rgba(255, 255, 255, 0.6)", marginTop: 2, lineHeight: 1.4 }}>
+                      Weekly 50% profit share is settled via UPI or WhatsApp on your designated settlement day. If your week is flat or red, you pay ₹0.
                     </div>
                   </div>
-                )}
+                </div>
 
                 {/* What is Included List */}
                 <div style={{ marginBottom: 20 }}>
                   <div style={{ fontSize: 11, fontWeight: 700, color: "rgba(255, 255, 255, 0.4)", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 10 }}>
-                    {selectedTier === "lifetime" ? "LIFETIME INCLUDES:" : "PERFORMANCE INCLUDES:"}
+                    OFFICIAL PLAN INCLUDES:
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
-                    {(selectedTier === "lifetime" ? lifetimeIncludes : performanceIncludes).map((item, i) => (
+                    {planIncludes.map((item, i) => (
                       <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 9, fontSize: 12 }}>
                         <CheckCircle2
                           size={14}
-                          color="#60a5fa"
+                          color="#34d399"
                           style={{ marginTop: 2, flexShrink: 0 }}
                         />
                         <span style={{ color: "rgba(255, 255, 255, 0.8)", lineHeight: 1.4 }}>{item}</span>
@@ -1168,16 +1052,16 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
               {/* CTAs */}
               <div>
                 <button
-                  onClick={() => handleProceed(selectedTier)}
+                  onClick={() => handleProceed()}
                   style={{
                     width: "100%",
                     padding: "13px 20px",
                     borderRadius: 12,
                     border: "none",
                     cursor: "pointer",
-                    background: "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)",
-                    boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 6px rgba(0, 0, 0, 0.3)",
-                    color: "#60a5fa",
+                    background: "linear-gradient(135deg, #059669 0%, #047857 100%)",
+                    boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 2px 6px rgba(0, 0, 0, 0.3)",
+                    color: "#ffffff",
                     fontSize: 14,
                     fontWeight: 700,
                     display: "flex",
@@ -1189,21 +1073,15 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.transform = "translateY(-1px)";
-                    e.currentTarget.style.background = "linear-gradient(135deg, #253347 0%, #131c33 100%)";
-                    e.currentTarget.style.color = "#93c5fd";
+                    e.currentTarget.style.background = "linear-gradient(135deg, #10b981 0%, #059669 100%)";
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.background = "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)";
-                    e.currentTarget.style.color = "#60a5fa";
+                    e.currentTarget.style.background = "linear-gradient(135deg, #059669 0%, #047857 100%)";
                   }}
                 >
                   <Zap size={15} />
-                  <span>
-                    {selectedTier === "lifetime"
-                      ? "Get FiAlgo V1 Lifetime (₹99,999)"
-                      : "Get FiAlgo V1 Performance (₹5,000)"}
-                  </span>
+                  <span>Get FiAlgo V1 License (₹9,999)</span>
                   <ArrowRight size={15} />
                 </button>
 

@@ -343,6 +343,29 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
   const [isSubmittingWithdrawal, setIsSubmittingWithdrawal] = useState<boolean>(false);
   const [withdrawalSubmitted, setWithdrawalSubmitted] = useState<boolean>(false);
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
+  const [showConverterModal, setShowConverterModal] = useState<boolean>(false);
+  const [converterUscInput, setConverterUscInput] = useState<string>("10000");
+  const [converterInrInput, setConverterInrInput] = useState<string>("9368");
+
+  const handleUscInputChange = (valStr: string) => {
+    setConverterUscInput(valStr);
+    const num = parseFloat(valStr.replace(/,/g, ""));
+    if (!isNaN(num)) {
+      setConverterInrInput((num * 0.9368).toFixed(2));
+    } else {
+      setConverterInrInput("");
+    }
+  };
+
+  const handleInrInputChange = (valStr: string) => {
+    setConverterInrInput(valStr);
+    const num = parseFloat(valStr.replace(/,/g, ""));
+    if (!isNaN(num) && num > 0) {
+      setConverterUscInput((num / 0.9368).toFixed(2));
+    } else {
+      setConverterUscInput("");
+    }
+  };
   const hasPlayedTargetSoundRef = useRef<boolean>(false);
 
   const tradifiveId = React.useMemo(() => {
@@ -484,43 +507,24 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
   // Value converter helper: converts any amount from native account currency to effective view currency
 
   const convertAmount = useCallback((val: number): number => {
-
     if (!val || isNaN(val)) return 0;
-
     if (viewCurrency === "NATIVE") return val;
 
-    
-
     // Target is USD:
-
     if (viewCurrency === "USD") {
-
       if (isCentAccount) return val / 100;
-
-      if (accountCurrency === "INR") return val / 83.5;
-
+      if (accountCurrency === "INR") return val / 93.68;
       return val;
-
     }
 
-
-
-    // Target is INR:
-
+    // Target is INR (1 USC = ₹0.9368, 100 USC = 1 USD = ₹93.68):
     if (viewCurrency === "INR") {
-
-      if (isCentAccount) return (val / 100) * 83.5;
-
-      if (accountCurrency === "USD") return val * 83.5;
-
+      if (isCentAccount) return Number((val * 0.9368).toFixed(2));
+      if (accountCurrency === "USD") return Number((val * 93.68).toFixed(2));
       return val;
-
     }
-
-
 
     return val;
-
   }, [viewCurrency, isCentAccount, accountCurrency]);
 
 
@@ -528,25 +532,21 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
   // Formatter helper with optional secondary USD equivalent for USC accounts
 
   const formatMoney = useCallback((val: number, opts?: { decimals?: number, showEquivalent?: boolean, compact?: boolean }): string => {
-
     const dec = opts?.decimals !== undefined ? opts.decimals : (opts?.compact ? 0 : 2);
-
     const converted = convertAmount(val);
-
     const formatted = `${currencySymbol}${converted.toLocaleString(undefined, { minimumFractionDigits: dec, maximumFractionDigits: dec })}`;
 
-    
-
-    if (opts?.showEquivalent && isCentAccount && viewCurrency === "NATIVE") {
-
-      const inUsd = (val / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
-      return `${formatted} (≈ $${inUsd})`;
-
+    if (opts?.showEquivalent && isCentAccount) {
+      if (viewCurrency === "NATIVE") {
+        const inInr = (val * 0.9368).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        return `${formatted} (≈ ₹${inInr})`;
+      } else if (viewCurrency === "INR") {
+        const inUsc = val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        return `${formatted} (≈ ${inUsc} USC)`;
+      }
     }
 
     return formatted;
-
   }, [convertAmount, currencySymbol, isCentAccount, viewCurrency]);
 
 
@@ -2277,6 +2277,50 @@ Kindly review and process our weekly 50/50 profit clearance.`;
 
 
 
+          {/* USC ⇄ INR Currency Converter Toggle (1 USC = ₹0.9368) */}
+          <div className="h-[36px] px-1.5 rounded-[14px] border-2 border-white dark:border-white/5 bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:shadow-none flex items-center gap-1 select-none">
+            <button
+              type="button"
+              onClick={() => {
+                setViewCurrency("NATIVE");
+                try { localStorage.setItem("tradifive_view_currency", "NATIVE"); } catch (e) {}
+                toast.info("Dashboard display currency set to USC (Cent)");
+              }}
+              className={`h-[28px] px-2.5 rounded-[10px] text-[11px] font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                viewCurrency === "NATIVE"
+                  ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-xs"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+              }`}
+              title="Display raw Cent Account Units (1 USC = 0.01 USD)"
+            >
+              USC
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setViewCurrency("INR");
+                try { localStorage.setItem("tradifive_view_currency", "INR"); } catch (e) {}
+                toast.success("Dashboard converted to INR (₹) at 1 USC = ₹0.9368");
+              }}
+              className={`h-[28px] px-2.5 rounded-[10px] text-[11px] font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                viewCurrency === "INR"
+                  ? "bg-emerald-600 text-white shadow-xs font-black"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+              }`}
+              title="Convert all dashboard metrics to Indian Rupees (1 USC = ₹0.9368)"
+            >
+              <span>₹ INR</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowConverterModal(true)}
+              className="text-[10px] font-mono font-extrabold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-200/60 dark:border-emerald-500/20 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 transition-colors cursor-pointer hidden md:flex items-center gap-1"
+              title="Click to open Live USC ⇄ INR Calculator"
+            >
+              <span>1 USC = ₹0.9368</span>
+            </button>
+          </div>
+
           {/* Single Official Plan Badge: ₹9,999 Setup Fee + Weekly 50/50% Split */}
           <div className="h-[36px] px-3 shrink-0 rounded-[14px] border-2 border-white dark:border-white/5 bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:shadow-none flex items-center gap-2 select-none">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
@@ -3837,6 +3881,205 @@ Kindly review and process our weekly 50/50 profit clearance.`;
       </AnimatePresence>
 
 
+
+      {/* ── MODAL: USC ⇄ INR LIVE CURRENCY CONVERTER CALCULATOR (1 USC = ₹0.9368) ── */}
+      <AnimatePresence>
+        {showConverterModal && (
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowConverterModal(false)}
+              className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"
+            />
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              className="relative w-full max-w-[480px] rounded-[24px] border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] p-5 sm:p-6 shadow-[0_20px_60px_rgba(0,0,0,0.2),0_0_0_2px_#E2E8F0] dark:bg-none dark:bg-[#1A1F2C] dark:border-[1px] dark:border-white/10 text-slate-800 dark:text-white"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/10 mb-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 flex items-center justify-center shrink-0">
+                    <Coins size={20} />
+                  </div>
+                  <div>
+                    <h3 className="text-[16px] font-bold text-slate-900 dark:text-white tracking-tight leading-none">
+                      USC ⇄ INR Currency Converter
+                    </h3>
+                    <p className="text-[11.5px] text-slate-400 mt-1">
+                      Real-time Cent to Rupee conversion: <b className="text-emerald-600 dark:text-emerald-400">1 USC = ₹0.9368 INR</b>
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setShowConverterModal(false)}
+                  className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 flex items-center justify-center text-slate-500 hover:text-slate-700 dark:text-slate-300 transition-colors cursor-pointer"
+                >
+                  <X size={15} />
+                </button>
+              </div>
+
+              {/* Interactive Bidirectional Inputs */}
+              <div className="space-y-3.5 mb-5">
+                {/* USC Input */}
+                <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200/80 dark:border-white/10">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-[11px] font-extrabold uppercase text-slate-400 tracking-wider">
+                      US Cent Amount (USC)
+                    </label>
+                    <span className="text-[10px] font-bold text-slate-500">
+                      ≈ ${(Number(converterUscInput || 0) / 100).toFixed(2)} USD
+                    </span>
+                  </div>
+                  <div className="relative flex items-center">
+                    <input
+                      type="number"
+                      step="any"
+                      value={converterUscInput}
+                      onChange={(e) => handleUscInputChange(e.target.value)}
+                      placeholder="e.g. 50000"
+                      className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl py-2.5 px-3 pr-16 text-[16px] font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    />
+                    <span className="absolute right-3 text-xs font-black text-slate-400 pointer-events-none">
+                      USC
+                    </span>
+                  </div>
+                </div>
+
+                {/* Conversion Divider */}
+                <div className="flex items-center justify-center -my-1">
+                  <div className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-md shadow-emerald-500/20 text-xs font-bold">
+                    ⇄
+                  </div>
+                </div>
+
+                {/* INR Input */}
+                <div className="p-3.5 rounded-2xl bg-emerald-50/50 dark:bg-emerald-500/10 border border-emerald-200/60 dark:border-emerald-500/20">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-[11px] font-extrabold uppercase text-emerald-800 dark:text-emerald-300 tracking-wider">
+                      Indian Rupee Equivalent (INR)
+                    </label>
+                    <span className="text-[10px] font-bold text-emerald-600">
+                      Rate: 0.9368
+                    </span>
+                  </div>
+                  <div className="relative flex items-center">
+                    <span className="absolute left-3 text-sm font-bold text-slate-400 pointer-events-none">
+                      ₹
+                    </span>
+                    <input
+                      type="number"
+                      step="any"
+                      value={converterInrInput}
+                      onChange={(e) => handleInrInputChange(e.target.value)}
+                      placeholder="e.g. 46840"
+                      className="w-full bg-white dark:bg-slate-900 border border-emerald-300 dark:border-emerald-500/30 rounded-xl py-2.5 pl-8 pr-16 text-[16px] font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    />
+                    <span className="absolute right-3 text-xs font-black text-emerald-600 pointer-events-none">
+                      INR
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Quick Presets */}
+              <div className="mb-4">
+                <span className="text-[10px] font-bold uppercase text-slate-400 tracking-wider block mb-2">
+                  Quick Preset Calculations:
+                </span>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  {accountBalance > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => handleUscInputChange(String(accountBalance))}
+                      className="p-2.5 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 border border-slate-200/60 dark:border-white/5 text-left transition-colors cursor-pointer"
+                    >
+                      <span className="text-[10px] text-slate-400 block">Your Current Balance</span>
+                      <span className="font-bold text-slate-900 dark:text-white block truncate">
+                        {accountBalance.toLocaleString()} USC = ₹{(accountBalance * 0.9368).toFixed(2)}
+                      </span>
+                    </button>
+                  )}
+                  {todayProfit !== 0 && (
+                    <button
+                      type="button"
+                      onClick={() => handleUscInputChange(String(Math.abs(todayProfit)))}
+                      className="p-2.5 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 border border-slate-200/60 dark:border-white/5 text-left transition-colors cursor-pointer"
+                    >
+                      <span className="text-[10px] text-slate-400 block">Today's Profit</span>
+                      <span className="font-bold text-emerald-600 block truncate">
+                        {todayProfit.toLocaleString()} USC = ₹{(todayProfit * 0.9368).toFixed(2)}
+                      </span>
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => handleUscInputChange("50000")}
+                    className="p-2.5 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 border border-slate-200/60 dark:border-white/5 text-left transition-colors cursor-pointer"
+                  >
+                    <span className="text-[10px] text-slate-400 block">$500 Deposit (50k USC)</span>
+                    <span className="font-bold text-slate-900 dark:text-white block">₹46,840.00 INR</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleUscInputChange("100000")}
+                    className="p-2.5 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 border border-slate-200/60 dark:border-white/5 text-left transition-colors cursor-pointer"
+                  >
+                    <span className="text-[10px] text-slate-400 block">$1,000 Deposit (100k USC)</span>
+                    <span className="font-bold text-slate-900 dark:text-white block">₹93,680.00 INR</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Set Dashboard View Mode directly */}
+              <div className="pt-3 border-t border-slate-100 dark:border-white/10 flex items-center justify-between gap-3">
+                <span className="text-[11px] text-slate-500 font-medium">
+                  Switch dashboard currency:
+                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setViewCurrency("NATIVE");
+                      try { localStorage.setItem("tradifive_view_currency", "NATIVE"); } catch (e) {}
+                      setShowConverterModal(false);
+                      toast.info("Dashboard switched to USC view");
+                    }}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                      viewCurrency === "NATIVE"
+                        ? "bg-slate-900 text-white"
+                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    }`}
+                  >
+                    View in USC
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setViewCurrency("INR");
+                      try { localStorage.setItem("tradifive_view_currency", "INR"); } catch (e) {}
+                      setShowConverterModal(false);
+                      toast.success("Dashboard switched to INR view (1 USC = ₹0.9368)");
+                    }}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                      viewCurrency === "INR"
+                        ? "bg-emerald-600 text-white"
+                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    }`}
+                  >
+                    View in ₹ INR
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* ── LIGHTBOX FOR VIEWING PROOF IMAGES ── */}
 
