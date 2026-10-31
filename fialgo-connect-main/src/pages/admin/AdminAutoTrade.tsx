@@ -235,7 +235,7 @@ export default function AdminAutoTrade() {
   const [rejectModalProof, setRejectModalProof] = useState<IbTransferProofRequest | null>(null);
   const [rejectReasonInput, setRejectReasonInput] = useState("");
 
-  // ₹99,999 License Payments State
+  // ₹9,999 License Payments State
   const [licensePayments, setLicensePayments] = useState<LicensePaymentRequest[]>(getInitialPayments);
   const [paymentFilter, setPaymentFilter] = useState<"all" | "pending" | "approved" | "rejected">("pending");
   const [paymentMethodFilter, setPaymentMethodFilter] = useState<"all" | "upi" | "bank">("all");
@@ -323,7 +323,7 @@ export default function AdminAutoTrade() {
         setWithdrawalRequests(wdrs);
       } catch (e) {}
 
-      // 1.8 Fetch License Payment Requests (₹99,999 UPI / Bank)
+      // 1.8 Fetch License Payment Requests (₹9,999 UPI / Bank)
       const { data: licensePayData } = await supabase
         .from("system_settings")
         .select("*")
@@ -516,7 +516,7 @@ export default function AdminAutoTrade() {
             tradifive_id: override.tradifive_id || (effectiveAccount ? `TRDF-${effectiveAccount.slice(-6).padStart(6, "0")}` : `TRDF-${p.id.slice(0, 6).toUpperCase()}`),
             settlement_day: override.settlement_day || "Wednesday",
             purchase_tier: (override.purchase_tier as any) || (hasPurchased ? "Lifetime License" : "None"),
-            price_paid: override.price_paid !== undefined ? override.price_paid : (hasPurchased ? 99999 : 0),
+            price_paid: override.price_paid !== undefined ? override.price_paid : (hasPurchased ? 9999 : 0),
             payment_status: override.payment_status || (hasPurchased ? "paid" : (userPayment ? userPayment.status : "pending")),
             purchase_date: override.purchase_date || p.created_at || new Date().toISOString(),
             binary_downloaded: override.binary_downloaded !== undefined ? override.binary_downloaded : hasPurchased,
@@ -672,7 +672,7 @@ export default function AdminAutoTrade() {
     return `TF-${lgHex}-${expHex}-${chkHex}`;
   };
 
-  // Approve ₹99,999 Lifetime Payment & Issue License Key
+  // Approve ₹9,999 Setup Payment & Issue License Key
   const handleApprovePayment = async (payment: LicensePaymentRequest) => {
     const cleanAccount = String(payment.mt5_account_number || "").replace(/\D/g, "");
     const existingRec = records.find(r => 
@@ -730,7 +730,7 @@ export default function AdminAutoTrade() {
         license_expiry: "Lifetime",
         algo_name: "FiAlgo V1 (Gold Scalper & Trend)",
         algo_id: "fialgo_v1",
-        admin_notes: `₹99,999 Lifetime Payment verified via ${payment.method === "upi" ? "PhonePe/UPI" : "Bank Transfer"} (UTR: ${payment.utr_number}). Personal MT5 license key issued.`
+        admin_notes: `₹9,999 Setup Payment verified via ${payment.method === "upi" ? "PhonePe/UPI" : "Bank Transfer"} (UTR: ${payment.utr_number}). Personal MT5 license key issued.`
       };
       await persistUpdate(updatedRec);
     }
@@ -748,12 +748,12 @@ export default function AdminAutoTrade() {
       setPreviewPaymentProof(updatedPayment);
     }
 
-    toast.success(`Payment Verified! ₹99,999 License Key Issued`, {
+    toast.success(`Payment Verified! ₹9,999 Setup License Key Issued`, {
       description: `Key ${generatedKey} generated for MT5 #${targetAccountNum}. User Step 4 is now active.`
     });
   };
 
-  // Reject ₹99,999 Payment
+  // Reject ₹9,999 Payment
     // Admin Broadcast Actions
   const handleBroadcastSubmit = async (customMsg?: string, customCat?: string) => {
     const msg = (customMsg !== undefined ? customMsg : adminBroadcastMessage).trim();
@@ -1214,7 +1214,7 @@ If you have any questions or wish to remit USDT/INR, reply directly to this chat
             </div>
             <div>
               <h4 className="text-sm font-bold text-emerald-300 flex items-center gap-2">
-                <span>{pendingPaymentsCount} ₹99,999 License Payment{pendingPaymentsCount > 1 ? "s" : ""} Awaiting Verification</span>
+                <span>{pendingPaymentsCount} ₹9,999 Setup Payment{pendingPaymentsCount > 1 ? "s" : ""} Awaiting Verification</span>
                 <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/30 text-emerald-200 uppercase font-black">
                   Action Required
                 </span>
@@ -1317,7 +1317,7 @@ If you have any questions or wish to remit USDT/INR, reply directly to this chat
           }`}
         >
           <CreditCard size={14} className={activeMainTab === "payments" ? "text-white" : "text-emerald-400"} />
-          <span>₹99,999 Payments</span>
+          <span>₹9,999 Payments</span>
           {pendingPaymentsCount > 0 ? (
             <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-400 text-black flex items-center gap-1 animate-pulse">
               <span className="w-1.5 h-1.5 rounded-full bg-black" />
@@ -2032,7 +2032,7 @@ If you have any questions or wish to remit USDT/INR, reply directly to this chat
         </div>
       )}
 
-      {/* ── TAB 3: ₹99,999 LICENSE PAYMENTS (UPI & BANK TRANSFER) ── */}
+      {/* ── TAB 3: ₹9,999 LICENSE PAYMENTS (UPI & BANK TRANSFER) ── */}
       {activeMainTab === "payments" && (
         <div className="space-y-6">
           {/* ── Official Receiving Account Details Strip ── */}
@@ -2046,7 +2046,7 @@ If you have any questions or wish to remit USDT/INR, reply directly to this chat
                   <div className="flex items-center gap-2">
                     <h3 className="text-base font-black text-white">Official TradiFive Payment Accounts</h3>
                     <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                      Amount: ₹99,999 (Lifetime)
+                      Amount: ₹9,999 (Weekly 50/50% Plan)
                     </span>
                   </div>
                   <p className="text-xs text-neutral-400 mt-0.5">
@@ -2107,7 +2107,7 @@ If you have any questions or wish to remit USDT/INR, reply directly to this chat
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-sm hover:border-slate-700 transition-all">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total ₹99k Revenue</span>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total ₹9,999 Revenue</span>
                 <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
                   <DollarSign size={16} />
                 </div>
@@ -2274,7 +2274,7 @@ If you have any questions or wish to remit USDT/INR, reply directly to this chat
                         <p className="text-xs text-slate-600 mt-0.5">
                           {paymentSearchQuery || paymentFilter !== "all"
                             ? "Try adjusting your filters or search query"
-                            : "New ₹99,999 PhonePe / UPI or Bank transfer requests will appear here in real-time."}
+                            : "New ₹9,999 PhonePe / UPI or Bank transfer requests will appear here in real-time."}
                         </p>
                       </td>
                     </tr>
@@ -2912,7 +2912,7 @@ If you have any questions or wish to remit USDT/INR, reply directly to this chat
                   </div>
                   <div>
                     <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                      ₹99,999 Payment Proof · UTR #{previewPaymentProof.utr_number}
+                      ₹9,999 Payment Proof · UTR #{previewPaymentProof.utr_number}
                     </h3>
                     <p className="text-[11px] text-neutral-400">
                       Client: <strong className="text-white">{previewPaymentProof.user_name}</strong> ({previewPaymentProof.user_email}) · MT5: <strong className="font-mono text-emerald-400">{previewPaymentProof.mt5_account_number || "Unbound"}</strong>
@@ -2943,7 +2943,7 @@ If you have any questions or wish to remit USDT/INR, reply directly to this chat
                 <div className="text-xs">
                   <span className="text-[10px] text-neutral-500 uppercase block font-semibold">Payment Method & Amount</span>
                   <span className="font-bold text-white">
-                    {previewPaymentProof.method === "upi" ? "PhonePe / UPI" : "Bank Transfer"} · <strong className="font-mono text-emerald-400">₹99,999</strong>
+                    {previewPaymentProof.method === "upi" ? "PhonePe / UPI" : "Bank Transfer"} · <strong className="font-mono text-emerald-400">₹9,999</strong>
                   </span>
                 </div>
 
@@ -2988,7 +2988,7 @@ If you have any questions or wish to remit USDT/INR, reply directly to this chat
                   <XCircle size={20} />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-white">Reject ₹99,999 Payment</h3>
+                  <h3 className="text-sm font-bold text-white">Reject ₹9,999 Payment</h3>
                   <p className="text-xs text-neutral-400">
                     UTR: <strong className="text-white font-mono">{rejectModalPayment.utr_number}</strong> ({rejectModalPayment.user_name})
                   </p>
@@ -3002,7 +3002,7 @@ If you have any questions or wish to remit USDT/INR, reply directly to this chat
                 <div className="space-y-1.5">
                   {[
                     "UTR / Reference number not found in Axis Bank / UPI statement.",
-                    "Transferred amount does not match ₹99,999 Lifetime fee.",
+                    "Transferred amount does not match ₹9,999 Setup fee.",
                     "Payment screenshot is blurry or does not show completed transaction status.",
                     "Duplicate UTR submitted."
                   ].map((preset) => (

@@ -285,7 +285,7 @@ export default function Discover() {
         const prefix = isFiAlgo ? "FIALGO-V1" : product.name?.includes("Scalper") ? "SCALP" : product.name?.includes("Swing") ? "SWING" : product.name?.includes("HFT") ? "HFT" : "GRID";
         const randomHex = Math.random().toString(36).substring(2, 6).toUpperCase();
         const key = isFiAlgo 
-            ? `FIALGO-V1-99K-${randomHex}-${Date.now().toString().slice(-4)}`
+            ? `FIALGO-V1-${randomHex}-${Date.now().toString().slice(-4)}`
             : `TRDF-${prefix}-${randomHex}-${Date.now().toString().slice(-4)}`;
         setGeneratedLicenseKey(key);
         setPurchasedItems(prev => {
@@ -1125,7 +1125,7 @@ export default function Discover() {
                                                                 const isFiAlgo = product.name?.includes("FiAlgo") || product.id?.includes("fialgo");
                                                                 const prefix = isFiAlgo ? "FIALGO-V1" : product.name?.includes("Scalper") ? "SCALP" : product.name?.includes("Swing") ? "SWING" : product.name?.includes("HFT") ? "HFT" : "GRID";
                                                                 const randomHex = Math.random().toString(36).substring(2, 6).toUpperCase();
-                                                                setGeneratedLicenseKey(isFiAlgo ? `FIALGO-V1-99K-${randomHex}-${Date.now().toString().slice(-4)}` : `TRDF-${prefix}-${randomHex}-${Date.now().toString().slice(-4)}`);
+                                                                setGeneratedLicenseKey(isFiAlgo ? `FIALGO-V1-${randomHex}-${Date.now().toString().slice(-4)}` : `TRDF-${prefix}-${randomHex}-${Date.now().toString().slice(-4)}`);
                                                             }}
                                                             className="px-3.5 py-2 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-bold hover:bg-emerald-500/20 transition-all cursor-pointer flex items-center gap-1.5 shadow-sm"
                                                         >
@@ -1313,7 +1313,7 @@ export default function Discover() {
                                                 const isFiAlgo = prod.name?.includes("FiAlgo") || prod.id?.includes("fialgo");
                                                 const prefix = isFiAlgo ? "FIALGO-V1" : prod.name?.includes("Scalper") ? "SCALP" : prod.name?.includes("Swing") ? "SWING" : prod.name?.includes("HFT") ? "HFT" : "GRID";
                                                 const randomHex = Math.random().toString(36).substring(2, 6).toUpperCase();
-                                                setGeneratedLicenseKey(isFiAlgo ? `FIALGO-V1-99K-${randomHex}-${Date.now().toString().slice(-4)}` : `TRDF-${prefix}-${randomHex}-${Date.now().toString().slice(-4)}`);
+                                                setGeneratedLicenseKey(isFiAlgo ? `FIALGO-V1-${randomHex}-${Date.now().toString().slice(-4)}` : `TRDF-${prefix}-${randomHex}-${Date.now().toString().slice(-4)}`);
                                             }}
                                             className="px-5 py-2.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-bold hover:bg-emerald-500/20 transition-all cursor-pointer flex items-center gap-1.5"
                                         >

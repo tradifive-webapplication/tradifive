@@ -75,7 +75,7 @@ export interface LicensePaymentRequest {
   mt5_account_number?: string;
   algo_id: string;
   algo_name: string;
-  amount: string; // "9999"
+  amount: string; // "99999"
   currency: string; // "INR"
   method: "upi" | "bank";
   upi_id?: string;
@@ -127,7 +127,7 @@ export interface AutoTradeRecord {
   algo_name: string;
   algo_manifest: string;
   algo_pair: string;
-  purchase_tier: "Lifetime License" | "Daily 50% Profit Share" | "Enterprise Pack" | "3-Day Free Trial" | "None";
+  purchase_tier: "Lifetime License" | "Enterprise Pack" | "3-Day Free Trial" | "None";
   price_paid: number;
   payment_status: "paid" | "free_trial" | "pending" | "refunded";
   purchase_date: string;
@@ -235,7 +235,7 @@ export default function AdminAutoTrade() {
   const [rejectModalProof, setRejectModalProof] = useState<IbTransferProofRequest | null>(null);
   const [rejectReasonInput, setRejectReasonInput] = useState("");
 
-  // ₹9,999 Setup Fee Payments State
+  // ₹9,999 License Payments State
   const [licensePayments, setLicensePayments] = useState<LicensePaymentRequest[]>(getInitialPayments);
   const [paymentFilter, setPaymentFilter] = useState<"all" | "pending" | "approved" | "rejected">("pending");
   const [paymentMethodFilter, setPaymentMethodFilter] = useState<"all" | "upi" | "bank">("all");
@@ -430,11 +430,17 @@ export default function AdminAutoTrade() {
       (profiles || []).forEach(p => {
         const mt5 = mt5Map.get(p.id);
         const override = savedOverrides[p.id] || savedOverrides[`rec-${p.id}`] || {};
+        const userProof = proofs.find(pr => (pr.user_id && pr.user_id === p.id) || (pr.user_email && p.email && pr.user_email.toLowerCase() === p.email.toLowerCase()));
+        const userPayment = payments.find(py => (py.user_id && py.user_id === p.id) || (py.user_email && p.email && py.user_email.toLowerCase() === p.email.toLowerCase()));
 
-        if (mt5 || p.activation_key || override.has_purchased || override.mt5_account_number) {
-          const isUnder = override.is_under_tradifive !== undefined ? override.is_under_tradifive : Boolean(mt5?.is_active ?? true);
-          const hasPurchased = override.has_purchased !== undefined ? override.has_purchased : Boolean(p.activation_key || mt5?.activation_key || override.license_key);
-          const effectiveAccount = String(override.mt5_account_number || mt5?.account_number || "").replace(/\D/g, "");
+        if (mt5 || p.activation_key || override.has_purchased || override.mt5_account_number || userProof || userPayment) {
+          const isUnder = override.is_under_tradifive !== undefined 
+            ? override.is_under_tradifive 
+            : (userProof?.status === "approved" || Boolean(mt5?.is_active ?? false));
+          const hasPurchased = override.has_purchased !== undefined 
+            ? override.has_purchased 
+            : (userPayment?.status === "approved" || Boolean(p.activation_key || mt5?.activation_key || override.license_key));
+          const effectiveAccount = String(override.mt5_account_number || mt5?.account_number || userProof?.mt5_account_number || userPayment?.mt5_account_number || "").replace(/\D/g, "");
 
           // Check if live telemetry matches this account
           const isTelMatch = liveTelemetry?.account_number && String(liveTelemetry.account_number).replace(/\D/g, "") === effectiveAccount;
@@ -454,11 +460,11 @@ export default function AdminAutoTrade() {
           // Balance and Equity from real telemetry if available, else override, else mt5 table
           const realBal = isTelMatch && liveTelemetry.balance !== undefined
             ? Number(liveTelemetry.balance)
-            : (override.balance !== undefined ? Number(override.balance) : (mt5?.balance !== undefined ? Number(mt5.balance) : 0));
+            : (override.balance !== undefined ? Number(override.balance) : (mt5?.balance !== undefined ? Number(mt5.balance) : 500));
 
           const realEq = isTelMatch && liveTelemetry.equity !== undefined
             ? Number(liveTelemetry.equity)
-            : (override.equity !== undefined ? Number(override.equity) : (mt5?.equity !== undefined ? Number(mt5.equity) : 0));
+            : (override.equity !== undefined ? Number(override.equity) : (mt5?.equity !== undefined ? Number(mt5.equity) : 500));
 
           const realCurr = isTelMatch && liveTelemetry.currency
             ? liveTelemetry.currency
@@ -466,24 +472,28 @@ export default function AdminAutoTrade() {
 
           const realServer = isTelMatch && liveTelemetry.broker_server
             ? liveTelemetry.broker_server
-            : (override.broker_server || mt5?.broker_server || "—");
+            : (override.broker_server || mt5?.broker_server || "Vantage Markets-Real");
 
           const realBroker = isTelMatch && liveTelemetry.broker
             ? liveTelemetry.broker
-            : (override.broker_name || mt5?.broker_name || "—");
+            : (override.broker_name || mt5?.broker_name || userProof?.broker_name || "Vantage Markets");
 
           const isConn = isTelMatch && liveTelemetry.is_connected !== undefined
             ? Boolean(liveTelemetry.is_connected)
-            : (override.is_connected !== undefined ? Boolean(override.is_connected) : Boolean(mt5?.is_connected ?? false));
+            : (override.is_connected !== undefined ? Boolean(override.is_connected) : Boolean(mt5?.is_connected ?? true));
+
+          const computedIbStatus = isUnder 
+            ? "verified" 
+            : (override.ib_status || (userProof ? (userProof.status === "approved" ? "verified" : "pending_transfer") : "outside_ib"));
 
           liveRecords.push({
             id: `rec-${p.id}`,
             user_id: p.id,
-            user_name: p.full_name || p.email?.split("@")[0] || "User",
-            user_email: p.email || "no-email@tradifive.com",
-            user_phone: p.phone || "—",
+            user_name: p.full_name || p.email?.split("@")[0] || userProof?.user_name || "User",
+            user_email: p.email || userProof?.user_email || "no-email@tradifive.com",
+            user_phone: p.phone || userProof?.user_phone || "—",
             avatar_url: p.avatar_url,
-            created_at: p.created_at || new Date().toISOString(),
+            created_at: p.created_at || userProof?.submitted_at || new Date().toISOString(),
             mt5_account_number: effectiveAccount || "Pending #",
             broker_name: realBroker,
             broker_server: realServer,
@@ -494,7 +504,7 @@ export default function AdminAutoTrade() {
             is_connected: isConn,
             algo_execution_active: override.license_status === "suspended" ? false : Boolean(mt5?.algo_status ?? true),
             is_under_tradifive: isUnder,
-            ib_status: isUnder ? "verified" : (override.ib_status || "outside_ib"),
+            ib_status: computedIbStatus,
             ib_code: isUnder ? "TRDF940182" : "UNLINKED",
             transfer_path: override.transfer_path || "new_account",
             last_ib_check_at: override.last_ib_check_at || new Date().toISOString(),
@@ -507,7 +517,7 @@ export default function AdminAutoTrade() {
             settlement_day: override.settlement_day || "Wednesday",
             purchase_tier: (override.purchase_tier as any) || (hasPurchased ? "Lifetime License" : "None"),
             price_paid: override.price_paid !== undefined ? override.price_paid : (hasPurchased ? 9999 : 0),
-            payment_status: override.payment_status || (hasPurchased ? "paid" : "pending"),
+            payment_status: override.payment_status || (hasPurchased ? "paid" : (userPayment ? userPayment.status : "pending")),
             purchase_date: override.purchase_date || p.created_at || new Date().toISOString(),
             binary_downloaded: override.binary_downloaded !== undefined ? override.binary_downloaded : hasPurchased,
             backtest_downloaded: override.backtest_downloaded !== undefined ? override.backtest_downloaded : hasPurchased,
@@ -516,8 +526,15 @@ export default function AdminAutoTrade() {
             license_expiry: override.license_expiry || (hasPurchased ? "Lifetime" : "N/A"),
             allowed_accounts: 1,
             bound_account: effectiveAccount || "Unbound",
-            admin_notes: override.admin_notes || ""
+            admin_notes: override.admin_notes || (userProof ? `Proof submitted (${userProof.status}): ${userProof.remarks || userProof.proof_filename || ""}` : "")
           });
+        }
+      });
+
+      // Also include any standalone records from savedOverrides that didn't match a profile directly
+      Object.values(savedOverrides).forEach((ov: any) => {
+        if (ov && ov.id && !liveRecords.some(r => r.id === ov.id || (ov.user_id && r.user_id === ov.user_id))) {
+          liveRecords.push(ov as AutoTradeRecord);
         }
       });
 
@@ -706,7 +723,7 @@ export default function AdminAutoTrade() {
         mt5_account_number: targetAccountNum || existingRec.mt5_account_number,
         has_purchased: true,
         purchase_tier: "Lifetime License",
-        price_paid: 9999,
+        price_paid: 99999,
         payment_status: "paid",
         license_key: generatedKey,
         license_status: "active",
@@ -731,7 +748,7 @@ export default function AdminAutoTrade() {
       setPreviewPaymentProof(updatedPayment);
     }
 
-    toast.success(`Payment Verified! ₹9,999 License Key Issued`, {
+    toast.success(`Payment Verified! ₹9,999 Setup License Key Issued`, {
       description: `Key ${generatedKey} generated for MT5 #${targetAccountNum}. User Step 4 is now active.`
     });
   };
@@ -885,9 +902,9 @@ Thank you for trading with TradiFive & FiAlgo V1!`;
             account_number: cleanAcc,
             broker_name: updatedRecord.broker_name || "Vantage Markets",
             broker_server: updatedRecord.broker_server || `${updatedRecord.broker_name || "Vantage Markets"}-Real`,
-            is_active: updatedRecord.license_status !== "suspended",
+            is_active: updatedRecord.is_under_tradifive ?? true,
             is_connected: updatedRecord.is_connected ?? true,
-            algo_status: updatedRecord.license_status === "active" && updatedRecord.algo_execution_active !== false,
+            algo_status: true,
             balance: Number(updatedRecord.balance || 2000),
             equity: Number(updatedRecord.equity || 2000),
             currency: updatedRecord.currency || "USD",
@@ -1141,7 +1158,7 @@ If you have any questions or wish to remit USDT/INR, reply directly to this chat
     const pending = licensePayments.filter(p => p.status === "pending").length;
     const approved = licensePayments.filter(p => p.status === "approved").length;
     const rejected = licensePayments.filter(p => p.status === "rejected").length;
-    const revenueInr = approved * 9999;
+    const revenueInr = approved * 99999;
     return { total, pending, approved, rejected, revenueInr };
   }, [licensePayments]);
 
@@ -1312,6 +1329,39 @@ If you have any questions or wish to remit USDT/INR, reply directly to this chat
             }`}>
               {licensePayments.length}
             </span>
+          )}
+        </button>
+
+        <button
+          onClick={() => setActiveMainTab("withdrawals")}
+          className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2.5 relative ${
+            activeMainTab === "withdrawals"
+              ? "bg-purple-600 text-white shadow-lg shadow-purple-500/20"
+              : "bg-slate-900 text-neutral-400 hover:text-white hover:bg-slate-800 border border-white/5"
+          }`}
+        >
+          <ArrowUpRight size={14} className={activeMainTab === "withdrawals" ? "text-white" : "text-purple-400"} />
+          <span>Weekly 50/50% Withdrawals</span>
+          {withdrawalRequests.filter(w => w.status !== "cleared").length > 0 && (
+            <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-purple-400 text-black flex items-center gap-1 animate-pulse">
+              <span className="w-1.5 h-1.5 rounded-full bg-black" />
+              {withdrawalRequests.filter(w => w.status !== "cleared").length} PENDING
+            </span>
+          )}
+        </button>
+
+        <button
+          onClick={() => setActiveMainTab("broadcast")}
+          className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2.5 relative ${
+            activeMainTab === "broadcast"
+              ? "bg-sky-600 text-white shadow-lg shadow-sky-500/20"
+              : "bg-slate-900 text-neutral-400 hover:text-white hover:bg-slate-800 border border-white/5"
+          }`}
+        >
+          <Megaphone size={14} className={activeMainTab === "broadcast" ? "text-white" : "text-sky-400"} />
+          <span>Admin Broadcast Desk</span>
+          {currentBroadcast?.message && (
+            <span className="w-2 h-2 rounded-full bg-sky-400 animate-pulse shrink-0" />
           )}
         </button>
       </div>
@@ -1982,7 +2032,7 @@ If you have any questions or wish to remit USDT/INR, reply directly to this chat
         </div>
       )}
 
-      {/* ── TAB 3: ₹9,999 SETUP PAYMENTS (UPI & BANK TRANSFER) ── */}
+      {/* ── TAB 3: ₹9,999 LICENSE PAYMENTS (UPI & BANK TRANSFER) ── */}
       {activeMainTab === "payments" && (
         <div className="space-y-6">
           {/* ── Official Receiving Account Details Strip ── */}
@@ -1996,7 +2046,7 @@ If you have any questions or wish to remit USDT/INR, reply directly to this chat
                   <div className="flex items-center gap-2">
                     <h3 className="text-base font-black text-white">Official TradiFive Payment Accounts</h3>
                     <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                      Amount: ₹9,999 (Setup Fee)
+                      Amount: ₹9,999 (Weekly 50/50% Plan)
                     </span>
                   </div>
                   <p className="text-xs text-neutral-400 mt-0.5">
@@ -2057,7 +2107,7 @@ If you have any questions or wish to remit USDT/INR, reply directly to this chat
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-sm hover:border-slate-700 transition-all">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total ₹99k Revenue</span>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total ₹9,999 Revenue</span>
                 <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
                   <DollarSign size={16} />
                 </div>
@@ -2293,7 +2343,7 @@ If you have any questions or wish to remit USDT/INR, reply directly to this chat
                         {/* Amount */}
                         <td className="px-5 py-4">
                           <div className="font-mono font-black text-white text-sm">
-                            ₹{Number(payment.amount || 9999).toLocaleString()}
+                            ₹{Number(payment.amount || 99999).toLocaleString()}
                           </div>
                           <span className="text-[10px] text-slate-500 font-semibold uppercase">100% Paid</span>
                         </td>
@@ -2556,34 +2606,12 @@ If you have any questions or wish to remit USDT/INR, reply directly to this chat
                     <strong className="text-white">{selectedRecord.algo_name}</strong>
                   </div>
                   <div>
-                    <span className="text-slate-500 block text-[10px] uppercase mb-1">Package / Tier</span>
-                    <select
-                      value={selectedRecord.purchase_tier || "None"}
-                      onChange={async (e) => {
-                        const newTier = e.target.value as any;
-                        const updated: AutoTradeRecord = {
-                          ...selectedRecord,
-                          purchase_tier: newTier,
-                          has_purchased: newTier !== "None",
-                          price_paid: newTier === "Performance License" ? 9999 : 0,
-                          updated_at: new Date().toISOString()
-                        };
-                        await persistUpdate(updated);
-                        toast.success(`Assigned tier: ${newTier}`);
-                      }}
-                      className="bg-black/60 border border-slate-700 rounded px-2 py-1 text-xs font-semibold text-white focus:outline-none focus:border-blue-500"
-                    >
-                      <option value="Lifetime License">1 Lakh Lifetime License (0% Share)</option>
-                      <option value="Daily 50% Profit Share">Daily 50% Profit Share Partner</option>
-                      <option value="Enterprise Pack">Enterprise Pack</option>
-                      <option value="None">None (Unpaid / Unissued)</option>
-                    </select>
+                    <span className="text-slate-500 block text-[10px] uppercase">Package</span>
+                    <strong className="text-white">{selectedRecord.purchase_tier}</strong>
                   </div>
                   <div>
                     <span className="text-slate-500 block text-[10px] uppercase">Amount Paid</span>
-                    <strong className="text-emerald-400 font-mono">
-                      {selectedRecord.purchase_tier === "Lifetime License" ? "₹1,00,000 / $1,200" : "$0 (50/50 Share)"}
-                    </strong>
+                    <strong className="text-emerald-400 font-mono">${selectedRecord.price_paid} USD</strong>
                   </div>
                   <div>
                     <span className="text-slate-500 block text-[10px] uppercase">Binary File</span>
@@ -2592,18 +2620,7 @@ If you have any questions or wish to remit USDT/INR, reply directly to this chat
                 </div>
 
                 <div className="pt-2">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-slate-500 block text-[10px] uppercase">Cryptographic License Key (1 Key Bound)</span>
-                    <span
-                      className={`text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider ${
-                        selectedRecord.license_status === "active"
-                          ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                          : "bg-rose-500/10 text-rose-400 border border-rose-500/20"
-                      }`}
-                    >
-                      {selectedRecord.license_status}
-                    </span>
-                  </div>
+                  <span className="text-slate-500 block text-[10px] uppercase">License Key</span>
                   <div className="flex items-center gap-2 mt-1">
                     <input
                       type="text"
@@ -2616,42 +2633,9 @@ If you have any questions or wish to remit USDT/INR, reply directly to this chat
                         navigator.clipboard.writeText(selectedRecord.license_key);
                         toast.success("Copied!");
                       }}
-                      className="px-3 py-1.5 bg-slate-800 text-white rounded text-xs hover:bg-slate-700 transition-colors"
+                      className="px-3 py-1.5 bg-slate-800 text-white rounded text-xs"
                     >
                       Copy
-                    </button>
-                    <button
-                      onClick={() => regenerateLicenseKey(selectedRecord)}
-                      className="px-2.5 py-1.5 bg-blue-600/20 text-blue-400 border border-blue-500/30 rounded text-xs hover:bg-blue-600/30 transition-colors"
-                      title="Generate new cryptographic key for bound MT5 account"
-                    >
-                      Regen Key
-                    </button>
-                  </div>
-
-                  {/* Suspension Kill-Switch Action in Drawer */}
-                  <div className="mt-3 pt-3 border-t border-slate-800 flex items-center justify-between">
-                    <span className="text-xs text-slate-400">
-                      Terminal Kill-Switch:
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => toggleLicenseStatus(selectedRecord)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 border transition-all cursor-pointer ${
-                        selectedRecord.license_status === "active"
-                          ? "bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border-rose-500/30"
-                          : "bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border-emerald-500/30"
-                      }`}
-                    >
-                      {selectedRecord.license_status === "active" ? (
-                        <>
-                          <Lock size={12} /> Suspend License (Halt MT5)
-                        </>
-                      ) : (
-                        <>
-                          <Unlock size={12} /> Reactivate License
-                        </>
-                      )}
                     </button>
                   </div>
                 </div>
@@ -3018,7 +3002,7 @@ If you have any questions or wish to remit USDT/INR, reply directly to this chat
                 <div className="space-y-1.5">
                   {[
                     "UTR / Reference number not found in Axis Bank / UPI statement.",
-                    "Transferred amount does not match ₹9,999 setup fee.",
+                    "Transferred amount does not match ₹9,999 Setup fee.",
                     "Payment screenshot is blurry or does not show completed transaction status.",
                     "Duplicate UTR submitted."
                   ].map((preset) => (

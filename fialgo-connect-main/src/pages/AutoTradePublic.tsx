@@ -30,8 +30,8 @@ const fialgoFaqItems = [
     answer: "FiAlgo V1 is a fully automated Expert Advisor (.ex5) engineered specifically for MetaTrader 5 (MT5). It automates trade analysis, entry execution, stop loss placement, and trailing profit management primarily on Gold (XAUUSD) and major currency pairs without requiring manual intervention.",
   },
   {
-    question: "What are the two pricing options for FiAlgo V1?",
-    answer: "We offer two transparent pricing models: (1) Lifetime VIP License at ₹99,999 one-time with 0% profit share forever (keep 100% of all profits with zero recurring fees), and (2) Performance Partner at ₹5,000 initial setup fee + 50% daily profit share on net green trading days (zero commission on red days). For Performance accounts, the daily 50% profit share is settled daily via UPI; unpaid keys are automatically suspended until cleared.",
+    question: "What is the official pricing for FiAlgo V1?",
+    answer: "FiAlgo V1 is offered under a single official plan: a ₹9,999 setup fee with a weekly 50/50% net profit share model. 100% of your initial capital remains secure in your own broker account, and profit settlements occur on your assigned weekly settlement day (Monday through Sunday).",
   },
   {
     question: "Do I need a VPS to run FiAlgo V1?",

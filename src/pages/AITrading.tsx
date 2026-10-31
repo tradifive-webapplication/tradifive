@@ -531,40 +531,101 @@ export default function AITrading() {
     }
   };
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const compressImage = async (file: File, maxDim = 1200, quality = 0.75): Promise<string> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const rawUrl = (e.target?.result as string) || "";
+        const img = new Image();
+        img.onload = () => {
+          try {
+            const canvas = document.createElement("canvas");
+            let width = img.width || 1;
+            let height = img.height || 1;
+            if (width > height) {
+              if (width > maxDim) {
+                height = Math.round((height * maxDim) / width);
+                width = maxDim;
+              }
+            } else {
+              if (height > maxDim) {
+                width = Math.round((width * maxDim) / height);
+                height = maxDim;
+              }
+            }
+            canvas.width = Math.max(1, width);
+            canvas.height = Math.max(1, height);
+            const ctx = canvas.getContext("2d");
+            if (ctx) {
+              ctx.drawImage(img, 0, 0, width, height);
+              resolve(canvas.toDataURL("image/jpeg", quality));
+              return;
+            }
+          } catch (_) {}
+          resolve(rawUrl);
+        };
+        img.onerror = () => resolve(rawUrl);
+        img.src = rawUrl;
+      };
+      reader.onerror = () => resolve("");
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const uploadProofToStorage = async (file: File, prefix = "proofs"): Promise<string> => {
+    try {
+      const cleanName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
+      const path = `${prefix}/${cleanName}`;
+      const { data, error } = await supabase.storage.from("attachments").upload(path, file, {
+        cacheControl: "3600",
+        upsert: true
+      });
+      if (!error && data?.path) {
+        const { data: pubData } = supabase.storage.from("attachments").getPublicUrl(data.path);
+        if (pubData?.publicUrl) return pubData.publicUrl;
+      }
+    } catch (_) {}
+    return "";
+  };
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 8 * 1024 * 1024) {
-      toast.error("File is too large. Please select an image under 8MB.");
+    if (file.size > 15 * 1024 * 1024) {
+      toast.error("File is too large. Please select an image under 15MB.");
       return;
     }
 
     setProofFileName(file.name);
-    const reader = new FileReader();
-    reader.onload = () => {
-      setProofFile(reader.result as string);
-      toast.success("Screenshot attached!", { description: file.name });
-    };
-    reader.readAsDataURL(file);
+    toast.info("Processing screenshot proof...");
+
+    // 1. Upload to Supabase storage if possible
+    const storageUrl = await uploadProofToStorage(file, "proofs");
+    // 2. Compress image for fallback and instant UI preview (keeps payload under 100KB)
+    const compressedDataUrl = await compressImage(file, 1200, 0.75);
+
+    setProofFile(storageUrl || compressedDataUrl);
+    toast.success("Screenshot attached!", { description: file.name });
   };
 
-  const handlePaymentProofUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePaymentProofUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 8 * 1024 * 1024) {
-      toast.error("File is too large. Please select an image under 8MB.");
+    if (file.size > 15 * 1024 * 1024) {
+      toast.error("File is too large. Please select an image under 15MB.");
       return;
     }
 
     setPaymentProofFileName(file.name);
-    const reader = new FileReader();
-    reader.onload = () => {
-      setPaymentProofFile(reader.result as string);
-      toast.success("Payment screenshot attached!", { description: file.name });
-    };
-    reader.readAsDataURL(file);
+    toast.info("Processing payment screenshot...");
+
+    const storageUrl = await uploadProofToStorage(file, "payments");
+    const compressedDataUrl = await compressImage(file, 1200, 0.75);
+
+    setPaymentProofFile(storageUrl || compressedDataUrl);
+    toast.success("Payment screenshot attached!", { description: file.name });
   };
 
   const handleSubmitPaymentRequest = async () => {
@@ -643,10 +704,10 @@ export default function AITrading() {
       user_email: userEmail,
       mt5_account_number: accountForPayment,
       algo_id: "fialgo_v1",
-      algo_name: "FiAlgo V1 Institutional (Weekly 50/50% Profit Share)",
+      algo_name: "FiAlgo V1 Institutional Setup (Weekly 50/50% Profit Share)",
       amount: "9999",
       plan_tier: "performance_weekly_50",
-      plan_name: "FiAlgo V1 Institutional Setup (₹9,999 Setup + Weekly 50/50% Profit Share)",
+      plan_name: "Institutional Setup (₹9,999 Setup Fee + Weekly 50/50% Profit Share)",
       settlement_day: settlementDay,
       tradifive_id: tradifiveId,
       currency: "INR",
@@ -673,14 +734,24 @@ export default function AITrading() {
         .maybeSingle();
 
       const list = Array.isArray(existing?.value) ? existing.value : [];
-      list.unshift(newPaymentRequest);
+      const filteredList = list.filter((p: any) => 
+        p.id !== newPaymentRequest.id &&
+        !(userId && p.user_id === userId) &&
+        !(newPaymentRequest.utr_number && p.utr_number === newPaymentRequest.utr_number)
+      );
+      filteredList.unshift(newPaymentRequest);
 
-      await supabase.from("system_settings").upsert({
+      const { error: payErr } = await supabase.from("system_settings").upsert({
         id: "license_payment_requests",
-        value: list,
+        value: filteredList,
         updated_at: new Date().toISOString()
       });
-    } catch (err) {}
+      if (payErr) {
+        console.error("Failed to update license_payment_requests:", payErr);
+      }
+    } catch (err) {
+      console.warn("Payment submission error:", err);
+    }
 
     setIsSubmittingPayment(false);
     toast.success("Payment Request Submitted!", {
@@ -694,7 +765,7 @@ export default function AITrading() {
     localStorage.setItem("tradifive_payment_status", "approved");
     localStorage.setItem("tradifive_auto_trade_setup", "true");
     toast.success("License Key Unlocked!", {
-      description: "₹9,999 setup payment verified. Personal MT5 key is now active."
+      description: "₹9,999 payment verified. Personal MT5 key is now active."
     });
   };
 
@@ -790,6 +861,7 @@ export default function AITrading() {
     setTransferRequestStatus("pending");
 
     try {
+      // 1. Fetch & update ib_transfer_requests in system_settings
       const { data: existing } = await supabase
         .from("system_settings")
         .select("*")
@@ -797,16 +869,86 @@ export default function AITrading() {
         .maybeSingle();
 
       const list = Array.isArray(existing?.value) ? existing.value : [];
-      list.unshift(newRequest);
+      // Clean previous requests for same user or account
+      const filteredList = list.filter((r: any) => 
+        r.id !== newRequest.id &&
+        !(userId && r.user_id === userId) &&
+        !(r.mt5_account_number && cleanAccount && r.mt5_account_number === cleanAccount)
+      );
+      filteredList.unshift(newRequest);
 
-      await supabase.from("system_settings").upsert({
+      const { error: ssErr } = await supabase.from("system_settings").upsert({
         id: "ib_transfer_requests",
-        value: list,
+        value: filteredList,
         updated_at: new Date().toISOString()
       });
+      if (ssErr) {
+        console.error("Failed to update ib_transfer_requests:", ssErr);
+      }
 
+      // 2. Also register immediately into auto_trade_admin_records so the Admin page's Active Accounts tab displays this account
+      try {
+        const { data: adminRecSetting } = await supabase
+          .from("system_settings")
+          .select("value")
+          .eq("id", "auto_trade_admin_records")
+          .maybeSingle();
+
+        const currentRecords = (adminRecSetting?.value && typeof adminRecSetting.value === "object") ? { ...adminRecSetting.value } : {};
+        const recKey = userId && !userId.startsWith("usr-") ? `rec-${userId}` : newRequest.id;
+        currentRecords[recKey] = {
+          id: recKey,
+          user_id: userId || "",
+          user_name: userName,
+          user_email: userEmail,
+          mt5_account_number: cleanNum,
+          broker_name: brokerLabel,
+          broker_server: `${brokerLabel}-Real`,
+          balance: 500,
+          equity: 500,
+          currency: "USD",
+          is_connected: true,
+          algo_execution_active: false,
+          is_under_tradifive: false,
+          ib_status: "pending_transfer",
+          ib_code: "TRDF940182",
+          transfer_path: setupPath === "transfer" ? "transfer_ib" : "new_account",
+          last_ib_check_at: new Date().toISOString(),
+          has_purchased: false,
+          algo_id: "fialgo_v1",
+          algo_name: "FiAlgo V1 (Gold Scalper & Trend)",
+          algo_manifest: "FiAlgo_v1.0.4.ex5",
+          algo_pair: "XAUUSD · M15",
+          purchase_tier: "None",
+          price_paid: 0,
+          payment_status: "pending",
+          purchase_date: "—",
+          binary_downloaded: false,
+          backtest_downloaded: false,
+          license_key: generatedLicKey,
+          license_status: "unissued",
+          license_expiry: "N/A",
+          allowed_accounts: 1,
+          bound_account: cleanNum,
+          admin_notes: `Account submitted for review with $500 balance proof (${proofFileName || "verification_proof.png"}).`,
+          created_at: new Date().toISOString()
+        };
+
+        const { error: atErr } = await supabase.from("system_settings").upsert({
+          id: "auto_trade_admin_records",
+          value: currentRecords,
+          updated_at: new Date().toISOString()
+        });
+        if (atErr) {
+          console.error("Failed to update auto_trade_admin_records:", atErr);
+        }
+      } catch (adminRecErr) {
+        console.warn("Could not sync to auto_trade_admin_records:", adminRecErr);
+      }
+
+      // 3. Upsert to public.mt5_accounts
       if (userId && !userId.startsWith("usr-")) {
-        await supabase.from("mt5_accounts").upsert({
+        const { error: mt5Err } = await supabase.from("mt5_accounts").upsert({
           user_id: userId,
           account_number: cleanNum,
           activation_key: generatedLicKey,
@@ -814,9 +956,12 @@ export default function AITrading() {
           connection_status: "pending_verification",
           algo_status: true
         }, { onConflict: "user_id" });
+        if (mt5Err) {
+          console.error("Failed to upsert mt5_accounts:", mt5Err);
+        }
       }
     } catch (err) {
-      console.warn("Stored locally:", err);
+      console.warn("Submission error:", err);
     }
 
     setIsSubmittingProof(false);
@@ -2115,7 +2260,7 @@ MagicNumber=789104
                   </div>
                   <div>
                     <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">
-                      ₹9,999 Performance Setup Payment Confirmed
+                      ₹9,999 Lifetime License Payment Confirmed
                     </h3>
                     <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5">
                       Your payment has been verified. Proceed to Step 4 to activate and view your MetaTrader 5 license key.
@@ -2222,7 +2367,7 @@ MagicNumber=789104
                   <div className="pt-1 flex flex-col sm:flex-row items-center gap-2">
                     <a
                       href={`https://wa.me/?text=${encodeURIComponent(
-                        `Hello TradiFive Team! I have completed the ₹9,999 setup fee payment for FiAlgo V1 via PhonePe/UPI. My UTR number is ${paymentUtr}. Please expedite and issue my license key.`
+                        `Hello TradiFive Team! I have completed the ₹9,999 payment for FiAlgo V1 via PhonePe/UPI. My UTR number is ${paymentUtr}. Please expedite and issue my license key.`
                       )}`}
                       target="_blank"
                       rel="noreferrer"
@@ -2437,7 +2582,7 @@ MagicNumber=789104
                         </div>
 
                         <p className="text-[11.5px] text-slate-500 dark:text-slate-400">
-                          Transfer Amount: <strong className="text-slate-900 dark:text-white font-mono">₹9,999</strong> · Zero additional processing fees
+                          Transfer Amount: <strong className="text-slate-900 dark:text-white font-mono">"₹9,999"</strong> · Zero additional processing fees
                         </p>
                       </div>
                     </div>
@@ -2448,7 +2593,7 @@ MagicNumber=789104
                 {paymentMethod === "bank" && (
                   <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 space-y-3 text-xs">
                     <div className="text-xs text-slate-600 dark:text-slate-400 font-medium">
-                      Transfer <strong className="text-slate-900 dark:text-white font-mono">₹9,999</strong> via NEFT, RTGS, IMPS, or Net Banking to bank account details below:
+                      Transfer <strong className="text-slate-900 dark:text-white font-mono">"₹9,999"</strong> via NEFT, RTGS, IMPS, or Net Banking to bank account details below:
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -2688,7 +2833,7 @@ MagicNumber=789104
                       FiAlgo V1 License Key Locked
                     </h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-xl">
-                      Complete payment of <strong className="text-slate-900 dark:text-white">"₹9,999 Setup Fee (Weekly 50/50% Profit Share)"</strong> in Step 3 via PhonePe / UPI (<strong className="font-mono text-slate-800 dark:text-slate-200">9731980756@axisbank</strong>) or Bank Transfer to request your license key.
+                      Complete payment of <strong className="text-slate-900 dark:text-white">"₹9,999 One-Time Setup Fee"</strong> in Step 3 via PhonePe / UPI (<strong className="font-mono text-slate-800 dark:text-slate-200">9731980756@axisbank</strong>) or Bank Transfer to request your license key.
                     </p>
                   </div>
                 </div>
@@ -2699,7 +2844,7 @@ MagicNumber=789104
                   className="w-full py-3 px-4 rounded-xl text-xs sm:text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center gap-2 cursor-pointer shadow-xs transition-all"
                 >
                   <CreditCard size={14} />
-                  <span>Go to Step 3: Complete Payment (₹9,999) →</span>
+                  <span>Go to Step 3: Complete Payment ("₹9,999") →</span>
                 </button>
               </div>
             ) : paymentStatus === "pending" ? (
@@ -2736,7 +2881,7 @@ MagicNumber=789104
                         <span className="text-slate-600 dark:text-slate-400">Plan &amp; Fee:</span>
                       </div>
                       <span className="font-bold text-amber-600 dark:text-amber-400">
-                        "₹9,999 Setup + Daily 50/50% Share"
+                        "₹9,999 Setup + Weekly 50/50% Share"
                       </span>
                     </div>
 
@@ -2791,7 +2936,7 @@ MagicNumber=789104
                   <div className="grid grid-cols-2 gap-2 pt-0.5">
                     <a
                       href={`https://wa.me/?text=${encodeURIComponent(
-                        `Hello TradiFive Team! I have completed the ₹9,999 setup fee for FiAlgo V1 Performance Partner (50% Daily Profit Share) (UTR: ${paymentUtr || "[Your UTR]"}). Please verify and issue my license key.`
+                        `Hello TradiFive Team! I have completed the $"₹9,999 payment for FiAlgo V1 Institutional Setup (Weekly 50/50% Profit Share)" (UTR: ${paymentUtr || "[Your UTR]"}). Please verify and issue my license key.`
                       )}`}
                       target="_blank"
                       rel="noreferrer"
@@ -2805,7 +2950,7 @@ MagicNumber=789104
                       href={`mailto:support@tradifive.in?subject=${encodeURIComponent(
                         `Verify License Payment UTR #${paymentUtr || ""}`
                       )}&body=${encodeURIComponent(
-                        `Hello Support Team,\n\nPlease verify my payment of ₹9,999 for FiAlgo V1.\nUTR Number: ${paymentUtr || ""}\nPlan: Performance Partner (50/50% Daily Share)\n\nPlease issue my license key.\n\nThank you!`
+                        `Hello Support Team,\n\nPlease verify my payment of $"₹9,999" for FiAlgo V1.\nUTR Number: ${paymentUtr || ""}\nPlan: $"Institutional Setup (Weekly 50/50%)"\n\nPlease issue my license key.\n\nThank you!`
                       )}`}
                       className="py-2.5 px-3 rounded-xl text-xs font-semibold bg-white dark:bg-white/10 hover:bg-slate-100 text-slate-800 dark:text-white border border-slate-200 dark:border-white/10 flex items-center justify-center gap-1.5 transition-all shadow-2xs"
                     >
@@ -2844,7 +2989,7 @@ MagicNumber=789104
                       FiAlgo V1 License Key Locked
                     </h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-xl">
-                      Payment of ₹9,999 is confirmed! Your license key will unlock once your MT5 account is verified under Partner IB <strong className="text-slate-800 dark:text-slate-200">27863221</strong> with a <strong className="text-slate-800 dark:text-slate-200">minimum balance of $500 USD</strong>.
+                      Payment of "₹9,999" is confirmed! Your license key will unlock once your MT5 account is verified under Partner IB <strong className="text-slate-800 dark:text-slate-200">27863221</strong> with a <strong className="text-slate-800 dark:text-slate-200">minimum balance of $500 USD</strong>.
                     </p>
                   </div>
                 </div>
