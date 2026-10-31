@@ -38,7 +38,12 @@ import {
   Landmark,
   Building2,
   Send,
-  MessageCircle
+  MessageCircle,
+  Megaphone,
+  Volume2,
+  Calendar,
+  Phone,
+  ArrowUpRight
 } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
@@ -209,7 +214,18 @@ export default function AdminAutoTrade() {
   const [drawerTab, setDrawerTab] = useState<"overview" | "ib_broker" | "algo_purchase" | "license" | "notes">("overview");
 
   // Main Tab Navigation: accounts | proofs | payments
-  const [activeMainTab, setActiveMainTab] = useState<"accounts" | "proofs" | "payments">("accounts");
+  const [activeMainTab, setActiveMainTab] = useState<"accounts" | "proofs" | "payments" | "withdrawals" | "broadcast">("accounts");
+
+  // Admin Broadcast Desk State
+  const [adminBroadcastMessage, setAdminBroadcastMessage] = useState("");
+  const [adminBroadcastCategory, setAdminBroadcastCategory] = useState("Notice");
+  const [isBroadcasting, setIsBroadcasting] = useState(false);
+  const [currentBroadcast, setCurrentBroadcast] = useState<any>(null);
+
+  // Weekly 50/50% Withdrawal Requests State
+  const [withdrawalRequests, setWithdrawalRequests] = useState<any[]>([]);
+  const [withdrawalSearchQuery, setWithdrawalSearchQuery] = useState("");
+  const [withdrawalFilter, setWithdrawalFilter] = useState<"all" | "pending" | "cleared">("all");
 
   // IB Proof Requests State
   const [proofRequests, setProofRequests] = useState<IbTransferProofRequest[]>(getInitialProofs);
@@ -280,6 +296,31 @@ export default function AdminAutoTrade() {
       globalCachedProofs = proofs;
       try {
         localStorage.setItem("tradifive_cached_ib_proofs", JSON.stringify(proofs));
+      } catch (e) {}
+
+      // 1.9 Fetch Admin Broadcast Message
+      try {
+        const { data: bData } = await supabase
+          .from("system_settings")
+          .select("value")
+          .eq("id", "auto_trade_admin_broadcast")
+          .maybeSingle();
+        if (bData?.value && typeof bData.value === "object") {
+          setCurrentBroadcast(bData.value);
+          setAdminBroadcastMessage(bData.value.message || "");
+          setAdminBroadcastCategory(bData.value.category || "Notice");
+        }
+      } catch (e) {}
+
+      // 1.10 Fetch Weekly 50/50% Withdrawal Requests
+      try {
+        const { data: wdrData } = await supabase
+          .from("system_settings")
+          .select("value")
+          .eq("id", "auto_trade_withdrawal_requests")
+          .maybeSingle();
+        const wdrs: any[] = Array.isArray(wdrData?.value) ? wdrData.value : [];
+        setWithdrawalRequests(wdrs);
       } catch (e) {}
 
       // 1.8 Fetch License Payment Requests (₹99,999 UPI / Bank)
@@ -713,6 +754,80 @@ export default function AdminAutoTrade() {
   };
 
   // Reject ₹99,999 Payment
+    // Admin Broadcast Actions
+  const handleBroadcastSubmit = async (customMsg?: string, customCat?: string) => {
+    const msg = (customMsg !== undefined ? customMsg : adminBroadcastMessage).trim();
+    const cat = customCat || adminBroadcastCategory;
+    if (!msg) {
+      toast.error("Please enter a broadcast message to publish.");
+      return;
+    }
+    setIsBroadcasting(true);
+    try {
+      const payload = {
+        message: msg,
+        category: cat,
+        sender: "TradiFive Operations Desk",
+        updated_at: new Date().toISOString()
+      };
+      await supabase.from("system_settings").upsert({
+        id: "auto_trade_admin_broadcast",
+        value: payload,
+        updated_at: new Date().toISOString()
+      });
+      setCurrentBroadcast(payload);
+      toast.success("Broadcast message published live to all user dashboards!");
+    } catch (e: any) {
+      toast.error("Failed to publish broadcast message: " + e.message);
+    } finally {
+      setIsBroadcasting(false);
+    }
+  };
+
+  // Weekly 50/50% Withdrawal Actions
+  const handleSendWhatsAppClearance = (wdr: any) => {
+    const phone = String(wdr.phone || "919363019280").replace(/\D/g, "");
+    const tid = wdr.tradifive_id || `TRDF-${String(wdr.mt5_account_number || "849201").slice(-6)}`;
+    const sDay = wdr.settlement_day || "Wednesday";
+    const clientAmt = Number(wdr.client_share || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const platAmt = Number(wdr.platform_share || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const curr = wdr.currency || "USC";
+
+    const msg = `*TRADIFIVE WEEKLY 50/50% SETTLEMENT CLEARANCE*
+━━━━━━━━━━━━━━━━━━━━━━━━━
+Hello ${wdr.user_name || "Valued Trader"}!
+🆔 *TradiFive ID:* ${tid}
+📊 *MT5 Account:* #${wdr.mt5_account_number}
+📅 *Settlement Cohort:* Every ${sDay}
+
+✅ *CLEARANCE STATUS: APPROVED & CLEARED*
+🤝 *Client 50% Profit Share:* ${curr} ${clientAmt}
+🏢 *Platform 50% Fee:* ${curr} ${platAmt}
+
+Your weekly profit share calculation has been verified and cleared by the Finance Desk. Trading execution remains 100% active.
+
+Thank you for trading with TradiFive & FiAlgo V1!`;
+
+    const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+    window.open(url, "_blank");
+    toast.success(`WhatsApp Clearance message opened for MT5 #${wdr.mt5_account_number}`);
+  };
+
+  const handleClearWithdrawal = async (wdrId: string) => {
+    const updated = withdrawalRequests.map(w => w.id === wdrId ? { ...w, status: "cleared", cleared_at: new Date().toISOString() } : w);
+    setWithdrawalRequests(updated);
+    try {
+      await supabase.from("system_settings").upsert({
+        id: "auto_trade_withdrawal_requests",
+        value: updated,
+        updated_at: new Date().toISOString()
+      });
+      toast.success("Withdrawal request marked as cleared!");
+    } catch (e: any) {
+      toast.error("Failed to update status: " + e.message);
+    }
+  };
+
   const handleRejectPayment = async (payment: LicensePaymentRequest, reason: string) => {
     const updatedPayment: LicensePaymentRequest = {
       ...payment,
@@ -1214,6 +1329,39 @@ If you have any questions or wish to remit USDT/INR, reply directly to this chat
             }`}>
               {licensePayments.length}
             </span>
+          )}
+        </button>
+
+        <button
+          onClick={() => setActiveMainTab("withdrawals")}
+          className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2.5 relative ${
+            activeMainTab === "withdrawals"
+              ? "bg-purple-600 text-white shadow-lg shadow-purple-500/20"
+              : "bg-slate-900 text-neutral-400 hover:text-white hover:bg-slate-800 border border-white/5"
+          }`}
+        >
+          <ArrowUpRight size={14} className={activeMainTab === "withdrawals" ? "text-white" : "text-purple-400"} />
+          <span>Weekly 50/50% Withdrawals</span>
+          {withdrawalRequests.filter(w => w.status !== "cleared").length > 0 && (
+            <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-purple-400 text-black flex items-center gap-1 animate-pulse">
+              <span className="w-1.5 h-1.5 rounded-full bg-black" />
+              {withdrawalRequests.filter(w => w.status !== "cleared").length} PENDING
+            </span>
+          )}
+        </button>
+
+        <button
+          onClick={() => setActiveMainTab("broadcast")}
+          className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2.5 relative ${
+            activeMainTab === "broadcast"
+              ? "bg-sky-600 text-white shadow-lg shadow-sky-500/20"
+              : "bg-slate-900 text-neutral-400 hover:text-white hover:bg-slate-800 border border-white/5"
+          }`}
+        >
+          <Megaphone size={14} className={activeMainTab === "broadcast" ? "text-white" : "text-sky-400"} />
+          <span>Admin Broadcast Desk</span>
+          {currentBroadcast?.message && (
+            <span className="w-2 h-2 rounded-full bg-sky-400 animate-pulse shrink-0" />
           )}
         </button>
       </div>

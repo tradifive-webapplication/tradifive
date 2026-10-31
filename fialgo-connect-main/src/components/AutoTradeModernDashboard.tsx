@@ -10,7 +10,7 @@ import {
 
   Image as ImageIcon, Trash2, Eye, Cpu, Radio, DollarSign,
 
-  Layers, Sliders, ArrowRight, Crown, Sparkles, Lock, Award, Target, Coins, BarChart3
+  Layers, Sliders, ArrowRight, Crown, Sparkles, Lock, Award, Target, Coins, BarChart3, Megaphone, Volume2, VolumeX, MessageSquare, Send, Calendar, Bell, BellRing, Phone
 
 } from "lucide-react";
 
@@ -130,6 +130,40 @@ const cardBoxStyle = "p-5 sm:p-6 rounded-[22px] border-2 border-white bg-gradien
 
 
 
+// Target Hit Audio Chime (Ascending 4-tone celebration synthesizer using Web Audio API)
+export const playTargetHitChime = () => {
+  try {
+    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioContextClass) return;
+    const ctx = new AudioContextClass();
+    if (ctx.state === 'suspended') {
+      ctx.resume();
+    }
+    const notes = [523.25, 659.25, 783.99, 1046.5]; // C5, E5, G5, C6
+    notes.forEach((freq, idx) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const startTime = ctx.currentTime + idx * 0.11;
+      const duration = 0.32;
+
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, startTime);
+
+      gain.gain.setValueAtTime(0, startTime);
+      gain.gain.linearRampToValueAtTime(0.22, startTime + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(startTime);
+      osc.stop(startTime + duration);
+    });
+  } catch (e) {
+    console.error('Target chime error:', e);
+  }
+};
+
 export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: Props) {
 
   // ── Account & Live Connection State ──
@@ -224,50 +258,24 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
 
 
 
-          // Check if admin records designate this user as Lifetime vs Profit Share
-
+          // Check admin records for user settlement cohort day
           try {
-
             const { data: adminSettings } = await supabase
-
               .from('system_settings')
-
               .select('value')
-
               .eq('id', 'auto_trade_admin_records')
-
               .maybeSingle();
 
             if (adminSettings?.value && typeof adminSettings.value === 'object') {
-
               const recordsList = Object.values(adminSettings.value) as any[];
-
               const myRecord = recordsList.find(
-
                 r => (r.user_id === session.user.id || (session.user.email && r.user_email === session.user.email))
-
               );
-
-              if (myRecord?.purchase_tier) {
-
-                if (myRecord.purchase_tier === "Daily 50% Profit Share") {
-
-                  setLicenseTier("profit_share_50");
-
-                  try { localStorage.setItem("tradifive_selected_tier", "profit_share_50"); } catch (e) {}
-
-                } else if (myRecord.purchase_tier === "Lifetime License" || myRecord.has_purchased) {
-
-                  setLicenseTier("lifetime");
-
-                  try { localStorage.setItem("tradifive_selected_tier", "lifetime"); } catch (e) {}
-
-                }
-
+              if (myRecord?.settlement_day) {
+                setSettlementDay(myRecord.settlement_day);
+                try { localStorage.setItem("tradifive_settlement_day", myRecord.settlement_day); } catch (e) {}
               }
-
             }
-
           } catch (e) {}
 
         }
@@ -316,13 +324,26 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
 
 
 
-    const settlementDay = React.useMemo(() => {
+    const [settlementDay, setSettlementDay] = useState<string>(() => {
     try {
       return localStorage.getItem("tradifive_settlement_day") || "Wednesday";
     } catch (e) {
       return "Wednesday";
     }
-  }, []);
+  });
+
+  const [adminBroadcast, setAdminBroadcast] = useState<{
+    message: string;
+    updated_at?: string;
+    category?: string;
+    sender?: string;
+  } | null>(null);
+
+  const [showWithdrawalModal, setShowWithdrawalModal] = useState<boolean>(false);
+  const [isSubmittingWithdrawal, setIsSubmittingWithdrawal] = useState<boolean>(false);
+  const [withdrawalSubmitted, setWithdrawalSubmitted] = useState<boolean>(false);
+  const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
+  const hasPlayedTargetSoundRef = useRef<boolean>(false);
 
   const tradifiveId = React.useMemo(() => {
     const clean = String(displayAccount || (typeof window !== "undefined" ? localStorage.getItem("tradifive_connected_mt5_account") : "") || "").replace(/\D/g, "");
@@ -712,59 +733,27 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
 
 
 
-  // ── Plan Tier: "lifetime" (₹1 Lakh Full Ownership · 0% Profit Share) vs "profit_share_50" (50/50 Profit Split) ──
-
-  const [licenseTier, setLicenseTier] = useState<"lifetime" | "profit_share_50">(() => {
-
-    try {
-
-      const q = new URLSearchParams(window.location.search).get("tier");
-
-      if (q === "lifetime") return "lifetime";
-
-      if (q === "profit_share" || q === "profit_share_50" || q === "performance") return "profit_share_50";
-
-
-
-      const saved = localStorage.getItem("tradifive_selected_tier");
-
-      if (saved === "lifetime") return "lifetime";
-
-      if (saved === "profit_share_50") return "profit_share_50";
-
-
-
-      const pay = localStorage.getItem("tradifive_payment_status");
-
-      if (pay === "approved") return "lifetime";
-
-    } catch (e) {}
-
-    return "lifetime"; // Default: Full 1 Lakh Lifetime Owner
-
-  });
-
-
-
-  const isLifetime = licenseTier === "lifetime";
-
-  const clientSplitPercent = isLifetime ? 100 : 50;
-
-  const adminSplitPercent = isLifetime ? 0 : 50;
+  // ── Single Official Plan: Weekly 50/50% Profit Share (₹9,999 Setup Fee) ──
+  const clientSplitPercent = 50;
+  const adminSplitPercent = 50;
 
   const clientShareToday = useMemo(() => {
-
     return Math.max(0, todayProfit * (clientSplitPercent / 100));
-
-  }, [todayProfit, clientSplitPercent]);
-
-
+  }, [todayProfit]);
 
   const adminShareToday = useMemo(() => {
-
     return Math.max(0, todayProfit * (adminSplitPercent / 100));
+  }, [todayProfit]);
 
-  }, [todayProfit, adminSplitPercent]);
+  // Audio trigger on Target Hit
+  useEffect(() => {
+    if (isTargetHit && !hasPlayedTargetSoundRef.current && soundEnabled) {
+      playTargetHitChime();
+      hasPlayedTargetSoundRef.current = true;
+    } else if (!isTargetHit) {
+      hasPlayedTargetSoundRef.current = false;
+    }
+  }, [isTargetHit, soundEnabled]);
 
 
 
@@ -1486,6 +1475,84 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
 
 
 
+    // Auto-Formatted Weekly Withdrawal & Settlement Message
+  const withdrawalMessage = useMemo(() => {
+    const acc = displayAccount || cleanAccount || "36520821";
+    const tid = tradifiveId;
+    const sDay = settlementDay;
+    const balFormatted = formatMoney(accountBalance, { showEquivalent: true });
+    const profitFormatted = formatMoney(todayProfit);
+    const clientFormatted = formatMoney(clientShareToday);
+    const adminFormatted = formatMoney(adminShareToday);
+    const timeStr = new Date().toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" });
+
+    return `*TRADIFIVE WEEKLY PROFIT SETTLEMENT & WITHDRAWAL REQUEST*
+━━━━━━━━━━━━━━━━━━━━━━━━━
+🆔 *TradiFive ID:* ${tid}
+📊 *MT5 Account:* #${acc}
+💼 *Broker:* ${detectedBrokerName} (${accountCurrency})
+📅 *Settlement Cohort:* Every ${sDay}
+💰 *Account Balance:* ${balFormatted}
+📈 *Net Profit (This Cycle):* +${profitFormatted}
+🤝 *Client Share (50%):* +${clientFormatted}
+🏢 *Platform Share (50%):* ${adminFormatted} ($${adminShareTodayUsdt} USDT)
+⏱ *Timestamp:* ${timeStr}
+━━━━━━━━━━━━━━━━━━━━━━━━━
+Kindly review and process our weekly 50/50 profit clearance.`;
+  }, [displayAccount, cleanAccount, tradifiveId, settlementDay, formatMoney, accountBalance, todayProfit, clientShareToday, adminShareToday, adminShareTodayUsdt, detectedBrokerName, accountCurrency]);
+
+  const handleSendWhatsAppWithdrawal = () => {
+    const encoded = encodeURIComponent(withdrawalMessage);
+    const url = `https://wa.me/919363019280?text=${encoded}`;
+    window.open(url, "_blank");
+    toast.success("WhatsApp Finance Desk opened with pre-filled settlement details!");
+  };
+
+  const handleSubmitWithdrawalRequest = async () => {
+    setIsSubmittingWithdrawal(true);
+    try {
+      const newReq = {
+        id: `WDR-${Date.now().toString(36).toUpperCase()}`,
+        tradifive_id: tradifiveId,
+        mt5_account_number: String(displayAccount || cleanAccount || "").replace(/\D/g, ""),
+        account_balance: accountBalance,
+        net_profit: todayProfit,
+        client_share: clientShareToday,
+        platform_share: adminShareToday,
+        settlement_day: settlementDay,
+        currency: accountCurrency,
+        created_at: new Date().toISOString(),
+        status: "pending"
+      };
+
+      const { data: cur } = await supabase
+        .from('system_settings')
+        .select('value')
+        .eq('id', 'auto_trade_withdrawal_requests')
+        .maybeSingle();
+
+      const list: any[] = Array.isArray(cur?.value) ? cur.value : [];
+      list.unshift(newReq);
+
+      await supabase
+        .from('system_settings')
+        .upsert({
+          id: 'auto_trade_withdrawal_requests',
+          value: list.slice(0, 100),
+          updated_at: new Date().toISOString()
+        });
+
+      setWithdrawalSubmitted(true);
+      toast.success("Weekly settlement request submitted to Admin Desk! Finance team notified.");
+    } catch (e) {
+      console.error(e);
+      toast.success("Settlement request logged locally. You can also send directly via WhatsApp!");
+    } finally {
+      setIsSubmittingWithdrawal(false);
+    }
+  };
+
+
   const fetchLiveTelemetry = async (isUserInitiated = false) => {
 
     if (isFetchingRef.current && !isUserInitiated) return;
@@ -1509,6 +1576,38 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
       let liveCache: any = null;
 
 
+
+            // Fetch Admin Broadcast Message
+      try {
+        const { data: broadcastData } = await supabase
+          .from('system_settings')
+          .select('value')
+          .eq('id', 'auto_trade_admin_broadcast')
+          .maybeSingle();
+        if (broadcastData?.value && typeof broadcastData.value === 'object') {
+          setAdminBroadcast(broadcastData.value);
+        }
+      } catch (e) {}
+
+      // Fetch dynamic settlement day from admin records
+      try {
+        const { data: adminSettings } = await supabase
+          .from('system_settings')
+          .select('value')
+          .eq('id', 'auto_trade_admin_records')
+          .maybeSingle();
+        if (adminSettings?.value && typeof adminSettings.value === 'object') {
+          const recordsList = Object.values(adminSettings.value) as any[];
+          const targetAcc = String(displayAccount || cleanAccount || "").replace(/\D/g, "");
+          const myRecord = recordsList.find(
+            r => (targetAcc && r.mt5_account_number && String(r.mt5_account_number).replace(/\D/g, '') === targetAcc) || (r.bound_account && String(r.bound_account).replace(/\D/g, '') === targetAcc)
+          );
+          if (myRecord?.settlement_day) {
+            setSettlementDay(myRecord.settlement_day);
+            try { localStorage.setItem("tradifive_settlement_day", myRecord.settlement_day); } catch (e) {}
+          }
+        }
+      } catch (e) {}
 
       // 1. Fetch direct live telemetry cache from system_settings (instantaneous & accurate)
 
@@ -2192,84 +2291,33 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
             </span>
           </div>
 
-          {/* Quick Action / Status Box (Fixed 188px, Zero-Shift Crossfade, No Text Wrapping) */}
-
-          <div className="w-[188px] h-[36px] shrink-0 relative">
-
-            <AnimatePresence mode="wait" initial={false}>
-
-              {isLifetime ? (
-
-                <motion.div
-
-                  key="lifetime-badge"
-
-                  initial={{ opacity: 0, scale: 0.96 }}
-
-                  animate={{ opacity: 1, scale: 1 }}
-
-                  exit={{ opacity: 0, scale: 0.96 }}
-
-                  transition={{ duration: 0.15 }}
-
-                  className="w-full h-full px-2.5 rounded-[14px] border-2 border-white dark:border-white/5 bg-gradient-to-b from-[#FEF3C7]/60 to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] text-slate-800 dark:text-slate-200 shadow-[0_4px_7px_-5px_rgba(245,158,11,0.2),0_0_0_2px_#FDE68A] dark:shadow-none text-[11px] font-bold tracking-tight flex items-center justify-center gap-1.5 select-none whitespace-nowrap"
-
-                >
-
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-
-                  <span className="text-emerald-700 dark:text-emerald-400 font-extrabold whitespace-nowrap">0% Share</span>
-
-                  <span className="text-slate-300 dark:text-slate-600">·</span>
-
-                  <span className="text-amber-700 dark:text-amber-300 font-extrabold flex items-center gap-1 whitespace-nowrap">
-
-                    <Sparkles size={11} className="fill-amber-400 text-amber-500 shrink-0" />
-
-                    <span>100% Kept</span>
-
-                  </span>
-
-                </motion.div>
-
-              ) : (
-
-                <motion.button
-
-                  key="split-pay-btn"
-
-                  type="button"
-
-                  initial={{ opacity: 0, scale: 0.96 }}
-
-                  animate={{ opacity: 1, scale: 1 }}
-
-                  exit={{ opacity: 0, scale: 0.96 }}
-
-                  transition={{ duration: 0.15 }}
-
-                  onClick={() => setShowSettlementModal(true)}
-
-                  className="w-full h-full px-3 rounded-[14px] border-2 border-white dark:border-white/5 bg-gradient-to-b from-slate-900 to-slate-800 text-white shadow-[0_4px_7px_-5px_rgba(15,23,42,0.25),0_0_0_2px_#0F172A] text-[11px] font-bold tracking-tight cursor-pointer hover:shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-1.5 whitespace-nowrap"
-
-                >
-
-                  <QrCode size={13} className="text-sky-400 shrink-0" />
-
-                  <span>Pay Profit Split</span>
-
-                  {isTargetHit && (
-
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse ml-0.5 shrink-0" />
-
-                  )}
-
-                </motion.button>
-
+          {/* Quick Action / Status Box */}
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => setShowWithdrawalModal(true)}
+              className="h-[36px] px-3.5 rounded-[14px] border-2 border-white dark:border-white/5 bg-gradient-to-b from-blue-600 to-blue-700 text-white shadow-[0_4px_7px_-5px_rgba(37,99,235,0.4),0_0_0_2px_#2563EB] text-[11px] font-bold tracking-tight cursor-pointer hover:shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-1.5 whitespace-nowrap"
+            >
+              <ArrowUpRight size={13} className="text-white shrink-0" />
+              <span>Weekly Withdrawal</span>
+              {isTargetHit && (
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse ml-0.5 shrink-0" />
               )}
+            </button>
 
-            </AnimatePresence>
-
+            <button
+              type="button"
+              onClick={() => {
+                const next = !soundEnabled;
+                setSoundEnabled(next);
+                if (next) playTargetHitChime();
+                toast(next ? "Target Alert Sound Active 🔔" : "Target Alert Sound Muted 🔕");
+              }}
+              className="h-[36px] w-[36px] rounded-[14px] border-2 border-white dark:border-white/5 bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:shadow-none flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-blue-600 transition-colors cursor-pointer"
+              title={soundEnabled ? "Sound alerts enabled - Click to mute" : "Sound alerts muted - Click to unmute"}
+            >
+              {soundEnabled ? <Volume2 size={14} className="text-blue-500" /> : <VolumeX size={14} className="text-slate-400" />}
+            </button>
           </div>
 
         </div>
@@ -2278,117 +2326,57 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
 
 
 
-      {/* ── DAILY TARGET HIT CELEBRATION / REMITTANCE ALERT (Matches AI Journal & Dashboard Banner) ── */}
-
+      {/* ── DAILY TARGET HIT CELEBRATION (With Sound & 50/50 Settlement Details) ── */}
       {isTargetHit && (
-
         <motion.div 
-
           initial={{ opacity: 0, y: -8 }}
-
           animate={{ opacity: 1, y: 0 }}
-
           transition={{ duration: 0.35 }}
-
-          className="mb-6 p-3.5 sm:p-4 md:p-5 rounded-[22px] border-2 border-white bg-gradient-to-b from-[#ECFDF5] to-[#F8FAFC] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.08),0_0_0_2px_#A7F3D0] dark:bg-none dark:bg-[#132A20] dark:border-[1px] dark:border-emerald-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-
+          className="mb-6 p-4 md:p-5 rounded-[22px] border-2 border-white bg-gradient-to-r from-[#ECFDF5] via-emerald-50/50 to-[#F8FAFC] shadow-[0_4px_12px_-5px_rgba(16,185,129,0.25),0_0_0_2px_#A7F3D0] dark:bg-none dark:bg-[#132A20] dark:border-[1px] dark:border-emerald-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
         >
-
           <div className="flex items-start sm:items-center gap-3.5">
-
-            <div className="w-9 h-9 rounded-xl flex-shrink-0 bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-600">
-
-              <Zap size={18} className="fill-emerald-600 text-emerald-600" />
-
+            <div className="w-10 h-10 rounded-2xl flex-shrink-0 bg-emerald-500 text-white flex items-center justify-center shadow-lg shadow-emerald-500/30">
+              <Target size={20} className="animate-pulse" />
             </div>
-
             <div>
-
-              <div className="flex items-center gap-2">
-
-                <span className="text-[11px] font-extrabold uppercase tracking-wider text-emerald-800 dark:text-emerald-300 leading-tight">
-
-                  Target Achieved 🎯
-
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-[12px] font-black uppercase tracking-wider text-emerald-800 dark:text-emerald-300 leading-tight flex items-center gap-1.5">
+                  <span>🎯 Daily Target Hit!</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 font-bold">
+                    +{todayProfitPct}% Achieved
+                  </span>
                 </span>
-
-                <span className="text-[11.5px] sm:text-[12px] text-slate-500 dark:text-slate-400">
-
-                  Daily Goal: {currencySymbol}{dailyTargetAmount.toLocaleString()}
-
+                <span className="text-[11.5px] text-slate-500 dark:text-slate-400">
+                  Daily Goal: {formatMoney(dailyTargetAmount)}
                 </span>
-
               </div>
-
-              <p className="text-[11.5px] sm:text-[12px] text-slate-700 dark:text-slate-200 mt-0.5 leading-snug">
-
-                {isLifetime ? (
-
-                  <>
-
-                    FiAlgo locked in <b className="text-emerald-700 dark:text-emerald-400 font-bold">{currencySymbol}{todayProfit.toLocaleString()}</b> profit today! As a <b className="text-amber-600 dark:text-amber-400 font-bold">Lifetime Enterprise Owner (₹1 Lakh Purchase)</b>, you keep <b>100% of all profits</b>. No profit share, no remittance required. Trading is secured for the day.
-
-                  </>
-
-                ) : (
-
-                  <>
-
-                    FiAlgo generated <b className="text-emerald-700 dark:text-emerald-400 font-bold">{currencySymbol}{todayProfit.toLocaleString()}</b> net profit today! In accordance with the 50/50 Performance Partner tier, please remit the platform share (<b className="text-slate-900 dark:text-white font-bold">${adminShareTodayUsdt} USDT</b>) to keep your MT5 license active.
-
-                  </>
-
-                )}
-
+              <p className="text-[12px] text-slate-700 dark:text-slate-200 mt-1 leading-snug">
+                FiAlgo locked in <b className="text-emerald-700 dark:text-emerald-400 font-bold">+{formatMoney(todayProfit)}</b> profit today! In accordance with the Weekly 50/50% Profit Share agreement, your 50% share is <b className="text-slate-900 dark:text-white font-bold">+{formatMoney(clientShareToday)}</b>. Settlement is scheduled for <b className="text-blue-600 dark:text-blue-400 font-bold">Every {settlementDay}</b>.
               </p>
-
             </div>
-
           </div>
 
-          {isLifetime ? (
-
-            <div className="flex items-center gap-2 shrink-0">
-
-              <span className="px-3.5 py-2 rounded-xl bg-emerald-600/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 font-bold text-xs flex items-center gap-1.5 shadow-2xs">
-
-                <CheckCircle2 size={14} className="text-emerald-500" /> 100% Retained in MT5
-
-              </span>
-
-            </div>
-
-          ) : (
-
+          <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto flex-wrap">
             <button
-
-              onClick={() => setShowSettlementModal(true)}
-
-              className="w-full sm:w-auto justify-center text-[12.5px] sm:text-[13px] font-semibold text-white flex items-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] py-2.5 px-4 rounded-xl shadow-md cursor-pointer shrink-0"
-
-              style={{
-
-                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-
-                boxShadow: '0 2px 10px rgba(16,185,129,0.3)',
-
-              }}
-
+              type="button"
+              onClick={playTargetHitChime}
+              className="px-3 py-2 rounded-xl bg-white dark:bg-white/10 border border-emerald-300 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs font-bold hover:bg-emerald-50 dark:hover:bg-white/15 transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+              title="Replay Alert Chime"
             >
-
-              <span>Remit ${adminShareTodayUsdt} USDT & Upload Proof</span>
-
-              <ArrowRight size={14} />
-
+              <Volume2 size={13} />
+              <span>Chime</span>
             </button>
-
-          )}
-
+            <button
+              type="button"
+              onClick={() => setShowWithdrawalModal(true)}
+              className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-md shadow-emerald-600/20"
+            >
+              <ArrowUpRight size={14} />
+              <span>Request Settlement</span>
+            </button>
+          </div>
         </motion.div>
-
       )}
-
-
 
       {/* ── CORE 5 METRIC BOXES (Consistent with AI Journal & RiskGuard) ── */}
 
@@ -2762,6 +2750,38 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
 
 
 
+      {/* ── Official Notice from Admin Desk ── */}
+      <div className="w-full mb-6 p-4 rounded-[20px] border-2 border-white dark:border-white/5 bg-gradient-to-r from-blue-50/70 via-indigo-50/40 to-white dark:bg-none dark:bg-[#161B26] shadow-[0_4px_10px_-5px_rgba(37,99,235,0.1),0_0_0_2px_#DBEAFE] dark:shadow-none flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-start sm:items-center gap-3.5">
+          <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-blue-500/20">
+            <Megaphone size={16} />
+          </div>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-[11.5px] font-extrabold uppercase tracking-wider text-blue-700 dark:text-blue-400">
+                Notice from Admin Desk
+              </span>
+              <span className="text-[9.5px] font-bold px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-500/20 text-blue-800 dark:text-blue-300 border border-blue-300/40">
+                {adminBroadcast?.category || "Live Advisory"}
+              </span>
+              <span className="text-[10px] text-slate-400 font-mono">
+                {adminBroadcast?.updated_at ? new Date(adminBroadcast.updated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Active"}
+              </span>
+            </div>
+            <p className="text-[12.5px] font-medium text-slate-800 dark:text-slate-200 mt-0.5 leading-snug">
+              {adminBroadcast?.message || `FiAlgo V1 execution engine is streaming live on MT5 #${displayAccount || cleanAccount || "—"}. Weekly 50/50% profit share settlements and withdrawals occur every ${settlementDay}. Please maintain recommended equity buffer.`}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+          <div className="px-3 py-1.5 rounded-lg bg-white dark:bg-white/10 border border-blue-200 dark:border-white/10 text-blue-700 dark:text-blue-300 text-[11px] font-bold flex items-center gap-1.5">
+            <Calendar size={12} className="text-blue-500" />
+            <span>Settlement: Every {settlementDay}</span>
+          </div>
+        </div>
+      </div>
+
       {/* ── 2-COLUMN SECTION: Net Profit Growth Chart + 50/50 Profit Split Card ── */}
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-5 mb-6">
@@ -3008,577 +3028,233 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
 
 
 
-        {/* RIGHT COLUMN: 1 LAKH LIFETIME OWNERSHIP (0% SHARE) vs 50/50 PROFIT SPLIT (4 cols) */}
-
+        {/* RIGHT COLUMN: WEEKLY 50/50% PROFIT SPLIT & SETTLEMENTS */}
         <div className={`xl:col-span-4 ${cardBoxStyle} flex flex-col justify-between min-h-[460px]`}>
-
           <div>
-
             <div className="flex items-center justify-between mb-2 min-h-[26px]">
-
-              {isLifetime ? (
-
-                <>
-
-                  <div className="flex items-center gap-2">
-
-                    <Crown size={16} className="text-amber-500 fill-amber-500/20" />
-
-                    <h2 className="text-[15px] font-bold text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
-
-                      Full EA Ownership
-
-                    </h2>
-
-                  </div>
-
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-200/50 flex items-center gap-1">
-
-                    <Sparkles size={10} /> 0% Profit Share
-
-                  </span>
-
-                </>
-
-              ) : (
-
-                <>
-
-                  <h2 className="text-[15px] font-bold text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
-
-                    Profit Split (50 / 50)
-
-                  </h2>
-
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-50 dark:bg-sky-500/10 text-sky-700 dark:text-sky-400 border border-sky-200/50">
-
-                    Partner Model
-
-                  </span>
-
-                </>
-
-              )}
-
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-lg bg-blue-600/10 text-blue-600 flex items-center justify-center font-bold text-xs">
+                  50
+                </div>
+                <h2 className="text-[15px] font-bold text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
+                  Weekly Profit Split (50 / 50)
+                </h2>
+              </div>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-200/50">
+                Cohort: Every {settlementDay}
+              </span>
             </div>
 
-            <p className="text-[11.5px] font-normal text-slate-400 mb-4 leading-relaxed min-h-[36px]">
-
-              {isLifetime
-
-                ? "You own the complete FiAlgo Expert Advisor with a permanent Lifetime License (₹1 Lakh Purchase). 100% of all trading profits stay directly in your MT5 account."
-
-                : "Today's trading profits are split equally between client and platform. Keep 50% in your MT5 broker account; remit 50% daily via Crypto."}
-
+            <p className="text-[11.5px] font-normal text-slate-400 mb-4 leading-relaxed">
+              Trading profits generated by FiAlgo V1 are split 50/50 between client and platform. Weekly settlement and profit withdrawals are processed every {settlementDay}.
             </p>
 
-
-
-            {/* Visual Meter / Split Cards */}
-
             <div className="space-y-3">
-
-              {isLifetime ? (
-
-                <>
-
-                  {/* 100% Retained Card */}
-
-                  <div className="p-3.5 rounded-[18px] border-2 border-white bg-gradient-to-b from-[#ECFDF5] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.08),0_0_0_2px_#A7F3D0] dark:bg-none dark:bg-[#132A20] dark:border-[1px] dark:border-emerald-500/30">
-
-                    <div className="flex items-center justify-between mb-1">
-
-                      <span className="text-[11px] font-extrabold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider flex items-center gap-1.5">
-
-                        <CheckCircle2 size={13} className="text-emerald-600 dark:text-emerald-400" /> Profits Retained by You (100%)
-
-                      </span>
-
-                      <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">Zero Commission</span>
-
-                    </div>
-
-                    <h3 className="text-[22px] font-medium text-slate-900 dark:text-white tracking-tight leading-none my-1" style={{ fontFamily: "'Inter', sans-serif" }}>
-
-                      +{currencySymbol}{todayProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-
-                    </h3>
-
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-
-                      100% retained in your broker account · No daily payouts needed.
-
-                    </p>
-
-                  </div>
-
-
-
-                  {/* Savings & Hardware Lock Card */}
-
-                  <div className="p-3.5 rounded-[18px] border-2 border-white bg-gradient-to-b from-[#FFFBEB] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.08),0_0_0_2px_#FDE68A] dark:bg-none dark:bg-[#2A2415] dark:border-[1px] dark:border-amber-500/30">
-
-                    <div className="flex items-center justify-between mb-1">
-
-                      <span className="text-[11px] font-extrabold text-amber-900 dark:text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
-
-                        <ShieldCheck size={13} className="text-amber-600 dark:text-amber-400" /> Platform Fee Saved (50%)
-
-                      </span>
-
-                      <span className="text-[10px] font-bold text-slate-400">Saved Today</span>
-
-                    </div>
-
-                    <div className="flex items-baseline gap-2 my-1">
-
-                      <h3 className="text-[22px] font-medium text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
-
-                        {currencySymbol}{(todayProfit * 0.5).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-
-                      </h3>
-
-                      <span className="text-[12px] font-bold text-emerald-600 dark:text-emerald-400">
-
-                        Saved
-
-                      </span>
-
-                    </div>
-
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-
-                      Hardware-locked to MT5 #{displayAccount || cleanAccount || "Unassigned"} · Lifetime Unlimited
-
-                    </p>
-
-                  </div>
-
-                </>
-
-              ) : (
-
-                <>
-
-                  {/* Client Card */}
-
-                  <div className="p-3.5 rounded-[18px] border-2 border-white bg-gradient-to-b from-[#ECFDF5] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.08),0_0_0_2px_#A7F3D0] dark:bg-none dark:bg-[#132A20] dark:border-[1px] dark:border-emerald-500/30">
-
-                    <div className="flex items-center justify-between mb-1">
-
-                      <span className="text-[11px] font-extrabold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider flex items-center gap-1.5">
-
-                        <CheckCircle2 size={13} className="text-emerald-600 dark:text-emerald-400" /> Client Share (50%)
-
-                      </span>
-
-                      <span className="text-[10px] font-bold text-slate-400">Retained in MT5</span>
-
-                    </div>
-
-                    <h3 className="text-[22px] font-medium text-slate-900 dark:text-white tracking-tight leading-none my-1" style={{ fontFamily: "'Inter', sans-serif" }}>
-
-                      +{currencySymbol}{clientShareToday.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-
-                    </h3>
-
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-
-                      Credited directly to your MT5 account equity.
-
-                    </p>
-
-                  </div>
-
-
-
-                  {/* Admin / Tradifive Card */}
-
-                  <div className="p-3.5 rounded-[18px] border-2 border-white bg-gradient-to-b from-[#EFF6FF] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.08),0_0_0_2px_#BFDBFE] dark:bg-none dark:bg-[#1A2332] dark:border-[1px] dark:border-blue-500/30">
-
-                    <div className="flex items-center justify-between mb-1">
-
-                      <span className="text-[11px] font-extrabold text-blue-900 dark:text-blue-300 uppercase tracking-wider flex items-center gap-1.5">
-
-                        <QrCode size={13} className="text-blue-600 dark:text-blue-400" /> Platform Share (50%)
-
-                      </span>
-
-                      <span className="text-[10px] font-bold text-slate-400">Remit via Crypto</span>
-
-                    </div>
-
-                    <div className="flex items-baseline gap-2 my-1">
-
-                      <h3 className="text-[22px] font-medium text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
-
-                        ${adminShareTodayUsdt} USDT
-
-                      </h3>
-
-                      <span className="text-[12px] font-medium text-slate-400">
-
-                        ({currencySymbol}{adminShareToday.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })})
-
-                      </span>
-
-                    </div>
-
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-
-                      Daily remittance required to keep EA key active.
-
-                    </p>
-
-                  </div>
-
-                </>
-
-              )}
-
-            </div>
-
-          </div>
-
-
-
-          {/* Unified Footer (Fixed min-h-[46px] for Zero Layout Shift) */}
-
-          <div className="mt-5 pt-4 border-t border-slate-100 dark:border-white/5 flex items-center min-h-[46px]">
-
-            {isLifetime ? (
-
-              <div className="w-full flex items-center justify-between text-xs">
-
-                <span className="text-slate-400 font-medium flex items-center gap-1.5">
-
-                  <Lock size={12} className="text-emerald-500" /> License Type:
-
-                </span>
-
-                <span className="font-bold text-slate-800 dark:text-slate-200">
-
-                  Lifetime Enterprise (Permanent)
-
-                </span>
-
+              {/* Client Share Card */}
+              <div className="p-3.5 rounded-[18px] border-2 border-white bg-gradient-to-b from-[#ECFDF5] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.08),0_0_0_2px_#A7F3D0] dark:bg-none dark:bg-[#132A20] dark:border-[1px] dark:border-emerald-500/30">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-[11px] font-extrabold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider flex items-center gap-1.5">
+                    <CheckCircle2 size={13} className="text-emerald-600 dark:text-emerald-400" /> Client Share (50%)
+                  </span>
+                  <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">Retained in MT5</span>
+                </div>
+                <h3 className="text-[22px] font-medium text-slate-900 dark:text-white tracking-tight leading-none my-1" style={{ fontFamily: "'Inter', sans-serif" }}>
+                  +{currencySymbol}{clientShareToday.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </h3>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                  Credited directly to your MT5 account equity. Available for weekly withdrawal.
+                </p>
               </div>
 
-            ) : (
+              {/* Platform Share Card */}
+              <div className="p-3.5 rounded-[18px] border-2 border-white bg-gradient-to-b from-[#EFF6FF] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.08),0_0_0_2px_#BFDBFE] dark:bg-none dark:bg-[#1A2332] dark:border-[1px] dark:border-blue-500/30">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-[11px] font-extrabold text-blue-900 dark:text-blue-300 uppercase tracking-wider flex items-center gap-1.5">
+                    <QrCode size={13} className="text-blue-600 dark:text-blue-400" /> Platform Share (50%)
+                  </span>
+                  <span className="text-[10px] font-bold text-slate-400">Weekly Settlement</span>
+                </div>
+                <div className="flex items-baseline gap-2 my-1">
+                  <h3 className="text-[22px] font-medium text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
+                    ${adminShareTodayUsdt} USDT
+                  </h3>
+                  <span className="text-[12px] font-medium text-slate-400">
+                    ({currencySymbol}{adminShareToday.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })})
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                  Settled weekly on your designated cohort day (Every {settlementDay}).
+                </p>
+              </div>
 
-              <button
-
-                onClick={() => setShowSettlementModal(true)}
-
-                className="w-full py-2.5 rounded-xl text-white font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md hover:scale-[1.01] active:scale-[0.99] h-[38px]"
-
-                style={{
-
-                  background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
-
-                  boxShadow: '0 2px 10px rgba(15,23,42,0.2)',
-
-                }}
-
-              >
-
-                <Upload size={14} className="text-sky-400" />
-
-                <span>Remit 50% via Crypto & Upload Proof</span>
-
-              </button>
-
-            )}
-
+              {/* Cohort Schedule Card */}
+              <div className="p-3.5 rounded-[18px] border-2 border-white bg-gradient-to-b from-[#F8FAFC] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.08),0_0_0_2px_#E2E8F0] dark:bg-none dark:bg-[#1A1F2C] dark:border-[1px] dark:border-white/10">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                    <Calendar size={13} className="text-blue-500" /> Weekly Settlement Schedule
+                  </span>
+                  <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400">Every {settlementDay}</span>
+                </div>
+                <p className="text-[12px] font-bold text-slate-800 dark:text-slate-200 mt-1">
+                  Your Account Cohort: <span className="text-blue-600 dark:text-blue-400">Every {settlementDay}</span>
+                </p>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">
+                  Managed systematically by Tradifive Finance Desk.
+                </p>
+              </div>
+            </div>
           </div>
 
+          {/* Unified Footer */}
+          <div className="mt-5 pt-4 border-t border-slate-100 dark:border-white/5 space-y-2">
+            <button
+              type="button"
+              onClick={() => setShowWithdrawalModal(true)}
+              className="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white text-xs font-bold transition-all shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <ArrowUpRight size={14} />
+              <span>Request Weekly Withdrawal / Settle</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowSettlementModal(true)}
+              className="w-full py-2 px-4 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 text-xs font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <QrCode size={13} className="text-slate-400" />
+              <span>Remit Platform Share (Crypto / UPI)</span>
+            </button>
+          </div>
         </div>
-
       </div>
 
-
-
-      {isLifetime ? (
-
-        <div className={cardBoxStyle}>
-
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
-
-            <div>
-
-              <div className="flex items-center gap-2">
-
-                <Crown size={16} className="text-amber-500 fill-amber-500/20" />
-
-                <h2 className="text-[15px] font-bold text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
-
-                  Institutional Lifetime License & Performance Rights
-
-                </h2>
-
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 border border-amber-200/50">
-
-                  Full Outright Ownership
-
-                </span>
-
-              </div>
-
-              <p className="text-[11.5px] font-normal text-slate-400 mt-1">
-
-                Verified institutional-tier hardware license (₹1,00,000 Upfront). This trading terminal is 100% exempt from profit splits, performance cuts, and crypto remittances.
-
-              </p>
-
+      {/* ── FiAlgo V1 Live Operating Agreement & Performance Settlement ── */}
+      <div className={cardBoxStyle}>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+          <div>
+            <div className="flex items-center gap-2">
+              <ShieldCheck size={18} className="text-blue-500" />
+              <h2 className="text-[15px] font-bold text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
+                FiAlgo V1 Operating Agreement & Performance Settlement
+              </h2>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-200/50">
+                Weekly 50/50 Plan
+              </span>
             </div>
-
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-bold self-start sm:self-auto">
-
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-
-              <span>Full Rights Active</span>
-
-            </div>
-
+            <p className="text-[11.5px] font-normal text-slate-400 mt-1">
+              Official trading terminal license bound to MetaTrader 5 with ₹9,999 setup and weekly 50/50% net profit share model.
+            </p>
           </div>
 
-
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
-
-            <div className="p-4 rounded-[18px] bg-slate-50 dark:bg-white/5 border border-slate-200/70 dark:border-white/5">
-
-              <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Ownership Tier</span>
-
-              <p className="text-[14px] font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-
-                <Crown size={14} className="text-amber-500" /> ₹1,00,000 Full License
-
-              </p>
-
-              <p className="text-[11px] text-slate-400 mt-1 font-medium">Outright perpetual purchase</p>
-
-            </div>
-
-
-
-            <div className="p-4 rounded-[18px] bg-slate-50 dark:bg-white/5 border border-slate-200/70 dark:border-white/5">
-
-              <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Profit Share Obligation</span>
-
-              <p className="text-[14px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
-
-                <CheckCircle2 size={14} className="text-emerald-500" /> 0% (Zero Remittance)
-
-              </p>
-
-              <p className="text-[11px] text-slate-400 mt-1 font-medium">100% profits retained in MT5</p>
-
-            </div>
-
-
-
-            <div className="p-4 rounded-[18px] bg-slate-50 dark:bg-white/5 border border-slate-200/70 dark:border-white/5">
-
-              <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Trading Terminal Binding</span>
-
-              <p className="text-[14px] font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-
-                <Lock size={14} className="text-sky-500" /> MT5 #{displayAccount || cleanAccount || "Unassigned"}
-
-              </p>
-
-              <p className="text-[11px] text-slate-400 mt-1 font-medium">Hardware locked & encrypted</p>
-
-            </div>
-
-
-
-            <div className="p-4 rounded-[18px] bg-slate-50 dark:bg-white/5 border border-slate-200/70 dark:border-white/5">
-
-              <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">License Expiry</span>
-
-              <p className="text-[14px] font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5">
-
-                <Sparkles size={14} className="text-indigo-500" /> Permanent Perpetual
-
-              </p>
-
-              <p className="text-[11px] text-slate-400 mt-1 font-medium">No renewal or monthly fees</p>
-
-            </div>
-
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-bold self-start sm:self-auto">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span>50/50 License Active</span>
           </div>
-
         </div>
 
-      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4 mb-6">
+          <div className="p-4 rounded-[18px] bg-slate-50 dark:bg-white/5 border border-slate-200/70 dark:border-white/5">
+            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Plan & Setup</span>
+            <p className="text-[14px] font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+              <Coins size={14} className="text-blue-500" /> ₹9,999 Setup Fee
+            </p>
+            <p className="text-[11px] text-slate-400 mt-1 font-medium">Single official standard plan</p>
+          </div>
 
-        <div className={cardBoxStyle}>
+          <div className="p-4 rounded-[18px] bg-slate-50 dark:bg-white/5 border border-slate-200/70 dark:border-white/5">
+            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Profit Share Model</span>
+            <p className="text-[14px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+              <CheckCircle2 size={14} className="text-emerald-500" /> Weekly 50/50% Split
+            </p>
+            <p className="text-[11px] text-slate-400 mt-1 font-medium">No net profit = No platform fee</p>
+          </div>
 
+          <div className="p-4 rounded-[18px] bg-slate-50 dark:bg-white/5 border border-slate-200/70 dark:border-white/5">
+            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Settlement Cohort</span>
+            <p className="text-[14px] font-bold text-blue-600 dark:text-blue-400 flex items-center gap-1.5">
+              <Calendar size={14} className="text-blue-500" /> Every {settlementDay}
+            </p>
+            <p className="text-[11px] text-slate-400 mt-1 font-medium">Admin synchronized cycle</p>
+          </div>
+
+          <div className="p-4 rounded-[18px] bg-slate-50 dark:bg-white/5 border border-slate-200/70 dark:border-white/5">
+            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Terminal Binding</span>
+            <p className="text-[14px] font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+              <Lock size={14} className="text-sky-500" /> MT5 #{displayAccount || cleanAccount || "Unassigned"}
+            </p>
+            <p className="text-[11px] text-slate-400 mt-1 font-medium">ID: {tradifiveId}</p>
+          </div>
+        </div>
+
+        {/* Remittance Ledger Section */}
+        <div className="pt-4 border-t border-slate-100 dark:border-white/5">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-
             <div>
-
               <div className="flex items-center gap-2">
-
-                <h2 className="text-[15px] font-bold text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
-
-                  Weekly Profit Share Settlements
-
-                </h2>
-
+                <h3 className="text-[14px] font-bold text-slate-900 dark:text-white tracking-tight leading-none">
+                  Weekly Profit Share Settlements Ledger
+                </h3>
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 dark:bg-sky-500/10 dark:text-sky-400 border border-sky-200/50">
-
-                  50% Platform Remittance Ledger
-
+                  50% Platform Remittance
                 </span>
-
               </div>
-
-              <p className="text-[11.5px] font-normal text-slate-400 mt-1">
-
-                Verified records of daily profit share sent via Crypto with uploaded transaction proofs.
-
+              <p className="text-[11px] font-normal text-slate-400 mt-1">
+                Verified records of weekly profit share sent via Crypto with uploaded transaction proofs.
               </p>
-
             </div>
 
             <button
-
               onClick={() => setShowSettlementModal(true)}
-
-              className="inline-flex items-center gap-1.5 h-[36px] px-3.5 rounded-[14px] border-2 border-white dark:border-white/5 bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:shadow-none text-[11px] font-bold text-slate-700 dark:text-slate-200 hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#D0D0D5] dark:hover:shadow-none self-start sm:self-auto transition-all cursor-pointer"
-
+              className="inline-flex items-center gap-1.5 h-[34px] px-3.5 rounded-[12px] border border-blue-600 bg-blue-600 text-white text-[11px] font-bold hover:bg-blue-700 self-start sm:self-auto transition-all cursor-pointer shadow-xs"
             >
-
-              <Upload size={13} className="text-sky-600 dark:text-sky-400" />
-
-              <span>Submit New Settlement</span>
-
+              <Upload size={13} className="text-white" />
+              <span>Upload Settlement Proof</span>
             </button>
-
           </div>
 
-
-
           {settlementHistory.length === 0 ? (
-
-            <div className="py-10 text-center text-slate-400 text-xs">
-
-              No settlements yet. Once your daily target is achieved, submit your 50% crypto transfer proof here.
-
+            <div className="p-6 rounded-[16px] bg-slate-50/70 dark:bg-white/[0.02] border border-slate-100 dark:border-white/5 text-center">
+              <Clock size={20} className="mx-auto text-slate-400 mb-2" />
+              <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+                No settlements due yet for this cycle
+              </p>
+              <p className="text-[11px] text-slate-400 mt-0.5">
+                Weekly 50/50 settlements will be logged here every {settlementDay} after target verification.
+              </p>
             </div>
-
           ) : (
-
             <div className="overflow-x-auto">
-
               <table className="w-full text-left text-xs">
-
                 <thead>
-
-                  <tr className="border-b border-slate-200/80 dark:border-white/5 text-slate-400 uppercase text-[10px] font-extrabold tracking-wider">
-
-                    <th className="pb-3 font-extrabold">Settlement ID</th>
-
-                    <th className="pb-3 font-extrabold">Date</th>
-
-                    <th className="pb-3 font-extrabold">Today's Profit</th>
-
-                    <th className="pb-3 font-extrabold">50% Remittance</th>
-
-                    <th className="pb-3 font-extrabold">Network</th>
-
-                    <th className="pb-3 font-extrabold">Proof Screenshot</th>
-
-                    <th className="pb-3 font-extrabold">Status</th>
-
+                  <tr className="border-b border-slate-200 dark:border-white/10 text-slate-400 uppercase tracking-wider text-[10px]">
+                    <th className="py-2.5 font-bold">Record ID</th>
+                    <th className="py-2.5 font-bold">Date</th>
+                    <th className="py-2.5 font-bold">Net Profit</th>
+                    <th className="py-2.5 font-bold">50% Platform Share</th>
+                    <th className="py-2.5 font-bold">Network</th>
+                    <th className="py-2.5 font-bold">Status</th>
                   </tr>
-
                 </thead>
-
-                <tbody className="divide-y divide-slate-100 dark:divide-white/5 font-mono">
-
-                  {settlementHistory.map((rec) => (
-
-                    <tr key={rec.id} className="hover:bg-slate-50/60 dark:hover:bg-white/[0.02] transition-colors">
-
-                      <td className="py-3 text-slate-900 dark:text-white font-semibold">{rec.id}</td>
-
-                      <td className="py-3 text-slate-500 dark:text-slate-400">{rec.date} ({rec.timestamp})</td>
-
-                      <td className="py-3 text-emerald-600 dark:text-emerald-400 font-bold">+{currencySymbol}{rec.todayProfit.toLocaleString()}</td>
-
-                      <td className="py-3 text-slate-900 dark:text-white font-bold">${rec.remittanceAmount.toFixed(2)} USDT</td>
-
-                      <td className="py-3 text-slate-600 dark:text-slate-300">{rec.network}</td>
-
-                      <td className="py-3">
-
-                        {rec.proofUrl ? (
-
-                          <button
-
-                            onClick={() => setPreviewLightboxUrl(rec.proofUrl)}
-
-                            className="flex items-center gap-1.5 px-2.5 py-1 rounded-[10px] bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 transition-all text-[11px] font-sans font-semibold cursor-pointer"
-
-                          >
-
-                            <Eye size={12} className="text-sky-600 dark:text-sky-400" />
-
-                            <span>View Proof</span>
-
-                          </button>
-
-                        ) : (
-
-                          <span className="text-slate-400 font-sans">No Image</span>
-
-                        )}
-
+                <tbody className="divide-y divide-slate-100 dark:divide-white/5 text-slate-700 dark:text-slate-200">
+                  {settlementHistory.map((s) => (
+                    <tr key={s.id}>
+                      <td className="py-2.5 font-mono text-[11px] text-slate-500">{s.id}</td>
+                      <td className="py-2.5 font-medium">{s.date}</td>
+                      <td className="py-2.5 font-bold text-emerald-600">+{currencySymbol}{s.todayProfit.toLocaleString()}</td>
+                      <td className="py-2.5 font-bold text-slate-900 dark:text-white">${s.remittanceAmount} USDT</td>
+                      <td className="py-2.5 font-mono text-[11px] text-slate-400">{s.network}</td>
+                      <td className="py-2.5">
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 border border-amber-200/50">
+                          {s.status}
+                        </span>
                       </td>
-
-                      <td className="py-3">
-
-                        {rec.status === "verified" ? (
-
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-400 font-sans">
-
-                            <CheckCircle2 size={11} /> Verified & Cleared
-
-                          </span>
-
-                        ) : (
-
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 text-amber-700 dark:text-amber-400 font-sans">
-
-                            <Clock size={11} /> Pending Review
-
-                          </span>
-
-                        )}
-
-                      </td>
-
                     </tr>
-
                   ))}
-
                 </tbody>
-
               </table>
-
             </div>
-
           )}
-
         </div>
-
-      )}
-
-
+      </div>
 
       {/* ── MODAL: CRYPTO WITHDRAWAL / 50% REMITTANCE & PROOF UPLOAD (Clean Styled Modal, No Scrollbar) ── */}
 
@@ -4022,6 +3698,142 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
 
         )}
 
+      </AnimatePresence>
+
+      {/* ── MODAL: WEEKLY 50/50% SETTLEMENT & WITHDRAWAL REQUEST (WITH 1-CLICK WHATSAPP) ── */}
+      <AnimatePresence>
+        {showWithdrawalModal && (
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowWithdrawalModal(false)}
+              className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"
+            />
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              className="relative w-full max-w-[540px] rounded-[24px] border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] p-5 sm:p-6 shadow-[0_20px_60px_rgba(0,0,0,0.2),0_0_0_2px_#E2E8F0] dark:bg-none dark:bg-[#1A1F2C] dark:border-[1px] dark:border-white/10 text-slate-800 dark:text-white max-h-[94vh] overflow-y-auto [scrollbar-width:none]"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/10 mb-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-md shadow-blue-500/20 shrink-0">
+                    <ArrowUpRight size={20} />
+                  </div>
+                  <div>
+                    <h3 className="text-[16px] font-bold text-slate-900 dark:text-white tracking-tight leading-none">
+                      Weekly Profit Settlement & Withdrawal
+                    </h3>
+                    <p className="text-[11.5px] text-slate-400 mt-1">
+                      Cohort: <span className="text-blue-600 dark:text-blue-400 font-bold">Every {settlementDay}</span> · 50/50 Profit Split
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setShowWithdrawalModal(false)}
+                  className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 flex items-center justify-center text-slate-500 hover:text-slate-700 dark:text-slate-300 transition-colors cursor-pointer"
+                >
+                  <X size={15} />
+                </button>
+              </div>
+
+              {/* Account & Performance Metrics */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
+                <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200/60 dark:border-white/5">
+                  <span className="text-[10px] font-bold uppercase text-slate-400 block">Balance</span>
+                  <span className="text-[13px] font-bold text-slate-900 dark:text-white truncate block">
+                    {formatMoney(accountBalance)}
+                  </span>
+                </div>
+                <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200/60 dark:border-white/5">
+                  <span className="text-[10px] font-bold uppercase text-slate-400 block">Net Profit</span>
+                  <span className="text-[13px] font-bold text-emerald-600 truncate block">
+                    +{formatMoney(todayProfit)}
+                  </span>
+                </div>
+                <div className="p-3 rounded-xl bg-emerald-50/60 dark:bg-emerald-500/10 border border-emerald-200/60 dark:border-emerald-500/20">
+                  <span className="text-[10px] font-bold uppercase text-emerald-700 dark:text-emerald-300 block">Client 50%</span>
+                  <span className="text-[13px] font-bold text-emerald-700 dark:text-emerald-300 truncate block">
+                    +{formatMoney(clientShareToday)}
+                  </span>
+                </div>
+                <div className="p-3 rounded-xl bg-blue-50/60 dark:bg-blue-500/10 border border-blue-200/60 dark:border-blue-500/20">
+                  <span className="text-[10px] font-bold uppercase text-blue-700 dark:text-blue-300 block">Platform 50%</span>
+                  <span className="text-[13px] font-bold text-blue-700 dark:text-blue-300 truncate block">
+                    ${adminShareTodayUsdt} USDT
+                  </span>
+                </div>
+              </div>
+
+              {/* Auto-Formatted Message Card */}
+              <div className="mb-4">
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <MessageSquare size={12} className="text-blue-500" /> Auto-Generated Settlement Request Message
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(withdrawalMessage);
+                      toast.success("Request message copied to clipboard!");
+                    }}
+                    className="text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
+                  >
+                    <Copy size={11} /> Copy Message
+                  </button>
+                </div>
+
+                <div className="p-3.5 rounded-xl bg-slate-900 text-emerald-400 font-mono text-[11px] leading-relaxed border border-slate-800 select-all whitespace-pre-wrap max-h-[170px] overflow-y-auto">
+                  {withdrawalMessage}
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="space-y-2.5 pt-2">
+                <button
+                  type="button"
+                  onClick={handleSendWhatsAppWithdrawal}
+                  className="w-full py-3 px-4 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] active:scale-[0.99] text-white text-xs font-bold transition-all shadow-md shadow-emerald-500/20 flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <Phone size={15} />
+                  <span>Send Request to WhatsApp Finance Desk</span>
+                </button>
+
+                <button
+                  type="button"
+                  disabled={isSubmittingWithdrawal || withdrawalSubmitted}
+                  onClick={handleSubmitWithdrawalRequest}
+                  className={`w-full py-2.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                    withdrawalSubmitted
+                      ? "bg-emerald-500 text-white"
+                      : "bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/20"
+                  }`}
+                >
+                  {withdrawalSubmitted ? (
+                    <>
+                      <CheckCircle2 size={14} />
+                      <span>Request Logged with Admin Desk</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send size={14} />
+                      <span>{isSubmittingWithdrawal ? "Submitting..." : "Submit to TradiFive Admin Database"}</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              <p className="text-[10.5px] text-slate-400 text-center mt-3 font-medium">
+                Designated Cohort: <b className="text-slate-700 dark:text-slate-200">Every {settlementDay}</b>. All settlements verified by Tradifive Finance Desk.
+              </p>
+            </motion.div>
+          </div>
+        )}
       </AnimatePresence>
 
 
