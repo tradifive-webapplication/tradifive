@@ -318,7 +318,7 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
 
     } catch (e) {}
 
-    return "USD";
+    return "USC";
 
   });
 
@@ -398,50 +398,30 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
     };
   }, []);
 
-  const isCentAccount = accountCurrency === "USC" || accountCurrency === "USCENT" || accountCurrency.includes("CENT") || accountCurrency === "EUX";
-
-
-
-  // View currency selection: "NATIVE" (shows account's actual units, e.g. USC), "USD", or "INR"
-
-  const [viewCurrency, setViewCurrency] = useState<"NATIVE" | "USD" | "INR">(() => {
-
+  // View currency selection: "USC" (Cent units), "INR" (₹0.9368 per USC), or "USD"
+  const [viewCurrency, setViewCurrency] = useState<"USC" | "INR" | "USD">(() => {
     try {
-
       const stored = localStorage.getItem("tradifive_view_currency");
-
-      if (stored === "NATIVE" || stored === "USD" || stored === "INR") return stored;
-
+      if (stored === "INR") return "INR";
+      if (stored === "USD") return "USD";
+      if (stored === "USC" || stored === "NATIVE") return "USC";
     } catch (e) {}
-
-    return "NATIVE";
-
+    return "USC";
   });
 
-
+  const isCentAccount = viewCurrency === "USC" || accountCurrency === "USC" || accountCurrency === "USCENT" || accountCurrency.includes("CENT") || accountCurrency === "EUX";
 
   // Effective display currency symbol and converter
-
   const effectiveCurrency = useMemo(() => {
-
-    if (viewCurrency === "USD") return "USD";
-
     if (viewCurrency === "INR") return "INR";
-
-    return isCentAccount ? "USC" : (accountCurrency === "INR" ? "INR" : "USD");
-
-  }, [viewCurrency, isCentAccount, accountCurrency]);
-
-
+    if (viewCurrency === "USD") return "USD";
+    return "USC";
+  }, [viewCurrency]);
 
   const currencySymbol = useMemo(() => {
-
     if (effectiveCurrency === "USC") return "USC ";
-
     if (effectiveCurrency === "INR") return "₹";
-
     return "$";
-
   }, [effectiveCurrency]);
 
 
@@ -504,50 +484,49 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
 
 
 
-  // Value converter helper: converts any amount from native account currency to effective view currency
-
+  // Value converter helper: converts any amount from native account units (USC) to effective view currency
   const convertAmount = useCallback((val: number): number => {
     if (!val || isNaN(val)) return 0;
-    if (viewCurrency === "NATIVE") return val;
 
-    // Target is USD:
-    if (viewCurrency === "USD") {
-      if (isCentAccount) return val / 100;
-      if (accountCurrency === "INR") return val / 93.68;
+    // 1. Target is USC: raw account units (14,866.24 USC)
+    if (effectiveCurrency === "USC") {
       return val;
     }
 
-    // Target is INR (1 USC = ₹0.9368, 100 USC = 1 USD = ₹93.68):
-    if (viewCurrency === "INR") {
-      if (isCentAccount) return Number((val * 0.9368).toFixed(2));
-      if (accountCurrency === "USD") return Number((val * 93.68).toFixed(2));
-      return val;
+    // 2. Target is INR (1 USC = ₹0.9368):
+    if (effectiveCurrency === "INR") {
+      return Number((val * 0.9368).toFixed(2));
+    }
+
+    // 3. Target is USD (100 USC = $1.00 USD):
+    if (effectiveCurrency === "USD") {
+      return Number((val / 100).toFixed(2));
     }
 
     return val;
-  }, [viewCurrency, isCentAccount, accountCurrency]);
+  }, [effectiveCurrency]);
 
-
-
-  // Formatter helper with optional secondary USD equivalent for USC accounts
-
+  // Formatter helper with secondary equivalent (USC shows USD equivalent e.g. ≈ $148.66, INR shows USC equivalent)
   const formatMoney = useCallback((val: number, opts?: { decimals?: number, showEquivalent?: boolean, compact?: boolean }): string => {
     const dec = opts?.decimals !== undefined ? opts.decimals : (opts?.compact ? 0 : 2);
     const converted = convertAmount(val);
     const formatted = `${currencySymbol}${converted.toLocaleString(undefined, { minimumFractionDigits: dec, maximumFractionDigits: dec })}`;
 
-    if (opts?.showEquivalent && isCentAccount) {
-      if (viewCurrency === "NATIVE") {
-        const inInr = (val * 0.9368).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        return `${formatted} (≈ ₹${inInr})`;
-      } else if (viewCurrency === "INR") {
+    if (opts?.showEquivalent) {
+      if (effectiveCurrency === "USC") {
+        const inUsd = (val / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        return `${formatted} (≈ $${inUsd})`;
+      } else if (effectiveCurrency === "INR") {
         const inUsc = val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        return `${formatted} (≈ ${inUsc} USC)`;
+      } else if (effectiveCurrency === "USD") {
+        const inUsc = (val * 100).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
         return `${formatted} (≈ ${inUsc} USC)`;
       }
     }
 
     return formatted;
-  }, [convertAmount, currencySymbol, isCentAccount, viewCurrency]);
+  }, [convertAmount, currencySymbol, effectiveCurrency]);
 
 
 
@@ -2215,20 +2194,13 @@ Kindly review and process our weekly 50/50 profit clearance.`;
 
           </span>
 
-          {isCentAccount && (
-
+          {(isCentAccount || viewCurrency === "USC") && (
             <>
-
               <span className="text-slate-300 dark:text-slate-400">•</span>
-
               <span className="px-2 py-0.5 rounded-full text-[10.5px] font-extrabold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center gap-1 shadow-2xs" title="100 USC = $1.00 USD (Exness/Broker Cent Execution)">
-
                 🪙 Cent Account (USC)
-
               </span>
-
             </>
-
           )}
 
           <span className="text-slate-300 dark:text-slate-400">•</span>
@@ -2282,12 +2254,12 @@ Kindly review and process our weekly 50/50 profit clearance.`;
             <button
               type="button"
               onClick={() => {
-                setViewCurrency("NATIVE");
-                try { localStorage.setItem("tradifive_view_currency", "NATIVE"); } catch (e) {}
+                setViewCurrency("USC");
+                try { localStorage.setItem("tradifive_view_currency", "USC"); } catch (e) {}
                 toast.info("Dashboard display currency set to USC (Cent)");
               }}
               className={`h-[28px] px-2.5 rounded-[10px] text-[11px] font-bold transition-all cursor-pointer flex items-center gap-1 ${
-                viewCurrency === "NATIVE"
+                viewCurrency === "USC"
                   ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-xs"
                   : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
               }`}
@@ -2946,7 +2918,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
 
                   axisLine={false}
 
-                  tickFormatter={(val) => `${currencySymbol}${(val / 1000).toFixed(0)}k`}
+                  tickFormatter={(val) => `${currencySymbol}${(convertAmount(val) / 1000).toFixed(0)}k`}
 
                 />
 
@@ -2966,13 +2938,13 @@ Kindly review and process our weekly 50/50 profit clearance.`;
 
                           <div className="text-[17px] font-bold text-emerald-600 mt-0.5" style={{ fontFamily: "'Inter', sans-serif" }}>
 
-                            +{currencySymbol}{Number(data.netProfit).toLocaleString()} Net Profit
+                            +{currencySymbol}{Number(convertAmount(data.netProfit)).toLocaleString()} Net Profit
 
                           </div>
 
                           <div className="text-[11px] text-slate-500 mt-1 flex items-center justify-between gap-4">
 
-                            <span>Balance: <b className="text-slate-700">{currencySymbol}{Number(data.balance).toLocaleString()}</b></span>
+                            <span>Balance: <b className="text-slate-700">{currencySymbol}{Number(convertAmount(data.balance)).toLocaleString()}</b></span>
 
                             <span className="text-emerald-600 font-bold">+{data.dailyGain}%</span>
 
@@ -3103,7 +3075,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
                   <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">Retained in MT5</span>
                 </div>
                 <h3 className="text-[22px] font-medium text-slate-900 dark:text-white tracking-tight leading-none my-1" style={{ fontFamily: "'Inter', sans-serif" }}>
-                  +{currencySymbol}{clientShareToday.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  +{formatMoney(clientShareToday)}
                 </h3>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
                   Credited directly to your MT5 account equity. Available for weekly withdrawal.
@@ -3123,7 +3095,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
                     ${adminShareTodayUsdt} USDT
                   </h3>
                   <span className="text-[12px] font-medium text-slate-400">
-                    ({currencySymbol}{adminShareToday.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })})
+                    ({formatMoney(adminShareToday)})
                   </span>
                 </div>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
@@ -3283,7 +3255,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
                     <tr key={s.id}>
                       <td className="py-2.5 font-mono text-[11px] text-slate-500">{s.id}</td>
                       <td className="py-2.5 font-medium">{s.date}</td>
-                      <td className="py-2.5 font-bold text-emerald-600">+{currencySymbol}{s.todayProfit.toLocaleString()}</td>
+                      <td className="py-2.5 font-bold text-emerald-600">+{formatMoney(s.todayProfit)}</td>
                       <td className="py-2.5 font-bold text-slate-900 dark:text-white">${s.remittanceAmount} USDT</td>
                       <td className="py-2.5 font-mono text-[11px] text-slate-400">{s.network}</td>
                       <td className="py-2.5">
@@ -3390,7 +3362,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
 
                   <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-400">
 
-                    Net Profit: <b className="text-emerald-600 dark:text-emerald-400">+{currencySymbol}{todayProfit.toLocaleString()}</b>
+                    Net Profit: <b className="text-emerald-600 dark:text-emerald-400">+{formatMoney(todayProfit)}</b>
 
                   </span>
 
@@ -3412,7 +3384,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
 
                   <div className="text-[10px] text-slate-400 mt-0.5">
 
-                    ({currencySymbol}{adminShareToday.toLocaleString()} INR)
+                    ({formatMoney(adminShareToday)})
 
                   </div>
 
