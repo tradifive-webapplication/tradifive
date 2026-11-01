@@ -409,7 +409,6 @@ export default function TabLayout() {
       subItems: [
         { label: 'Algo Marketplace', icon: Bag, route: '/(tabs)/marketplace' },
         { label: 'Trading Contests', icon: Trophy, route: '/(tabs)/contests' },
-        { label: 'Courses & Learning', icon: Paper, route: '/(tabs)/learning' },
       ],
     },
     {

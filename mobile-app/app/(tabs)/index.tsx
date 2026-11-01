@@ -142,7 +142,6 @@ const NAV_ITEMS = [
   { label: 'Risk Guard', icon: ShieldCheck, hasChevron: false },
   { label: 'Rewards', icon: Gift, hasChevron: false },
   { label: 'Channels', icon: Users, hasChevron: true, subItems: ['Channels', 'Messages'] },
-  { label: 'Learning', icon: BookOpen, hasChevron: true, subItems: ['Courses', 'Webinars'] },
   { label: 'Contests', icon: Trophy, hasChevron: true, subItems: ['Contests', 'Profile', 'Leaderboard'] },
   { label: 'Finance', icon: CreditCard, hasChevron: true, subItems: ['Wallet', 'Deposit'] },
   { label: 'Marketplace', icon: ShoppingBag, hasChevron: true, subItems: ['Indicators', 'EAs'] },
