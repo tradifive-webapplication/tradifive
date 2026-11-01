@@ -175,8 +175,12 @@ export default function TabLayout() {
   }, [initStore]);
 
   useEffect(() => {
+    let lastSet = 0;
     const sub = DeviceEventEmitter.addListener('scrollUpdate', (val) => {
-      scrollY.setValue(val);
+      if (Math.abs(val - lastSet) > 4) {
+        lastSet = val;
+        scrollY.setValue(val);
+      }
     });
     return () => sub.remove();
   }, []);
@@ -919,7 +923,6 @@ export default function TabLayout() {
               <Tabs.Screen name="index" options={{ title: 'Home' }} />
               <Tabs.Screen name="journal" options={{ title: 'Journal' }} />
               <Tabs.Screen name="risk-guard" options={{ title: 'Risk Guard' }} />
-              <Tabs.Screen name="ai-coach" options={{ title: 'AI Coach' }} />
               <Tabs.Screen name="rewards" options={{ title: 'Rewards' }} />
               <Tabs.Screen name="channel" options={{ title: 'Channel' }} />
               <Tabs.Screen name="channels" options={{ title: 'Channels' }} />

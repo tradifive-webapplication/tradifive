@@ -259,7 +259,7 @@ const CURATED_FEED_POSTS = [
   }
 ];
 
-const HomePostCard = ({
+const HomePostCard = React.memo(({
   post,
   isActive,
   anyCardActive,
@@ -595,7 +595,7 @@ const getBgColor = (factor: number) => {
 const getIconColor = (factor: number) => {
   const c = Math.round(255 - 255 * factor);
   return `rgb(${c}, ${c}, ${c})`;
-};
+});
 
 export default function DashboardScreen() {
   const insets = useSafeAreaInsets();
@@ -1698,8 +1698,12 @@ export default function DashboardScreen() {
   });
 
   React.useEffect(() => {
+    let lastVal = 0;
     const listener = scrollY.addListener(({ value }) => {
-      DeviceEventEmitter.emit('scrollUpdate', value);
+      if (Math.abs(value - lastVal) > 6) {
+        lastVal = value;
+        DeviceEventEmitter.emit('scrollUpdate', value);
+      }
     });
     return () => scrollY.removeListener(listener);
   }, []);
