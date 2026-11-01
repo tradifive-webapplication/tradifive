@@ -72,6 +72,7 @@ const TradifiveAIPublic = lazy(() => import("./pages/TradifiveAIPublic"));
 const AutoTradePublic = lazy(() => import("./pages/AutoTradePublic"));
 const PrivacyPolicyPublic = lazy(() => import("./pages/PrivacyPolicyPublic"));
 const TermsOfServicePublic = lazy(() => import("./pages/TermsOfServicePublic"));
+const DeleteAccountPublic = lazy(() => import("./pages/DeleteAccountPublic"));
 const RefundPolicyPublic = lazy(() => import("./pages/RefundPolicyPublic"));
 const RiskDisclosurePublic = lazy(() => import("./pages/RiskDisclosurePublic"));
 const CookiePolicyPublic = lazy(() => import("./pages/CookiePolicyPublic"));
@@ -126,6 +127,8 @@ const App = () => {
                 <Route path="/download" element={<DownloadAppPublic />} />
                 <Route path="/privacy-policy" element={<PrivacyPolicyPublic />} />
                 <Route path="/terms-of-service" element={<TermsOfServicePublic />} />
+                <Route path="/terms" element={<TermsOfServicePublic />} />
+                <Route path="/delete-account" element={<DeleteAccountPublic />} />
                 <Route path="/refund-policy" element={<RefundPolicyPublic />} />
                 <Route path="/risk-disclosure" element={<RiskDisclosurePublic />} />
                 <Route path="/cookie-policy" element={<CookiePolicyPublic />} />

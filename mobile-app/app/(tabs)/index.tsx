@@ -677,6 +677,65 @@ export default function DashboardScreen() {
   type Tab = 'feed' | 'dashboard' | 'community' | 'contests';
   const [activeTab, setActiveTab] = useState<Tab>('feed');
   const [activePostMenu, setActivePostMenu] = useState<string | null>(null);
+  const [blockedUsers, setBlockedUsers] = useState<string[]>([]);
+
+  const handleReportPost = (postId: string) => {
+    setActivePostMenu(null);
+    Alert.alert(
+      "Report Post",
+      "Why are you reporting this content?",
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Spam or Scam", onPress: () => submitReport(postId, "Spam or Scam") },
+        { text: "Harassment or Hate", onPress: () => submitReport(postId, "Harassment or Hate") },
+        { text: "Inappropriate Content", onPress: () => submitReport(postId, "Inappropriate Content") },
+      ]
+    );
+  };
+
+  const submitReport = async (postId: string, reason: string) => {
+    try {
+      await supabase.from('moderation_flags').insert({
+        reporter_id: currentUser?.id || null,
+        target_id: postId,
+        reason: reason,
+        status: 'pending'
+      });
+    } catch (e) {}
+    Alert.alert(
+      "Report Received",
+      "Thank you for helping keep Tradifive safe. Our moderation team reviews all flagged content within 24 hours."
+    );
+  };
+
+  const handleBlockUser = (userId: string, username: string) => {
+    setActivePostMenu(null);
+    Alert.alert(
+      "Block User",
+      `Are you sure you want to block ${username || 'this user'}? You will no longer see their posts in your feed.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Block User",
+          style: "destructive",
+          onPress: async () => {
+            if (userId) {
+              setBlockedUsers(prev => [...prev, userId]);
+              try {
+                if (currentUser?.id) {
+                  await supabase.from('user_blocks').insert({
+                    blocker_id: currentUser.id,
+                    blocked_user_id: userId
+                  });
+                }
+              } catch (e) {}
+              Alert.alert("User Blocked", `${username || 'User'} has been blocked and removed from your feed.`);
+            }
+          }
+        }
+      ]
+    );
+  };
   const [activeChannel, setActiveChannel] = useState<string | null>(null);
   type FeedSubTab = 'for_you' | 'following';
   const [feedSubTab, setFeedSubTab] = useState<FeedSubTab>('for_you');
@@ -1400,12 +1459,15 @@ export default function DashboardScreen() {
   const feedPostsToRender = mappedPosts;
 
   const displayedPosts = React.useMemo(() => {
-    if (feedSubTab === 'following') {
-      const filtered = feedPostsToRender.filter((p: any) => followingIds.includes(p.user_id));
-      return filtered;
+    let posts = feedPostsToRender;
+    if (blockedUsers.length > 0) {
+      posts = posts.filter((p: any) => !blockedUsers.includes(p.user_id));
     }
-    return feedPostsToRender;
-  }, [feedSubTab, feedPostsToRender, followingIds]);
+    if (feedSubTab === 'following') {
+      return posts.filter((p: any) => followingIds.includes(p.user_id));
+    }
+    return posts;
+  }, [feedSubTab, feedPostsToRender, followingIds, blockedUsers]);
 
   type ContestView = 'contests' | 'profile' | 'leaderboard';
   const [contestView, setContestView] = useState<ContestView>('contests');
@@ -3301,11 +3363,17 @@ export default function DashboardScreen() {
                   <TouchableOpacity onPress={() => setActivePostMenu(null)} style={{ padding: 12, borderBottomWidth: 0.5, borderBottomColor: isDark ? '#222222' : '#f1f5f9' }}>
                     <Text style={{ color: isDark ? theme.text : '#0f172a', fontSize: 16, textAlign: 'center', fontFamily: 'Inter_500Medium' }}>Save</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity onPress={() => setActivePostMenu(null)} style={{ padding: 12, borderBottomWidth: 0.5, borderBottomColor: isDark ? '#222222' : '#f1f5f9' }}>
-                    <Text style={{ color: '#ef4444', fontSize: 16, textAlign: 'center', fontFamily: 'Inter_500Medium' }}>Report</Text>
+                  <TouchableOpacity onPress={() => activePostMenu && handleReportPost(activePostMenu)} style={{ padding: 12, borderBottomWidth: 0.5, borderBottomColor: isDark ? '#222222' : '#f1f5f9' }}>
+                    <Text style={{ color: '#ef4444', fontSize: 15, textAlign: 'center', fontFamily: 'Inter_600SemiBold' }}>Report Post</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => {
+                    const targetPost = displayedPosts.find((p: any) => p.id === activePostMenu);
+                    if (targetPost) handleBlockUser(targetPost.user_id, targetPost.user);
+                  }} style={{ padding: 12, borderBottomWidth: 0.5, borderBottomColor: isDark ? '#222222' : '#f1f5f9' }}>
+                    <Text style={{ color: '#ef4444', fontSize: 15, textAlign: 'center', fontFamily: 'Inter_600SemiBold' }}>Block User</Text>
                   </TouchableOpacity>
                   <TouchableOpacity onPress={() => setActivePostMenu(null)} style={{ padding: 12 }}>
-                    <Text style={{ color: isDark ? theme.text : '#0f172a', fontSize: 16, textAlign: 'center', fontFamily: 'Inter_500Medium' }}>About this acc</Text>
+                    <Text style={{ color: isDark ? theme.text : '#0f172a', fontSize: 15, textAlign: 'center', fontFamily: 'Inter_500Medium' }}>Cancel</Text>
                   </TouchableOpacity>
                 </View>
               </TouchableWithoutFeedback>
