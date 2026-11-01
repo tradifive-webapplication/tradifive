@@ -582,7 +582,7 @@ const HomePostCard = React.memo(({
       </View>
     </View>
   );
-};
+});
 
 const getBgColor = (factor: number) => {
   const r = Math.round(28 + (255 - 28) * factor);
@@ -595,7 +595,7 @@ const getBgColor = (factor: number) => {
 const getIconColor = (factor: number) => {
   const c = Math.round(255 - 255 * factor);
   return `rgb(${c}, ${c}, ${c})`;
-});
+};
 
 export default function DashboardScreen() {
   const insets = useSafeAreaInsets();
