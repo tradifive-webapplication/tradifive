@@ -1,11 +1,8 @@
 node_modules
-node_modules_sdk54
-.expo
-android
-ios
+node_modules/**
 dist
-dist-electron
-.git
+dist/**
+.expo
+.expo/**
 *.log
 *.tmp
-*.temp
