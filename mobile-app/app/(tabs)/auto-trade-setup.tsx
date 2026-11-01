@@ -468,7 +468,7 @@ export default function AutoTradeSetupScreen() {
               Auto Trade
             </Text>
           </View>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1, marginRight: 8 }}>
             <TouchableOpacity
               onPress={() => {
                 hSelect();
@@ -544,10 +544,10 @@ export default function AutoTradeSetupScreen() {
                 {/* 4 Interactive Step Buttons */}
                 <View style={styles.milestoneGrid}>
                   {[
-                    { step: 1, label: '1. Connect', isDone: transferStatus === 'approved' },
-                    { step: 2, label: '2. Download', isDone: downloadedEA },
-                    { step: 3, label: '3. Pay ₹99k', isDone: paymentStatus === 'approved' },
-                    { step: 4, label: '4. Activate', isDone: paymentStatus === 'approved' && transferStatus === 'approved' },
+                    { step: 1, label: '1. Connect', shortLabel: 'Connect', isDone: transferStatus === 'approved' },
+                    { step: 2, label: '2. Download', shortLabel: 'Download', isDone: downloadedEA },
+                    { step: 3, label: '3. License', shortLabel: 'License', isDone: paymentStatus === 'approved' },
+                    { step: 4, label: '4. Activate', shortLabel: 'Activate', isDone: paymentStatus === 'approved' && transferStatus === 'approved' },
                   ].map((m) => {
                     const isActive = activeStep === m.step;
                     return (
@@ -574,7 +574,7 @@ export default function AutoTradeSetupScreen() {
                           ]}
                           numberOfLines={1}
                         >
-                          {m.isDone && !isActive ? `✓ ${m.label.split('. ')[1]}` : m.label}
+                          {m.isDone && !isActive ? `✓ ${m.shortLabel}` : m.label}
                         </Text>
                       </TouchableOpacity>
                     );
@@ -616,7 +616,7 @@ export default function AutoTradeSetupScreen() {
                       ]}
                     >
                       <Text style={[styles.pathToggleText, { color: setupPath === 'new' ? (isDark ? '#38bdf8' : '#0f172a') : '#94a3b8' }]}>
-                        Open New Account (Recommended)
+                        Open New Account
                       </Text>
                     </TouchableOpacity>
 
@@ -632,7 +632,7 @@ export default function AutoTradeSetupScreen() {
                       ]}
                     >
                       <Text style={[styles.pathToggleText, { color: setupPath === 'transfer' ? (isDark ? '#38bdf8' : '#0f172a') : '#94a3b8' }]}>
-                        Transfer Existing Account
+                        Transfer Existing
                       </Text>
                     </TouchableOpacity>
                   </View>
@@ -661,7 +661,7 @@ export default function AutoTradeSetupScreen() {
                             style={[styles.partnerActionBtn, { flex: 1, backgroundColor: '#0284c7' }]}
                           >
                             <ExternalLink size={14} color="#fff" />
-                            <Text style={styles.partnerActionBtnText}>Open Vantage Account</Text>
+                            <Text style={styles.partnerActionBtnText} numberOfLines={1}>Open Vantage Account</Text>
                           </TouchableOpacity>
                           <TouchableOpacity
                             activeOpacity={0.8}
@@ -717,7 +717,7 @@ export default function AutoTradeSetupScreen() {
                             <View style={[styles.checkbox, depositConfirmed && { backgroundColor: '#38bdf8', borderColor: '#38bdf8' }]}>
                               {depositConfirmed && <Check size={11} color="#000" strokeWidth={3} />}
                             </View>
-                            <Text style={{ fontSize: 11.5, fontFamily: 'Inter_500Medium', color: isDark ? '#cbd5e1' : '#475569' }}>
+                            <Text style={{ flex: 1, fontSize: 11.5, fontFamily: 'Inter_500Medium', color: isDark ? '#cbd5e1' : '#475569', lineHeight: 16 }}>
                               I confirm this account has a minimum balance of $500 USD.
                             </Text>
                           </TouchableOpacity>
@@ -838,19 +838,19 @@ export default function AutoTradeSetupScreen() {
                   <View style={styles.specGrid}>
                     <View style={[styles.specTile, { backgroundColor: isDark ? '#0c0e14' : '#f8fafc', borderColor: isDark ? '#1e2433' : '#e2e8f0' }]}>
                       <Text style={styles.specTileLabel}>ASSET PAIR</Text>
-                      <Text style={[styles.specTileVal, { color: isDark ? '#ffffff' : '#0f172a' }]}>XAUUSD (Gold)</Text>
+                      <Text style={[styles.specTileVal, { color: isDark ? '#ffffff' : '#0f172a' }]} numberOfLines={1}>XAUUSD (Gold)</Text>
                     </View>
                     <View style={[styles.specTile, { backgroundColor: isDark ? '#0c0e14' : '#f8fafc', borderColor: isDark ? '#1e2433' : '#e2e8f0' }]}>
                       <Text style={styles.specTileLabel}>TIMEFRAME</Text>
-                      <Text style={[styles.specTileVal, { color: isDark ? '#ffffff' : '#0f172a' }]}>1-Min (M1)</Text>
+                      <Text style={[styles.specTileVal, { color: isDark ? '#ffffff' : '#0f172a' }]} numberOfLines={1}>1-Min (M1)</Text>
                     </View>
                     <View style={[styles.specTile, { backgroundColor: isDark ? '#0c0e14' : '#f8fafc', borderColor: isDark ? '#1e2433' : '#e2e8f0' }]}>
                       <Text style={styles.specTileLabel}>EXECUTION</Text>
-                      <Text style={[styles.specTileVal, { color: '#10b981' }]}>&lt; 3ms Direct</Text>
+                      <Text style={[styles.specTileVal, { color: '#10b981' }]} numberOfLines={1}>&lt; 3ms Direct</Text>
                     </View>
                     <View style={[styles.specTile, { backgroundColor: isDark ? '#0c0e14' : '#f8fafc', borderColor: isDark ? '#1e2433' : '#e2e8f0' }]}>
                       <Text style={styles.specTileLabel}>ENGINE</Text>
-                      <Text style={[styles.specTileVal, { color: '#38bdf8' }]}>Dynamic Basket</Text>
+                      <Text style={[styles.specTileVal, { color: '#38bdf8' }]} numberOfLines={1}>Dynamic Basket</Text>
                     </View>
                   </View>
 
@@ -865,7 +865,7 @@ export default function AutoTradeSetupScreen() {
                       }}
                       style={[styles.downloadCard, { backgroundColor: isDark ? '#0c0e14' : '#f8fafc', borderColor: isDark ? '#1e2433' : '#e2e8f0' }]}
                     >
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1, marginRight: 8 }}>
                         <View style={[styles.fileIconBox, { backgroundColor: 'rgba(56,189,248,0.15)' }]}>
                           <Cpu size={18} color="#38bdf8" />
                         </View>
@@ -895,7 +895,7 @@ export default function AutoTradeSetupScreen() {
                       }}
                       style={[styles.downloadCard, { backgroundColor: isDark ? '#0c0e14' : '#f8fafc', borderColor: isDark ? '#1e2433' : '#e2e8f0' }]}
                     >
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1, marginRight: 8 }}>
                         <View style={[styles.fileIconBox, { backgroundColor: 'rgba(168,85,247,0.15)' }]}>
                           <Sparkles size={18} color="#a855f7" />
                         </View>
@@ -926,7 +926,7 @@ export default function AutoTradeSetupScreen() {
                       In MT5 → Tools → Options → Experts, check "Allow WebRequest" and add:
                     </Text>
                     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 6, backgroundColor: isDark ? '#0c0e14' : '#ffffff', padding: 8, borderRadius: 8 }}>
-                      <Text style={{ fontSize: 11, fontFamily: 'Inter_600SemiBold', color: '#38bdf8' }} numberOfLines={1}>
+                      <Text style={{ flex: 1, fontSize: 11, fontFamily: 'Inter_600SemiBold', color: '#38bdf8', marginRight: 8 }} numberOfLines={1}>
                         https://rylwyxhupwpwsdbvuoej.supabase.co
                       </Text>
                       <TouchableOpacity
@@ -959,7 +959,7 @@ export default function AutoTradeSetupScreen() {
                       style={[styles.stepActionBtn, { flex: 1, backgroundColor: isDark ? '#38bdf8' : '#0f172a' }]}
                     >
                       <Text style={[styles.stepActionBtnText, { color: isDark ? '#0f172a' : '#ffffff' }]}>
-                        Continue to Step 3: Payment
+                        Continue to Step 3
                       </Text>
                       <ArrowRight size={16} color={isDark ? '#0f172a' : '#ffffff'} />
                     </TouchableOpacity>
@@ -1021,7 +1021,7 @@ export default function AutoTradeSetupScreen() {
                     </Text>
 
                     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                      <Text style={{ fontSize: 15, fontFamily: 'Inter_700Bold', color: isDark ? '#ffffff' : '#0f172a' }}>
+                      <Text style={{ flex: 1, fontSize: 14.5, fontFamily: 'Inter_700Bold', color: isDark ? '#ffffff' : '#0f172a', marginRight: 8 }} numberOfLines={1}>
                         9731980756@axisbank
                       </Text>
                       <TouchableOpacity
@@ -1071,7 +1071,7 @@ export default function AutoTradeSetupScreen() {
                     style={styles.fastTrackBtn}
                   >
                     <MessageCircle size={15} color="#10b981" />
-                    <Text style={styles.fastTrackText}>⚡ Need 15-Min Priority Review? Ping on WhatsApp</Text>
+                    <Text style={styles.fastTrackText}>⚡ 15-Min Priority Review on WhatsApp</Text>
                   </TouchableOpacity>
 
                   {/* Navigation Buttons */}
@@ -1093,7 +1093,7 @@ export default function AutoTradeSetupScreen() {
                       {isSubmittingPayment ? (
                         <RefreshCw size={15} color="#fff" />
                       ) : (
-                        <Text style={[styles.stepActionBtnText, { color: '#ffffff' }]}>
+                        <Text style={[styles.stepActionBtnText, { color: '#ffffff', flexShrink: 1 }]} numberOfLines={1}>
                           Submit &amp; View License Key →
                         </Text>
                       )}
@@ -1124,7 +1124,7 @@ export default function AutoTradeSetupScreen() {
                     <Text style={{ fontSize: 11, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', marginBottom: 6 }}>
                       YOUR METATRADER 5 LICENSE KEY:
                     </Text>
-                    <Text style={[styles.keyTextLarge, { color: isDark ? '#38bdf8' : '#0f172a' }]}>
+                    <Text style={[styles.keyTextLarge, { color: isDark ? '#38bdf8' : '#0f172a', paddingHorizontal: 6 }]}>
                       {dynamicLicenseKey}
                     </Text>
 
@@ -1402,12 +1402,13 @@ const styles = StyleSheet.create({
   },
   milestoneGrid: {
     flexDirection: 'row',
-    gap: 6,
+    gap: 4,
   },
   milestoneBtn: {
     flex: 1,
-    paddingVertical: 8,
-    borderRadius: 10,
+    paddingVertical: 7,
+    paddingHorizontal: 2,
+    borderRadius: 9,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
@@ -1419,8 +1420,9 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   milestoneBtnText: {
-    fontSize: 10.5,
+    fontSize: 10,
     fontFamily: 'Inter_600SemiBold',
+    textAlign: 'center',
   },
   formTitle: {
     fontSize: 16,
@@ -1581,14 +1583,16 @@ const styles = StyleSheet.create({
   },
   specGrid: {
     flexDirection: 'row',
-    gap: 6,
+    flexWrap: 'wrap',
+    gap: 8,
     marginBottom: 8,
   },
   specTile: {
-    flex: 1,
-    borderRadius: 10,
+    width: '48.5%',
+    borderRadius: 12,
     borderWidth: 1,
-    padding: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
     alignItems: 'center',
   },
   specTileLabel: {
