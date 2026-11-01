@@ -43,7 +43,8 @@ import {
   Trophy,
   ShieldCheck,
   FileText as BookOpen,
-  Settings2 as Settings
+  Settings2 as Settings,
+  Lock
 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -415,7 +416,7 @@ export default function DashboardScreen() {
               <View style={styles.connStatus}>
                 <View style={styles.activePulse} />
                 <Text style={styles.connText}>MT5 Connected</Text>
-                <View style={styles.liveBadge}><Text style={styles.liveText}>LIVE</Text></View>
+
               </View>
               <View style={styles.connDetails}>
                 <Text style={styles.detailText}>Acct: 50971432</Text>
@@ -713,7 +714,7 @@ export default function DashboardScreen() {
                       <Text style={{ color: '#fff', fontSize: 18, fontFamily: 'Inter_500Medium' }}>October Competition 25</Text>
                     </View>
                     <View style={{ width: 36, height: 24, backgroundColor: '#334155', borderRadius: 6, alignItems: 'center', justifyContent: 'center' }}>
-                      <Text style={{ color: '#94a3b8', fontSize: 11, fontFamily: 'Inter_500Medium' }}>SOON</Text>
+                      <Lock size={12} color="#94a3b8" />
                     </View>
                   </View>
 

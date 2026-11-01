@@ -1,7 +1,7 @@
 import { Tabs, useRouter, usePathname, useGlobalSearchParams, useSegments } from 'expo-router';
 import React, { useState, useRef, useEffect } from 'react';
 import {
-  Bot, Menu, X, Cpu, Zap, CreditCard, History, Brain, Mic, BadgeCheck, Clock, List, Rocket, CircleSlash, UserPlus, DollarSign, ArrowUp, Globe, Sparkles, LogOut, Bell, ShieldAlert
+  Bot, Menu, X, Cpu, Zap, CreditCard, History, Brain, Mic, BadgeCheck, Clock, List, Rocket, CircleSlash, UserPlus, DollarSign, ArrowUp, Globe, Sparkles, LogOut, Bell, ShieldAlert, Lock
 } from 'lucide-react-native';
 import {
   User,
@@ -349,7 +349,6 @@ export default function TabLayout() {
     {
       label: 'Home',
       icon: Home,
-      badge: 'LIVE',
       subItems: [
         { label: 'Feed', icon: Home, route: '/(tabs)', params: { view: 'feed' } },
         { label: 'Inbox', icon: Message, route: '/(tabs)/inbox' },
@@ -359,7 +358,6 @@ export default function TabLayout() {
     {
       label: 'Auto Trade',
       icon: Activity,
-      badge: 'LIVE',
       subItems: [
         { label: 'Auto Trade Setup', icon: Work, route: '/(tabs)/auto-trade-setup' },
         { label: 'Algo Marketplace', icon: Bag, route: '/(tabs)/marketplace' },
@@ -369,7 +367,7 @@ export default function TabLayout() {
     {
       label: 'Dashboard',
       icon: Category,
-      badge: 'SOON',
+      isLocked: true,
       subItems: [
         { label: 'Overview & Stats', icon: Category, route: '/(tabs)', params: { view: 'dashboard' } },
         { label: 'Portfolio', icon: Wallet, route: '/(tabs)/portfolio' },
@@ -379,7 +377,7 @@ export default function TabLayout() {
     {
       label: 'Journal',
       icon: Paper,
-      badge: 'SOON',
+      isLocked: true,
       subItems: [
         { label: 'Daily Journal', icon: Document, route: '/(tabs)/journal' },
         { label: 'Performance Analytics', icon: Chart, route: '/(tabs)/journal' },
@@ -389,7 +387,7 @@ export default function TabLayout() {
     {
       label: 'Risk Guard',
       icon: ShieldDone,
-      badge: 'SOON',
+      isLocked: true,
       subItems: [
         { label: 'Risk Dashboard', icon: ShieldDone, route: '/(tabs)/risk-guard' },
         { label: 'Drawdown Limits', icon: ShieldFail, route: '/(tabs)/risk-guard' },
@@ -399,7 +397,7 @@ export default function TabLayout() {
     {
       label: 'AI Coach',
       icon: SparklesIcon,
-      badge: 'SOON',
+      isLocked: true,
       subItems: [
         { label: 'AI Coach Insights', icon: SparklesIcon, action: 'ai' },
         { label: 'Trade Feedback & Chat', icon: Chat, action: 'ai' },
@@ -408,7 +406,6 @@ export default function TabLayout() {
     {
       label: 'Discover',
       icon: Discovery,
-      badge: 'LIVE',
       subItems: [
         { label: 'Algo Marketplace', icon: Bag, route: '/(tabs)/marketplace' },
         { label: 'Trading Contests', icon: Trophy, route: '/(tabs)/contests' },
@@ -418,7 +415,7 @@ export default function TabLayout() {
     {
       label: 'Channels',
       icon: TwoUsers,
-      badge: 'SOON',
+      isLocked: true,
       subItems: [
         { label: 'Trading Channels', icon: Chat, route: '/(tabs)/channels' },
         { label: 'Mentorship Hub', icon: Crown, route: '/(tabs)/mentorship-hub' },
@@ -428,7 +425,7 @@ export default function TabLayout() {
     {
       label: 'Rewards',
       icon: Gift,
-      badge: 'SOON',
+      isLocked: true,
       route: '/(tabs)/rewards',
       subItems: [
         { label: 'Refer & Earn', icon: TwoUsers, route: '/(tabs)/referrals' },
@@ -448,7 +445,8 @@ export default function TabLayout() {
     } as any);
   }
 
-  const DRAWER_FOOTER = [
+  const DRAWER_FOOTER = [
+
     { label: 'Settings and privacy', icon: SettingsIcon, route: '/(tabs)/settings' },
     { label: 'Help Centre', icon: HelpCircle, route: '/help' },
     { label: 'Log Out', icon: Logout, action: 'signout' },
@@ -667,24 +665,17 @@ export default function TabLayout() {
                       {item.label}
                     </Text>
 
-                    {item.badge && (
+                    {(item as any).isLocked && (
                       <View style={{
-                        backgroundColor: item.badge === 'LIVE' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255, 255, 255, 0.1)',
-                        paddingHorizontal: 7,
-                        paddingVertical: 2,
+                        width: 22,
+                        height: 22,
                         borderRadius: 6,
+                        backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                        alignItems: 'center',
+                        justifyContent: 'center',
                         marginRight: 6,
-                        borderWidth: 1,
-                        borderColor: item.badge === 'LIVE' ? 'rgba(16, 185, 129, 0.4)' : 'rgba(255, 255, 255, 0.15)',
                       }}>
-                        <Text style={{
-                          color: item.badge === 'LIVE' ? '#34d399' : '#94a3b8',
-                          fontSize: 10,
-                          fontFamily: 'Inter_700Bold',
-                          letterSpacing: 0.5,
-                        }}>
-                          {item.badge}
-                        </Text>
+                        <Lock size={12} color="#94a3b8" />
                       </View>
                     )}
 

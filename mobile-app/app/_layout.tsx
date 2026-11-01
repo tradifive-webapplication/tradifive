@@ -39,7 +39,8 @@ export default function RootLayout() {
     if (Platform.OS === 'web') {
       const handleResize = () => {
         if (window.innerWidth > 768) {
-          window.location.href = '/';
+          // Allow desktop browser preview in centered phone frame
+          return;
         }
       };
       

@@ -105,6 +105,7 @@ import {
   Quote,
   Circle as CircleIcon,
   PlusCircle,
+  Lock,
 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import * as ImagePicker from 'expo-image-picker';
@@ -2628,7 +2629,7 @@ export default function DashboardScreen() {
                         <Text style={{ color: '#fff', fontSize: 18, fontFamily: 'Inter_500Medium' }}>October Competition 25</Text>
                       </View>
                       <View style={{ width: 36, height: 24, backgroundColor: '#334155', borderRadius: 6, alignItems: 'center', justifyContent: 'center' }}>
-                        <Text style={{ color: '#94a3b8', fontSize: 10, fontFamily: 'Inter_500Medium' }}>SOON</Text>
+                        <Lock size={12} color="#94a3b8" />
                       </View>
                     </View>
 
