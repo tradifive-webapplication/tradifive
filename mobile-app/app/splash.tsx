@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Image, StyleSheet, Animated, Dimensions, Platform, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -13,8 +13,22 @@ const bottomGlowSource = require('../assets/images/bottom-glow.png');
 
 export default function SplashScreen() {
   const router = useRouter();
-  // Start at full opacity (1) — no fade-in blur effect on Android
+  const hasNavigated = useRef(false);
   const scaleAnim = useRef(new Animated.Value(0.92)).current;
+
+  const navigateNext = (target: string) => {
+    if (hasNavigated.current) return;
+    hasNavigated.current = true;
+    try {
+      router.replace(target as any);
+    } catch (e) {
+      setTimeout(() => {
+        try {
+          router.replace(target as any);
+        } catch (err) {}
+      }, 100);
+    }
+  };
 
   useEffect(() => {
     // Immediately redirect if session exists on web
@@ -23,12 +37,12 @@ export default function SplashScreen() {
         k => k.startsWith('sb-') && k.endsWith('-auth-token')
       );
       if (hasSession) {
-        router.replace('/(tabs)');
+        navigateNext('/(tabs)');
         return;
       }
     }
 
-    // Only animate scale (no opacity/blur) — crisp from first frame
+    // Scale animation
     Animated.spring(scaleAnim, {
       toValue: 1,
       friction: 5,
@@ -36,40 +50,50 @@ export default function SplashScreen() {
       useNativeDriver: true,
     }).start();
 
+    // Safety fallback: if session check takes > 1.2s, proceed to onboarding
+    const safetyTimer = setTimeout(() => {
+      navigateNext('/onboarding');
+    }, 1200);
+
     const checkSession = async () => {
       try {
         const AsyncStorage = require('@react-native-async-storage/async-storage').default;
         const isBypassedVal = await AsyncStorage.getItem('tradifive_is_bypassed');
         if (isBypassedVal === 'true') {
+          clearTimeout(safetyTimer);
           AuthService.isBypassed = true;
           useStore.getState().setBypassed(true);
           useStore.getState().init().catch((e: any) => console.warn('[Init Error]:', e));
-          router.replace('/(tabs)');
+          navigateNext('/(tabs)');
           return;
         }
 
-        // Init in background so it doesn't block routing
+        // Init in background
         useStore.getState().init().catch((e: any) => console.warn('[Init Error]:', e));
 
         const session = await AuthService.getCurrentSession();
+        clearTimeout(safetyTimer);
         if (session?.user) {
-          router.replace('/(tabs)');
+          navigateNext('/(tabs)');
         } else {
-          router.replace('/onboarding');
+          navigateNext('/onboarding');
         }
       } catch (err) {
+        clearTimeout(safetyTimer);
         console.warn('[SplashScreen Session Error]:', err);
-        router.replace('/onboarding');
+        navigateNext('/onboarding');
       }
     };
 
     checkSession();
+
+    return () => clearTimeout(safetyTimer);
   }, []);
 
   return (
-    <View style={styles.container}>
+    <Pressable style={styles.container} onPress={() => navigateNext('/onboarding')}>
       <SafeAreaView style={styles.safeArea}>
-        {/* TOP GLOW — non-animated, renders crisp immediately */}
+        {/* TOP GLOW */}
         <Image
           source={topGlowSource}
           style={styles.topGlow}
@@ -77,7 +101,7 @@ export default function SplashScreen() {
           fadeDuration={0}
         />
 
-        {/* LOGO AREA — scale spring only, no opacity, no blur */}
+        {/* LOGO AREA */}
         <Animated.View style={[styles.logoContainer, { transform: [{ scale: scaleAnim }] }]}>
           <Image
             source={require('../assets/images/Logo_only.png')}
@@ -101,7 +125,7 @@ export default function SplashScreen() {
           fadeDuration={0}
         />
       </SafeAreaView>
-    </View>
+    </Pressable>
   );
 }
 

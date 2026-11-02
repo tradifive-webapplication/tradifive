@@ -20,6 +20,7 @@ try {
 } catch (e) {}
 
 export default function RootLayout() {
+  const [fontTimeout, setFontTimeout] = React.useState(false);
   const [fontsLoaded, fontError] = useFonts({
     Inter_900Black,
     Inter_800ExtraBold,
@@ -30,9 +31,15 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
+    const timer = setTimeout(() => {
+      setFontTimeout(true);
+      SplashScreen.hideAsync().catch(() => {});
+    }, 1200);
     if (fontsLoaded || fontError) {
-      SplashScreen.hideAsync();
+      clearTimeout(timer);
+      SplashScreen.hideAsync().catch(() => {});
     }
+    return () => clearTimeout(timer);
   }, [fontsLoaded, fontError]);
 
   useEffect(() => {
@@ -52,7 +59,7 @@ export default function RootLayout() {
     }
   }, []);
 
-  if (!fontsLoaded && !fontError) {
+  if (!fontsLoaded && !fontError && !fontTimeout) {
     return null;
   }
 
