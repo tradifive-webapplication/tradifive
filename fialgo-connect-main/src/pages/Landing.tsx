@@ -14,9 +14,6 @@ import { Ic } from "../components/Ic";
 import Pattern from "../components/Pattern";
 import { supabase } from "@/integrations/supabase/client";
 import confetti from "canvas-confetti";
-// Spline is dynamically imported ONLY for desktop — avoids shipping the heavy
-// WebGL runtime to mobile devices where it is not rendered.
-const SplineLazy = lazy(() => import('@splinetool/react-spline'));
 import { FlipText } from "@/components/ui/flip-text";
 import { AgentBentoGrid } from "@/components/ui/agent-bento-grid";
 import SideRays from "@/components/SideRays";
@@ -870,57 +867,6 @@ function PhoneMockup({ screen }: { screen: any }) {
       {/* Home bar */}
       <div style={{ position: "absolute", bottom: 10, left: "50%", transform: "translateX(-50%)", width: 80, height: 4, borderRadius: 3, background: "rgba(255,255,255,0.25)" }} />
     </div>
-  );
-}
-
-/* ════════════════
-   WHY TRADIFIVE
-════════════════ */
-function WhyTradifive() {
-  const [isDesktop, setIsDesktop] = useState(false);
-
-  useEffect(() => {
-    // Only load the heavy Spline scene on desktop after mount — never on mobile
-    if (window.innerWidth >= 768) {
-      setIsDesktop(true);
-    }
-  }, []);
-
-  return (
-    <section id="why" style={{ backgroundColor: "transparent", position: "relative", height: "100vh", minHeight: 800, width: "100%", display: "flex", overflow: "hidden", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-      <div style={{ width: "100%", height: "100%", position: "absolute", inset: 0, zIndex: 0, pointerEvents: "none" }}>
-        <div style={{ width: "100%", height: "100%", pointerEvents: "auto" }}>
-          {isDesktop ? (
-            <Suspense fallback={<div style={{ width: '100%', height: '100%', background: 'linear-gradient(180deg, #121214 0%, #1a1a2e 100%)' }} />}>
-              <SplineLazy scene="/scene.splinecode" style={{ width: '100%', height: '100%' }} />
-            </Suspense>
-          ) : (
-            <div style={{ width: '100%', height: '100%', background: 'linear-gradient(180deg, #121214 0%, #1a1a2e 100%)' }} />
-          )}
-        </div>
-      </div>
-
-      <div style={{ position: "absolute", top: 48, left: 48, zIndex: 10, pointerEvents: "none" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-          <div style={{ width: 24, height: 24, background: "linear-gradient(to right, #3b82f6, #60a5fa)", borderRadius: 4, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <span style={{ color: "#fff", fontWeight: 900, fontSize: 14 }}>T</span>
-          </div>
-          <span style={{ color: "#fff", fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em" }}>Tradi<span style={{ color: "#3b82f6" }}>five</span></span>
-        </div>
-        <p style={{ color: "rgba(255,255,255,0.6)", fontSize: 10, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.3em", margin: 0 }}>
-          AI-Powered Trading, Unleashed.
-        </p>
-      </div>
-
-      <div style={{ position: "absolute", bottom: 48, left: 48, zIndex: 10, pointerEvents: "none" }}>
-        <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.2em", margin: 0 }}>
-          Built by a <span style={{ color: "#fff", fontWeight: 900 }}>Trader</span>, for <span style={{ color: "#fff", fontWeight: 900 }}>Traders</span>
-        </p>
-      </div>
-
-      {/* Mask to hide SPLINE watermark */}
-      <div style={{ position: "absolute", bottom: 0, right: 0, width: 160, height: 48, background: "#000", zIndex: 20, pointerEvents: "none", boxShadow: "-20px -10px 40px rgba(0,0,0,0.8)" }} />
-    </section>
   );
 }
 

@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
    User as IconlyUser,
    Message as IconlyMessage,
@@ -543,31 +543,18 @@ export default function Login() {
     >
       {/* All fonts loaded globally via index.html (Inter) */}
 
-      {/* Left Side - Spline Robot (loaded in isolated iframe to avoid Vite bundling issues) */}
+            {/* Left Side - Institutional Trading Showcase */}
       <div className="hidden lg:flex lg:w-1/2 p-6 bg-transparent shrink-0 items-center justify-center">
-        <div className="w-full h-full bg-[#000000] rounded-[2rem] flex flex-col items-start justify-start p-12 relative overflow-hidden shadow-2xl border border-white/5">
+        <div className="w-full h-full bg-[#0a0d14] rounded-[2rem] flex flex-col justify-between p-12 relative overflow-hidden shadow-2xl border border-white/10">
+          
+          {/* Ambient Glows */}
+          <div className="absolute -top-24 -left-24 w-96 h-96 bg-blue-600/15 rounded-full blur-[100px] pointer-events-none" />
+          <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-indigo-600/15 rounded-full blur-[120px] pointer-events-none" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-emerald-500/10 rounded-full blur-[90px] pointer-events-none" />
 
-          {/* Robot Web Component — using spline-viewer to allow global mouse tracking */}
-          <div className="absolute inset-0 z-0 pointer-events-auto">
-            <div className="w-full h-full rounded-[2rem] overflow-hidden">
-              {/* @ts-ignore - Custom Web Component */}
-              <spline-viewer 
-                ref={(node: any) => {
-                  if (node) {
-                    node.eventsTarget = "global";
-                    node.setAttribute("events-target", "global");
-                  }
-                }}
-                url="/scene.splinecode" 
-                events-target="global" 
-                style={{ width: '100%', height: '100%' }}
-              ></spline-viewer>
-            </div>
-          </div>
-
-          {/* Top-Left Branding Overlay */}
+          {/* Top-Left Branding */}
           <motion.div
-            initial={{ opacity: 0, x: -30 }}
+            initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
             className="relative z-10 flex flex-col items-start pointer-events-none"
@@ -576,18 +563,74 @@ export default function Login() {
             <p className="text-white/60 text-[10px] font-black uppercase tracking-[0.3em] leading-tight">AI-Powered Trading, Unleashed.</p>
           </motion.div>
 
-          {/* Mask to hide Spline watermark (Bottom Right) */}
-          <div className="absolute bottom-0 right-0 w-40 h-12 bg-black z-20 pointer-events-none shadow-[-20px_-10px_40px_rgba(0,0,0,0.8)]" />
+          {/* Center Showcase - Institutional Cards */}
+          <div className="relative z-10 flex flex-col gap-4 my-auto w-full max-w-[420px]">
+            {/* Live Telemetry Card */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.6 }}
+              className="p-5 rounded-2xl bg-white/[0.04] backdrop-blur-xl border border-white/10 shadow-xl"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="text-xs font-bold text-white tracking-wide">FiAlgo V1 Live Telemetry</span>
+                </div>
+                <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">
+                  99.98% UPTIME
+                </span>
+              </div>
+              <div className="grid grid-cols-3 gap-2 pt-2 border-t border-white/5">
+                <div>
+                  <div className="text-[10px] text-white/40 font-medium uppercase tracking-wider">Asset</div>
+                  <div className="text-sm font-black text-white mt-0.5">XAUUSD</div>
+                </div>
+                <div>
+                  <div className="text-[10px] text-white/40 font-medium uppercase tracking-wider">Timeframe</div>
+                  <div className="text-sm font-black text-white mt-0.5">M1 Pure</div>
+                </div>
+                <div>
+                  <div className="text-[10px] text-white/40 font-medium uppercase tracking-wider">Protection</div>
+                  <div className="text-sm font-black text-emerald-400 mt-0.5">8 Shields</div>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Risk Management Card */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.35, duration: 0.6 }}
+              className="p-5 rounded-2xl bg-white/[0.04] backdrop-blur-xl border border-white/10 shadow-xl"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-bold text-white">Institutional Risk Guard</span>
+                <span className="text-[10px] text-blue-400 font-semibold">Active Enforcement</span>
+              </div>
+              <p className="text-xs text-white/60 leading-relaxed m-0">
+                Automated circuit breakers, max drawdown locks, dynamic spread shields, and news filters protect your live capital.
+              </p>
+            </motion.div>
+
+            {/* Multi-Broker Support Badge */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5, duration: 0.6 }}
+              className="flex items-center justify-between px-4 py-3 rounded-xl bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border border-blue-500/20 text-white"
+            >
+              <span className="text-xs font-semibold text-white/80">Regulated MT5 Execution</span>
+              <span className="text-xs font-bold text-blue-400">Exness · Vantage · MetaTrader</span>
+            </motion.div>
+          </div>
 
           {/* Footer */}
-          <div className="absolute bottom-10 left-12 z-10">
+          <div className="relative z-10">
             <p className="text-white/40 text-[10px] tracking-[0.2em] font-bold uppercase whitespace-nowrap">
               Built by a <span className="text-white font-black cursor-default">Trader</span>, for <span className="text-white font-black cursor-default">Traders</span>
             </p>
           </div>
-
-          {/* Bottom gradient fade */}
-          <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black via-black/40 to-transparent pointer-events-none z-0" />
         </div>
       </div>
 
