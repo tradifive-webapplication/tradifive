@@ -930,7 +930,7 @@ export default function AITrading() {
           algo_id: "fialgo_v1",
           algo_name: "FiAlgo V1 (Gold Scalper & Trend)",
           algo_manifest: "FiAlgo_v1.0.4.ex5",
-          algo_pair: "XAUUSD · M15",
+          algo_pair: "XAUUSD · M1",
           purchase_tier: "None",
           price_paid: 0,
           payment_status: "pending",
@@ -1026,10 +1026,7 @@ export default function AITrading() {
     localStorage.setItem("tradifive_ea_downloaded", "true");
 
     if (cleanAccount && activeKey) {
-      setTimeout(() => {
-        handleDownloadPreset();
-      }, 400);
-      toast.success(`FiAlgo EA & Preset Downloaded for Account #${cleanAccount}!`, {
+      toast.success(`FiAlgo EA Downloaded for Account #${cleanAccount}!`, {
         description: `License Key is locked to MT5 Account #${cleanAccount}. Only this account can execute the EA.`
       });
     } else {
@@ -1976,7 +1973,7 @@ MagicNumber=789104
                     </div>
                     <div className="p-2 rounded-lg bg-slate-50 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/5">
                       <span className="block text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500">Chart</span>
-                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200">M15 Timeframe</span>
+                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200">1-Min (M1)</span>
                     </div>
                     <div className="p-2 rounded-lg bg-slate-50 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/5">
                       <span className="block text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500">Protection</span>
@@ -2091,7 +2088,7 @@ MagicNumber=789104
                             Attach to XAUUSD Chart &amp; Enable Algo
                           </strong>
                           <p className="text-[11.5px] text-slate-500 dark:text-slate-400 leading-normal">
-                            Open <span className="font-semibold text-slate-800 dark:text-slate-200">XAUUSD (Gold)</span> on <span className="font-semibold text-slate-800 dark:text-slate-200">M15 timeframe</span>, drag FiAlgo onto the chart, and turn ON <span className="font-semibold text-emerald-600 dark:text-emerald-400">Algo Trading</span> on MT5's top toolbar.
+                            Open <span className="font-semibold text-slate-800 dark:text-slate-200">XAUUSD (Gold)</span> on <span className="font-semibold text-slate-800 dark:text-slate-200">1-Min (M1) timeframe</span>, drag FiAlgo onto the chart, and turn ON <span className="font-semibold text-emerald-600 dark:text-emerald-400">Algo Trading</span> on MT5's top toolbar.
                           </p>
                           <div className="flex items-center gap-1.5 text-[11px] font-medium text-emerald-600 dark:text-emerald-400 pt-0.5">
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
@@ -3140,7 +3137,7 @@ MagicNumber=789104
                   </button>
                 )}
               </div>
-            ) : (
+                        ) : (
               /* ── CASE 4D: FULLY UNLOCKED STATE - SHOW LICENSE KEY & MT5 ATTACHMENT ── */
               <div className="space-y-5">
                 {(() => {
@@ -3151,116 +3148,119 @@ MagicNumber=789104
 
                   return (
                     <>
-                      {/* Compact License Key Card */}
-                      <div className="p-4 sm:p-5 rounded-xl bg-slate-50/70 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 shadow-xs space-y-3">
+                      {/* Master License Key Card (Big Tech Minimalist Style) */}
+                      <div className="p-5 sm:p-6 rounded-2xl bg-slate-50/70 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 space-y-4 shadow-xs">
                         <div className="flex items-center justify-between flex-wrap gap-2">
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2.5">
                             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-                            <span className="text-xs font-bold text-slate-900 dark:text-white">
+                            <span className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
                               Live MT5 License Key
                             </span>
-                            <span className="text-[11px] font-mono font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-white/10 px-2 py-0.5 rounded border border-slate-200/60 dark:border-white/10">
+                            <span className="text-xs font-mono font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-white/10 px-2 py-0.5 rounded-md border border-slate-200/70 dark:border-white/10">
                               #{effectiveAccount}
                             </span>
                           </div>
-                          <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">
-                            Active &amp; Cryptographically Bound
+                          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
+                            <ShieldCheck size={13} className="text-emerald-500" />
+                            <span>Active &amp; Cryptographically Bound</span>
                           </span>
                         </div>
 
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-[#121214] border border-slate-200/80 dark:border-white/10 rounded-xl p-3 px-4 shadow-2xs">
-                          <code className="font-mono text-xs sm:text-base font-black tracking-wider text-slate-900 dark:text-emerald-400 select-all break-all">
+                        {/* License Key Code Bar */}
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-white dark:bg-[#121214] border border-slate-200/80 dark:border-white/10 rounded-xl p-3.5 px-4 shadow-2xs">
+                          <code className="font-mono text-sm sm:text-base font-extrabold tracking-wider text-slate-900 dark:text-emerald-400 select-all break-all">
                             {activeKey}
                           </code>
                           <div className="flex items-center gap-2 shrink-0">
                             <button
                               type="button"
                               onClick={() => handleCopyKey(activeKey)}
-                              className="px-3.5 py-2 rounded-lg text-xs font-bold bg-slate-900 text-white dark:bg-white dark:text-slate-900 hover:opacity-90 inline-flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-[0.99]"
+                              className="px-4 py-2 rounded-lg text-xs font-bold bg-slate-900 text-white dark:bg-white dark:text-slate-900 hover:opacity-90 inline-flex items-center gap-1.5 cursor-pointer shadow-xs transition-all active:scale-[0.99]"
                             >
-                              {copiedKey ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
+                              {copiedKey ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
                               <span>{copiedKey ? "Copied" : "Copy Key"}</span>
                             </button>
                             <button
                               type="button"
                               onClick={handleDownloadEA}
-                              className="px-3 py-2 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white inline-flex items-center gap-1.5 cursor-pointer shadow-xs"
+                              className="px-3.5 py-2 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/15 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-white/10 inline-flex items-center gap-1.5 cursor-pointer shadow-xs transition-colors"
                               title="Download FiAlgo Expert Advisor (.ex5)"
                             >
-                              <Download size={13} />
-                              <span>Download EA</span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={handleDownloadPreset}
-                              className="px-3 py-2 rounded-lg text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white inline-flex items-center gap-1.5 cursor-pointer shadow-xs"
-                              title="Download pre-configured .set preset"
-                            >
-                              <Download size={13} />
-                              <span>Download .set</span>
+                              <Download size={14} />
+                              <span>Download EA (.ex5)</span>
                             </button>
                           </div>
                         </div>
 
-                        {/* Account-Lock Security Guarantee Card */}
-                        <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-900 dark:text-emerald-200 space-y-1">
-                          <div className="flex items-center gap-2 font-bold text-emerald-800 dark:text-emerald-300">
-                            <ShieldCheck size={14} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
-                            <span>Strictly Account-Locked to MT5 Account #{effectiveAccount}</span>
-                          </div>
-                          <p className="text-[11px] leading-relaxed text-emerald-800/90 dark:text-emerald-300/90">
-                            This algo and license key are mathematically bound to account #{effectiveAccount}. If any other person copies your key or tries running this EA on a different MT5 login, execution is blocked immediately and the EA will remove itself.
-                          </p>
+                        {/* Subtle Account Binding Notice */}
+                        <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 px-1">
+                          <ShieldCheck size={14} className="text-emerald-500 shrink-0" />
+                          <span>
+                            Cryptographically locked to MT5 account <strong className="text-slate-700 dark:text-slate-300">#{effectiveAccount}</strong>. Anti-tamper protection active.
+                          </span>
                         </div>
                       </div>
 
-                      {/* Compact 2-Step Quick Guide */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                      {/* 2 Symmetric Setup Cards */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                         {/* Step 1: WebRequest */}
-                        <div className="p-3.5 rounded-xl bg-slate-50/70 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 space-y-2">
-                          <div className="flex items-center justify-between">
-                            <span className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5 text-xs">
-                              <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-[11px]">1</span>
-                              <span>Allow MT5 WebRequest</span>
-                            </span>
-                            <span className="text-[10px] text-slate-500 font-mono bg-white dark:bg-white/10 px-1.5 py-0.5 rounded border border-slate-200/60 dark:border-white/10">Ctrl+O</span>
+                        <div className="p-4 rounded-xl bg-slate-50/70 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 space-y-2.5 flex flex-col justify-between">
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="font-bold text-slate-900 dark:text-white flex items-center gap-2 text-xs">
+                                <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-[11px]">
+                                  1
+                                </span>
+                                <span>Allow MT5 WebRequest</span>
+                              </span>
+                              <kbd className="text-[10px] font-mono font-semibold text-slate-500 dark:text-slate-400 bg-white dark:bg-white/10 px-1.5 py-0.5 rounded border border-slate-200/80 dark:border-white/10">
+                                Ctrl + O
+                              </kbd>
+                            </div>
+                            <p className="text-[11.5px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                              In MT5: <span className="font-semibold text-slate-700 dark:text-slate-300">Tools &rarr; Options &rarr; Experts</span>. Check <em>"Allow WebRequest for listed URL"</em> and add:
+                            </p>
                           </div>
-                          <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                            In MT5: <strong>Tools &rarr; Options &rarr; Experts</strong>. Check <em>"Allow WebRequest for listed URL"</em> and add:
-                          </p>
-                          <div className="flex items-center justify-between bg-white dark:bg-[#121214] border border-slate-200/70 dark:border-white/10 rounded-lg p-1.5 px-2.5">
-                            <span className="font-mono text-[10.5px] text-blue-600 dark:text-blue-400 truncate select-all">
+                          <div className="flex items-center justify-between gap-2 bg-white dark:bg-[#121214] border border-slate-200/80 dark:border-white/10 rounded-lg p-1.5 pl-2.5">
+                            <code className="font-mono text-[11px] text-blue-600 dark:text-blue-400 truncate select-all">
                               https://rylwyxhupwpwsdbvuoej.supabase.co
-                            </span>
+                            </code>
                             <button
                               type="button"
                               onClick={() => {
                                 navigator.clipboard.writeText("https://rylwyxhupwpwsdbvuoej.supabase.co");
                                 toast.success("Webhook URL copied!");
                               }}
-                              className="text-slate-400 hover:text-slate-700 dark:hover:text-white p-1 cursor-pointer shrink-0 ml-1.5"
+                              className="px-2 py-0.5 rounded text-[10.5px] font-semibold bg-blue-600 hover:bg-blue-700 text-white inline-flex items-center gap-1 shrink-0 cursor-pointer transition-colors"
                               title="Copy URL"
                             >
-                              <Copy size={12} />
+                              <Copy size={11} />
+                              <span>Copy</span>
                             </button>
                           </div>
                         </div>
 
                         {/* Step 2: Attach to Chart */}
-                        <div className="p-3.5 rounded-xl bg-slate-50/70 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 space-y-2">
-                          <div className="flex items-center justify-between">
-                            <span className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5 text-xs">
-                              <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-[11px]">2</span>
-                              <span>Attach FiAlgo to Chart</span>
-                            </span>
-                            <span className="text-[10px] text-slate-500 font-mono bg-white dark:bg-white/10 px-1.5 py-0.5 rounded border border-slate-200/60 dark:border-white/10">Press F7</span>
+                        <div className="p-4 rounded-xl bg-slate-50/70 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 space-y-2.5 flex flex-col justify-between">
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="font-bold text-slate-900 dark:text-white flex items-center gap-2 text-xs">
+                                <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-[11px]">
+                                  2
+                                </span>
+                                <span>Attach FiAlgo to Gold Chart</span>
+                              </span>
+                              <kbd className="text-[10px] font-mono font-semibold text-slate-500 dark:text-slate-400 bg-white dark:bg-white/10 px-1.5 py-0.5 rounded border border-slate-200/80 dark:border-white/10">
+                                Press F7
+                              </kbd>
+                            </div>
+                            <p className="text-[11.5px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                              Open <span className="font-semibold text-slate-800 dark:text-slate-200">XAUUSD (Gold)</span> on the <span className="font-semibold text-slate-800 dark:text-slate-200">1-Min (M1) timeframe</span> and drag FiAlgo onto chart.
+                            </p>
                           </div>
-                          <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                            Drag <strong>FiAlgo</strong> onto any <kbd className="px-1 py-0.5 rounded bg-white dark:bg-white/10 font-mono text-[10px] border border-slate-200/60 dark:border-white/10">XAUUSD, M15</kbd> chart.
-                          </p>
-                          <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
-                            Press <kbd className="px-1 py-0.5 rounded bg-white dark:bg-white/10 font-mono text-[10px] border border-slate-200/60 dark:border-white/10">F7</kbd> &rarr; <strong>Inputs</strong> &rarr; paste your License Key &rarr; click <strong>OK</strong>.
-                          </p>
+                          <div className="p-2 rounded-lg bg-white dark:bg-[#121214] border border-slate-200/80 dark:border-white/10 text-[11px] text-slate-600 dark:text-slate-300">
+                            Press <kbd className="font-mono text-[10px] font-semibold px-1 py-0.5 rounded bg-slate-100 dark:bg-white/10">F7</kbd> &rarr; <strong>Inputs</strong> &rarr; paste your License Key &rarr; click <strong>OK</strong>.
+                          </div>
                         </div>
                       </div>
                     </>
@@ -3269,7 +3269,7 @@ MagicNumber=789104
 
                 {/* Real-Time Connection Status */}
                 {isMt5Connected ? (
-                  <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-between gap-3 text-xs">
+                  <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-between gap-3 text-xs">
                     <div className="flex items-center gap-2.5">
                       <div className="relative flex items-center justify-center shrink-0">
                         <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping absolute opacity-75" />
@@ -3279,25 +3279,25 @@ MagicNumber=789104
                         <span className="font-bold text-emerald-800 dark:text-emerald-300">
                           FiAlgo Connected &amp; Live
                         </span>
-                        <span className="text-slate-500 dark:text-slate-400 ml-2 text-[11px] hidden sm:inline">
-                          MT5 #{mt5Account} &middot; Algorithm active
+                        <span className="text-slate-500 dark:text-slate-400 ml-2 text-[11.5px] hidden sm:inline">
+                          MT5 #{mt5Account} &middot; Algorithm executing in real-time
                         </span>
                       </div>
                     </div>
-                    <span className="text-[10.5px] font-mono text-emerald-600 dark:text-emerald-400 font-semibold bg-white dark:bg-white/10 px-2.5 py-1 rounded border border-emerald-500/20">
+                    <span className="text-xs font-mono text-emerald-600 dark:text-emerald-400 font-bold bg-white dark:bg-white/10 px-2.5 py-1 rounded-md border border-emerald-500/20">
                       Online &middot; 1.8ms
                     </span>
                   </div>
                 ) : (
-                  <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 flex items-center justify-between gap-3 text-xs">
+                  <div className="p-3.5 rounded-xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 flex items-center justify-between gap-3 text-xs">
                     <div className="flex items-center gap-2.5">
-                      <Clock size={15} className="text-amber-500 shrink-0" />
+                      <Clock size={16} className="text-amber-500 shrink-0" />
                       <div>
-                        <span className="font-bold text-slate-800 dark:text-slate-200">
-                          Awaiting MT5 Chart Connection
+                        <span className="font-bold text-slate-900 dark:text-white">
+                          Awaiting MT5 Terminal Attachment
                         </span>
-                        <span className="text-slate-500 dark:text-slate-400 ml-2 text-[11px] hidden sm:inline">
-                          Attach FiAlgo to chart with your key to start
+                        <span className="text-slate-500 dark:text-slate-400 ml-2 text-[11.5px] hidden sm:inline">
+                          Attach FiAlgo to your MT5 Gold 1-Min (M1) chart with your license key to connect
                         </span>
                       </div>
                     </div>
@@ -3305,9 +3305,9 @@ MagicNumber=789104
                       type="button"
                       onClick={() => checkLiveMt5Connection()}
                       disabled={isCheckingConnection}
-                      className="text-[11px] font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-white/10 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/15 inline-flex items-center gap-1.5 cursor-pointer shrink-0 transition-all shadow-2xs"
+                      className="text-xs font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-white/10 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/15 inline-flex items-center gap-1.5 cursor-pointer shrink-0 transition-all shadow-2xs"
                     >
-                      <RefreshCw size={11} className={isCheckingConnection ? "animate-spin" : ""} />
+                      <RefreshCw size={12} className={isCheckingConnection ? "animate-spin" : ""} />
                       <span>{isCheckingConnection ? "Checking..." : "Refresh Status"}</span>
                     </button>
                   </div>
@@ -3319,8 +3319,8 @@ MagicNumber=789104
                   onClick={handleGoToDashboard}
                   className="w-full py-3.5 px-5 rounded-xl text-xs sm:text-sm font-bold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:hover:bg-slate-200 dark:text-slate-900 flex items-center justify-center gap-2 cursor-pointer shadow-xs transition-all active:scale-[0.99]"
                 >
-                  <Zap size={15} className="text-amber-400" />
-                  <span>Open AutoTrade Dashboard &rarr;</span>
+                  <span>Open AutoTrade Dashboard</span>
+                  <ArrowRight size={15} />
                 </button>
               </div>
             )}

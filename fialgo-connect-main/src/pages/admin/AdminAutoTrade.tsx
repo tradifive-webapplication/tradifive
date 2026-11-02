@@ -512,7 +512,7 @@ export default function AdminAutoTrade() {
             algo_id: (override.algo_id as any) || "fialgo_v1",
             algo_name: override.algo_name || "FiAlgo V1 (Gold Scalper & Trend)",
             algo_manifest: override.algo_manifest || "FiAlgo_v1.0.4.ex5",
-            algo_pair: override.algo_pair || "XAUUSD · M15",
+            algo_pair: override.algo_pair || "XAUUSD · M1",
             tradifive_id: override.tradifive_id || (effectiveAccount ? `TRDF-${effectiveAccount.slice(-6).padStart(6, "0")}` : `TRDF-${p.id.slice(0, 6).toUpperCase()}`),
             settlement_day: override.settlement_day || "Wednesday",
             purchase_tier: (override.purchase_tier as any) || (hasPurchased ? "Lifetime License" : "None"),

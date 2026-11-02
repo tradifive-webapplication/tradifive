@@ -215,7 +215,6 @@ export default function AutoTradeSetupScreen() {
   // Live Bot Execution State
   const [botActive, setBotActive] = useState(true);
   const [downloadedEA, setDownloadedEA] = useState(false);
-  const [downloadedPreset, setDownloadedPreset] = useState(false);
 
   // Clipboard Copied States
   const [copiedKey, setCopiedKey] = useState(false);
@@ -886,35 +885,6 @@ export default function AutoTradeSetupScreen() {
                       </View>
                     </TouchableOpacity>
 
-                    <TouchableOpacity
-                      activeOpacity={0.85}
-                      onPress={() => {
-                        hSuccess();
-                        setDownloadedPreset(true);
-                        Alert.alert('Preset Downloaded', 'XAUUSD_M1_Preset.set saved. Use MT5 Load button in EA Inputs to apply.');
-                      }}
-                      style={[styles.downloadCard, { backgroundColor: isDark ? '#0c0e14' : '#f8fafc', borderColor: isDark ? '#1e2433' : '#e2e8f0' }]}
-                    >
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1, marginRight: 8 }}>
-                        <View style={[styles.fileIconBox, { backgroundColor: 'rgba(168,85,247,0.15)' }]}>
-                          <Sparkles size={18} color="#a855f7" />
-                        </View>
-                        <View>
-                          <Text style={{ fontSize: 13, fontFamily: 'Inter_700Bold', color: isDark ? '#ffffff' : '#0f172a' }}>
-                            XAUUSD_M1_Preset.set
-                          </Text>
-                          <Text style={{ fontSize: 10.5, fontFamily: 'Inter_500Medium', color: '#94a3b8' }}>
-                            Pre-configured inputs with Stop Loss &amp; News Guard
-                          </Text>
-                        </View>
-                      </View>
-                      <View style={[styles.downloadPill, { backgroundColor: downloadedPreset ? '#10b981' : '#a855f7' }]}>
-                        {downloadedPreset ? <Check size={13} color="#fff" /> : <Download size={13} color="#fff" />}
-                        <Text style={[styles.downloadPillText, { color: '#ffffff' }]}>
-                          {downloadedPreset ? 'Saved' : 'Download'}
-                        </Text>
-                      </View>
-                    </TouchableOpacity>
                   </View>
 
                   {/* MT5 WebRequest Setup Callout */}
@@ -999,7 +969,7 @@ export default function AutoTradeSetupScreen() {
                         <View style={{ flex: 1, paddingRight: 8 }}>
                           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                             <Text style={{ fontSize: 14, fontFamily: 'Inter_800ExtraBold', color: isDark ? '#ffffff' : '#0f172a' }}>
-                              🌟 3-Year Enterprise Pass
+                              3-Year Enterprise Pass
                             </Text>
                             <View style={[styles.popularBadge, { backgroundColor: 'rgba(16,185,129,0.15)', borderColor: 'rgba(16,185,129,0.3)' }]}>
                               <Text style={[styles.popularText, { color: '#10b981', fontSize: 9 }]}>0% PROFIT SHARE</Text>
@@ -1038,7 +1008,7 @@ export default function AutoTradeSetupScreen() {
                         <View style={{ flex: 1, paddingRight: 8 }}>
                           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                             <Text style={{ fontSize: 14, fontFamily: 'Inter_800ExtraBold', color: isDark ? '#ffffff' : '#0f172a' }}>
-                              ⚡ Performance Partner
+                              Performance Partner
                             </Text>
                             <View style={[styles.popularBadge, { backgroundColor: 'rgba(59,130,246,0.15)', borderColor: 'rgba(59,130,246,0.3)' }]}>
                               <Text style={[styles.popularText, { color: '#3b82f6', fontSize: 9 }]}>WEEKLY 50% SPLIT</Text>
@@ -1117,7 +1087,7 @@ export default function AutoTradeSetupScreen() {
                     style={styles.fastTrackBtn}
                   >
                     <MessageCircle size={15} color="#10b981" />
-                    <Text style={styles.fastTrackText}>⚡ 15-Min Priority Review on WhatsApp</Text>
+                    <Text style={styles.fastTrackText}>15-Min Priority Review on WhatsApp</Text>
                   </TouchableOpacity>
 
                   {/* Navigation Buttons */}
@@ -1153,48 +1123,124 @@ export default function AutoTradeSetupScreen() {
                  ══════════════════════════════════════════════════════════════ */}
               {activeStep === 4 && (
                 <View style={[styles.sectionCard, { backgroundColor: isDark ? '#11131a' : '#ffffff', borderColor: isDark ? '#1e293b' : '#e2e8f0' }]}>
+                  {/* Status Header */}
                   <View style={{ alignItems: 'center', marginBottom: 14 }}>
                     <View style={styles.successIconCircle}>
-                      <Check size={28} color="#10b981" strokeWidth={3} />
+                      <ShieldCheck size={26} color="#10b981" strokeWidth={2.5} />
                     </View>
-                    <Text style={[styles.formTitle, { textAlign: 'center', color: isDark ? '#ffffff' : '#0f172a' }]}>
-                      FiAlgo V1 License Unlocked!
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginVertical: 4 }}>
+                      <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#10b981' }} />
+                      <Text style={{ fontSize: 11, fontFamily: 'Inter_700Bold', color: '#10b981', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                        Active &amp; Cryptographically Bound
+                      </Text>
+                    </View>
+                    <Text style={[styles.formTitle, { textAlign: 'center', color: isDark ? '#ffffff' : '#0f172a', fontSize: 18 }]}>
+                      FiAlgo V1 License Active
                     </Text>
-                    <Text style={[styles.formDesc, { textAlign: 'center' }]}>
-                      Your personal license key has been cryptographically generated and locked to MT5 Account #{accountNumber}.
+                    <Text style={[styles.formDesc, { textAlign: 'center', marginTop: 2 }]}>
+                      Your personal cryptographic license key is bound and ready to trade on MT5 Account #{accountNumber || '757'}.
                     </Text>
                   </View>
 
-                  {/* Large License Key Card */}
-                  <View style={[styles.keyBoxLarge, { backgroundColor: isDark ? '#0c0e14' : '#f1f5f9', borderColor: '#38bdf8' }]}>
-                    <Text style={{ fontSize: 11, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', marginBottom: 6 }}>
-                      YOUR METATRADER 5 LICENSE KEY:
+                  {/* Master License Key Box */}
+                  <View style={[styles.keyBoxLarge, { backgroundColor: isDark ? '#0c0e14' : '#f8fafc', borderColor: isDark ? '#1e2433' : '#e2e8f0', borderWidth: 1 }]}>
+                    <Text style={{ fontSize: 10, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 8 }}>
+                      MT5 LICENSE KEY (#{accountNumber || '757'})
                     </Text>
-                    <Text style={[styles.keyTextLarge, { color: isDark ? '#38bdf8' : '#0f172a', paddingHorizontal: 6 }]}>
+                    <Text style={[styles.keyTextLarge, { color: isDark ? '#38bdf8' : '#0284c7', paddingHorizontal: 6, fontSize: 15 }]}>
                       {dynamicLicenseKey}
                     </Text>
 
                     <TouchableOpacity
                       activeOpacity={0.85}
-                      onPress={() => copyToClipboard(dynamicLicenseKey, 'key')}
-                      style={[styles.largeCopyBtn, { backgroundColor: copiedKey ? '#10b981' : '#38bdf8' }]}
+                      onPress={() => {
+                        hSuccess();
+                        copyToClipboard(dynamicLicenseKey, 'key');
+                      }}
+                      style={[styles.largeCopyBtn, { backgroundColor: copiedKey ? '#10b981' : (isDark ? '#ffffff' : '#0f172a') }]}
                     >
-                      {copiedKey ? <Check size={18} color="#fff" /> : <Copy size={18} color="#0f172a" />}
-                      <Text style={[styles.largeCopyBtnText, { color: copiedKey ? '#fff' : '#0f172a' }]}>
+                      {copiedKey ? <Check size={16} color={isDark ? '#000' : '#fff'} /> : <Copy size={16} color={isDark ? '#000' : '#fff'} />}
+                      <Text style={[styles.largeCopyBtnText, { color: copiedKey ? (isDark ? '#000' : '#fff') : (isDark ? '#000' : '#fff') }]}>
                         {copiedKey ? 'License Key Copied!' : 'Copy License Key'}
                       </Text>
                     </TouchableOpacity>
                   </View>
 
-                  {/* 4-Step MT5 Activation Guide */}
-                  <View style={[styles.guideBox, { backgroundColor: isDark ? '#0c0e14' : '#f8fafc', borderColor: isDark ? '#1e2433' : '#e2e8f0' }]}>
-                    <Text style={{ fontSize: 12, fontFamily: 'Inter_700Bold', color: isDark ? '#ffffff' : '#0f172a', marginBottom: 8 }}>
-                      HOW TO ACTIVATE IN METATRADER 5:
-                    </Text>
-                    <Text style={styles.guideStepText}>1. Open MT5 → Tools → Options → Experts (Allow Algo Trading).</Text>
-                    <Text style={styles.guideStepText}>2. Open XAUUSD (Gold) 1-Minute (M1) chart.</Text>
-                    <Text style={styles.guideStepText}>3. Drag FiAlgo_v1.0.4.ex5 onto your chart.</Text>
-                    <Text style={styles.guideStepText}>4. In the Inputs tab, double-click "LicenseKey" and paste your key.</Text>
+                  {/* 2 Symmetric Setup Step Cards */}
+                  <View style={{ gap: 8, marginVertical: 8 }}>
+                    {/* Step 1: WebRequest */}
+                    <View style={[styles.guideBox, { backgroundColor: isDark ? '#0c0e14' : '#f8fafc', borderColor: isDark ? '#1e2433' : '#e2e8f0', padding: 12 }]}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                          <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: '#3b82f6', alignItems: 'center', justifyContent: 'center' }}>
+                            <Text style={{ fontSize: 10, fontFamily: 'Inter_700Bold', color: '#fff' }}>1</Text>
+                          </View>
+                          <Text style={{ fontSize: 12, fontFamily: 'Inter_700Bold', color: isDark ? '#ffffff' : '#0f172a' }}>
+                            Allow MT5 WebRequest
+                          </Text>
+                        </View>
+                        <View style={{ backgroundColor: isDark ? '#1e2433' : '#e2e8f0', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
+                          <Text style={{ fontSize: 9.5, fontFamily: 'Inter_600SemiBold', color: '#64748b' }}>Ctrl+O</Text>
+                        </View>
+                      </View>
+                      <Text style={{ fontSize: 11, fontFamily: 'Inter_400Regular', color: '#64748b', lineHeight: 15 }}>
+                        In MT5: Tools &rarr; Options &rarr; Experts. Check "Allow WebRequest" and add:
+                      </Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 6, backgroundColor: isDark ? '#141724' : '#ffffff', padding: 8, borderRadius: 8, borderWidth: 1, borderColor: isDark ? '#1e2433' : '#e2e8f0' }}>
+                        <Text style={{ flex: 1, fontSize: 10.5, fontFamily: 'Inter_600SemiBold', color: '#38bdf8', marginRight: 6 }} numberOfLines={1}>
+                          https://rylwyxhupwpwsdbvuoej.supabase.co
+                        </Text>
+                        <TouchableOpacity
+                          activeOpacity={0.8}
+                          onPress={() => {
+                            hSelect();
+                            copyToClipboard('https://rylwyxhupwpwsdbvuoej.supabase.co', 'webhook');
+                          }}
+                          style={{ backgroundColor: '#0284c7', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}
+                        >
+                          <Text style={{ fontSize: 10, fontFamily: 'Inter_700Bold', color: '#fff' }}>
+                            {copiedWebhook ? 'Copied' : 'Copy'}
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+
+                    {/* Step 2: Attach to Chart */}
+                    <View style={[styles.guideBox, { backgroundColor: isDark ? '#0c0e14' : '#f8fafc', borderColor: isDark ? '#1e2433' : '#e2e8f0', padding: 12 }]}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                          <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: '#3b82f6', alignItems: 'center', justifyContent: 'center' }}>
+                            <Text style={{ fontSize: 10, fontFamily: 'Inter_700Bold', color: '#fff' }}>2</Text>
+                          </View>
+                          <Text style={{ fontSize: 12, fontFamily: 'Inter_700Bold', color: isDark ? '#ffffff' : '#0f172a' }}>
+                            Attach to XAUUSD (M1)
+                          </Text>
+                        </View>
+                        <View style={{ backgroundColor: isDark ? '#1e2433' : '#e2e8f0', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
+                          <Text style={{ fontSize: 9.5, fontFamily: 'Inter_600SemiBold', color: '#64748b' }}>Press F7</Text>
+                        </View>
+                      </View>
+                      <Text style={{ fontSize: 11, fontFamily: 'Inter_400Regular', color: '#64748b', lineHeight: 15 }}>
+                        Drag FiAlgo onto an M1 (1-Min) Gold chart. Press F7 &rarr; Inputs &rarr; paste your key &rarr; click OK.
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* Downloads Row */}
+                  <View style={{ marginVertical: 4 }}>
+                    <TouchableOpacity
+                      activeOpacity={0.85}
+                      onPress={() => {
+                        hSuccess();
+                        Alert.alert('Download EA', 'FiAlgo_v1.0.4.ex5 saved to device.');
+                      }}
+                      style={[styles.downloadPill, { backgroundColor: isDark ? '#1e2433' : '#f1f5f9', borderWidth: 1, borderColor: isDark ? '#2e3547' : '#cbd5e1', justifyContent: 'center', paddingVertical: 10, borderRadius: 8, flexDirection: 'row', alignItems: 'center', gap: 6 }]}
+                    >
+                      <Download size={13} color={isDark ? '#fff' : '#0f172a'} />
+                      <Text style={[styles.downloadPillText, { color: isDark ? '#fff' : '#0f172a', fontSize: 11 }]}>
+                        Download EA (.ex5)
+                      </Text>
+                    </TouchableOpacity>
                   </View>
 
                   {/* Launch Live Dashboard Button */}
@@ -1204,13 +1250,12 @@ export default function AutoTradeSetupScreen() {
                       hSuccess();
                       router.push('/(tabs)/order-history' as any);
                     }}
-                    style={[styles.launchDashboardBtn, { backgroundColor: '#10b981' }]}
+                    style={[styles.launchDashboardBtn, { backgroundColor: isDark ? '#ffffff' : '#0f172a' }]}
                   >
-                    <Receipt size={18} color="#ffffff" />
-                    <Text style={styles.launchDashboardBtnText}>
-                      View in Order History &amp; Key Vault
+                    <Text style={[styles.launchDashboardBtnText, { color: isDark ? '#0f172a' : '#ffffff' }]}>
+                      Open AutoTrade Vault &amp; History
                     </Text>
-                    <ArrowRight size={18} color="#ffffff" />
+                    <ArrowRight size={16} color={isDark ? '#0f172a' : '#ffffff'} />
                   </TouchableOpacity>
                 </View>
               )}
