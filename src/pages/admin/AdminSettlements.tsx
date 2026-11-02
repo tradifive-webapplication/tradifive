@@ -158,9 +158,11 @@ export default function AdminSettlements() {
     try {
       const now = new Date();
       const oneWeekAgo = new Date(Date.now() - 7 * 86400000);
+      const { data: { session } } = await supabase.auth.getSession();
+      const adminUid = session?.user?.id || "";
       const res = await calculateAndPersistWeeklySettlement(
-        "demo-trader",
-        "26139980",
+        adminUid,
+        "",
         oneWeekAgo.toISOString(),
         now.toISOString()
       );
@@ -413,7 +415,7 @@ export default function AdminSettlements() {
                           </button>
                         </div>
                         <div className="text-[10px] text-slate-500">
-                          MT5: #{s.mt5_account_number || "26139980"}
+                          MT5: #{s.mt5_account_number || "Unlinked"}
                         </div>
                       </td>
 

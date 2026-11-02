@@ -2,10 +2,10 @@ import { supabase } from "@/lib/supabase";
 import { 
   Settlement, 
   SettlementItem, 
-  SettlementSummaryMetrics, 
   PaymentGatewayType,
   SettlementStatus,
-  SettlementAccount
+  SettlementAccount,
+  CustomerSettlementSummary
 } from "@/types/settlement";
 
 // Fallback storage key when Supabase tables are yet to be executed on remote Postgres
@@ -80,7 +80,7 @@ export function calculateSettlementFromDeals(
 ): Settlement {
   const dates = options.weekDates || getWeeklyPeriodDates();
   const carryForward = options.lossCarryForward || 0;
-  const cleanAcc = options.accountNumber.replace(/\D/g, "");
+  const cleanAcc = (options.accountNumber || "").replace(/\D/g, "");
 
   let grossProfit = 0;
   let grossLoss = 0;
@@ -99,11 +99,11 @@ export function calculateSettlementFromDeals(
     totalSwaps += swap;
 
     return {
-      id: `ITEM-${cleanAcc}-${deal.ticket || idx}`,
+      id: `ITEM-${cleanAcc || "MT5"}-${deal.ticket || idx}`,
       settlement_id: "",
       ticket: String(deal.ticket || `TR-${idx + 1}`),
       symbol: deal.symbol || "XAUUSD",
-      trade_type: deal.trade_type || (pnl >= 0 ? "BUY" : "SELL"),
+      trade_type: deal.trade_type === "0" ? "BUY" : deal.trade_type === "1" ? "SELL" : (deal.trade_type || (pnl >= 0 ? "BUY" : "SELL")),
       lot_size: Number(deal.lot_size || 0.01),
       open_price: deal.open_price,
       close_price: deal.close_price,
@@ -139,8 +139,9 @@ export function calculateSettlementFromDeals(
   const customerShare = Number((eligibleProfit * 0.5).toFixed(2));
   const amountPayable = tradifiveShare;
 
-  const settlementNumber = `SETTLE-${dates.year}-W${dates.weekNum}-${cleanAcc.slice(-4).padStart(4, "0")}`;
-  const startBal = options.startingBalance || 14866.24;
+  const suffix = cleanAcc ? cleanAcc.slice(-4).padStart(4, "0") : "0000";
+  const settlementNumber = `SETTLE-${dates.year}-W${dates.weekNum}-${suffix}`;
+  const startBal = options.startingBalance !== undefined ? options.startingBalance : 0;
   const endBal = Number((startBal + netRealisedProfit).toFixed(2));
 
   const settlement: Settlement = {
@@ -185,137 +186,9 @@ export function calculateSettlementFromDeals(
 }
 
 /**
- * Generate standard verified previous weeks for full historical ledger demonstration
- */
-function getHistoricalSeedSettlements(userId: string, accountNum: string): Settlement[] {
-  const cleanAcc = accountNum.replace(/\D/g, "");
-  
-  // Previous Week (Week 43 - Paid)
-  const d1 = new Date();
-  d1.setDate(d1.getDate() - 7);
-  const w43 = getWeeklyPeriodDates(d1);
-
-  // Two Weeks Ago (Week 42 - Paid)
-  const d2 = new Date();
-  d2.setDate(d2.getDate() - 14);
-  const w42 = getWeeklyPeriodDates(d2);
-
-  // Three Weeks Ago (Week 41 - Loss week)
-  const d3 = new Date();
-  d3.setDate(d3.getDate() - 21);
-  const w41 = getWeeklyPeriodDates(d3);
-
-  const prevSettlement1: Settlement = {
-    id: `ST-SETTLE-${w43.year}-W${w43.weekNum}-${cleanAcc.slice(-4).padStart(4, "0")}`,
-    settlement_number: `SETTLE-${w43.year}-W${w43.weekNum}-${cleanAcc.slice(-4).padStart(4, "0")}`,
-    user_id: userId,
-    mt5_account_number: cleanAcc,
-    broker_server: "Exness-Real",
-    period_start: w43.periodStart,
-    period_end: w43.periodEnd,
-    week_label: w43.weekLabel,
-    starting_balance: 12500.00,
-    ending_balance: 14866.24,
-    gross_profit: 2650.00,
-    gross_loss: 240.00,
-    commissions: 24.50,
-    swaps: 19.30,
-    net_realised_profit: 2366.20,
-    previous_loss_carried: 0.00,
-    eligible_profit: 2366.20,
-    tradifive_share: 1183.10,
-    customer_share: 1183.10,
-    amount_payable: 1183.10,
-    currency: "INR",
-    fx_rate: 0.9368,
-    status: "paid",
-    payment_deadline: w43.paymentDeadline,
-    payment_reference: "RZP-PAY-8492049102",
-    payment_method: "Razorpay (UPI / NetBanking)",
-    paid_at: new Date(Date.now() - 5 * 86400000).toISOString(),
-    receipt_number: `REC-TRDF-W${w43.weekNum}-8492`,
-    admin_notes: "Settlement verified and cleared via Razorpay Gateway webhook.",
-    items: [
-      { id: "i1", settlement_id: "", ticket: "948201", symbol: "XAUUSD", trade_type: "BUY", lot_size: 0.02, profit: 950.00, commission: 8.00, swap: 4.50, net_pnl: 937.50, closed_at: w43.periodEnd },
-      { id: "i2", settlement_id: "", ticket: "948205", symbol: "XAUUSD", trade_type: "BUY", lot_size: 0.03, profit: 1200.00, commission: 12.00, swap: 10.00, net_pnl: 1178.00, closed_at: w43.periodEnd },
-      { id: "i3", settlement_id: "", ticket: "948210", symbol: "EURUSD", trade_type: "SELL", lot_size: 0.01, profit: 500.00, commission: 4.50, swap: 4.80, net_pnl: 490.70, closed_at: w43.periodEnd },
-      { id: "i4", settlement_id: "", ticket: "948215", symbol: "GBPUSD", trade_type: "BUY", lot_size: 0.01, profit: -240.00, commission: 0.00, swap: 0.00, net_pnl: -240.00, closed_at: w43.periodEnd }
-    ],
-    created_at: w43.periodEnd,
-    updated_at: new Date(Date.now() - 5 * 86400000).toISOString()
-  };
-
-  const prevSettlement2: Settlement = {
-    id: `ST-SETTLE-${w42.year}-W${w42.weekNum}-${cleanAcc.slice(-4).padStart(4, "0")}`,
-    settlement_number: `SETTLE-${w42.year}-W${w42.weekNum}-${cleanAcc.slice(-4).padStart(4, "0")}`,
-    user_id: userId,
-    mt5_account_number: cleanAcc,
-    broker_server: "Exness-Real",
-    period_start: w42.periodStart,
-    period_end: w42.periodEnd,
-    week_label: w42.weekLabel,
-    starting_balance: 10800.00,
-    ending_balance: 12500.00,
-    gross_profit: 1980.00,
-    gross_loss: 210.00,
-    commissions: 40.00,
-    swaps: 30.00,
-    net_realised_profit: 1700.00,
-    previous_loss_carried: 0.00,
-    eligible_profit: 1700.00,
-    tradifive_share: 850.00,
-    customer_share: 850.00,
-    amount_payable: 850.00,
-    currency: "INR",
-    fx_rate: 0.9368,
-    status: "paid",
-    payment_deadline: w42.paymentDeadline,
-    payment_reference: "UPI-ICICI-92048201",
-    payment_method: "Direct UPI Remittance",
-    paid_at: new Date(Date.now() - 12 * 86400000).toISOString(),
-    receipt_number: `REC-TRDF-W${w42.weekNum}-2048`,
-    admin_notes: "Offline UPI bank clearance confirmed by Finance Desk.",
-    items: [],
-    created_at: w42.periodEnd,
-    updated_at: new Date(Date.now() - 12 * 86400000).toISOString()
-  };
-
-  const prevSettlement3: Settlement = {
-    id: `ST-SETTLE-${w41.year}-W${w41.weekNum}-${cleanAcc.slice(-4).padStart(4, "0")}`,
-    settlement_number: `SETTLE-${w41.year}-W${w41.weekNum}-${cleanAcc.slice(-4).padStart(4, "0")}`,
-    user_id: userId,
-    mt5_account_number: cleanAcc,
-    broker_server: "Exness-Real",
-    period_start: w41.periodStart,
-    period_end: w41.periodEnd,
-    week_label: w41.weekLabel,
-    starting_balance: 11400.00,
-    ending_balance: 10800.00,
-    gross_profit: 200.00,
-    gross_loss: 760.00,
-    commissions: 22.00,
-    swaps: 18.00,
-    net_realised_profit: -600.00,
-    previous_loss_carried: 0.00,
-    eligible_profit: 0.00,
-    tradifive_share: 0.00,
-    customer_share: 0.00,
-    amount_payable: 0.00,
-    currency: "INR",
-    fx_rate: 0.9368,
-    status: "loss_week",
-    payment_deadline: w41.paymentDeadline,
-    admin_notes: "Loss week. Zero fee payable. High-water mark loss offset applied.",
-    items: [],
-    created_at: w41.periodEnd,
-    updated_at: w41.periodEnd
-  };
-
-  return [prevSettlement1, prevSettlement2, prevSettlement3];
-}
-
-/**
  * Fetch Customer Settlements
+ * Derives weekly profit settlements dynamically from REAL closed MT5 trades in Supabase.
+ * No hardcoded demo trades or synthetic weeks are injected.
  */
 export async function getCustomerSettlements(
   userId: string, 
@@ -324,142 +197,203 @@ export async function getCustomerSettlements(
   settlements: Settlement[];
   summary: CustomerSettlementSummary;
 }> {
-  const cleanAcc = (accountNumber || localStorage.getItem("tradifive_connected_mt5_account") || "26139980").replace(/\D/g, "");
-  let list: Settlement[] = [];
-
-  // 1. Attempt Supabase Table fetch
+  // Purge any stale demo data from local storage
   try {
-    const { data, error } = await supabase
-      .from("settlements")
-      .select(`
-        *,
-        items:settlement_items(*),
-        payments:settlement_payments(*),
-        adjustments:settlement_adjustments(*)
-      `)
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false });
-
-    if (!error && Array.isArray(data) && data.length > 0) {
-      list = data as Settlement[];
+    const stored = localStorage.getItem(LOCAL_SETTLEMENTS_KEY);
+    if (stored && (stored.includes("982055") || stored.includes("26139980") || stored.includes("7601.5") || stored.includes("ST-SETTLE-2026-W43"))) {
+      localStorage.removeItem(LOCAL_SETTLEMENTS_KEY);
     }
-  } catch (e) {
-    console.warn("Supabase settlements query fallback:", e);
+  } catch (e) {}
+
+  // Resolve authentic user id
+  let effectiveUid = userId;
+  if (!effectiveUid || effectiveUid === "demo-trader") {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user?.id) effectiveUid = session.user.id;
+    } catch (e) {}
   }
 
-  // 2. Fallback to system_settings / localStorage store if table is empty or pending migration
-  if (list.length === 0) {
+  // Resolve authentic account number
+  let cleanAcc = (accountNumber || "").replace(/\D/g, "");
+  if (!cleanAcc || cleanAcc === "26139980") {
     try {
-      const stored = localStorage.getItem(LOCAL_SETTLEMENTS_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          list = parsed.filter(s => s.user_id === userId || !s.user_id);
+      const stored = localStorage.getItem("tradifive_connected_mt5_account");
+      if (stored) cleanAcc = stored.replace(/\D/g, "");
+    } catch (e) {}
+  }
+
+  if ((!cleanAcc || cleanAcc === "26139980") && effectiveUid && effectiveUid !== "demo-trader") {
+    try {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("activation_key")
+        .eq("id", effectiveUid)
+        .maybeSingle();
+
+      if (profile?.activation_key) {
+        const match = profile.activation_key.match(/TF-([0-9A-Fa-f]{8})/);
+        if (match) {
+          cleanAcc = String(parseInt(match[1], 16));
         }
+      }
+
+      if (!cleanAcc) {
+        const { data: acc } = await supabase
+          .from("mt5_accounts")
+          .select("account_number")
+          .eq("user_id", effectiveUid)
+          .maybeSingle();
+        if (acc?.account_number) cleanAcc = String(acc.account_number).replace(/\D/g, "");
       }
     } catch (e) {}
   }
 
-  // 3. If still empty, automatically calculate current week from live telemetry and seed historical
-  if (list.length === 0) {
-    let closedTrades: any[] = [];
-    let todayProfit = 0;
-    let balance = 14866.24;
+  // Resolve current account balance from live telemetry or zero
+  let balance = 0;
+  try {
+    const storedBal = localStorage.getItem("tradifive_account_balance");
+    if (storedBal && Number(storedBal) > 0) balance = Number(storedBal);
+  } catch (e) {}
 
-    try {
-      const storedProfit = localStorage.getItem("tradifive_account_today_profit");
-      if (storedProfit) todayProfit = Number(storedProfit);
-      const storedBal = localStorage.getItem("tradifive_account_balance");
-      if (storedBal) balance = Number(storedBal);
-    } catch (e) {}
-
-    // Pull real closed trades from Supabase trades table if available
+  // 1. Fetch real closed trades from Supabase trades table
+  let allClosedTrades: any[] = [];
+  if (effectiveUid && effectiveUid !== "demo-trader") {
     try {
       const { data: dbTrades } = await supabase
         .from("trades")
         .select("*")
-        .eq("user_id", userId)
-        .order("closed_at", { ascending: false })
-        .limit(30);
+        .eq("user_id", effectiveUid)
+        .order("closed_at", { ascending: false });
 
-      if (Array.isArray(dbTrades) && dbTrades.length > 0) {
-        closedTrades = dbTrades;
+      if (Array.isArray(dbTrades)) {
+        allClosedTrades = dbTrades;
       }
-    } catch (e) {}
-
-    // If no closed trades recorded yet in DB, synthesize from live telemetry profit
-    if (closedTrades.length === 0 && todayProfit > 0) {
-      closedTrades = [
-        {
-          ticket: "982041",
-          symbol: "XAUUSD",
-          trade_type: "BUY",
-          lot_size: 0.03,
-          profit: todayProfit,
-          commission: 5.00,
-          swap: 2.00,
-          open_price: 2735.40,
-          close_price: 2742.80,
-          opened_at: new Date(Date.now() - 3600000).toISOString(),
-          closed_at: new Date().toISOString()
-        }
-      ];
-    } else if (closedTrades.length === 0) {
-      // Default initial live cycle
-      closedTrades = [
-        {
-          ticket: "982055",
-          symbol: "XAUUSD",
-          trade_type: "BUY",
-          lot_size: 0.02,
-          profit: 2450.00,
-          commission: 15.00,
-          swap: 8.50,
-          open_price: 2728.10,
-          close_price: 2736.50,
-          opened_at: new Date(Date.now() - 7200000).toISOString(),
-          closed_at: new Date().toISOString()
-        },
-        {
-          ticket: "982062",
-          symbol: "XAUUSD",
-          trade_type: "SELL",
-          lot_size: 0.01,
-          profit: 1120.00,
-          commission: 8.00,
-          swap: 3.20,
-          open_price: 2740.00,
-          close_price: 2734.40,
-          opened_at: new Date(Date.now() - 14400000).toISOString(),
-          closed_at: new Date().toISOString()
-        }
-      ];
+    } catch (e) {
+      console.warn("Real trades query error:", e);
     }
+  }
 
-    const currentWeekSettlement = calculateSettlementFromDeals(closedTrades, {
-      userId,
+  const currentWeekDates = getWeeklyPeriodDates(new Date());
+
+  // Filter trades for the current ongoing calendar week
+  const currentWeekTrades = allClosedTrades.filter(t => {
+    if (!t.closed_at) return false;
+    const tTime = new Date(t.closed_at).getTime();
+    return tTime >= new Date(currentWeekDates.periodStart).getTime() && tTime <= new Date(currentWeekDates.periodEnd).getTime();
+  });
+
+  // Calculate current week settlement
+  let currentSettlement: Settlement;
+  if (currentWeekTrades.length > 0) {
+    currentSettlement = calculateSettlementFromDeals(currentWeekTrades, {
+      userId: effectiveUid,
       accountNumber: cleanAcc,
       brokerServer: "Exness-Real",
       lossCarryForward: 0,
-      startingBalance: balance > 0 ? balance : 14866.24,
-      currency: "INR"
+      startingBalance: balance,
+      currency: "INR",
+      weekDates: currentWeekDates
     });
-
-    const historical = getHistoricalSeedSettlements(userId, cleanAcc);
-    list = [currentWeekSettlement, ...historical];
-
-    // Persist to local cache and system_settings for multi-session sync
-    try {
-      localStorage.setItem(LOCAL_SETTLEMENTS_KEY, JSON.stringify(list));
-      supabase.from("system_settings").upsert({
-        id: `settlements_${userId}`,
-        value: list,
-        updated_at: new Date().toISOString()
-      }).then();
-    } catch (e) {}
+  } else {
+    // Current cycle awaiting closed trades
+    const suffix = cleanAcc ? cleanAcc.slice(-4).padStart(4, "0") : "0000";
+    currentSettlement = {
+      id: `ST-SETTLE-${currentWeekDates.year}-W${currentWeekDates.weekNum}-${suffix}`,
+      settlement_number: `SETTLE-${currentWeekDates.year}-W${currentWeekDates.weekNum}-${suffix}`,
+      user_id: effectiveUid,
+      mt5_account_number: cleanAcc,
+      broker_server: "Exness-Real",
+      period_start: currentWeekDates.periodStart,
+      period_end: currentWeekDates.periodEnd,
+      week_label: currentWeekDates.weekLabel,
+      starting_balance: balance,
+      ending_balance: balance,
+      gross_profit: 0.00,
+      gross_loss: 0.00,
+      commissions: 0.00,
+      swaps: 0.00,
+      net_realised_profit: 0.00,
+      previous_loss_carried: 0.00,
+      eligible_profit: 0.00,
+      tradifive_share: 0.00,
+      customer_share: 0.00,
+      amount_payable: 0.00,
+      currency: "INR",
+      fx_rate: 0.9368,
+      status: "cleared",
+      payment_deadline: currentWeekDates.paymentDeadline,
+      items: [],
+      calculation_breakdown: {
+        formula: "Eligible Profit = Max(0, Net Realised Profit - Previous Loss Carry-Forward)",
+        description: "Tradifive Share = 50% of Eligible Profit. Customer Share = 50% retained in MT5. Floating profits and deposits are 100% excluded.",
+        closed_trades_count: 0
+      },
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
   }
 
-  // Calculate Aggregated Customer Summary
+  // 2. Group older trades by previous calendar weeks
+  const olderTrades = allClosedTrades.filter(t => {
+    if (!t.closed_at) return false;
+    return new Date(t.closed_at).getTime() < new Date(currentWeekDates.periodStart).getTime();
+  });
+
+  const olderTradesByWeek: Record<string, { weekDates: ReturnType<typeof getWeeklyPeriodDates>; deals: any[] }> = {};
+
+  olderTrades.forEach(deal => {
+    const d = new Date(deal.closed_at);
+    const wDates = getWeeklyPeriodDates(d);
+    const key = `${wDates.year}-W${wDates.weekNum}`;
+    if (!olderTradesByWeek[key]) {
+      olderTradesByWeek[key] = { weekDates: wDates, deals: [] };
+    }
+    olderTradesByWeek[key].deals.push(deal);
+  });
+
+  const historicalSettlements: Settlement[] = Object.values(olderTradesByWeek).map(group => {
+    return calculateSettlementFromDeals(group.deals, {
+      userId: effectiveUid,
+      accountNumber: cleanAcc,
+      brokerServer: "Exness-Real",
+      lossCarryForward: 0,
+      startingBalance: 0,
+      currency: "INR",
+      weekDates: group.weekDates
+    });
+  });
+
+  // Sort historical settlements descending by date
+  historicalSettlements.sort((a, b) => new Date(b.period_start).getTime() - new Date(a.period_start).getTime());
+
+  let list: Settlement[] = [currentSettlement, ...historicalSettlements];
+
+  // 3. Merge persisted payment status from system_settings or localStorage
+  try {
+    const { data: savedRecord } = await supabase
+      .from("system_settings")
+      .select("value")
+      .eq("id", `settlements_${effectiveUid}`)
+      .maybeSingle();
+
+    if (savedRecord?.value && Array.isArray(savedRecord.value)) {
+      const persistedList = savedRecord.value as Settlement[];
+      persistedList.forEach(saved => {
+        const match = list.find(s => s.id === saved.id || s.settlement_number === saved.settlement_number);
+        if (match) {
+          match.status = saved.status;
+          match.payment_reference = saved.payment_reference;
+          match.payment_method = saved.payment_method;
+          match.paid_at = saved.paid_at;
+          match.receipt_number = saved.receipt_number;
+          match.amount_payable = saved.amount_payable;
+        }
+      });
+    }
+  } catch (e) {}
+
+  // Calculate Aggregated Customer Summary strictly from real data
   let totalTradingProfit = 0;
   let tradifiveShare = 0;
   let yourShare = 0;
@@ -474,9 +408,9 @@ export async function getCustomerSettlements(
     tradifiveShare += s.tradifive_share;
     yourShare += s.customer_share;
 
-    if (s.status === "pending") {
+    if (s.status === "pending" && s.amount_payable > 0) {
       pendingPayment += s.amount_payable;
-    } else if (s.status === "overdue") {
+    } else if (s.status === "overdue" && s.amount_payable > 0) {
       pendingPayment += s.amount_payable;
       overdueCount++;
     } else if (s.status === "paid" || s.status === "approved") {
@@ -534,16 +468,12 @@ export async function getAllAdminSettlements(): Promise<{
     try {
       const stored = localStorage.getItem(LOCAL_SETTLEMENTS_KEY);
       if (stored) {
-        list = JSON.parse(stored);
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && !parsed.some((s: any) => s.items?.some((i: any) => i.ticket === "982055"))) {
+          list = parsed;
+        }
       }
     } catch (e) {}
-  }
-
-  // If still empty, synthesize realistic multi-account admin cohort
-  if (list.length === 0) {
-    const s1 = getHistoricalSeedSettlements("usr-1", "26139980");
-    const s2 = getHistoricalSeedSettlements("usr-2", "36520821");
-    list = [...s1, ...s2];
   }
 
   let totalReceivables = 0;
@@ -572,7 +502,7 @@ export async function getAllAdminSettlements(): Promise<{
       totalCollected: Number(totalCollected.toFixed(2)),
       totalPending: Number(totalPending.toFixed(2)),
       overdueCount,
-      totalAccounts: Math.max(1, accountsSet.size)
+      totalAccounts: accountsSet.size
     }
   };
 }
@@ -624,10 +554,43 @@ export async function submitSettlementPayment(
       details: { gateway: payload.gateway, amount: payload.amount, ref: payload.paymentReference }
     });
   } catch (e) {
-    console.warn("DB payment recording error, updating local state:", e);
+    console.warn("DB payment recording fallback:", e);
   }
 
-  // 2. Update local state
+  // 2. Persist to system_settings for persistent user state across sessions
+  try {
+    const { data: existing } = await supabase
+      .from("system_settings")
+      .select("value")
+      .eq("id", `settlements_${payload.userId}`)
+      .maybeSingle();
+
+    let currentList: any[] = Array.isArray(existing?.value) ? existing.value : [];
+    const targetIdx = currentList.findIndex((s: any) => s.id === settlementId);
+    const updatedRecord = {
+      id: settlementId,
+      status: "paid",
+      payment_reference: payload.paymentReference,
+      payment_method: payload.gateway,
+      paid_at: new Date().toISOString(),
+      receipt_number: receiptNum,
+      amount_payable: payload.amount
+    };
+
+    if (targetIdx >= 0) {
+      currentList[targetIdx] = { ...currentList[targetIdx], ...updatedRecord };
+    } else {
+      currentList.push(updatedRecord);
+    }
+
+    await supabase.from("system_settings").upsert({
+      id: `settlements_${payload.userId}`,
+      value: currentList,
+      updated_at: new Date().toISOString()
+    });
+  } catch (e) {}
+
+  // 3. Update local state
   try {
     const stored = localStorage.getItem(LOCAL_SETTLEMENTS_KEY);
     if (stored) {
@@ -644,7 +607,7 @@ export async function submitSettlementPayment(
     }
   } catch (e) {}
 
-  // 3. Dispatch system notification
+  // 4. Dispatch system notification
   try {
     await supabase.from("notifications").insert({
       user_id: payload.userId,

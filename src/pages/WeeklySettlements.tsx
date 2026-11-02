@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+﻿import React, { useState, useEffect, useMemo } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { 
   Receipt, Wallet, ArrowUpRight, TrendingUp, TrendingDown, Clock, 
@@ -26,7 +26,7 @@ const cardBoxStyle = "rounded-[24px] border-2 border-white bg-gradient-to-b from
 export default function WeeklySettlements() {
   const [userId, setUserId] = useState<string>("");
   const [userProfile, setUserProfile] = useState<any>(null);
-  const [accountNumber, setAccountNumber] = useState<string>("26139980");
+  const [accountNumber, setAccountNumber] = useState<string>("");
   const [settlements, setSettlements] = useState<Settlement[]>([]);
   const [summary, setSummary] = useState<CustomerSettlementSummary>({
     totalTradingProfit: 0,
@@ -62,14 +62,14 @@ export default function WeeklySettlements() {
     if (isManual) setIsRefreshing(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      const currentUid = session?.user?.id || "demo-trader";
+      const currentUid = session?.user?.id || "";
       setUserId(currentUid);
 
       if (session?.user) {
         setUserProfile(session.user);
       }
 
-      const connectedAcc = localStorage.getItem("tradifive_connected_mt5_account") || "26139980";
+      const connectedAcc = localStorage.getItem("tradifive_connected_mt5_account") || "";
       setAccountNumber(connectedAcc);
 
       const result = await getCustomerSettlements(currentUid, connectedAcc);
@@ -279,11 +279,11 @@ export default function WeeklySettlements() {
                     Current Settlement Cycle: {currentSettlement.week_label}
                   </h2>
                   <span className={`text-[10.5px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
-                    currentSettlement.status === "paid"
+                    currentSettlement.status === "paid" || currentSettlement.status === "approved"
                       ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300"
                       : currentSettlement.status === "overdue"
                       ? "bg-rose-100 text-rose-800 dark:bg-rose-500/20 dark:text-rose-300"
-                      : currentSettlement.status === "loss_week"
+                      : currentSettlement.status === "loss_week" || currentSettlement.status === "cleared"
                       ? "bg-slate-100 text-slate-700 dark:bg-white/10 dark:text-slate-300"
                       : "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300"
                   }`}>
@@ -405,7 +405,7 @@ export default function WeeklySettlements() {
 
               {/* Direct Pay CTA */}
               <div className="flex flex-col gap-2 shrink-0 self-start md:self-center">
-                {currentSettlement.status === "pending" || currentSettlement.status === "overdue" ? (
+                {(currentSettlement.status === "pending" || currentSettlement.status === "overdue") && currentSettlement.amount_payable > 0 ? (
                   <button
                     type="button"
                     onClick={() => handleOpenPayment(currentSettlement)}
@@ -417,7 +417,7 @@ export default function WeeklySettlements() {
                 ) : (
                   <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-xs font-bold">
                     <CheckCircle2 size={15} className="text-emerald-600" />
-                    <span>Cycle Cleared & Verified</span>
+                    <span>{currentSettlement.amount_payable === 0 ? "No Dues (0.00) ✓" : "Cycle Cleared & Verified"}</span>
                   </div>
                 )}
                 <span className="text-[10px] text-slate-400 text-center font-medium">
@@ -481,7 +481,7 @@ export default function WeeklySettlements() {
                 {filteredSettlements.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="py-8 text-center text-slate-400">
-                      No settlements found for this filter.
+                                      No settlements found for this filter.
                     </td>
                   </tr>
                 ) : (
@@ -489,7 +489,7 @@ export default function WeeklySettlements() {
                     const isPaid = s.status === "paid" || s.status === "approved";
                     const isPending = s.status === "pending";
                     const isOverdue = s.status === "overdue";
-                    const isLoss = s.status === "loss_week";
+                    const isLoss = s.status === "loss_week" || s.status === "cleared";
 
                     return (
                       <tr key={s.id} className="hover:bg-slate-50/60 dark:hover:bg-white/[0.02] transition-colors">
@@ -517,9 +517,8 @@ export default function WeeklySettlements() {
                             isPaid
                               ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300"
                               : isOverdue
-                              ? "bg-rose-100 text-rose-800 dark:bg-rose-500/20 dark:text-rose-300"
-                              : isLoss
-                              ? "bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-400"
+                              ? "bg-rose-100 text-rose-800 dark:bg-rose-500/20 dark:text-rose-300": isLoss || isCleared
+                          ? "bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-400"
                               : "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300"
                           }`}>
                             {s.status.replace("_", " ")}
@@ -557,7 +556,7 @@ export default function WeeklySettlements() {
           <div className="md:hidden space-y-3">
             {filteredSettlements.length === 0 ? (
               <div className="py-8 text-center text-slate-400 text-xs">
-                No settlements found for this filter.
+                                No settlements found for this filter.
               </div>
             ) : (
               filteredSettlements.map((s) => {
@@ -565,6 +564,7 @@ export default function WeeklySettlements() {
                 const isPending = s.status === "pending";
                 const isOverdue = s.status === "overdue";
                 const isLoss = s.status === "loss_week";
+                const isCleared = s.status === "cleared";
 
                 return (
                   <div
@@ -585,8 +585,7 @@ export default function WeeklySettlements() {
                         isPaid
                           ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300"
                           : isOverdue
-                          ? "bg-rose-100 text-rose-800 dark:bg-rose-500/20 dark:text-rose-300"
-                          : isLoss
+                          ? "bg-rose-100 text-rose-800 dark:bg-rose-500/20 dark:text-rose-300": isLoss || isCleared
                           ? "bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-400"
                           : "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300"
                       }`}>

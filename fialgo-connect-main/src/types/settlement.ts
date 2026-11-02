@@ -7,7 +7,8 @@ export type SettlementStatus =
   | "loss_week"
   | "approved"
   | "rejected"
-  | "processing";
+  | "processing"
+  | "cleared";
 
 export type PaymentGatewayType =
   | "razorpay"
