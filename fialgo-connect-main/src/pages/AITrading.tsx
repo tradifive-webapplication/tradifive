@@ -1162,189 +1162,221 @@ MagicNumber=789104
         <div className="flex flex-col md:flex-row items-stretch gap-6 lg:gap-10">
           
           {/* ── LEFT COLUMN: VERTICAL STEPPER SIDEBAR (MATCHED TO REFERENCE) ── */}
-          <aside className="w-full md:w-80 lg:w-96 shrink-0 flex flex-col justify-between py-2 border-b md:border-b-0 md:border-r border-slate-200/80 dark:border-white/10 md:pr-8 md:mr-2">
-            <div className="space-y-8">
+          <aside className="w-full md:w-64 lg:w-72 shrink-0 flex flex-col justify-between py-2 border-b md:border-b-0 md:border-r border-slate-200/80 dark:border-white/10 md:pr-6 md:mr-1 min-h-[580px] lg:min-h-[660px]">
+            <div className="space-y-4">
               <div className="px-1 space-y-1">
-                <span className="text-xs font-black uppercase tracking-widest text-blue-600 dark:text-blue-400 block">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block">
                   Setup Process
                 </span>
-                <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+                <h3 className="text-[15px] sm:text-base font-bold text-slate-900 dark:text-white tracking-tight">
                   FiAlgo V1 Activation
                 </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Follow these 4 steps to deploy and license your trading bot.
+                <p className="text-[11.5px] text-slate-500 dark:text-slate-400 leading-snug">
+                  Follow these 4 steps to link broker and activate automated trading.
                 </p>
               </div>
 
-              {/* Vertical Stepper Timeline (Big & Prominent) */}
-              <div className="relative space-y-0 pl-1">
+              {/* Vertical Stepper Timeline (Clean, Proportional & Spaced Gracefully) */}
+              <div className="relative pt-3 flex flex-col justify-between space-y-6 sm:space-y-7">
                 {/* STEP 1 NODE */}
                 <div 
                   onClick={() => setActiveStep(1)}
-                  className="group flex items-start gap-4 relative pb-10 sm:pb-12 cursor-pointer transition-all"
+                  className="group flex items-start gap-3 relative cursor-pointer transition-all"
                 >
-                  {/* Big connecting line */}
-                  <div className={`absolute left-5 sm:left-6 top-12 -bottom-2 w-1 rounded-full ${
+                  {/* Connecting Line to Step 2 */}
+                  <div className={`absolute left-[13px] top-7 -bottom-6 w-[2px] transition-colors ${
                     ibVerified ? "bg-blue-600" : "bg-slate-200 dark:bg-white/10"
                   }`} />
                   
-                  {/* Big circle */}
-                  <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center shrink-0 z-10 font-black text-sm sm:text-base transition-all ${
+                  {/* Circle Indicator (28px) */}
+                  <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 z-10 text-xs font-semibold transition-all ${
                     ibVerified
-                      ? "bg-blue-600 text-white ring-4 sm:ring-[6px] ring-blue-100 dark:ring-blue-950/60 shadow-md shadow-blue-500/20"
+                      ? "bg-blue-600 text-white shadow-xs"
                       : activeStep === 1
-                        ? "bg-blue-600 text-white ring-4 sm:ring-[6px] ring-blue-100 dark:ring-blue-900/60 shadow-md shadow-blue-500/25 scale-105"
-                        : "bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-400 border-2 border-slate-200/80 dark:border-white/10"
+                        ? "bg-blue-600 text-white ring-4 ring-blue-100 dark:ring-blue-900/40 shadow-xs font-bold"
+                        : "bg-white dark:bg-[#1A1A1E] text-slate-400 dark:text-slate-500 border border-slate-200/90 dark:border-white/10"
                   }`}>
-                    {ibVerified ? <Check size={20} strokeWidth={3.5} /> : "1"}
+                    {ibVerified ? <Check size={13} strokeWidth={2.8} /> : "1"}
                   </div>
                   
-                  {/* Big Labels */}
-                  <div className="pt-1 min-w-0 flex-1">
-                    <span className={`block text-sm sm:text-base font-black leading-tight transition-colors ${
+                  {/* Labels & Multi-line Details (Like reference image) */}
+                  <div className="pt-0.5 min-w-0 flex-1">
+                    <span className={`block text-[13px] font-semibold leading-tight transition-colors ${
                       activeStep === 1
-                        ? "text-blue-600 dark:text-blue-400"
+                        ? "text-blue-600 dark:text-blue-400 font-bold"
                         : ibVerified
                           ? "text-slate-900 dark:text-white"
-                          : "text-slate-500 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white"
+                          : "text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-slate-200"
                     }`}>
                       Connect Broker
                     </span>
-                    <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium leading-snug">
-                      {ibVerified ? `✓ MT5 ${displayAccountLabel}` : "Vantage Markets · $500+"}
-                    </p>
+                    <div className="mt-1 space-y-0.5 text-[11px] text-slate-500 dark:text-slate-400 leading-tight">
+                      <p className="truncate">
+                        {mt5Account ? `MT5 #${mt5Account}` : "MT5 Terminal"} · {currentBroker.name}
+                      </p>
+                      <p className="text-[10.5px]">
+                        Min. Deposit: <span className="font-semibold text-slate-700 dark:text-slate-300">$500+</span>
+                      </p>
+                      <p className={`text-[10.5px] font-medium ${
+                        ibVerified 
+                          ? "text-emerald-600 dark:text-emerald-400" 
+                          : transferRequestStatus === "pending"
+                            ? "text-amber-600 dark:text-amber-400"
+                            : "text-slate-400 dark:text-slate-500"
+                      }`}>
+                        {ibVerified ? "✓ Verified & Linked" : transferRequestStatus === "pending" ? "⏳ Review Pending" : "Awaiting Connection"}
+                      </p>
+                    </div>
                   </div>
                 </div>
 
                 {/* STEP 2 NODE */}
                 <div 
                   onClick={() => setActiveStep(2)}
-                  className="group flex items-start gap-4 relative pb-10 sm:pb-12 cursor-pointer transition-all"
+                  className="group flex items-start gap-3 relative cursor-pointer transition-all"
                 >
-                  <div className={`absolute left-5 sm:left-6 top-12 -bottom-2 w-1 rounded-full ${
+                  {/* Connecting Line to Step 3 */}
+                  <div className={`absolute left-[13px] top-7 -bottom-6 w-[2px] transition-colors ${
                     hasDownloaded ? "bg-blue-600" : "bg-slate-200 dark:bg-white/10"
                   }`} />
                   
-                  <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center shrink-0 z-10 font-black text-sm sm:text-base transition-all ${
+                  <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 z-10 text-xs font-semibold transition-all ${
                     hasDownloaded
-                      ? "bg-blue-600 text-white ring-4 sm:ring-[6px] ring-blue-100 dark:ring-blue-950/60 shadow-md shadow-blue-500/20"
+                      ? "bg-blue-600 text-white shadow-xs"
                       : activeStep === 2
-                        ? "bg-blue-600 text-white ring-4 sm:ring-[6px] ring-blue-100 dark:ring-blue-900/60 shadow-md shadow-blue-500/25 scale-105"
-                        : "bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-400 border-2 border-slate-200/80 dark:border-white/10"
+                        ? "bg-blue-600 text-white ring-4 ring-blue-100 dark:ring-blue-900/40 shadow-xs font-bold"
+                        : "bg-white dark:bg-[#1A1A1E] text-slate-400 dark:text-slate-500 border border-slate-200/90 dark:border-white/10"
                   }`}>
-                    {hasDownloaded ? <Check size={20} strokeWidth={3.5} /> : "2"}
+                    {hasDownloaded ? <Check size={13} strokeWidth={2.8} /> : "2"}
                   </div>
                   
-                  <div className="pt-1 min-w-0 flex-1">
-                    <span className={`block text-sm sm:text-base font-black leading-tight transition-colors ${
+                  <div className="pt-0.5 min-w-0 flex-1">
+                    <span className={`block text-[13px] font-semibold leading-tight transition-colors ${
                       activeStep === 2
-                        ? "text-blue-600 dark:text-blue-400"
+                        ? "text-blue-600 dark:text-blue-400 font-bold"
                         : hasDownloaded
                           ? "text-slate-900 dark:text-white"
-                          : "text-slate-500 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white"
+                          : "text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-slate-200"
                     }`}>
                       Download EA
                     </span>
-                    <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium leading-snug">
-                      {hasDownloaded ? "✓ FiAlgo_v1.0.4.ex5" : "FiAlgo V1 MT5 Binary"}
-                    </p>
+                    <div className="mt-1 space-y-0.5 text-[11px] text-slate-500 dark:text-slate-400 leading-tight">
+                      <p className="truncate font-mono text-[10.5px]">FiAlgo_v1.0.4.ex5</p>
+                      <p className="text-[10.5px]">XAUUSD (Gold) · M15 Chart</p>
+                      <p className={`text-[10.5px] font-medium ${
+                        hasDownloaded ? "text-emerald-600 dark:text-emerald-400" : "text-slate-400 dark:text-slate-500"
+                      }`}>
+                        {hasDownloaded ? "✓ File Downloaded" : "Ready to Download"}
+                      </p>
+                    </div>
                   </div>
                 </div>
 
                 {/* STEP 3 NODE */}
                 <div 
                   onClick={() => setActiveStep(3)}
-                  className="group flex items-start gap-4 relative pb-10 sm:pb-12 cursor-pointer transition-all"
+                  className="group flex items-start gap-3 relative cursor-pointer transition-all"
                 >
-                  <div className={`absolute left-5 sm:left-6 top-12 -bottom-2 w-1 rounded-full ${
+                  {/* Connecting Line to Step 4 */}
+                  <div className={`absolute left-[13px] top-7 -bottom-6 w-[2px] transition-colors ${
                     paymentStatus === "approved" ? "bg-blue-600" : "bg-slate-200 dark:bg-white/10"
                   }`} />
                   
-                  <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center shrink-0 z-10 font-black text-sm sm:text-base transition-all ${
+                  <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 z-10 text-xs font-semibold transition-all ${
                     paymentStatus === "approved"
-                      ? "bg-blue-600 text-white ring-4 sm:ring-[6px] ring-blue-100 dark:ring-blue-950/60 shadow-md shadow-blue-500/20"
+                      ? "bg-blue-600 text-white shadow-xs"
                       : activeStep === 3
-                        ? "bg-blue-600 text-white ring-4 sm:ring-[6px] ring-blue-100 dark:ring-blue-900/60 shadow-md shadow-blue-500/25 scale-105"
-                        : "bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-400 border-2 border-slate-200/80 dark:border-white/10"
+                        ? "bg-blue-600 text-white ring-4 ring-blue-100 dark:ring-blue-900/40 shadow-xs font-bold"
+                        : "bg-white dark:bg-[#1A1A1E] text-slate-400 dark:text-slate-500 border border-slate-200/90 dark:border-white/10"
                   }`}>
-                    {paymentStatus === "approved" ? <Check size={20} strokeWidth={3.5} /> : "3"}
+                    {paymentStatus === "approved" ? <Check size={13} strokeWidth={2.8} /> : "3"}
                   </div>
                   
-                  <div className="pt-1 min-w-0 flex-1">
-                    <span className={`block text-sm sm:text-base font-black leading-tight transition-colors ${
+                  <div className="pt-0.5 min-w-0 flex-1">
+                    <span className={`block text-[13px] font-semibold leading-tight transition-colors ${
                       activeStep === 3
-                        ? "text-blue-600 dark:text-blue-400"
+                        ? "text-blue-600 dark:text-blue-400 font-bold"
                         : paymentStatus === "approved"
                           ? "text-slate-900 dark:text-white"
-                          : "text-slate-500 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white"
+                          : "text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-slate-200"
                     }`}>
                       Plan &amp; Payment
                     </span>
-                    <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium leading-snug">
-                      {selectedTier === "three_years" ? "₹1,00,000 (3-Yr Pass)" : "₹10,000 (Weekly 50%)"}
-                    </p>
+                    <div className="mt-1 space-y-0.5 text-[11px] text-slate-500 dark:text-slate-400 leading-tight">
+                      <p className="font-semibold text-slate-800 dark:text-slate-200">
+                        {selectedTier === "three_years" ? "₹1,00,000 (3-Yr Pass)" : "₹10,000 (Weekly 50%)"}
+                      </p>
+                      <p className="text-[10.5px]">
+                        {selectedTier === "three_years" ? "0% Profit Share" : "Weekly Settlement Split"}
+                      </p>
+                      <p className={`text-[10.5px] font-medium ${
+                        paymentStatus === "approved" 
+                          ? "text-emerald-600 dark:text-emerald-400" 
+                          : paymentStatus === "pending"
+                            ? "text-amber-600 dark:text-amber-400"
+                            : "text-slate-400 dark:text-slate-500"
+                      }`}>
+                        {paymentStatus === "approved" ? "✓ Payment Approved" : paymentStatus === "pending" ? "⏳ Verification in Progress" : "UPI / Bank Transfer"}
+                      </p>
+                    </div>
                   </div>
                 </div>
 
                 {/* STEP 4 NODE */}
                 <div 
                   onClick={() => setActiveStep(4)}
-                  className="group flex items-start gap-4 relative cursor-pointer transition-all"
+                  className="group flex items-start gap-3 relative cursor-pointer transition-all"
                 >
-                  <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center shrink-0 z-10 font-black text-sm sm:text-base transition-all ${
+                  <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 z-10 text-xs font-semibold transition-all ${
                     hasPaid && ibVerified
-                      ? "bg-blue-600 text-white ring-4 sm:ring-[6px] ring-blue-100 dark:ring-blue-950/60 shadow-md shadow-blue-500/20"
+                      ? "bg-blue-600 text-white shadow-xs"
                       : activeStep === 4
-                        ? "bg-blue-600 text-white ring-4 sm:ring-[6px] ring-blue-100 dark:ring-blue-900/60 shadow-md shadow-blue-500/25 scale-105"
-                        : "bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-400 border-2 border-slate-200/80 dark:border-white/10"
+                        ? "bg-blue-600 text-white ring-4 ring-blue-100 dark:ring-blue-900/40 shadow-xs font-bold"
+                        : "bg-white dark:bg-[#1A1A1E] text-slate-400 dark:text-slate-500 border border-slate-200/90 dark:border-white/10"
                   }`}>
-                    {(hasPaid && ibVerified) ? <Check size={20} strokeWidth={3.5} /> : "4"}
+                    {(hasPaid && ibVerified) ? <Check size={13} strokeWidth={2.8} /> : "4"}
                   </div>
                   
-                  <div className="pt-1 min-w-0 flex-1">
-                    <span className={`block text-sm sm:text-base font-black leading-tight transition-colors ${
+                  <div className="pt-0.5 min-w-0 flex-1">
+                    <span className={`block text-[13px] font-semibold leading-tight transition-colors ${
                       activeStep === 4
-                        ? "text-blue-600 dark:text-blue-400"
+                        ? "text-blue-600 dark:text-blue-400 font-bold"
                         : (hasPaid && ibVerified)
                           ? "text-slate-900 dark:text-white"
-                          : "text-slate-500 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white"
+                          : "text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-slate-200"
                     }`}>
                       Activate Key
                     </span>
-                    <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium leading-snug">
-                      Hardware-Bound MT5 Key
-                    </p>
+                    <div className="mt-1 space-y-0.5 text-[11px] text-slate-500 dark:text-slate-400 leading-tight">
+                      <p className="truncate">Hardware-Bound MT5 Key</p>
+                      <p className="text-[10.5px]">Live Algorithmic Execution</p>
+                      <p className={`text-[10.5px] font-medium ${
+                        hasPaid && ibVerified ? "text-emerald-600 dark:text-emerald-400" : "text-slate-400 dark:text-slate-500"
+                      }`}>
+                        {(hasPaid && ibVerified) ? "✓ Ready & Protected" : "Unlocks after Step 3"}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Bottom Help (Big, Clean & Prominent) */}
-            <div className="pt-6 mt-8 border-t border-slate-200/80 dark:border-white/10 space-y-3">
+            {/* Bottom Help (Clean, Systemic & Consistent with Reference Image) */}
+            <div className="pt-4 mt-6 border-t border-slate-200/80 dark:border-white/10 flex items-center justify-between">
               <a
                 href="https://wa.me/?text=Hello%20TradiFive%20Team!%20I%20need%20assistance%20setting%20up%20FiAlgo%20V1."
                 target="_blank"
                 rel="noreferrer"
-                className="w-full py-3 px-3.5 rounded-2xl bg-blue-50/80 hover:bg-blue-100 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 border border-blue-200/80 dark:border-blue-500/25 flex items-center justify-between transition-all group cursor-pointer shadow-xs"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 transition-colors"
               >
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-xs">
-                    <HelpCircle size={17} />
-                  </div>
-                  <div>
-                    <span className="block text-xs font-black text-slate-900 dark:text-white">
-                      Need Help?
-                    </span>
-                    <span className="block text-[11px] font-bold text-blue-600 dark:text-blue-400">
-                      WhatsApp Setup Desk &rarr;
-                    </span>
-                  </div>
-                </div>
-                <span className="flex items-center gap-1.5 text-[10.5px] font-bold text-emerald-600 dark:text-emerald-400 bg-white dark:bg-black/30 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  Online
-                </span>
+                <HelpCircle size={15} className="text-slate-400 hover:text-blue-600" />
+                <span>Help</span>
               </a>
+
+              <div className="flex items-center gap-1.5 text-[11px] font-medium text-slate-400">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span>Online Desk</span>
+              </div>
             </div>
           </aside>
 
@@ -1357,7 +1389,7 @@ MagicNumber=789104
                 <button
                   type="button"
                   onClick={() => setActiveStep(activeStep - 1)}
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
                 >
                   <ArrowLeft size={13} />
                   <span>Back</span>
@@ -1366,21 +1398,21 @@ MagicNumber=789104
                 <button
                   type="button"
                   onClick={() => navigate('/auto-trade')}
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition-colors cursor-pointer"
                 >
                   <ArrowLeft size={13} />
                   <span>Back to Auto Trade</span>
                 </button>
               )}
 
-              <span className="text-[11px] font-mono text-slate-400 dark:text-slate-500">
+              <span className="text-[11.5px] font-medium text-slate-400 dark:text-slate-500">
                 Step {activeStep} of 4
               </span>
             </div>
 
-            {/* Step Heading */}
+            {/* Step Heading (Clean, Consistent with Dashboard & Settlements) */}
             <div className="space-y-1">
-              <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+              <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
                 {activeStep === 1 && "Connect MT5 Account"}
                 {activeStep === 2 && "Download FiAlgo V1"}
                 {activeStep === 3 && "Select Plan & Payment"}
@@ -1400,16 +1432,16 @@ MagicNumber=789104
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            className="rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:bg-[#161618] dark:border-white/10 p-3 sm:p-6 space-y-4"
+            className="rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:bg-[#161618] dark:border-white/10 p-4 sm:p-6 space-y-4"
           >
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/5">
-              <div>
-                <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
-                  Connect MT5 Account
-                </h2>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  Complete these 3 steps to connect your broker and unlock your FiAlgo V1 license.
-                </p>
+              <div className="flex items-center gap-2">
+                <span className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-200/80 dark:border-blue-500/20">
+                  Broker Integration
+                </span>
+                <span className="text-xs text-slate-500 dark:text-slate-400 hidden sm:inline">
+                  Select whether you need a new broker account or already have one
+                </span>
               </div>
 
               {ibVerified && (
