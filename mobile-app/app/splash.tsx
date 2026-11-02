@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { View, Image, StyleSheet, Animated, Dimensions, Platform, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -7,47 +7,34 @@ import { AuthService } from './services/auth.service';
 
 const { width, height } = Dimensions.get('window');
 
+// Pre-calculate glow heights at module level (avoids recalculation on each render)
 const topGlowSource = require('../assets/images/top-glow.png');
-const topGlowAsset = typeof (Image as any)?.resolveAssetSource === 'function' ? (Image as any).resolveAssetSource(topGlowSource) : null;
-const topGlowHeight = topGlowAsset?.width ? (width * topGlowAsset.height) / topGlowAsset.width : Math.round((width * 571) / 1134);
-
 const bottomGlowSource = require('../assets/images/bottom-glow.png');
-const bottomGlowAsset = typeof (Image as any)?.resolveAssetSource === 'function' ? (Image as any).resolveAssetSource(bottomGlowSource) : null;
-const bottomGlowHeight = bottomGlowAsset?.width ? (width * bottomGlowAsset.height) / bottomGlowAsset.width : Math.round((width * 571) / 1134);
 
 export default function SplashScreen() {
   const router = useRouter();
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const scaleAnim = useRef(new Animated.Value(0.9)).current;
-
-  const [isReady, setIsReady] = useState(false);
-  const [canTapToStart, setCanTapToStart] = useState(false);
+  // Start at full opacity (1) — no fade-in blur effect on Android
+  const scaleAnim = useRef(new Animated.Value(0.92)).current;
 
   useEffect(() => {
+    // Immediately redirect if session exists on web
     if (Platform.OS === 'web' && typeof window !== 'undefined') {
-      const hasSession = Object.keys(window.localStorage).some(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
+      const hasSession = Object.keys(window.localStorage).some(
+        k => k.startsWith('sb-') && k.endsWith('-auth-token')
+      );
       if (hasSession) {
         router.replace('/(tabs)');
         return;
       }
     }
-    
-    setIsReady(true);
 
-    // Coordinated Animation
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 800,
-        useNativeDriver: true,
-      }),
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        friction: 4,
-        tension: 10,
-        useNativeDriver: true,
-      })
-    ]).start();
+    // Only animate scale (no opacity/blur) — crisp from first frame
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      friction: 5,
+      tension: 80,
+      useNativeDriver: true,
+    }).start();
 
     const checkSession = async () => {
       try {
@@ -56,89 +43,70 @@ export default function SplashScreen() {
         if (isBypassedVal === 'true') {
           AuthService.isBypassed = true;
           useStore.getState().setBypassed(true);
-          useStore.getState().init().catch((e) => console.warn('[Init Error]:', e));
+          useStore.getState().init().catch((e: any) => console.warn('[Init Error]:', e));
           router.replace('/(tabs)');
           return;
         }
 
-        // Start init in the background so it doesn't block routing
-        useStore.getState().init().catch((e) => console.warn('[Init Error]:', e));
-        
+        // Init in background so it doesn't block routing
+        useStore.getState().init().catch((e: any) => console.warn('[Init Error]:', e));
+
         const session = await AuthService.getCurrentSession();
         if (session?.user) {
           router.replace('/(tabs)');
         } else {
-          // Instead of setTimeout, allow the user to tap to continue
-          setCanTapToStart(true);
+          router.replace('/onboarding');
         }
       } catch (err) {
         console.warn('[SplashScreen Session Error]:', err);
-        setCanTapToStart(true);
+        router.replace('/onboarding');
       }
     };
 
     checkSession();
-
-    // No timer to clear, but we return a no-op cleanup
-    return () => {};
   }, []);
 
-  if (!isReady) {
-    return <View style={styles.fallbackContainer} />;
-  }
-
-  const handlePress = () => {
-    if (canTapToStart) {
-      router.replace('/onboarding');
-    }
-  };
-
   return (
-    <Pressable style={styles.container} onPress={handlePress}>
+    <View style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
-        {/* TOP GLOW */}
-        <Image 
-          source={topGlowSource} 
+        {/* TOP GLOW — non-animated, renders crisp immediately */}
+        <Image
+          source={topGlowSource}
           style={styles.topGlow}
-          resizeMode="contain"
+          resizeMode="cover"
+          fadeDuration={0}
         />
 
-        {/* LOGO AREA - Breathing Animation */}
-        <Animated.View style={[styles.logoContainer, { 
-          opacity: fadeAnim,
-          transform: [{ scale: scaleAnim }]
-        }]}>
-          {/* Logo Symbol */}
-          <Image 
-            source={require('../assets/images/Logo_only.png')} 
+        {/* LOGO AREA — scale spring only, no opacity, no blur */}
+        <Animated.View style={[styles.logoContainer, { transform: [{ scale: scaleAnim }] }]}>
+          <Image
+            source={require('../assets/images/Logo_only.png')}
             style={styles.logoSymbol}
             resizeMode="contain"
+            fadeDuration={0}
           />
-          {/* Logo Text */}
-          <Image 
-            source={require('../assets/images/dark-mode-logo.png')} 
+          <Image
+            source={require('../assets/images/dark-mode-logo.png')}
             style={styles.logoText}
             resizeMode="contain"
+            fadeDuration={0}
           />
         </Animated.View>
 
         {/* BOTTOM GLOW */}
-        <Image 
-          source={bottomGlowSource} 
+        <Image
+          source={bottomGlowSource}
           style={styles.bottomGlow}
-          resizeMode="contain"
+          resizeMode="cover"
+          fadeDuration={0}
         />
       </SafeAreaView>
-    </Pressable>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: '#000000',
-  },
-  fallbackContainer: {
     flex: 1,
     backgroundColor: '#000000',
   },
@@ -151,22 +119,21 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0,
     width: width,
-    height: topGlowHeight,
-    opacity: 0.8,
+    height: Math.round((width * 571) / 1134),
+    opacity: 0.85,
   },
   bottomGlow: {
     position: 'absolute',
     bottom: 0,
     width: width,
-    height: bottomGlowHeight,
-    opacity: 0.8,
+    height: Math.round((width * 571) / 1134),
+    opacity: 0.85,
   },
   logoContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 10,
-    gap: 0,
   },
   logoSymbol: {
     width: 50,
