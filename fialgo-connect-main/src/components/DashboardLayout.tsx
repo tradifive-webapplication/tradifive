@@ -395,7 +395,7 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
   });
 
   // Effective Full Screen: True if toggled, passed via prop, or on AutoTrade setup route
-  const isEffectiveFullScreen = isFullScreen || fullScreen || location.pathname.startsWith('/auto-trade/setup') || location.pathname.startsWith('/ai-trading');
+  const isEffectiveFullScreen = isFullScreen || fullScreen;
 
   const [bgFadeStyle, setBgFadeStyle] = useState(() => {
     try {

@@ -1155,8 +1155,8 @@ MagicNumber=789104
     : "Pending Review";
 
   return (
-    <DashboardLayout fullScreen={true}>
-      <div className="w-full max-w-[1720px] mx-auto px-3 sm:px-6 lg:px-10 py-6 space-y-6">
+    <DashboardLayout breadcrumbs={[{ label: "Auto Trade", path: "/auto-trade" }, { label: "Setup" }]}>
+      <div className="w-full pb-16 space-y-6">
 
         {/* ── HEADER (EXPANSIVE BIG-TECH ENTERPRISE CONSOLE) ── */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200/80 dark:border-white/10">
