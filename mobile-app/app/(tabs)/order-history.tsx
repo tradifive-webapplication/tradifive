@@ -15,6 +15,7 @@ import {
   Alert,
   Dimensions,
   Linking,
+  ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -26,20 +27,24 @@ import {
   Copy,
   Check,
   Download,
-  Key,
   ShieldCheck,
   Sparkles,
   HelpCircle,
   FileCode,
   Sliders,
-  Coins,
   Receipt,
   Send,
   RefreshCw,
+  ShoppingBag,
+  ExternalLink,
+  ChevronRight,
+  Clock,
+  Layers,
 } from 'lucide-react-native';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import { useStore } from '../store';
 import { getHeaderStyle, HeaderStyle } from '../utils/headerStore';
+import { supabase } from '../utils/supabase';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -55,31 +60,19 @@ const hSuccess = () => {
   } catch (e) {}
 };
 
-// Cryptographic Key Generator matching Tradifive.mq5 FNV-1a algorithm & TF_SALT
-export const generateTradifiveLicenseKey = (mt5AccountNumber?: string | number, expDays: number = 10000): string => {
-  const salt = 'TFv1-Zk39xQ-7mLpA2';
-  const numClean = String(mt5AccountNumber || '').replace(/\D/g, '') || '8392019';
-  try {
-    const login = BigInt(numClean);
-    let h = 0xcbf29ce484222325n;
-    const prime = 0x100000001b3n;
-    const mask64 = 0xffffffffffffffffn;
-    const str = `${salt}:${login}:${expDays}`;
-    for (let i = 0; i < str.length; i++) {
-      h = ((h ^ BigInt(str.charCodeAt(i))) * prime) & mask64;
-    }
-    h = h ^ (h >> 32n);
-    const chk = h & 0xffffffffffn;
-
-    const lgHex = login.toString(16).toUpperCase().padStart(8, '0');
-    const expHex = expDays.toString(16).toUpperCase().padStart(4, '0');
-    const chkHex = chk.toString(16).toUpperCase().padStart(10, '0');
-    return `TF-${lgHex}-${expHex}-${chkHex}`;
-  } catch (e) {
-    const hexAcc = Math.abs(Number(numClean) || 8392019).toString(16).toUpperCase().padStart(8, '0').slice(-8);
-    return `TF-${hexAcc.slice(0, 4)}-${hexAcc.slice(4, 8)}-94A1C8B204`;
-  }
-};
+interface RealOrder {
+  id: string;
+  product_id?: string;
+  amount: number;
+  status: string;
+  created_at: string;
+  product?: {
+    title: string;
+    description?: string;
+    product_type?: string;
+    thumbnail_url?: string;
+  };
+}
 
 export default function OrderHistoryScreen() {
   const insets = useSafeAreaInsets();
@@ -90,13 +83,10 @@ export default function OrderHistoryScreen() {
 
   const [headerStyle, setHeaderStyle] = useState<HeaderStyle>(getHeaderStyle());
   const [refreshing, setRefreshing] = useState(false);
+  const [loadingOrders, setLoadingOrders] = useState(true);
+  const [realOrders, setRealOrders] = useState<RealOrder[]>([]);
 
-  const accountNumber = mt5Account?.account_number || '8392019';
-  const server = mt5Account?.server || 'Vantage-Live 2';
-
-  const [copiedKey, setCopiedKey] = useState(false);
-
-  // Scroll animations matching other pages
+  // Smooth GPU-only scroll animations with ZERO layout thrashing (prevents Android glitching)
   const scrollY = useRef(new Animated.Value(0)).current;
   const headerHeight = insets.top + 72;
   const clampedScroll = Animated.diffClamp(
@@ -114,13 +104,38 @@ export default function OrderHistoryScreen() {
     outputRange: [0, 1],
     extrapolate: 'clamp',
   });
+
   const [downloadedEA, setDownloadedEA] = useState(false);
   const [downloadedPreset, setDownloadedPreset] = useState(false);
   const [downloadedManual, setDownloadedManual] = useState(false);
 
-  const dynamicLicenseKey = useMemo(() => {
-    return generateTradifiveLicenseKey(accountNumber);
-  }, [accountNumber]);
+  // Fetch real order records from database
+  const fetchRealOrders = useCallback(async () => {
+    if (!currentUser?.id) {
+      setLoadingOrders(false);
+      return;
+    }
+    try {
+      setLoadingOrders(true);
+      const { data, error } = await supabase
+        .from('creator_orders')
+        .select('*, product:creator_products(*)')
+        .eq('buyer_id', currentUser.id)
+        .order('created_at', { ascending: false });
+
+      if (!error && data) {
+        setRealOrders(data as RealOrder[]);
+      }
+    } catch (e) {
+      console.log('Error fetching user orders:', e);
+    } finally {
+      setLoadingOrders(false);
+    }
+  }, [currentUser?.id]);
+
+  useEffect(() => {
+    fetchRealOrders();
+  }, [fetchRealOrders]);
 
   useEffect(() => {
     const sub = DeviceEventEmitter.addListener('headerStyleChanged', (style: HeaderStyle) => {
@@ -129,18 +144,21 @@ export default function OrderHistoryScreen() {
     return () => sub.remove();
   }, []);
 
-  const onRefresh = useCallback(() => {
+  const onRefresh = useCallback(async () => {
     setRefreshing(true);
     if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setTimeout(() => setRefreshing(false), 800);
-  }, []);
+    await fetchRealOrders();
+    setRefreshing(false);
+  }, [fetchRealOrders]);
 
-  const copyToClipboard = (text: string) => {
-    Clipboard.setString(text);
-    hSuccess();
-    setCopiedKey(true);
-    setTimeout(() => setCopiedKey(false), 2000);
-  };
+  // Check if user has real MT5 binding
+  const hasRealMT5Binding = Boolean(mt5Account && mt5Account.account_number);
+  const hasAnyData = hasRealMT5Binding || realOrders.length > 0;
+
+  const licenseeName = useMemo(() => {
+    const full = `${currentUser?.first_name || ''} ${currentUser?.last_name || ''}`.trim();
+    return full || currentUser?.email || 'TradiFive Trader';
+  }, [currentUser]);
 
   return (
     <View style={[styles.container, { backgroundColor: headerStyle === 'simple' ? (isDark ? theme.background : '#f4f4f6') : '#000' }]}>
@@ -165,7 +183,7 @@ export default function OrderHistoryScreen() {
         />
       )}
 
-      {/* ── SMART-REVEAL HEADER ── */}
+      {/* ── SMART-REVEAL COMPACT HEADER ── */}
       {headerStyle !== 'simple' && (
         <Animated.View
           style={{
@@ -218,7 +236,7 @@ export default function OrderHistoryScreen() {
         </Animated.View>
       )}
 
-      {/* ── COLLAPSIBLE HEADER (Matching Other Pages) ── */}
+      {/* ── COLLAPSIBLE HEADER ── */}
       <Animated.View
         style={{
           height: headerStyle === 'simple' ? insets.top + 74 : insets.top + 104,
@@ -280,9 +298,6 @@ export default function OrderHistoryScreen() {
               <Text style={{ fontSize: 24, fontFamily: 'Inter_700Bold', color: headerStyle === 'simple' ? (isDark ? theme.text : '#000') : '#fff', letterSpacing: -0.5 }}>
                 Order History
               </Text>
-              <Text style={{ fontSize: 11, fontFamily: 'Inter_500Medium', color: headerStyle === 'simple' ? '#64748b' : 'rgba(255,255,255,0.7)', marginTop: 1 }}>
-                Purchased Algorithms &amp; License Key Vault
-              </Text>
             </View>
           </View>
 
@@ -298,41 +313,26 @@ export default function OrderHistoryScreen() {
         </Animated.View>
       </Animated.View>
 
-      {/* ── MAIN CONTENT CARD ── */}
-      <Animated.View
+      {/* ── MAIN CONTENT CARD (Static layout position: NO marginTop animation, completely prevents Android jitter!) ── */}
+      <View
         style={[
           styles.card,
           {
-            marginTop: headerStyle === 'simple' ? 0 : scrollY.interpolate({
-              inputRange: [0, 150],
-              outputRange: [-34, -184],
-              extrapolate: 'clamp',
-            }),
+            marginTop: headerStyle === 'simple' ? 0 : -34,
             borderTopLeftRadius: headerStyle === 'simple' ? 0 : 40,
             borderTopRightRadius: headerStyle === 'simple' ? 0 : 40,
             backgroundColor: isDark ? theme.background : '#f8fafc',
           },
         ]}
       >
-        <Animated.ScrollView
+        <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 18, paddingBottom: 130 }}
           onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: false })}
           scrollEventThrottle={16}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#8E8E93" />}
         >
-          <Animated.View
-            style={{
-              transform: headerStyle === 'simple' ? [] : [{
-                translateY: scrollY.interpolate({
-                  inputRange: [0, 150],
-                  outputRange: [0, 150],
-                  extrapolate: 'clamp',
-                }),
-              }],
-            }}
-          >
-            <View style={{ gap: 14 }}>
+          <View style={{ gap: 14 }}>
             {/* Overview / User Header Card */}
             <View
               style={[
@@ -349,10 +349,10 @@ export default function OrderHistoryScreen() {
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={{ fontSize: 16, fontFamily: 'Inter_700Bold', color: isDark ? '#ffffff' : '#0f172a' }}>
-                    Purchased Licenses
+                    Order History &amp; Billing
                   </Text>
                   <Text style={{ fontSize: 11.5, fontFamily: 'Inter_500Medium', color: '#94a3b8' }}>
-                    Review your algorithmic engines, MT5 bindings, and software keys
+                    Official receipts, algorithm authorizations, and MT5 telemetry records
                   </Text>
                 </View>
               </View>
@@ -373,369 +373,232 @@ export default function OrderHistoryScreen() {
               >
                 <View>
                   <Text style={{ fontSize: 10.5, fontFamily: 'Inter_600SemiBold', color: '#94a3b8', textTransform: 'uppercase' }}>
-                    Licensee
+                    Account Holder
                   </Text>
                   <Text style={{ fontSize: 13, fontFamily: 'Inter_700Bold', color: isDark ? '#ffffff' : '#0f172a' }}>
-                    {currentUser?.first_name || 'Alex'} {currentUser?.last_name || 'Morgan'}
+                    {licenseeName}
                   </Text>
                 </View>
                 <View style={{ alignItems: 'flex-end' }}>
                   <Text style={{ fontSize: 10.5, fontFamily: 'Inter_600SemiBold', color: '#94a3b8', textTransform: 'uppercase' }}>
-                    License Status
+                    Account Status
                   </Text>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                    <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#10b981' }} />
-                    <Text style={{ fontSize: 13, fontFamily: 'Inter_700Bold', color: '#10b981' }}>
-                      1 Active License
+                    <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: hasRealMT5Binding ? '#10b981' : '#38bdf8' }} />
+                    <Text style={{ fontSize: 13, fontFamily: 'Inter_700Bold', color: hasRealMT5Binding ? '#10b981' : '#38bdf8' }}>
+                      {hasRealMT5Binding ? 'Live MT5 Connected' : 'Standard Member'}
                     </Text>
                   </View>
                 </View>
               </View>
             </View>
 
-            {/* Featured Order Card: FiAlgo V1 */}
-            <View
-              style={[
-                styles.sectionCard,
-                {
-                  backgroundColor: isDark ? '#11131a' : '#ffffff',
-                  borderColor: isDark ? 'rgba(56,189,248,0.3)' : 'rgba(56,189,248,0.35)',
-                  shadowColor: '#38bdf8',
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: isDark ? 0.08 : 0.04,
-                  shadowRadius: 8,
-                },
-              ]}
-            >
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
-                <View style={{ flexDirection: 'row', gap: 12, flex: 1 }}>
-                  <Image
-                    source={require('../../assets/images/fialgo-v1-box.png')}
-                    style={{ width: 52, height: 52, borderRadius: 12 }}
-                    resizeMode="contain"
-                  />
-                  <View style={{ flex: 1 }}>
-                    <Text style={{ fontSize: 15.5, fontFamily: 'Inter_700Bold', color: isDark ? '#ffffff' : '#0f172a' }}>
-                      FiAlgo V1 Institutional
-                    </Text>
-                    <Text style={{ fontSize: 11.5, fontFamily: 'Inter_500Medium', color: '#94a3b8' }}>
-                      Gold Scalp Engine · Dynamic Basket (M1)
-                    </Text>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 }}>
-                      <View style={[styles.verifiedBadge, { backgroundColor: 'rgba(56,189,248,0.12)' }]}>
-                        <Sparkles size={10} color="#38bdf8" />
-                        <Text style={[styles.verifiedText, { color: '#38bdf8' }]}>Performance License</Text>
-                      </View>
-                      <Text style={{ fontSize: 11, fontFamily: 'Inter_700Bold', color: '#10b981' }}>
-                        ₹10,000 Setup (50/50 Share)
-                      </Text>
-                    </View>
-                  </View>
-                </View>
-
-                <View style={styles.verifiedBadge}>
-                  <View style={styles.greenPulse} />
-                  <Text style={styles.verifiedText}>ACTIVE</Text>
-                </View>
-              </View>
-
-              {/* Order Details Grid */}
-              <View
-                style={{
-                  backgroundColor: isDark ? '#0c0e14' : '#f8fafc',
-                  borderRadius: 14,
-                  borderWidth: 1,
-                  borderColor: isDark ? '#1e2433' : '#e2e8f0',
-                  paddingHorizontal: 12,
-                  paddingVertical: 8,
-                  marginBottom: 14,
-                }}
-              >
-                <View style={[styles.orderDetailRow, { borderBottomColor: isDark ? '#1a202c' : '#edf2f7' }]}>
-                  <Text style={styles.orderDetailLabel}>Order Reference</Text>
-                  <Text style={[styles.orderDetailValue, { color: isDark ? '#ffffff' : '#0f172a' }]}>#ORD-2026-98124</Text>
-                </View>
-
-                <View style={[styles.orderDetailRow, { borderBottomColor: isDark ? '#1a202c' : '#edf2f7' }]}>
-                  <Text style={styles.orderDetailLabel}>Transaction UTR</Text>
-                  <Text style={[styles.orderDetailValue, { color: '#38bdf8' }]}>429381029481</Text>
-                </View>
-
-                <View style={[styles.orderDetailRow, { borderBottomColor: isDark ? '#1a202c' : '#edf2f7' }]}>
-                  <Text style={styles.orderDetailLabel}>Payment Method</Text>
-                  <Text style={[styles.orderDetailValue, { color: isDark ? '#ffffff' : '#0f172a' }]}>PhonePe / UPI</Text>
-                </View>
-
-                <View style={[styles.orderDetailRow, { borderBottomColor: isDark ? '#1a202c' : '#edf2f7' }]}>
-                  <Text style={styles.orderDetailLabel}>Bound MT5 Account</Text>
-                  <Text style={[styles.orderDetailValue, { color: isDark ? '#ffffff' : '#0f172a' }]}>
-                    #{accountNumber} ({server})
-                  </Text>
-                </View>
-
-                <View style={[styles.orderDetailRow, { borderBottomWidth: 0 }]}>
-                  <Text style={styles.orderDetailLabel}>License Expiration</Text>
-                  <Text style={[styles.orderDetailValue, { color: '#10b981' }]}>Lifetime (10,000 Days)</Text>
-                </View>
-              </View>
-
-              {/* ═══ PERMANENT LICENSE KEY VAULT ═══ */}
-              <View
-                style={{
-                  backgroundColor: isDark ? 'rgba(56,189,248,0.06)' : 'rgba(56,189,248,0.08)',
-                  borderRadius: 14,
-                  borderWidth: 1.5,
-                  borderColor: '#38bdf8',
-                  padding: 14,
-                  marginBottom: 14,
-                }}
-              >
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                    <Key size={15} color="#38bdf8" />
-                    <Text style={{ fontSize: 11, fontFamily: 'Inter_700Bold', color: '#38bdf8', textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                      Permanent License Key Vault
-                    </Text>
-                  </View>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                    <ShieldCheck size={13} color="#10b981" />
-                    <Text style={{ fontSize: 10, fontFamily: 'Inter_600SemiBold', color: '#10b981' }}>Secured</Text>
-                  </View>
-                </View>
-
-                <Text style={{ fontSize: 11, fontFamily: 'Inter_400Regular', color: '#94a3b8', marginBottom: 10, lineHeight: 16 }}>
-                  If you reinstall MetaTrader 5 or configure a new VPS server, copy your active personal license key below:
+            {loadingOrders ? (
+              <View style={{ padding: 40, alignItems: 'center', justifyContent: 'center' }}>
+                <ActivityIndicator size="small" color="#38bdf8" />
+                <Text style={{ marginTop: 10, color: '#94a3b8', fontSize: 12, fontFamily: 'Inter_500Medium' }}>
+                  Loading order history...
                 </Text>
-
+              </View>
+            ) : !hasAnyData ? (
+              /* ── ZERO MOCK DATA: Clean Authentic Empty State ── */
+              <View
+                style={[
+                  styles.sectionCard,
+                  {
+                    backgroundColor: isDark ? '#11131a' : '#ffffff',
+                    borderColor: isDark ? '#1e2433' : '#e2e8f0',
+                    alignItems: 'center',
+                    paddingVertical: 36,
+                    paddingHorizontal: 20,
+                  },
+                ]}
+              >
                 <View
                   style={{
-                    backgroundColor: isDark ? '#0c0e14' : '#ffffff',
-                    borderRadius: 10,
+                    width: 60,
+                    height: 60,
+                    borderRadius: 30,
+                    backgroundColor: isDark ? 'rgba(56,189,248,0.1)' : '#f0f9ff',
                     borderWidth: 1,
-                    borderColor: isDark ? '#1e2433' : '#cbd5e1',
-                    paddingHorizontal: 12,
-                    paddingVertical: 10,
-                    marginBottom: 10,
+                    borderColor: isDark ? 'rgba(56,189,248,0.2)' : '#bae6fd',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginBottom: 14,
                   }}
                 >
-                  <Text
-                    selectable={true}
-                    style={{
-                      fontSize: 14,
-                      fontFamily: 'Inter_800ExtraBold',
-                      color: isDark ? '#38bdf8' : '#0284c7',
-                      letterSpacing: 0.8,
-                      textAlign: 'center',
-                    }}
-                  >
-                    {dynamicLicenseKey}
-                  </Text>
+                  <ShoppingBag size={26} color="#0284c7" />
                 </View>
-
+                <Text style={{ fontSize: 17, fontFamily: 'Inter_700Bold', color: isDark ? '#ffffff' : '#0f172a', marginBottom: 6 }}>
+                  No Orders Yet
+                </Text>
+                <Text style={{ fontSize: 12, fontFamily: 'Inter_400Regular', color: '#94a3b8', textAlign: 'center', lineHeight: 18, marginBottom: 20, maxWidth: 310 }}>
+                  You haven't placed any algorithmic orders or license purchases yet. When you activate an algorithm from the Armory, your official receipts and transaction details will appear here.
+                </Text>
                 <TouchableOpacity
                   activeOpacity={0.85}
-                  onPress={() => copyToClipboard(dynamicLicenseKey)}
+                  onPress={() => {
+                    hSelect();
+                    router.push('/(tabs)/auto-trade-setup' as any);
+                  }}
                   style={{
                     flexDirection: 'row',
                     alignItems: 'center',
-                    justifyContent: 'center',
                     gap: 8,
-                    backgroundColor: copiedKey ? '#10b981' : '#38bdf8',
-                    paddingVertical: 11,
-                    borderRadius: 10,
+                    backgroundColor: isDark ? '#38bdf8' : '#0f172a',
+                    paddingHorizontal: 20,
+                    paddingVertical: 12,
+                    borderRadius: 14,
                   }}
                 >
-                  {copiedKey ? <Check size={16} color="#ffffff" strokeWidth={2.5} /> : <Copy size={16} color="#0f172a" />}
-                  <Text style={{ fontSize: 13, fontFamily: 'Inter_700Bold', color: copiedKey ? '#ffffff' : '#0f172a' }}>
-                    {copiedKey ? 'License Key Copied to Clipboard!' : 'Copy License Key'}
+                  <Sparkles size={14} color={isDark ? '#0f172a' : '#ffffff'} />
+                  <Text style={{ fontSize: 13, fontFamily: 'Inter_700Bold', color: isDark ? '#0f172a' : '#ffffff' }}>
+                    Browse AutoTrade Licenses
                   </Text>
                 </TouchableOpacity>
               </View>
+            ) : (
+              /* ── REAL DATA DISPLAY ── */
+              <>
+                {/* Real MT5 Active License Card */}
+                {hasRealMT5Binding && (
+                  <View
+                    style={[
+                      styles.sectionCard,
+                      {
+                        backgroundColor: isDark ? '#11131a' : '#ffffff',
+                        borderColor: isDark ? 'rgba(16,185,129,0.3)' : 'rgba(16,185,129,0.35)',
+                        shadowColor: '#10b981',
+                        shadowOffset: { width: 0, height: 2 },
+                        shadowOpacity: isDark ? 0.08 : 0.04,
+                        shadowRadius: 8,
+                      },
+                    ]}
+                  >
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
+                      <View style={{ flexDirection: 'row', gap: 12, flex: 1 }}>
+                        <Image
+                          source={require('../../assets/images/fialgo-v1-box.png')}
+                          style={{ width: 48, height: 48, borderRadius: 12 }}
+                          resizeMode="contain"
+                        />
+                        <View style={{ flex: 1 }}>
+                          <Text style={{ fontSize: 15.5, fontFamily: 'Inter_700Bold', color: isDark ? '#ffffff' : '#0f172a' }}>
+                            FiAlgo V1 Institutional
+                          </Text>
+                          <Text style={{ fontSize: 11.5, fontFamily: 'Inter_500Medium', color: '#94a3b8' }}>
+                            Gold Scalp Engine · Dynamic Basket (M1)
+                          </Text>
+                        </View>
+                      </View>
 
-              {/* Downloads & Presets */}
-              <Text style={{ fontSize: 11, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', marginBottom: 8, letterSpacing: 0.5 }}>
-                Algorithm Files &amp; Settings
-              </Text>
+                      <View style={styles.verifiedBadge}>
+                        <View style={styles.greenPulse} />
+                        <Text style={styles.verifiedText}>ACTIVE</Text>
+                      </View>
+                    </View>
 
-              {/* EA */}
-              <TouchableOpacity
-                activeOpacity={0.8}
-                onPress={() => {
-                  hSuccess();
-                  setDownloadedEA(true);
-                  Alert.alert('FiAlgo V1 Downloaded', 'FiAlgo_v1.0.4.ex5 has been downloaded.');
-                }}
-                style={[styles.downloadRowBtn, { backgroundColor: isDark ? '#0c0e14' : '#f8fafc', borderColor: isDark ? '#1e2433' : '#e2e8f0' }]}
-              >
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                  <View style={[styles.stepIconWrap, { backgroundColor: 'rgba(56,189,248,0.12)' }]}>
-                    <FileCode size={16} color="#38bdf8" />
-                  </View>
-                  <View>
-                    <Text style={{ fontSize: 12.5, fontFamily: 'Inter_600SemiBold', color: isDark ? '#ffffff' : '#0f172a' }}>
-                      FiAlgo_v1.0.4.ex5
-                    </Text>
-                    <Text style={{ fontSize: 10.5, fontFamily: 'Inter_400Regular', color: '#94a3b8' }}>
-                      MetaTrader 5 Expert Advisor (2.4 MB)
-                    </Text>
-                  </View>
-                </View>
-                <View style={[styles.downloadPill, { backgroundColor: downloadedEA ? 'rgba(16,185,129,0.15)' : '#38bdf8' }]}>
-                  {downloadedEA ? <Check size={14} color="#10b981" /> : <Download size={14} color="#0f172a" />}
-                  <Text style={{ fontSize: 10.5, fontFamily: 'Inter_700Bold', color: downloadedEA ? '#10b981' : '#0f172a' }}>
-                    {downloadedEA ? 'Downloaded' : 'Download'}
-                  </Text>
-                </View>
-              </TouchableOpacity>
+                    {/* Real Bound Account Details */}
+                    <View
+                      style={{
+                        backgroundColor: isDark ? '#0c0e14' : '#f8fafc',
+                        borderRadius: 14,
+                        borderWidth: 1,
+                        borderColor: isDark ? '#1e2433' : '#e2e8f0',
+                        paddingHorizontal: 12,
+                        paddingVertical: 8,
+                        marginBottom: 10,
+                      }}
+                    >
+                      <View style={[styles.orderDetailRow, { borderBottomColor: isDark ? '#1a202c' : '#edf2f7' }]}>
+                        <Text style={styles.orderDetailLabel}>Bound MT5 Account</Text>
+                        <Text style={[styles.orderDetailValue, { color: isDark ? '#ffffff' : '#0f172a' }]}>
+                          #{mt5Account?.account_number}
+                        </Text>
+                      </View>
 
-              {/* Preset */}
-              <TouchableOpacity
-                activeOpacity={0.8}
-                onPress={() => {
-                  hSuccess();
-                  setDownloadedPreset(true);
-                  Alert.alert('Gold Scalper Preset Downloaded', 'XAUUSD_M1_Preset.set has been saved.');
-                }}
-                style={[styles.downloadRowBtn, { backgroundColor: isDark ? '#0c0e14' : '#f8fafc', borderColor: isDark ? '#1e2433' : '#e2e8f0' }]}
-              >
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                  <View style={[styles.stepIconWrap, { backgroundColor: 'rgba(16,185,129,0.12)' }]}>
-                    <Sliders size={16} color="#10b981" />
-                  </View>
-                  <View>
-                    <Text style={{ fontSize: 12.5, fontFamily: 'Inter_600SemiBold', color: isDark ? '#ffffff' : '#0f172a' }}>
-                      XAUUSD_M1_Preset.set
-                    </Text>
-                    <Text style={{ fontSize: 10.5, fontFamily: 'Inter_400Regular', color: '#94a3b8' }}>
-                      Institutional Gold Scalp Strategy Config
-                    </Text>
-                  </View>
-                </View>
-                <View style={[styles.downloadPill, { backgroundColor: downloadedPreset ? 'rgba(16,185,129,0.15)' : '#38bdf8' }]}>
-                  {downloadedPreset ? <Check size={14} color="#10b981" /> : <Download size={14} color="#0f172a" />}
-                  <Text style={{ fontSize: 10.5, fontFamily: 'Inter_700Bold', color: downloadedPreset ? '#10b981' : '#0f172a' }}>
-                    {downloadedPreset ? 'Downloaded' : 'Download'}
-                  </Text>
-                </View>
-              </TouchableOpacity>
+                      <View style={[styles.orderDetailRow, { borderBottomColor: isDark ? '#1a202c' : '#edf2f7' }]}>
+                        <Text style={styles.orderDetailLabel}>Broker Server</Text>
+                        <Text style={[styles.orderDetailValue, { color: '#38bdf8' }]}>
+                          {mt5Account?.server || 'Regulated MT5 Terminal'}
+                        </Text>
+                      </View>
 
-              {/* PDF Manual */}
-              <TouchableOpacity
-                activeOpacity={0.8}
-                onPress={() => {
-                  hSuccess();
-                  setDownloadedManual(true);
-                  Alert.alert('PDF Guide Downloaded', 'FiAlgo_MT5_Setup_Guide.pdf opened.');
-                }}
-                style={[styles.downloadRowBtn, { backgroundColor: isDark ? '#0c0e14' : '#f8fafc', borderColor: isDark ? '#1e2433' : '#e2e8f0' }]}
-              >
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                  <View style={[styles.stepIconWrap, { backgroundColor: 'rgba(245,158,11,0.12)' }]}>
-                    <HelpCircle size={16} color="#f59e0b" />
-                  </View>
-                  <View>
-                    <Text style={{ fontSize: 12.5, fontFamily: 'Inter_600SemiBold', color: isDark ? '#ffffff' : '#0f172a' }}>
-                      FiAlgo_MT5_Setup_Guide.pdf
-                    </Text>
-                    <Text style={{ fontSize: 10.5, fontFamily: 'Inter_400Regular', color: '#94a3b8' }}>
-                      Step-by-step MT5 activation guide
-                    </Text>
-                  </View>
-                </View>
-                <View style={[styles.downloadPill, { backgroundColor: downloadedManual ? 'rgba(16,185,129,0.15)' : '#38bdf8' }]}>
-                  {downloadedManual ? <Check size={14} color="#10b981" /> : <Download size={14} color="#0f172a" />}
-                  <Text style={{ fontSize: 10.5, fontFamily: 'Inter_700Bold', color: downloadedManual ? '#10b981' : '#0f172a' }}>
-                    {downloadedManual ? 'Downloaded' : 'Download'}
-                  </Text>
-                </View>
-              </TouchableOpacity>
+                      <View style={[styles.orderDetailRow, { borderBottomWidth: 0 }]}>
+                        <Text style={styles.orderDetailLabel}>Live Execution Engine</Text>
+                        <Text style={[styles.orderDetailValue, { color: '#10b981' }]}>
+                          {mt5Account?.algo_status ? 'Algorithm Running' : 'Standby / Paused'}
+                        </Text>
+                      </View>
+                    </View>
 
-              {/* Re-bind Account CTA */}
-              <TouchableOpacity
-                activeOpacity={0.85}
-                onPress={() => {
-                  hSelect();
-                  router.push('/(tabs)/auto-trade-setup' as any);
-                }}
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 6,
-                  backgroundColor: isDark ? '#1a202c' : '#f1f5f9',
-                  borderWidth: 1,
-                  borderColor: isDark ? '#2d3748' : '#cbd5e1',
-                  paddingVertical: 12,
-                  borderRadius: 12,
-                  marginTop: 14,
-                }}
-              >
-                <RefreshCw size={15} color={isDark ? '#cbd5e1' : '#475569'} />
-                <Text style={{ fontSize: 13, fontFamily: 'Inter_600SemiBold', color: isDark ? '#ffffff' : '#0f172a' }}>
-                  Reconfigure MT5 Account / Run Setup
-                </Text>
-              </TouchableOpacity>
-            </View>
+                    {/* Re-bind Account CTA */}
+                    <TouchableOpacity
+                      activeOpacity={0.85}
+                      onPress={() => {
+                        hSelect();
+                        router.push('/(tabs)/auto-trade-setup' as any);
+                      }}
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 6,
+                        backgroundColor: isDark ? '#1a202c' : '#f1f5f9',
+                        borderWidth: 1,
+                        borderColor: isDark ? '#2d3748' : '#cbd5e1',
+                        paddingVertical: 11,
+                        borderRadius: 12,
+                      }}
+                    >
+                      <RefreshCw size={14} color={isDark ? '#cbd5e1' : '#475569'} />
+                      <Text style={{ fontSize: 12.5, fontFamily: 'Inter_600SemiBold', color: isDark ? '#ffffff' : '#0f172a' }}>
+                        Reconfigure MT5 / Manage Setup
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
 
-            {/* Add-On 1: Gold Scalper Pro */}
-            <View
-              style={[
-                styles.sectionCard,
-                {
-                  backgroundColor: isDark ? '#11131a' : '#ffffff',
-                  borderColor: isDark ? '#1e2433' : '#e2e8f0',
-                },
-              ]}
-            >
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                  <View style={[styles.stepIconWrap, { backgroundColor: 'rgba(245,158,11,0.12)' }]}>
-                    <Coins size={18} color="#f59e0b" />
-                  </View>
-                  <View>
-                    <Text style={{ fontSize: 14, fontFamily: 'Inter_700Bold', color: isDark ? '#ffffff' : '#0f172a' }}>
-                      Gold Scalper Pro (M1 Module)
-                    </Text>
-                    <Text style={{ fontSize: 11, fontFamily: 'Inter_400Regular', color: '#94a3b8' }}>
-                      High-frequency liquidity scalper with spread guard
-                    </Text>
-                  </View>
-                </View>
-                <View style={[styles.verifiedBadge, { backgroundColor: 'rgba(16,185,129,0.12)' }]}>
-                  <Text style={[styles.verifiedText, { color: '#10b981' }]}>INCLUDED</Text>
-                </View>
-              </View>
-            </View>
+                {/* Real Creator Store Orders (if any) */}
+                {realOrders.map((order) => (
+                  <View
+                    key={order.id}
+                    style={[
+                      styles.sectionCard,
+                      {
+                        backgroundColor: isDark ? '#11131a' : '#ffffff',
+                        borderColor: isDark ? '#1e2433' : '#e2e8f0',
+                      },
+                    ]}
+                  >
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                      <View style={{ flex: 1, marginRight: 8 }}>
+                        <Text style={{ fontSize: 14.5, fontFamily: 'Inter_700Bold', color: isDark ? '#ffffff' : '#0f172a' }}>
+                          {order.product?.title || 'Algorithm Purchase'}
+                        </Text>
+                        <Text style={{ fontSize: 11, fontFamily: 'Inter_500Medium', color: '#94a3b8' }}>
+                          Order #{order.id.slice(0, 8).toUpperCase()}
+                        </Text>
+                      </View>
+                      <View style={{ paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8, backgroundColor: order.status === 'completed' ? 'rgba(16,185,129,0.12)' : 'rgba(245,158,11,0.12)' }}>
+                        <Text style={{ fontSize: 10, fontFamily: 'Inter_700Bold', color: order.status === 'completed' ? '#10b981' : '#f59e0b', textTransform: 'uppercase' }}>
+                          {order.status}
+                        </Text>
+                      </View>
+                    </View>
 
-            {/* Add-On 2: Dynamic Basket & Drawdown Guard */}
-            <View
-              style={[
-                styles.sectionCard,
-                {
-                  backgroundColor: isDark ? '#11131a' : '#ffffff',
-                  borderColor: isDark ? '#1e2433' : '#e2e8f0',
-                },
-              ]}
-            >
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                  <View style={[styles.stepIconWrap, { backgroundColor: 'rgba(16,185,129,0.12)' }]}>
-                    <ShieldCheck size={18} color="#10b981" />
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 8, borderTopWidth: 1, borderTopColor: isDark ? '#1e2433' : '#f1f5f9' }}>
+                      <Text style={{ fontSize: 11, fontFamily: 'Inter_500Medium', color: '#94a3b8' }}>
+                        {new Date(order.created_at).toLocaleDateString()}
+                      </Text>
+                      <Text style={{ fontSize: 14, fontFamily: 'Inter_700Bold', color: isDark ? '#ffffff' : '#0f172a' }}>
+                        ₹{Number(order.amount || 0).toLocaleString()}
+                      </Text>
+                    </View>
                   </View>
-                  <View>
-                    <Text style={{ fontSize: 14, fontFamily: 'Inter_700Bold', color: isDark ? '#ffffff' : '#0f172a' }}>
-                      Dynamic Basket &amp; Drawdown Guard
-                    </Text>
-                    <Text style={{ fontSize: 11, fontFamily: 'Inter_400Regular', color: '#94a3b8' }}>
-                      1.5% maximum daily capital equity protection
-                    </Text>
-                  </View>
-                </View>
-                <View style={[styles.verifiedBadge, { backgroundColor: 'rgba(16,185,129,0.12)' }]}>
-                  <Text style={[styles.verifiedText, { color: '#10b981' }]}>ACTIVE</Text>
-                </View>
-              </View>
-            </View>
+                ))}
+              </>
+            )}
 
             {/* VIP Concierge Support Banner */}
             <View
@@ -776,9 +639,8 @@ export default function OrderHistoryScreen() {
               </TouchableOpacity>
             </View>
           </View>
-          </Animated.View>
-        </Animated.ScrollView>
-      </Animated.View>
+        </ScrollView>
+      </View>
     </View>
   );
 }
@@ -861,29 +723,4 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: 'Inter_600SemiBold',
   },
-  downloadRowBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 10,
-    borderRadius: 12,
-    borderWidth: 1,
-    marginVertical: 4,
-  },
-  stepIconWrap: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  downloadPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
-  },
 });
-

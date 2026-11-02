@@ -1466,6 +1466,9 @@ export default function DashboardScreen() {
     if (feedSubTab === 'following') {
       return posts.filter((p: any) => followingIds.includes(p.user_id));
     }
+    if (feedSubTab === 'setups') {
+      return posts.filter((p: any) => p.media_url || p.post_type === 'image' || p.is_setup || p.trade_type || p.symbol || p.tags?.includes('setup'));
+    }
     return posts;
   }, [feedSubTab, feedPostsToRender, followingIds, blockedUsers]);
 
@@ -1922,7 +1925,7 @@ export default function DashboardScreen() {
             borderBottomWidth: headerStyle === 'simple' && !isDark ? 1 : 0,
             borderBottomColor: isDark ? theme.cardBorder : '#e2e8f0',
             position: 'relative',
-            transform: []
+            transform: headerStyle === 'simple' ? [] : [{ translateY: headerTranslateY }]
           }
         ]}>
           {headerStyle !== 'simple' && (
@@ -1943,7 +1946,11 @@ export default function DashboardScreen() {
             alignItems: 'center',
             justifyContent: 'space-between',
             paddingHorizontal: 20,
-            opacity: aiHeaderFade
+            opacity: headerStyle === 'simple' ? aiHeaderFade : clampedScroll.interpolate({
+              inputRange: [0, 35],
+              outputRange: [1, 0],
+              extrapolate: 'clamp',
+            }),
           }}>
             {activeTab === 'community' ? (
               <TouchableOpacity
@@ -1989,7 +1996,7 @@ export default function DashboardScreen() {
       )}
 
 
-      {/* ── WHITE CONTENT CARD ── */}
+      {/* ── WHITE CONTENT CARD (Slides up and down with scroll) ── */}
       <Animated.View style={[
         styles.card,
         {
@@ -1997,6 +2004,7 @@ export default function DashboardScreen() {
           borderTopLeftRadius: headerStyle === 'simple' ? 0 : 40,
           borderTopRightRadius: headerStyle === 'simple' ? 0 : 40,
           backgroundColor: activeCardId ? '#090d16' : (isDark ? theme.background : (activeTab === 'feed' ? '#f8fafc' : '#fff')),
+          transform: headerStyle === 'simple' ? [] : [{ translateY: headerTranslateY }]
         }
       ]}>
         {activeTab === 'dashboard' && (
@@ -2874,25 +2882,26 @@ export default function DashboardScreen() {
             >
               <View style={{ width: '100%' }}>
 
-              {/* Quick Post Prompt Card */}
+              {/* Institutional Trade Setup & Thought Composer */}
               <View
                 style={{
-                  marginHorizontal: 8,
-                  marginBottom: 12,
-                  backgroundColor: isDark ? '#14171f' : '#ffffff',
-                  borderRadius: 20,
+                  marginHorizontal: 10,
+                  marginBottom: 14,
+                  backgroundColor: isDark ? '#11141c' : '#ffffff',
+                  borderRadius: 24,
                   padding: 14,
                   borderWidth: 1,
-                  borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#e2e8f0',
-                  shadowColor: '#0f172a',
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: isDark ? 0.2 : 0.04,
-                  shadowRadius: 8,
-                  elevation: 2,
+                  borderColor: isDark ? 'rgba(255, 255, 255, 0.09)' : '#e2e8f0',
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: isDark ? 0.25 : 0.05,
+                  shadowRadius: 10,
+                  elevation: 3,
                 }}
               >
+                {/* Top Input Trigger Row */}
                 <TouchableOpacity
-                  activeOpacity={0.8}
+                  activeOpacity={0.82}
                   onPress={() => {
                     hSelect();
                     setCreatePostVisible(true);
@@ -2903,76 +2912,161 @@ export default function DashboardScreen() {
                     gap: 12,
                   }}
                 >
-                  <Image
-                    source={{ uri: getAvatarUrl(currentUser?.avatar_url, currentUser?.email) }}
+                  <View style={{ position: 'relative' }}>
+                    <Image
+                      source={{ uri: getAvatarUrl(currentUser?.avatar_url, currentUser?.email) }}
+                      style={{
+                        width: 44,
+                        height: 44,
+                        borderRadius: 22,
+                        backgroundColor: isDark ? '#1e2433' : '#f1f5f9',
+                        borderWidth: 1.5,
+                        borderColor: isDark ? '#38bdf8' : '#0284c7',
+                      }}
+                    />
+                    <View
+                      style={{
+                        position: 'absolute',
+                        bottom: 0,
+                        right: 0,
+                        width: 12,
+                        height: 12,
+                        borderRadius: 6,
+                        backgroundColor: '#10b981',
+                        borderWidth: 2,
+                        borderColor: isDark ? '#11141c' : '#ffffff',
+                      }}
+                    />
+                  </View>
+
+                  <View
                     style={{
-                      width: 42,
-                      height: 42,
-                      borderRadius: 21,
-                      backgroundColor: isDark ? '#1e2433' : '#f1f5f9',
-                      borderWidth: 1.5,
-                      borderColor: isDark ? 'rgba(255, 255, 255, 0.12)' : '#e2e8f0',
+                      flex: 1,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : '#f8fafc',
+                      paddingHorizontal: 16,
+                      paddingVertical: 12,
+                      borderRadius: 20,
+                      borderWidth: 1,
+                      borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#e2e8f0',
                     }}
-                  />
-                  <View style={{
-                    flex: 1,
-                    backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : '#f8fafc',
-                    paddingHorizontal: 16,
-                    paddingVertical: 12,
-                    borderRadius: 22,
-                    borderWidth: 1,
-                    borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#e2e8f0',
-                  }}>
-                    <Text style={{ color: isDark ? '#94a3b8' : '#64748b', fontSize: 14, fontFamily: 'Inter_400Regular' }}>
-                      Share your trade setup or thought...
+                  >
+                    <Text
+                      style={{
+                        color: isDark ? '#94a3b8' : '#64748b',
+                        fontSize: 13.5,
+                        fontFamily: 'Inter_500Medium',
+                        flex: 1,
+                        marginRight: 8,
+                      }}
+                      numberOfLines={1}
+                    >
+                      Share setup, chart, or analysis...
                     </Text>
+                    <Sparkles size={16} color="#38bdf8" />
                   </View>
                 </TouchableOpacity>
 
-                {/* Quick Action Shortcuts */}
-                <View style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  marginTop: 12,
-                  paddingTop: 10,
-                  borderTopWidth: 1,
-                  borderTopColor: isDark ? 'rgba(255, 255, 255, 0.06)' : '#f1f5f9',
-                }}>
-                  <TouchableOpacity
-                    activeOpacity={0.75}
-                    onPress={() => {
-                      hSelect();
-                      setCreatePostType('image');
-                      setCreatePostVisible(true);
-                      pickMedia();
-                    }}
-                    style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 4, paddingHorizontal: 8 }}
-                  >
-                    <IconlyImage size={18} color="#10b981" set="bold" />
-                    <Text style={{ fontSize: 12.5, fontFamily: 'Inter_600SemiBold', color: isDark ? '#cbd5e1' : '#475569' }}>
-                      Photo / Chart
-                    </Text>
-                  </TouchableOpacity>
+                {/* Tactical Action Chips Row */}
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    marginTop: 12,
+                    paddingTop: 10,
+                    borderTopWidth: 1,
+                    borderTopColor: isDark ? 'rgba(255, 255, 255, 0.06)' : '#f1f5f9',
+                  }}
+                >
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                    {/* Setup / Chart Chip */}
+                    <TouchableOpacity
+                      activeOpacity={0.75}
+                      onPress={() => {
+                        hSelect();
+                        setCreatePostType('image');
+                        setCreatePostVisible(true);
+                        pickMedia();
+                      }}
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 5,
+                        paddingVertical: 6,
+                        paddingHorizontal: 10,
+                        borderRadius: 12,
+                        backgroundColor: isDark ? 'rgba(16, 185, 129, 0.12)' : '#ecfdf5',
+                        borderWidth: 1,
+                        borderColor: isDark ? 'rgba(16, 185, 129, 0.25)' : '#a7f3d0',
+                      }}
+                    >
+                      <BarChart2 size={14} color="#10b981" />
+                      <Text style={{ fontSize: 11.5, fontFamily: 'Inter_700Bold', color: '#10b981' }}>
+                        Setup
+                      </Text>
+                    </TouchableOpacity>
 
-                  <TouchableOpacity
-                    activeOpacity={0.75}
-                    onPress={() => {
-                      hSelect();
-                      setCreatePostType('video');
-                      setCreatePostVisible(true);
-                      pickMedia();
-                    }}
-                    style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 4, paddingHorizontal: 8 }}
-                  >
-                    <IconlyVideo size={18} color="#f59e0b" set="bold" />
-                    <Text style={{ fontSize: 12.5, fontFamily: 'Inter_600SemiBold', color: isDark ? '#cbd5e1' : '#475569' }}>
-                      Video
-                    </Text>
-                  </TouchableOpacity>
+                    {/* Photo Chip */}
+                    <TouchableOpacity
+                      activeOpacity={0.75}
+                      onPress={() => {
+                        hSelect();
+                        setCreatePostType('image');
+                        setCreatePostVisible(true);
+                        pickMedia();
+                      }}
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 5,
+                        paddingVertical: 6,
+                        paddingHorizontal: 10,
+                        borderRadius: 12,
+                        backgroundColor: isDark ? 'rgba(56, 189, 248, 0.12)' : '#f0f9ff',
+                        borderWidth: 1,
+                        borderColor: isDark ? 'rgba(56, 189, 248, 0.25)' : '#bae6fd',
+                      }}
+                    >
+                      <IconlyImage size={15} color="#38bdf8" set="bold" />
+                      <Text style={{ fontSize: 11.5, fontFamily: 'Inter_700Bold', color: '#0284c7' }}>
+                        Photo
+                      </Text>
+                    </TouchableOpacity>
 
+                    {/* Video Chip */}
+                    <TouchableOpacity
+                      activeOpacity={0.75}
+                      onPress={() => {
+                        hSelect();
+                        setCreatePostType('video');
+                        setCreatePostVisible(true);
+                        pickMedia();
+                      }}
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 5,
+                        paddingVertical: 6,
+                        paddingHorizontal: 10,
+                        borderRadius: 12,
+                        backgroundColor: isDark ? 'rgba(245, 158, 11, 0.12)' : '#fffbeb',
+                        borderWidth: 1,
+                        borderColor: isDark ? 'rgba(245, 158, 11, 0.25)' : '#fde68a',
+                      }}
+                    >
+                      <IconlyVideo size={15} color="#f59e0b" set="bold" />
+                      <Text style={{ fontSize: 11.5, fontFamily: 'Inter_700Bold', color: '#d97706' }}>
+                        Video
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  {/* Post Pill */}
                   <TouchableOpacity
-                    activeOpacity={0.75}
+                    activeOpacity={0.8}
                     onPress={() => {
                       hSelect();
                       setCreatePostType('twit');
@@ -2981,62 +3075,90 @@ export default function DashboardScreen() {
                     style={{
                       flexDirection: 'row',
                       alignItems: 'center',
-                      gap: 6,
+                      gap: 5,
                       backgroundColor: isDark ? '#ffffff' : '#0f172a',
-                      paddingVertical: 6,
+                      paddingVertical: 7,
                       paddingHorizontal: 14,
                       borderRadius: 14,
+                      shadowColor: '#000',
+                      shadowOffset: { width: 0, height: 2 },
+                      shadowOpacity: 0.15,
+                      shadowRadius: 4,
+                      elevation: 2,
                     }}
                   >
-                    <Send size={13} color={isDark ? '#000000' : '#ffffff'} />
+                    <Send size={12} color={isDark ? '#000000' : '#ffffff'} />
                     <Text style={{ fontSize: 12, fontFamily: 'Inter_700Bold', color: isDark ? '#000000' : '#ffffff' }}>
-                      Post
+                      Publish
                     </Text>
                   </TouchableOpacity>
                 </View>
               </View>
 
-              {/* Feed Sub Tabs: For You, Following, Setups */}
-              <View style={{
-                flexDirection: 'row',
-                paddingHorizontal: 16,
-                marginBottom: 16,
-                alignItems: 'center',
-                gap: 8,
-              }}>
+              {/* Institutional Feed Segment Tabs: For You, Following, Verified Setups */}
+              <View
+                style={{
+                  marginHorizontal: 10,
+                  marginBottom: 16,
+                  padding: 4,
+                  backgroundColor: isDark ? '#11141c' : '#f1f5f9',
+                  borderRadius: 18,
+                  borderWidth: 1,
+                  borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#e2e8f0',
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 4,
+                }}
+              >
                 {[
-                  { key: 'for_you', label: 'For You' },
-                  { key: 'following', label: 'Following' },
-                  { key: 'setups', label: 'Verified Setups' }
-                ].map(tab => {
+                  { key: 'for_you', label: 'For You', icon: Sparkles },
+                  { key: 'following', label: 'Following', icon: Users },
+                  { key: 'setups', label: 'Verified Setups', icon: BadgeCheck },
+                ].map((tab) => {
                   const isActive = feedSubTab === tab.key;
+                  const IconComponent = tab.icon;
                   return (
                     <TouchableOpacity
                       key={tab.key}
+                      activeOpacity={0.85}
                       onPress={() => {
                         hSelect();
                         setFeedSubTab(tab.key as any);
                       }}
                       style={{
-                        paddingHorizontal: 16,
-                        paddingVertical: 8,
-                        borderRadius: 20,
+                        flex: 1,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 6,
+                        paddingVertical: 9,
+                        borderRadius: 14,
                         backgroundColor: isActive
                           ? (isDark ? '#ffffff' : '#0f172a')
-                          : (isDark ? 'rgba(255, 255, 255, 0.06)' : '#ffffff'),
-                        borderWidth: 1,
-                        borderColor: isActive
-                          ? 'transparent'
-                          : (isDark ? 'rgba(255, 255, 255, 0.08)' : '#e2e8f0'),
+                          : 'transparent',
+                        shadowColor: isActive ? '#000' : 'transparent',
+                        shadowOffset: { width: 0, height: 1 },
+                        shadowOpacity: isActive ? 0.12 : 0,
+                        shadowRadius: 3,
+                        elevation: isActive ? 2 : 0,
                       }}
                     >
-                      <Text style={{
-                        fontSize: 13,
-                        fontFamily: isActive ? 'Inter_700Bold' : 'Inter_600SemiBold',
-                        color: isActive
-                          ? (isDark ? '#000000' : '#ffffff')
-                          : (isDark ? '#94a3b8' : '#64748b'),
-                      }}>
+                      <IconComponent
+                        size={13}
+                        color={isActive
+                          ? (isDark ? '#0f172a' : '#ffffff')
+                          : (isDark ? '#94a3b8' : '#64748b')}
+                      />
+                      <Text
+                        style={{
+                          fontSize: 12,
+                          fontFamily: isActive ? 'Inter_700Bold' : 'Inter_600SemiBold',
+                          color: isActive
+                            ? (isDark ? '#0f172a' : '#ffffff')
+                            : (isDark ? '#94a3b8' : '#64748b'),
+                        }}
+                        numberOfLines={1}
+                      >
                         {tab.label}
                       </Text>
                     </TouchableOpacity>
