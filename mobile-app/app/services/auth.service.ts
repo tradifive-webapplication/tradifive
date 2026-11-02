@@ -67,13 +67,25 @@ export class AuthService {
 
   static getRedirectUrl() {
     const AuthSession = require('expo-auth-session');
-    // Default makeRedirectUri() is the most robust for Expo Go
-    const appRedirectUrl = AuthSession.makeRedirectUri();
+    const { Platform } = require('react-native');
+
+    if (Platform.OS === 'web') {
+      if (typeof window !== 'undefined') {
+        return `${window.location.origin}/auth-callback`;
+      }
+      return 'https://www.tradifive.in/auth-callback';
+    }
+
+    // On native mobile (iOS / Android):
+    // Use the official app scheme 'mobileapp' with path 'auth-callback'
+    const appRedirectUrl = AuthSession.makeRedirectUri({
+      scheme: 'mobileapp',
+      path: 'auth-callback',
+    });
     console.log('[AuthService] Generated Redirect URL:', appRedirectUrl);
     return appRedirectUrl;
   }
 
-  
   static async verifyOtp(email: string, otp: string) {
     const { data, error } = await supabase.auth.verifyOtp({
       email,
@@ -113,8 +125,7 @@ export class AuthService {
     
     if (error) throw new Error(error.message);
     
-    // 2. Proactively insert into profiles if database triggers are not configured yet,
-    // ensuring the user's profile exists immediately for live feeds/chats.
+    // 2. Proactively insert into profiles if database triggers are not configured yet
     if (data.user) {
       const { error: profileError } = await supabase.from('profiles').upsert({
         id: data.user.id,
@@ -143,8 +154,6 @@ export class AuthService {
 
   static async checkEmailExists(email: string): Promise<boolean> {
     try {
-      // This checks the public profiles table for the email.
-      // Make sure the 'profiles' table has an 'email' column and is readable.
       const { data, error } = await supabase
         .from('profiles')
         .select('id')
@@ -166,7 +175,6 @@ export class AuthService {
 
     if (Platform.OS === 'web') {
       // --- WEB FLOW ---
-      // On web, let Supabase handle the browser redirect natively
       const appRedirectUrl = this.getRedirectUrl();
       console.log('[AuthService] Web Redirect URL:', appRedirectUrl);
       const { data, error } = await supabase.auth.signInWithOAuth({
@@ -180,8 +188,7 @@ export class AuthService {
       return data;
     }
 
-    // --- MOBILE FLOW (Expo Go + Production) ---
-    // The exp:// or mobileapp:// URL is used by WebBrowser to know when to dismiss the in-app browser.
+    // --- MOBILE FLOW (Expo Go + Standalone iOS/Android) ---
     const appRedirectUrl = this.getRedirectUrl();
     console.log('[AuthService] Mobile App Redirect URL:', appRedirectUrl);
 
@@ -200,7 +207,6 @@ export class AuthService {
     console.log('[AuthService] Opening Google auth URL in browser...');
 
     // Open Google login in an in-app browser and wait for the redirect.
-    // Timeout after 60 seconds to prevent infinite loading.
     let result: WebBrowser.WebBrowserAuthSessionResult;
     try {
       const authPromise = WebBrowser.openAuthSessionAsync(data.url, appRedirectUrl);
@@ -223,53 +229,62 @@ export class AuthService {
     }
 
     if (result.type === 'success' && result.url) {
-      // Try query string first (parseQueryString handles both # and ? formats)
       const { params, errorCode } = parseQueryString(result.url);
       if (errorCode) throw new Error(`Auth callback error: ${errorCode}`);
 
-      // 1. Try PKCE code exchange (Default in Supabase v2)
+      // 1. Try PKCE code exchange (Standard in Supabase v2)
       if (params.code) {
         console.log('[AuthService] Found PKCE code, exchanging for session...');
         const { error: sessionError } = await supabase.auth.exchangeCodeForSession(params.code);
-        if (sessionError) throw new Error(sessionError.message);
-        console.log('[AuthService] Session established successfully via PKCE!');
-        return data;
-      }
-
-      // 2. Fallback to Implicit Flow parsing (Legacy)
-      let accessToken = params.access_token;
-      let refreshToken = params.refresh_token;
-
-      // Raw hash fragment parsing fallback (exp:// and mobileapp:// sometimes can't use URL constructor)
-      if (!accessToken || !refreshToken) {
-        const hashIndex = result.url.indexOf('#');
-        if (hashIndex !== -1) {
-          const hash = result.url.substring(hashIndex + 1);
-          const pairs = hash.split('&');
-          for (const pair of pairs) {
-            const [k, v] = pair.split('=');
-            if (k && v) {
-              const key = decodeURIComponent(k);
-              const val = decodeURIComponent(v);
-              if (key === 'access_token') accessToken = val;
-              if (key === 'refresh_token') refreshToken = val;
-            }
-          }
+        if (sessionError) {
+          console.warn('[AuthService] PKCE exchange warning:', sessionError.message);
+          const { data: { session } } = await supabase.auth.getSession();
+          if (!session) throw new Error(sessionError.message);
+        } else {
+          console.log('[AuthService] Session established successfully via PKCE!');
         }
-      }
-
-      if (accessToken && refreshToken) {
+      } else if (params.access_token && params.refresh_token) {
+        // 2. Implicit Flow tokens fallback
         console.log('[AuthService] Setting Supabase session from implicit tokens...');
         const { error: sessionError } = await supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken,
+          access_token: params.access_token,
+          refresh_token: params.refresh_token,
         });
         if (sessionError) throw new Error(sessionError.message);
         console.log('[AuthService] Session established successfully via implicit flow!');
       } else {
-        console.warn('[AuthService] No tokens or PKCE code found in callback URL. Full URL:', result.url);
-        throw new Error('Authentication completed but no session tokens were received. Check your Supabase URL Redirect settings.');
+        // 3. Fallback check: see if session is already active
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          console.warn('[AuthService] No tokens or PKCE code found in callback URL. Full URL:', result.url);
+          throw new Error('Authentication completed but no session tokens were received. Check your Supabase URL Redirect settings.');
+        }
       }
+
+      // Proactively ensure profile exists
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const userMeta = user.user_metadata || {};
+          const firstName = userMeta.first_name || userMeta.full_name?.split(' ')[0] || userMeta.name?.split(' ')[0] || 'Trader';
+          const lastName = userMeta.last_name || userMeta.full_name?.split(' ').slice(1).join(' ') || '';
+          const defaultUsername = (user.email ? user.email.split('@')[0] : `user_${user.id.substring(0, 6)}`).toLowerCase().replace(/[^a-z0-9_]/g, '');
+
+          await supabase.from('profiles').upsert({
+            id: user.id,
+            email: user.email,
+            first_name: firstName,
+            last_name: lastName,
+            display_name: userMeta.full_name || `${firstName} ${lastName}`.trim(),
+            username: defaultUsername,
+            avatar_url: userMeta.avatar_url || userMeta.picture || `https://api.dicebear.com/7.x/adventurer/png?seed=${firstName}`,
+          }, { onConflict: 'id', ignoreDuplicates: true });
+        }
+      } catch (profErr) {
+        console.warn('[AuthService] Profile auto-create non-blocking warning:', profErr);
+      }
+
+      return data;
     }
 
     return data;
@@ -298,7 +313,6 @@ export class AuthService {
         followerCount: 0,
         followingIds: []
       });
-      // Try to clean up real-time subscriptions immediately as well
       try {
         supabase.removeAllChannels();
       } catch (subErr) {
@@ -308,14 +322,12 @@ export class AuthService {
       console.warn('[SignOut Local Reset Warning]:', e);
     }
 
-    // Call Supabase signOut in the background without awaiting it to avoid blocking logout transitions
     supabase.auth.signOut().catch((e: any) => {
       console.warn('[Background Supabase SignOut Warning]:', e.message);
     });
   }
 
   static async checkUsernameExists(username: string, excludeUserId?: string) {
-
     try {
       const { useStore } = require('../store');
     } catch (e) {
@@ -343,7 +355,6 @@ export class AuthService {
   static async updateUsername(userId: string, username: string) {
     const cleanUsername = username.toLowerCase().trim();
 
-    // 1. Update profiles table (8-second timeout — generous for slow connections)
     try {
       const { error: profileError } = await withTimeout(
         supabase
@@ -355,16 +366,12 @@ export class AuthService {
       );
       if (profileError) {
         console.warn('[AuthService] Profile update returned error:', profileError.message);
-        // Don't throw — let the caller proceed with local state update
       } else {
         console.log('[AuthService] Profile username updated successfully in DB');
       }
     } catch (profileErr: any) {
       console.warn('[AuthService] Profile DB update failed or timed out:', profileErr.message);
-      // Don't re-throw — let the caller proceed with local state update
     }
-
-
   }
 
   static async updateProfile(userId: string, displayName: string, bio: string, bannerUrl?: string, avatarUrl?: string) {
@@ -406,27 +413,47 @@ export class AuthService {
   }
 }
 
-// Custom Helper to extract tokens from deep-link callback URL
+// Custom Helper to extract tokens and code from deep-link callback URL
 function parseQueryString(url: string) {
   const params: Record<string, string> = {};
-  let errorCode = null;
+  let errorCode: string | null = null;
 
-  // Handle both hash and query parameters (Supabase sends OAuth credentials after '#' hash fragment)
-  const splitted = url.split('#');
-  const queryPart = splitted.length > 1 ? splitted[1] : url.split('?')[1];
-
-  if (queryPart) {
-    const pairs = queryPart.split('&');
-    for (const pair of pairs) {
-      const [key, value] = pair.split('=');
-      if (key && value) {
-        params[decodeURIComponent(key)] = decodeURIComponent(value);
+  try {
+    // 1. Parse Query parameters (?key=val)
+    const queryIndex = url.indexOf('?');
+    if (queryIndex !== -1) {
+      const queryStr = url.substring(queryIndex + 1).split('#')[0];
+      const pairs = queryStr.split('&');
+      for (const pair of pairs) {
+        const [k, v] = pair.split('=');
+        if (k && v) {
+          params[decodeURIComponent(k)] = decodeURIComponent(v);
+        }
       }
     }
-  }
 
-  if (params.error) {
-    errorCode = params.error_description || params.error;
+    // 2. Parse Hash parameters (#key=val)
+    const hashIndex = url.indexOf('#');
+    if (hashIndex !== -1) {
+      const hashStr = url.substring(hashIndex + 1);
+      const pairs = hashStr.split('&');
+      for (const pair of pairs) {
+        const [k, v] = pair.split('=');
+        if (k && v) {
+          const key = decodeURIComponent(k);
+          const val = decodeURIComponent(v);
+          if (!params[key] || val) {
+            params[key] = val;
+          }
+        }
+      }
+    }
+
+    if (params.error) {
+      errorCode = params.error_description || params.error;
+    }
+  } catch (e: any) {
+    console.warn('[parseQueryString Error]:', e);
   }
 
   return { params, errorCode };

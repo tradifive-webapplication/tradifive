@@ -71,6 +71,7 @@ export default function RootLayout() {
         <Stack.Screen name="onboarding" />
         <Stack.Screen name="login" options={{ animation: 'fade' }} />
         <Stack.Screen name="signup" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="auth-callback" options={{ animation: 'fade' }} />
         <Stack.Screen name="forgot-password" options={{ animation: 'slide_from_bottom' }} />
         <Stack.Screen name="profile" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="broker-connect" options={{ animation: 'slide_from_right' }} />

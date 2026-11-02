@@ -14,11 +14,8 @@ export default function AuthCallback() {
     let isMounted = true;
 
     const handleAuth = async (url: string | null) => {
-      console.log('[AuthCallback] Processing URL:', url);
+      console.log('[AuthCallback] Processing deep link URL:', url);
       try {
-        let accessToken: string | null = null;
-        let refreshToken: string | null = null;
-
         if (url) {
           const parsed = parseUrl(url);
           if (parsed.error) {
@@ -27,31 +24,62 @@ export default function AuthCallback() {
             if (isMounted) router.replace('/login');
             return;
           }
-          accessToken = parsed.accessToken;
-          refreshToken = parsed.refreshToken;
+
+          // 1. Handle PKCE code exchange
+          if (parsed.code) {
+            setStatusText('Exchanging security token...');
+            console.log('[AuthCallback] Found PKCE code, exchanging...');
+            const { error: exchangeErr } = await supabase.auth.exchangeCodeForSession(parsed.code);
+            if (exchangeErr) {
+              console.warn('[AuthCallback] PKCE exchange warning:', exchangeErr.message);
+              const { data: { session } } = await supabase.auth.getSession();
+              if (!session) throw exchangeErr;
+            } else {
+              console.log('[AuthCallback] PKCE session exchange succeeded!');
+            }
+          }
+          // 2. Handle implicit tokens
+          else if (parsed.accessToken && parsed.refreshToken) {
+            setStatusText('Setting up your account...');
+            console.log('[AuthCallback] Setting session from implicit tokens...');
+            const { error: sessionErr } = await supabase.auth.setSession({
+              access_token: parsed.accessToken,
+              refresh_token: parsed.refreshToken,
+            });
+            if (sessionErr) throw sessionErr;
+            console.log('[AuthCallback] Implicit token session set succeeded!');
+          }
         }
 
-        // Set the Supabase session if we have tokens
-        if (accessToken && refreshToken) {
-          setStatusText('Setting up your account...');
-          console.log('[AuthCallback] Setting session from tokens...');
-          const { error } = await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken,
-          });
-          if (error) {
-            console.error('[AuthCallback] setSession error:', error.message);
-            throw error;
+        // Verify we now have an active session
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          console.log('[AuthCallback] No session found, redirecting to login');
+          if (isMounted) router.replace('/login');
+          return;
+        }
+
+        // Proactively ensure profile exists
+        try {
+          if (session.user) {
+            const user = session.user;
+            const userMeta = user.user_metadata || {};
+            const firstName = userMeta.first_name || userMeta.full_name?.split(' ')[0] || userMeta.name?.split(' ')[0] || 'Trader';
+            const lastName = userMeta.last_name || userMeta.full_name?.split(' ').slice(1).join(' ') || '';
+            const defaultUsername = (user.email ? user.email.split('@')[0] : `user_${user.id.substring(0, 6)}`).toLowerCase().replace(/[^a-z0-9_]/g, '');
+
+            await supabase.from('profiles').upsert({
+              id: user.id,
+              email: user.email,
+              first_name: firstName,
+              last_name: lastName,
+              display_name: userMeta.full_name || `${firstName} ${lastName}`.trim(),
+              username: defaultUsername,
+              avatar_url: userMeta.avatar_url || userMeta.picture || `https://api.dicebear.com/7.x/adventurer/png?seed=${firstName}`,
+            }, { onConflict: 'id', ignoreDuplicates: true });
           }
-          console.log('[AuthCallback] Session set successfully');
-        } else {
-          console.log('[AuthCallback] No tokens found in URL, checking current session...');
-          const { data: { session } } = await supabase.auth.getSession();
-          if (!session) {
-            console.log('[AuthCallback] No session found, redirecting to login');
-            if (isMounted) router.replace('/login');
-            return;
-          }
+        } catch (profErr) {
+          console.warn('[AuthCallback] Profile creation warning:', profErr);
         }
 
         // Initialize the global store session
@@ -70,7 +98,6 @@ export default function AuthCallback() {
       }
     };
 
-    // Run authentication logic on the current deepLinkUrl or fallback to getInitialURL
     const init = async () => {
       if (deepLinkUrl) {
         await handleAuth(deepLinkUrl);
@@ -82,14 +109,18 @@ export default function AuthCallback() {
 
     init();
 
-    // Safety timeout: if auth takes more than 15 seconds, redirect to login
     const safetyTimer = setTimeout(() => {
-      console.warn('[AuthCallback] Safety timeout reached, redirecting to login');
+      console.warn('[AuthCallback] Safety timeout reached, checking session or redirecting');
       if (isMounted) {
-        Alert.alert('Timeout', 'Verification timed out. Please try again.');
-        router.replace('/login');
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          if (session) {
+            useStore.getState().init().then(() => router.replace('/(tabs)'));
+          } else {
+            router.replace('/login');
+          }
+        });
       }
-    }, 15000);
+    }, 12000);
 
     return () => {
       isMounted = false;
@@ -99,7 +130,7 @@ export default function AuthCallback() {
 
   return (
     <View style={styles.container}>
-      <ActivityIndicator size="large" color="#ff4d4d" />
+      <ActivityIndicator size="large" color="#3b82f6" />
       <Text style={styles.loadingText}>{statusText}</Text>
     </View>
   );
@@ -108,44 +139,51 @@ export default function AuthCallback() {
 function parseUrl(url: string) {
   let accessToken: string | null = null;
   let refreshToken: string | null = null;
+  let code: string | null = null;
   let error: string | null = null;
   let errorDescription: string | null = null;
 
-  // Query params
-  const queryIndex = url.indexOf('?');
-  if (queryIndex !== -1) {
-    const queryStr = url.substring(queryIndex + 1).split('#')[0];
-    const pairs = queryStr.split('&');
-    for (const pair of pairs) {
-      const [k, v] = pair.split('=');
-      if (!k || !v) continue;
-      const key = decodeURIComponent(k);
-      const val = decodeURIComponent(v);
-      if (key === 'access_token') accessToken = val;
-      else if (key === 'refresh_token') refreshToken = val;
-      else if (key === 'error') error = val;
-      else if (key === 'error_description') errorDescription = val;
+  try {
+    // Query params (?key=val)
+    const queryIndex = url.indexOf('?');
+    if (queryIndex !== -1) {
+      const queryStr = url.substring(queryIndex + 1).split('#')[0];
+      const pairs = queryStr.split('&');
+      for (const pair of pairs) {
+        const [k, v] = pair.split('=');
+        if (!k || !v) continue;
+        const key = decodeURIComponent(k);
+        const val = decodeURIComponent(v);
+        if (key === 'code') code = val;
+        else if (key === 'access_token') accessToken = val;
+        else if (key === 'refresh_token') refreshToken = val;
+        else if (key === 'error') error = val;
+        else if (key === 'error_description') errorDescription = val;
+      }
     }
+
+    // Hash fragment (#key=val)
+    const hashIndex = url.indexOf('#');
+    if (hashIndex !== -1) {
+      const hashStr = url.substring(hashIndex + 1);
+      const pairs = hashStr.split('&');
+      for (const pair of pairs) {
+        const [k, v] = pair.split('=');
+        if (!k || !v) continue;
+        const key = decodeURIComponent(k);
+        const val = decodeURIComponent(v);
+        if (key === 'code' && !code) code = val;
+        else if (key === 'access_token') accessToken = val;
+        else if (key === 'refresh_token') refreshToken = val;
+        else if (key === 'error' && !error) error = val;
+        else if (key === 'error_description' && !errorDescription) errorDescription = val;
+      }
+    }
+  } catch (e) {
+    console.warn('[parseUrl error]:', e);
   }
 
-  // Hash fragment
-  const hashIndex = url.indexOf('#');
-  if (hashIndex !== -1) {
-    const hashStr = url.substring(hashIndex + 1);
-    const pairs = hashStr.split('&');
-    for (const pair of pairs) {
-      const [k, v] = pair.split('=');
-      if (!k || !v) continue;
-      const key = decodeURIComponent(k);
-      const val = decodeURIComponent(v);
-      if (key === 'access_token') accessToken = val;
-      else if (key === 'refresh_token') refreshToken = val;
-      else if (key === 'error') error = val;
-      else if (key === 'error_description') errorDescription = val;
-    }
-  }
-
-  return { accessToken, refreshToken, error, errorDescription };
+  return { code, accessToken, refreshToken, error, errorDescription };
 }
 
 const styles = StyleSheet.create({

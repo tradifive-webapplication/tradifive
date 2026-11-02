@@ -2014,10 +2014,55 @@ function MobileView({ onStart }: { onStart: () => void }) {
    ROOT
 ════════════════ */
 export default function TradiFive() {
-  const [isMobile, setIsMobile] = useState(false);
-
   const navigate = useNavigate();
   const location = useLocation();
+  const [isMobile, setIsMobile] = useState(false);
+
+
+  // Mobile & OAuth Redirect Intercept
+  const [authRedirecting] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    const h = window.location.hash || '';
+    const s = window.location.search || '';
+    const isMobileDev = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    return isMobileDev && (h.includes('access_token=') || s.includes('code='));
+  });
+
+  useEffect(() => {
+    const hash = window.location.hash || '';
+    const search = window.location.search || '';
+    const hasAuthToken = hash.includes('access_token=') || search.includes('code=');
+    const hasAuthError = hash.includes('error=') || search.includes('error=');
+
+    if (hasAuthToken || hasAuthError) {
+      const isMobileDev = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+      if (isMobileDev) {
+        console.log('[Landing Auth Intercept] Redirecting to mobileapp scheme...');
+        const deepLink = `mobileapp://auth-callback${search}${hash}`;
+        window.location.replace(deepLink);
+        return;
+      }
+
+      // Desktop web session exchange
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) {
+          navigate('/home', { replace: true });
+        } else if (search.includes('code=')) {
+          const urlParams = new URLSearchParams(search);
+          const code = urlParams.get('code');
+          if (code) {
+            supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
+              if (!error) navigate('/home', { replace: true });
+            });
+          }
+        }
+      });
+    }
+  }, [navigate]);
+
+
+
+
 
   useEffect(() => {
     const check = () => {
@@ -2057,6 +2102,52 @@ export default function TradiFive() {
   const handleSignIn = () => navigate("/login", { state: { mode: "login" } });
   const handleSignUp = () => navigate("/login", { state: { mode: "signup" } });
   const handleStart = handleSignUp;
+
+  if (authRedirecting) {
+    const deepLink = `mobileapp://auth-callback${window.location.search}${window.location.hash}`;
+    return (
+      <div style={{
+        minHeight: '100vh',
+        width: '100vw',
+        backgroundColor: '#000000',
+        color: '#ffffff',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontFamily: 'Inter, system-ui, sans-serif',
+        padding: '24px',
+        textAlign: 'center'
+      }}>
+        <div style={{
+          width: 44,
+          height: 44,
+          border: '3px solid rgba(59, 130, 246, 0.2)',
+          borderTopColor: '#3b82f6',
+          borderRadius: '50%',
+          animation: 'spin 0.8s linear infinite',
+          marginBottom: 16
+        }} />
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        <h3 style={{ fontSize: 18, fontWeight: 700, margin: '0 0 8px 0' }}>Signing into TradiFive App...</h3>
+        <p style={{ fontSize: 14, color: '#94a3b8', margin: '0 0 20px 0' }}>Redirecting to your mobile app</p>
+        <a
+          href={deepLink}
+          style={{
+            padding: '12px 24px',
+            backgroundColor: '#3b82f6',
+            color: '#ffffff',
+            borderRadius: 12,
+            fontWeight: 600,
+            fontSize: 15,
+            textDecoration: 'none',
+          }}
+        >
+          Open App
+        </a>
+      </div>
+    );
+  }
 
   // Mobile view is allowed to see the landing page, so we don't block.
 

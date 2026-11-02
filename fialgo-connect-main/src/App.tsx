@@ -18,6 +18,7 @@ const Landing = lazy(() => import("./pages/Landing"));
 const ContactPublic = lazy(() => import("./pages/ContactPublic"));
 const DownloadAppPublic = lazy(() => import("./pages/DownloadAppPublic"));
 const Login = lazy(() => import("./pages/Login"));
+const AuthCallback = lazy(() => import("./pages/AuthCallback"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Portfolio = lazy(() => import("./pages/dashboard/Portfolio"));
 const Brokers = lazy(() => import("./pages/dashboard/Brokers"));
@@ -95,7 +96,6 @@ const AdminSettlements = lazy(() => import("./pages/admin/AdminSettlements"));
 const WeeklySettlements = lazy(() => import("./pages/WeeklySettlements"));
 const BrokerAuth = lazy(() => import("./pages/BrokerAuth"));
 
-
 import { MarketProvider } from "@/contexts/MarketContext";
 import { PresenceProvider } from "@/contexts/PresenceContext";
 import { initGlobalHaptics } from "@/utils/haptics";
@@ -138,6 +138,7 @@ const App = () => {
                 <Route path="/features/creator-hub" element={<ChannelsPublic />} />
                 <Route path="/features/pulse-feeds" element={<PulseFeedsPublic />} />
                 <Route path="/login" element={<Login />} />
+                <Route path="/auth-callback" element={<AuthCallback />} />
                 <Route path="/contact" element={<ContactPublic />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
@@ -258,6 +259,3 @@ const App = () => {
 };
 
 export default App;
-
-
-
