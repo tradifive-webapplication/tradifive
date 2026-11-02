@@ -1177,15 +1177,15 @@ MagicNumber=789104
                 </p>
               </div>
 
-              {/* Vertical Stepper Timeline (Clean, Proportional & Spaced Gracefully) */}
-              <div className="relative pt-3 flex flex-col justify-between space-y-6 sm:space-y-7">
+              {/* Vertical Stepper Timeline (Clean, Minimal & High Clarity) */}
+              <div className="relative pt-3 flex flex-col justify-between space-y-7 sm:space-y-8">
                 {/* STEP 1 NODE */}
                 <div 
                   onClick={() => setActiveStep(1)}
                   className="group flex items-start gap-3 relative cursor-pointer transition-all"
                 >
                   {/* Connecting Line to Step 2 */}
-                  <div className={`absolute left-[13px] top-7 -bottom-6 w-[2px] transition-colors ${
+                  <div className={`absolute left-[13px] top-7 -bottom-7 sm:-bottom-8 w-[2px] transition-colors ${
                     ibVerified ? "bg-blue-600" : "bg-slate-200 dark:bg-white/10"
                   }`} />
                   
@@ -1200,34 +1200,22 @@ MagicNumber=789104
                     {ibVerified ? <Check size={13} strokeWidth={2.8} /> : "1"}
                   </div>
                   
-                  {/* Labels & Multi-line Details (Like reference image) */}
+                  {/* Clean Step Label + Single Subtitle */}
                   <div className="pt-0.5 min-w-0 flex-1">
                     <span className={`block text-[13px] font-semibold leading-tight transition-colors ${
                       activeStep === 1
                         ? "text-blue-600 dark:text-blue-400 font-bold"
                         : ibVerified
                           ? "text-slate-900 dark:text-white"
-                          : "text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-slate-200"
+                          : "text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white"
                     }`}>
                       Connect Broker
                     </span>
-                    <div className="mt-1 space-y-0.5 text-[11px] text-slate-500 dark:text-slate-400 leading-tight">
-                      <p className="truncate">
-                        {mt5Account ? `MT5 #${mt5Account}` : "MT5 Terminal"} · {currentBroker.name}
-                      </p>
-                      <p className="text-[10.5px]">
-                        Min. Deposit: <span className="font-semibold text-slate-700 dark:text-slate-300">$500+</span>
-                      </p>
-                      <p className={`text-[10.5px] font-medium ${
-                        ibVerified 
-                          ? "text-emerald-600 dark:text-emerald-400" 
-                          : transferRequestStatus === "pending"
-                            ? "text-amber-600 dark:text-amber-400"
-                            : "text-slate-400 dark:text-slate-500"
-                      }`}>
-                        {ibVerified ? "✓ Verified & Linked" : transferRequestStatus === "pending" ? "⏳ Review Pending" : "Awaiting Connection"}
-                      </p>
-                    </div>
+                    <p className={`mt-0.5 text-xs truncate font-medium ${
+                      ibVerified ? "text-emerald-600 dark:text-emerald-400" : "text-slate-500 dark:text-slate-400"
+                    }`}>
+                      {ibVerified ? `✓ MT5 #${mt5Account || "Linked"}` : mt5Account ? `MT5 #${mt5Account}` : "Link MT5 broker ($500+)"}
+                    </p>
                   </div>
                 </div>
 
@@ -1237,7 +1225,7 @@ MagicNumber=789104
                   className="group flex items-start gap-3 relative cursor-pointer transition-all"
                 >
                   {/* Connecting Line to Step 3 */}
-                  <div className={`absolute left-[13px] top-7 -bottom-6 w-[2px] transition-colors ${
+                  <div className={`absolute left-[13px] top-7 -bottom-7 sm:-bottom-8 w-[2px] transition-colors ${
                     hasDownloaded ? "bg-blue-600" : "bg-slate-200 dark:bg-white/10"
                   }`} />
                   
@@ -1257,19 +1245,15 @@ MagicNumber=789104
                         ? "text-blue-600 dark:text-blue-400 font-bold"
                         : hasDownloaded
                           ? "text-slate-900 dark:text-white"
-                          : "text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-slate-200"
+                          : "text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white"
                     }`}>
                       Download EA
                     </span>
-                    <div className="mt-1 space-y-0.5 text-[11px] text-slate-500 dark:text-slate-400 leading-tight">
-                      <p className="truncate font-mono text-[10.5px]">FiAlgo_v1.0.4.ex5</p>
-                      <p className="text-[10.5px]">XAUUSD (Gold) · M15 Chart</p>
-                      <p className={`text-[10.5px] font-medium ${
-                        hasDownloaded ? "text-emerald-600 dark:text-emerald-400" : "text-slate-400 dark:text-slate-500"
-                      }`}>
-                        {hasDownloaded ? "✓ File Downloaded" : "Ready to Download"}
-                      </p>
-                    </div>
+                    <p className={`mt-0.5 text-xs truncate font-medium ${
+                      hasDownloaded ? "text-emerald-600 dark:text-emerald-400" : "text-slate-500 dark:text-slate-400"
+                    }`}>
+                      {hasDownloaded ? "✓ FiAlgo V1 (.ex5)" : "FiAlgo V1 MT5 Binary"}
+                    </p>
                   </div>
                 </div>
 
@@ -1279,7 +1263,7 @@ MagicNumber=789104
                   className="group flex items-start gap-3 relative cursor-pointer transition-all"
                 >
                   {/* Connecting Line to Step 4 */}
-                  <div className={`absolute left-[13px] top-7 -bottom-6 w-[2px] transition-colors ${
+                  <div className={`absolute left-[13px] top-7 -bottom-7 sm:-bottom-8 w-[2px] transition-colors ${
                     paymentStatus === "approved" ? "bg-blue-600" : "bg-slate-200 dark:bg-white/10"
                   }`} />
                   
@@ -1299,27 +1283,19 @@ MagicNumber=789104
                         ? "text-blue-600 dark:text-blue-400 font-bold"
                         : paymentStatus === "approved"
                           ? "text-slate-900 dark:text-white"
-                          : "text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-slate-200"
+                          : "text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white"
                     }`}>
                       Plan &amp; Payment
                     </span>
-                    <div className="mt-1 space-y-0.5 text-[11px] text-slate-500 dark:text-slate-400 leading-tight">
-                      <p className="font-semibold text-slate-800 dark:text-slate-200">
-                        {selectedTier === "three_years" ? "₹1,00,000 (3-Yr Pass)" : "₹10,000 (Weekly 50%)"}
-                      </p>
-                      <p className="text-[10.5px]">
-                        {selectedTier === "three_years" ? "0% Profit Share" : "Weekly Settlement Split"}
-                      </p>
-                      <p className={`text-[10.5px] font-medium ${
-                        paymentStatus === "approved" 
-                          ? "text-emerald-600 dark:text-emerald-400" 
-                          : paymentStatus === "pending"
-                            ? "text-amber-600 dark:text-amber-400"
-                            : "text-slate-400 dark:text-slate-500"
-                      }`}>
-                        {paymentStatus === "approved" ? "✓ Payment Approved" : paymentStatus === "pending" ? "⏳ Verification in Progress" : "UPI / Bank Transfer"}
-                      </p>
-                    </div>
+                    <p className={`mt-0.5 text-xs truncate font-medium ${
+                      paymentStatus === "approved" ? "text-emerald-600 dark:text-emerald-400" : "text-slate-500 dark:text-slate-400"
+                    }`}>
+                      {paymentStatus === "approved" 
+                        ? "✓ Pass Active" 
+                        : selectedTier === "three_years" 
+                          ? "₹1,00,000 (3-Yr Pass)" 
+                          : "₹10,000 (Profit Share)"}
+                    </p>
                   </div>
                 </div>
 
@@ -1344,19 +1320,15 @@ MagicNumber=789104
                         ? "text-blue-600 dark:text-blue-400 font-bold"
                         : (hasPaid && ibVerified)
                           ? "text-slate-900 dark:text-white"
-                          : "text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-slate-200"
+                          : "text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white"
                     }`}>
                       Activate Key
                     </span>
-                    <div className="mt-1 space-y-0.5 text-[11px] text-slate-500 dark:text-slate-400 leading-tight">
-                      <p className="truncate">Hardware-Bound MT5 Key</p>
-                      <p className="text-[10.5px]">Live Algorithmic Execution</p>
-                      <p className={`text-[10.5px] font-medium ${
-                        hasPaid && ibVerified ? "text-emerald-600 dark:text-emerald-400" : "text-slate-400 dark:text-slate-500"
-                      }`}>
-                        {(hasPaid && ibVerified) ? "✓ Ready & Protected" : "Unlocks after Step 3"}
-                      </p>
-                    </div>
+                    <p className={`mt-0.5 text-xs truncate font-medium ${
+                      (hasPaid && ibVerified) ? "text-emerald-600 dark:text-emerald-400" : "text-slate-500 dark:text-slate-400"
+                    }`}>
+                      {(hasPaid && ibVerified) ? "✓ Ready to Trade" : "Hardware-Bound MT5 Key"}
+                    </p>
                   </div>
                 </div>
               </div>
