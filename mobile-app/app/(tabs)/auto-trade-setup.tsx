@@ -1646,6 +1646,7 @@ export default function AutoTradeSetupScreen() {
               )}
             </View>
           )}
+            </View>
           </View>
         </ScrollView>
       </View>
