@@ -535,10 +535,13 @@ export default function TabLayout() {
           {/* Scrollable Menu Items Under Stationary Profile Header */}
           <ScrollView
             showsVerticalScrollIndicator={false}
+            bounces={true}
+            alwaysBounceVertical={true}
+            overScrollMode="always"
             style={{ flex: 1, backgroundColor: 'transparent' }}
             contentContainerStyle={{
               paddingTop: 10,
-              paddingBottom: Math.max(insets.bottom, 16) + 40,
+              paddingBottom: Math.max(insets.bottom, 24) + 110,
             }}
           >
             {/* Drawer Main Items - Folders & Subfolders */}

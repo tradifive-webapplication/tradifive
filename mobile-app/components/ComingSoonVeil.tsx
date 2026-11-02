@@ -24,11 +24,11 @@ export default function ComingSoonVeil({ featureTitle, subtitle, topOffset }: Co
           overflow: 'hidden',
         },
       ]}
-      pointerEvents="none"
+      pointerEvents="auto"
     >
-      {/* ── NATIVE BACKDROP BLUR (Soft Intensity 10) ── */}
+      {/* ── NATIVE BACKDROP BLUR (Soft Intensity 25) ── */}
       <BlurView
-        intensity={10}
+        intensity={25}
         tint={isDark ? 'dark' : 'light'}
         experimentalBlurMethod="dimezisBlurView"
         style={[
@@ -41,27 +41,27 @@ export default function ComingSoonVeil({ featureTitle, subtitle, topOffset }: Co
         ]}
       />
 
-      {/* Subtle translucent frosted tint so images, cards & text remain clearly visible & scrollable */}
+      {/* Subtle frosted glass tint that softly blurs cards and prevents all touch interaction */}
       <View
         style={[
           StyleSheet.absoluteFill,
           {
-            backgroundColor: isDark ? 'rgba(9, 13, 22, 0.08)' : 'rgba(255, 255, 255, 0.10)',
+            backgroundColor: isDark ? 'rgba(9, 13, 22, 0.45)' : 'rgba(255, 255, 255, 0.55)',
             borderTopLeftRadius: 40,
             borderTopRightRadius: 40,
             overflow: 'hidden',
             ...(Platform.OS === 'web'
               ? ({
-                  backdropFilter: 'blur(3px)',
-                  WebkitBackdropFilter: 'blur(3px)',
+                  backdropFilter: 'blur(8px)',
+                  WebkitBackdropFilter: 'blur(8px)',
                 } as any)
               : {}),
           },
         ]}
       />
 
-      {/* ── FIXED "COMING SOON" INDICATOR IN MIDDLE OF PAGE (PERSISTS ON SCROLL) ── */}
-      <View style={styles.badgeWrapper} pointerEvents="none">
+      {/* ── FIXED "COMING SOON" INDICATOR IN MIDDLE OF PAGE ── */}
+      <View style={styles.badgeWrapper}>
         <View
           style={[
             styles.badgePill,

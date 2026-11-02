@@ -482,39 +482,28 @@ export default function AutoTradeSetupScreen() {
       </Animated.View>
 
       {/* ── MAIN CONTENT CARD ── */}
-      <Animated.View
+      <View
         style={[
           styles.card,
           {
-            marginTop: headerStyle === 'simple' ? 0 : scrollY.interpolate({
-              inputRange: [0, 150],
-              outputRange: [-34, -184],
-              extrapolate: 'clamp',
-            }),
+            marginTop: headerStyle === 'simple' ? 0 : -34,
             borderTopLeftRadius: headerStyle === 'simple' ? 0 : 40,
             borderTopRightRadius: headerStyle === 'simple' ? 0 : 40,
             backgroundColor: isDark ? theme.background : '#f8fafc',
           },
         ]}
       >
-        <Animated.ScrollView
+        <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 14, paddingBottom: 130 }}
-          onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: false })}
-          scrollEventThrottle={16}
+          keyboardShouldPersistTaps="handled"
+          nestedScrollEnabled={true}
+          bounces={true}
+          alwaysBounceVertical={true}
+          overScrollMode="always"
+          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 14, paddingBottom: 220 }}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#8E8E93" />}
         >
-          <Animated.View
-            style={{
-              transform: headerStyle === 'simple' ? [] : [{
-                translateY: scrollY.interpolate({
-                  inputRange: [0, 150],
-                  outputRange: [0, 150],
-                  extrapolate: 'clamp',
-                }),
-              }],
-            }}
-          >
+          <View>
             <View style={{ gap: 14 }}>
             {/* ── 4-STEP PROGRESSOR HEADER ── */}
               <View style={[styles.processorCard, { backgroundColor: isDark ? '#11131a' : '#ffffff', borderColor: isDark ? '#1e293b' : '#e2e8f0' }]}>
@@ -1260,9 +1249,9 @@ export default function AutoTradeSetupScreen() {
                 </View>
               )}
           </View>
-          </Animated.View>
-        </Animated.ScrollView>
-      </Animated.View>
+          </View>
+        </ScrollView>
+      </View>
     </View>
   );
 }
