@@ -68,34 +68,22 @@ export default function MyRobots() {
       lastActive: isConnected ? "Live" : "Pending",
       strategyType: "Active MT5 Link"
     }];
-  }, [serverData, recentTrades, isConnected, isAlgoRunning, demoStatus]);
+  }, [serverData, recentTrades, isConnected, isAlgoRunning]);
 
-  const toggleGlobalState = async () => {
-    if (!isConnected) {
-      const anyRunning = Object.values(demoStatus).some(s => s === 'running');
-      const newStatus = anyRunning ? 'paused' : 'running';
-      setDemoStatus(prev => {
-        const next = { ...prev };
-        for (const key in next) next[key] = newStatus;
-        return next;
-      });
-      toast.success(anyRunning ? "All algorithmic bots paused" : "All algorithmic bots activated");
-      return;
-    }
+  const toggleGlobalState = async () => {
+    if (!isConnected) {
+      toast.info("Please connect your MT5 account to control algorithmic bots.");
+      return;
+    }
     await toggleAlgoStatus();
     toast.success(isAlgoRunning ? "MT5 Algorithm execution paused" : "MT5 Algorithm execution resumed");
   };
 
-  const handleToggleBot = async (id: string, name: string) => {
-    if (!isConnected) {
-      const isRunning = demoStatus[id] === 'running';
-      setDemoStatus(prev => ({
-        ...prev,
-        [id]: isRunning ? 'paused' : 'running'
-      }));
-      toast.info(isRunning ? `${name} paused` : `${name} activated`);
-      return;
-    }
+  const handleToggleBot = async (id: string, name: string) => {
+    if (!isConnected) {
+      toast.info("Please connect your MT5 account first.");
+      return;
+    }
     await toggleAlgoStatus();
   };
 
@@ -103,7 +91,7 @@ export default function MyRobots() {
   const activeBots = bots.filter(b => b.status === "running").length;
   const pausedBots = bots.filter(b => b.status === "paused").length;
   const totalProfit = bots.reduce((sum, b) => sum + b.profit, 0);
-  const isMasterRunning = isConnected ? isAlgoRunning : Object.values(demoStatus).some(s => s === 'running');
+  const isMasterRunning = Boolean(isConnected && isAlgoRunning);
 
   // Filter bots
   const filteredBots = bots.filter(b => {

@@ -928,37 +928,540 @@ function WhyTradifive() {
    PRICING
 ════════════════ */
 function Pricing({ onStart }: { onStart: () => void }) {
+  const navigate = useNavigate();
+  const [pricingCategory, setPricingCategory] = useState<"autotrade" | "platform">("autotrade");
   const [selectedPlan, setSelectedPlan] = useState<"starter" | "pro" | "elite" | "enterprise">("pro");
+  const [selectedFialgoPlan, setSelectedFialgoPlan] = useState<"three_years" | "profit_share">("three_years");
+
+  const threeYearFeatures = [
+    { title: "0% Profit Share — Keep 100% of Profits", desc: "No weekly invoices, settlement days, or profit cuts. Every dollar made in your MT5 remains 100% yours.", highlighted: true },
+    { title: "3-Year Hardware-Bound MT5 License Key", desc: "Fully verified license key bound to your live MT5 account with continuous encrypted server relay.", highlighted: true },
+    { title: "FiAlgo V1 Institutional Gold Engine (.ex5)", desc: "Compiled institutional Expert Advisor optimized for Gold (XAUUSD) on M1 timeframe.", highlighted: false },
+    { title: "All 8 Institutional Risk Protection Modules", desc: "Max loss locks, dynamic drawdown circuit breaker, real-time spread shield & equity trailing.", highlighted: false },
+    { title: "Automated Economic News Calendar Shield", desc: "Auto-halts trading 30m before and after high-impact events (FOMC, CPI, NFP, Fed speaks).", highlighted: false },
+    { title: "Guaranteed 50% Loyalty Renewal Discount", desc: "Renew after 3 years at ₹49,999 for another 3 years, or switch flexibly to profit share anytime.", highlighted: false },
+    { title: "Priority 1-on-1 VPS & MT5 Setup Support", desc: "Direct engineering desk assistance for instant cloud VPS deployment and broker binding.", highlighted: false },
+    { title: "100% Capital Custody in Your Own Broker", desc: "Trade on Exness, Vantage, or any regulated MT5 broker. Tradifive never touches your capital.", highlighted: false },
+  ];
+
+  const profitShareFeatures = [
+    { title: "One-Time ₹10,000 Setup Fee", desc: "Affordable barrier to deploy the institutional engine, compile your build, and bind MT5.", highlighted: true },
+    { title: "Weekly 50/50% Net Profit Share on Green Weeks", desc: "Keep 50% of verified net profits directly in your broker. 50% platform share invoiced weekly.", highlighted: true },
+    { title: "₹0 Fee on Red or Flat Weeks", desc: "If trading finishes flat or in loss for the week, you owe exactly ₹0. No profit = zero fee.", highlighted: true },
+    { title: "High-Water Mark / Loss Carry-Forward", desc: "Prior losses are carried forward. You NEVER pay a single rupee in fee until all past losses are recovered.", highlighted: true },
+    { title: "Zero Broker Account Deductions", desc: "100% of your funds stay safe in your broker. Invoices are cleared externally via UPI/Bank transfer.", highlighted: false },
+    { title: "FiAlgo V1 Institutional Gold Engine (.ex5)", desc: "Same battle-tested algorithmic engine running 8 risk management and spread safety modules.", highlighted: false },
+    { title: "Automated Monday Audit Statements", desc: "Transparent trade-by-trade calculation breakdown generated every Monday with verified P&L.", highlighted: false },
+    { title: "Continuous Free Strategy Updates", desc: "Receive all minor and major engine updates throughout your performance partnership.", highlighted: false },
+  ];
+
+  const comparisonRows = [
+    { label: "Upfront License Fee", threeYears: "₹1,00,000 one-time", profitShare: "₹10,000 one-time" },
+    { label: "License Term", threeYears: "3 Full Years (36 Months)", profitShare: "Continuous Weekly" },
+    { label: "Profit Share %", threeYears: "0% — You Keep 100%", profitShare: "50/50% on Net Profit" },
+    { label: "Fee on Red / Flat Weeks", threeYears: "₹0 (Zero Fees Ever)", profitShare: "₹0 (No Profit = No Fee)" },
+    { label: "Loss Carry-Forward Protection", threeYears: "N/A (Keep 100% Profits)", profitShare: "Yes (Full High-Water Mark)" },
+    { label: "Weekly Settlement Invoices", threeYears: "None — Zero Invoices", profitShare: "Every Monday (Green Weeks Only)" },
+    { label: "Capital Location", threeYears: "100% In Your MT5 Broker", profitShare: "100% In Your MT5 Broker" },
+    { label: "Broker Deductions", threeYears: "0% (Never Deducted)", profitShare: "0% (Never Deducted)" },
+    { label: "MT5 Risk & News Modules", threeYears: "All 8 Active", profitShare: "All 8 Active" },
+    { label: "3-Year Renewal Guarantee", threeYears: "50% Discount (₹49,999)", profitShare: "Continuous Partnership" },
+  ];
+
   return (
-    <section id="pricing" style={{ backgroundColor: "transparent", padding: "120px 28px", position: "relative", overflow: "hidden" }}>
-      <div style={{ maxWidth: 1200, margin: "0 auto", position: "relative" }}>
-        <div style={{ textAlign: "center", marginBottom: 56 }}>
-          <div ref={useReveal()} className="rv" style={{ marginBottom: 18 }}>
-            <span style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)", padding: "6px 16px", borderRadius: "100px", textTransform: "uppercase", fontSize: 10, fontWeight: 700, letterSpacing: 1.5 }}>PRICING & MEMBERSHIP</span>
+    <section id="pricing" style={{ backgroundColor: "transparent", padding: "120px 24px", position: "relative", overflow: "hidden" }}>
+      <div style={{ maxWidth: 1220, margin: "0 auto", position: "relative" }}>
+
+        {/* Section Header */}
+        <div style={{ textAlign: "center", marginBottom: 44 }}>
+          <div ref={useReveal()} className="rv" style={{ marginBottom: 16 }}>
+            <span style={{
+              background: "rgba(59, 130, 246, 0.12)",
+              border: "1px solid rgba(59, 130, 246, 0.3)",
+              color: "#60a5fa",
+              padding: "6px 18px",
+              borderRadius: "100px",
+              textTransform: "uppercase",
+              fontSize: 11,
+              fontWeight: 800,
+              letterSpacing: 1.5,
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6
+            }}>
+              <Zap size={13} />
+              TRANSPARENT PRICING & LICENSES
+            </span>
           </div>
-          <h2 style={{ fontSize: "clamp(28px, 4vw, 44px)", fontWeight: 900, letterSpacing: "-0.04em", color: "#fff", marginBottom: 14, lineHeight: 1.1 }}>
+
+          <h2 style={{ fontSize: "clamp(30px, 4.2vw, 48px)", fontWeight: 900, letterSpacing: "-0.04em", color: "#fff", marginBottom: 14, lineHeight: 1.15 }}>
             <BlurText
               lines={[
-                { text: "Start Free." },
-                { text: "Scale When You're Ready." }
+                { text: "Two Clear Options." },
+                { text: "Zero Hidden Deductions." }
               ]}
               gradient={["#ffffff", "#3b82f6"]}
             />
           </h2>
-          <p ref={useReveal()} className="rv d2" style={{ fontSize: 16, color: "rgba(255,255,255,0.4)", maxWidth: 440, margin: "0 auto", fontWeight: 500 }}>Everything you need to become a disciplined and profitable trader.</p>
+          <p ref={useReveal()} className="rv d2" style={{ fontSize: 16, color: "rgba(255,255,255,0.55)", maxWidth: 640, margin: "0 auto 30px", fontWeight: 500, lineHeight: 1.6 }}>
+            Choose between a <strong style={{ color: "#60a5fa" }}>0% profit-sharing 3-year enterprise license</strong> or our <strong style={{ color: "#34d399" }}>performance partner plan</strong> where you pay only when you make profits.
+          </p>
+
+          {/* Primary Category Switcher */}
+          <div style={{ display: "inline-flex", padding: 4, borderRadius: 16, background: "rgba(255, 255, 255, 0.05)", border: "1px solid rgba(255, 255, 255, 0.1)" }}>
+            <button
+              onClick={() => setPricingCategory("autotrade")}
+              style={{
+                padding: "10px 22px",
+                borderRadius: 12,
+                fontSize: 13,
+                fontWeight: 700,
+                border: "none",
+                cursor: "pointer",
+                transition: "all 0.2s",
+                background: pricingCategory === "autotrade" ? "linear-gradient(135deg, #2563eb, #1d4ed8)" : "transparent",
+                color: pricingCategory === "autotrade" ? "#fff" : "rgba(255, 255, 255, 0.6)",
+                boxShadow: pricingCategory === "autotrade" ? "0 4px 14px rgba(37, 99, 235, 0.4)" : "none",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+              }}
+            >
+              <Zap size={14} />
+              <span>FiAlgo V1 AutoTrade Licenses (₹1L & ₹10K)</span>
+            </button>
+
+            <button
+              onClick={() => setPricingCategory("platform")}
+              style={{
+                padding: "10px 22px",
+                borderRadius: 12,
+                fontSize: 13,
+                fontWeight: 700,
+                border: "none",
+                cursor: "pointer",
+                transition: "all 0.2s",
+                background: pricingCategory === "platform" ? "rgba(255, 255, 255, 0.12)" : "transparent",
+                color: pricingCategory === "platform" ? "#fff" : "rgba(255, 255, 255, 0.6)",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+              }}
+            >
+              <ShieldCheck size={14} />
+              <span>Platform Membership (Journal & AI Coach)</span>
+            </button>
+          </div>
         </div>
 
-        <div className="relative z-10 w-full">
-          <PricingCards
-            selectedPlan={selectedPlan}
-            onSelectPlan={setSelectedPlan}
-            onUpgradeClick={onStart}
-            isStandalone={true}
-          />
-        </div>
+        {/* ── OPTION A: FIALGO AUTOTRADE 2 OFFICIAL LICENSES ── */}
+        {pricingCategory === "autotrade" && (
+          <div className="relative z-10 w-full">
+            {/* Top Cards Grid */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 24, marginBottom: 40 }}>
 
-        <div ref={useReveal()} className="rv d4" style={{ textAlign: "center", marginTop: 52, opacity: 0.35 }}>
-          <p style={{ fontSize: 13, fontWeight: 600 }}>Instant activation · Secure MT5 connection · Cancel anytime</p>
+              {/* CARD 1: ₹1,00,000 (3-Year Pass) */}
+              <div
+                style={{
+                  borderRadius: 28,
+                  padding: "36px 32px",
+                  background: "linear-gradient(180deg, rgba(30, 58, 138, 0.25) 0%, rgba(15, 23, 42, 0.65) 100%)",
+                  border: "2px solid rgba(59, 130, 246, 0.4)",
+                  boxShadow: "0 20px 50px rgba(0, 0, 0, 0.5), 0 0 30px rgba(59, 130, 246, 0.15)",
+                  position: "relative",
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                }}
+              >
+                {/* Popular Pill */}
+                <div style={{ position: "absolute", top: -13, left: 32 }}>
+                  <span style={{
+                    background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
+                    color: "#fff",
+                    fontSize: 10.5,
+                    fontWeight: 800,
+                    letterSpacing: 1,
+                    padding: "5px 14px",
+                    borderRadius: 100,
+                    textTransform: "uppercase",
+                    boxShadow: "0 4px 12px rgba(37, 99, 235, 0.4)",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 5
+                  }}>
+                    <Crown size={12} />
+                    0% PROFIT SHARE · 3-YEAR FULL PASS
+                  </span>
+                </div>
+
+                <div>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+                    <div>
+                      <h3 style={{ fontSize: 24, fontWeight: 900, color: "#fff", margin: 0 }}>
+                        3-Year Enterprise Pass
+                      </h3>
+                      <p style={{ fontSize: 13, color: "#93c5fd", margin: "4px 0 0", fontWeight: 600 }}>
+                        Keep 100% of all profits. Zero weekly cuts.
+                      </p>
+                    </div>
+                    <span style={{
+                      padding: "6px 12px",
+                      borderRadius: 10,
+                      background: "rgba(59, 130, 246, 0.15)",
+                      border: "1px solid rgba(59, 130, 246, 0.3)",
+                      color: "#60a5fa",
+                      fontSize: 11,
+                      fontWeight: 800
+                    }}>
+                      36 MONTHS
+                    </span>
+                  </div>
+
+                  <p style={{ fontSize: 13.5, color: "rgba(255, 255, 255, 0.65)", lineHeight: 1.55, margin: "14px 0 20px" }}>
+                    The definitive solution for high-capital traders who want zero ongoing revenue sharing. Pay once and keep every rupee of your trading profit.
+                  </p>
+
+                  {/* Price Box */}
+                  <div style={{
+                    padding: "18px 20px",
+                    borderRadius: 18,
+                    background: "rgba(15, 23, 42, 0.7)",
+                    border: "1px solid rgba(59, 130, 246, 0.25)",
+                    marginBottom: 24,
+                  }}>
+                    <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
+                      <span style={{ fontSize: 38, fontWeight: 900, color: "#fff", letterSpacing: "-0.03em" }}>
+                        ₹1,00,000
+                      </span>
+                      <span style={{ fontSize: 13, color: "rgba(255, 255, 255, 0.5)", fontWeight: 600 }}>
+                        one-time (~₹2,777/month)
+                      </span>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>
+                      <span style={{ width: 8, height: 8, borderRadius: 4, background: "#3b82f6" }} />
+                      <span style={{ fontSize: 12, color: "#93c5fd", fontWeight: 700 }}>
+                        0% Profit Share · 100% Profits Retained In MT5
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Feature Checklist */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 28 }}>
+                    {threeYearFeatures.map((feat, idx) => (
+                      <div key={idx} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                        <CheckCircle2 size={16} color={feat.highlighted ? "#60a5fa" : "#3b82f6"} style={{ shrink: 0, marginTop: 2 }} />
+                        <div>
+                          <strong style={{ fontSize: 13, color: feat.highlighted ? "#fff" : "rgba(255, 255, 255, 0.85)", display: "block" }}>
+                            {feat.title}
+                          </strong>
+                          <span style={{ fontSize: 12, color: "rgba(255, 255, 255, 0.5)", lineHeight: 1.45, display: "block" }}>
+                            {feat.desc}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <button
+                    onClick={() => navigate("/features/auto-trade")}
+                    style={{
+                      width: "100%",
+                      padding: "16px 24px",
+                      borderRadius: 16,
+                      background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
+                      color: "#fff",
+                      fontSize: 14.5,
+                      fontWeight: 800,
+                      border: "none",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 8,
+                      boxShadow: "0 8px 24px rgba(37, 99, 235, 0.45)",
+                      transition: "transform 0.15s ease",
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.02)")}
+                    onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
+                  >
+                    <span>Get 3-Year Enterprise License (₹1,00,000)</span>
+                    <ArrowRight size={16} />
+                  </button>
+                  <p style={{ textAlign: "center", fontSize: 11, color: "rgba(255, 255, 255, 0.4)", margin: "10px 0 0" }}>
+                    Includes 50% renewal guarantee (₹49,999) after 3 years
+                  </p>
+                </div>
+              </div>
+
+              {/* CARD 2: ₹10,000 (Performance Partner) */}
+              <div
+                style={{
+                  borderRadius: 28,
+                  padding: "36px 32px",
+                  background: "linear-gradient(180deg, rgba(6, 78, 59, 0.22) 0%, rgba(15, 23, 42, 0.65) 100%)",
+                  border: "2px solid rgba(16, 185, 129, 0.35)",
+                  boxShadow: "0 20px 50px rgba(0, 0, 0, 0.5), 0 0 30px rgba(16, 185, 129, 0.12)",
+                  position: "relative",
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                }}
+              >
+                {/* Performance Pill */}
+                <div style={{ position: "absolute", top: -13, left: 32 }}>
+                  <span style={{
+                    background: "linear-gradient(135deg, #10b981, #059669)",
+                    color: "#fff",
+                    fontSize: 10.5,
+                    fontWeight: 800,
+                    letterSpacing: 1,
+                    padding: "5px 14px",
+                    borderRadius: 100,
+                    textTransform: "uppercase",
+                    boxShadow: "0 4px 12px rgba(16, 185, 129, 0.4)",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 5
+                  }}>
+                    <TrendingUp size={12} />
+                    PERFORMANCE-BASED · PAY ONLY ON PROFITS
+                  </span>
+                </div>
+
+                <div>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+                    <div>
+                      <h3 style={{ fontSize: 24, fontWeight: 900, color: "#fff", margin: 0 }}>
+                        Performance Partner Plan
+                      </h3>
+                      <p style={{ fontSize: 13, color: "#6ee7b7", margin: "4px 0 0", fontWeight: 600 }}>
+                        Split 50% weekly only when your account is in green.
+                      </p>
+                    </div>
+                    <span style={{
+                      padding: "6px 12px",
+                      borderRadius: 10,
+                      background: "rgba(16, 185, 129, 0.15)",
+                      border: "1px solid rgba(16, 185, 129, 0.3)",
+                      color: "#34d399",
+                      fontSize: 11,
+                      fontWeight: 800
+                    }}>
+                      SETUP + 50/50%
+                    </span>
+                  </div>
+
+                  <p style={{ fontSize: 13.5, color: "rgba(255, 255, 255, 0.65)", lineHeight: 1.55, margin: "14px 0 20px" }}>
+                    Zero financial risk during non-profitable weeks. Pay an entry setup fee to deploy the engine, then share 50% of net closed profits every Monday.
+                  </p>
+
+                  {/* Price Box */}
+                  <div style={{
+                    padding: "18px 20px",
+                    borderRadius: 18,
+                    background: "rgba(15, 23, 42, 0.7)",
+                    border: "1px solid rgba(16, 185, 129, 0.25)",
+                    marginBottom: 24,
+                  }}>
+                    <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
+                      <span style={{ fontSize: 38, fontWeight: 900, color: "#fff", letterSpacing: "-0.03em" }}>
+                        ₹10,000
+                      </span>
+                      <span style={{ fontSize: 13, color: "rgba(255, 255, 255, 0.5)", fontWeight: 600 }}>
+                        one-time setup fee + 50% weekly split
+                      </span>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>
+                      <span style={{ width: 8, height: 8, borderRadius: 4, background: "#10b981" }} />
+                      <span style={{ fontSize: 12, color: "#6ee7b7", fontWeight: 700 }}>
+                        ₹0 Platform Fee On Red Or Flat Weeks
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Feature Checklist */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 28 }}>
+                    {profitShareFeatures.map((feat, idx) => (
+                      <div key={idx} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                        <CheckCircle2 size={16} color={feat.highlighted ? "#34d399" : "#10b981"} style={{ shrink: 0, marginTop: 2 }} />
+                        <div>
+                          <strong style={{ fontSize: 13, color: feat.highlighted ? "#fff" : "rgba(255, 255, 255, 0.85)", display: "block" }}>
+                            {feat.title}
+                          </strong>
+                          <span style={{ fontSize: 12, color: "rgba(255, 255, 255, 0.5)", lineHeight: 1.45, display: "block" }}>
+                            {feat.desc}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <button
+                    onClick={() => navigate("/features/auto-trade")}
+                    style={{
+                      width: "100%",
+                      padding: "16px 24px",
+                      borderRadius: 16,
+                      background: "linear-gradient(135deg, #059669 0%, #047857 100%)",
+                      color: "#fff",
+                      fontSize: 14.5,
+                      fontWeight: 800,
+                      border: "none",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 8,
+                      boxShadow: "0 8px 24px rgba(5, 150, 105, 0.4)",
+                      transition: "transform 0.15s ease",
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.02)")}
+                    onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
+                  >
+                    <span>Get Performance License (₹10,000)</span>
+                    <ArrowRight size={16} />
+                  </button>
+                  <p style={{ textAlign: "center", fontSize: 11, color: "rgba(255, 255, 255, 0.4)", margin: "10px 0 0" }}>
+                    Protected by High-Water Mark loss carry-forward
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Side-by-Side Comparison Table */}
+            <div style={{
+              borderRadius: 24,
+              padding: "32px 28px",
+              background: "rgba(15, 23, 42, 0.45)",
+              border: "1px solid rgba(255, 255, 255, 0.08)",
+              boxShadow: "0 10px 30px rgba(0, 0, 0, 0.3)",
+              marginBottom: 36,
+            }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, flexWrap: "wrap", gap: 12 }}>
+                <div>
+                  <h4 style={{ fontSize: 18, fontWeight: 800, color: "#fff", margin: 0 }}>
+                    Detailed Feature & Model Comparison
+                  </h4>
+                  <p style={{ fontSize: 13, color: "rgba(255, 255, 255, 0.5)", margin: "4px 0 0" }}>
+                    Review the core economic differences between our two official licensing structures.
+                  </p>
+                </div>
+
+                <div style={{ display: "flex", gap: 10 }}>
+                  <button
+                    onClick={() => navigate("/features/auto-trade")}
+                    style={{
+                      padding: "8px 16px",
+                      borderRadius: 10,
+                      background: "rgba(255, 255, 255, 0.06)",
+                      border: "1px solid rgba(255, 255, 255, 0.12)",
+                      color: "#fff",
+                      fontSize: 12,
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6
+                    }}
+                  >
+                    <Activity size={13} />
+                    <span>View Live Telemetry Showcase</span>
+                  </button>
+                </div>
+              </div>
+
+              <div style={{ overflowX: "auto" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", minWidth: 600 }}>
+                  <thead>
+                    <tr style={{ borderBottom: "1px solid rgba(255, 255, 255, 0.1)" }}>
+                      <th style={{ padding: "12px 16px", fontSize: 12, fontWeight: 700, color: "rgba(255, 255, 255, 0.5)", textTransform: "uppercase" }}>Feature / Parameter</th>
+                      <th style={{ padding: "12px 16px", fontSize: 12, fontWeight: 800, color: "#60a5fa", textTransform: "uppercase" }}>3-Year Pass (₹1,00,000)</th>
+                      <th style={{ padding: "12px 16px", fontSize: 12, fontWeight: 800, color: "#34d399", textTransform: "uppercase" }}>Performance (₹10,000)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {comparisonRows.map((row, idx) => (
+                      <tr key={idx} style={{ borderBottom: "1px solid rgba(255, 255, 255, 0.04)" }}>
+                        <td style={{ padding: "14px 16px", fontSize: 13, fontWeight: 600, color: "rgba(255, 255, 255, 0.85)" }}>
+                          {row.label}
+                        </td>
+                        <td style={{ padding: "14px 16px", fontSize: 13, fontWeight: 700, color: "#93c5fd" }}>
+                          {row.threeYears}
+                        </td>
+                        <td style={{ padding: "14px 16px", fontSize: 13, fontWeight: 700, color: "#6ee7b7" }}>
+                          {row.profitShare}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Bottom Proof Assurance Banner */}
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: "18px 24px",
+              borderRadius: 18,
+              background: "rgba(255, 255, 255, 0.03)",
+              border: "1px solid rgba(255, 255, 255, 0.08)",
+              flexWrap: "wrap",
+              gap: 16
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <ShieldCheck size={28} color="#3b82f6" />
+                <div>
+                  <strong style={{ fontSize: 13.5, color: "#fff", display: "block" }}>
+                    100% Capital Isolation Guarantee
+                  </strong>
+                  <span style={{ fontSize: 12, color: "rgba(255, 255, 255, 0.55)" }}>
+                    Tradifive is not a broker and never holds custody of your trading deposit. Your funds remain in your broker at all times.
+                  </span>
+                </div>
+              </div>
+
+              <div style={{ display: "flex", gap: 10 }}>
+                <button
+                  onClick={() => navigate("/features/auto-trade")}
+                  style={{
+                    padding: "9px 18px",
+                    borderRadius: 12,
+                    background: "rgba(59, 130, 246, 0.15)",
+                    border: "1px solid rgba(59, 130, 246, 0.3)",
+                    color: "#60a5fa",
+                    fontSize: 12.5,
+                    fontWeight: 700,
+                    cursor: "pointer",
+                  }}
+                >
+                  Download Free Demo EA (.ex5)
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── OPTION B: PLATFORM APPS (JOURNAL & RISKGUARD) ── */}
+        {pricingCategory === "platform" && (
+          <div className="relative z-10 w-full">
+            <PricingCards
+              selectedPlan={selectedPlan}
+              onSelectPlan={setSelectedPlan}
+              onUpgradeClick={onStart}
+              isStandalone={true}
+            />
+          </div>
+        )}
+
+        <div ref={useReveal()} className="rv d4" style={{ textAlign: "center", marginTop: 48, opacity: 0.45 }}>
+          <p style={{ fontSize: 13, fontWeight: 600 }}>Instant activation · Hardware-bound MT5 key · Dedicated engineer onboarding desk</p>
         </div>
       </div>
     </section>
