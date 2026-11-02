@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+﻿import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -872,7 +872,7 @@ export default function DiscoverMarketplaceScreen() {
             </View>
           </View>
         </ScrollView>
-      </View>
+      </Animated.View>
     </View>
   );
 }
