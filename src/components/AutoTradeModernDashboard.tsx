@@ -757,6 +757,15 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
   }, [adminShareToday, isCentAccount, accountCurrency, viewCurrency]);
 
 
+  const adminShareTodayInr = useMemo(() => {
+    if (isCentAccount || viewCurrency === "USC") {
+      return adminShareToday * 0.9368;
+    }
+    if (accountCurrency === "INR" || viewCurrency === "INR") {
+      return adminShareToday;
+    }
+    return adminShareToday * 83.2;
+  }, [adminShareToday, isCentAccount, accountCurrency, viewCurrency]);
 
   // ── Crypto Remittance & Proof Upload Modal State ──
 
@@ -1459,7 +1468,7 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
     const acc = displayAccount || cleanAccount || "36520821";
     const tid = tradifiveId;
     const sDay = settlementDay;
-    const balFormatted = formatMoney(accountBalance, { showEquivalent: true });
+    const balFormatted = formatMoney(accountBalance);
     const profitFormatted = formatMoney(todayProfit);
     const clientFormatted = formatMoney(clientShareToday);
     const adminFormatted = formatMoney(adminShareToday);
@@ -2182,48 +2191,8 @@ Kindly review and process our weekly 50/50 profit clearance.`;
 
       {/* ── TOP ACTION & TELEMETRY TOOLBAR (Matches AI Journal & RiskGuard Header) ── */}
 
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-
-        <div className="flex items-center gap-2 text-[12px] sm:text-[13px] text-slate-400 dark:text-slate-400 flex-wrap">
-
-          <span className="flex items-center gap-1.5 font-bold text-slate-900 dark:text-white">
-
-            <span className={`w-2 h-2 rounded-full ${isBotRunning ? 'bg-[#10B981] animate-pulse' : 'bg-amber-400'}`} />
-
-            FiAlgo MT5 {displayAccount ? `#${displayAccount}` : "(Unconnected)"}
-
-          </span>
-
-          {(isCentAccount || viewCurrency === "USC") && (
-            <>
-              <span className="text-slate-300 dark:text-slate-400">•</span>
-              <span className="px-2 py-0.5 rounded-full text-[10.5px] font-extrabold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center gap-1 shadow-2xs" title="100 USC = $1.00 USD (Exness/Broker Cent Execution)">
-                🪙 Cent Account (USC)
-              </span>
-            </>
-          )}
-
-          <span className="text-slate-300 dark:text-slate-400">•</span>
-
-          <span className="font-semibold text-slate-600 dark:text-slate-300">{brokerServer}</span>
-
-          <span className="text-slate-300 dark:text-slate-400">•</span>
-
-          <span className="font-semibold text-amber-600 dark:text-amber-400">XAUUSD (M1)</span>
-
-          <span className="text-slate-300 dark:text-slate-400">•</span>
-
-          <span className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
-
-            <Activity size={12} /> {latencyPing}ms Latency
-
-          </span>
-
-        </div>
-
-
-
-        <div className="flex items-center gap-2 self-start sm:self-auto shrink-0 flex-wrap">
+      <div className="flex items-center justify-end gap-2 mb-4">
+        <div className="flex items-center gap-2 shrink-0 flex-wrap">
 
 
 
@@ -2321,19 +2290,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
               )}
             </button>
 
-            <button
-              type="button"
-              onClick={() => {
-                const next = !soundEnabled;
-                setSoundEnabled(next);
-                if (next) playTargetHitChime();
-                toast(next ? "Target Alert Sound Active 🔔" : "Target Alert Sound Muted 🔕");
-              }}
-              className="h-[36px] w-[36px] rounded-[14px] border-2 border-white dark:border-white/5 bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:shadow-none flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-blue-600 transition-colors cursor-pointer"
-              title={soundEnabled ? "Sound alerts enabled - Click to mute" : "Sound alerts muted - Click to unmute"}
-            >
-              {soundEnabled ? <Volume2 size={14} className="text-blue-500" /> : <VolumeX size={14} className="text-slate-400" />}
-            </button>
+            
           </div>
 
         </div>
@@ -2428,7 +2385,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
 
             >
 
-              {formatMoney(accountBalance, { showEquivalent: true })}
+              {formatMoney(accountBalance)}
 
             </h3>
 
@@ -2682,7 +2639,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
 
             >
 
-              {formatMoney(depositAmount, { showEquivalent: true })}
+              {formatMoney(depositAmount)}
 
             </h3>
 
@@ -3091,12 +3048,9 @@ Kindly review and process our weekly 50/50 profit clearance.`;
                   <span className="text-[10px] font-bold text-slate-400">Weekly Settlement</span>
                 </div>
                 <div className="flex items-baseline gap-2 my-1">
-                  <h3 className="text-[22px] font-medium text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
-                    ${adminShareTodayUsdt} USDT
+                  <h3 className="text-[22px] font-bold text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
+                    ₹{adminShareTodayInr.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </h3>
-                  <span className="text-[12px] font-medium text-slate-400">
-                    ({formatMoney(adminShareToday)})
-                  </span>
                 </div>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
                   Settled weekly on your designated cohort day (Every {settlementDay}).
@@ -3781,7 +3735,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
                 <div className="p-3 rounded-xl bg-blue-50/60 dark:bg-blue-500/10 border border-blue-200/60 dark:border-blue-500/20">
                   <span className="text-[10px] font-bold uppercase text-blue-700 dark:text-blue-300 block">Platform 50%</span>
                   <span className="text-[13px] font-bold text-blue-700 dark:text-blue-300 truncate block">
-                    ${adminShareTodayUsdt} USDT
+                    ₹{adminShareTodayInr.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </div>
               </div>
