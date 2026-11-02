@@ -2776,32 +2776,37 @@ MagicNumber=789104
           </motion.div>
         )}
 
-        {/* ── STEP 4: ONLY SHOWN WHEN activeStep === 4 (ACTIVATION KEY & MT5 SETUP) ── */}
+                {/* ── STEP 4: ACTIVATION KEY & MT5 SETUP (BIG TECH DESIGN SYSTEM) ── */}
         {activeStep === 4 && (
           <motion.div
             key="step4"
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            className="rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:bg-[#161618] dark:border-white/10 p-3 sm:p-6 space-y-4 sm:space-y-6"
+            className="rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:bg-[#161618] dark:border-white/10 p-5 sm:p-7 space-y-6"
           >
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/5">
+            {/* Step 4 Card Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100 dark:border-white/5">
               <div>
-                <h2 className="text-base sm:text-xl font-bold text-slate-900 dark:text-white">
-                  {hasPaid && ibVerified ? "Activation Key & Start Trading" : "Activation Key Verification"}
-                </h2>
+                <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight">
+                  {hasPaid && ibVerified
+                    ? "Cryptographic MT5 License Key"
+                    : paymentStatus === "pending"
+                      ? "License Key Verification"
+                      : "License Key Activation"}
+                </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                   {hasPaid && ibVerified
-                    ? "Copy your license key and attach it to FiAlgo V1 in MT5."
+                    ? "Your personal license key is active and bound to your MetaTrader 5 account."
                     : paymentStatus === "pending"
-                      ? "Payment received. Your license key will be issued within 2 hours."
-                      : "Complete payment and broker verification to unlock your license."}
+                      ? "Payment reference received. License key issuance is currently in progress."
+                      : "Complete payment and broker verification to generate your live key."}
                 </p>
               </div>
 
-              <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 ${
+              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold shrink-0 self-start sm:self-auto ${
                 hasPaid && ibVerified
-                  ? "bg-slate-100 text-slate-800 dark:bg-white/10 dark:text-slate-200 border border-slate-200 dark:border-white/10"
+                  ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-500/20"
                   : paymentStatus === "pending"
                     ? "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 border border-amber-500/20"
                     : "bg-slate-100 text-slate-700 dark:bg-white/10 dark:text-slate-300 border border-slate-200 dark:border-white/10"
@@ -2809,12 +2814,12 @@ MagicNumber=789104
                 {hasPaid && ibVerified ? (
                   <>
                     <CheckCircle2 size={13} className="text-emerald-500" />
-                    <span>Unlocked &amp; Active</span>
+                    <span>Active &amp; Bound</span>
                   </>
                 ) : paymentStatus === "pending" ? (
                   <>
                     <Clock size={12} className="text-amber-500 animate-spin" />
-                    <span>Key Issuance (~2 Hrs)</span>
+                    <span>Issuance Queue (~2 Hrs)</span>
                   </>
                 ) : (
                   <>
@@ -2827,21 +2832,21 @@ MagicNumber=789104
 
             {/* ── CASE 4A: PAYMENT NOT INITIATED IN STEP 3 ── */}
             {paymentStatus === "none" ? (
-              <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#161618] border border-slate-200/80 dark:border-white/10 space-y-4 shadow-xs">
-                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center justify-center shrink-0">
+              <div className="space-y-5">
+                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 p-5 rounded-xl bg-slate-50/70 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/5">
+                  <div className="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center justify-center shrink-0">
                     <Lock size={22} />
                   </div>
-                  <div className="space-y-1 text-center sm:text-left">
-                    <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10.5px] font-semibold bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
+                  <div className="space-y-1 text-center sm:text-left flex-1 min-w-0">
+                    <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10.5px] font-semibold bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300">
                       <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
                       <span>Payment Required</span>
                     </div>
-                    <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+                    <h4 className="text-base font-bold text-slate-900 dark:text-white">
                       FiAlgo V1 License Key Locked
-                    </h3>
+                    </h4>
                     <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-xl">
-                      Complete payment of <strong className="text-slate-900 dark:text-white">"₹9,999 One-Time Setup Fee"</strong> in Step 3 via PhonePe / UPI (<strong className="font-mono text-slate-800 dark:text-slate-200">9731980756@axisbank</strong>) or Bank Transfer to request your license key.
+                      Complete payment for your selected plan ({selectedTier === "three_years" ? "3-Year Pass ₹1,00,000" : "Setup Fee ₹10,000"}) in Step 3 via UPI or Bank Transfer to request your license key.
                     </p>
                   </div>
                 </div>
@@ -2849,237 +2854,247 @@ MagicNumber=789104
                 <button
                   type="button"
                   onClick={() => setActiveStep(3)}
-                  className="w-full py-3 px-4 rounded-xl text-xs sm:text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center gap-2 cursor-pointer shadow-xs transition-all"
+                  className="w-full py-3.5 px-5 rounded-xl text-xs sm:text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center gap-2 cursor-pointer shadow-xs transition-all active:scale-[0.99]"
                 >
-                  <CreditCard size={14} />
-                  <span>Go to Step 3: Complete Payment ("₹9,999") →</span>
+                  <CreditCard size={15} />
+                  <span>Go to Step 3: Select Plan &amp; Pay &rarr;</span>
                 </button>
               </div>
             ) : paymentStatus === "pending" ? (
               /* ── CASE 4B: PAYMENT SUBMITTED, UNDER 2-HOUR VERIFICATION ── */
-              <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#161618] border border-slate-200/80 dark:border-white/10 space-y-4 sm:space-y-5 shadow-xs">
-                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center justify-center shrink-0">
-                    <Clock size={22} className="animate-pulse" />
+              <div className="space-y-5">
+                {/* Status Hero Callout */}
+                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 p-4.5 rounded-xl bg-amber-50/60 dark:bg-amber-950/15 border border-amber-200/80 dark:border-amber-500/20">
+                  <div className="w-11 h-11 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center justify-center shrink-0">
+                    <Clock size={20} className="animate-pulse" />
                   </div>
-                  <div className="space-y-1 text-center sm:text-left">
-                    <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10.5px] font-semibold bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
+                  <div className="space-y-1 text-center sm:text-left flex-1 min-w-0">
+                    <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10.5px] font-semibold bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300">
                       <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                      <span>Verification In Progress (~2 Hours)</span>
+                      <span>Verification In Progress &middot; Estimated 2 Hours</span>
                     </div>
-                    <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
-                      License Key Under Verification
-                    </h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-xl">
-                      We have received your payment request with UTR <strong className="font-mono text-slate-800 dark:text-slate-200">{paymentUtr || "Submitted"}</strong> and screenshot proof. In 2 hours you will get your license key unlocked right here.
+                    <h4 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">
+                      Payment Received &middot; Generating Hardware Key
+                    </h4>
+                    <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                      We have received your payment reference <code className="font-mono font-bold text-slate-900 dark:text-white bg-white/80 dark:bg-black/30 px-1.5 py-0.5 rounded border border-slate-200/60 dark:border-white/10">{paymentUtr || "Submitted"}</code> and screenshot proof. Your personal license key will unlock automatically upon verification.
                     </p>
                   </div>
                 </div>
 
-                {/* Status details matrix */}
-                <div className="p-3.5 bg-slate-50/70 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/10 rounded-xl space-y-2.5 text-xs">
-                  <div className="font-bold text-slate-800 dark:text-slate-200 text-xs">
-                    Verification Status Details:
+                {/* 4-Stat Metric Grid (Big Tech Style - Stripe/Linear) */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/5 space-y-1">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block">
+                      License Tier
+                    </span>
+                    <div className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate">
+                      {selectedTier === "three_years" ? "3-Year Pass" : "Performance Partner"}
+                    </div>
+                    <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 block truncate">
+                      {selectedTier === "three_years" ? "₹1,00,000 &middot; 0% Share" : "₹10,000 + Weekly 50%"}
+                    </span>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11.5px]">
-                    <div className="flex items-center justify-between p-2.5 rounded-lg bg-white dark:bg-[#18181B] border border-slate-200/70 dark:border-white/5">
-                      <div className="flex items-center gap-2">
-                        <span className="w-4 h-4 rounded-full bg-slate-100 dark:bg-white/10 text-amber-600 dark:text-amber-400 flex items-center justify-center text-[10px] font-bold shrink-0">⌛</span>
-                        <span className="text-slate-600 dark:text-slate-400">Plan &amp; Fee:</span>
-                      </div>
-                      <span className="font-bold text-amber-600 dark:text-amber-400">
-                        "₹9,999 Setup + Weekly 50/50% Share"
-                      </span>
+                  <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/5 space-y-1">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block">
+                      Payment Reference
+                    </span>
+                    <div className="text-xs sm:text-sm font-bold font-mono text-slate-900 dark:text-white truncate">
+                      {paymentUtr ? `UTR #${paymentUtr}` : "Proof Attached"}
                     </div>
+                    <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                      <CheckCircle2 size={11} />
+                      <span>Proof Submitted</span>
+                    </span>
+                  </div>
 
-                    <div className="flex items-center justify-between p-2.5 rounded-lg bg-white dark:bg-[#18181B] border border-slate-200/70 dark:border-white/5">
-                      <div className="flex items-center gap-2">
-                        <span className="w-4 h-4 rounded-full bg-slate-100 dark:bg-white/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-[10px] font-bold shrink-0">✓</span>
-                        <span className="text-slate-600 dark:text-slate-400">Proof Submitted:</span>
-                      </div>
-                      <span className="font-bold text-slate-900 dark:text-white font-mono truncate max-w-[140px]">
-                        UTR #{paymentUtr || "Received"}
-                      </span>
+                  <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/5 space-y-1">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block">
+                      Verification SLA
+                    </span>
+                    <div className="text-xs sm:text-sm font-bold text-amber-600 dark:text-amber-400 truncate">
+                      Within 2 Hours
                     </div>
+                    <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 block">
+                      Live Queue Active
+                    </span>
+                  </div>
 
-                    <div className="flex items-center justify-between p-2.5 rounded-lg bg-white dark:bg-[#18181B] border border-slate-200/70 dark:border-white/5">
-                      <div className="flex items-center gap-2">
-                        <span className="w-4 h-4 rounded-full bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 flex items-center justify-center text-[10px] font-bold shrink-0">⏱</span>
-                        <span className="text-slate-600 dark:text-slate-400">Turnaround Time:</span>
-                      </div>
-                      <span className="font-bold text-emerald-600 dark:text-emerald-400 font-mono">
-                        Within 2 Hours
-                      </span>
+                  <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/5 space-y-1">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block">
+                      Assigned Account
+                    </span>
+                    <div className="text-xs sm:text-sm font-bold font-mono text-slate-900 dark:text-white truncate">
+                      {mt5Account ? `#${mt5Account}` : "TRDF-****-****"}
                     </div>
-
-                    <div className="flex items-center justify-between p-2.5 rounded-lg bg-white dark:bg-[#18181B] border border-slate-200/70 dark:border-white/5">
-                      <div className="flex items-center gap-2">
-                        <span className="w-4 h-4 rounded-full bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 flex items-center justify-center text-[10px] font-bold shrink-0">#</span>
-                        <span className="text-slate-600 dark:text-slate-400">Assigned License:</span>
-                      </div>
-                      <span className="font-mono text-slate-500 dark:text-slate-400">
-                        TRDF-****-****
-                      </span>
-                    </div>
+                    <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 block truncate">
+                      Hardware Bound
+                    </span>
                   </div>
                 </div>
 
                 {/* Priority Fast-Track Assistance */}
-                <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#18181B] border border-slate-200/80 dark:border-white/10 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-900 dark:text-white">
-                      Need 15-Minute Fast-Track Verification?
-                    </span>
-                    <span className="inline-flex items-center gap-1.5 text-[10.5px] font-semibold text-slate-600 dark:text-slate-400 bg-white dark:bg-white/10 px-2 py-0.5 rounded-md border border-slate-200/70 dark:border-white/10">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                      <span>Desk Online</span>
-                    </span>
+                <div className="p-4 sm:p-5 rounded-xl bg-slate-50/70 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
+                          Need 15-Minute Fast-Track Approval?
+                        </h4>
+                        <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                          Desk Online
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                        Send your UTR number to our finance desk on WhatsApp for priority approval within 15 minutes:
+                      </p>
+                    </div>
                   </div>
 
-                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                    Send your UTR number to our finance desk on WhatsApp for priority approval within 15 minutes:
-                  </p>
-
-                  <div className="grid grid-cols-2 gap-2 pt-0.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
                     <a
                       href={`https://wa.me/?text=${encodeURIComponent(
-                        `Hello TradiFive Team! I have completed the $"₹9,999 payment for FiAlgo V1 Institutional Setup (Weekly 50/50% Profit Share)" (UTR: ${paymentUtr || "[Your UTR]"}). Please verify and issue my license key.`
+                        `Hello TradiFive Team! I have completed payment for FiAlgo V1 (${selectedTier === "three_years" ? "3-Year Pass ₹1,00,000" : "Profit Share Plan ₹10,000"}).\nUTR: ${paymentUtr || "[Your UTR]"}\nMT5 Account: ${mt5Account || "[Your MT5 Account]"}\nPlease fast-track verification and unlock my license key.`
                       )}`}
                       target="_blank"
                       rel="noreferrer"
-                      className="py-2.5 px-3 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 flex items-center justify-center gap-1.5 transition-all shadow-2xs"
+                      className="py-2.5 px-4 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer active:scale-[0.99]"
                     >
-                      <MessageCircle size={13} />
-                      <span>WhatsApp Desk</span>
+                      <MessageCircle size={14} />
+                      <span>WhatsApp Fast-Track Desk &rarr;</span>
                     </a>
 
                     <a
                       href={`mailto:support@tradifive.in?subject=${encodeURIComponent(
                         `Verify License Payment UTR #${paymentUtr || ""}`
                       )}&body=${encodeURIComponent(
-                        `Hello Support Team,\n\nPlease verify my payment of $"₹9,999" for FiAlgo V1.\nUTR Number: ${paymentUtr || ""}\nPlan: $"Institutional Setup (Weekly 50/50%)"\n\nPlease issue my license key.\n\nThank you!`
+                        `Hello Support Team,\n\nPlease verify my payment for FiAlgo V1.\nPlan: ${selectedTier === "three_years" ? "3-Year Enterprise Pass (₹1,00,000)" : "Performance Partner Plan (₹10,000)"}\nUTR Number: ${paymentUtr || ""}\nMT5 Account: ${mt5Account || ""}\n\nPlease issue my hardware-bound license key.\n\nThank you!`
                       )}`}
-                      className="py-2.5 px-3 rounded-xl text-xs font-semibold bg-white dark:bg-white/10 hover:bg-slate-100 text-slate-800 dark:text-white border border-slate-200 dark:border-white/10 flex items-center justify-center gap-1.5 transition-all shadow-2xs"
+                      className="py-2.5 px-4 rounded-xl text-xs font-semibold bg-white dark:bg-white/10 hover:bg-slate-50 text-slate-800 dark:text-white border border-slate-200 dark:border-white/10 flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer"
                     >
-                      <Mail size={13} />
+                      <Mail size={14} />
                       <span>Email Support</span>
                     </a>
                   </div>
 
                   {/* Discrete testing helper */}
-                  <div className="pt-2 border-t border-slate-200/60 dark:border-white/5 flex items-center justify-between text-[11px] text-slate-500">
-                    <span>Testing license key unlock?</span>
+                  <div className="pt-2 border-t border-slate-200/60 dark:border-white/5 flex items-center justify-between text-[11px] text-slate-400">
+                    <span>Developer / Testing Helper:</span>
                     <button
                       type="button"
                       onClick={handleApprovePaymentDemo}
                       className="font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 underline cursor-pointer"
-                      title="Click to simulate instant payment approval"
                     >
-                      ⚡ Instant Approve Payment (Demo Mode)
+                      Simulate Instant Approval (Demo)
                     </button>
                   </div>
                 </div>
               </div>
             ) : !ibVerified ? (
               /* ── CASE 4C: PAYMENT CONFIRMED, WAITING FOR BROKER VERIFICATION ($500+ & IB LINK) ── */
-              <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#161618] border border-slate-200/80 dark:border-white/10 space-y-4 sm:space-y-5 shadow-xs">
-                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-white/10 border border-slate-200/80 dark:border-white/10 text-slate-700 dark:text-slate-300 flex items-center justify-center shrink-0">
+              <div className="space-y-5">
+                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 p-5 rounded-xl bg-slate-50/70 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/5">
+                  <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-white/10 border border-slate-200/80 dark:border-white/10 text-slate-700 dark:text-slate-300 flex items-center justify-center shrink-0">
                     <Lock size={22} className="text-slate-600 dark:text-slate-300" />
                   </div>
-                  <div className="space-y-1 text-center sm:text-left">
+                  <div className="space-y-1 text-center sm:text-left flex-1 min-w-0">
                     <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10.5px] font-semibold bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-300 border border-slate-200/70 dark:border-white/10">
                       <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
                       <span>Broker Verification Required</span>
                     </div>
-                    <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+                    <h4 className="text-base font-bold text-slate-900 dark:text-white">
                       FiAlgo V1 License Key Locked
-                    </h3>
+                    </h4>
                     <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-xl">
-                      Payment of "₹9,999" is confirmed! Your license key will unlock once your MT5 account is verified under Partner IB <strong className="text-slate-800 dark:text-slate-200">27863221</strong> with a <strong className="text-slate-800 dark:text-slate-200">minimum balance of $500 USD</strong>.
+                      License payment is confirmed! Your license key will unlock automatically once your MT5 account is verified under Partner IB <strong className="text-slate-800 dark:text-slate-200">{currentBroker.ibNumber || "27863221"}</strong> with a <strong className="text-slate-800 dark:text-slate-200">minimum balance of $500 USD</strong>.
                     </p>
                   </div>
                 </div>
 
-                {/* Requirements Checklist Card */}
-                <div className="p-3.5 bg-slate-50/70 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/10 rounded-xl space-y-2.5 text-xs">
-                  <div className="font-bold text-slate-800 dark:text-slate-200 text-xs">
-                    Activation Requirements Checklist:
+                {/* 4 Clean Metric Tiles */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/5 space-y-1">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block">
+                      License Payment
+                    </span>
+                    <div className="text-xs sm:text-sm font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                      <CheckCircle2 size={13} />
+                      <span>Verified ✓</span>
+                    </div>
+                    <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 block">
+                      {selectedTier === "three_years" ? "3-Year Pass" : "Performance Partner"}
+                    </span>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11.5px]">
-                    <div className="flex items-center justify-between p-2.5 rounded-lg bg-white dark:bg-[#18181B] border border-slate-200/70 dark:border-white/5">
-                      <div className="flex items-center gap-2">
-                        <span className="w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] font-bold shrink-0">✓</span>
-                        <span className="text-slate-600 dark:text-slate-400">License Payment:</span>
-                      </div>
-                      <span className="font-bold text-emerald-600 dark:text-emerald-400">
-                        "₹9,999 Setup Paid ✓"
-                      </span>
+                  <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/5 space-y-1">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block">
+                      Partner Broker
+                    </span>
+                    <div className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate">
+                      {currentBroker.name}
                     </div>
+                    <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400 block">
+                      IB #{currentBroker.ibNumber || "27863221"}
+                    </span>
+                  </div>
 
-                    <div className="flex items-center justify-between p-2.5 rounded-lg bg-white dark:bg-[#18181B] border border-slate-200/70 dark:border-white/5">
-                      <div className="flex items-center gap-2">
-                        <span className="w-4 h-4 rounded-full bg-slate-100 dark:bg-white/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-[10px] font-bold shrink-0">✓</span>
-                        <span className="text-slate-600 dark:text-slate-400">Partner Link:</span>
-                      </div>
-                      <span className="font-bold text-slate-900 dark:text-white">Vantage (27863221)</span>
+                  <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/5 space-y-1">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block">
+                      MT5 Account
+                    </span>
+                    <div className="text-xs sm:text-sm font-bold font-mono text-slate-900 dark:text-white truncate">
+                      {mt5Account ? `#${mt5Account}` : "Pending Link"}
                     </div>
+                    <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 block">
+                      {mt5Account ? "Linked in Step 1" : "Action Required"}
+                    </span>
+                  </div>
 
-                    <div className="flex items-center justify-between p-2.5 rounded-lg bg-white dark:bg-[#18181B] border border-slate-200/70 dark:border-white/5">
-                      <div className="flex items-center gap-2">
-                        {mt5Account ? (
-                          <span className="w-4 h-4 rounded-full bg-slate-100 dark:bg-white/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-[10px] font-bold shrink-0">✓</span>
-                        ) : (
-                          <span className="w-4 h-4 rounded-full bg-slate-100 dark:bg-white/10 text-slate-500 flex items-center justify-center text-[10px] font-bold shrink-0">·</span>
-                        )}
-                        <span className="text-slate-600 dark:text-slate-400">MT5 Account:</span>
-                      </div>
-                      <span className="font-bold text-slate-900 dark:text-white font-mono">
-                        {mt5Account ? `#${mt5Account}` : "Step 1 Pending"}
-                      </span>
+                  <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/5 space-y-1">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block">
+                      Min. Balance
+                    </span>
+                    <div className="text-xs sm:text-sm font-bold text-amber-600 dark:text-amber-400">
+                      $500.00 USD
                     </div>
-
-                    <div className="flex items-center justify-between p-2.5 rounded-lg bg-white dark:bg-[#18181B] border border-slate-200/70 dark:border-white/5">
-                      <div className="flex items-center gap-2">
-                        <span className="w-4 h-4 rounded-full bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 flex items-center justify-center text-[10px] font-bold shrink-0">$</span>
-                        <span className="text-slate-600 dark:text-slate-400">Min. Balance:</span>
-                      </div>
-                      <span className="font-bold text-slate-900 dark:text-white font-mono">
-                        $500.00 USD Required
-                      </span>
-                    </div>
+                    <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 block">
+                      Required for Execution
+                    </span>
                   </div>
                 </div>
 
-                {/* Quick Support & Test Helper */}
-                <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#18181B] border border-slate-200/80 dark:border-white/10 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-900 dark:text-white">
-                      Need Fast-Track Verification?
-                    </span>
-                    <span className="inline-flex items-center gap-1.5 text-[10.5px] font-semibold text-slate-600 dark:text-slate-400 bg-white dark:bg-white/10 px-2 py-0.5 rounded-md border border-slate-200/70 dark:border-white/10">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                      <span>Desk Online</span>
-                    </span>
+                {/* Priority Fast-Track Assistance */}
+                <div className="p-4 sm:p-5 rounded-xl bg-slate-50/70 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
+                          Need Fast-Track Verification?
+                        </h4>
+                        <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                          Desk Online
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                        Send your MT5 account number and deposit screenshot directly to our verification desk on WhatsApp or Email for priority review.
+                      </p>
+                    </div>
                   </div>
 
-                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                    Send your MT5 account number and deposit screenshot directly to our verification desk on WhatsApp or Email for priority review.
-                  </p>
-
-                  <div className="grid grid-cols-2 gap-2 pt-0.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
                     <a
                       href={`https://wa.me/?text=${encodeURIComponent(
                         `Hello TradiFive Team! Please verify my Vantage MT5 account #${mt5Account || "[Your MT5 Account]"} (Deposit: $500+) under Partner IB 27863221 to unlock my FiAlgo V1 license key.`
                       )}`}
                       target="_blank"
                       rel="noreferrer"
-                      className="py-2.5 px-3 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 flex items-center justify-center gap-1.5 transition-all shadow-2xs"
+                      className="py-2.5 px-4 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer active:scale-[0.99]"
                     >
-                      <MessageCircle size={13} />
-                      <span>WhatsApp Desk</span>
+                      <MessageCircle size={14} />
+                      <span>WhatsApp Fast-Track Desk &rarr;</span>
                     </a>
 
                     <a
@@ -3088,27 +3103,26 @@ MagicNumber=789104
                       )}&body=${encodeURIComponent(
                         `Hello Support Team,\n\nPlease verify my Vantage MT5 account #${mt5Account || ""}.\nPartner IB: 27863221\nDeposit: $500+ completed.\n\nPlease unlock my FiAlgo V1 license key.\n\nThank you!`
                       )}`}
-                      className="py-2.5 px-3 rounded-xl text-xs font-semibold bg-white dark:bg-white/10 hover:bg-slate-100 text-slate-800 dark:text-white border border-slate-200 dark:border-white/10 flex items-center justify-center gap-1.5 transition-all shadow-2xs"
+                      className="py-2.5 px-4 rounded-xl text-xs font-semibold bg-white dark:bg-white/10 hover:bg-slate-50 text-slate-800 dark:text-white border border-slate-200 dark:border-white/10 flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer"
                     >
-                      <Mail size={13} />
+                      <Mail size={14} />
                       <span>Email Support</span>
                     </a>
                   </div>
 
                   {/* Discrete testing helper */}
-                  <div className="pt-2 border-t border-slate-200/60 dark:border-white/5 flex items-center justify-between text-[11px] text-slate-500">
-                    <span>Testing activation?</span>
+                  <div className="pt-2 border-t border-slate-200/60 dark:border-white/5 flex items-center justify-between text-[11px] text-slate-400">
+                    <span>Developer / Testing Helper:</span>
                     <button
                       type="button"
                       onClick={() => {
                         setIbVerified(true);
                         setTransferRequestStatus("approved");
                         toast.success("Account Approved & License Key Unlocked!", {
-                          description: "Vantage MT5 account verified with $500 balance."
+                          description: "MT5 account verified with $500 balance."
                         });
                       }}
                       className="font-medium text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white underline cursor-pointer"
-                      title="Click to simulate instant desk approval"
                     >
                       Instant Verify (Demo)
                     </button>
@@ -3119,18 +3133,17 @@ MagicNumber=789104
                   <button
                     type="button"
                     onClick={() => setActiveStep(1)}
-                    className="w-full py-3 px-4 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:hover:bg-slate-200 dark:text-slate-900 flex items-center justify-center gap-2 cursor-pointer shadow-xs transition-all"
+                    className="w-full py-3.5 px-5 rounded-xl text-xs sm:text-sm font-bold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:hover:bg-slate-200 dark:text-slate-900 flex items-center justify-center gap-2 cursor-pointer shadow-xs transition-all"
                   >
-                    <ArrowLeft size={13} />
-                    <span>Go to Step 1 &amp; Submit Vantage Account</span>
+                    <ArrowLeft size={14} />
+                    <span>Go to Step 1 &amp; Submit MT5 Account</span>
                   </button>
                 )}
               </div>
             ) : (
               /* ── CASE 4D: FULLY UNLOCKED STATE - SHOW LICENSE KEY & MT5 ATTACHMENT ── */
-              <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 dark:bg-[#121214] border border-slate-200/80 dark:border-white/10 space-y-3.5">
+              <div className="space-y-5">
                 {(() => {
-                  // Always generate key from the verified mt5Account for THIS user
                   const effectiveAccount = mt5Account || localStorage.getItem("tradifive_connected_mt5_account") || "";
                   const activeKey = effectiveAccount
                     ? generateTradifiveLicenseKey(effectiveAccount)
@@ -3139,31 +3152,31 @@ MagicNumber=789104
                   return (
                     <>
                       {/* Compact License Key Card */}
-                      <div className="p-3.5 sm:p-4 rounded-xl bg-white dark:bg-[#1A1A1E] border border-slate-200/80 dark:border-white/10 shadow-xs space-y-2.5">
+                      <div className="p-4 sm:p-5 rounded-xl bg-slate-50/70 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 shadow-xs space-y-3">
                         <div className="flex items-center justify-between flex-wrap gap-2">
                           <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                            <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
-                              MT5 License Key
+                            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                            <span className="text-xs font-bold text-slate-900 dark:text-white">
+                              Live MT5 License Key
                             </span>
-                            <span className="text-[11px] font-mono font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-white/5 px-2 py-0.5 rounded border border-slate-200/60 dark:border-white/10">
+                            <span className="text-[11px] font-mono font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-white/10 px-2 py-0.5 rounded border border-slate-200/60 dark:border-white/10">
                               #{effectiveAccount}
                             </span>
                           </div>
-                          <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
-                            Lifetime Active
+                          <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">
+                            Active &amp; Cryptographically Bound
                           </span>
                         </div>
 
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-slate-50 dark:bg-black/30 border border-slate-200/70 dark:border-white/5 rounded-lg p-2.5 px-3.5">
-                          <code className="font-mono text-xs sm:text-sm font-extrabold tracking-wider text-slate-900 dark:text-emerald-400 select-all break-all">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-[#121214] border border-slate-200/80 dark:border-white/10 rounded-xl p-3 px-4 shadow-2xs">
+                          <code className="font-mono text-xs sm:text-base font-black tracking-wider text-slate-900 dark:text-emerald-400 select-all break-all">
                             {activeKey}
                           </code>
                           <div className="flex items-center gap-2 shrink-0">
                             <button
                               type="button"
                               onClick={() => handleCopyKey(activeKey)}
-                              className="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-900 text-white dark:bg-white dark:text-slate-900 hover:opacity-90 inline-flex items-center gap-1.5 cursor-pointer shadow-xs"
+                              className="px-3.5 py-2 rounded-lg text-xs font-bold bg-slate-900 text-white dark:bg-white dark:text-slate-900 hover:opacity-90 inline-flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-[0.99]"
                             >
                               {copiedKey ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
                               <span>{copiedKey ? "Copied" : "Copy Key"}</span>
@@ -3171,8 +3184,8 @@ MagicNumber=789104
                             <button
                               type="button"
                               onClick={handleDownloadEA}
-                              className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white inline-flex items-center gap-1.5 cursor-pointer shadow-xs"
-                              title="Download FiAlgo Expert Advisor (.ex5) + Account Preset (.set)"
+                              className="px-3 py-2 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white inline-flex items-center gap-1.5 cursor-pointer shadow-xs"
+                              title="Download FiAlgo Expert Advisor (.ex5)"
                             >
                               <Download size={13} />
                               <span>Download EA</span>
@@ -3180,7 +3193,7 @@ MagicNumber=789104
                             <button
                               type="button"
                               onClick={handleDownloadPreset}
-                              className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white inline-flex items-center gap-1.5 cursor-pointer shadow-xs"
+                              className="px-3 py-2 rounded-lg text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white inline-flex items-center gap-1.5 cursor-pointer shadow-xs"
                               title="Download pre-configured .set preset"
                             >
                               <Download size={13} />
@@ -3204,18 +3217,18 @@ MagicNumber=789104
                       {/* Compact 2-Step Quick Guide */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                         {/* Step 1: WebRequest */}
-                        <div className="p-3.5 rounded-xl bg-white dark:bg-[#18181B] border border-slate-200/80 dark:border-white/10 space-y-2">
+                        <div className="p-3.5 rounded-xl bg-slate-50/70 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 space-y-2">
                           <div className="flex items-center justify-between">
                             <span className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5 text-xs">
-                              <span className="w-5 h-5 rounded-full bg-blue-500/15 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-[11px]">1</span>
+                              <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-[11px]">1</span>
                               <span>Allow MT5 WebRequest</span>
                             </span>
-                            <span className="text-[10px] text-slate-400 font-mono">Ctrl+O</span>
+                            <span className="text-[10px] text-slate-500 font-mono bg-white dark:bg-white/10 px-1.5 py-0.5 rounded border border-slate-200/60 dark:border-white/10">Ctrl+O</span>
                           </div>
                           <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                            In MT5: <strong>Tools → Options → Experts</strong>. Check <em>"Allow WebRequest for listed URL"</em> and add:
+                            In MT5: <strong>Tools &rarr; Options &rarr; Experts</strong>. Check <em>"Allow WebRequest for listed URL"</em> and add:
                           </p>
-                          <div className="flex items-center justify-between bg-slate-50 dark:bg-black/30 border border-slate-200/60 dark:border-white/5 rounded-md p-1.5 px-2.5">
+                          <div className="flex items-center justify-between bg-white dark:bg-[#121214] border border-slate-200/70 dark:border-white/10 rounded-lg p-1.5 px-2.5">
                             <span className="font-mono text-[10.5px] text-blue-600 dark:text-blue-400 truncate select-all">
                               https://rylwyxhupwpwsdbvuoej.supabase.co
                             </span>
@@ -3234,19 +3247,19 @@ MagicNumber=789104
                         </div>
 
                         {/* Step 2: Attach to Chart */}
-                        <div className="p-3.5 rounded-xl bg-white dark:bg-[#18181B] border border-slate-200/80 dark:border-white/10 space-y-2">
+                        <div className="p-3.5 rounded-xl bg-slate-50/70 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 space-y-2">
                           <div className="flex items-center justify-between">
                             <span className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5 text-xs">
-                              <span className="w-5 h-5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-[11px]">2</span>
+                              <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-[11px]">2</span>
                               <span>Attach FiAlgo to Chart</span>
                             </span>
-                            <span className="text-[10px] text-slate-400 font-mono">Press F7</span>
+                            <span className="text-[10px] text-slate-500 font-mono bg-white dark:bg-white/10 px-1.5 py-0.5 rounded border border-slate-200/60 dark:border-white/10">Press F7</span>
                           </div>
                           <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                            Drag <strong>FiAlgo</strong> onto any <kbd className="px-1 py-0.5 rounded bg-slate-100 dark:bg-white/10 font-mono text-[10px]">XAUUSD, M1</kbd> chart.
+                            Drag <strong>FiAlgo</strong> onto any <kbd className="px-1 py-0.5 rounded bg-white dark:bg-white/10 font-mono text-[10px] border border-slate-200/60 dark:border-white/10">XAUUSD, M15</kbd> chart.
                           </p>
                           <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
-                            Press <kbd className="px-1 py-0.5 rounded bg-slate-100 dark:bg-white/10 font-mono text-[10px]">F7</kbd> → <strong>Inputs</strong> → paste your License Key (or click <strong>Load</strong> .set) → click <strong>OK</strong>.
+                            Press <kbd className="px-1 py-0.5 rounded bg-white dark:bg-white/10 font-mono text-[10px] border border-slate-200/60 dark:border-white/10">F7</kbd> &rarr; <strong>Inputs</strong> &rarr; paste your License Key &rarr; click <strong>OK</strong>.
                           </p>
                         </div>
                       </div>
@@ -3267,16 +3280,16 @@ MagicNumber=789104
                           FiAlgo Connected &amp; Live
                         </span>
                         <span className="text-slate-500 dark:text-slate-400 ml-2 text-[11px] hidden sm:inline">
-                          MT5 #{mt5Account} · Algorithm active
+                          MT5 #{mt5Account} &middot; Algorithm active
                         </span>
                       </div>
                     </div>
                     <span className="text-[10.5px] font-mono text-emerald-600 dark:text-emerald-400 font-semibold bg-white dark:bg-white/10 px-2.5 py-1 rounded border border-emerald-500/20">
-                      Online · 1.8ms
+                      Online &middot; 1.8ms
                     </span>
                   </div>
                 ) : (
-                  <div className="p-3 rounded-xl bg-slate-100 dark:bg-white/[0.04] border border-slate-200/80 dark:border-white/10 flex items-center justify-between gap-3 text-xs">
+                  <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 flex items-center justify-between gap-3 text-xs">
                     <div className="flex items-center gap-2.5">
                       <Clock size={15} className="text-amber-500 shrink-0" />
                       <div>
@@ -3292,7 +3305,7 @@ MagicNumber=789104
                       type="button"
                       onClick={() => checkLiveMt5Connection()}
                       disabled={isCheckingConnection}
-                      className="text-[11px] font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-white/10 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/15 inline-flex items-center gap-1.5 cursor-pointer shrink-0 transition-all"
+                      className="text-[11px] font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-white/10 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/15 inline-flex items-center gap-1.5 cursor-pointer shrink-0 transition-all shadow-2xs"
                     >
                       <RefreshCw size={11} className={isCheckingConnection ? "animate-spin" : ""} />
                       <span>{isCheckingConnection ? "Checking..." : "Refresh Status"}</span>
@@ -3304,20 +3317,20 @@ MagicNumber=789104
                 <button
                   type="button"
                   onClick={handleGoToDashboard}
-                  className="w-full py-3 px-4 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:hover:bg-slate-200 dark:text-slate-900 flex items-center justify-center gap-2 cursor-pointer shadow-xs transition-all hover:scale-[1.005] active:scale-[0.995]"
+                  className="w-full py-3.5 px-5 rounded-xl text-xs sm:text-sm font-bold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:hover:bg-slate-200 dark:text-slate-900 flex items-center justify-center gap-2 cursor-pointer shadow-xs transition-all active:scale-[0.99]"
                 >
-                  <Zap size={14} className="text-amber-400" />
-                  <span>Open AutoTrade Dashboard →</span>
+                  <Zap size={15} className="text-amber-400" />
+                  <span>Open AutoTrade Dashboard &rarr;</span>
                 </button>
               </div>
             )}
 
             {/* Stepper Navigation: Back to Step 3 */}
-            <div className="pt-2 flex justify-start">
+            <div className="pt-2 flex justify-start border-t border-slate-100 dark:border-white/5">
               <button
                 type="button"
                 onClick={() => setActiveStep(3)}
-                className="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 inline-flex items-center gap-1.5 cursor-pointer"
+                className="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 inline-flex items-center gap-1.5 cursor-pointer transition-colors"
               >
                 <ArrowLeft size={13} />
                 <span>Back to Step 3 (Payment)</span>
