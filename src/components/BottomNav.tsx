@@ -35,7 +35,9 @@ export default function BottomNav() {
       isActive: (p: string) =>
         p.startsWith("/auto-trade") ||
         p.startsWith("/strategy") ||
-        p.startsWith("/my-robots"),
+        p.startsWith("/my-robots") ||
+        p.startsWith("/weekly-settlements") ||
+        p.startsWith("/settlements"),
       renderIcon: (active: boolean) => (
         <Activity
           set={active ? "bold" : "curved"}

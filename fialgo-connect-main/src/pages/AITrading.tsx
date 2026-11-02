@@ -156,8 +156,19 @@ export default function AITrading() {
   const hasPaid = paymentStatus === "approved";
   const [searchParams] = useSearchParams();
   
-  // Single official plan: ₹9,999 Setup Fee + Weekly 50/50% Profit Share
-  const [selectedTier] = useState<"performance_weekly_50">("performance_weekly_50");
+  // 2 Official Plans: ₹1,00,000 (3-Year Pass · 0% Profit Share) & ₹10,000 (Weekly 50/50% Profit Share)
+  const [selectedTier, setSelectedTier] = useState<"three_years" | "profit_share">(() => {
+    try {
+      const q = searchParams.get("tier");
+      if (q === "profit_share" || q === "profit_share_50") return "profit_share";
+      if (q === "three_years" || q === "lifetime" || q === "enterprise") return "three_years";
+      const saved = localStorage.getItem("tradifive_selected_tier");
+      if (saved === "profit_share" || saved === "profit_share_50") return "profit_share";
+      return "three_years";
+    } catch (e) {
+      return "three_years";
+    }
+  });
   
   // Weekly Settlement & Withdrawal Cohort Day (Mon–Sun)
   const [settlementDay, setSettlementDay] = useState<string>(() => {
@@ -704,11 +715,11 @@ export default function AITrading() {
       user_email: userEmail,
       mt5_account_number: accountForPayment,
       algo_id: "fialgo_v1",
-      algo_name: "FiAlgo V1 Institutional Setup (Weekly 50/50% Profit Share)",
-      amount: "9999",
-      plan_tier: "performance_weekly_50",
-      plan_name: "Institutional Setup (₹9,999 Setup Fee + Weekly 50/50% Profit Share)",
-      settlement_day: settlementDay,
+      algo_name: selectedTier === "three_years" ? "FiAlgo V1 3-Year Enterprise License (0% Profit Share)" : "FiAlgo V1 Performance Setup (Weekly 50/50% Split)",
+      amount: selectedTier === "three_years" ? "100000" : "10000",
+      plan_tier: selectedTier,
+      plan_name: selectedTier === "three_years" ? "3-Year Enterprise Pass (₹1,00,000 · 0% Profit Share)" : "Performance Partner (₹10,000 Setup · Weekly 50/50% Split)",
+      settlement_day: selectedTier === "three_years" ? "N/A (0% Share)" : settlementDay,
       tradifive_id: tradifiveId,
       currency: "INR",
       method: paymentMethod,
@@ -1258,7 +1269,7 @@ MagicNumber=789104
                       : "bg-slate-100 text-slate-500 hover:text-slate-900 dark:bg-white/5 dark:text-slate-400"
               }`}
             >
-              <span>{paymentStatus === "approved" ? "✓" : paymentStatus === "pending" ? "⌛" : "3."} Pay ₹9,999</span>
+              <span>{paymentStatus === "approved" ? "✓" : paymentStatus === "pending" ? "⌛" : "3."} {selectedTier === "three_years" ? "Pay ₹1L (3-Yr)" : "Pay ₹10K"}</span>
             </button>
 
             <button
@@ -2212,7 +2223,7 @@ MagicNumber=789104
                 onClick={() => setActiveStep(3)}
                 className="w-full sm:w-auto px-6 py-3 rounded-xl text-xs sm:text-sm font-bold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 inline-flex items-center justify-center gap-2 cursor-pointer shadow-xs"
               >
-                <span>Continue to Step 3: Pay ₹9,999 Setup Fee</span>
+                <span>Continue to Step 3: Select Plan &amp; Pay</span>
                 <ArrowRight size={14} />
               </button>
             </div>
@@ -2234,7 +2245,7 @@ MagicNumber=789104
                   Algo Setup & Activation Fee
                 </h2>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  Complete the ₹9,999 setup fee payment via PhonePe / UPI or Bank Transfer to request your license key.
+                  Complete the payment via PhonePe / UPI or Bank Transfer to request your license key.
                 </p>
               </div>
 
@@ -2260,7 +2271,7 @@ MagicNumber=789104
                   </div>
                   <div>
                     <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">
-                      ₹9,999 Lifetime License Payment Confirmed
+                      Official License Payment Confirmed
                     </h3>
                     <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5">
                       Your payment has been verified. Proceed to Step 4 to activate and view your MetaTrader 5 license key.
@@ -2367,7 +2378,7 @@ MagicNumber=789104
                   <div className="pt-1 flex flex-col sm:flex-row items-center gap-2">
                     <a
                       href={`https://wa.me/?text=${encodeURIComponent(
-                        `Hello TradiFive Team! I have completed the ₹9,999 payment for FiAlgo V1 via PhonePe/UPI. My UTR number is ${paymentUtr}. Please expedite and issue my license key.`
+                        `Hello TradiFive Team! I have completed payment of ${selectedTier === "three_years" ? "₹1,00,000 for the 3-Year Enterprise License" : "₹10,000 setup fee for the Performance Plan"} for FiAlgo V1 via PhonePe/UPI. My UTR number is ${paymentUtr}. Please expedite and issue my license key.`
                       )}`}
                       target="_blank"
                       rel="noreferrer"
@@ -2411,100 +2422,182 @@ MagicNumber=789104
             ) : (
               /* STATE 3C: PAYMENT REQUIRED - FORM WITH PHONEPE / UPI & BANK TRANSFER */
               <div className="space-y-4">
-                {/* ── SINGLE OFFICIAL PLAN: ₹9,999 ONE-TIME SETUP + WEEKLY 50/50% PROFIT SHARE ── */}
+                {/* ── 2 OFFICIAL PLANS SELECTOR: ₹1,00,000 (3-YR) OR ₹10,000 (WEEKLY 50%) ── */}
                 <div className="space-y-3.5">
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-[10.5px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                      Official Algo Access Plan
+                      Select Your Preferred License Plan
                     </span>
-                    <span className="text-[10.5px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                      Weekly 50/50% Profit Share
+                    <span className="text-[10.5px] font-bold text-blue-600 dark:text-blue-400 flex items-center gap-1">
+                      2 Official Options Available
                     </span>
                   </div>
 
-                  <div className="p-4 sm:p-5 rounded-2xl border-2 border-emerald-500 bg-emerald-50/40 dark:bg-emerald-950/20 relative flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
-                    <div className="space-y-1.5 text-center sm:text-left flex-1">
-                      <div className="flex items-center justify-center sm:justify-start gap-2 flex-wrap">
-                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wide bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/30">
-                          Single Official Plan
-                        </span>
-                        <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
-                          Weekly 50/50% Profit Split
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                    {/* OPTION 1: 3-YEAR ENTERPRISE PASS */}
+                    <div
+                      onClick={() => {
+                        setSelectedTier("three_years");
+                        try { localStorage.setItem("tradifive_selected_tier", "three_years"); } catch (e) {}
+                      }}
+                      className={`p-4 sm:p-5 rounded-2xl border-2 transition-all cursor-pointer relative flex flex-col justify-between gap-3 shadow-xs ${
+                        selectedTier === "three_years"
+                          ? "border-blue-500 bg-blue-50/40 dark:bg-blue-950/20 shadow-md ring-2 ring-blue-500/20"
+                          : "border-slate-200 dark:border-white/10 bg-white dark:bg-[#161618] hover:border-blue-400/50 opacity-90"
+                      }`}
+                    >
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wide bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-300 border border-blue-300 dark:border-blue-500/30">
+                            🌟 3-Year Enterprise Pass
+                          </span>
+                          <span className="text-[10.5px] font-bold text-blue-600 dark:text-blue-400 font-mono">
+                            0% Profit Share
+                          </span>
+                        </div>
+                        <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
+                          FiAlgo V1 3-Year License
+                        </h3>
+                        <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                          Pay <strong className="text-blue-600 dark:text-blue-400 font-mono font-bold">₹1,00,000 one-time</strong> for a 3-year MT5 license. <strong>0% profit share</strong> — keep 100% of all profits. Renews after 3 years at 50% loyalty discount (₹49,999) or switch to profit share.
+                        </p>
+                      </div>
+
+                      <div className="pt-2 border-t border-slate-200/60 dark:border-white/5 flex items-baseline justify-between">
+                        <div>
+                          <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">3-Year Term Fee</span>
+                          <span className="text-2xl font-mono font-black text-blue-600 dark:text-blue-400">
+                            ₹1,00,000
+                          </span>
+                        </div>
+                        <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                          Keep 100% Profits
                         </span>
                       </div>
-                      <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">
-                        FiAlgo V1 Institutional Performance Plan
-                      </h3>
-                      <p className="text-xs text-slate-600 dark:text-slate-300 max-w-lg leading-relaxed">
-                        Pay a one-time <strong className="text-emerald-600 dark:text-emerald-400 font-mono font-bold">₹9,999 setup fee</strong> to deploy the EA and lock your MT5 account. Profit is split 50/50% weekly on your designated settlement day. 0% commission on non-profitable weeks.
+                    </div>
+
+                    {/* OPTION 2: PERFORMANCE PARTNER PLAN */}
+                    <div
+                      onClick={() => {
+                        setSelectedTier("profit_share");
+                        try { localStorage.setItem("tradifive_selected_tier", "profit_share"); } catch (e) {}
+                      }}
+                      className={`p-4 sm:p-5 rounded-2xl border-2 transition-all cursor-pointer relative flex flex-col justify-between gap-3 shadow-xs ${
+                        selectedTier === "profit_share"
+                          ? "border-emerald-500 bg-emerald-50/40 dark:bg-emerald-950/20 shadow-md ring-2 ring-emerald-500/20"
+                          : "border-slate-200 dark:border-white/10 bg-white dark:bg-[#161618] hover:border-emerald-400/50 opacity-90"
+                      }`}
+                    >
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wide bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/30">
+                            ⚡ Performance Partner
+                          </span>
+                          <span className="text-[10.5px] font-bold text-emerald-600 dark:text-emerald-400 font-mono">
+                            Weekly 50% Split
+                          </span>
+                        </div>
+                        <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
+                          FiAlgo V1 Performance Plan
+                        </h3>
+                        <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                          Pay a one-time <strong className="text-emerald-600 dark:text-emerald-400 font-mono font-bold">₹10,000 setup fee</strong> to deploy the EA and lock MT5. Profit is split 50/50% weekly on positive weeks only. 0% commission on red or flat weeks.
+                        </p>
+                      </div>
+
+                      <div className="pt-2 border-t border-slate-200/60 dark:border-white/5 flex items-baseline justify-between">
+                        <div>
+                          <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Setup Fee</span>
+                          <span className="text-2xl font-mono font-black text-emerald-600 dark:text-emerald-400">
+                            ₹10,000
+                          </span>
+                        </div>
+                        <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+                          + Weekly 50% Share
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* ── CONDITIONAL: WEEKLY SETTLEMENT COHORT (FOR PROFIT SHARE) VS 3-YEAR GUARANTEE ── */}
+                  {selectedTier === "profit_share" ? (
+                    <div className="p-4 rounded-2xl border border-slate-200/90 dark:border-white/10 bg-slate-50/80 dark:bg-white/[0.02] space-y-3">
+                      <div className="flex items-center justify-between flex-wrap gap-2">
+                        <div className="flex items-center gap-2">
+                          <div className="w-7 h-7 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+                            <Calendar size={14} />
+                          </div>
+                          <div>
+                            <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                              Select Weekly Settlement &amp; Withdrawal Day
+                            </h4>
+                            <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                              Withdrawals &amp; 50/50% profit share are settled weekly on your designated cohort day (Mon–Sun).
+                            </p>
+                          </div>
+                        </div>
+                        <span className="text-[10px] font-mono font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 px-2.5 py-1 rounded-full border border-blue-200 dark:border-blue-500/20">
+                          Staggered Weekly Cohorts
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-7 gap-1.5 pt-1">
+                        {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((day) => (
+                          <button
+                            key={day}
+                            type="button"
+                            onClick={() => {
+                              setSettlementDay(day);
+                              try { localStorage.setItem("tradifive_settlement_day", day); } catch (e) {}
+                              toast.success(`Weekly settlement day set to ${day}`);
+                            }}
+                            className={`py-2 px-1 rounded-xl text-xs font-bold transition-all text-center cursor-pointer ${
+                              settlementDay === day
+                                ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-md ring-2 ring-blue-500/30 scale-[1.02]"
+                                : "bg-white dark:bg-[#161618] border border-slate-200/80 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5"
+                            }`}
+                          >
+                            <span className="block text-[10px] font-bold sm:hidden">{day.slice(0, 3)}</span>
+                            <span className="hidden sm:block text-xs font-bold">{day}</span>
+                          </button>
+                        ))}
+                      </div>
+
+                      <div className="text-[11px] text-slate-600 dark:text-slate-300 font-medium flex items-center justify-between p-2.5 rounded-xl bg-white dark:bg-[#121214] border border-slate-200/60 dark:border-white/5">
+                        <div className="flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                          <span>Your Assigned Cohort: <strong className="text-slate-900 dark:text-white">Every {settlementDay}</strong></span>
+                        </div>
+                        <span className="text-[10.5px] font-mono text-slate-500 dark:text-slate-400">
+                          TradiFive ID: <strong className="text-blue-600 dark:text-blue-400 font-bold">{tradifiveId}</strong>
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-4 rounded-2xl border border-blue-500/30 bg-blue-50/40 dark:bg-blue-950/20 space-y-2.5">
+                      <div className="flex items-center justify-between flex-wrap gap-2">
+                        <div className="flex items-center gap-2">
+                          <div className="w-7 h-7 rounded-lg bg-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+                            <ShieldCheck size={16} />
+                          </div>
+                          <div>
+                            <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                              3-Year 100% Profit Retention Guarantee
+                            </h4>
+                            <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                              Zero weekly invoices or profit sharing. All trading gains belong 100% to you.
+                            </p>
+                          </div>
+                        </div>
+                        <span className="text-[10px] font-mono font-bold text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-500/20 px-2.5 py-1 rounded-full border border-blue-300 dark:border-blue-500/30">
+                          Renew after 3 Yrs @ ₹49,999
+                        </span>
+                      </div>
+                      <p className="text-[11.5px] text-slate-600 dark:text-slate-300 leading-relaxed">
+                        After your 3-year term completes, you can renew your license for another 3 years at a <strong>50% loyalty discount (₹49,999)</strong> including all V2/V3 algorithm upgrades, or seamlessly switch to the 50% Profit Share model with zero setup fees.
                       </p>
                     </div>
-
-                    <div className="text-center sm:text-right shrink-0 p-3 rounded-xl bg-white dark:bg-[#161618] border border-slate-200/80 dark:border-white/5 min-w-[150px] shadow-2xs">
-                      <span className="text-[10px] font-bold uppercase text-slate-400 block tracking-wider">One-Time Setup Fee</span>
-                      <span className="text-2xl sm:text-3xl font-mono font-black text-slate-900 dark:text-white block mt-0.5">
-                        ₹9,999
-                      </span>
-                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold block mt-0.5">
-                        + Weekly 50% Profit Share
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* ── STAGGERED WEEKLY SETTLEMENT & WITHDRAWAL COHORT SELECTOR ── */}
-                  <div className="p-4 rounded-2xl border border-slate-200/90 dark:border-white/10 bg-slate-50/80 dark:bg-white/[0.02] space-y-3">
-                    <div className="flex items-center justify-between flex-wrap gap-2">
-                      <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center">
-                          <Calendar size={14} />
-                        </div>
-                        <div>
-                          <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-                            Select Weekly Settlement &amp; Withdrawal Day
-                          </h4>
-                          <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                            Withdrawals &amp; 50/50% profit share are settled weekly on your designated cohort day (Mon–Sun).
-                          </p>
-                        </div>
-                      </div>
-                      <span className="text-[10px] font-mono font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 px-2.5 py-1 rounded-full border border-blue-200 dark:border-blue-500/20">
-                        Staggered Weekly Cohorts
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-7 gap-1.5 pt-1">
-                      {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((day) => (
-                        <button
-                          key={day}
-                          type="button"
-                          onClick={() => {
-                            setSettlementDay(day);
-                            try { localStorage.setItem("tradifive_settlement_day", day); } catch (e) {}
-                            toast.success(`Weekly settlement day set to ${day}`);
-                          }}
-                          className={`py-2 px-1 rounded-xl text-xs font-bold transition-all text-center cursor-pointer ${
-                            settlementDay === day
-                              ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-md ring-2 ring-blue-500/30 scale-[1.02]"
-                              : "bg-white dark:bg-[#161618] border border-slate-200/80 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5"
-                          }`}
-                        >
-                          <span className="block text-[10px] font-bold sm:hidden">{day.slice(0, 3)}</span>
-                          <span className="hidden sm:block text-xs font-bold">{day}</span>
-                        </button>
-                      ))}
-                    </div>
-
-                    <div className="text-[11px] text-slate-600 dark:text-slate-300 font-medium flex items-center justify-between p-2.5 rounded-xl bg-white dark:bg-[#121214] border border-slate-200/60 dark:border-white/5">
-                      <div className="flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                        <span>Your Assigned Cohort: <strong className="text-slate-900 dark:text-white">Every {settlementDay}</strong></span>
-                      </div>
-                      <span className="text-[10.5px] font-mono text-slate-500 dark:text-slate-400">
-                        TradiFive ID: <strong className="text-blue-600 dark:text-blue-400 font-bold">{tradifiveId}</strong>
-                      </span>
-                    </div>
-                  </div>
+                  )}
                 </div>
 
                 {/* Payment Method Selector (2 Options) */}                <div className="grid grid-cols-2 gap-1.5 p-1 bg-slate-100 dark:bg-white/5 rounded-xl text-xs font-semibold">

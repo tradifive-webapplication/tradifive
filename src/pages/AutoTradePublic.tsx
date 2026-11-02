@@ -31,15 +31,15 @@ const fialgoFaqItems = [
   },
   {
     question: "What is the official pricing for FiAlgo V1?",
-    answer: "FiAlgo V1 is offered under a single official plan: a ₹9,999 setup fee with a weekly 50/50% net profit share model. 100% of your initial capital remains secure in your own broker account, and profit settlements occur on your assigned weekly settlement day (Monday through Sunday).",
+    answer: "FiAlgo V1 offers two official options: (1) 3-Year Enterprise Pass: ₹1,00,000 one-time for a 3-year MT5 license with 0% profit share (you keep 100% of all your trading profits). After 3 years, renew at a 50% loyalty discount (₹49,999 for another 3 years) or switch to profit share. (2) Performance Partner: ₹10,000 one-time setup fee with a weekly 50/50% net profit share model on green weeks only (₹0 commission on flat or red weeks). 100% of your trading capital remains safe in your own broker account.",
   },
   {
     question: "Do I need a VPS to run FiAlgo V1?",
     answer: "While you can run FiAlgo V1 on your personal laptop or desktop during market hours, we strongly recommend a low-latency Windows VPS (Virtual Private Server) with under 20ms ping to your broker. This ensures your algorithms execute 24/5 even when your personal computer is turned off.",
   },
   {
-    question: "What is the difference between the Free Demo, Backtest, and Lifetime License?",
-    answer: "The Free Demo build lets you run FiAlgo V1 on any MT5 demo account with all 8 risk modules active and zero risk. The Backtest build lets you run fast historical simulations inside MT5 Strategy Tester. The Lifetime License unlocks live trading on real accounts, unlimited demo accounts, lifetime algorithm updates, and 1-on-1 setup assistance.",
+    question: "What is the difference between the Free Demo, Backtest, and Live Licenses?",
+    answer: "The Free Demo build lets you run FiAlgo V1 on any MT5 demo account with all 8 risk modules active and zero risk. The Backtest build lets you run fast historical simulations inside MT5 Strategy Tester. Live Licenses unlock automated live trading on real accounts: choose between the 3-Year Enterprise Pass (₹1,00,000 · 0% profit share) or the Performance Partner Plan (₹10,000 setup · weekly 50% split).",
   },
   {
     question: "Which brokers and account types are supported?",

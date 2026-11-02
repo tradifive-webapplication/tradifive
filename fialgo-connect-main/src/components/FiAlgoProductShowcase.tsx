@@ -228,6 +228,7 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
   const [downloadingDemo, setDownloadingDemo] = useState(false);
   const [downloadingBacktest, setDownloadingBacktest] = useState(false);
   const [mobileTab, setMobileTab] = useState<'specs' | 'license'>('license');
+  const [selectedPlan, setSelectedPlan] = useState<'three_years' | 'profit_share'>('three_years');
 
   const specRow1 = [
     { label: "Product Name", value: "FiAlgo V1", badge: "Official Build" },
@@ -244,28 +245,40 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
   const specRow4 = [
     { label: "Timeframe", value: "1 Min (M1)" },
     { label: "Execution Speed", value: "< 3ms Direct MT5 Execution" },
-    { label: "Official Plan", value: "₹9,999 Setup + Weekly 50/50% Split" },
+    { label: "Official Plans", value: "₹1,00,000 (3-Yr) · ₹10,000 (Weekly 50%)" },
   ];
 
-  const planIncludes = [
-    "One-time ₹9,999 Setup Fee for EA activation & MT5 binding",
+  const threeYearsIncludes = [
+    "3-Year Hardware-Bound MT5 License Key with continuous server key relay",
+    "0% Profit Share — 100% of your trading profits are yours to keep",
+    "Zero weekly invoicing, settlement days, or profit share calculations",
+    "FiAlgo V1 Compiled Expert Advisor (.ex5) + 3-Year Major Updates",
+    "Automated MT5 Economic News Calendar Filter (FOMC, CPI, NFP)",
+    "All 8 Institutional Risk Protection Modules Active",
+    "3-Year Renewal Guarantee at 50% discount (₹49,999) or switch to Profit Share",
+    "Priority 1-on-1 VPS and MT5 Setup Assistance",
+  ];
+
+  const profitShareIncludes = [
+    "One-time ₹10,000 Setup Fee for EA activation & MT5 binding",
     "Weekly 50/50% Profit Share on Net Positive Weeks Only",
     "Zero Fee on Red or Flat Weeks (No profit = ₹0 commission)",
     "Assigned Weekly Settlement Day (Mon–Sun Cohort Allocation)",
     "FiAlgo V1 Compiled Expert Advisor (.ex5)",
     "Hardware-Bound MT5 License Key & Instant Server Relay",
     "Automated MT5 Economic News Calendar Filter",
-    "All 8 Institutional Risk Protection Modules",
+    "All 8 Institutional Risk Protection Modules Active",
   ];
 
-  const handleProceed = () => {
+  const handleProceed = (tierOverride?: 'three_years' | 'profit_share') => {
+    const tier = tierOverride || selectedPlan;
     try {
-      localStorage.setItem("tradifive_selected_tier", "profit_share_50");
+      localStorage.setItem("tradifive_selected_tier", tier);
     } catch (e) {}
     if (onGetStarted) {
-      onGetStarted();
+      onGetStarted(tier);
     } else {
-      navigate("/auto-trade/setup");
+      navigate(`/auto-trade/setup?tier=${tier}`);
     }
   };
 
@@ -878,37 +891,71 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                   </button>
                 </div>
 
-                {/* Single Official Plan Badge */}
+                {/* 2-Option Plan Selector Tabs */}
                 <div
                   style={{
-                    background: "rgba(16, 185, 129, 0.08)",
-                    border: "1px solid rgba(16, 185, 129, 0.25)",
-                    borderRadius: 12,
-                    padding: "8px 12px",
-                    marginBottom: 14,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: 6,
+                    padding: 4,
+                    background: "#111111",
+                    borderRadius: 14,
+                    border: "1px solid rgba(255, 255, 255, 0.08)",
+                    marginBottom: 16,
                   }}
                 >
-                  <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-                    <span style={{ fontSize: 13 }}>⚡</span>
-                    <span style={{ fontSize: 11.5, fontWeight: 800, color: "#6ee7b7" }}>
-                      Official Performance Plan
-                    </span>
-                  </div>
-                  <span style={{ fontSize: 10.5, fontWeight: 700, color: "rgba(255, 255, 255, 0.55)" }}>
-                    ₹9,999 Setup · Weekly 50/50%
-                  </span>
+                  <button
+                    onClick={() => setSelectedPlan('three_years')}
+                    style={{
+                      padding: "9px 10px",
+                      borderRadius: 10,
+                      border: "none",
+                      cursor: "pointer",
+                      background: selectedPlan === 'three_years' ? "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)" : "transparent",
+                      boxShadow: selectedPlan === 'three_years' ? "inset 0 1px 0 rgba(255,255,255,0.1), 0 2px 4px rgba(0,0,0,0.3)" : "none",
+                      color: selectedPlan === 'three_years' ? "#60a5fa" : "rgba(255, 255, 255, 0.5)",
+                      fontSize: 11.5,
+                      fontWeight: 700,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 5,
+                      transition: "all 0.2s ease",
+                    }}
+                  >
+                    <span>🌟 3-Yr Pass (₹1L)</span>
+                  </button>
+
+                  <button
+                    onClick={() => setSelectedPlan('profit_share')}
+                    style={{
+                      padding: "9px 10px",
+                      borderRadius: 10,
+                      border: "none",
+                      cursor: "pointer",
+                      background: selectedPlan === 'profit_share' ? "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)" : "transparent",
+                      boxShadow: selectedPlan === 'profit_share' ? "inset 0 1px 0 rgba(255,255,255,0.1), 0 2px 4px rgba(0,0,0,0.3)" : "none",
+                      color: selectedPlan === 'profit_share' ? "#34d399" : "rgba(255, 255, 255, 0.5)",
+                      fontSize: 11.5,
+                      fontWeight: 700,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 5,
+                      transition: "all 0.2s ease",
+                    }}
+                  >
+                    <span>⚡ Performance (₹10K)</span>
+                  </button>
                 </div>
 
                 {/* Product Badge */}
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
                   <span
                     style={{
-                      background: "rgba(16, 185, 129, 0.12)",
-                      border: "1px solid rgba(16, 185, 129, 0.25)",
-                      color: "#6ee7b7",
+                      background: selectedPlan === 'three_years' ? "rgba(96, 165, 250, 0.12)" : "rgba(16, 185, 129, 0.12)",
+                      border: `1px solid ${selectedPlan === 'three_years' ? "rgba(96, 165, 250, 0.25)" : "rgba(16, 185, 129, 0.25)"}`,
+                      color: selectedPlan === 'three_years' ? "#93c5fd" : "#6ee7b7",
                       fontSize: 10,
                       fontWeight: 700,
                       padding: "3px 10px",
@@ -917,10 +964,10 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                       textTransform: "uppercase",
                     }}
                   >
-                    PERFORMANCE · WEEKLY 50/50% SHARE
+                    {selectedPlan === 'three_years' ? "ENTERPRISE · 3-YEAR TERM · 0% PROFIT SHARE" : "PERFORMANCE · WEEKLY 50/50% SHARE"}
                   </span>
-                  <span style={{ fontSize: 11, color: "#34d399", fontWeight: 700 }}>
-                    Pay On Green Weeks Only
+                  <span style={{ fontSize: 11, color: selectedPlan === 'three_years' ? "#60a5fa" : "#34d399", fontWeight: 700 }}>
+                    {selectedPlan === 'three_years' ? "Keep 100% Profits" : "Pay On Green Weeks Only"}
                   </span>
                 </div>
 
@@ -933,10 +980,12 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                     fontFamily: "'Outfit', sans-serif",
                   }}
                 >
-                  FiAlgo V1 Performance License
+                  {selectedPlan === 'three_years' ? "FiAlgo V1 3-Year Enterprise License" : "FiAlgo V1 Performance License"}
                 </h3>
                 <p style={{ fontSize: 12.5, color: "rgba(255, 255, 255, 0.55)", margin: "0 0 14px", lineHeight: 1.5 }}>
-                  Full algorithmic Gold execution engine on MT5 with a one-time ₹9,999 setup fee. Split 50% profits weekly only when your account is in green. Zero fees on non-profitable weeks.
+                  {selectedPlan === 'three_years'
+                    ? "Full institutional algorithmic Gold execution engine on MT5 with a one-time ₹1,00,000 license for 3 years. Zero profit share — 100% of all profits remain yours. Zero weekly invoicing."
+                    : "Full algorithmic Gold execution engine on MT5 with a one-time ₹10,000 setup fee. Split 50% profits weekly only when your account is in green. Zero fees on flat or non-profitable weeks."}
                 </p>
 
                 {/* Price Tag */}
@@ -954,31 +1003,31 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                 >
                   <div>
                     <div style={{ fontSize: 10, color: "rgba(255, 255, 255, 0.4)", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.8 }}>
-                      ONE-TIME SETUP FEE
+                      {selectedPlan === 'three_years' ? "3-YEAR FULL LICENSE KEY" : "ONE-TIME SETUP FEE"}
                     </div>
                     <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 3 }}>
                       <span
                         style={{
                           fontSize: 28,
                           fontWeight: 900,
-                          color: "#34d399",
+                          color: selectedPlan === 'three_years' ? "#60a5fa" : "#34d399",
                           fontFamily: "'Outfit', sans-serif",
                           letterSpacing: "-0.02em",
                         }}
                       >
-                        ₹9,999
+                        {selectedPlan === 'three_years' ? "₹1,00,000" : "₹10,000"}
                       </span>
                       <span style={{ fontSize: 12, color: "rgba(255, 255, 255, 0.45)" }}>
-                        + Weekly 50/50% Split
+                        {selectedPlan === 'three_years' ? "/ 3 Years (0% Profit Share)" : "+ Weekly 50/50% Split"}
                       </span>
                     </div>
                   </div>
                   <div style={{ textAlign: "right" }}>
                     <span
                       style={{
-                        background: "rgba(16, 185, 129, 0.15)",
-                        border: "1px solid rgba(16, 185, 129, 0.3)",
-                        color: "#6ee7b7",
+                        background: selectedPlan === 'three_years' ? "rgba(96, 165, 250, 0.15)" : "rgba(16, 185, 129, 0.15)",
+                        border: `1px solid ${selectedPlan === 'three_years' ? "rgba(96, 165, 250, 0.3)" : "rgba(16, 185, 129, 0.3)"}`,
+                        color: selectedPlan === 'three_years' ? "#93c5fd" : "#6ee7b7",
                         fontSize: 10,
                         fontWeight: 700,
                         padding: "3px 8px",
@@ -986,18 +1035,18 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                         letterSpacing: 0.4,
                       }}
                     >
-                      PAY ONLY ON PROFIT
+                      {selectedPlan === 'three_years' ? "100% PROFITS ARE YOURS" : "PAY ONLY ON PROFIT"}
                     </span>
                   </div>
                 </div>
 
-                {/* Weekly 50% Settlement Notice */}
+                {/* Renewal or Settlement Policy Notice */}
                 <div
                   style={{
                     padding: "10px 14px",
                     borderRadius: 12,
-                    background: "rgba(234, 179, 8, 0.05)",
-                    border: "1px solid rgba(234, 179, 8, 0.2)",
+                    background: selectedPlan === 'three_years' ? "rgba(59, 130, 246, 0.05)" : "rgba(234, 179, 8, 0.05)",
+                    border: `1px solid ${selectedPlan === 'three_years' ? "rgba(59, 130, 246, 0.2)" : "rgba(234, 179, 8, 0.2)"}`,
                     marginBottom: 16,
                     display: "flex",
                     alignItems: "flex-start",
@@ -1009,7 +1058,7 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                       width: 26,
                       height: 26,
                       borderRadius: 8,
-                      background: "rgba(234, 179, 8, 0.1)",
+                      background: selectedPlan === 'three_years' ? "rgba(59, 130, 246, 0.1)" : "rgba(234, 179, 8, 0.1)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
@@ -1017,14 +1066,20 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                       marginTop: 1,
                     }}
                   >
-                    <AlertTriangle size={14} color="#facc15" />
+                    {selectedPlan === 'three_years' ? (
+                      <ShieldCheck size={14} color="#60a5fa" />
+                    ) : (
+                      <AlertTriangle size={14} color="#facc15" />
+                    )}
                   </div>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 11.5, fontWeight: 700, color: "#fef08a", letterSpacing: 0.2 }}>
-                      Weekly 50% Settlement Policy
+                    <div style={{ fontSize: 11.5, fontWeight: 700, color: selectedPlan === 'three_years' ? "#93c5fd" : "#fef08a", letterSpacing: 0.2 }}>
+                      {selectedPlan === 'three_years' ? "3-Year Renewal Guarantee" : "Weekly 50% Settlement Policy"}
                     </div>
                     <div style={{ fontSize: 10.5, color: "rgba(255, 255, 255, 0.6)", marginTop: 2, lineHeight: 1.4 }}>
-                      Weekly 50% profit share is settled via UPI or WhatsApp on your designated settlement day. If your week is flat or red, you pay ₹0.
+                      {selectedPlan === 'three_years'
+                        ? "After 3 Years, renew for another 3 years at a 50% loyalty discount (₹49,999) or switch to Profit Share with zero setup fee."
+                        : "Weekly 50% profit share is settled via UPI or WhatsApp on your designated settlement day. If your week is flat or red, you pay ₹0."}
                     </div>
                   </div>
                 </div>
@@ -1032,14 +1087,14 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                 {/* What is Included List */}
                 <div style={{ marginBottom: 20 }}>
                   <div style={{ fontSize: 11, fontWeight: 700, color: "rgba(255, 255, 255, 0.4)", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 10 }}>
-                    OFFICIAL PLAN INCLUDES:
+                    {selectedPlan === 'three_years' ? "3-YEAR ENTERPRISE PASS INCLUDES:" : "OFFICIAL PERFORMANCE PLAN INCLUDES:"}
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
-                    {planIncludes.map((item, i) => (
+                    {(selectedPlan === 'three_years' ? threeYearsIncludes : profitShareIncludes).map((item, i) => (
                       <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 9, fontSize: 12 }}>
                         <CheckCircle2
                           size={14}
-                          color="#34d399"
+                          color={selectedPlan === 'three_years' ? "#60a5fa" : "#34d399"}
                           style={{ marginTop: 2, flexShrink: 0 }}
                         />
                         <span style={{ color: "rgba(255, 255, 255, 0.8)", lineHeight: 1.4 }}>{item}</span>
@@ -1059,7 +1114,7 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                     borderRadius: 12,
                     border: "none",
                     cursor: "pointer",
-                    background: "linear-gradient(135deg, #059669 0%, #047857 100%)",
+                    background: selectedPlan === 'three_years' ? "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)" : "linear-gradient(135deg, #059669 0%, #047857 100%)",
                     boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 2px 6px rgba(0, 0, 0, 0.3)",
                     color: "#ffffff",
                     fontSize: 14,
@@ -1073,15 +1128,17 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.transform = "translateY(-1px)";
-                    e.currentTarget.style.background = "linear-gradient(135deg, #10b981 0%, #059669 100%)";
+                    e.currentTarget.style.background = selectedPlan === 'three_years' ? "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)" : "linear-gradient(135deg, #10b981 0%, #059669 100%)";
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.background = "linear-gradient(135deg, #059669 0%, #047857 100%)";
+                    e.currentTarget.style.background = selectedPlan === 'three_years' ? "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)" : "linear-gradient(135deg, #059669 0%, #047857 100%)";
                   }}
                 >
                   <Zap size={15} />
-                  <span>Get FiAlgo V1 License (₹9,999)</span>
+                  <span>
+                    {selectedPlan === 'three_years' ? "Get 3-Year License (₹1,00,000)" : "Get Performance License (₹10,000)"}
+                  </span>
                   <ArrowRight size={15} />
                 </button>
 

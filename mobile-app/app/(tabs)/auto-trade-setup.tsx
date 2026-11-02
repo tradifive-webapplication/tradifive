@@ -205,7 +205,7 @@ export default function AutoTradeSetupScreen() {
   const [transferStatus, setTransferStatus] = useState<'none' | 'pending' | 'approved'>('approved');
 
   // Step 3 Payment State
-  const [selectedTier, setSelectedTier] = useState<'profit_share'>('profit_share');
+  const [selectedTier, setSelectedTier] = useState<'three_years' | 'profit_share'>('three_years');
   const [paymentMethod, setPaymentMethod] = useState<'upi' | 'bank'>('upi');
   const [utrNumber, setUtrNumber] = useState('');
   const [paymentProofUri, setPaymentProofUri] = useState<string | null>(null);
@@ -979,45 +979,91 @@ export default function AutoTradeSetupScreen() {
                     Complete payment via PhonePe / UPI or Bank Transfer to request your personal license key.
                   </Text>
 
-                  {/* Single Plan: ₹10,000 Setup Fee + Daily 50/50% Profit Share */}
-                  <View style={{ marginVertical: 10 }}>
-                    <View
+                  {/* Two Official Plans */}
+                  <View style={{ gap: 10, marginVertical: 10 }}>
+                    {/* Option 1: 3-Year Enterprise Pass */}
+                    <TouchableOpacity
+                      activeOpacity={0.85}
+                      onPress={() => setSelectedTier('three_years')}
                       style={[
                         styles.tierCard,
-                        styles.tierCardActive,
-                        { backgroundColor: isDark ? '#0c0e14' : '#f0fdf4', borderColor: '#10b981' },
+                        selectedTier === 'three_years' && styles.tierCardActive,
+                        {
+                          backgroundColor: selectedTier === 'three_years' ? (isDark ? '#141724' : '#f0fdf4') : (isDark ? '#0c0e14' : '#f8fafc'),
+                          borderColor: selectedTier === 'three_years' ? '#10b981' : (isDark ? '#1e2433' : '#e2e8f0'),
+                          borderWidth: selectedTier === 'three_years' ? 1.5 : 1,
+                        },
                       ]}
                     >
                       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                        <View style={{ flex: 1, paddingRight: 10 }}>
-                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                            <Text style={{ fontSize: 15, fontFamily: 'Inter_800ExtraBold', color: isDark ? '#ffffff' : '#0f172a' }}>
-                              FiAlgo V1 Institutional Engine
+                        <View style={{ flex: 1, paddingRight: 8 }}>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                            <Text style={{ fontSize: 14, fontFamily: 'Inter_800ExtraBold', color: isDark ? '#ffffff' : '#0f172a' }}>
+                              🌟 3-Year Enterprise Pass
                             </Text>
                             <View style={[styles.popularBadge, { backgroundColor: 'rgba(16,185,129,0.15)', borderColor: 'rgba(16,185,129,0.3)' }]}>
-                              <Text style={[styles.popularText, { color: '#10b981' }]}>OFFICIAL PLAN</Text>
+                              <Text style={[styles.popularText, { color: '#10b981', fontSize: 9 }]}>0% PROFIT SHARE</Text>
                             </View>
                           </View>
-                          <Text style={{ fontSize: 11.5, fontFamily: 'Inter_500Medium', color: '#64748b', marginTop: 3, lineHeight: 16 }}>
-                            ₹10,000 One-Time Setup Fee · Daily 50/50% Profit Share on net green days (0% commission on red days)
+                          <Text style={{ fontSize: 11, fontFamily: 'Inter_500Medium', color: '#64748b', marginTop: 4, lineHeight: 15 }}>
+                            ₹1,00,000 One-time · 3-Year validity · Keep 100% of profits · 50% discount renewal after 3 years (₹49,999)
                           </Text>
                         </View>
                         <View style={{ alignItems: 'flex-end' }}>
-                          <Text style={{ fontSize: 18, fontFamily: 'Inter_800ExtraBold', color: '#10b981' }}>
+                          <Text style={{ fontSize: 16, fontFamily: 'Inter_800ExtraBold', color: selectedTier === 'three_years' ? '#10b981' : (isDark ? '#ffffff' : '#0f172a') }}>
+                            ₹1,00,000
+                          </Text>
+                          <Text style={{ fontSize: 9.5, fontFamily: 'Inter_600SemiBold', color: '#94a3b8' }}>
+                            3-Yr License
+                          </Text>
+                        </View>
+                      </View>
+                    </TouchableOpacity>
+
+                    {/* Option 2: Performance Partner */}
+                    <TouchableOpacity
+                      activeOpacity={0.85}
+                      onPress={() => setSelectedTier('profit_share')}
+                      style={[
+                        styles.tierCard,
+                        selectedTier === 'profit_share' && styles.tierCardActive,
+                        {
+                          backgroundColor: selectedTier === 'profit_share' ? (isDark ? '#141724' : '#eff6ff') : (isDark ? '#0c0e14' : '#f8fafc'),
+                          borderColor: selectedTier === 'profit_share' ? '#3b82f6' : (isDark ? '#1e2433' : '#e2e8f0'),
+                          borderWidth: selectedTier === 'profit_share' ? 1.5 : 1,
+                        },
+                      ]}
+                    >
+                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <View style={{ flex: 1, paddingRight: 8 }}>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                            <Text style={{ fontSize: 14, fontFamily: 'Inter_800ExtraBold', color: isDark ? '#ffffff' : '#0f172a' }}>
+                              ⚡ Performance Partner
+                            </Text>
+                            <View style={[styles.popularBadge, { backgroundColor: 'rgba(59,130,246,0.15)', borderColor: 'rgba(59,130,246,0.3)' }]}>
+                              <Text style={[styles.popularText, { color: '#3b82f6', fontSize: 9 }]}>WEEKLY 50% SPLIT</Text>
+                            </View>
+                          </View>
+                          <Text style={{ fontSize: 11, fontFamily: 'Inter_500Medium', color: '#64748b', marginTop: 4, lineHeight: 15 }}>
+                            ₹10,000 Setup Fee · Weekly 50/50% split on net green weeks · ₹0 fee on flat or red weeks
+                          </Text>
+                        </View>
+                        <View style={{ alignItems: 'flex-end' }}>
+                          <Text style={{ fontSize: 16, fontFamily: 'Inter_800ExtraBold', color: selectedTier === 'profit_share' ? '#3b82f6' : (isDark ? '#ffffff' : '#0f172a') }}>
                             ₹10,000
                           </Text>
-                          <Text style={{ fontSize: 10, fontFamily: 'Inter_600SemiBold', color: '#94a3b8' }}>
+                          <Text style={{ fontSize: 9.5, fontFamily: 'Inter_600SemiBold', color: '#94a3b8' }}>
                             Setup Fee
                           </Text>
                         </View>
                       </View>
-                    </View>
+                    </TouchableOpacity>
                   </View>
 
                   {/* Payment Details Box */}
                   <View style={[styles.payDetailsBox, { backgroundColor: isDark ? '#0c0e14' : '#f0fdf4', borderColor: isDark ? '#1e2433' : '#bbf7d0' }]}>
                     <Text style={{ fontSize: 11.5, fontFamily: 'Inter_700Bold', color: '#16a34a', textTransform: 'uppercase', marginBottom: 4 }}>
-                      UPI / PHONEPE / GPAY PAYMENT DETAILS:
+                      UPI / PHONEPE PAYMENT DETAILS (PAY ₹{selectedTier === 'three_years' ? '1,00,000' : '10,000'}):
                     </Text>
 
                     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
@@ -1067,7 +1113,7 @@ export default function AutoTradeSetupScreen() {
                   {/* WhatsApp Fast Track Button */}
                   <TouchableOpacity
                     activeOpacity={0.85}
-                    onPress={() => Linking.openURL(`https://wa.me/?text=${encodeURIComponent(`Hello TradiFive Team! I have completed payment for FiAlgo V1 (UTR: ${utrNumber || 'Submitted'}). Please expedite and issue my license key.`)}`)}
+                    onPress={() => Linking.openURL(`https://wa.me/?text=${encodeURIComponent(`Hello TradiFive Team! I have completed payment of ₹${selectedTier === 'three_years' ? '1,00,000 (3-Year Pass)' : '10,000 (Performance Partner)'} for FiAlgo V1 (UTR: ${utrNumber || 'Submitted'}). Please expedite and issue my license key.`)}`)}
                     style={styles.fastTrackBtn}
                   >
                     <MessageCircle size={15} color="#10b981" />

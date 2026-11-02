@@ -396,8 +396,6 @@ const getPillars = (isCreator: boolean) => {
 
     { id: "autoTrade", icon: WrappedIconly(Activity), tooltip: "Auto Trade (Live)", defaultPath: isAutoTradeSetup ? "/auto-trade/dashboard" : "/auto-trade/setup", isLive: true },
 
-    { id: "settlements", icon: wrapLucide(ReceiptText), tooltip: "Weekly Profit Settlement", defaultPath: "/weekly-settlements", isLive: true },
-
     { id: "dashboard", icon: WrappedIconly(Category), tooltip: "Dashboard (Soon)", defaultPath: "/dashboard", isLocked: true },
 
     { id: "community", icon: WrappedIconly(Chat), tooltip: "Channels (Soon)", defaultPath: "/channel", isLocked: true },
@@ -584,9 +582,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
     if (path.startsWith("/ai-coach")) return "aiCoach";
 
-    if (path.startsWith("/auto-trade") || path.startsWith("/strategy-builder")) return "autoTrade";
-
-    if (path.startsWith("/weekly-settlements") || path.startsWith("/settlements")) return "settlements";
+    if (path.startsWith("/auto-trade") || path.startsWith("/strategy-builder") || path.startsWith("/weekly-settlements") || path.startsWith("/settlements")) return "autoTrade";
 
     if (path.startsWith("/discover") || path.startsWith("/marketplace")) return "discover";
 

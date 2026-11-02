@@ -2302,10 +2302,14 @@ If you have any questions or wish to remit USDT/INR, reply directly to this chat
                         <td className="px-5 py-4">
                           <div className="space-y-1">
                             <span className="font-bold text-white text-xs block">
-                              {payment.algo_name || "FiAlgo V1 Lifetime License"}
+                              {payment.algo_name || (Number(payment.amount) >= 50000 ? "FiAlgo V1 3-Year Enterprise License" : "FiAlgo V1 Performance Setup")}
                             </span>
-                            <span className="text-[10px] text-emerald-400 font-semibold px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 inline-block">
-                              Lifetime License
+                            <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full inline-block border ${
+                              Number(payment.amount) >= 50000
+                                ? "text-blue-400 bg-blue-500/15 border-blue-500/30"
+                                : "text-emerald-400 bg-emerald-500/15 border-emerald-500/30"
+                            }`}>
+                              {Number(payment.amount) >= 50000 ? "3-Year Pass (0% Share)" : "Performance (Weekly 50%)"}
                             </span>
                           </div>
                         </td>
@@ -2343,9 +2347,11 @@ If you have any questions or wish to remit USDT/INR, reply directly to this chat
                         {/* Amount */}
                         <td className="px-5 py-4">
                           <div className="font-mono font-black text-white text-sm">
-                            ₹{Number(payment.amount || 99999).toLocaleString()}
+                            ₹{Number(payment.amount || 10000).toLocaleString()}
                           </div>
-                          <span className="text-[10px] text-slate-500 font-semibold uppercase">100% Paid</span>
+                          <span className="text-[10px] text-slate-500 font-semibold uppercase">
+                            {Number(payment.amount) >= 50000 ? "3-Year Pass" : "Setup Fee"}
+                          </span>
                         </td>
 
                         {/* Proof Screenshot */}
