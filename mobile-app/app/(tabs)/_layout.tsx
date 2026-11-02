@@ -140,31 +140,9 @@ export default function TabLayout() {
     return () => listener.remove();
   }, []);
 
-
   // States
   const [activeNavItem, setActiveNavItem] = useState<any>({ label: 'Journal', icon: BookOpen });
   const scrollY = useRef(new Animated.Value(0)).current;
-  const navClampedScroll = Animated.diffClamp(
-    Animated.add(
-      scrollY.interpolate({
-        inputRange: [0, 1],
-        outputRange: [0, 1],
-        extrapolateLeft: 'clamp'
-      }),
-      new Animated.Value(-60)
-    ),
-    0, 80
-  );
-  const navTranslateY = Platform.OS === 'web' ? 0 : navClampedScroll.interpolate({
-    inputRange: [0, 80],
-    outputRange: [0, 120],
-    extrapolate: 'clamp'
-  });
-  const navOpacity = Platform.OS === 'web' ? 1 : navClampedScroll.interpolate({
-    inputRange: [0, 80],
-    outputRange: [1, 0],
-    extrapolate: 'clamp'
-  });
 
   const initStore = useStore(state => state.init);
   const currentUser = useStore(state => state.currentUser);
@@ -174,16 +152,6 @@ export default function TabLayout() {
     initStore();
   }, [initStore]);
 
-  useEffect(() => {
-    let lastSet = 0;
-    const sub = DeviceEventEmitter.addListener('scrollUpdate', (val) => {
-      if (Math.abs(val - lastSet) > 4) {
-        lastSet = val;
-        scrollY.setValue(val);
-      }
-    });
-    return () => sub.remove();
-  }, []);
   const [menuOpen, setMenuOpen] = useState(false);
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
   const [aiOpen, setAiOpen] = useState(false);
@@ -449,7 +417,6 @@ export default function TabLayout() {
   }
 
   const DRAWER_FOOTER = [
-
     { label: 'Settings and privacy', icon: SettingsIcon, route: '/(tabs)/settings' },
     { label: 'Help Centre', icon: HelpCircle, route: '/help' },
     { label: 'Log Out', icon: Logout, action: 'signout' },
@@ -487,7 +454,7 @@ export default function TabLayout() {
           borderRightWidth: isDark ? 0 : (headerStyle === 'simple' ? 1 : 0),
           borderRightColor: '#e2e8f0',
           zIndex: 5, // Above glow, but behind main content
-          paddingTop: insets.top + 50,
+          paddingTop: Math.max(insets.top, 24) + 16,
           paddingHorizontal: 20,
           opacity: drawerOpacity,
           transform: [
@@ -495,23 +462,23 @@ export default function TabLayout() {
             { scale: drawerScale }
           ]
         }}>
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingTop: 20 }}
-            style={{ backgroundColor: 'transparent' }}
-          >
+          {/* Pinned Stationary Profile Header */}
+          <View style={{
+            paddingBottom: 16,
+            borderBottomWidth: 1,
+            borderBottomColor: isDark ? 'rgba(255, 255, 255, 0.1)' : (headerStyle === 'simple' ? '#f1f5f9' : 'rgba(255, 255, 255, 0.1)'),
+          }}>
             <TouchableOpacity
               activeOpacity={0.7}
               onPress={() => {
                 closeDrawer();
                 router.push('/profile');
               }}
-              style={{ marginBottom: 24 }}
             >
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
                 <Image
                   source={{ uri: getAvatarUrl(currentUser?.avatar_url, currentUser?.email) }}
-                  style={{ width: 60, height: 60, borderRadius: 30, borderWidth: 2, borderColor: isDark ? 'rgba(255, 255, 255, 0.2)' : (headerStyle === 'simple' ? '#e2e8f0' : 'rgba(255, 255, 255, 0.2)') }}
+                  style={{ width: 56, height: 56, borderRadius: 28, borderWidth: 2, borderColor: isDark ? 'rgba(255, 255, 255, 0.2)' : (headerStyle === 'simple' ? '#e2e8f0' : 'rgba(255, 255, 255, 0.2)') }}
                 />
                 <TouchableOpacity
                   style={{ width: 34, height: 34, borderRadius: 17, borderWidth: 1.5, borderColor: isDark ? '#1e293b' : (headerStyle === 'simple' ? '#cbd5e1' : '#1e293b'), backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : (headerStyle === 'simple' ? '#f1f5f9' : 'rgba(255, 255, 255, 0.05)'), alignItems: 'center', justifyContent: 'center' }}
@@ -545,7 +512,7 @@ export default function TabLayout() {
                   @{currentUser?.username || 'user'} • {currentMarket}
                 </Text>
 
-                <View style={{ flexDirection: 'row', marginTop: 12, gap: 16 }}>
+                <View style={{ flexDirection: 'row', marginTop: 10, gap: 16 }}>
                   <TouchableOpacity
                     style={{ flexDirection: 'row', gap: 4 }}
                     onPress={() => setFollowModalState({ isVisible: true, type: 'following' })}
@@ -563,7 +530,17 @@ export default function TabLayout() {
                 </View>
               </View>
             </TouchableOpacity>
+          </View>
 
+          {/* Scrollable Menu Items Under Stationary Profile Header */}
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            style={{ flex: 1, backgroundColor: 'transparent' }}
+            contentContainerStyle={{
+              paddingTop: 10,
+              paddingBottom: Math.max(insets.bottom, 16) + 40,
+            }}
+          >
             {/* Drawer Main Items - Folders & Subfolders */}
             {ALL_DRAWER_ITEMS.map((item: any, idx: number) => {
               const isExpanded = expandedItem === item.label;
@@ -988,8 +965,6 @@ export default function TabLayout() {
                 left: 20,
                 right: 20,
                 zIndex: 1000,
-                opacity: navOpacity, // Apply direction-based opacity
-                transform: [{ translateY: navTranslateY }],
                 flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -1232,8 +1207,6 @@ export default function TabLayout() {
                 </ScrollView>
                 <View style={{ position: 'absolute', bottom: insets.bottom + 20, left: 20, right: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                   <View style={{ flexDirection: 'row', gap: 16 }}>
-                    
-
                     <TouchableOpacity
                       onPress={() => { closeMenu(); router.push('/(tabs)/settings'); }}
                       style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}

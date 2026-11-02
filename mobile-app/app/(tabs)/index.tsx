@@ -1759,16 +1759,7 @@ export default function DashboardScreen() {
     extrapolate: 'clamp',
   });
 
-  React.useEffect(() => {
-    let lastVal = 0;
-    const listener = scrollY.addListener(({ value }) => {
-      if (Math.abs(value - lastVal) > 6) {
-        lastVal = value;
-        DeviceEventEmitter.emit('scrollUpdate', value);
-      }
-    });
-    return () => scrollY.removeListener(listener);
-  }, []);
+
 
   const switchTab = (tab: Tab) => {
     hSelect();
@@ -1931,19 +1922,7 @@ export default function DashboardScreen() {
             borderBottomWidth: headerStyle === 'simple' && !isDark ? 1 : 0,
             borderBottomColor: isDark ? theme.cardBorder : '#e2e8f0',
             position: 'relative',
-            transform: headerStyle === 'simple' ? [] : [{
-              scale: scrollY.interpolate({
-                inputRange: [0, 80],
-                outputRange: [1, 0.85],
-                extrapolate: 'clamp'
-              })
-            }, {
-              translateY: scrollY.interpolate({
-                inputRange: [0, 80],
-                outputRange: [0, -60],
-                extrapolate: 'clamp'
-              })
-            }]
+            transform: []
           }
         ]}>
           {headerStyle !== 'simple' && (
@@ -1964,14 +1943,7 @@ export default function DashboardScreen() {
             alignItems: 'center',
             justifyContent: 'space-between',
             paddingHorizontal: 20,
-            opacity: headerStyle === 'simple' ? 1 : Animated.multiply(
-              aiHeaderFade,
-              scrollY.interpolate({
-                inputRange: [0, 140],
-                outputRange: [1, 0],
-                extrapolate: 'clamp'
-              })
-            )
+            opacity: aiHeaderFade
           }}>
             {activeTab === 'community' ? (
               <TouchableOpacity
@@ -2016,62 +1988,12 @@ export default function DashboardScreen() {
         </Animated.View>
       )}
 
-      {/* ── NATIVE SMART-REVEAL HEADER ── */}
-      {headerStyle !== 'simple' && (
-        <Animated.View style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: headerHeight,
-          backgroundColor: '#000',
-          zIndex: 2000,
-          paddingTop: insets.top + 8,
-          opacity: headerOpacity,
-          transform: [{ translateY: headerTranslateY }],
-          borderBottomLeftRadius: 40,
-          borderBottomRightRadius: 40,
-          overflow: 'hidden'
-        }}>
-          <Image
-            source={require('../../assets/images/top-glow.png')}
-            style={{ position: 'absolute', top: 0, left: 0, right: 0, width: '100%', height: 80, opacity: 0.8 }}
-            resizeMode="stretch"
-          />
 
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, height: 56 }}>
-            <Text style={{ fontSize: 24, fontFamily: 'Inter_700Bold', color: '#fff', letterSpacing: -0.5 }}>
-              {activeTab === 'dashboard' ? 'Dashboard' :
-                activeTab === 'feed' ? 'Home' :
-                  activeTab === 'community' ? (commView === 'channels' ? 'Channels' : 'Messages') :
-                    (contestView === 'contests' ? 'Contests' : contestView === 'profile' ? 'Profile' : 'Leaderboard')}
-            </Text>
-
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-              <TouchableOpacity onPress={() => { h(); router.push('/notifications' as any); }} style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center' }}>
-                <Bell size={22} color="#fff" />
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => router.setParams({ openProfile: 'true' })}
-                style={{ width: 34, height: 34, borderRadius: 17, overflow: 'hidden', borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.3)' }}
-              >
-                <Image source={currentUser?.avatar_url ? { uri: currentUser.avatar_url } : require('../../assets/images/avatar.png')} style={{ width: '100%', height: '100%' }} />
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Animated.View>
-      )}
       {/* ── WHITE CONTENT CARD ── */}
       <Animated.View style={[
         styles.card,
         {
-          marginTop: headerStyle === 'simple' ? 0 : (activeTab === 'dashboard' || activeTab === 'feed'
-            ? scrollY.interpolate({
-                inputRange: [0, 150],
-                outputRange: [-34, -184],
-                extrapolate: 'clamp',
-              })
-            : insets.top + 80),
+          marginTop: headerStyle === 'simple' ? 0 : -34,
           borderTopLeftRadius: headerStyle === 'simple' ? 0 : 40,
           borderTopRightRadius: headerStyle === 'simple' ? 0 : 40,
           backgroundColor: activeCardId ? '#090d16' : (isDark ? theme.background : (activeTab === 'feed' ? '#f8fafc' : '#fff')),
@@ -2097,16 +2019,7 @@ export default function DashboardScreen() {
               />
             }
           >
-            <Animated.View pointerEvents="none" style={{
-              flex: 1,
-              transform: headerStyle === 'simple' ? [] : [{
-                translateY: scrollY.interpolate({
-                  inputRange: [0, 150],
-                  outputRange: [0, 150],
-                  extrapolate: 'clamp',
-                }),
-              }],
-            }}>
+            <View style={{ flex: 1, width: '100%' }}>
               {/* ── IMAGE DASHBOARD REPLICATION ── */}
 
               {/* Total Equity Card */}
@@ -2537,7 +2450,7 @@ export default function DashboardScreen() {
                 </View>
               )}
 
-            </Animated.View>
+            </View>
           </Animated.ScrollView>
             <ComingSoonVeil featureTitle="Trading Dashboard" subtitle="Real-time multi-asset portfolio, live PnL & automated broker terminal is launching soon." />
           </View>
@@ -2641,16 +2554,7 @@ export default function DashboardScreen() {
               scrollEventThrottle={16}
               refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#8E8E93" progressViewOffset={10} />}
             >
-              <Animated.View style={{
-              flex: 1,
-              transform: headerStyle === 'simple' ? [] : [{
-                translateY: scrollY.interpolate({
-                  inputRange: [0, 150],
-                  outputRange: [0, 150],
-                  extrapolate: 'clamp',
-                }),
-              }],
-            }}>
+              <View style={{ flex: 1 }}>
                 {/* Win Big Rewards Banner */}
                 <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
                   <View style={{ backgroundColor: '#1e293b', borderRadius: 28, padding: 24, flexDirection: 'row', alignItems: 'center', overflow: 'hidden' }}>
@@ -2761,7 +2665,7 @@ export default function DashboardScreen() {
                     </View>
                   </View>
                 </View>
-              </Animated.View>
+              </View>
             </Animated.ScrollView>
           ) : contestView === 'profile' ? (
             <Animated.ScrollView
@@ -2773,16 +2677,7 @@ export default function DashboardScreen() {
               )}
               scrollEventThrottle={16}
             >
-              <Animated.View style={{
-              flex: 1,
-              transform: headerStyle === 'simple' ? [] : [{
-                translateY: scrollY.interpolate({
-                  inputRange: [0, 150],
-                  outputRange: [0, 150],
-                  extrapolate: 'clamp',
-                }),
-              }],
-            }}>
+              <View style={{ flex: 1 }}>
                 <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
                   <View style={{ backgroundColor: '#1e293b', borderRadius: 28, padding: 24 }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 24 }}>
@@ -2864,7 +2759,7 @@ export default function DashboardScreen() {
                     ))}
                   </View>
                 </View>
-              </Animated.View>
+              </View>
             </Animated.ScrollView>
           ) : (
             <Animated.ScrollView
@@ -2876,16 +2771,7 @@ export default function DashboardScreen() {
               )}
               scrollEventThrottle={16}
             >
-              <Animated.View style={{
-              flex: 1,
-              transform: headerStyle === 'simple' ? [] : [{
-                translateY: scrollY.interpolate({
-                  inputRange: [0, 150],
-                  outputRange: [0, 150],
-                  extrapolate: 'clamp',
-                }),
-              }],
-            }}>
+              <View style={{ flex: 1 }}>
                 <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
                   <View style={{ backgroundColor: '#1e293b', borderRadius: 28, padding: 20 }}>
                     <View style={{ alignItems: 'center', marginTop: 10 }}>
@@ -2955,7 +2841,7 @@ export default function DashboardScreen() {
                     ))}
                   </View>
                 </View>
-              </Animated.View>
+              </View>
             </Animated.ScrollView>
           )}
           </View>
@@ -2986,16 +2872,7 @@ export default function DashboardScreen() {
                 />
               }
             >
-              <Animated.View style={{
-                width: '100%',
-                transform: headerStyle === 'simple' ? [] : [{
-                  translateY: scrollY.interpolate({
-                    inputRange: [0, 150],
-                    outputRange: [0, 150],
-                    extrapolate: 'clamp',
-                  }),
-                }],
-              }}>
+              <View style={{ width: '100%' }}>
 
               {/* Quick Post Prompt Card */}
               <View
@@ -3338,7 +3215,7 @@ export default function DashboardScreen() {
                   )}
                 </View>
               )}
-            </Animated.View>
+            </View>
           </Animated.ScrollView>
 
           {activePostMenu && (
