@@ -62,6 +62,9 @@ import {
   Package,
   Receipt,
   ShieldAlert,
+  Play,
+  Pause,
+  Calendar,
 } from 'lucide-react-native';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import { useStore } from '../store';
@@ -214,6 +217,7 @@ export default function AutoTradeSetupScreen() {
 
   // Live Bot Execution State
   const [botActive, setBotActive] = useState(true);
+  const [viewMode, setViewMode] = useState<'setup' | 'dashboard'>('setup');
   const [downloadedEA, setDownloadedEA] = useState(false);
 
   // Clipboard Copied States
@@ -505,7 +509,398 @@ export default function AutoTradeSetupScreen() {
         >
           <View>
             <View style={{ gap: 14 }}>
-            {/* ── 4-STEP PROGRESSOR HEADER ── */}
+                        {/* Mode Switcher: Live Dashboard vs Setup Wizard */}
+            <View
+              style={{
+                flexDirection: 'row',
+                backgroundColor: isDark ? '#141724' : '#e2e8f0',
+                borderRadius: 14,
+                padding: 3,
+                marginBottom: 2,
+              }}
+            >
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => {
+                  hSelect();
+                  setViewMode('dashboard');
+                }}
+                style={{
+                  flex: 1,
+                  paddingVertical: 8,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: 11,
+                  backgroundColor: viewMode === 'dashboard' ? (isDark ? '#38bdf8' : '#0f172a') : 'transparent',
+                  flexDirection: 'row',
+                  gap: 6,
+                }}
+              >
+                <Activity size={13} color={viewMode === 'dashboard' ? (isDark ? '#0f172a' : '#ffffff') : (isDark ? '#94a3b8' : '#64748b')} />
+                <Text
+                  style={{
+                    fontSize: 12,
+                    fontFamily: 'Inter_700Bold',
+                    color: viewMode === 'dashboard' ? (isDark ? '#0f172a' : '#ffffff') : (isDark ? '#94a3b8' : '#64748b'),
+                  }}
+                >
+                  Live Dashboard
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => {
+                  hSelect();
+                  setViewMode('setup');
+                }}
+                style={{
+                  flex: 1,
+                  paddingVertical: 8,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: 11,
+                  backgroundColor: viewMode === 'setup' ? (isDark ? '#38bdf8' : '#0f172a') : 'transparent',
+                  flexDirection: 'row',
+                  gap: 6,
+                }}
+              >
+                <Key size={13} color={viewMode === 'setup' ? (isDark ? '#0f172a' : '#ffffff') : (isDark ? '#94a3b8' : '#64748b')} />
+                <Text
+                  style={{
+                    fontSize: 12,
+                    fontFamily: 'Inter_700Bold',
+                    color: viewMode === 'setup' ? (isDark ? '#0f172a' : '#ffffff') : (isDark ? '#94a3b8' : '#64748b'),
+                  }}
+                >
+                  Setup & Key ({activeStep}/4)
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {viewMode === 'dashboard' ? (
+              <View style={{ gap: 14 }}>
+                {/* ── LIVE TELEMETRY STATUS BAR ── */}
+                <View
+                  style={{
+                    padding: 14,
+                    borderRadius: 18,
+                    backgroundColor: isDark ? '#11131a' : '#ffffff',
+                    borderWidth: 1,
+                    borderColor: isDark ? '#1e2433' : '#e2e8f0',
+                    gap: 10,
+                  }}
+                >
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#10b981' }} />
+                      <Text style={{ fontSize: 13, fontFamily: 'Inter_700Bold', color: isDark ? '#ffffff' : '#0f172a' }}>
+                        FiAlgo MT5 #{accountNumber || '757'}
+                      </Text>
+                      <View style={{ paddingHorizontal: 7, paddingVertical: 2, borderRadius: 6, backgroundColor: isDark ? 'rgba(245,158,11,0.15)' : '#fef3c7' }}>
+                        <Text style={{ fontSize: 10.5, fontFamily: 'Inter_700Bold', color: '#d97706' }}>
+                          USC Cent
+                        </Text>
+                      </View>
+                    </View>
+
+                    <TouchableOpacity
+                      onPress={() => {
+                        hSelect();
+                        setBotActive(!botActive);
+                      }}
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 5,
+                        paddingHorizontal: 9,
+                        paddingVertical: 4,
+                        borderRadius: 8,
+                        backgroundColor: botActive ? (isDark ? 'rgba(16,185,129,0.15)' : '#ecfdf5') : (isDark ? 'rgba(239,68,68,0.15)' : '#fef2f2'),
+                        borderWidth: 1,
+                        borderColor: botActive ? '#10b981' : '#ef4444',
+                      }}
+                    >
+                      {botActive ? <Play size={11} color="#10b981" fill="#10b981" /> : <Pause size={11} color="#ef4444" fill="#ef4444" />}
+                      <Text style={{ fontSize: 11, fontFamily: 'Inter_700Bold', color: botActive ? '#10b981' : '#ef4444' }}>
+                        {botActive ? 'Bot Active' : 'Bot Paused'}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderTopWidth: 1, borderTopColor: isDark ? '#1e2433' : '#f1f5f9', paddingTop: 8 }}>
+                    <Text style={{ fontSize: 11, fontFamily: 'Inter_500Medium', color: '#94a3b8' }}>
+                      Server: <Text style={{ fontFamily: 'Inter_700Bold', color: isDark ? '#cbd5e1' : '#475569' }}>{server || 'Vantage-Live 2'}</Text>
+                    </Text>
+                    <Text style={{ fontSize: 11, fontFamily: 'Inter_700Bold', color: '#d97706' }}>
+                      XAUUSD (M1)
+                    </Text>
+                    <Text style={{ fontSize: 11, fontFamily: 'Inter_700Bold', color: '#10b981' }}>
+                      1.8ms Latency
+                    </Text>
+                  </View>
+                </View>
+
+                {/* ── 1. ACCOUNT BALANCE (USC) ── */}
+                <View
+                  style={{
+                    padding: 16,
+                    borderRadius: 18,
+                    backgroundColor: isDark ? '#11131a' : '#ffffff',
+                    borderWidth: 1,
+                    borderColor: isDark ? '#1e2433' : '#e2e8f0',
+                  }}
+                >
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <Text style={{ fontSize: 11, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                      Account Balance
+                    </Text>
+                    <View style={{ width: 30, height: 30, borderRadius: 8, backgroundColor: isDark ? 'rgba(56,189,248,0.15)' : '#e0f2fe', alignItems: 'center', justifyContent: 'center' }}>
+                      <Wallet size={15} color="#0284c7" />
+                    </View>
+                  </View>
+                  <Text style={{ fontSize: 24, fontFamily: 'Inter_800ExtraBold', color: isDark ? '#ffffff' : '#0f172a', letterSpacing: -0.5 }}>
+                    USC 14,866.24
+                  </Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: isDark ? '#1e2433' : '#f1f5f9' }}>
+                    <Text style={{ fontSize: 11.5, fontFamily: 'Inter_500Medium', color: '#94a3b8' }}>
+                      Equity: <Text style={{ fontFamily: 'Inter_700Bold', color: isDark ? '#ffffff' : '#0f172a' }}>USC 14,866.24</Text>
+                    </Text>
+                    <View style={{ paddingHorizontal: 7, paddingVertical: 2, borderRadius: 6, backgroundColor: isDark ? '#1e2433' : '#f1f5f9' }}>
+                      <Text style={{ fontSize: 10, fontFamily: 'Inter_700Bold', color: '#64748b' }}>
+                        Lvl 0%
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+
+                {/* ── 2 & 3. NET PROFIT + TODAY'S PROFIT GRID ── */}
+                <View style={{ flexDirection: 'row', gap: 10 }}>
+                  <View
+                    style={{
+                      flex: 1,
+                      padding: 14,
+                      borderRadius: 18,
+                      backgroundColor: isDark ? '#11131a' : '#ffffff',
+                      borderWidth: 1,
+                      borderColor: isDark ? '#1e2433' : '#e2e8f0',
+                    }}
+                  >
+                    <Text style={{ fontSize: 10, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                      Net Profit
+                    </Text>
+                    <Text style={{ fontSize: 18, fontFamily: 'Inter_800ExtraBold', color: '#10b981', marginVertical: 4 }}>
+                      +USC 4,866.24
+                    </Text>
+                    <Text style={{ fontSize: 10.5, fontFamily: 'Inter_600SemiBold', color: '#10b981' }}>
+                      +32.7% All Time
+                    </Text>
+                  </View>
+
+                  <View
+                    style={{
+                      flex: 1,
+                      padding: 14,
+                      borderRadius: 18,
+                      backgroundColor: isDark ? '#11131a' : '#ffffff',
+                      borderWidth: 1,
+                      borderColor: isDark ? '#1e2433' : '#e2e8f0',
+                    }}
+                  >
+                    <Text style={{ fontSize: 10, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                      Today's Profit
+                    </Text>
+                    <Text style={{ fontSize: 18, fontFamily: 'Inter_800ExtraBold', color: '#10b981', marginVertical: 4 }}>
+                      +USC 412.50
+                    </Text>
+                    <Text style={{ fontSize: 10.5, fontFamily: 'Inter_600SemiBold', color: '#38bdf8' }}>
+                      Goal: USC 222.99 ✓
+                    </Text>
+                  </View>
+                </View>
+
+                {/* ── 4 & 5. TOTAL DEPOSITS + WITHDRAWALS GRID ── */}
+                <View style={{ flexDirection: 'row', gap: 10 }}>
+                  <View
+                    style={{
+                      flex: 1,
+                      padding: 14,
+                      borderRadius: 18,
+                      backgroundColor: isDark ? '#11131a' : '#ffffff',
+                      borderWidth: 1,
+                      borderColor: isDark ? '#1e2433' : '#e2e8f0',
+                    }}
+                  >
+                    <Text style={{ fontSize: 10, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                      Total Deposits
+                    </Text>
+                    <Text style={{ fontSize: 16, fontFamily: 'Inter_800ExtraBold', color: isDark ? '#ffffff' : '#0f172a', marginVertical: 4 }}>
+                      USC 14,866.24
+                    </Text>
+                    <Text style={{ fontSize: 10, fontFamily: 'Inter_500Medium', color: '#64748b' }}>
+                      Funded Capital
+                    </Text>
+                  </View>
+
+                  <View
+                    style={{
+                      flex: 1,
+                      padding: 14,
+                      borderRadius: 18,
+                      backgroundColor: isDark ? '#11131a' : '#ffffff',
+                      borderWidth: 1,
+                      borderColor: isDark ? '#1e2433' : '#e2e8f0',
+                    }}
+                  >
+                    <Text style={{ fontSize: 10, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                      Withdrawals
+                    </Text>
+                    <Text style={{ fontSize: 16, fontFamily: 'Inter_800ExtraBold', color: isDark ? '#ffffff' : '#0f172a', marginVertical: 4 }}>
+                      USC 0.00
+                    </Text>
+                    <Text style={{ fontSize: 10, fontFamily: 'Inter_500Medium', color: '#64748b' }}>
+                      Processed Payouts
+                    </Text>
+                  </View>
+                </View>
+
+                {/* ── WEEKLY 50/50 SETTLEMENT (IN INR) ── */}
+                <View
+                  style={{
+                    padding: 16,
+                    borderRadius: 18,
+                    backgroundColor: isDark ? '#0f172a' : '#eff6ff',
+                    borderWidth: 1,
+                    borderColor: isDark ? '#1e293b' : '#bfdbfe',
+                    gap: 12,
+                  }}
+                >
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <QrCode size={14} color="#0284c7" />
+                      <Text style={{ fontSize: 11, fontFamily: 'Inter_800ExtraBold', color: '#0369a1', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                        Platform Share (50%)
+                      </Text>
+                    </View>
+                    <View style={{ paddingHorizontal: 7, paddingVertical: 2, borderRadius: 6, backgroundColor: isDark ? '#1e293b' : '#dbeafe' }}>
+                      <Text style={{ fontSize: 10, fontFamily: 'Inter_700Bold', color: '#0284c7' }}>
+                        Weekly Settlement
+                      </Text>
+                    </View>
+                  </View>
+
+                  <Text style={{ fontSize: 26, fontFamily: 'Inter_800ExtraBold', color: isDark ? '#ffffff' : '#0f172a', letterSpacing: -0.5 }}>
+                    ₹386.42
+                  </Text>
+
+                  <Text style={{ fontSize: 11, fontFamily: 'Inter_500Medium', color: isDark ? '#94a3b8' : '#64748b', lineHeight: 15 }}>
+                    Settled weekly on your designated cohort day (Every Monday). Managed systematically by Tradifive Finance Desk.
+                  </Text>
+
+                  <View style={{ flexDirection: 'row', gap: 8, marginTop: 4 }}>
+                    <TouchableOpacity
+                      activeOpacity={0.85}
+                      onPress={() => {
+                        hSelect();
+                        Alert.alert('Withdrawal Request', 'Your weekly withdrawal request has been submitted to your broker.');
+                      }}
+                      style={{
+                        flex: 1,
+                        backgroundColor: '#0284c7',
+                        paddingVertical: 10,
+                        borderRadius: 10,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Text style={{ fontSize: 11, fontFamily: 'Inter_700Bold', color: '#ffffff' }}>
+                        Request Withdrawal
+                      </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      activeOpacity={0.85}
+                      onPress={() => {
+                        hSelect();
+                        Alert.alert('Remit Platform Share', 'Scan UPI QR code or transfer to Tradifive corporate UPI ID: tradifive@icici');
+                      }}
+                      style={{
+                        flex: 1,
+                        backgroundColor: isDark ? '#1e2433' : '#ffffff',
+                        borderWidth: 1,
+                        borderColor: isDark ? '#2e384d' : '#cbd5e1',
+                        paddingVertical: 10,
+                        borderRadius: 10,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Text style={{ fontSize: 11, fontFamily: 'Inter_700Bold', color: isDark ? '#ffffff' : '#0f172a' }}>
+                        Remit Share (UPI)
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                {/* ── FIALGO V1 ENGINE STATUS CARD ── */}
+                <View
+                  style={{
+                    padding: 14,
+                    borderRadius: 18,
+                    backgroundColor: isDark ? '#11131a' : '#ffffff',
+                    borderWidth: 1,
+                    borderColor: isDark ? '#1e2433' : '#e2e8f0',
+                    gap: 8,
+                  }}
+                >
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <Cpu size={14} color="#38bdf8" />
+                      <Text style={{ fontSize: 12, fontFamily: 'Inter_700Bold', color: isDark ? '#ffffff' : '#0f172a' }}>
+                        FiAlgo V1 Institutional Engine
+                      </Text>
+                    </View>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                      <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#10b981' }} />
+                      <Text style={{ fontSize: 10.5, fontFamily: 'Inter_700Bold', color: '#10b981' }}>
+                        Execution Live
+                      </Text>
+                    </View>
+                  </View>
+                  <Text style={{ fontSize: 11, fontFamily: 'Inter_400Regular', color: '#64748b', lineHeight: 15 }}>
+                    Scanning XAUUSD M1 chart for volatility breakout baskets. Protected by hardware-bound cryptographic key #{accountNumber || '757'}.
+                  </Text>
+                </View>
+
+                {/* ── OPTION TO VIEW SETUP GUIDE & KEY ── */}
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  onPress={() => {
+                    hSelect();
+                    setViewMode('setup');
+                    setActiveStep(4);
+                  }}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 6,
+                    paddingVertical: 12,
+                    borderRadius: 14,
+                    backgroundColor: isDark ? '#1e2433' : '#f1f5f9',
+                    borderWidth: 1,
+                    borderColor: isDark ? '#2e384d' : '#e2e8f0',
+                  }}
+                >
+                  <Key size={14} color={isDark ? '#38bdf8' : '#0284c7'} />
+                  <Text style={{ fontSize: 12, fontFamily: 'Inter_700Bold', color: isDark ? '#38bdf8' : '#0284c7' }}>
+                    View License Key & MT5 Setup Instructions &rarr;
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View style={{ gap: 14 }}>
+              {/* ── 4-STEP PROGRESSOR HEADER ── */}
               <View style={[styles.processorCard, { backgroundColor: isDark ? '#11131a' : '#ffffff', borderColor: isDark ? '#1e293b' : '#e2e8f0' }]}>
                 {/* Step header title */}
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
@@ -1232,23 +1627,25 @@ export default function AutoTradeSetupScreen() {
                     </TouchableOpacity>
                   </View>
 
-                  {/* Launch Live Dashboard Button */}
+                  {/* Convert to Live Dashboard Button (Matches Web App "Open AutoTrade Dashboard") */}
                   <TouchableOpacity
                     activeOpacity={0.85}
                     onPress={() => {
                       hSuccess();
-                      router.push('/(tabs)/order-history' as any);
+                      setViewMode('dashboard');
                     }}
-                    style={[styles.launchDashboardBtn, { backgroundColor: isDark ? '#ffffff' : '#0f172a' }]}
+                    style={[styles.launchDashboardBtn, { backgroundColor: isDark ? '#38bdf8' : '#0f172a' }]}
                   >
+                    <Zap size={16} color={isDark ? '#0f172a' : '#ffffff'} fill={isDark ? '#0f172a' : '#ffffff'} />
                     <Text style={[styles.launchDashboardBtnText, { color: isDark ? '#0f172a' : '#ffffff' }]}>
-                      Open AutoTrade Vault &amp; History
+                      Open AutoTrade Dashboard
                     </Text>
                     <ArrowRight size={16} color={isDark ? '#0f172a' : '#ffffff'} />
                   </TouchableOpacity>
                 </View>
               )}
-          </View>
+            </View>
+          )}
           </View>
         </ScrollView>
       </View>
