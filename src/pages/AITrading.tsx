@@ -5,7 +5,7 @@ import {
   Terminal, Camera, UploadCloud, Clock, Image as ImageIcon, 
   Headset, Send, RefreshCw, Calculator, Calendar, Sparkles, ChevronRight,
   AlertCircle, DollarSign, MessageCircle, AlertTriangle, Coins, Layers,
-  Sliders, FileCode, Cpu, Activity, QrCode, Landmark, CreditCard, KeyRound
+  Sliders, FileCode, Cpu, Activity, QrCode, Landmark, CreditCard, KeyRound, HelpCircle
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
@@ -1156,144 +1156,245 @@ MagicNumber=789104
 
   return (
     <DashboardLayout breadcrumbs={[{ label: "Auto Trade", path: "/auto-trade" }, { label: "Setup" }]}>
-      <div className="w-full pb-16 space-y-6">
+      <div className="w-full max-w-7xl mx-auto pb-12 font-sans">
+        
+        {/* ── 2-COLUMN WORKFLOW: VERTICAL STEPPER (LEFT) & ACTIVE STEP CONTENT (RIGHT) ── */}
+        <div className="flex flex-col md:flex-row items-stretch gap-6 lg:gap-10">
+          
+          {/* ── LEFT COLUMN: VERTICAL STEPPER SIDEBAR (MATCHED TO REFERENCE) ── */}
+          <aside className="w-full md:w-80 lg:w-96 shrink-0 flex flex-col justify-between py-2 border-b md:border-b-0 md:border-r border-slate-200/80 dark:border-white/10 md:pr-8 md:mr-2">
+            <div className="space-y-8">
+              <div className="px-1 space-y-1">
+                <span className="text-xs font-black uppercase tracking-widest text-blue-600 dark:text-blue-400 block">
+                  Setup Process
+                </span>
+                <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+                  FiAlgo V1 Activation
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Follow these 4 steps to deploy and license your trading bot.
+                </p>
+              </div>
 
-        {/* ── HEADER (EXPANSIVE BIG-TECH ENTERPRISE CONSOLE) ── */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200/80 dark:border-white/10">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20">
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
-                Enterprise Setup Console
-              </span>
-              <span className="text-[11px] font-mono text-slate-400 dark:text-slate-500 hidden sm:inline">
-                Build v1.0.4 · MetaTrader 5 Bridge
+              {/* Vertical Stepper Timeline (Big & Prominent) */}
+              <div className="relative space-y-0 pl-1">
+                {/* STEP 1 NODE */}
+                <div 
+                  onClick={() => setActiveStep(1)}
+                  className="group flex items-start gap-4 relative pb-10 sm:pb-12 cursor-pointer transition-all"
+                >
+                  {/* Big connecting line */}
+                  <div className={`absolute left-5 sm:left-6 top-12 -bottom-2 w-1 rounded-full ${
+                    ibVerified ? "bg-blue-600" : "bg-slate-200 dark:bg-white/10"
+                  }`} />
+                  
+                  {/* Big circle */}
+                  <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center shrink-0 z-10 font-black text-sm sm:text-base transition-all ${
+                    ibVerified
+                      ? "bg-blue-600 text-white ring-4 sm:ring-[6px] ring-blue-100 dark:ring-blue-950/60 shadow-md shadow-blue-500/20"
+                      : activeStep === 1
+                        ? "bg-blue-600 text-white ring-4 sm:ring-[6px] ring-blue-100 dark:ring-blue-900/60 shadow-md shadow-blue-500/25 scale-105"
+                        : "bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-400 border-2 border-slate-200/80 dark:border-white/10"
+                  }`}>
+                    {ibVerified ? <Check size={20} strokeWidth={3.5} /> : "1"}
+                  </div>
+                  
+                  {/* Big Labels */}
+                  <div className="pt-1 min-w-0 flex-1">
+                    <span className={`block text-sm sm:text-base font-black leading-tight transition-colors ${
+                      activeStep === 1
+                        ? "text-blue-600 dark:text-blue-400"
+                        : ibVerified
+                          ? "text-slate-900 dark:text-white"
+                          : "text-slate-500 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white"
+                    }`}>
+                      Connect Broker
+                    </span>
+                    <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium leading-snug">
+                      {ibVerified ? `✓ MT5 ${displayAccountLabel}` : "Vantage Markets · $500+"}
+                    </p>
+                  </div>
+                </div>
+
+                {/* STEP 2 NODE */}
+                <div 
+                  onClick={() => setActiveStep(2)}
+                  className="group flex items-start gap-4 relative pb-10 sm:pb-12 cursor-pointer transition-all"
+                >
+                  <div className={`absolute left-5 sm:left-6 top-12 -bottom-2 w-1 rounded-full ${
+                    hasDownloaded ? "bg-blue-600" : "bg-slate-200 dark:bg-white/10"
+                  }`} />
+                  
+                  <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center shrink-0 z-10 font-black text-sm sm:text-base transition-all ${
+                    hasDownloaded
+                      ? "bg-blue-600 text-white ring-4 sm:ring-[6px] ring-blue-100 dark:ring-blue-950/60 shadow-md shadow-blue-500/20"
+                      : activeStep === 2
+                        ? "bg-blue-600 text-white ring-4 sm:ring-[6px] ring-blue-100 dark:ring-blue-900/60 shadow-md shadow-blue-500/25 scale-105"
+                        : "bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-400 border-2 border-slate-200/80 dark:border-white/10"
+                  }`}>
+                    {hasDownloaded ? <Check size={20} strokeWidth={3.5} /> : "2"}
+                  </div>
+                  
+                  <div className="pt-1 min-w-0 flex-1">
+                    <span className={`block text-sm sm:text-base font-black leading-tight transition-colors ${
+                      activeStep === 2
+                        ? "text-blue-600 dark:text-blue-400"
+                        : hasDownloaded
+                          ? "text-slate-900 dark:text-white"
+                          : "text-slate-500 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white"
+                    }`}>
+                      Download EA
+                    </span>
+                    <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium leading-snug">
+                      {hasDownloaded ? "✓ FiAlgo_v1.0.4.ex5" : "FiAlgo V1 MT5 Binary"}
+                    </p>
+                  </div>
+                </div>
+
+                {/* STEP 3 NODE */}
+                <div 
+                  onClick={() => setActiveStep(3)}
+                  className="group flex items-start gap-4 relative pb-10 sm:pb-12 cursor-pointer transition-all"
+                >
+                  <div className={`absolute left-5 sm:left-6 top-12 -bottom-2 w-1 rounded-full ${
+                    paymentStatus === "approved" ? "bg-blue-600" : "bg-slate-200 dark:bg-white/10"
+                  }`} />
+                  
+                  <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center shrink-0 z-10 font-black text-sm sm:text-base transition-all ${
+                    paymentStatus === "approved"
+                      ? "bg-blue-600 text-white ring-4 sm:ring-[6px] ring-blue-100 dark:ring-blue-950/60 shadow-md shadow-blue-500/20"
+                      : activeStep === 3
+                        ? "bg-blue-600 text-white ring-4 sm:ring-[6px] ring-blue-100 dark:ring-blue-900/60 shadow-md shadow-blue-500/25 scale-105"
+                        : "bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-400 border-2 border-slate-200/80 dark:border-white/10"
+                  }`}>
+                    {paymentStatus === "approved" ? <Check size={20} strokeWidth={3.5} /> : "3"}
+                  </div>
+                  
+                  <div className="pt-1 min-w-0 flex-1">
+                    <span className={`block text-sm sm:text-base font-black leading-tight transition-colors ${
+                      activeStep === 3
+                        ? "text-blue-600 dark:text-blue-400"
+                        : paymentStatus === "approved"
+                          ? "text-slate-900 dark:text-white"
+                          : "text-slate-500 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white"
+                    }`}>
+                      Plan &amp; Payment
+                    </span>
+                    <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium leading-snug">
+                      {selectedTier === "three_years" ? "₹1,00,000 (3-Yr Pass)" : "₹10,000 (Weekly 50%)"}
+                    </p>
+                  </div>
+                </div>
+
+                {/* STEP 4 NODE */}
+                <div 
+                  onClick={() => setActiveStep(4)}
+                  className="group flex items-start gap-4 relative cursor-pointer transition-all"
+                >
+                  <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center shrink-0 z-10 font-black text-sm sm:text-base transition-all ${
+                    hasPaid && ibVerified
+                      ? "bg-blue-600 text-white ring-4 sm:ring-[6px] ring-blue-100 dark:ring-blue-950/60 shadow-md shadow-blue-500/20"
+                      : activeStep === 4
+                        ? "bg-blue-600 text-white ring-4 sm:ring-[6px] ring-blue-100 dark:ring-blue-900/60 shadow-md shadow-blue-500/25 scale-105"
+                        : "bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-400 border-2 border-slate-200/80 dark:border-white/10"
+                  }`}>
+                    {(hasPaid && ibVerified) ? <Check size={20} strokeWidth={3.5} /> : "4"}
+                  </div>
+                  
+                  <div className="pt-1 min-w-0 flex-1">
+                    <span className={`block text-sm sm:text-base font-black leading-tight transition-colors ${
+                      activeStep === 4
+                        ? "text-blue-600 dark:text-blue-400"
+                        : (hasPaid && ibVerified)
+                          ? "text-slate-900 dark:text-white"
+                          : "text-slate-500 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white"
+                    }`}>
+                      Activate Key
+                    </span>
+                    <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium leading-snug">
+                      Hardware-Bound MT5 Key
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom Help (Big, Clean & Prominent) */}
+            <div className="pt-6 mt-8 border-t border-slate-200/80 dark:border-white/10 space-y-3">
+              <a
+                href="https://wa.me/?text=Hello%20TradiFive%20Team!%20I%20need%20assistance%20setting%20up%20FiAlgo%20V1."
+                target="_blank"
+                rel="noreferrer"
+                className="w-full py-3 px-3.5 rounded-2xl bg-blue-50/80 hover:bg-blue-100 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 border border-blue-200/80 dark:border-blue-500/25 flex items-center justify-between transition-all group cursor-pointer shadow-xs"
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-xs">
+                    <HelpCircle size={17} />
+                  </div>
+                  <div>
+                    <span className="block text-xs font-black text-slate-900 dark:text-white">
+                      Need Help?
+                    </span>
+                    <span className="block text-[11px] font-bold text-blue-600 dark:text-blue-400">
+                      WhatsApp Setup Desk &rarr;
+                    </span>
+                  </div>
+                </div>
+                <span className="flex items-center gap-1.5 text-[10.5px] font-bold text-emerald-600 dark:text-emerald-400 bg-white dark:bg-black/30 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  Online
+                </span>
+              </a>
+            </div>
+          </aside>
+
+          {/* ── RIGHT COLUMN: ACTIVE STEP CONTENT ── */}
+          <div className="flex-1 min-w-0 space-y-4">
+            
+            {/* Top Back Navigation Bar (Matched to Reference Image) */}
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-white/5">
+              {activeStep > 1 ? (
+                <button
+                  type="button"
+                  onClick={() => setActiveStep(activeStep - 1)}
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+                >
+                  <ArrowLeft size={13} />
+                  <span>Back</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => navigate('/auto-trade')}
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition-colors cursor-pointer"
+                >
+                  <ArrowLeft size={13} />
+                  <span>Back to Auto Trade</span>
+                </button>
+              )}
+
+              <span className="text-[11px] font-mono text-slate-400 dark:text-slate-500">
+                Step {activeStep} of 4
               </span>
             </div>
-            <div className="flex items-center gap-2.5 flex-wrap">
-              <h1 className="text-xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-                AI Trading Setup
-              </h1>
-              <span className="px-2.5 py-0.5 rounded-lg font-mono text-xs font-extrabold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
-                ID: {tradifiveId}
-              </span>
+
+            {/* Step Heading */}
+            <div className="space-y-1">
+              <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+                {activeStep === 1 && "Connect MT5 Account"}
+                {activeStep === 2 && "Download FiAlgo V1"}
+                {activeStep === 3 && "Select Plan & Payment"}
+                {activeStep === 4 && "Activate License Key"}
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+                {activeStep === 1 && "Complete these steps to link your broker and prepare your automated trading setup."}
+                {activeStep === 2 && "Download the official compiled Expert Advisor file to run directly on MetaTrader 5."}
+                {activeStep === 3 && "Choose your preferred license model and complete verification to unlock your key."}
+                {activeStep === 4 && "Your personal cryptographic license key is bound and ready to trade."}
+              </p>
             </div>
-            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-              Connect your MT5 broker, download the FiAlgo V1 Expert Advisor, and activate automated execution.
-            </p>
-          </div>
 
-          <div className="flex items-center gap-2.5 shrink-0">
-            <span className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span>&lt; 3ms Direct Relay</span>
-            </span>
-
-            <button
-              type="button"
-              onClick={() => setShowCalculator(true)}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 text-xs font-bold transition-all shrink-0 cursor-pointer shadow-xs active:scale-95"
-              title="Open Profit Simulator"
-            >
-              <Calculator size={13} className="text-amber-400 dark:text-blue-600" />
-              <span>Profit Simulator</span>
-            </button>
-          </div>
-        </div>
-
-        {/* ── SLEEK PROGRESS BAR & MILESTONES (FULL-WIDTH BIG-TECH CONSOLE) ── */}
-        <div className="space-y-2.5">
-          {/* Progress Header Meta */}
-          <div className="flex items-center justify-between text-xs px-0.5">
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-slate-900 dark:text-white">
-                Step {activeStep} of 4:
-              </span>
-              <span className="text-slate-600 dark:text-slate-400 font-medium">
-                {activeStep === 1 ? "Connect MT5 Broker" : activeStep === 2 ? "Download FiAlgo V1 & Presets" : activeStep === 3 ? "License Setup Payment" : "Activate Hardware-Bound Key"}
-              </span>
-            </div>
-            <span className="font-mono font-bold text-blue-600 dark:text-blue-400 text-xs bg-blue-50 dark:bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-200/60 dark:border-blue-500/20">
-              {activeStep === 1 ? "25% Complete" : activeStep === 2 ? "50% Complete" : activeStep === 3 ? "75% Complete" : "100% Ready"}
-            </span>
-          </div>
-
-          {/* Progress Bar Track */}
-          <div className="relative w-full h-2 bg-slate-100 dark:bg-white/10 rounded-full overflow-hidden">
-            <div 
-              className="h-full bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-500 dark:to-indigo-400 rounded-full transition-all duration-300 ease-out"
-              style={{ width: activeStep === 1 ? "25%" : activeStep === 2 ? "50%" : activeStep === 3 ? "75%" : "100%" }}
-            />
-          </div>
-
-          {/* 4 Step Milestone Tabs */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-xs">
-            <button
-              type="button"
-              onClick={() => setActiveStep(1)}
-              className={`py-2 px-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer text-center text-xs truncate ${
-                activeStep === 1
-                  ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs ring-2 ring-blue-500/20"
-                  : ibVerified
-                    ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-500/20"
-                    : "bg-slate-100 text-slate-500 hover:text-slate-900 dark:bg-white/5 dark:text-slate-400"
-              }`}
-            >
-              <span>{ibVerified ? "✓" : "1."} Connect MT5</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveStep(2)}
-              className={`py-2 px-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer text-center text-xs truncate ${
-                activeStep === 2
-                  ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs ring-2 ring-blue-500/20"
-                  : hasDownloaded
-                    ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-500/20"
-                    : "bg-slate-100 text-slate-500 hover:text-slate-900 dark:bg-white/5 dark:text-slate-400"
-              }`}
-            >
-              <span>{hasDownloaded ? "✓" : "2."} Download EA</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveStep(3)}
-              className={`py-2 px-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer text-center text-xs truncate ${
-                activeStep === 3
-                  ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs ring-2 ring-blue-500/20"
-                  : paymentStatus === "approved"
-                    ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-500/20"
-                    : paymentStatus === "pending"
-                      ? "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 border border-amber-500/20"
-                      : "bg-slate-100 text-slate-500 hover:text-slate-900 dark:bg-white/5 dark:text-slate-400"
-              }`}
-            >
-              <span>{paymentStatus === "approved" ? "✓" : paymentStatus === "pending" ? "⌛" : "3."} {selectedTier === "three_years" ? "Pay ₹1L (3-Yr)" : "Pay ₹10K"}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveStep(4)}
-              className={`py-2 px-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer text-center text-xs truncate ${
-                activeStep === 4
-                  ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs ring-2 ring-blue-500/20"
-                  : (hasPaid && ibVerified)
-                    ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-500/20"
-                    : "bg-slate-100 text-slate-500 hover:text-slate-900 dark:bg-white/5 dark:text-slate-400"
-              }`}
-            >
-              <span>{(hasPaid && ibVerified) ? "✓" : "4."} Activate Key</span>
-            </button>
-          </div>
-        </div>
-
-        {/* ── EXPANSIVE 2-COLUMN BIG-TECH CONSOLE GRID (8 COLS MAIN + 4 COLS SIDEBAR) ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
-          {/* MAIN 8-COLUMN SETUP WORKSPACE */}
-          <div className="lg:col-span-8 space-y-6">
-            {/* ── STEP 1: ONLY SHOWN WHEN activeStep === 1 ── */}
-        {activeStep === 1 && (
+            {activeStep === 1 && (
           <motion.div
             key="step1"
             initial={{ opacity: 0, y: 8 }}
@@ -3176,131 +3277,11 @@ MagicNumber=789104
             </div>
           </motion.div>
         )}
-      </div>
-
-      {/* ── ENTERPRISE SIDEBAR TELEMETRY & SPECIFICATIONS (4 COLS) ── */}
-      <div className="lg:col-span-4 space-y-5 lg:sticky lg:top-6">
-
-        {/* CARD 2: RISK GUARD & CAPITAL DISCIPLINE */}
-        <div className="rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#161618] p-4 sm:p-5 shadow-xs space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-                <Shield size={14} />
-              </div>
-              <span className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-                Safety &amp; Risk Guard
-              </span>
-            </div>
-            <span className="text-[10px] font-mono font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-              Disciplined
-            </span>
-          </div>
-
-          <div className="space-y-2 text-xs">
-            <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/5">
-              <span className="text-slate-500 dark:text-slate-400">Min. Deposit:</span>
-              <span className="font-mono font-bold text-slate-900 dark:text-white">$500.00 USD</span>
-            </div>
-
-            <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/5">
-              <span className="text-slate-500 dark:text-slate-400">Recommended Base Lot:</span>
-              <span className="font-mono font-bold text-slate-900 dark:text-white">0.01 per $500</span>
-            </div>
-
-            <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/5">
-              <span className="text-slate-500 dark:text-slate-400">Hard Daily Stop:</span>
-              <span className="font-mono font-bold text-rose-600 dark:text-rose-400">Max 3.0% Drawdown</span>
-            </div>
-
-            <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/5">
-              <span className="text-slate-500 dark:text-slate-400">High-Impact News Filter:</span>
-              <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">±30 Min Blackout Active</span>
-            </div>
-          </div>
-
-          {/* Profit Simulator CTA */}
-          <button
-            type="button"
-            onClick={() => setShowCalculator(true)}
-            className="w-full py-2.5 px-3 rounded-xl text-xs font-bold bg-blue-50 hover:bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 dark:text-blue-300 border border-blue-200/80 dark:border-blue-500/20 flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-2xs active:scale-95"
-          >
-            <Calculator size={13} className="text-blue-600 dark:text-blue-400" />
-            <span>Simulate Returns in Calculator →</span>
-          </button>
-        </div>
-
-        {/* CARD 3: BROKER & PARTNER TELEMETRY */}
-        <div className="rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#161618] p-4 sm:p-5 shadow-xs space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-              Partner Broker Status
-            </span>
-            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-              ibVerified
-                ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-500/20"
-                : "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 border border-amber-500/20"
-            }`}>
-              {ibVerified ? "Connected ✓" : "Pending Verification"}
-            </span>
-          </div>
-
-          <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/5 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <BrokerLogo id={selectedBroker} size={16} />
-              <div>
-                <h5 className="text-xs font-bold text-slate-900 dark:text-white">{currentBroker.name}</h5>
-                <p className="text-[10px] text-slate-500">{currentBroker.tagline}</p>
-              </div>
-            </div>
-            <span className="text-[11px] font-mono font-bold text-slate-700 dark:text-slate-300">
-              IB: {currentBroker.ibNumber || "27863221"}
-            </span>
-          </div>
-
-          {/* WebRequest Endpoint helper */}
-          <div className="p-2.5 rounded-xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200/60 dark:border-blue-500/20 space-y-1.5 text-xs">
-            <div className="flex items-center justify-between">
-              <span className="text-[10.5px] font-bold text-slate-700 dark:text-slate-300">MT5 WebRequest URL</span>
-              <button
-                type="button"
-                onClick={() => {
-                  navigator.clipboard.writeText("https://rylwyxhupwpwsdbvuoej.supabase.co");
-                  toast.success("Webhook URL Copied!");
-                }}
-                className="text-[10px] font-bold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 cursor-pointer"
-              >
-                <Copy size={10} />
-                <span>Copy</span>
-              </button>
-            </div>
-            <code className="text-[10.5px] font-mono font-semibold text-blue-600 dark:text-blue-400 truncate block select-all">
-              https://rylwyxhupwpwsdbvuoej.supabase.co
-            </code>
-          </div>
-
-          {/* Fast-Track Desk Contact */}
-          <div className="pt-1 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-            <span>Need fast approval?</span>
-            <a
-              href={`https://wa.me/?text=${encodeURIComponent(
-                `Hello TradiFive Desk! I am setting up FiAlgo V1 for MT5 account #${mt5Account || ""}. Please assist.`
-              )}`}
-              target="_blank"
-              rel="noreferrer"
-              className="font-bold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1"
-            >
-              <MessageCircle size={12} />
-              <span>WhatsApp Desk →</span>
-            </a>
           </div>
         </div>
-
       </div>
-    </div>
-  </div>
 
-  {/* ── PHOTO PROOF PREVIEW MODAL LIGHTBOX ── */}
+      {/* ── PHOTO PROOF PREVIEW MODAL LIGHTBOX ── */}
       <AnimatePresence>
         {showProofPreviewModal && proofFile && (
           <div 
