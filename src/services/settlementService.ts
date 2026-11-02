@@ -197,11 +197,17 @@ export async function getCustomerSettlements(
   settlements: Settlement[];
   summary: CustomerSettlementSummary;
 }> {
-  // Purge any stale demo data from local storage
+  // Purge any stale demo data or other-user data from local storage
   try {
     const stored = localStorage.getItem(LOCAL_SETTLEMENTS_KEY);
-    if (stored && (stored.includes("982055") || stored.includes("26139980") || stored.includes("7601.5") || stored.includes("ST-SETTLE-2026-W43"))) {
-      localStorage.removeItem(LOCAL_SETTLEMENTS_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      // Clear if it contains demo data OR if it belongs to a different user
+      const hasDemoData = stored.includes("982055") || stored.includes("26139980") || stored.includes("7601.5") || stored.includes("ST-SETTLE-2026-W43");
+      const belongsToOtherUser = Array.isArray(parsed) && parsed.length > 0 && parsed[0].user_id && parsed[0].user_id !== userId;
+      if (hasDemoData || belongsToOtherUser) {
+        localStorage.removeItem(LOCAL_SETTLEMENTS_KEY);
+      }
     }
   } catch (e) {}
 
@@ -212,6 +218,22 @@ export async function getCustomerSettlements(
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user?.id) effectiveUid = session.user.id;
     } catch (e) {}
+  }
+
+  // SECURITY: If no authenticated user, return empty data — never show another user's data
+  if (!effectiveUid || effectiveUid === "demo-trader") {
+    return {
+      settlements: [],
+      summary: {
+        totalTradingProfit: 0,
+        tradifiveShare: 0,
+        yourShare: 0,
+        pendingPayment: 0,
+        lossCarryForward: 0,
+        settledCount: 0,
+        overdueCount: 0
+      }
+    };
   }
 
   // Resolve authentic account number

@@ -517,7 +517,7 @@ export default function WeeklySettlements() {
                             isPaid
                               ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300"
                               : isOverdue
-                              ? "bg-rose-100 text-rose-800 dark:bg-rose-500/20 dark:text-rose-300": isLoss || isCleared
+                              ? "bg-rose-100 text-rose-800 dark:bg-rose-500/20 dark:text-rose-300": isLoss 
                           ? "bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-400"
                               : "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300"
                           }`}>
@@ -564,7 +564,6 @@ export default function WeeklySettlements() {
                 const isPending = s.status === "pending";
                 const isOverdue = s.status === "overdue";
                 const isLoss = s.status === "loss_week";
-                const isCleared = s.status === "cleared";
 
                 return (
                   <div
@@ -585,7 +584,7 @@ export default function WeeklySettlements() {
                         isPaid
                           ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300"
                           : isOverdue
-                          ? "bg-rose-100 text-rose-800 dark:bg-rose-500/20 dark:text-rose-300": isLoss || isCleared
+                          ? "bg-rose-100 text-rose-800 dark:bg-rose-500/20 dark:text-rose-300": isLoss 
                           ? "bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-400"
                           : "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300"
                       }`}>
