@@ -5,7 +5,7 @@ import {
   Terminal, Camera, UploadCloud, Clock, Image as ImageIcon, 
   Headset, Send, RefreshCw, Calculator, Calendar, Sparkles, ChevronRight, ChevronDown,
   AlertCircle, DollarSign, MessageCircle, AlertTriangle, Coins, Layers, UserPlus, ArrowLeftRight,
-  Sliders, FileCode, Cpu, Activity, QrCode, Landmark, CreditCard, KeyRound, HelpCircle
+  Sliders, FileCode, Cpu, Activity, QrCode, Landmark, CreditCard, KeyRound, HelpCircle, Globe
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
@@ -1986,67 +1986,95 @@ MagicNumber=789104
                 </div>
               </div>
 
-              {/* Right Column: Redesigned MT5 Quick Installation Guide (Clean UI, consistent fonts & colors) */}
+                            {/* Right Column: Systemic Step-by-Step MT5 Installation Guide */}
               <div className="lg:col-span-6 flex flex-col">
                 <div className="rounded-2xl border border-slate-200/80 dark:border-white/10 bg-white dark:bg-[#161618] p-5 sm:p-6 space-y-4 shadow-xs flex-1 flex flex-col justify-between">
                   <div>
-                    <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/5">
-                      <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
-                        <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
-                          MT5 Quick Installation Guide
-                        </h4>
+                    {/* Header with Icon, Title and Clean Badge */}
+                    <div className="flex items-center justify-between pb-3.5 border-b border-slate-100 dark:border-white/5">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-7 h-7 rounded-lg bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-xs">
+                          <Terminal size={14} />
+                        </div>
+                        <div>
+                          <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
+                            MT5 Installation Steps
+                          </h4>
+                          <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                            Fast 2-minute setup for MetaTrader 5
+                          </p>
+                        </div>
                       </div>
-                      <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-white/10 px-2 py-0.5 rounded-full">
-                        3 Simple Steps
+                      <span className="text-[10px] font-bold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-500/10 px-2.5 py-1 rounded-full border border-blue-200/60 dark:border-blue-500/20">
+                        3 Easy Steps
                       </span>
                     </div>
 
-                    {/* 3 Step List with Consistent Numbers & Fonts */}
-                    <div className="space-y-3 pt-3 text-xs">
+                    {/* Step-by-Step Stepper Timeline with Connecting Line */}
+                    <div className="space-y-4 pt-4 text-xs">
                       {/* Step 1 */}
-                      <div className="flex items-start gap-3">
-                        <span className="w-6 h-6 rounded-full bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
+                      <div className="relative flex items-start gap-3">
+                        {/* Connecting Line to Step 2 */}
+                        <div className="absolute left-[11px] top-6 -bottom-4 w-[2px] bg-slate-200 dark:bg-white/10 z-0" />
+                        
+                        <span className="w-6 h-6 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0 z-10 shadow-xs">
                           1
                         </span>
-                        <div className="space-y-0.5 flex-1 min-w-0">
+                        <div className="space-y-1.5 flex-1 min-w-0">
                           <strong className="text-slate-900 dark:text-white block font-semibold text-xs">
-                            Copy EA into MT5 folder
+                            Paste FiAlgo in MT5 Experts Folder
                           </strong>
-                          <p className="text-[11.5px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                            In MT5 click <span className="font-medium text-slate-700 dark:text-slate-300">File → Open Data Folder → MQL5 → Experts</span> and paste <code className="font-mono text-[11px] bg-slate-100 dark:bg-white/10 px-1 py-0.5 rounded text-slate-800 dark:text-slate-200">FiAlgo_v1.0.4.ex5</code>.
+                          <p className="text-[11.5px] text-slate-500 dark:text-slate-400 leading-normal">
+                            In your MT5 terminal, open the data folder and paste the downloaded file:
                           </p>
+                          <div className="inline-flex flex-wrap items-center gap-1.5 text-[11px] p-1.5 px-2.5 rounded-lg bg-slate-50 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 text-slate-700 dark:text-slate-300">
+                            <span className="font-semibold text-slate-900 dark:text-white">File</span>
+                            <span className="text-slate-400 text-[10px]">&rarr;</span>
+                            <span>Open Data Folder</span>
+                            <span className="text-slate-400 text-[10px]">&rarr;</span>
+                            <span>MQL5</span>
+                            <span className="text-slate-400 text-[10px]">&rarr;</span>
+                            <span className="text-blue-600 dark:text-blue-400 font-bold">Experts</span>
+                          </div>
                         </div>
                       </div>
 
                       {/* Step 2 */}
-                      <div className="flex items-start gap-3">
-                        <span className="w-6 h-6 rounded-full bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
+                      <div className="relative flex items-start gap-3">
+                        {/* Connecting Line to Step 3 */}
+                        <div className="absolute left-[11px] top-6 -bottom-4 w-[2px] bg-slate-200 dark:bg-white/10 z-0" />
+
+                        <span className="w-6 h-6 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0 z-10 shadow-xs">
                           2
                         </span>
                         <div className="space-y-1.5 flex-1 min-w-0">
-                          <div className="flex items-center justify-between">
-                            <strong className="text-slate-900 dark:text-white font-semibold text-xs">
-                              Allow WebRequest (Required)
+                          <div className="flex items-center justify-between gap-2">
+                            <strong className="text-slate-900 dark:text-white block font-semibold text-xs">
+                              Allow WebRequest URL in MT5
                             </strong>
-                            <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono">Ctrl+O</span>
+                            <span className="text-[10px] font-mono font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-white/10 px-1.5 py-0.5 rounded border border-slate-200/80 dark:border-white/10">
+                              Ctrl + O
+                            </span>
                           </div>
-                          <p className="text-[11.5px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                            Go to <span className="font-medium text-slate-700 dark:text-slate-300">Tools → Options → Experts</span>. Check <em>"Allow WebRequest for listed URL"</em> and add:
+                          <p className="text-[11.5px] text-slate-500 dark:text-slate-400 leading-normal">
+                            Go to <span className="font-medium text-slate-700 dark:text-slate-300">Tools &rarr; Options &rarr; Experts</span>, check <em>"Allow WebRequest for listed URL"</em> and add:
                           </p>
-                          <div className="flex items-center justify-between bg-slate-50 dark:bg-[#121214] border border-slate-200/80 dark:border-white/10 rounded-lg p-1.5 px-2.5">
-                            <code className="text-[11px] font-mono text-blue-600 dark:text-blue-400 truncate select-all">
-                              https://rylwyxhupwpwsdbvuoej.supabase.co
-                            </code>
+                          <div className="flex items-center justify-between gap-2 p-1.5 pl-2.5 rounded-lg bg-slate-50 dark:bg-[#121214] border border-slate-200/80 dark:border-white/10">
+                            <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                              <Globe size={12} className="text-blue-500 shrink-0" />
+                              <code className="text-[11px] font-mono text-blue-600 dark:text-blue-400 truncate select-all">
+                                https://rylwyxhupwpwsdbvuoej.supabase.co
+                              </code>
+                            </div>
                             <button
                               type="button"
                               onClick={() => {
                                 navigator.clipboard.writeText("https://rylwyxhupwpwsdbvuoej.supabase.co");
                                 toast.success("Webhook URL Copied!");
                               }}
-                              className="px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-600 hover:bg-blue-700 text-white inline-flex items-center gap-1 shrink-0 cursor-pointer ml-2 transition-colors"
+                              className="px-2.5 py-1 rounded-md text-[10.5px] font-bold bg-blue-600 hover:bg-blue-700 text-white inline-flex items-center gap-1 shrink-0 cursor-pointer shadow-xs transition-colors"
                             >
-                              <Copy size={10} />
+                              <Copy size={11} />
                               <span>Copy</span>
                             </button>
                           </div>
@@ -2054,23 +2082,27 @@ MagicNumber=789104
                       </div>
 
                       {/* Step 3 */}
-                      <div className="flex items-start gap-3">
-                        <span className="w-6 h-6 rounded-full bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
+                      <div className="relative flex items-start gap-3">
+                        <span className="w-6 h-6 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0 z-10 shadow-xs">
                           3
                         </span>
-                        <div className="space-y-0.5 flex-1 min-w-0">
+                        <div className="space-y-1.5 flex-1 min-w-0">
                           <strong className="text-slate-900 dark:text-white block font-semibold text-xs">
-                            Attach to XAUUSD (Gold) M15 Chart
+                            Attach to XAUUSD Chart &amp; Enable Algo
                           </strong>
-                          <p className="text-[11.5px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                            Drag FiAlgo onto an M15 chart. Make sure the top <span className="font-medium text-slate-700 dark:text-slate-300">Algo Trading</span> button is ON (green play icon).
+                          <p className="text-[11.5px] text-slate-500 dark:text-slate-400 leading-normal">
+                            Open <span className="font-semibold text-slate-800 dark:text-slate-200">XAUUSD (Gold)</span> on <span className="font-semibold text-slate-800 dark:text-slate-200">M15 timeframe</span>, drag FiAlgo onto the chart, and turn ON <span className="font-semibold text-emerald-600 dark:text-emerald-400">Algo Trading</span> on MT5's top toolbar.
                           </p>
+                          <div className="flex items-center gap-1.5 text-[11px] font-medium text-emerald-600 dark:text-emerald-400 pt-0.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                            <span>Top Algo Trading button must show a green play icon</span>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Free Assistance Footer (No emojis, clean consistency) */}
+                  {/* Free Assistance Footer */}
                   <div className="pt-3 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-xs">
                     <span className="text-[11.5px] text-slate-500 dark:text-slate-400 font-medium">
                       Need installation help?
@@ -2082,7 +2114,7 @@ MagicNumber=789104
                       className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors"
                     >
                       <MessageCircle size={13} />
-                      <span>WhatsApp Setup Desk →</span>
+                      <span>WhatsApp Setup Desk &rarr;</span>
                     </a>
                   </div>
                 </div>
