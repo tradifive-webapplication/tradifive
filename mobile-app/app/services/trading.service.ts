@@ -27,8 +27,6 @@ export interface Trade {
   notes?: string;
 }
 
-
-
 export class TradingService {
   static async getAccountMetrics(userId: string): Promise<MT5Account | null> {
     try {
@@ -46,20 +44,8 @@ export class TradingService {
       console.error('[TradingService] Error fetching account metrics:', err.message);
     }
     
-    // Return mock fallback
-    return {
-      id: 'mock-account-id',
-      user_id: userId,
-      account_number: '8829410',
-      broker: 'Fialgo Markets',
-      server: 'Fialgo-Live-Server',
-      balance: 10540.25,
-      equity: 10485.50,
-      margin: 120.00,
-      margin_free: 10365.50,
-      algo_status: true,
-      created_at: new Date().toISOString()
-    };
+    // Return null when no real MT5 account is linked yet
+    return null;
   }
 
   static async getRecentTrades(userId: string): Promise<Trade[]> {

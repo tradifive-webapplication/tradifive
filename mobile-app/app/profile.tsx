@@ -577,7 +577,7 @@ export default function ProfileScreen() {
   const wins = trades.filter(t => Number(t.profit) > 0).length;
   const winRate = totalTrades > 0 ? Math.round((wins / totalTrades) * 100) : 0;
   const pnlSum = trades.reduce((acc, t) => acc + Number(t.profit || 0), 0);
-  const balance = mt5Account?.balance || 10000;
+  const balance = mt5Account?.balance || 0;
   const roi = balance > 0 ? ((pnlSum / balance) * 100).toFixed(2) : "0.00";
 
   let bestStreak = 0;

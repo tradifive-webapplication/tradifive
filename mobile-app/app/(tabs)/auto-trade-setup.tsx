@@ -136,7 +136,8 @@ const BROKERS = [
 // Cryptographic Key Generator matching Tradifive.mq5 FNV-1a algorithm & TF_SALT
 export const generateTradifiveLicenseKey = (mt5AccountNumber?: string | number, expDays: number = 10000): string => {
   const salt = 'TFv1-Zk39xQ-7mLpA2';
-  const numClean = String(mt5AccountNumber || '').replace(/\D/g, '') || '8392019';
+  const numClean = String(mt5AccountNumber || '').replace(/\D/g, '');
+  if (!numClean) return 'TF-PENDING-ACTIVATION';
   try {
     const login = BigInt(numClean);
     let h = 0xcbf29ce484222325n;
@@ -154,7 +155,7 @@ export const generateTradifiveLicenseKey = (mt5AccountNumber?: string | number, 
     const chkHex = chk.toString(16).toUpperCase().padStart(10, '0');
     return `TF-${lgHex}-${expHex}-${chkHex}`;
   } catch (e) {
-    const hexAcc = Math.abs(Number(numClean) || 8392019).toString(16).toUpperCase().padStart(8, '0').slice(-8);
+    const hexAcc = Math.abs(Number(numClean) || 0).toString(16).toUpperCase().padStart(8, '0').slice(-8);
     return `TF-${hexAcc.slice(0, 4)}-${hexAcc.slice(4, 8)}-94A1C8B204`;
   }
 };
@@ -222,12 +223,12 @@ export default function AutoTradeSetupScreen() {
   // Setup Form State
   const [setupPath, setSetupPath] = useState<'new' | 'transfer'>('new');
   const [selectedBroker, setSelectedBroker] = useState<string>('vantage');
-  const [accountNumber, setAccountNumber] = useState(mt5Account?.account_number || '8392019');
-  const [server, setServer] = useState(mt5Account?.server || 'Vantage-Live 2');
-  const [depositConfirmed, setDepositConfirmed] = useState(true);
+  const [accountNumber, setAccountNumber] = useState(mt5Account?.account_number || '');
+  const [server, setServer] = useState(mt5Account?.server || '');
+  const [depositConfirmed, setDepositConfirmed] = useState(false);
   const [proofUri, setProofUri] = useState<string | null>(null);
   const [isSubmittingProof, setIsSubmittingProof] = useState(false);
-  const [transferStatus, setTransferStatus] = useState<'none' | 'pending' | 'approved'>('approved');
+  const [transferStatus, setTransferStatus] = useState<'none' | 'pending' | 'approved'>(mt5Account?.account_number ? 'approved' : 'none');
 
   // Step 3 Payment State
   const [selectedTier, setSelectedTier] = useState<'three_years' | 'profit_share'>('three_years');
@@ -235,10 +236,10 @@ export default function AutoTradeSetupScreen() {
   const [utrNumber, setUtrNumber] = useState('');
   const [paymentProofUri, setPaymentProofUri] = useState<string | null>(null);
   const [isSubmittingPayment, setIsSubmittingPayment] = useState(false);
-  const [paymentStatus, setPaymentStatus] = useState<'none' | 'pending' | 'approved'>('approved');
+  const [paymentStatus, setPaymentStatus] = useState<'none' | 'pending' | 'approved'>((currentUser as any)?.subscription_status === 'active' ? 'approved' : 'none');
 
   // Live Bot Execution State
-  const [botActive, setBotActive] = useState(true);
+  const [botActive, setBotActive] = useState(Boolean(mt5Account?.algo_status));
   const [viewMode, setViewMode] = useState<'setup' | 'dashboard'>('setup');
   const [downloadedEA, setDownloadedEA] = useState(false);
 
@@ -623,7 +624,7 @@ export default function AutoTradeSetupScreen() {
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                       <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#10b981' }} />
                       <Text style={{ fontSize: 13, fontFamily: 'Inter_700Bold', color: isDark ? '#ffffff' : '#0f172a' }}>
-                        FiAlgo MT5 #{accountNumber || '757'}
+                        FiAlgo MT5 #{accountNumber || 'Pending'}
                       </Text>
                       <View style={{ paddingHorizontal: 7, paddingVertical: 2, borderRadius: 6, backgroundColor: isDark ? 'rgba(245,158,11,0.15)' : '#fef3c7' }}>
                         <Text style={{ fontSize: 10.5, fontFamily: 'Inter_700Bold', color: '#d97706' }}>
@@ -896,7 +897,7 @@ export default function AutoTradeSetupScreen() {
                     </View>
                   </View>
                   <Text style={{ fontSize: 11, fontFamily: 'Inter_400Regular', color: '#64748b', lineHeight: 15 }}>
-                    Scanning XAUUSD M1 chart for volatility breakout baskets. Protected by hardware-bound cryptographic key #{accountNumber || '757'}.
+                    Scanning XAUUSD M1 chart for volatility breakout baskets. Protected by hardware-bound cryptographic key #{accountNumber || 'Pending'}.
                   </Text>
                 </View>
 
@@ -1550,14 +1551,14 @@ export default function AutoTradeSetupScreen() {
                       FiAlgo V1 License Active
                     </Text>
                     <Text style={[styles.formDesc, { textAlign: 'center', marginTop: 2 }]}>
-                      Your personal cryptographic license key is bound and ready to trade on MT5 Account #{accountNumber || '757'}.
+                      Your personal cryptographic license key is bound and ready to trade on MT5 Account #{accountNumber || 'Pending'}.
                     </Text>
                   </View>
 
                   {/* Master License Key Box */}
                   <View style={[styles.keyBoxLarge, { backgroundColor: isDark ? '#0c0e14' : '#f8fafc', borderColor: isDark ? '#1e2433' : '#e2e8f0', borderWidth: 1 }]}>
                     <Text style={{ fontSize: 10, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 8 }}>
-                      MT5 LICENSE KEY (#{accountNumber || '757'})
+                      MT5 LICENSE KEY (#{accountNumber || 'Pending'})
                     </Text>
                     <Text style={[styles.keyTextLarge, { color: isDark ? '#38bdf8' : '#0284c7', paddingHorizontal: 6, fontSize: 15 }]}>
                       {dynamicLicenseKey}
