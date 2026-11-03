@@ -1,5 +1,5 @@
 import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, ActivityIndicator, Alert, Platform, SafeAreaView, Dimensions } from 'react-native';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -19,17 +19,27 @@ export default function VerifyEmailScreen() {
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
   const [focusedField, setFocusedField] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = setInterval(() => {
+      setResendCooldown((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [resendCooldown]);
+
   const handleResend = async () => {
-    if (!email) return;
+    if (!email || resendCooldown > 0) return;
     setResending(true);
     try {
       if (Platform.OS !== 'web') {
         await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       }
       await AuthService.resendOtp(email);
-      Alert.alert('Code Sent', 'A new verification code has been sent to your email.');
+      setResendCooldown(60);
+      Alert.alert('Code Sent', 'A new 6-digit verification code has been sent to your email.');
     } catch (err: any) {
       Alert.alert('Resend Failed', err.message || 'Could not resend the code.');
     } finally {
@@ -38,8 +48,9 @@ export default function VerifyEmailScreen() {
   };
 
   const handleVerify = async () => {
-    if (!otp || otp.length < 6) {
-      Alert.alert('Error', 'Please enter the valid code.');
+    const cleanOtp = otp.trim();
+    if (!cleanOtp || cleanOtp.length < 6) {
+      Alert.alert('Error', 'Please enter the 6-digit verification code.');
       return;
     }
     setLoading(true);
@@ -48,7 +59,7 @@ export default function VerifyEmailScreen() {
         await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       }
       
-      await AuthService.verifyOtp(email, otp);
+      await AuthService.verifyOtp(email, cleanOtp);
       // Sign out temporary session so user logs in with their credentials
       await AuthService.signOut();
       
@@ -66,7 +77,7 @@ export default function VerifyEmailScreen() {
         ]
       );
     } catch (err: any) {
-      Alert.alert('Verification Failed', err.message || 'Invalid code.');
+      Alert.alert('Verification Failed', err.message || 'Invalid verification code.');
     } finally {
       setLoading(false);
     }
@@ -139,22 +150,22 @@ export default function VerifyEmailScreen() {
               <View style={styles.formContainer}>
                 {/* OTP Input */}
                 <View style={styles.inputWrapper}>
-                  <Text style={styles.inputLabel}>Verification Code</Text>
+                  <Text style={styles.inputLabel}>6-Digit Verification Code</Text>
                   <View style={[
                     styles.inputContainer,
                     focusedField === 'otp' && styles.inputFocused,
                   ]}>
                     <View style={styles.inputIcon}><Lock size={20} color="#98A2B3" /></View>
                     <TextInput
-                      style={styles.input}
-                      placeholder="00000000"
-                      placeholderTextColor="#98A2B3"
+                      style={[styles.input, { letterSpacing: 6, fontSize: 20, fontWeight: '700' }]}
+                      placeholder="000000"
+                      placeholderTextColor="#CBD5E1"
                       value={otp}
-                      onChangeText={(val) => setOtp(val.replace(/[^0-9]/g, '').slice(0, 8))}
+                      onChangeText={(val) => setOtp(val.replace(/[^0-9]/g, '').slice(0, 6))}
                       onFocus={() => { setFocusedField('otp'); Platform.OS !== 'web' && Haptics.selectionAsync(); }}
                       onBlur={handleBlur}
                       keyboardType="numeric"
-                      maxLength={8}
+                      maxLength={6}
                     />
                   </View>
                 </View>
@@ -187,13 +198,15 @@ export default function VerifyEmailScreen() {
 
                   <TouchableOpacity
                     onPress={handleResend}
-                    disabled={resending}
+                    disabled={resending || resendCooldown > 0}
                     activeOpacity={0.7}
                   >
                     {resending ? (
                       <ActivityIndicator color="#64748B" size="small" />
                     ) : (
-                      <Text style={styles.linkText}>Resend Code</Text>
+                      <Text style={[styles.linkText, resendCooldown > 0 && { color: '#94A3B8' }]}>
+                        {resendCooldown > 0 ? `Resend Code (${resendCooldown}s)` : 'Resend Code'}
+                      </Text>
                     )}
                   </TouchableOpacity>
                 </View>

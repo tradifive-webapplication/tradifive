@@ -101,23 +101,15 @@ export default function SignupScreen() {
         last_name: lastName.trim()
       });
 
-      // As requested: After signup, email verification is sent, then user must log in
+      // Ensure temp session is cleared so user signs in cleanly with credentials after verification
       await AuthService.signOut();
 
       if (Platform.OS !== 'web') {
         await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       }
 
-      Alert.alert(
-        'Verification Code Sent',
-        'A verification code has been sent to your email. Please verify your email, then sign in with your credentials.',
-        [
-          {
-            text: 'Verify Email',
-            onPress: () => router.push({ pathname: '/verify-email', params: { email: email.trim() } }),
-          },
-        ]
-      );
+      // Automatically navigate to verify-email screen with the registered email
+      router.push({ pathname: '/verify-email', params: { email: email.trim() } });
     } catch (err: any) {
       let msg = err.message || 'Could not complete registration.';
       

@@ -101,19 +101,37 @@ export class AuthService {
   }
 
   static async verifyOtp(email: string, otp: string) {
-    const { data, error } = await supabase.auth.verifyOtp({
-      email,
-      token: otp,
+    const cleanToken = otp.trim();
+    const cleanEmail = email.trim();
+    let { data, error } = await supabase.auth.verifyOtp({
+      email: cleanEmail,
+      token: cleanToken,
       type: 'signup'
     });
+    // Dual fallback: also try 'email' type if 'signup' type fails
+    if (error) {
+      const fallback = await supabase.auth.verifyOtp({
+        email: cleanEmail,
+        token: cleanToken,
+        type: 'email'
+      });
+      if (!fallback.error) {
+        data = fallback.data;
+        error = null;
+      }
+    }
     if (error) throw new Error(error.message);
     return data;
   }
 
   static async resendOtp(email: string) {
+    const appRedirectUrl = this.getRedirectUrl();
     const { data, error } = await supabase.auth.resend({
       type: 'signup',
-      email,
+      email: email.trim(),
+      options: {
+        emailRedirectTo: appRedirectUrl,
+      }
     });
     if (error) throw new Error(error.message);
     return data;

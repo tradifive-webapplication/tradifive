@@ -9,6 +9,7 @@ import { toast } from "sonner";
 export default function VerifyEmail() {
   const [code, setCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
   const email = location.state?.email || "";
@@ -22,17 +23,31 @@ export default function VerifyEmail() {
 
     setIsLoading(true);
     try {
-      const { data, error } = await supabase.auth.verifyOtp({
+      const cleanToken = code.trim();
+      let { data, error } = await supabase.auth.verifyOtp({
         email,
-        token: code,
+        token: cleanToken,
         type: 'signup'
       });
+
+      // Dual fallback: if 'signup' type fails, try 'email' type
+      if (error) {
+        const fallback = await supabase.auth.verifyOtp({
+          email,
+          token: cleanToken,
+          type: 'email'
+        });
+        if (!fallback.error) {
+          data = fallback.data;
+          error = null;
+        }
+      }
 
       if (error) {
         toast.error(error.message);
       } else {
-        toast.success("Email verified successfully!");
-        navigate("/journal");
+        toast.success("Email verified successfully! Please sign in with your password.", { duration: 6000 });
+        navigate("/login");
       }
     } catch (err: any) {
       toast.error("An unexpected error occurred.");
@@ -42,16 +57,20 @@ export default function VerifyEmail() {
   };
 
   const handleResend = async () => {
-    if (!email) return;
+    if (!email || resendCooldown > 0) return;
     try {
       const { error } = await supabase.auth.resend({
         type: 'signup',
-        email
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/login?verified=true`,
+        }
       });
       if (error) {
         toast.error(error.message);
       } else {
         toast.success("Verification code resent to your email.");
+        setResendCooldown(60);
       }
     } catch (err: any) {
       toast.error("An unexpected error occurred.");
@@ -135,11 +154,12 @@ export default function VerifyEmail() {
               No email?{" "}
               <button
                 onClick={handleResend}
+                disabled={resendCooldown > 0}
                 type="button"
-                className="text-primary hover:text-primary/70 transition-colors inline-flex items-center gap-1.5 group ml-1"
+                className="text-primary hover:text-primary/70 transition-colors inline-flex items-center gap-1.5 group ml-1 disabled:opacity-50"
               >
-                <RefreshCcw size={12} className="group-hover:rotate-180 transition-transform duration-700" />
-                Resend
+                <RefreshCcw size={12} className={`group-hover:rotate-180 transition-transform duration-700 ${resendCooldown > 0 ? 'animate-spin' : ''}`} />
+                {resendCooldown > 0 ? `Resend (${resendCooldown}s)` : 'Resend'}
               </button>
             </p>
           </div>
@@ -148,8 +168,3 @@ export default function VerifyEmail() {
     </div>
   );
 }
-
-
-
-
-
