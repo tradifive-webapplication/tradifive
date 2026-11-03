@@ -663,8 +663,8 @@ export default function PublicNavbar({
                     style={{
                       display: "flex",
                       flexDirection: "column",
-                      gap: 6,
-                      marginBottom: 10,
+                      gap: 8,
+                      marginBottom: 14,
                     }}
                   >
                     {MOBILE_FEATURES.map((feat) => {
@@ -679,31 +679,34 @@ export default function PublicNavbar({
                           style={{
                             width: "100%",
                             textAlign: "left",
-                            background: "rgba(255, 255, 255, 0.02)",
-                            border: "1px solid rgba(255, 255, 255, 0.05)",
-                            borderRadius: 12,
-                            padding: "9px 12px",
+                            background: "#171717",
+                            border: "1px solid rgba(255, 255, 255, 0.08)",
+                            boxShadow: "inset 0 1px 0 0 rgba(255, 255, 255, 0.05), 0 0 0 1px rgba(255, 255, 255, 0.05), 0 2px 4px rgba(0, 0, 0, 0.2)",
+                            borderRadius: 16,
+                            padding: "11px 14px",
                             cursor: "pointer",
                             display: "flex",
                             alignItems: "center",
                             gap: 12,
-                            transition: "all 0.15s ease",
+                            transition: "all 0.2s ease",
                             outline: "none",
                           }}
                           onMouseEnter={(e) => {
-                            e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)";
-                            e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.1)";
+                            e.currentTarget.style.background = "#202020";
+                            e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.14)";
+                            e.currentTarget.style.boxShadow = "inset 0 1px 0 0 rgba(255, 255, 255, 0.08), 0 0 0 1px rgba(255, 255, 255, 0.08), 0 4px 10px rgba(0, 0, 0, 0.3)";
                           }}
                           onMouseLeave={(e) => {
-                            e.currentTarget.style.background = "rgba(255, 255, 255, 0.02)";
-                            e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.05)";
+                            e.currentTarget.style.background = "#171717";
+                            e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.08)";
+                            e.currentTarget.style.boxShadow = "inset 0 1px 0 0 rgba(255, 255, 255, 0.05), 0 0 0 1px rgba(255, 255, 255, 0.05), 0 2px 4px rgba(0, 0, 0, 0.2)";
                           }}
                         >
                           <div
                             style={{
-                              width: 32,
-                              height: 32,
-                              borderRadius: 8,
+                              width: 36,
+                              height: 36,
+                              borderRadius: 10,
                               background: feat.bgColor,
                               border: `1px solid ${feat.borderColor}`,
                               display: "flex",
@@ -713,19 +716,19 @@ export default function PublicNavbar({
                               color: feat.color,
                             }}
                           >
-                            <Icon size={15} />
+                            <Icon size={16} />
                           </div>
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{ display: "flex", alignItems: "center", gap: 6, lineHeight: 1.2 }}>
-                              <span style={{ fontSize: 13.5, fontWeight: 600, color: "#ffffff" }}>
+                              <span style={{ fontSize: 13.5, fontWeight: 700, color: "#ffffff" }}>
                                 {feat.title}
                               </span>
                               {feat.badge && (
                                 <span
                                   style={{
                                     fontSize: 8.5,
-                                    fontWeight: 700,
-                                    padding: "1px 5px",
+                                    fontWeight: 800,
+                                    padding: "2px 6px",
                                     borderRadius: 4,
                                     background: feat.bgColor,
                                     border: `1px solid ${feat.borderColor}`,
@@ -739,9 +742,9 @@ export default function PublicNavbar({
                             </div>
                             <div
                               style={{
-                                fontSize: 11,
+                                fontSize: 11.5,
                                 color: "rgba(255, 255, 255, 0.45)",
-                                marginTop: 2,
+                                marginTop: 3,
                                 whiteSpace: "nowrap",
                                 overflow: "hidden",
                                 textOverflow: "ellipsis",
@@ -750,7 +753,7 @@ export default function PublicNavbar({
                               {feat.desc}
                             </div>
                           </div>
-                          <ChevronRight size={13} color="rgba(255, 255, 255, 0.25)" style={{ flexShrink: 0 }} />
+                          <ChevronRight size={14} color="rgba(255, 255, 255, 0.3)" style={{ flexShrink: 0 }} />
                         </button>
                       );
                     })}
@@ -758,51 +761,76 @@ export default function PublicNavbar({
                 )}
 
                 {/* Section Label */}
-                <div style={{ padding: "10px 8px 8px", fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.22)", letterSpacing: "0.16em", textTransform: "uppercase" }}>
+                <div style={{ padding: "12px 8px 8px", fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.25)", letterSpacing: "0.16em", textTransform: "uppercase" }}>
                   Navigation
                 </div>
 
                 {/* Nav Links */}
-                {[
-                  { label: "Pricing", path: "/#pricing", scrollId: "pricing", icon: Tag },
-                  { label: "Download App", path: "/download", icon: Smartphone },
-                  { label: "Contact", path: "/contact", icon: Mail },
-                ].map((item, i) => {
-                  const Icon = item.icon;
-                  const content = (
-                    <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 12px", borderRadius: 12, transition: "background 0.15s" }}>
-                      <div style={{
-                        width: 32, height: 32, borderRadius: 8,
-                        background: "rgba(255,255,255,0.04)",
-                        border: "1px solid rgba(255,255,255,0.07)",
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        flexShrink: 0,
-                      }}>
-                        <Icon size={14} color="rgba(255,255,255,0.55)" />
+                <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 8 }}>
+                  {[
+                    { label: "Pricing", path: "/#pricing", scrollId: "pricing", icon: Tag },
+                    { label: "Download App", path: "/download", icon: Smartphone },
+                    { label: "Contact", path: "/contact", icon: Mail },
+                  ].map((item, i) => {
+                    const Icon = item.icon;
+                    const content = (
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 12,
+                          padding: "11px 14px",
+                          borderRadius: 16,
+                          background: "#171717",
+                          border: "1px solid rgba(255, 255, 255, 0.08)",
+                          boxShadow: "inset 0 1px 0 0 rgba(255, 255, 255, 0.05), 0 0 0 1px rgba(255, 255, 255, 0.05), 0 2px 4px rgba(0, 0, 0, 0.2)",
+                          transition: "all 0.2s ease",
+                          cursor: "pointer",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = "#202020";
+                          e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.14)";
+                          e.currentTarget.style.boxShadow = "inset 0 1px 0 0 rgba(255, 255, 255, 0.08), 0 0 0 1px rgba(255, 255, 255, 0.08), 0 4px 10px rgba(0, 0, 0, 0.3)";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = "#171717";
+                          e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.08)";
+                          e.currentTarget.style.boxShadow = "inset 0 1px 0 0 rgba(255, 255, 255, 0.05), 0 0 0 1px rgba(255, 255, 255, 0.05), 0 2px 4px rgba(0, 0, 0, 0.2)";
+                        }}
+                      >
+                        <div style={{
+                          width: 36, height: 36, borderRadius: 10,
+                          background: "rgba(255,255,255,0.04)",
+                          border: "1px solid rgba(255,255,255,0.08)",
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          flexShrink: 0,
+                        }}>
+                          <Icon size={15} color="rgba(255,255,255,0.65)" />
+                        </div>
+                        <span style={{ fontSize: 13.5, fontWeight: 600, color: "rgba(255,255,255,0.9)" }}>{item.label}</span>
+                        <ChevronRight size={14} color="rgba(255,255,255,0.3)" style={{ marginLeft: "auto" }} />
                       </div>
-                      <span style={{ fontSize: 14, fontWeight: 500, color: "rgba(255,255,255,0.7)" }}>{item.label}</span>
-                      <ChevronRight size={13} color="rgba(255,255,255,0.2)" style={{ marginLeft: "auto" }} />
-                    </div>
-                  );
-                  return (
-                    <motion.div
-                      key={item.label}
-                      initial={{ opacity: 0, x: 16 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.1 + i * 0.05, duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                    >
-                      {item.scrollId ? (
-                        <a href={item.path} onClick={(e) => handleScrollTo(e as any, item.scrollId!)} style={{ textDecoration: "none", display: "block" }}>
-                          {content}
-                        </a>
-                      ) : (
-                        <Link to={item.path} onClick={() => setMobileMenuOpen(false)} style={{ textDecoration: "none", display: "block" }}>
-                          {content}
-                        </Link>
-                      )}
-                    </motion.div>
-                  );
-                })}
+                    );
+                    return (
+                      <motion.div
+                        key={item.label}
+                        initial={{ opacity: 0, x: 16 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.1 + i * 0.05, duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                      >
+                        {item.scrollId ? (
+                          <a href={item.path} onClick={(e) => handleScrollTo(e as any, item.scrollId!)} style={{ textDecoration: "none", display: "block" }}>
+                            {content}
+                          </a>
+                        ) : (
+                          <Link to={item.path} onClick={() => setMobileMenuOpen(false)} style={{ textDecoration: "none", display: "block" }}>
+                            {content}
+                          </Link>
+                        )}
+                      </motion.div>
+                    );
+                  })}
+                </div>
               </div>
 
               {/* â”€â”€ Bottom CTA â”€â”€ */}
