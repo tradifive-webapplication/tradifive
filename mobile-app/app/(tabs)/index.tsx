@@ -1911,172 +1911,107 @@ export default function DashboardScreen() {
 
   return (
     /* Root must NOT clip overflow so dropdown can escape header */
-    <View style={{ flex: 1, backgroundColor: activeCardId ? '#090d16' : 'transparent' }}>
-      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+    <View style={{ flex: 1, backgroundColor: isDark ? '#0a0a0a' : '#f4f4f6' }}>
+      <StatusBar barStyle={headerStyle === 'simple' && !isDark ? 'dark-content' : 'light-content'} backgroundColor="transparent" translucent />
 
-      {/* Top Backside Glow / Artwork Image */}
-      <Image
-        source={require('../../assets/images/top-glow.png')}
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          width: '100%',
-          height: insets.top + 170,
-          zIndex: 0,
-          opacity: headerStyle === 'simple' ? 0 : 0.95,
-        }}
-        resizeMode="stretch"
-        pointerEvents="none"
-      />
+      {/* ── SPACER ── */}
+      <View style={{ height: headerStyle === 'simple' ? insets.top + 74 : insets.top + 104, width: '100%', zIndex: 1 }} />
 
-
-      {/* ── COMPACT SMART STICKY HEADER (Reveals smoothly when scrolled deep) ── */}
       {headerStyle !== 'simple' && (
-        <Animated.View
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            height: headerHeight,
-            backgroundColor: '#000000',
-            zIndex: 100,
-            paddingTop: insets.top + 8,
-            opacity: headerOpacity,
-            borderBottomLeftRadius: 32,
-            borderBottomRightRadius: 32,
-            overflow: 'hidden',
-          }}
-          pointerEvents="box-none"
-        >
-          <Image
-            source={require('../../assets/images/top-glow.png')}
-            style={{ position: 'absolute', top: 0, left: 0, right: 0, width: '100%', height: 80, opacity: 0.8 }}
-            resizeMode="stretch"
-          />
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, height: 48 }}>
-            <Text style={{ fontSize: 22, fontFamily: 'Inter_700Bold', color: '#fff', letterSpacing: -0.5 }}>
-              {activeTab === 'dashboard' ? 'Dashboard' : 'Home'}
-            </Text>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-              <TouchableOpacity onPress={() => { h(); router.push('/notifications' as any); }} style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center' }}>
-                <Bell size={22} color="#fff" />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => router.setParams({ openProfile: 'true' })}>
-                <Image source={{ uri: getAvatarUrl(currentUser?.avatar_url, currentUser?.email) }} style={{ width: 32, height: 32, borderRadius: 16 }} />
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Animated.View>
-      )}
-
-      {/* ── HEADER (Absolute Header with Smooth Parallax Fade) ── */}
-      {(activeTab === 'dashboard' || activeTab === 'feed' || activeTab === 'community' || activeTab === 'contests') && (
-        <Animated.View style={[
-          styles.header,
-          {
-            zIndex: 10,
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            opacity: activeCardId ? 0.15 : scrollY.interpolate({
-              inputRange: [0, 80],
-              outputRange: [1, 0],
-              extrapolate: 'clamp',
-            }),
-            height: headerStyle === 'simple' ? insets.top + 74 : insets.top + 104,
-            backgroundColor: headerStyle === 'simple' ? (activeCardId ? (isDark ? '#000' : '#090d16') : (isDark ? theme.background : '#ffffff')) : 'transparent',
-            borderBottomWidth: headerStyle === 'simple' && !isDark ? 1 : 0,
-            borderBottomColor: isDark ? theme.cardBorder : '#e2e8f0',
-            transform: headerStyle === 'simple' ? [] : [{
-              translateY: scrollY.interpolate({
-                inputRange: [0, 80],
-                outputRange: [0, -50],
-                extrapolate: 'clamp',
-              })
-            }],
-            pointerEvents: 'box-none',
-          }
-        ]}>
-          {headerStyle !== 'simple' && (
-            <BlurView
-              intensity={20}
-              tint="dark"
-              style={StyleSheet.absoluteFillObject}
+        <>
+          {/* ── BACKGROUND STRIP & GLOW ── */}
+          <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: insets.top + 180, backgroundColor: isDark ? '#0a0a0a' : '#0d0d1a', zIndex: 0 }} />
+          {headerStyle === 'top_glow' && (
+            <Image
+              source={require('../../assets/images/top-glow.png')}
+              style={{ position: 'absolute', top: 0, left: 0, right: 0, width: '100%', height: 180, opacity: 0.9, zIndex: 0 }}
+              resizeMode="stretch"
             />
           )}
-
-          {/* Static Header Row — sitting cleanly right above the white card */}
-          <Animated.View style={{
-            position: 'absolute',
-            bottom: headerStyle === 'simple' ? 16 : 38,
-            left: 0,
-            right: 0,
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            paddingHorizontal: 20,
-            opacity: aiHeaderFade,
-          }}>
-            {activeTab === 'community' ? (
-              <TouchableOpacity
-                onPress={dropdownOpen ? closeDropdown : openDropdown}
-                style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
-              >
-                <Text style={{ color: headerStyle === 'simple' ? '#000000' : '#fff', fontSize: 22, fontFamily: 'Inter_600SemiBold' }}>{headerTitle}</Text>
-                {dropdownOpen
-                  ? <ChevronUp size={18} color={headerStyle === 'simple' ? '#000000' : '#fff'} />
-                  : <ChevronDown size={18} color={headerStyle === 'simple' ? '#000000' : '#fff'} />}
-              </TouchableOpacity>
-            ) : activeTab === 'contests' ? (
-              <TouchableOpacity
-                onPress={dropdownOpen ? closeDropdown : openDropdown}
-                style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
-              >
-                <Text style={{ color: headerStyle === 'simple' ? '#000000' : '#fff', fontSize: 22, fontFamily: 'Inter_600SemiBold' }}>
-                  {contestView === 'contests' ? 'Contests' : contestView === 'profile' ? 'Profile' : 'Leaderboard'}
-                </Text>
-                {dropdownOpen
-                  ? <ChevronUp size={18} color={headerStyle === 'simple' ? '#000000' : '#fff'} />
-                  : <ChevronDown size={18} color={headerStyle === 'simple' ? '#000000' : '#fff'} />}
-              </TouchableOpacity>
-            ) : (
-              <Text style={{ color: headerStyle === 'simple' ? (isDark ? theme.text : '#000000') : '#fff', fontSize: 24, fontFamily: 'Inter_700Bold', letterSpacing: -0.5 }}>
-                {activeTab === 'dashboard' ? 'Dashboard' : 'Home'}
-              </Text>
-            )}
-
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-              <TouchableOpacity onPress={() => { h(); router.push('/notifications' as any); }} style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center' }}>
-                <Bell size={22} color={headerStyle === 'simple' ? (isDark ? theme.text : '#000000') : 'white'} />
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => router.setParams({ openProfile: 'true' })}
-                style={{ width: 34, height: 34, borderRadius: 17, borderWidth: 1.5, borderColor: headerStyle === 'simple' ? (isDark ? theme.cardBorder : 'rgba(0,0,0,0.1)') : 'rgba(255,255,255,0.2)', overflow: 'hidden' }}
-              >
-                <Image source={{ uri: getAvatarUrl(currentUser?.avatar_url, currentUser?.email) }} style={{ width: '100%', height: '100%' }} />
-              </TouchableOpacity>
-            </View>
-          </Animated.View>
-        </Animated.View>
+        </>
       )}
 
+      {/* ── STATIC HEADER TEXT ── */}
+      <Animated.View style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        height: headerStyle === 'simple' ? insets.top + 74 : insets.top + 104,
+        backgroundColor: headerStyle === 'simple' ? (isDark ? '#0a0a0a' : '#ffffff') : 'transparent',
+        borderBottomWidth: headerStyle === 'simple' ? 1 : 0,
+        borderBottomColor: isDark ? '#1a1a1a' : '#e2e8f0',
+        zIndex: 1000,
+        opacity: headerStyle === 'simple' ? 1 : scrollY.interpolate({ inputRange: [0, 35], outputRange: [1, 0], extrapolate: 'clamp' }),
+        transform: headerStyle === 'simple' ? [] : [
+          { scale: scrollY.interpolate({ inputRange: [0, 35], outputRange: [1, 0.92], extrapolate: 'clamp' }) },
+          { translateY: scrollY.interpolate({ inputRange: [0, 35], outputRange: [0, -15], extrapolate: 'clamp' }) }
+        ]
+      }}>
+        <Animated.View style={{
+          position: 'absolute',
+          bottom: headerStyle === 'simple' ? 16 : 38,
+          left: 0,
+          right: 0,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          paddingHorizontal: 20
+        }}>
+          {activeTab === 'community' ? (
+            <TouchableOpacity
+              onPress={dropdownOpen ? closeDropdown : openDropdown}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
+            >
+              <Text style={{ color: headerStyle === 'simple' ? (isDark ? '#fff' : '#000000') : '#fff', fontSize: 22, fontFamily: 'Inter_600SemiBold' }}>{headerTitle}</Text>
+              {dropdownOpen
+                ? <ChevronUp size={18} color={headerStyle === 'simple' ? (isDark ? '#fff' : '#000000') : '#fff'} />
+                : <ChevronDown size={18} color={headerStyle === 'simple' ? (isDark ? '#fff' : '#000000') : '#fff'} />}
+            </TouchableOpacity>
+          ) : activeTab === 'contests' ? (
+            <TouchableOpacity
+              onPress={dropdownOpen ? closeDropdown : openDropdown}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
+            >
+              <Text style={{ color: headerStyle === 'simple' ? (isDark ? '#fff' : '#000000') : '#fff', fontSize: 22, fontFamily: 'Inter_600SemiBold' }}>
+                {contestView === 'contests' ? 'Contests' : contestView === 'profile' ? 'Profile' : 'Leaderboard'}
+              </Text>
+              {dropdownOpen
+                ? <ChevronUp size={18} color={headerStyle === 'simple' ? (isDark ? '#fff' : '#000000') : '#fff'} />
+                : <ChevronDown size={18} color={headerStyle === 'simple' ? (isDark ? '#fff' : '#000000') : '#fff'} />}
+            </TouchableOpacity>
+          ) : (
+            <Text style={{ color: headerStyle === 'simple' ? (isDark ? theme.text : '#000000') : '#fff', fontSize: 24, fontFamily: 'Inter_700Bold', letterSpacing: -0.5 }}>
+              {activeTab === 'dashboard' ? 'Dashboard' : 'Home'}
+            </Text>
+          )}
 
-      {/* ── WHITE CONTENT CARD (Natural 1:1 speed, zero vibration, smooth whole-page scroll) ── */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
+            <TouchableOpacity onPress={() => { h(); router.push('/notifications' as any); }} style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center' }}>
+              <Bell size={22} color={headerStyle === 'simple' ? (isDark ? theme.text : '#000000') : 'white'} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => router.setParams({ openProfile: 'true' })}
+              style={{ width: 34, height: 34, borderRadius: 17, borderWidth: 1.5, borderColor: headerStyle === 'simple' ? (isDark ? theme.cardBorder : 'rgba(0,0,0,0.1)') : 'rgba(255,255,255,0.2)', overflow: 'hidden' }}
+            >
+              <Image source={{ uri: getAvatarUrl(currentUser?.avatar_url, currentUser?.email) }} style={{ width: 34, height: 34 }} />
+            </TouchableOpacity>
+          </View>
+        </Animated.View>
+      </Animated.View>
+
+      {/* ── WHITE CONTENT CARD ── */}
       <Animated.View style={[
         styles.card,
         {
-          marginTop: headerStyle === 'simple' ? insets.top + 74 : insets.top + 70,
+          flex: 1,
+          backgroundColor: activeCardId ? '#090d16' : (isDark ? theme.background : (activeTab === 'feed' ? '#f8fafc' : '#fff')),
+          marginTop: headerStyle === 'simple' ? 0 : scrollY.interpolate({ inputRange: [0, 150], outputRange: [-34, -184], extrapolate: 'clamp' }),
           borderTopLeftRadius: headerStyle === 'simple' ? 0 : 40,
           borderTopRightRadius: headerStyle === 'simple' ? 0 : 40,
-          backgroundColor: activeCardId ? '#090d16' : (isDark ? theme.background : (activeTab === 'feed' ? '#f8fafc' : '#fff')),
-          transform: [],
         }
       ]}>
-        {activeTab === 'dashboard' && (
+                {activeTab === 'dashboard' && (
           <View style={{ flex: 1, width: '100%', position: 'relative' }}>
             <Animated.ScrollView
               showsVerticalScrollIndicator={false}
@@ -2084,7 +2019,7 @@ export default function DashboardScreen() {
               contentContainerStyle={{ flexGrow: 1, paddingBottom: 140, paddingTop: 24 }}
             onScroll={Animated.event(
               [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-              { useNativeDriver: true, listener: handleScroll }
+              { useNativeDriver: false, listener: handleScroll }
             )}
             scrollEventThrottle={16}
             refreshControl={
@@ -2096,7 +2031,7 @@ export default function DashboardScreen() {
               />
             }
           >
-            <View style={{ flex: 1, width: '100%' }}>
+            <Animated.View style={headerStyle === 'simple' ? { flex: 1, width: '100%' } : { flex: 1, width: '100%', transform: [{ translateY: scrollY.interpolate({ inputRange: [0, 150], outputRange: [0, 150], extrapolate: 'clamp' }) }] }}>
               {/* ── IMAGE DASHBOARD REPLICATION ── */}
 
               {/* Total Equity Card */}
@@ -2527,7 +2462,7 @@ export default function DashboardScreen() {
                 </View>
               )}
 
-            </View>
+            </Animated.View>
           </Animated.ScrollView>
             <ComingSoonVeil featureTitle="Trading Dashboard" subtitle="Real-time multi-asset portfolio, live PnL & automated broker terminal is launching soon." />
           </View>
@@ -2565,7 +2500,7 @@ export default function DashboardScreen() {
               contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 140 }}
               onScroll={Animated.event(
                 [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-                { useNativeDriver: true, listener: handleScroll }
+                { useNativeDriver: false, listener: handleScroll }
               )}
               scrollEventThrottle={16}
             >
@@ -2624,10 +2559,7 @@ export default function DashboardScreen() {
                 showsVerticalScrollIndicator={false}
                 style={{ flex: 1, width: '100%' }}
                 contentContainerStyle={{ flexGrow: 1, paddingBottom: 140 }}
-              onScroll={Animated.event(
-                [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-                { useNativeDriver: true }
-              )}
+              onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: false, listener: handleScroll })}
               scrollEventThrottle={16}
               refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#8E8E93" progressViewOffset={10} />}
             >
@@ -2748,10 +2680,7 @@ export default function DashboardScreen() {
             <Animated.ScrollView
               showsVerticalScrollIndicator={false}
               contentContainerStyle={{ paddingBottom: 140 }}
-              onScroll={Animated.event(
-                [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-                { useNativeDriver: true }
-              )}
+              onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: false, listener: handleScroll })}
               scrollEventThrottle={16}
             >
               <View style={{ flex: 1 }}>
@@ -2842,10 +2771,7 @@ export default function DashboardScreen() {
             <Animated.ScrollView
               showsVerticalScrollIndicator={false}
               contentContainerStyle={{ paddingBottom: 140 }}
-              onScroll={Animated.event(
-                [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-                { useNativeDriver: true }
-              )}
+              onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: false, listener: handleScroll })}
               scrollEventThrottle={16}
             >
               <View style={{ flex: 1 }}>
@@ -2932,10 +2858,7 @@ export default function DashboardScreen() {
               scrollEnabled={true}
               style={{ flex: 1, width: '100%', backgroundColor: isDark ? theme.background : '#f8fafc' }}
               contentContainerStyle={{ flexGrow: 1, paddingBottom: 160, paddingTop: 16, backgroundColor: isDark ? theme.background : '#f8fafc' }}
-              onScroll={Animated.event(
-                [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-                { useNativeDriver: true }
-              )}
+              onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: false, listener: handleScroll })}
               onScrollBeginDrag={() => {
                 setActivePostMenu(null);
               }}
@@ -2949,7 +2872,7 @@ export default function DashboardScreen() {
                 />
               }
             >
-              <View style={{ width: '100%' }}>
+              <Animated.View style={headerStyle === 'simple' ? { width: '100%' } : { width: '100%', transform: [{ translateY: scrollY.interpolate({ inputRange: [0, 150], outputRange: [0, 150], extrapolate: 'clamp' }) }] }}>
 
               {/* Institutional Trade Setup & Thought Composer */}
               <View
@@ -3405,7 +3328,7 @@ export default function DashboardScreen() {
                   )}
                 </View>
               )}
-            </View>
+            </Animated.View>
           </Animated.ScrollView>
 
           {activePostMenu && (

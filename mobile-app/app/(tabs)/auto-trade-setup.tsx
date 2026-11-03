@@ -193,6 +193,32 @@ export default function AutoTradeSetupScreen() {
     extrapolate: 'clamp',
   });
 
+  const lastScrollY = useRef(0);
+  const isTabBarVisible = useRef(true);
+
+  const handleScroll = (event: any) => {
+    const currentY = event.nativeEvent.contentOffset.y;
+    const diff = currentY - lastScrollY.current;
+
+    if (currentY <= 15) {
+      if (!isTabBarVisible.current) {
+        isTabBarVisible.current = true;
+        DeviceEventEmitter.emit('toggleTabBar', { show: true });
+      }
+    } else if (diff > 8 && currentY > 40) {
+      if (isTabBarVisible.current) {
+        isTabBarVisible.current = false;
+        DeviceEventEmitter.emit('toggleTabBar', { show: false });
+      }
+    } else if (diff < -8) {
+      if (!isTabBarVisible.current) {
+        isTabBarVisible.current = true;
+        DeviceEventEmitter.emit('toggleTabBar', { show: true });
+      }
+    }
+    lastScrollY.current = currentY;
+  };
+
   // Setup Form State
   const [setupPath, setSetupPath] = useState<'new' | 'transfer'>('new');
   const [selectedBroker, setSelectedBroker] = useState<string>('vantage');
@@ -486,7 +512,7 @@ export default function AutoTradeSetupScreen() {
         style={[
           styles.card,
           {
-            marginTop: headerStyle === 'simple' ? 0 : -34,
+            marginTop: headerStyle === 'simple' ? 0 : scrollY.interpolate({ inputRange: [0, 150], outputRange: [-34, -184], extrapolate: 'clamp' }),
             borderTopLeftRadius: headerStyle === 'simple' ? 0 : 40,
             borderTopRightRadius: headerStyle === 'simple' ? 0 : 40,
             backgroundColor: isDark ? theme.background : '#f8fafc',
@@ -504,12 +530,12 @@ export default function AutoTradeSetupScreen() {
           contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 14, paddingBottom: 220 }}
           onScroll={Animated.event(
             [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-            { useNativeDriver: true, listener: handleScroll }
+            { useNativeDriver: false, listener: handleScroll }
           )}
           scrollEventThrottle={16}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#8E8E93" />}
         >
-          <View>
+          <Animated.View style={headerStyle === 'simple' ? [] : { transform: [{ translateY: scrollY.interpolate({ inputRange: [0, 150], outputRange: [0, 150], extrapolate: 'clamp' }) }] }}>
             <View style={{ gap: 14 }}>
                         {/* Mode Switcher: Live Dashboard vs Setup Wizard */}
             <View
@@ -1649,7 +1675,7 @@ export default function AutoTradeSetupScreen() {
             </View>
           )}
             </View>
-          </View>
+          </Animated.View>
         </Animated.ScrollView>
       </Animated.View>
     </View>
