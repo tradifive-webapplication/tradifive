@@ -85,13 +85,26 @@ export default function AdminSupport() {
       console.error("Support fetch failed:", error);
       setTickets([]);
     } else {
-      const userIds = [...new Set((data || []).map(t => t.user_id).filter(Boolean))];
+      // Live Desk only includes live support chats
+      const liveChats = (data || []).filter(t => {
+        const cat = (t.category || '').toLowerCase();
+        const sub = (t.subject || '').toLowerCase();
+        return cat === 'live support' || cat === 'live_chat' || sub.startsWith('live support') || sub.startsWith('live chat');
+      });
+
+      const userIds = [...new Set(liveChats.map(t => t.user_id).filter(Boolean))];
       const profileMap: Record<string, any> = {};
       if (userIds.length > 0) {
         const { data: profiles } = await supabase.from("profiles").select("id, full_name, email").in("id", userIds);
         (profiles || []).forEach(p => { profileMap[p.id] = p; });
       }
-      setTickets((data || []).map(t => ({ ...t, profiles: profileMap[t.user_id] || { full_name: "User", email: "" } })));
+      const mapped = liveChats.map(t => ({ ...t, profiles: profileMap[t.user_id] || { full_name: "User", email: "" } }));
+      setTickets(mapped);
+      // Auto-select latest active ticket if none selected
+      if (!selectedTicket && mapped.length > 0) {
+        const active = mapped.find(m => m.status !== 'resolved') || mapped[0];
+        setSelectedTicket(active);
+      }
     }
     setLoading(false);
   };

@@ -56,14 +56,21 @@ export default function SupportTicketsPage() {
       console.error("Ticket Sync Failed:", error);
       setTickets([]);
     } else {
+      // Exclude instant Live Support Desk sessions from Formal Support Tickets
+      const formalTickets = (data || []).filter(t => {
+        const cat = (t.category || '').toLowerCase();
+        const sub = (t.subject || '').toLowerCase();
+        return !(cat === 'live support' || cat === 'live_chat' || sub.startsWith('live support') || sub.startsWith('live chat'));
+      });
+
       // Enrich with profile data
-      const userIds = [...new Set((data || []).map(t => t.user_id).filter(Boolean))];
+      const userIds = [...new Set(formalTickets.map(t => t.user_id).filter(Boolean))];
       const profileMap: Record<string, any> = {};
       if (userIds.length > 0) {
         const { data: profiles } = await supabase.from("profiles").select("id, full_name, email").in("id", userIds);
         (profiles || []).forEach(p => { profileMap[p.id] = p; });
       }
-      setTickets((data || []).map(t => ({ ...t, profiles: profileMap[t.user_id] || { full_name: "User", email: "" } })));
+      setTickets(formalTickets.map(t => ({ ...t, profiles: profileMap[t.user_id] || { full_name: "User", email: "" } })));
     }
     setLoading(false);
   };
