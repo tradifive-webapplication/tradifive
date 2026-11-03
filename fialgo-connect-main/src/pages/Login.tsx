@@ -563,68 +563,6 @@ export default function Login() {
             <p className="text-white/60 text-[10px] font-black uppercase tracking-[0.3em] leading-tight">AI-Powered Trading, Unleashed.</p>
           </motion.div>
 
-          {/* Center Showcase - Institutional Cards */}
-          <div className="relative z-10 flex flex-col gap-4 my-auto w-full max-w-[420px]">
-            {/* Live Telemetry Card */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.6 }}
-              className="p-5 rounded-2xl bg-white/[0.04] backdrop-blur-xl border border-white/10 shadow-xl"
-            >
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-                  <span className="text-xs font-bold text-white tracking-wide">FiAlgo V1 Live Telemetry</span>
-                </div>
-                <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">
-                  99.98% UPTIME
-                </span>
-              </div>
-              <div className="grid grid-cols-3 gap-2 pt-2 border-t border-white/5">
-                <div>
-                  <div className="text-[10px] text-white/40 font-medium uppercase tracking-wider">Asset</div>
-                  <div className="text-sm font-black text-white mt-0.5">XAUUSD</div>
-                </div>
-                <div>
-                  <div className="text-[10px] text-white/40 font-medium uppercase tracking-wider">Timeframe</div>
-                  <div className="text-sm font-black text-white mt-0.5">M1 Pure</div>
-                </div>
-                <div>
-                  <div className="text-[10px] text-white/40 font-medium uppercase tracking-wider">Protection</div>
-                  <div className="text-sm font-black text-emerald-400 mt-0.5">8 Shields</div>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Risk Management Card */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.35, duration: 0.6 }}
-              className="p-5 rounded-2xl bg-white/[0.04] backdrop-blur-xl border border-white/10 shadow-xl"
-            >
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-bold text-white">Institutional Risk Guard</span>
-                <span className="text-[10px] text-blue-400 font-semibold">Active Enforcement</span>
-              </div>
-              <p className="text-xs text-white/60 leading-relaxed m-0">
-                Automated circuit breakers, max drawdown locks, dynamic spread shields, and news filters protect your live capital.
-              </p>
-            </motion.div>
-
-            {/* Multi-Broker Support Badge */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5, duration: 0.6 }}
-              className="flex items-center justify-between px-4 py-3 rounded-xl bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border border-blue-500/20 text-white"
-            >
-              <span className="text-xs font-semibold text-white/80">Regulated MT5 Execution</span>
-              <span className="text-xs font-bold text-blue-400">Exness · Vantage · MetaTrader</span>
-            </motion.div>
-          </div>
-
           {/* Footer */}
           <div className="relative z-10">
             <p className="text-white/40 text-[10px] tracking-[0.2em] font-bold uppercase whitespace-nowrap">
