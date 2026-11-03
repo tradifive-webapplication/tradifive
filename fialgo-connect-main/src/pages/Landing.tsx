@@ -1971,7 +1971,7 @@ export default function TradiFive() {
     const h = window.location.hash || '';
     const s = window.location.search || '';
     const isMobileDev = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-    return isMobileDev && (h.includes('access_token=') || s.includes('code='));
+    return isMobileDev && (h.includes('access_token=') || s.includes('code=') || h.includes('error=') || s.includes('error='));
   });
 
   useEffect(() => {

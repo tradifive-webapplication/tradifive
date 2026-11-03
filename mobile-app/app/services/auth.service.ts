@@ -68,6 +68,7 @@ export class AuthService {
   static getRedirectUrl() {
     const AuthSession = require('expo-auth-session');
     const { Platform } = require('react-native');
+    const Constants = require('expo-constants').default;
 
     if (Platform.OS === 'web') {
       if (typeof window !== 'undefined') {
@@ -76,13 +77,26 @@ export class AuthService {
       return 'https://www.tradifive.in/auth-callback';
     }
 
-    // On native mobile (iOS / Android):
-    // Use the official app scheme 'mobileapp' with path 'auth-callback'
+    // Check if running inside Expo Go client vs Standalone / Development build
+    const isExpoGo = Constants?.appOwnership === 'expo' || Constants?.executionEnvironment === 'storeClient';
+
+    if (isExpoGo) {
+      // In Expo Go, custom native schemes (like mobileapp://) are not registered in AndroidManifest.
+      // Expo Go requires an exp:// redirect URI to route back into the active Expo Go session.
+      const expoRedirectUrl = AuthSession.makeRedirectUri({
+        path: 'auth-callback',
+      });
+      console.log('[AuthService] Expo Go Redirect URL:', expoRedirectUrl);
+      return expoRedirectUrl;
+    }
+
+    // On standalone native mobile (Standalone APK / iOS App):
+    // Use the registered app scheme 'mobileapp' with path 'auth-callback'
     const appRedirectUrl = AuthSession.makeRedirectUri({
       scheme: 'mobileapp',
       path: 'auth-callback',
     });
-    console.log('[AuthService] Generated Redirect URL:', appRedirectUrl);
+    console.log('[AuthService] Standalone Mobile App Redirect URL:', appRedirectUrl);
     return appRedirectUrl;
   }
 
@@ -225,6 +239,14 @@ export class AuthService {
     }
 
     if (result.type === 'cancel' || result.type === 'dismiss') {
+      console.log('[AuthService] Browser was dismissed/cancelled. Verifying if session was captured via deep link...');
+      // Wait 800ms for any pending async deep-link handler or Supabase auth event to settle
+      await new Promise(r => setTimeout(r, 800));
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        console.log('[AuthService] Active session found despite browser dismissal! Login successful.');
+        return data;
+      }
       throw new Error('Google login was cancelled.');
     }
 

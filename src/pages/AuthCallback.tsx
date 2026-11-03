@@ -25,7 +25,7 @@ export default function AuthCallback() {
       // Fallback timer to show button if auto-redirect was blocked
       const fallbackTimer = setTimeout(() => {
         setStatus('Tap below to return to the TradiFive app:');
-      }, 1500);
+      }, 500);
 
       return () => clearTimeout(fallbackTimer);
     }
