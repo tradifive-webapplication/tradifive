@@ -45,11 +45,6 @@ export default function FloatingHelpButton() {
   const [fileAccept, setFileAccept] = useState("*/*");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Hide on admin routes to prevent overlapping with admin desk
-  if (location.pathname.startsWith("/admin")) {
-    return null;
-  }
-
   // 1. Check user auth
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -261,6 +256,24 @@ export default function FloatingHelpButton() {
     toast.success("Ticket marked as resolved");
   };
 
+  // Only show after user is logged in, and never show on landing/login/auth or admin pages
+  const isHiddenRoute =
+    !user ||
+    location.pathname === "/" ||
+    location.pathname === "/landing" ||
+    location.pathname === "/landing_clean" ||
+    location.pathname === "/login" ||
+    location.pathname === "/register" ||
+    location.pathname === "/signup" ||
+    location.pathname === "/auth" ||
+    location.pathname === "/forgot-password" ||
+    location.pathname === "/reset-password" ||
+    location.pathname.startsWith("/admin");
+
+  if (isHiddenRoute) {
+    return null;
+  }
+
   return (
     <>
       {/* Floating Action Button */}
@@ -379,11 +392,11 @@ export default function FloatingHelpButton() {
                         textTransform: "uppercase",
                       }}
                     >
-                      Active
+                      HUMAN AGENT ONLINE
                     </span>
                   </div>
                   <span style={{ fontSize: 11, color: "rgba(255, 255, 255, 0.45)" }}>
-                    {activeTicket ? `Ticket #${activeTicket.id.slice(0, 8)}` : "Live Talk & Media"}
+                    {activeTicket ? `Ticket #${activeTicket.id.slice(0, 8)} · Real Human Officer` : "Real Human Assistance"}
                   </span>
                 </div>
               </div>
@@ -465,11 +478,11 @@ export default function FloatingHelpButton() {
                       lineHeight: 1.45,
                     }}
                   >
-                    <p style={{ margin: 0, fontWeight: 500 }}>
-                      👋 Hello! You're connected with Tradifive Live Operations Desk.
+                    <p style={{ margin: 0, fontWeight: 600 }}>
+                      👋 Hello! You are directly connected with TradiFive's Human Operations Team.
                     </p>
-                    <span style={{ fontSize: 11, color: "rgba(255, 255, 255, 0.45)", marginTop: 4, display: "block" }}>
-                      Send messages, screenshots, videos, or documents below.
+                    <span style={{ fontSize: 11, color: "rgba(255, 255, 255, 0.55)", marginTop: 4, display: "block" }}>
+                      Our real support staff is on desk. Send your messages, MT5 screenshots, videos, or documents below for personal assistance.
                     </span>
                   </div>
 
@@ -619,7 +632,7 @@ export default function FloatingHelpButton() {
                             paddingHorizontal: 4,
                           }}
                         >
-                          {isUser ? "You" : "Support"} ·{" "}
+                          {isUser ? "You" : "Human Support Officer"} ·{" "}
                           {new Date(m.created_at || Date.now()).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                         </span>
                       </div>
@@ -815,7 +828,7 @@ export default function FloatingHelpButton() {
                       value={inputText}
                       onChange={(e) => setInputText(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSendMessage()}
-                      placeholder="Type your message..."
+                      placeholder="Type message to human support officer..."
                       style={{
                         flex: 1,
                         background: "transparent",

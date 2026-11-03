@@ -24,7 +24,7 @@ import SettingsPage from './pages/SettingsPage';
 import RolesManagementPage from './pages/RolesManagementPage';
 import SystemStatusPage from './pages/SystemStatusPage';
 import TechIssuesPage from './pages/TechIssuesPage';
-import SupportTicketsPage from './pages/SupportTicketsPage';
+import AdminSupport from './pages/AdminSupport';
 import OperationsPanelPage from './pages/OperationsPanelPage';
 import TaskProtocolPage from './pages/TaskProtocolPage';
 import AdminTrading from './pages/AdminTrading';
@@ -58,7 +58,6 @@ import TaskAssignment from './pages/ceo/TaskAssignment';
 import EmployeeDashboard from './pages/employee/EmployeeDashboard';
 import MyProfilePage from './pages/employee/MyProfilePage';
 import LiveAppView from './components/LiveAppView';
-import AutoTradeManagerPage from './pages/AutoTradeManagerPage';
 
 import SalesDashboard from './pages/sales/SalesDashboard';
 import LeadsManager from './pages/sales/LeadsManager';
@@ -127,8 +126,6 @@ function AppRoutes() {
         <Route path="/deleted-records" element={<RoleGuard pageId="deleted_records"><AdminDeleted /></RoleGuard>} />
         <Route path="/waitlist" element={<RoleGuard pageId="waitlist"><WaitlistPage /></RoleGuard>} />
         <Route path="/trades" element={<RoleGuard pageId="trades"><TradesPage /></RoleGuard>} />
-        <Route path="/auto-trade-admin" element={<RoleGuard pageId="auto_trade_manager"><AutoTradeManagerPage /></RoleGuard>} />
-        <Route path="/auto-trade" element={<RoleGuard pageId="auto_trade_manager"><AutoTradeManagerPage /></RoleGuard>} />
         <Route path="/maintenance" element={<RoleGuard pageId="maintenance_master"><AdminTrading /></RoleGuard>} />
         <Route path="/risk-control" element={<RoleGuard pageId="risk_control"><RiskControlPage /></RoleGuard>} />
         <Route path="/mt5-monitor" element={<RoleGuard pageId="mt5_monitor"><MT5MonitorPage /></RoleGuard>} />
@@ -140,7 +137,8 @@ function AppRoutes() {
         <Route path="/roles" element={<RoleGuard pageId="roles_management"><RolesManagementPage /></RoleGuard>} />
         <Route path="/system-status" element={<RoleGuard pageId="system_status"><SystemStatusPage /></RoleGuard>} />
         <Route path="/tech-issues" element={<RoleGuard pageId="tech_issues"><TechIssuesPage /></RoleGuard>} />
-        <Route path="/support-tickets" element={<RoleGuard pageId="support_tickets"><SupportTicketsPage /></RoleGuard>} />
+        <Route path="/support-tickets" element={<RoleGuard pageId="support_tickets"><AdminSupport /></RoleGuard>} />
+        <Route path="/support" element={<RoleGuard pageId="support_tickets"><AdminSupport /></RoleGuard>} />
         <Route path="/operations" element={<RoleGuard pageId="operations_panel"><OperationsPanelPage /></RoleGuard>} />
         <Route path="/tasks" element={<RoleGuard pageId="task_protocol"><TaskProtocolPage /></RoleGuard>} />
 

@@ -3,6 +3,7 @@ import { supabase } from "../lib/supabase";
 import { useAdminAuth } from "../contexts/AdminAuthContext";
 import { Headphones, MessageSquare, Clock, X, RefreshCcw, CheckCircle2, AlertCircle, Send } from "lucide-react";
 import { createNotification } from "../lib/notifications";
+import { parseChatMessage } from "../utils/supportChat";
 
 const RenderTicketDescription = ({ description }: { description: string }) => {
   if (!description) return <p className="text-[12px] text-neutral-300 leading-relaxed whitespace-pre-wrap">No description provided.</p>;
@@ -285,14 +286,30 @@ export default function SupportTicketsPage() {
 
               {/* Chat Replies */}
               <div className="space-y-3">
-                {replies.map(r => (
-                  <div key={r.id} className={`flex flex-col ${r.admin_id ? 'items-end' : 'items-start'}`}>
-                    <div className={`p-3 rounded-xl max-w-[85%] text-[11px] ${r.admin_id ? 'bg-blue-600 text-white rounded-br-sm' : 'bg-[#1E1E1E] text-neutral-300 border border-white/5 rounded-bl-sm'}`}>
-                      {r.message}
+                {replies.map(r => {
+                  const parsed = parseChatMessage(r.message);
+                  return (
+                    <div key={r.id} className={`flex flex-col ${r.admin_id ? 'items-end' : 'items-start'}`}>
+                      <div className={`p-3 rounded-xl max-w-[85%] text-[11px] ${r.admin_id ? 'bg-blue-600 text-white rounded-br-sm' : 'bg-[#1E1E1E] text-neutral-300 border border-white/5 rounded-bl-sm'}`}>
+                        {parsed.text && <p className="whitespace-pre-wrap">{parsed.text}</p>}
+                        {parsed.attachments && parsed.attachments.length > 0 && (
+                          <div className="space-y-2 mt-2">
+                            {parsed.attachments.map((att, aIdx) => (
+                              att.type === 'image' ? (
+                                <img key={aIdx} src={att.url} alt={att.name} className="max-h-48 rounded border border-white/20" />
+                              ) : (
+                                <a key={aIdx} href={att.url} target="_blank" rel="noreferrer" download={att.name} className="block text-blue-400 underline">
+                                  📎 {att.name}
+                                </a>
+                              )
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <span className="text-[8px] text-neutral-600 mt-1 px-1 uppercase">{r.admin_id ? 'Human Support Desk' : 'Client'} • {new Date(r.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
                     </div>
-                    <span className="text-[8px] text-neutral-600 mt-1 px-1 uppercase">{r.admin_id ? 'Support Desk' : 'Client'} • {new Date(r.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
