@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, lazy, Suspense } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { PricingCards } from "@/components/PricingCards";
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
-import { CheckCircle2, Shield, TrendingUp, Users, ArrowRight, Activity, Cpu, Play, Layers, X, Zap, Trophy, Star, Globe, MessageSquare, Radio, MessageCircle, GraduationCap, Sparkles, BookText, Crown, ShieldCheck } from "lucide-react";
+import { CheckCircle2, Shield, TrendingUp, Users, ArrowRight, Activity, Cpu, Play, Layers, X, Zap, Trophy, Star, Globe, MessageSquare, Radio, MessageCircle, GraduationCap, Sparkles, BookText, Crown, ShieldCheck, ChevronDown, ChevronUp } from "lucide-react";
 import { ShieldDone, Graph, Activity as IconlyActivity, TwoUsers } from "react-iconly";
 import PremiumBackground from "../components/PremiumBackground";
 import StarsBackground from "../components/StarsBackground";
@@ -878,6 +878,9 @@ function Pricing({ onStart }: { onStart: () => void }) {
   const [pricingCategory, setPricingCategory] = useState<"autotrade" | "platform">("autotrade");
   const [selectedPlan, setSelectedPlan] = useState<"starter" | "pro" | "elite" | "enterprise">("pro");
   const [selectedFialgoPlan, setSelectedFialgoPlan] = useState<"three_years" | "profit_share">("three_years");
+  const [enterpriseExpanded, setEnterpriseExpanded] = useState(false);
+  const [performanceExpanded, setPerformanceExpanded] = useState(false);
+  const [comparisonTableExpanded, setComparisonTableExpanded] = useState(true);
 
   const threeYearFeatures = [
     { title: "0% Profit Share — Keep 100% of Profits", desc: "No weekly invoices, settlement days, or profit cuts. Every dollar made in your MT5 remains 100% yours.", highlighted: true },
@@ -1006,108 +1009,155 @@ function Pricing({ onStart }: { onStart: () => void }) {
             {/* Top Cards Grid */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 24, marginBottom: 40 }}>
 
-              {/* CARD 1: ₹1,00,000 (3-Year Pass) */}
+              {/* CARD 1: ₹1,00,000 (3-Year Pass) - Compact Box styled like 4th pic */}
               <div
                 style={{
-                  borderRadius: 28,
-                  padding: "36px 32px",
-                  background: "linear-gradient(180deg, rgba(30, 58, 138, 0.25) 0%, rgba(15, 23, 42, 0.65) 100%)",
-                  border: "2px solid rgba(59, 130, 246, 0.4)",
-                  boxShadow: "0 20px 50px rgba(0, 0, 0, 0.5), 0 0 30px rgba(59, 130, 246, 0.15)",
+                  borderRadius: 20,
+                  padding: "24px 26px",
+                  background: "#171717",
+                  border: "1px solid rgba(255, 255, 255, 0.08)",
+                  boxShadow: "inset 0 1px 0 0 rgba(255,255,255,0.05), 0 0 0 1px rgba(255,255,255,0.05), 0 2px 4px rgba(0,0,0,0.2)",
                   position: "relative",
                   display: "flex",
                   flexDirection: "column",
                   justifyContent: "space-between",
+                  transition: "all 0.3s ease",
                 }}
               >
-                {/* Popular Pill */}
-                <div style={{ position: "absolute", top: -13, left: 32 }}>
-                  <span style={{
-                    background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
-                    color: "#fff",
-                    fontSize: 10.5,
-                    fontWeight: 800,
-                    letterSpacing: 1,
-                    padding: "5px 14px",
-                    borderRadius: 100,
-                    textTransform: "uppercase",
-                    boxShadow: "0 4px 12px rgba(37, 99, 235, 0.4)",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 5
-                  }}>
-                    <Crown size={12} />
-                    0% PROFIT SHARE · 3-YEAR FULL PASS
-                  </span>
-                </div>
-
                 <div>
+                  {/* Top Header Row with Pill */}
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-                    <div>
-                      <h3 style={{ fontSize: 24, fontWeight: 900, color: "#fff", margin: 0 }}>
-                        3-Year Enterprise Pass
-                      </h3>
-                      <p style={{ fontSize: 13, color: "#93c5fd", margin: "4px 0 0", fontWeight: 600 }}>
-                        Keep 100% of all profits. Zero weekly cuts.
-                      </p>
-                    </div>
                     <span style={{
-                      padding: "6px 12px",
-                      borderRadius: 10,
                       background: "rgba(59, 130, 246, 0.15)",
                       border: "1px solid rgba(59, 130, 246, 0.3)",
                       color: "#60a5fa",
+                      fontSize: 10.5,
+                      fontWeight: 800,
+                      letterSpacing: 0.8,
+                      padding: "4px 12px",
+                      borderRadius: 100,
+                      textTransform: "uppercase",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 5
+                    }}>
+                      <Crown size={12} />
+                      0% PROFIT SHARE
+                    </span>
+                    <span style={{
+                      padding: "4px 10px",
+                      borderRadius: 8,
+                      background: "rgba(255, 255, 255, 0.05)",
+                      border: "1px solid rgba(255, 255, 255, 0.1)",
+                      color: "rgba(255, 255, 255, 0.7)",
                       fontSize: 11,
-                      fontWeight: 800
+                      fontWeight: 700
                     }}>
                       36 MONTHS
                     </span>
                   </div>
 
-                  <p style={{ fontSize: 13.5, color: "rgba(255, 255, 255, 0.65)", lineHeight: 1.55, margin: "14px 0 20px" }}>
-                    The definitive solution for high-capital traders who want zero ongoing revenue sharing. Pay once and keep every rupee of your trading profit.
+                  <h3 style={{ fontSize: 21, fontWeight: 900, color: "#fff", margin: 0 }}>
+                    3-Year Enterprise Pass
+                  </h3>
+                  <p style={{ fontSize: 12.5, color: "rgba(255, 255, 255, 0.5)", margin: "4px 0 14px", fontWeight: 500 }}>
+                    Keep 100% of all profits. Zero ongoing cuts. Pay once.
                   </p>
 
-                  {/* Price Box */}
+                  {/* Compact Price Box */}
                   <div style={{
-                    padding: "18px 20px",
-                    borderRadius: 18,
-                    background: "rgba(15, 23, 42, 0.7)",
-                    border: "1px solid rgba(59, 130, 246, 0.25)",
-                    marginBottom: 24,
+                    padding: "14px 18px",
+                    borderRadius: 14,
+                    background: "rgba(255, 255, 255, 0.03)",
+                    border: "1px solid rgba(255, 255, 255, 0.06)",
+                    marginBottom: 16,
                   }}>
-                    <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
-                      <span style={{ fontSize: 38, fontWeight: 900, color: "#fff", letterSpacing: "-0.03em" }}>
+                    <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
+                      <span style={{ fontSize: 32, fontWeight: 900, color: "#fff", letterSpacing: "-0.03em" }}>
                         ₹1,00,000
                       </span>
-                      <span style={{ fontSize: 13, color: "rgba(255, 255, 255, 0.5)", fontWeight: 600 }}>
-                        one-time (~₹2,777/month)
+                      <span style={{ fontSize: 12, color: "rgba(255, 255, 255, 0.45)", fontWeight: 600 }}>
+                        one-time (~₹2,777/mo)
                       </span>
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>
-                      <span style={{ width: 8, height: 8, borderRadius: 4, background: "#3b82f6" }} />
-                      <span style={{ fontSize: 12, color: "#93c5fd", fontWeight: 700 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 6 }}>
+                      <span style={{ width: 6, height: 6, borderRadius: 3, background: "#3b82f6" }} />
+                      <span style={{ fontSize: 11.5, color: "#93c5fd", fontWeight: 600 }}>
                         0% Profit Share · 100% Profits Retained In MT5
                       </span>
                     </div>
                   </div>
 
-                  {/* Feature Checklist */}
-                  <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 28 }}>
-                    {threeYearFeatures.map((feat, idx) => (
-                      <div key={idx} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
-                        <CheckCircle2 size={16} color={feat.highlighted ? "#60a5fa" : "#3b82f6"} style={{ shrink: 0, marginTop: 2 }} />
-                        <div>
-                          <strong style={{ fontSize: 13, color: feat.highlighted ? "#fff" : "rgba(255, 255, 255, 0.85)", display: "block" }}>
-                            {feat.title}
-                          </strong>
-                          <span style={{ fontSize: 12, color: "rgba(255, 255, 255, 0.5)", lineHeight: 1.45, display: "block" }}>
-                            {feat.desc}
-                          </span>
-                        </div>
+                  {/* Core 3 Features */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: 9, marginBottom: 14 }}>
+                    {threeYearFeatures.slice(0, 3).map((feat, idx) => (
+                      <div key={idx} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+                        <CheckCircle2 size={15} color="#60a5fa" style={{ flexShrink: 0, marginTop: 2 }} />
+                        <span style={{ fontSize: 12.5, color: "rgba(255, 255, 255, 0.85)", fontWeight: 500, lineHeight: 1.4 }}>
+                          {feat.title}
+                        </span>
                       </div>
                     ))}
                   </div>
+
+                  {/* Accordion Specification Details (Styled like 4th pic) */}
+                  <AnimatePresence>
+                    {enterpriseExpanded && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        style={{ overflow: "hidden" }}
+                      >
+                        <div style={{
+                          paddingTop: 12,
+                          marginTop: 6,
+                          marginBottom: 14,
+                          borderTop: "1px solid rgba(255,255,255,0.05)",
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 9
+                        }}>
+                          {threeYearFeatures.slice(3).map((feat, idx) => (
+                            <div key={idx} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+                              <CheckCircle2 size={15} color="rgba(255, 255, 255, 0.4)" style={{ flexShrink: 0, marginTop: 2 }} />
+                              <div>
+                                <span style={{ fontSize: 12.5, color: "rgba(255, 255, 255, 0.8)", fontWeight: 500, display: "block" }}>
+                                  {feat.title}
+                                </span>
+                                <span style={{ fontSize: 11.5, color: "rgba(255, 255, 255, 0.4)", display: "block", marginTop: 1 }}>
+                                  {feat.desc}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Accordion Toggle (Like 4th pic) */}
+                  <button
+                    onClick={() => setEnterpriseExpanded(!enterpriseExpanded)}
+                    style={{
+                      background: "transparent",
+                      border: "none",
+                      color: "#93c5fd",
+                      fontSize: 12,
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      width: "100%",
+                      padding: "8px 0",
+                      marginBottom: 16,
+                      borderTop: "1px solid rgba(255,255,255,0.04)"
+                    }}
+                  >
+                    <span>{enterpriseExpanded ? "Show fewer specifications" : `View all ${threeYearFeatures.length} specifications & features`}</span>
+                    <ChevronDown size={14} style={{ transform: enterpriseExpanded ? "rotate(180deg)" : "none", transition: "transform 0.3s" }} />
+                  </button>
                 </div>
 
                 <div>
@@ -1115,11 +1165,11 @@ function Pricing({ onStart }: { onStart: () => void }) {
                     onClick={() => navigate("/features/auto-trade")}
                     style={{
                       width: "100%",
-                      padding: "16px 24px",
-                      borderRadius: 16,
+                      padding: "13px 20px",
+                      borderRadius: 14,
                       background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
                       color: "#fff",
-                      fontSize: 14.5,
+                      fontSize: 13.5,
                       fontWeight: 800,
                       border: "none",
                       cursor: "pointer",
@@ -1127,123 +1177,170 @@ function Pricing({ onStart }: { onStart: () => void }) {
                       alignItems: "center",
                       justifyContent: "center",
                       gap: 8,
-                      boxShadow: "0 8px 24px rgba(37, 99, 235, 0.45)",
+                      boxShadow: "0 4px 16px rgba(37, 99, 235, 0.35)",
                       transition: "transform 0.15s ease",
                     }}
-                    onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.02)")}
+                    onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.01)")}
                     onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
                   >
                     <span>Get 3-Year Enterprise License (₹1,00,000)</span>
-                    <ArrowRight size={16} />
+                    <ArrowRight size={15} />
                   </button>
-                  <p style={{ textAlign: "center", fontSize: 11, color: "rgba(255, 255, 255, 0.4)", margin: "10px 0 0" }}>
+                  <p style={{ textAlign: "center", fontSize: 11, color: "rgba(255, 255, 255, 0.4)", margin: "8px 0 0" }}>
                     Includes 50% renewal guarantee (₹49,999) after 3 years
                   </p>
                 </div>
               </div>
 
-              {/* CARD 2: ₹10,000 (Performance Partner) */}
+              {/* CARD 2: ₹10,000 (Performance Partner) - Compact Box styled like 4th pic */}
               <div
                 style={{
-                  borderRadius: 28,
-                  padding: "36px 32px",
-                  background: "linear-gradient(180deg, rgba(6, 78, 59, 0.22) 0%, rgba(15, 23, 42, 0.65) 100%)",
-                  border: "2px solid rgba(16, 185, 129, 0.35)",
-                  boxShadow: "0 20px 50px rgba(0, 0, 0, 0.5), 0 0 30px rgba(16, 185, 129, 0.12)",
+                  borderRadius: 20,
+                  padding: "24px 26px",
+                  background: "#171717",
+                  border: "1px solid rgba(255, 255, 255, 0.08)",
+                  boxShadow: "inset 0 1px 0 0 rgba(255,255,255,0.05), 0 0 0 1px rgba(255,255,255,0.05), 0 2px 4px rgba(0,0,0,0.2)",
                   position: "relative",
                   display: "flex",
                   flexDirection: "column",
                   justifyContent: "space-between",
+                  transition: "all 0.3s ease",
                 }}
               >
-                {/* Performance Pill */}
-                <div style={{ position: "absolute", top: -13, left: 32 }}>
-                  <span style={{
-                    background: "linear-gradient(135deg, #10b981, #059669)",
-                    color: "#fff",
-                    fontSize: 10.5,
-                    fontWeight: 800,
-                    letterSpacing: 1,
-                    padding: "5px 14px",
-                    borderRadius: 100,
-                    textTransform: "uppercase",
-                    boxShadow: "0 4px 12px rgba(16, 185, 129, 0.4)",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 5
-                  }}>
-                    <TrendingUp size={12} />
-                    PERFORMANCE-BASED · PAY ONLY ON PROFITS
-                  </span>
-                </div>
-
                 <div>
+                  {/* Top Header Row with Pill */}
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-                    <div>
-                      <h3 style={{ fontSize: 24, fontWeight: 900, color: "#fff", margin: 0 }}>
-                        Performance Partner Plan
-                      </h3>
-                      <p style={{ fontSize: 13, color: "#6ee7b7", margin: "4px 0 0", fontWeight: 600 }}>
-                        Split 50% weekly only when your account is in green.
-                      </p>
-                    </div>
                     <span style={{
-                      padding: "6px 12px",
-                      borderRadius: 10,
                       background: "rgba(16, 185, 129, 0.15)",
                       border: "1px solid rgba(16, 185, 129, 0.3)",
                       color: "#34d399",
+                      fontSize: 10.5,
+                      fontWeight: 800,
+                      letterSpacing: 0.8,
+                      padding: "4px 12px",
+                      borderRadius: 100,
+                      textTransform: "uppercase",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 5
+                    }}>
+                      <TrendingUp size={12} />
+                      PAY ONLY ON PROFITS
+                    </span>
+                    <span style={{
+                      padding: "4px 10px",
+                      borderRadius: 8,
+                      background: "rgba(255, 255, 255, 0.05)",
+                      border: "1px solid rgba(255, 255, 255, 0.1)",
+                      color: "rgba(255, 255, 255, 0.7)",
                       fontSize: 11,
-                      fontWeight: 800
+                      fontWeight: 700
                     }}>
                       SETUP + 50/50%
                     </span>
                   </div>
 
-                  <p style={{ fontSize: 13.5, color: "rgba(255, 255, 255, 0.65)", lineHeight: 1.55, margin: "14px 0 20px" }}>
-                    Zero financial risk during non-profitable weeks. Pay an entry setup fee to deploy the engine, then share 50% of net closed profits every Monday.
+                  <h3 style={{ fontSize: 21, fontWeight: 900, color: "#fff", margin: 0 }}>
+                    Performance Partner Plan
+                  </h3>
+                  <p style={{ fontSize: 12.5, color: "rgba(255, 255, 255, 0.5)", margin: "4px 0 14px", fontWeight: 500 }}>
+                    Split 50% weekly only when your account is in green.
                   </p>
 
-                  {/* Price Box */}
+                  {/* Compact Price Box */}
                   <div style={{
-                    padding: "18px 20px",
-                    borderRadius: 18,
-                    background: "rgba(15, 23, 42, 0.7)",
-                    border: "1px solid rgba(16, 185, 129, 0.25)",
-                    marginBottom: 24,
+                    padding: "14px 18px",
+                    borderRadius: 14,
+                    background: "rgba(255, 255, 255, 0.03)",
+                    border: "1px solid rgba(255, 255, 255, 0.06)",
+                    marginBottom: 16,
                   }}>
-                    <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
-                      <span style={{ fontSize: 38, fontWeight: 900, color: "#fff", letterSpacing: "-0.03em" }}>
+                    <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
+                      <span style={{ fontSize: 32, fontWeight: 900, color: "#fff", letterSpacing: "-0.03em" }}>
                         ₹10,000
                       </span>
-                      <span style={{ fontSize: 13, color: "rgba(255, 255, 255, 0.5)", fontWeight: 600 }}>
+                      <span style={{ fontSize: 12, color: "rgba(255, 255, 255, 0.45)", fontWeight: 600 }}>
                         one-time setup fee + 50% weekly split
                       </span>
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>
-                      <span style={{ width: 8, height: 8, borderRadius: 4, background: "#10b981" }} />
-                      <span style={{ fontSize: 12, color: "#6ee7b7", fontWeight: 700 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 6 }}>
+                      <span style={{ width: 6, height: 6, borderRadius: 3, background: "#10b981" }} />
+                      <span style={{ fontSize: 11.5, color: "#6ee7b7", fontWeight: 600 }}>
                         ₹0 Platform Fee On Red Or Flat Weeks
                       </span>
                     </div>
                   </div>
 
-                  {/* Feature Checklist */}
-                  <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 28 }}>
-                    {profitShareFeatures.map((feat, idx) => (
-                      <div key={idx} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
-                        <CheckCircle2 size={16} color={feat.highlighted ? "#34d399" : "#10b981"} style={{ shrink: 0, marginTop: 2 }} />
-                        <div>
-                          <strong style={{ fontSize: 13, color: feat.highlighted ? "#fff" : "rgba(255, 255, 255, 0.85)", display: "block" }}>
-                            {feat.title}
-                          </strong>
-                          <span style={{ fontSize: 12, color: "rgba(255, 255, 255, 0.5)", lineHeight: 1.45, display: "block" }}>
-                            {feat.desc}
-                          </span>
-                        </div>
+                  {/* Core 3 Features */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: 9, marginBottom: 14 }}>
+                    {profitShareFeatures.slice(0, 3).map((feat, idx) => (
+                      <div key={idx} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+                        <CheckCircle2 size={15} color="#34d399" style={{ flexShrink: 0, marginTop: 2 }} />
+                        <span style={{ fontSize: 12.5, color: "rgba(255, 255, 255, 0.85)", fontWeight: 500, lineHeight: 1.4 }}>
+                          {feat.title}
+                        </span>
                       </div>
                     ))}
                   </div>
+
+                  {/* Accordion Specification Details (Styled like 4th pic) */}
+                  <AnimatePresence>
+                    {performanceExpanded && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        style={{ overflow: "hidden" }}
+                      >
+                        <div style={{
+                          paddingTop: 12,
+                          marginTop: 6,
+                          marginBottom: 14,
+                          borderTop: "1px solid rgba(255,255,255,0.05)",
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 9
+                        }}>
+                          {profitShareFeatures.slice(3).map((feat, idx) => (
+                            <div key={idx} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+                              <CheckCircle2 size={15} color="rgba(255, 255, 255, 0.4)" style={{ flexShrink: 0, marginTop: 2 }} />
+                              <div>
+                                <span style={{ fontSize: 12.5, color: "rgba(255, 255, 255, 0.8)", fontWeight: 500, display: "block" }}>
+                                  {feat.title}
+                                </span>
+                                <span style={{ fontSize: 11.5, color: "rgba(255, 255, 255, 0.4)", display: "block", marginTop: 1 }}>
+                                  {feat.desc}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Accordion Toggle (Like 4th pic) */}
+                  <button
+                    onClick={() => setPerformanceExpanded(!performanceExpanded)}
+                    style={{
+                      background: "transparent",
+                      border: "none",
+                      color: "#6ee7b7",
+                      fontSize: 12,
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      width: "100%",
+                      padding: "8px 0",
+                      marginBottom: 16,
+                      borderTop: "1px solid rgba(255,255,255,0.04)"
+                    }}
+                  >
+                    <span>{performanceExpanded ? "Show fewer specifications" : `View all ${profitShareFeatures.length} specifications & features`}</span>
+                    <ChevronDown size={14} style={{ transform: performanceExpanded ? "rotate(180deg)" : "none", transition: "transform 0.3s" }} />
+                  </button>
                 </div>
 
                 <div>
@@ -1251,11 +1348,11 @@ function Pricing({ onStart }: { onStart: () => void }) {
                     onClick={() => navigate("/features/auto-trade")}
                     style={{
                       width: "100%",
-                      padding: "16px 24px",
-                      borderRadius: 16,
+                      padding: "13px 20px",
+                      borderRadius: 14,
                       background: "linear-gradient(135deg, #059669 0%, #047857 100%)",
                       color: "#fff",
-                      fontSize: 14.5,
+                      fontSize: 13.5,
                       fontWeight: 800,
                       border: "none",
                       cursor: "pointer",
@@ -1263,101 +1360,128 @@ function Pricing({ onStart }: { onStart: () => void }) {
                       alignItems: "center",
                       justifyContent: "center",
                       gap: 8,
-                      boxShadow: "0 8px 24px rgba(5, 150, 105, 0.4)",
+                      boxShadow: "0 4px 16px rgba(5, 150, 105, 0.35)",
                       transition: "transform 0.15s ease",
                     }}
-                    onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.02)")}
+                    onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.01)")}
                     onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
                   >
                     <span>Get Performance License (₹10,000)</span>
-                    <ArrowRight size={16} />
+                    <ArrowRight size={15} />
                   </button>
-                  <p style={{ textAlign: "center", fontSize: 11, color: "rgba(255, 255, 255, 0.4)", margin: "10px 0 0" }}>
+                  <p style={{ textAlign: "center", fontSize: 11, color: "rgba(255, 255, 255, 0.4)", margin: "8px 0 0" }}>
                     Protected by High-Water Mark loss carry-forward
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* Side-by-Side Comparison Table */}
+            {/* BOX 3: Side-by-Side Comparison Table (Styled like 4th pic) */}
             <div style={{
-              borderRadius: 24,
-              padding: "32px 28px",
-              background: "rgba(15, 23, 42, 0.45)",
+              borderRadius: 20,
+              padding: "24px 26px",
+              background: "#171717",
               border: "1px solid rgba(255, 255, 255, 0.08)",
-              boxShadow: "0 10px 30px rgba(0, 0, 0, 0.3)",
-              marginBottom: 36,
+              boxShadow: "inset 0 1px 0 0 rgba(255,255,255,0.05), 0 0 0 1px rgba(255,255,255,0.05), 0 2px 4px rgba(0,0,0,0.2)",
+              marginBottom: 30,
+              transition: "all 0.3s ease",
             }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, flexWrap: "wrap", gap: 12 }}>
+              <div
+                onClick={() => setComparisonTableExpanded(!comparisonTableExpanded)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  cursor: "pointer",
+                  userSelect: "none",
+                  paddingBottom: comparisonTableExpanded ? 16 : 0,
+                  borderBottom: comparisonTableExpanded ? "1px solid rgba(255,255,255,0.05)" : "none"
+                }}
+              >
                 <div>
-                  <h4 style={{ fontSize: 18, fontWeight: 800, color: "#fff", margin: 0 }}>
+                  <h4 style={{ fontSize: 16, fontWeight: 800, color: "#fff", margin: 0 }}>
                     Detailed Feature & Model Comparison
                   </h4>
-                  <p style={{ fontSize: 13, color: "rgba(255, 255, 255, 0.5)", margin: "4px 0 0" }}>
+                  <p style={{ fontSize: 12.5, color: "rgba(255, 255, 255, 0.45)", margin: "3px 0 0" }}>
                     Review the core economic differences between our two official licensing structures.
                   </p>
                 </div>
 
-                <div style={{ display: "flex", gap: 10 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                   <button
-                    onClick={() => navigate("/features/auto-trade")}
+                    onClick={(e) => { e.stopPropagation(); navigate("/features/auto-trade"); }}
                     style={{
-                      padding: "8px 16px",
-                      borderRadius: 10,
+                      padding: "6px 14px",
+                      borderRadius: 8,
                       background: "rgba(255, 255, 255, 0.06)",
                       border: "1px solid rgba(255, 255, 255, 0.12)",
                       color: "#fff",
-                      fontSize: 12,
+                      fontSize: 11.5,
                       fontWeight: 700,
                       cursor: "pointer",
                       display: "flex",
                       alignItems: "center",
-                      gap: 6
+                      gap: 5
                     }}
                   >
-                    <Activity size={13} />
-                    <span>View Live Telemetry Showcase</span>
+                    <Activity size={12} />
+                    <span>View Telemetry</span>
                   </button>
+                  <div style={{ transform: comparisonTableExpanded ? "rotate(180deg)" : "none", transition: "transform 0.3s", color: "rgba(255,255,255,0.35)" }}>
+                    <ChevronDown size={18} />
+                  </div>
                 </div>
               </div>
 
-              <div style={{ overflowX: "auto" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", minWidth: 600 }}>
-                  <thead>
-                    <tr style={{ borderBottom: "1px solid rgba(255, 255, 255, 0.1)" }}>
-                      <th style={{ padding: "12px 16px", fontSize: 12, fontWeight: 700, color: "rgba(255, 255, 255, 0.5)", textTransform: "uppercase" }}>Feature / Parameter</th>
-                      <th style={{ padding: "12px 16px", fontSize: 12, fontWeight: 800, color: "#60a5fa", textTransform: "uppercase" }}>3-Year Pass (₹1,00,000)</th>
-                      <th style={{ padding: "12px 16px", fontSize: 12, fontWeight: 800, color: "#34d399", textTransform: "uppercase" }}>Performance (₹10,000)</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {comparisonRows.map((row, idx) => (
-                      <tr key={idx} style={{ borderBottom: "1px solid rgba(255, 255, 255, 0.04)" }}>
-                        <td style={{ padding: "14px 16px", fontSize: 13, fontWeight: 600, color: "rgba(255, 255, 255, 0.85)" }}>
-                          {row.label}
-                        </td>
-                        <td style={{ padding: "14px 16px", fontSize: 13, fontWeight: 700, color: "#93c5fd" }}>
-                          {row.threeYears}
-                        </td>
-                        <td style={{ padding: "14px 16px", fontSize: 13, fontWeight: 700, color: "#6ee7b7" }}>
-                          {row.profitShare}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <AnimatePresence>
+                {comparisonTableExpanded && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    style={{ overflow: "hidden" }}
+                  >
+                    <div style={{ overflowX: "auto", paddingTop: 14 }}>
+                      <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", minWidth: 600 }}>
+                        <thead>
+                          <tr style={{ borderBottom: "1px solid rgba(255, 255, 255, 0.08)" }}>
+                            <th style={{ padding: "10px 14px", fontSize: 11.5, fontWeight: 700, color: "rgba(255, 255, 255, 0.45)", textTransform: "uppercase" }}>Feature / Parameter</th>
+                            <th style={{ padding: "10px 14px", fontSize: 11.5, fontWeight: 800, color: "#60a5fa", textTransform: "uppercase" }}>3-Year Pass (₹1,00,000)</th>
+                            <th style={{ padding: "10px 14px", fontSize: 11.5, fontWeight: 800, color: "#34d399", textTransform: "uppercase" }}>Performance (₹10,000)</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {comparisonRows.map((row, idx) => (
+                            <tr key={idx} style={{ borderBottom: "1px solid rgba(255, 255, 255, 0.04)" }}>
+                              <td style={{ padding: "11px 14px", fontSize: 12.5, fontWeight: 600, color: "rgba(255, 255, 255, 0.8)" }}>
+                                {row.label}
+                              </td>
+                              <td style={{ padding: "11px 14px", fontSize: 12.5, fontWeight: 700, color: "#93c5fd" }}>
+                                {row.threeYears}
+                              </td>
+                              <td style={{ padding: "11px 14px", fontSize: 12.5, fontWeight: 700, color: "#6ee7b7" }}>
+                                {row.profitShare}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
-            {/* Bottom Proof Assurance Banner */}
+            {/* Bottom Proof Assurance Banner - Styled like 4th pic */}
             <div style={{
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
               padding: "18px 24px",
-              borderRadius: 18,
-              background: "rgba(255, 255, 255, 0.03)",
+              borderRadius: 20,
+              background: "#171717",
               border: "1px solid rgba(255, 255, 255, 0.08)",
+              boxShadow: "inset 0 1px 0 0 rgba(255,255,255,0.05), 0 0 0 1px rgba(255,255,255,0.05), 0 2px 4px rgba(0,0,0,0.2)",
               flexWrap: "wrap",
               gap: 16
             }}>
