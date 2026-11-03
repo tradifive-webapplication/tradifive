@@ -1,5 +1,20 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Modal, View, Image, TouchableOpacity, Text, StyleSheet, Platform, SafeAreaView, Dimensions, FlatList, TouchableWithoutFeedback, Animated, ScrollView } from 'react-native';
+import {
+  Modal,
+  View,
+  Image,
+  TouchableOpacity,
+  Text,
+  StyleSheet,
+  Platform,
+  FlatList,
+  TouchableWithoutFeedback,
+  Animated,
+  ScrollView,
+  useWindowDimensions,
+  StatusBar,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Heart, Chat, Send, Bookmark } from './Iconly';
 import { ChevronLeft, Play, Pause, MoreVertical, X } from 'lucide-react-native';
 import { VideoView, useVideoPlayer } from 'expo-video';
@@ -7,8 +22,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { useAppTheme } from '../hooks/useAppTheme';
 import { useRouter } from 'expo-router';
-
-const { width, height } = Dimensions.get('window');
 
 interface ImageViewerModalProps {
   visible: boolean;
@@ -90,9 +103,10 @@ const VideoControls = ({ player, isPlaying, setIsPlaying }: { player: any, isPla
   );
 };
 
-const MediaItem = ({ post, isActive, onLike, onComment, onShare, onClose, commentsShift, commentsScale }: any) => {
-  const { theme, isDark } = useAppTheme(); // Keep for any other uses if needed
+const MediaItem = ({ post, itemHeight, itemWidth, isActive, onLike, onComment, onShare, onClose, commentsShift, commentsScale }: any) => {
+  const { theme, isDark } = useAppTheme();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   
   // Force dark colors for immersive view
   const textColor = '#ffffff';
@@ -167,9 +181,12 @@ const MediaItem = ({ post, isActive, onLike, onComment, onShare, onClose, commen
   };
 
   return (
-    <View style={styles.itemContainer}>
+    <View style={[styles.itemContainer, { width: itemWidth, height: itemHeight }]}>
       <TouchableWithoutFeedback onPress={handlePress}>
-        <Animated.View style={[styles.mediaWrapper, commentsShift && commentsScale && { transform: [{ translateY: commentsShift }, { scale: commentsScale }] }]}>
+        <Animated.View style={[
+          styles.mediaWrapper,
+          commentsShift && commentsScale && { transform: [{ translateY: commentsShift }, { scale: commentsScale }] }
+        ]}>
           {isVideo ? (
             <>
               <VideoView
@@ -215,9 +232,14 @@ const MediaItem = ({ post, isActive, onLike, onComment, onShare, onClose, commen
 
       {/* Footer Actions Overlay */}
       <LinearGradient
-        colors={['transparent', 'rgba(0,0,0,0.4)', 'rgba(0,0,0,0.9)']}
+        colors={['transparent', 'rgba(0,0,0,0.4)', 'rgba(0,0,0,0.95)']}
         locations={[0, 0.4, 1]}
-        style={styles.footerOverlay}
+        style={[
+          styles.footerOverlay,
+          {
+            paddingBottom: Math.max(insets.bottom, 16) + 14,
+          }
+        ]}
         pointerEvents="box-none"
       >
         <View style={styles.footerContent}>
@@ -297,7 +319,6 @@ const MediaItem = ({ post, isActive, onLike, onComment, onShare, onClose, commen
 
             <TouchableOpacity onPress={() => {
               if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              // Assuming 'Save' functionality
             }} style={styles.actionButtonVertical}>
               <Bookmark size={28} color={iconColor} set="curved" stroke="bold" />
               <Text style={[styles.actionTextVertical, { color: textColor }, shadowStyle]}>{post.saves || 0}</Text>
@@ -333,7 +354,7 @@ const MediaItem = ({ post, isActive, onLike, onComment, onShare, onClose, commen
             borderTopLeftRadius: 24, 
             borderTopRightRadius: 24, 
             padding: 24,
-            maxHeight: height * 0.6,
+            maxHeight: itemHeight * 0.6,
             shadowColor: '#000',
             shadowOffset: { width: 0, height: -4 },
             shadowOpacity: 0.25,
@@ -383,6 +404,11 @@ export function ImageViewerModal({
   customShift,
   customScale,
 }: ImageViewerModalProps) {
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const [containerHeight, setContainerHeight] = useState(windowHeight);
+  const [containerWidth, setContainerWidth] = useState(windowWidth);
+
   // Always use dark background for immersive media feed
   const bgColor = '#000000';
   const iconColor = '#ffffff';
@@ -399,7 +425,7 @@ export function ImageViewerModal({
     if (customShift && customScale) return; // Let parent control it dynamically
     Animated.parallel([
       Animated.spring(internalCommentsShift, {
-        toValue: isCommentOpen ? -height * 0.15 : 0,
+        toValue: isCommentOpen ? -containerHeight * 0.15 : 0,
         useNativeDriver: true,
         bounciness: 0,
         speed: 14,
@@ -411,75 +437,106 @@ export function ImageViewerModal({
         speed: 14,
       })
     ]).start();
-  }, [isCommentOpen, customShift, customScale]);
-  
-  // Use all posts instead of filtering out text-only ones
-  // const mediaPosts = posts.filter(p => p.image || p.media_url);
+  }, [isCommentOpen, customShift, customScale, containerHeight]);
 
   useEffect(() => {
     if (visible && initialPostId && flatListRef.current) {
       const index = posts.findIndex(p => p.id === initialPostId);
       if (index >= 0) {
         setActiveIndex(index);
-        // Small delay to ensure FlatList has layout
         setTimeout(() => {
-          flatListRef.current?.scrollToIndex({ index, animated: false });
-        }, 100);
+          try {
+            flatListRef.current?.scrollToIndex({ index, animated: false });
+          } catch (_) {}
+        }, 80);
       }
     }
-  }, [visible, initialPostId]);
+  }, [visible, initialPostId, containerHeight]);
 
   const onViewableItemsChanged = useCallback(({ viewableItems }: any) => {
-    if (viewableItems.length > 0) {
+    if (viewableItems && viewableItems.length > 0 && viewableItems[0].index != null) {
       setActiveIndex(viewableItems[0].index);
     }
   }, []);
 
-  const viewabilityConfig = { itemVisiblePercentThreshold: 50 };
+  const viewabilityConfig = useRef({
+    itemVisiblePercentThreshold: 60,
+    waitForInteraction: false,
+  }).current;
 
   if (!visible) return null;
 
   return (
-    <View style={[StyleSheet.absoluteFill, { backgroundColor: bgColor, zIndex: 9999, elevation: 9999 }]}>
-        <FlatList
-          ref={flatListRef}
-          data={posts}
-            keyExtractor={(item) => item.id.toString()}
-            pagingEnabled
-            showsVerticalScrollIndicator={false}
-            onViewableItemsChanged={onViewableItemsChanged}
-            viewabilityConfig={viewabilityConfig}
-            initialScrollIndex={
-              posts.findIndex(p => p.id === initialPostId) >= 0
-                ? posts.findIndex(p => p.id === initialPostId)
-                : 0
-            }
-            getItemLayout={(data, index) => ({ length: height, offset: height * index, index })}
-            renderItem={({ item, index }) => (
-              <MediaItem
-                post={item}
-                isActive={index === activeIndex}
-                onLike={onLike}
-                onComment={onComment}
-                onShare={onShare}
-                onClose={onClose}
-                commentsShift={commentsShift}
-                commentsScale={commentsScale}
-              />
-            )}
+    <View
+      onLayout={(e) => {
+        const { width: w, height: h } = e.nativeEvent.layout;
+        if (h > 0 && Math.abs(h - containerHeight) > 1) {
+          setContainerHeight(h);
+        }
+        if (w > 0 && Math.abs(w - containerWidth) > 1) {
+          setContainerWidth(w);
+        }
+      }}
+      style={[StyleSheet.absoluteFill, { backgroundColor: bgColor, zIndex: 9999, elevation: 9999 }]}
+    >
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+      <FlatList
+        ref={flatListRef}
+        data={posts}
+        keyExtractor={(item) => item.id.toString()}
+        showsVerticalScrollIndicator={false}
+        pagingEnabled={Platform.OS === 'ios'}
+        snapToInterval={containerHeight}
+        snapToAlignment="start"
+        decelerationRate="fast"
+        disableIntervalMomentum={true}
+        bounces={false}
+        onViewableItemsChanged={onViewableItemsChanged}
+        viewabilityConfig={viewabilityConfig}
+        initialScrollIndex={
+          posts.findIndex(p => p.id === initialPostId) >= 0
+            ? posts.findIndex(p => p.id === initialPostId)
+            : 0
+        }
+        onScrollToIndexFailed={(info) => {
+          setTimeout(() => {
+            try {
+              flatListRef.current?.scrollToIndex({ index: info.index, animated: false });
+            } catch (_) {}
+          }, 80);
+        }}
+        getItemLayout={(data, index) => ({
+          length: containerHeight,
+          offset: containerHeight * index,
+          index,
+        })}
+        renderItem={({ item, index }) => (
+          <MediaItem
+            post={item}
+            itemHeight={containerHeight}
+            itemWidth={containerWidth}
+            isActive={index === activeIndex}
+            onLike={onLike}
+            onComment={onComment}
+            onShare={onShare}
+            onClose={onClose}
+            commentsShift={commentsShift}
+            commentsScale={commentsScale}
           />
-        
-          {/* Header (Absolute positioned over list) */}
-          <SafeAreaView style={styles.absoluteHeader}>
-            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <ChevronLeft size={28} color={iconColor} />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.moreButton}>
-              <MoreVertical size={24} color={iconColor} />
-            </TouchableOpacity>
-          </SafeAreaView>
-          {children}
+        )}
+      />
+
+      {/* Header (Absolute positioned over list) */}
+      <View style={[styles.absoluteHeader, { paddingTop: Math.max(insets.top, 16) + (Platform.OS === 'android' ? 6 : 0) }]}>
+        <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+          <ChevronLeft size={28} color={iconColor} />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.moreButton}>
+          <MoreVertical size={24} color={iconColor} />
+        </TouchableOpacity>
       </View>
+      {children}
+    </View>
   );
 }
 
@@ -505,15 +562,16 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   itemContainer: {
-    width: width,
-    height: height,
     justifyContent: 'center',
-    backgroundColor: 'transparent',
+    alignItems: 'center',
+    backgroundColor: '#000000',
+    overflow: 'hidden',
   },
   mediaWrapper: {
-    flex: 1,
     width: '100%',
     height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   media: {
     width: '100%',
@@ -604,7 +662,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#1e1e24',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    height: height * 0.55,
+    height: 400,
     paddingBottom: 20,
   },
   captionSheetHeader: {
@@ -643,7 +701,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    height: height * 0.65,
+    height: 480,
     paddingBottom: 20,
   },
   commentsHeader: {
