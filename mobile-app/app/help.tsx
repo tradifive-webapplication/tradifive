@@ -8,6 +8,15 @@ import * as Haptics from 'expo-haptics';
 import { getHeaderStyle, HeaderStyle } from './utils/headerStore';
 import { useStore } from './store';
 import { supabase } from './utils/supabase';
+import * as ImagePicker from 'expo-image-picker';
+import * as DocumentPicker from 'expo-document-picker';
+import {
+  parseChatMessage,
+  serializeChatMessage,
+  uploadMobileAttachment,
+  ChatAttachment
+} from './utils/supportChat';
+import { Camera, Video, FileText, Image as ImageIcon } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -142,6 +151,86 @@ export default function HelpCentre() {
 
   const [ticketInput, setTicketInput] = useState('');
   const [botInput, setBotInput] = useState('');
+  const [stagedAttachments, setStagedAttachments] = useState<ChatAttachment[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const pickPhoto = async () => {
+    try {
+      const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!perm.granted) {
+        Alert.alert("Permission Needed", "Please allow photo library access to upload screenshots.");
+        return;
+      }
+      const res = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 0.8,
+      });
+      if (!res.canceled && res.assets && res.assets[0]) {
+        const asset = res.assets[0];
+        setIsUploading(true);
+        const name = asset.fileName || `photo_${Date.now()}.jpg`;
+        const att = await uploadMobileAttachment(asset.uri, name, 'image', currentUser?.id);
+        if (att) {
+          setStagedAttachments(prev => [...prev, att]);
+        }
+        setIsUploading(false);
+      }
+    } catch (e) {
+      console.warn("Pick photo error:", e);
+      setIsUploading(false);
+    }
+  };
+
+  const pickVideo = async () => {
+    try {
+      const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!perm.granted) {
+        Alert.alert("Permission Needed", "Please allow video library access to upload recordings.");
+        return;
+      }
+      const res = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Videos,
+      });
+      if (!res.canceled && res.assets && res.assets[0]) {
+        const asset = res.assets[0];
+        setIsUploading(true);
+        const name = asset.fileName || `video_${Date.now()}.mp4`;
+        const att = await uploadMobileAttachment(asset.uri, name, 'video', currentUser?.id);
+        if (att) {
+          setStagedAttachments(prev => [...prev, att]);
+        }
+        setIsUploading(false);
+      }
+    } catch (e) {
+      console.warn("Pick video error:", e);
+      setIsUploading(false);
+    }
+  };
+
+  const pickDocument = async () => {
+    try {
+      const res = await DocumentPicker.getDocumentAsync({
+        copyToCacheDirectory: true,
+      });
+      if (!res.canceled && res.assets && res.assets[0]) {
+        const asset = res.assets[0];
+        setIsUploading(true);
+        const name = asset.name || `doc_${Date.now()}`;
+        const att = await uploadMobileAttachment(asset.uri, name, 'document', currentUser?.id);
+        if (att) {
+          setStagedAttachments(prev => [...prev, att]);
+        }
+        setIsUploading(false);
+      }
+    } catch (e) {
+      console.warn("Pick document error:", e);
+      setIsUploading(false);
+    }
+  };
+
+  const removeStagedAttachment = (idx: number) => {
+    setStagedAttachments(prev => prev.filter((_, i) => i !== idx));
+  };
 
   const [botMessages, setBotMessages] = useState<any[]>([
     { id: '1', role: 'ai', text: "Hello! I am Tradifive's Intelligent Assistant. How can I help you today?", time: new Date() }
@@ -230,17 +319,18 @@ export default function HelpCentre() {
     }
   };
 
-  const handleSendTicketReply = () => {
-    if (!ticketInput.trim() || !selectedTicket) return;
+  const handleSendTicketReply = async () => {
+    if ((!ticketInput.trim() && stagedAttachments.length === 0) || !selectedTicket) return;
     h(Haptics.ImpactFeedbackStyle.Light);
 
-    const replyMsg = ticketInput.trim();
+    const serialized = serializeChatMessage(ticketInput, stagedAttachments);
     setTicketInput('');
+    setStagedAttachments([]);
 
     const newReply: ChatReply = {
       id: Math.random().toString(),
       ticket_id: selectedTicket.id,
-      message: replyMsg,
+      message: serialized,
       admin_id: null,
       created_at: new Date().toISOString()
     };
@@ -250,19 +340,16 @@ export default function HelpCentre() {
       [selectedTicket.id]: [...(prev[selectedTicket.id] || []), newReply]
     }));
 
-    setTimeout(() => {
-      const adminReply: ChatReply = {
-        id: Math.random().toString(),
+    // Post to Supabase
+    try {
+      await supabase.from('ticket_replies').insert([{
         ticket_id: selectedTicket.id,
-        message: 'Thank you for the update. Our operations team has been notified and we are investigating the details. We will update you here shortly.',
-        admin_id: 'admin_agent',
-        created_at: new Date().toISOString()
-      };
-      setTicketReplies(prev => ({
-        ...prev,
-        [selectedTicket.id]: [...(prev[selectedTicket.id] || []), adminReply]
-      }));
-    }, 2000);
+        admin_id: null,
+        message: serialized,
+      }]);
+    } catch (e) {
+      console.log('Ticket reply insert error:', e);
+    }
   };
 
   const handleSendBotMessage = () => {
@@ -721,9 +808,89 @@ export default function HelpCentre() {
                       styles.chatBubble,
                       isAdmin ? styles.adminBubble : styles.userBubble
                     ]}>
-                      <Text style={[styles.bubbleText, isAdmin ? { color: '#0f172a' } : { color: '#ffffff' }]}>
-                        {reply.message}
-                      </Text>
+                      {(() => {
+                        const parsed = parseChatMessage(reply.message);
+                        return (
+                          <View>
+                            {parsed.text ? (
+                              <Text style={[styles.bubbleText, isAdmin ? { color: '#0f172a' } : { color: '#ffffff' }]}>
+                                {parsed.text}
+                              </Text>
+                            ) : null}
+
+                            {parsed.attachments && parsed.attachments.length > 0 && (
+                              <View style={{ marginTop: parsed.text ? 8 : 0, gap: 6 }}>
+                                {parsed.attachments.map((att, aIdx) => {
+                                  if (att.type === 'image') {
+                                    return (
+                                      <TouchableOpacity key={aIdx} onPress={() => Linking.openURL(att.url)} activeOpacity={0.9}>
+                                        <Image
+                                          source={{ uri: att.url }}
+                                          style={{ width: 220, height: 150, borderRadius: 12, backgroundColor: '#1e293b' }}
+                                          resizeMode="cover"
+                                        />
+                                        <Text style={{ fontSize: 10, color: isAdmin ? '#64748b' : 'rgba(255,255,255,0.7)', marginTop: 2 }}>
+                                          📷 {att.name}
+                                        </Text>
+                                      </TouchableOpacity>
+                                    );
+                                  }
+                                  if (att.type === 'video') {
+                                    return (
+                                      <TouchableOpacity
+                                        key={aIdx}
+                                        onPress={() => Linking.openURL(att.url)}
+                                        style={{
+                                          flexDirection: 'row',
+                                          alignItems: 'center',
+                                          gap: 8,
+                                          padding: 10,
+                                          borderRadius: 10,
+                                          backgroundColor: isAdmin ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.15)',
+                                        }}
+                                      >
+                                        <Video size={18} color={isAdmin ? '#2563eb' : '#93c5fd'} />
+                                        <View style={{ flex: 1 }}>
+                                          <Text style={{ fontSize: 12, fontWeight: '700', color: isAdmin ? '#0f172a' : '#fff' }} numberOfLines={1}>
+                                            {att.name}
+                                          </Text>
+                                          <Text style={{ fontSize: 10, color: isAdmin ? '#64748b' : 'rgba(255,255,255,0.7)' }}>
+                                            Tap to play video
+                                          </Text>
+                                        </View>
+                                      </TouchableOpacity>
+                                    );
+                                  }
+                                  return (
+                                    <TouchableOpacity
+                                      key={aIdx}
+                                      onPress={() => Linking.openURL(att.url)}
+                                      style={{
+                                        flexDirection: 'row',
+                                        alignItems: 'center',
+                                        gap: 8,
+                                        padding: 10,
+                                        borderRadius: 10,
+                                        backgroundColor: isAdmin ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.15)',
+                                      }}
+                                    >
+                                      <FileText size={18} color={isAdmin ? '#2563eb' : '#93c5fd'} />
+                                      <View style={{ flex: 1 }}>
+                                        <Text style={{ fontSize: 12, fontWeight: '700', color: isAdmin ? '#0f172a' : '#fff' }} numberOfLines={1}>
+                                          {att.name}
+                                        </Text>
+                                        <Text style={{ fontSize: 10, color: isAdmin ? '#64748b' : 'rgba(255,255,255,0.7)' }}>
+                                          Tap to view document
+                                        </Text>
+                                      </View>
+                                    </TouchableOpacity>
+                                  );
+                                })}
+                              </View>
+                            )}
+                          </View>
+                        );
+                      })()}
                       <Text style={[styles.bubbleTime, isAdmin ? { color: '#94a3b8' } : { color: 'rgba(255,255,255,0.6)' }]}>
                         {new Date(reply.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </Text>
@@ -733,19 +900,57 @@ export default function HelpCentre() {
               })}
             </ScrollView>
 
+            {/* Staged Attachments Preview Strip */}
+            {stagedAttachments.length > 0 && (
+              <View style={{ paddingHorizontal: 16, paddingVertical: 8, backgroundColor: '#ffffff', borderTopWidth: 1, borderTopColor: '#e2e8f0', flexDirection: 'row', gap: 8 }}>
+                {stagedAttachments.map((att, idx) => (
+                  <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#f1f5f9', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8 }}>
+                    {att.type === 'image' && <ImageIcon size={14} color="#2563eb" />}
+                    {att.type === 'video' && <Video size={14} color="#7c3aed" />}
+                    {att.type === 'document' && <FileText size={14} color="#059669" />}
+                    <Text style={{ fontSize: 11, color: '#334155', maxWidth: 100 }} numberOfLines={1}>{att.name}</Text>
+                    <TouchableOpacity onPress={() => removeStagedAttachment(idx)}>
+                      <X size={14} color="#94a3b8" />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {/* Media Attachment Toolbar */}
+            {selectedTicket.status !== 'resolved' && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 16, paddingVertical: 8, backgroundColor: '#ffffff', borderTopWidth: 1, borderTopColor: '#f1f5f9' }}>
+                <TouchableOpacity onPress={pickPhoto} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                  <ImageIcon size={16} color="#2563eb" />
+                  <Text style={{ fontSize: 12, fontWeight: '600', color: '#2563eb' }}>Photo</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity onPress={pickVideo} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                  <Video size={16} color="#7c3aed" />
+                  <Text style={{ fontSize: 12, fontWeight: '600', color: '#7c3aed' }}>Video</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity onPress={pickDocument} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                  <FileText size={16} color="#059669" />
+                  <Text style={{ fontSize: 12, fontWeight: '600', color: '#059669' }}>Doc</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
             {/* REPLY BAR */}
             {selectedTicket.status !== 'resolved' ? (
               <View style={styles.inputBar}>
                 <TextInput
                   style={[styles.chatInput, Platform.OS === 'web' ? { outlineStyle: 'none' } as any : {}]}
-                  placeholder="Type your message..."
+                  placeholder={isUploading ? "Uploading attachment..." : "Type your message..."}
                   placeholderTextColor="#94a3b8"
                   value={ticketInput}
                   onChangeText={setTicketInput}
+                  editable={!isUploading}
                 />
                 <TouchableOpacity
-                  style={[styles.sendBtn, !ticketInput.trim() && { opacity: 0.5 }]}
-                  disabled={!ticketInput.trim()}
+                  style={[styles.sendBtn, (!ticketInput.trim() && stagedAttachments.length === 0) && { opacity: 0.5 }]}
+                  disabled={(!ticketInput.trim() && stagedAttachments.length === 0) || isUploading}
                   onPress={handleSendTicketReply}
                 >
                   <Send size={18} color="#fff" />

@@ -974,7 +974,7 @@ export default function TabLayout() {
                 justifyContent: 'center',
                 gap: 12,
               }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
 
                   {/* 1. SEARCH CIRCLE PILL */}
                   <TouchableOpacity style={[styles.pill, isDark && { backgroundColor: '#111111', borderColor: '#222222' }]} onPress={() => { hSelect(); setSearchOpen(true); }}>
@@ -1052,6 +1052,30 @@ export default function TabLayout() {
                     onPress={openAI}
                   >
                     <Sparkles size={20} color="#8E8E93" strokeWidth={2.5} />
+                  </TouchableOpacity>
+
+                  {/* LIVE HELP PILL */}
+                  <TouchableOpacity
+                    style={[
+                      styles.pill,
+                      isDark && { backgroundColor: '#111111', borderColor: '#222222' },
+                      { position: 'relative' },
+                    ]}
+                    onPress={() => {
+                      h();
+                      router.push('/help?mode=live_chat');
+                    }}
+                  >
+                    <View style={{
+                      position: 'absolute',
+                      top: 5,
+                      right: 5,
+                      width: 7,
+                      height: 7,
+                      borderRadius: 4,
+                      backgroundColor: '#10b981',
+                    }} />
+                    <HelpCircle size={20} color="#3b82f6" strokeWidth={2.2} />
                   </TouchableOpacity>
                 </View>
               </Animated.View>

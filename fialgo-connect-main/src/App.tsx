@@ -11,6 +11,7 @@ import { ProtectedLayout } from "./components/ProtectedLayout";
 import { CustomCursor } from "./components/CustomCursor";
 import { NetworkNotifier } from "@/components/NetworkNotifier";
 import { AdminRoute } from "./components/AdminRoute";
+import FloatingHelpButton from "./components/FloatingHelpButton";
 
 // ── All pages are lazy-loaded to split the 11MB monolithic bundle into
 //    small per-route chunks that iOS Safari WebKit can parse and execute.
@@ -249,6 +250,7 @@ const App = () => {
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
+            <FloatingHelpButton />
           </AppRouter>
           </PresenceProvider>
         </TradingProvider>

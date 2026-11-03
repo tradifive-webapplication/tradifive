@@ -14,6 +14,13 @@ import {
   CheckCircle2,
   AlertCircle
 } from "lucide-react";
+import {
+  parseChatMessage,
+  serializeChatMessage,
+  uploadSupportAttachment,
+  ChatAttachment
+} from "../utils/supportChat";
+import { Image as ImageIcon, Video, FileText, Download, X, Paperclip } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -26,6 +33,43 @@ export default function AdminSupport() {
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [stagedAttachments, setStagedAttachments] = useState<ChatAttachment[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const [lightboxMedia, setLightboxMedia] = useState<ChatAttachment | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [fileAccept, setFileAccept] = useState<string>("*/*");
+
+  const triggerFilePicker = (acceptType: 'all' | 'image' | 'video' | 'document') => {
+    let accept = "*/*";
+    if (acceptType === 'image') accept = "image/*";
+    else if (acceptType === 'video') accept = "video/*";
+    else if (acceptType === 'document') accept = ".pdf,.doc,.docx,.txt,.csv,.log,.zip";
+    setFileAccept(accept);
+    setTimeout(() => fileInputRef.current?.click(), 50);
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    setIsUploading(true);
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      try {
+        const att = await uploadSupportAttachment(file, 'admin_desk');
+        if (att) {
+          setStagedAttachments(prev => [...prev, att]);
+        }
+      } catch (err) {
+        console.error("Admin upload failed:", err);
+      }
+    }
+    setIsUploading(false);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const removeStagedAttachment = (idx: number) => {
+    setStagedAttachments(prev => prev.filter((_, i) => i !== idx));
+  };
 
   useEffect(() => {
     const fetchTickets = async () => {
@@ -86,19 +130,21 @@ export default function AdminSupport() {
   }, [selectedTicket]);
 
   const sendMessage = async () => {
-    if (!newMessage.trim() || !selectedTicket) return;
+    if ((!newMessage.trim() && stagedAttachments.length === 0) || !selectedTicket) return;
+    const serialized = serializeChatMessage(newMessage, stagedAttachments);
+    setNewMessage("");
+    setStagedAttachments([]);
     
     const { error } = await supabase.from('ticket_replies').insert([{
       ticket_id: selectedTicket.id,
-      admin_id: adminUser?.id || null, // If adminUser.id exists it's an admin, otherwise if we had a user it would be different, but we know this is admin
-      message: newMessage.trim(),
+      admin_id: adminUser?.id || 'admin_operator',
+      message: serialized,
     }]);
     
     if (!error) {
-      setNewMessage("");
-      // Update ticket status to in_progress if it was open
       if (selectedTicket.status === 'open') {
         await supabase.from('support_tickets').update({ status: 'in_progress' }).eq('id', selectedTicket.id);
+        setSelectedTicket((prev: any) => prev ? { ...prev, status: 'in_progress' } : null);
       }
     }
   };
@@ -264,7 +310,53 @@ export default function AdminSupport() {
                   return (
                     <div key={msg.id || i} className={`flex flex-col gap-2 max-w-[80%] ${isAdmin ? 'ml-auto items-end' : 'items-start'}`}>
                       <div className={`p-4 rounded-2xl text-sm ${isAdmin ? 'bg-blue-600 text-white rounded-tr-sm' : 'bg-slate-800/50 border border-slate-700/50 text-slate-300 rounded-tl-sm'}`}>
-                        {msg.message}
+                        {(() => {
+                          const parsed = parseChatMessage(msg.message);
+                          return (
+                            <>
+                              {parsed.text ? <p className="whitespace-pre-wrap">{parsed.text}</p> : null}
+                              {parsed.attachments && parsed.attachments.length > 0 && (
+                                <div className="space-y-2 mt-2">
+                                  {parsed.attachments.map((att, aIdx) => {
+                                    if (att.type === 'image') {
+                                      return (
+                                        <div key={aIdx} className="overflow-hidden rounded-xl border border-white/20 cursor-pointer" onClick={() => setLightboxMedia(att)}>
+                                          <img src={att.url} alt={att.name} className="max-h-56 max-w-full object-cover hover:scale-105 transition-transform" />
+                                          <span className="text-[10px] block px-2 py-1 bg-black/40 text-white/90 truncate">{att.name}</span>
+                                        </div>
+                                      );
+                                    }
+                                    if (att.type === 'video') {
+                                      return (
+                                        <div key={aIdx} className="overflow-hidden rounded-xl border border-white/20">
+                                          <video src={att.url} controls className="max-h-56 max-w-full rounded-xl" />
+                                          <span className="text-[10px] block px-2 py-1 bg-black/40 text-white/90 truncate">🎥 {att.name}</span>
+                                        </div>
+                                      );
+                                    }
+                                    return (
+                                      <a
+                                        key={aIdx}
+                                        href={att.url}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        download={att.name}
+                                        className="flex items-center gap-2 p-2.5 rounded-xl bg-black/20 hover:bg-black/30 border border-white/10 transition-colors text-white"
+                                      >
+                                        <FileText size={18} className="text-blue-300 shrink-0" />
+                                        <div className="min-w-0 flex-1">
+                                          <p className="text-xs font-bold truncate">{att.name}</p>
+                                          {att.size && <span className="text-[10px] opacity-60">{(att.size / 1024).toFixed(1)} KB</span>}
+                                        </div>
+                                        <Download size={14} className="shrink-0 opacity-80" />
+                                      </a>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </>
+                          );
+                        })()}
                       </div>
                       <span className="text-[10px] text-slate-600 px-2">
                         {isAdmin ? 'Admin' : 'User'} • {new Date(msg.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
@@ -275,16 +367,79 @@ export default function AdminSupport() {
                 <div ref={messagesEndRef} />
               </div>
 
+              {/* Hidden file input */}
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileSelect}
+                accept={fileAccept}
+                multiple
+                className="hidden"
+              />
+
+              {/* Staged attachments preview */}
+              {stagedAttachments.length > 0 && (
+                <div className="px-6 py-2.5 bg-slate-950/70 border-t border-slate-800 flex gap-2 overflow-x-auto">
+                  {stagedAttachments.map((att, idx) => (
+                    <div key={idx} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-xs font-medium text-white shadow-sm">
+                      {att.type === 'image' && <ImageIcon size={14} className="text-blue-400" />}
+                      {att.type === 'video' && <Video size={14} className="text-purple-400" />}
+                      {att.type === 'document' && <FileText size={14} className="text-emerald-400" />}
+                      <span className="max-w-[120px] truncate">{att.name}</span>
+                      <button type="button" onClick={() => removeStagedAttachment(idx)} className="text-slate-400 hover:text-rose-400 ml-1">
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
               <div className="p-6 border-t border-slate-800 bg-slate-900/20">
-                <form onSubmit={(e) => { e.preventDefault(); sendMessage(); }} className="relative">
+                {/* Media toolbar */}
+                <div className="flex items-center gap-4 mb-3">
+                  <button
+                    type="button"
+                    onClick={() => triggerFilePicker('image')}
+                    className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-blue-400 transition-colors font-medium"
+                  >
+                    <ImageIcon size={15} className="text-blue-500" />
+                    <span>Attach Photo</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => triggerFilePicker('video')}
+                    className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-purple-400 transition-colors font-medium"
+                  >
+                    <Video size={15} className="text-purple-500" />
+                    <span>Attach Video</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => triggerFilePicker('document')}
+                    className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-emerald-400 transition-colors font-medium"
+                  >
+                    <FileText size={15} className="text-emerald-500" />
+                    <span>Attach Document</span>
+                  </button>
+                </div>
+
+                <form onSubmit={(e) => { e.preventDefault(); sendMessage(); }} className="relative flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => triggerFilePicker('all')}
+                    title="Attach Any File"
+                    className="p-3 text-slate-400 hover:text-blue-400 bg-slate-950/60 border border-slate-800 rounded-2xl transition-colors shrink-0"
+                  >
+                    <Paperclip size={18} />
+                  </button>
                   <Input 
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
-                    placeholder={selectedTicket.status === 'resolved' ? "Ticket resolved. Cannot reply." : "Type response..."}
+                    placeholder={selectedTicket.status === 'resolved' ? "Ticket resolved. Cannot reply." : "Type response to user..."}
                     disabled={selectedTicket.status === 'resolved'}
-                    className="bg-slate-950/50 border-slate-800 focus:border-blue-500/50 h-14 rounded-2xl pl-6 pr-16 text-white"
+                    className="bg-slate-950/50 border-slate-800 focus:border-blue-500/50 h-14 rounded-2xl pl-4 pr-16 text-white flex-1"
                   />
-                  <button type="submit" disabled={!newMessage.trim() || selectedTicket.status === 'resolved'} className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-blue-600 hover:bg-blue-500 text-white disabled:opacity-50 disabled:bg-slate-800 rounded-xl flex items-center justify-center transition-colors">
+                  <button type="submit" disabled={(!newMessage.trim() && stagedAttachments.length === 0) || selectedTicket.status === 'resolved'} className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-blue-600 hover:bg-blue-500 text-white disabled:opacity-50 disabled:bg-slate-800 rounded-xl flex items-center justify-center transition-colors">
                     <Send size={16} />
                   </button>
                 </form>
@@ -311,6 +466,35 @@ export default function AdminSupport() {
               </div>
           ))}
       </div>
+      {/* Lightbox Modal */}
+      {lightboxMedia && (
+        <div
+          onClick={() => setLightboxMedia(null)}
+          className="fixed inset-0 z-[99999] bg-black/85 backdrop-blur-md flex items-center justify-center p-6"
+        >
+          <div onClick={(e) => e.stopPropagation()} className="relative max-w-[90vw] max-h-[90vh] rounded-2xl overflow-hidden border border-white/10 bg-[#111]">
+            <button
+              onClick={() => setLightboxMedia(null)}
+              className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/70 text-white flex items-center justify-center hover:bg-black transition-colors z-10"
+            >
+              <X size={18} />
+            </button>
+            <img src={lightboxMedia.url} alt={lightboxMedia.name} className="max-w-full max-h-[80vh] object-contain block" />
+            <div className="p-3 bg-[#18181c] flex items-center justify-between">
+              <span className="text-xs text-white font-bold truncate max-w-[300px]">{lightboxMedia.name}</span>
+              <a
+                href={lightboxMedia.url}
+                download={lightboxMedia.name}
+                target="_blank"
+                rel="noreferrer"
+                className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center gap-1.5 transition-colors"
+              >
+                <Download size={13} /> Download
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

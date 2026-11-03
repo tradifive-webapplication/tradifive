@@ -1788,8 +1788,11 @@ export default function SettingsScreen() {
             <View style={[styles.channelIconBox, { backgroundColor: '#eff6ff' }]}>
               <LucideMessageSquare size={24} color="#3b82f6" />
             </View>
-            <Text style={[styles.channelName, isDark && { color: '#f8fafc' }]}>Live Assistant</Text>
-            <Text style={styles.channelDesc}>Instant automated chat & FAQs</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, justifyContent: 'center' }}>
+              <Text style={[styles.channelName, isDark && { color: '#f8fafc' }]}>Live Chat</Text>
+              <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#10b981' }} />
+            </View>
+            <Text style={styles.channelDesc}>Talk live with support desk</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.channelCard, isDark && { backgroundColor: '#111111', borderColor: '#222222', borderWidth: 1, shadowOpacity: 0 }]} onPress={() => { h(); router.push('/help?mode=ticket_step_contacted'); }}>
             <View style={[styles.channelIconBox, { backgroundColor: '#f0fdf4' }]}>

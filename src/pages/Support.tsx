@@ -25,6 +25,14 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
+import {
+  parseChatMessage,
+  serializeChatMessage,
+  uploadSupportAttachment,
+  ChatAttachment
+} from "@/utils/supportChat";
+import { Video, Download, CheckCircle } from "lucide-react";
 
 type ChatMessage = { role: 'ai' | 'user', text: string, time: Date };
 
@@ -79,6 +87,91 @@ export default function Support() {
   const [isCreating, setIsCreating] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [stagedAttachments, setStagedAttachments] = useState<ChatAttachment[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const [lightboxMedia, setLightboxMedia] = useState<ChatAttachment | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [fileAccept, setFileAccept] = useState<string>("*/*");
+
+  const triggerFilePicker = (acceptType: 'all' | 'image' | 'video' | 'document') => {
+    let accept = "*/*";
+    if (acceptType === 'image') accept = "image/*";
+    else if (acceptType === 'video') accept = "video/*";
+    else if (acceptType === 'document') accept = ".pdf,.doc,.docx,.txt,.csv,.log,.zip";
+    setFileAccept(accept);
+    setTimeout(() => fileInputRef.current?.click(), 50);
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    setIsUploading(true);
+    toast.loading("Uploading attachment...", { id: "attach-upload" });
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      try {
+        const att = await uploadSupportAttachment(file, user?.id);
+        if (att) {
+          setStagedAttachments(prev => [...prev, att]);
+          toast.success(`Attached ${file.name}`, { id: "attach-upload" });
+        } else {
+          toast.error(`Could not upload ${file.name}`, { id: "attach-upload" });
+        }
+      } catch (err) {
+        console.error(err);
+        toast.error(`Error uploading ${file.name}`, { id: "attach-upload" });
+      }
+    }
+    setIsUploading(false);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const removeStagedAttachment = (idx: number) => {
+    setStagedAttachments(prev => prev.filter((_, i) => i !== idx));
+  };
+
+  const startLiveChat = async () => {
+    if (!user) {
+      setPanelMode('bot');
+      setShowPanel(true);
+      return;
+    }
+    const activeTicket = tickets.find(t => t.status === 'open' || t.status === 'in-progress' || t.status === 'in_progress');
+    if (activeTicket) {
+      setSelectedTicket(activeTicket);
+      setShowTicketPanel(true);
+      setPanelMode('human');
+    } else {
+      const { data, error } = await supabase.from('support_tickets').insert([{
+        user_id: user.id,
+        subject: `Live Chat Support (${new Date().toLocaleDateString([], { month: 'short', day: 'numeric' })})`,
+        description: `Direct live chat inquiry started by ${userName}.`,
+        status: 'open',
+        priority: 'high'
+      }]).select().single();
+
+      if (data) {
+        setTickets(prev => [data, ...prev]);
+        setSelectedTicket(data);
+        setShowTicketPanel(true);
+        setPanelMode('human');
+      } else {
+        const mockTicket = {
+          id: crypto.randomUUID(),
+          user_id: user.id,
+          subject: `Live Chat Support (${new Date().toLocaleDateString([], { month: 'short', day: 'numeric' })})`,
+          description: `Direct live chat inquiry started by ${userName}.`,
+          status: 'open',
+          priority: 'high',
+          created_at: new Date().toISOString()
+        };
+        setTickets(prev => [mockTicket, ...prev]);
+        setSelectedTicket(mockTicket);
+        setShowTicketPanel(true);
+        setPanelMode('human');
+      }
+    }
+  };
 
   // Fetch user's tickets
   useEffect(() => {
@@ -274,9 +367,10 @@ export default function Support() {
   };
 
   const sendMessage = async () => {
-    if (!newMessage.trim() || !selectedTicket || !user) return;
-    const msg = newMessage.trim();
+    if ((!newMessage.trim() && stagedAttachments.length === 0) || !selectedTicket || !user) return;
+    const msg = serializeChatMessage(newMessage, stagedAttachments);
     setNewMessage("");
+    setStagedAttachments([]);
 
     const { data, error } = await supabase.from('ticket_replies').insert([{
       ticket_id: selectedTicket.id,
@@ -375,16 +469,27 @@ export default function Support() {
               </div>
 
               {/* Card 2: Live Chat */}
-              <div className="overflow-hidden flex flex-col opacity-60 rounded-[22px] border-2 border-white dark:border-white/5 bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:shadow-none">
-                <div className="h-40 relative overflow-hidden flex items-center justify-center border-b-2 border-white dark:border-white/5 bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E]">
-                  <div className="absolute w-24 h-24 rounded-full bg-slate-200 dark:bg-[#2A2A2A] shadow-inner" />
-                  <div className="absolute w-12 h-12 rounded-full bg-slate-300 dark:bg-[#333] -bottom-2 -left-2" />
+              <div className="overflow-hidden flex flex-col rounded-[22px] border-2 border-white dark:border-white/5 bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:shadow-none hover:shadow-lg transition-all duration-300">
+                <div className="h-40 relative overflow-hidden flex items-center justify-center border-b-2 border-white dark:border-white/5 bg-gradient-to-b from-blue-50/50 to-white dark:bg-none dark:bg-[#1E1E1E]">
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-xl shadow-blue-500/25">
+                    <MessageSquare size={32} />
+                  </div>
                 </div>
                 <div className="p-6 flex flex-col flex-1">
-                  <h3 className="font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">Live chat <span className="text-[10px] bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 px-2 py-0.5 rounded-full uppercase tracking-widest">Coming Soon</span></h3>
-                  <p className="text-xs text-slate-600 dark:text-slate-400 mb-6 flex-1">Can't find the answers you're looking for? Chat with our Intelligent Assistant.</p>
-                  <button disabled className="w-full bg-slate-100 dark:bg-[#222] text-slate-400 dark:text-slate-400 font-medium py-2.5 rounded flex items-center justify-center gap-2 transition-colors cursor-not-allowed">
-                    <MessageSquare size={16} /> Currently Unavailable
+                  <h3 className="font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+                    Live chat
+                    <span className="text-[10px] bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 px-2 py-0.5 rounded-full uppercase tracking-widest font-black flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Online
+                    </span>
+                  </h3>
+                  <p className="text-xs text-slate-600 dark:text-slate-400 mb-6 flex-1">
+                    Connect directly with our operations team or intelligent assistant. Send messages, photos, videos, and documents.
+                  </p>
+                  <button
+                    onClick={startLiveChat}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20 transition-all active:scale-[0.98]"
+                  >
+                    <MessageSquare size={16} /> Start Live Chat
                   </button>
                 </div>
               </div>
@@ -780,7 +885,55 @@ export default function Support() {
                               <div className="bg-white dark:bg-[#1E1E1E] w-4 h-4 rotate-45 translate-x-2 -translate-y-2"></div>
                             </div>
                           )}
-                          <p className="text-[14px] leading-relaxed pr-6 font-medium">{r.message}</p>
+                          {(() => {
+                            const parsed = parseChatMessage(r.message);
+                            return (
+                              <>
+                                {parsed.text ? (
+                                  <p className="text-[14px] leading-relaxed pr-6 font-medium whitespace-pre-wrap">{parsed.text}</p>
+                                ) : null}
+                                {parsed.attachments && parsed.attachments.length > 0 && (
+                                  <div className="space-y-2 mt-2">
+                                    {parsed.attachments.map((att, aIdx) => {
+                                      if (att.type === 'image') {
+                                        return (
+                                          <div key={aIdx} className="overflow-hidden rounded-xl border border-white/20 cursor-pointer" onClick={() => setLightboxMedia(att)}>
+                                            <img src={att.url} alt={att.name} className="max-h-60 max-w-full object-cover hover:scale-105 transition-transform" />
+                                            <span className="text-[10px] block px-2 py-1 bg-black/40 text-white/90 truncate">{att.name}</span>
+                                          </div>
+                                        );
+                                      }
+                                      if (att.type === 'video') {
+                                        return (
+                                          <div key={aIdx} className="overflow-hidden rounded-xl border border-white/20">
+                                            <video src={att.url} controls className="max-h-60 max-w-full rounded-xl" />
+                                            <span className="text-[10px] block px-2 py-1 bg-black/40 text-white/90 truncate">🎥 {att.name}</span>
+                                          </div>
+                                        );
+                                      }
+                                      return (
+                                        <a
+                                          key={aIdx}
+                                          href={att.url}
+                                          target="_blank"
+                                          rel="noreferrer"
+                                          download={att.name}
+                                          className="flex items-center gap-2 p-2.5 rounded-xl bg-black/20 hover:bg-black/30 border border-white/10 transition-colors text-white"
+                                        >
+                                          <FileText size={20} className="text-blue-300 shrink-0" />
+                                          <div className="min-w-0 flex-1">
+                                            <p className="text-xs font-bold truncate">{att.name}</p>
+                                            {att.size && <span className="text-[10px] opacity-60">{(att.size / 1024).toFixed(1)} KB</span>}
+                                          </div>
+                                          <Download size={14} className="shrink-0 opacity-80" />
+                                        </a>
+                                      );
+                                    })}
+                                  </div>
+                                )}
+                              </>
+                            );
+                          })()}
                           <span className={`text-[9px] absolute bottom-1 right-3 font-bold uppercase ${isUser ? 'text-white/60' : 'text-slate-400 dark:text-neutral-400'}`}>
                             {new Date(r.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </span>
@@ -793,11 +946,71 @@ export default function Support() {
               </div>
             </div>
 
+            {/* Hidden file input for attachments */}
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileSelect}
+              accept={fileAccept}
+              multiple
+              className="hidden"
+            />
+
+            {/* Staged Attachments Strip */}
+            {stagedAttachments.length > 0 && (
+              <div className="px-5 py-2.5 bg-slate-100 dark:bg-[#141416] border-t border-slate-200 dark:border-white/5 flex gap-2 overflow-x-auto">
+                {stagedAttachments.map((att, idx) => (
+                  <div key={idx} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white dark:bg-[#1e1e24] border border-slate-200 dark:border-white/10 text-xs font-medium text-slate-800 dark:text-white shadow-sm">
+                    {att.type === 'image' && <ImageIcon size={14} className="text-blue-500" />}
+                    {att.type === 'video' && <Video size={14} className="text-purple-500" />}
+                    {att.type === 'document' && <FileText size={14} className="text-emerald-500" />}
+                    <span className="max-w-[120px] truncate">{att.name}</span>
+                    <button onClick={() => removeStagedAttachment(idx)} className="text-slate-400 hover:text-rose-500 ml-1">
+                      <X size={14} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
             {/* Premium Input Bar */}
             {selectedTicket.status !== 'resolved' && (
               <div className="p-5 bg-white dark:bg-[#0c0c0c] border-t border-slate-100 dark:border-white/5">
+                {/* Media Attachment Toolbar */}
+                <div className="flex items-center gap-3 mb-2 px-1">
+                  <button
+                    type="button"
+                    onClick={() => triggerFilePicker('image')}
+                    className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
+                  >
+                    <ImageIcon size={15} className="text-blue-500" />
+                    <span>Photo</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => triggerFilePicker('video')}
+                    className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors font-medium"
+                  >
+                    <Video size={15} className="text-purple-500" />
+                    <span>Video</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => triggerFilePicker('document')}
+                    className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors font-medium"
+                  >
+                    <FileText size={15} className="text-emerald-500" />
+                    <span>Document</span>
+                  </button>
+                </div>
+
                 <div className="flex items-center gap-3 bg-slate-50 dark:bg-[#161618] border border-slate-200/50 dark:border-white/5 rounded-2xl px-4 py-2 shadow-inner transition-all focus-within:border-blue-500/50 focus-within:ring-4 focus-within:ring-blue-500/5">
-                  <button className="p-2 text-slate-400 hover:text-blue-600 transition-colors">
+                  <button
+                    type="button"
+                    onClick={() => triggerFilePicker('all')}
+                    title="Attach Any File"
+                    className="p-2 text-slate-400 hover:text-blue-600 transition-colors"
+                  >
                     <Paperclip size={20} strokeWidth={2.5} />
                   </button>
                   <input
@@ -810,7 +1023,7 @@ export default function Support() {
                   />
                   <button
                     onClick={sendMessage}
-                    disabled={!newMessage.trim()}
+                    disabled={!newMessage.trim() && stagedAttachments.length === 0}
                     className="w-10 h-10 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:grayscale text-white rounded-xl flex items-center justify-center transition-all shadow-lg shadow-blue-500/20 active:scale-90"
                   >
                     <Send size={18} strokeWidth={2.5} />
