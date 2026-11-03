@@ -1925,7 +1925,7 @@ export default function DashboardScreen() {
             borderBottomWidth: headerStyle === 'simple' && !isDark ? 1 : 0,
             borderBottomColor: isDark ? theme.cardBorder : '#e2e8f0',
             position: 'relative',
-            transform: headerStyle === 'simple' ? [] : [{ translateY: headerTranslateY }]
+            transform: []
           }
         ]}>
           {headerStyle !== 'simple' && (
@@ -1946,11 +1946,7 @@ export default function DashboardScreen() {
             alignItems: 'center',
             justifyContent: 'space-between',
             paddingHorizontal: 20,
-            opacity: headerStyle === 'simple' ? aiHeaderFade : clampedScroll.interpolate({
-              inputRange: [0, 35],
-              outputRange: [1, 0],
-              extrapolate: 'clamp',
-            }),
+            opacity: aiHeaderFade,
           }}>
             {activeTab === 'community' ? (
               <TouchableOpacity
@@ -1996,15 +1992,14 @@ export default function DashboardScreen() {
       )}
 
 
-      {/* ── WHITE CONTENT CARD (Slides up and down with scroll) ── */}
-      <Animated.View style={[
+      {/* ── WHITE CONTENT CARD (Stable layout: NO parent translateY to completely eliminate slow-scroll jitter) ── */}
+      <View style={[
         styles.card,
         {
           marginTop: headerStyle === 'simple' ? 0 : -34,
           borderTopLeftRadius: headerStyle === 'simple' ? 0 : 40,
           borderTopRightRadius: headerStyle === 'simple' ? 0 : 40,
           backgroundColor: activeCardId ? '#090d16' : (isDark ? theme.background : (activeTab === 'feed' ? '#f8fafc' : '#fff')),
-          transform: headerStyle === 'simple' ? [] : [{ translateY: headerTranslateY }]
         }
       ]}>
         {activeTab === 'dashboard' && (
@@ -3380,7 +3375,7 @@ export default function DashboardScreen() {
           )}
           </View>
         )}
-      </Animated.View>
+      </View>
 
       {dropdownOpen && (
         <>
