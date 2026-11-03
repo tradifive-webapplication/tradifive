@@ -3,7 +3,8 @@ import {
   View, Text, TextInput, TouchableOpacity, FlatList,
   StyleSheet, Dimensions, Platform, StatusBar, Image,
   KeyboardAvoidingView, Keyboard, Animated, ScrollView,
-  DeviceEventEmitter, Modal, TouchableWithoutFeedback, ActivityIndicator
+  DeviceEventEmitter, Modal, TouchableWithoutFeedback, ActivityIndicator,
+  LayoutAnimation, UIManager
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
@@ -99,6 +100,27 @@ export default function InboxScreen() {
     if (shadowed.msgBubbleMe) {
       shadowed.msgBubbleMe.backgroundColor = '#4f46e5';
     }
+    if (shadowed.chatInputBar) {
+      shadowed.chatInputBar.backgroundColor = theme.card;
+      shadowed.chatInputBar.borderTopColor = theme.cardBorder;
+    }
+    if (shadowed.chatInputFieldContainer) {
+      shadowed.chatInputFieldContainer.backgroundColor = isDark ? '#1c1c1c' : '#f1f5f9';
+      shadowed.chatInputFieldContainer.borderColor = isDark ? '#2a2a2a' : '#e2e8f0';
+    }
+    if (shadowed.chatInputField) {
+      shadowed.chatInputField.color = isDark ? '#ffffff' : '#0f172a';
+    }
+    if (shadowed.searchBar) {
+      shadowed.searchBar.backgroundColor = isDark ? '#1c1c1c' : '#ffffff';
+      shadowed.searchBar.borderColor = isDark ? '#2a2a2a' : '#f1f5f9';
+    }
+    if (shadowed.searchInput) {
+      shadowed.searchInput.color = isDark ? '#ffffff' : '#0f172a';
+    }
+    if (shadowed.mainCard) {
+      shadowed.mainCard.backgroundColor = isDark ? '#0b0f19' : '#ffffff';
+    }
     if (shadowed.chatSendBtn) {
       shadowed.chatSendBtn.backgroundColor = '#4f46e5';
     }
@@ -146,6 +168,7 @@ export default function InboxScreen() {
   }, [showChat]);
 
   const handleCloseChat = () => {
+    Keyboard.dismiss();
     h();
     Animated.timing(chatSlideAnim, {
       toValue: SW,
@@ -213,15 +236,42 @@ export default function InboxScreen() {
   const [newMsgSearch, setNewMsgSearch] = useState('');
   const flatRef = useRef<FlatList>(null);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [containerHeight, setContainerHeight] = useState(SH);
 
   useEffect(() => {
+    const onShow = (e: any) => {
+      try {
+        if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+          UIManager.setLayoutAnimationEnabledExperimental(true);
+        }
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      } catch (_) {}
+      setKeyboardVisible(true);
+      const kh = e?.endCoordinates?.height || 0;
+      if (kh > 0) {
+        setKeyboardHeight(kh);
+      }
+      setTimeout(() => {
+        flatRef.current?.scrollToEnd({ animated: true });
+      }, 60);
+    };
+
+    const onHide = () => {
+      try {
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      } catch (_) {}
+      setKeyboardVisible(false);
+      setKeyboardHeight(0);
+    };
+
     const showSub = Keyboard.addListener(
       Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
-      () => setKeyboardVisible(true)
+      onShow
     );
     const hideSub = Keyboard.addListener(
       Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
-      () => setKeyboardVisible(false)
+      onHide
     );
     return () => {
       showSub.remove();
@@ -496,10 +546,19 @@ export default function InboxScreen() {
   const renderChatUI = () => {
     if (!showChat || !activeConv) return null;
     const myId = currentUser?.id || 'me';
+    const isContainerResized = Platform.OS === 'android' && keyboardHeight > 0 && (SH - containerHeight > keyboardHeight * 0.5);
+    const inputPaddingBottom = Platform.OS === 'android'
+      ? (keyboardVisible
+          ? (isContainerResized ? 8 : (keyboardHeight > 0 ? keyboardHeight + 8 : 8))
+          : (insets.bottom + 8))
+      : (keyboardVisible ? 8 : (insets.bottom + 8));
 
     return (
-      <Animated.View style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, zIndex: 100, backgroundColor: isDark ? '#1c1c1c' : '#f1f5f9', transform: [{ translateX: chatSlideAnim }] }}>
-        <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+      <Animated.View
+        onLayout={(e) => setContainerHeight(e.nativeEvent.layout.height)}
+        style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, zIndex: 100, backgroundColor: isDark ? '#1c1c1c' : '#f1f5f9', transform: [{ translateX: chatSlideAnim }] }}
+      >
+        <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={isDark ? "#111111" : "#ffffff"} />
         <KeyboardAvoidingView
           style={{ flex: 1, backgroundColor: isDark ? '#1c1c1c' : '#f1f5f9' }}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -558,6 +617,8 @@ export default function InboxScreen() {
             keyExtractor={m => m.id}
             contentContainerStyle={{ padding: 16, gap: 12, paddingBottom: 8 }}
             showsVerticalScrollIndicator={false}
+            keyboardDismissMode="on-drag"
+            keyboardShouldPersistTaps="handled"
             onContentSizeChange={() => flatRef.current?.scrollToEnd({ animated: false })}
             ListHeaderComponent={() => (
               <View style={{ alignItems: 'center', marginBottom: 16 }}>
@@ -590,13 +651,36 @@ export default function InboxScreen() {
           />
 
           {/* Input */}
-          <View style={[s.chatInputBar, { paddingBottom: keyboardVisible ? 8 : (insets.bottom + 8) }]}>
+          <View
+            style={[
+              s.chatInputBar,
+              {
+                paddingBottom: inputPaddingBottom,
+                backgroundColor: isDark ? '#111111' : '#ffffff',
+                borderTopColor: isDark ? '#222222' : '#f1f5f9',
+              }
+            ]}
+          >
             <TouchableOpacity style={s.chatAttachBtn} onPress={h}>
               <Plus size={22} color={isDark ? "#94a3b8" : "#64748b"} />
             </TouchableOpacity>
-            <View style={[s.chatInputFieldContainer, { backgroundColor: isDark ? '#1c1c1c' : '#f1f5f9' }]}>
+            <View
+              style={[
+                s.chatInputFieldContainer,
+                {
+                  backgroundColor: isDark ? '#1c1c1c' : '#f1f5f9',
+                  borderColor: isDark ? '#2a2a2a' : '#e2e8f0',
+                  borderWidth: 1,
+                }
+              ]}
+            >
               <TextInput
-                style={[s.chatInputField, { color: isDark ? theme.text : '#0f172a' }]}
+                style={[
+                  s.chatInputField,
+                  {
+                    color: isDark ? '#ffffff' : '#0f172a',
+                  }
+                ]}
                 value={inputText}
                 onChangeText={setInputText}
                 placeholder={`Reply to ${activeConv?.name || 'conversation'}...`}
@@ -607,11 +691,23 @@ export default function InboxScreen() {
                 onSubmitEditing={handleSend}
               />
               <TouchableOpacity
-                style={[s.chatSendBtn, { backgroundColor: inputText.trim() ? (isDark ? '#fff' : '#0f172a') : (isDark ? '#2a2a2a' : '#e2e8f0') }]}
+                style={[
+                  s.chatSendBtn,
+                  {
+                    backgroundColor: inputText.trim()
+                      ? (isDark ? '#3b82f6' : '#0f172a')
+                      : (isDark ? '#2a2a2a' : '#e2e8f0')
+                  }
+                ]}
                 onPress={handleSend}
                 disabled={!inputText.trim()}
               >
-                <IconlySend set="bulk" size={16} color={inputText.trim() ? (isDark ? '#000' : '#fff') : (isDark ? '#555' : '#94a3b8')} style={{ marginLeft: -2 }} />
+                <IconlySend
+                  set="bulk"
+                  size={16}
+                  color={inputText.trim() ? '#ffffff' : (isDark ? '#555555' : '#94a3b8')}
+                  style={{ marginLeft: -2 }}
+                />
               </TouchableOpacity>
             </View>
           </View>
@@ -739,6 +835,8 @@ export default function InboxScreen() {
             keyExtractor={c => c.id}
             renderItem={({ item }) => <ConvItem conv={item} />}
             showsVerticalScrollIndicator={false}
+            keyboardDismissMode="on-drag"
+            keyboardShouldPersistTaps="handled"
             contentContainerStyle={{ paddingBottom: insets.bottom + 120 }}
           />
         )}
@@ -803,11 +901,54 @@ const globalStyles = StyleSheet.create({
   msgBubbleThem: { backgroundColor: '#fff', borderBottomLeftRadius: 5, borderWidth: 1, borderColor: '#f1f5f9', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 3, elevation: 1 },
   msgText: { fontSize: 14.5, fontFamily: 'Inter_400Regular', color: '#0f172a', lineHeight: 22 },
   msgTime: { fontSize: 10.5, fontFamily: 'Inter_500Medium', color: '#94a3b8' },
-  chatInputBar: { flexDirection: 'row', alignItems: 'flex-end', paddingHorizontal: 16, paddingTop: 8, backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#f1f5f9', gap: 12 },
-  chatAttachBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center', marginBottom: 2 },
-  chatInputFieldContainer: { flex: 1, flexDirection: 'row', alignItems: 'flex-end', backgroundColor: '#f1f5f9', borderRadius: 24, paddingLeft: 16, paddingRight: 4, paddingVertical: 4 },
-  chatInputField: { flex: 1, maxHeight: 120, fontSize: 14.5, fontFamily: 'Inter_500Medium', color: '#0f172a', paddingTop: Platform.OS === 'ios' ? 8 : 4, paddingBottom: Platform.OS === 'ios' ? 8 : 4, textAlignVertical: 'center' },
-  chatSendBtn: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', marginLeft: 8 },
+  chatInputBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingTop: 8,
+    backgroundColor: '#fff',
+    borderTopWidth: 1,
+    borderTopColor: '#f1f5f9',
+    gap: 8,
+  },
+  chatAttachBtn: {
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'center',
+  },
+  chatInputFieldContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f1f5f9',
+    borderRadius: 24,
+    paddingLeft: 14,
+    paddingRight: 6,
+    paddingVertical: Platform.OS === 'ios' ? 4 : 2,
+    minHeight: 44,
+  },
+  chatInputField: {
+    flex: 1,
+    minHeight: 38,
+    maxHeight: 120,
+    fontSize: 15,
+    fontFamily: 'Inter_500Medium',
+    color: '#0f172a',
+    paddingTop: Platform.OS === 'ios' ? 8 : 6,
+    paddingBottom: Platform.OS === 'ios' ? 8 : 6,
+    paddingHorizontal: 4,
+    textAlignVertical: 'center',
+  },
+  chatSendBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 4,
+  },
   // Details Bottom Sheet Modal
   modalOverlay: {
     flex: 1,
