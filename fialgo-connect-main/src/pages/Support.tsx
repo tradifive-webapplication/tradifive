@@ -132,8 +132,8 @@ export default function Support() {
 
   const startLiveChat = async () => {
     if (!user) {
-      setPanelMode('bot');
-      setShowPanel(true);
+      toast.error("Please log in to start a live support chat.");
+
       return;
     }
     const activeTicket = tickets.find(t => t.status === 'open' || t.status === 'in-progress' || t.status === 'in_progress');
@@ -361,7 +361,7 @@ export default function Support() {
       setNewTicketDesc("");
       setViewMode('hub');
       setPanelMode('human');
-      setShowPanel(true);
+
     }
     setIsCreating(false);
   };
@@ -483,7 +483,7 @@ export default function Support() {
                     </span>
                   </h3>
                   <p className="text-xs text-slate-600 dark:text-slate-400 mb-6 flex-1">
-                    Connect directly with our operations team or intelligent assistant. Send messages, photos, videos, and documents.
+                    Connect directly with our human operations desk. Send messages, photos, videos, and documents.
                   </p>
                   <button
                     onClick={startLiveChat}

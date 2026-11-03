@@ -24,6 +24,7 @@ import SettingsPage from './pages/SettingsPage';
 import RolesManagementPage from './pages/RolesManagementPage';
 import SystemStatusPage from './pages/SystemStatusPage';
 import TechIssuesPage from './pages/TechIssuesPage';
+import SupportTicketsPage from './pages/SupportTicketsPage';
 import AdminSupport from './pages/AdminSupport';
 import OperationsPanelPage from './pages/OperationsPanelPage';
 import TaskProtocolPage from './pages/TaskProtocolPage';
@@ -137,8 +138,9 @@ function AppRoutes() {
         <Route path="/roles" element={<RoleGuard pageId="roles_management"><RolesManagementPage /></RoleGuard>} />
         <Route path="/system-status" element={<RoleGuard pageId="system_status"><SystemStatusPage /></RoleGuard>} />
         <Route path="/tech-issues" element={<RoleGuard pageId="tech_issues"><TechIssuesPage /></RoleGuard>} />
-        <Route path="/support-tickets" element={<RoleGuard pageId="support_tickets"><AdminSupport /></RoleGuard>} />
-        <Route path="/support" element={<RoleGuard pageId="support_tickets"><AdminSupport /></RoleGuard>} />
+        <Route path="/support-tickets" element={<RoleGuard pageId="support_tickets"><SupportTicketsPage /></RoleGuard>} />
+        <Route path="/live-chat" element={<RoleGuard pageId="live_chat"><AdminSupport /></RoleGuard>} />
+        <Route path="/support" element={<RoleGuard pageId="live_chat"><AdminSupport /></RoleGuard>} />
         <Route path="/operations" element={<RoleGuard pageId="operations_panel"><OperationsPanelPage /></RoleGuard>} />
         <Route path="/tasks" element={<RoleGuard pageId="task_protocol"><TaskProtocolPage /></RoleGuard>} />
 

@@ -65,6 +65,7 @@ export type PageId =
   | "system_status"
   | "tech_issues"
   | "support_tickets"
+  | "live_chat"
   | "operations_panel"
   | "maintenance_master"
   | "task_protocol"
@@ -185,7 +186,8 @@ const ALL_NAV_ITEMS: NavItem[] = [
   { id: "learning_manager_hr", label: "Employee Training", icon: BookOpen, path: "/hr/training", department: "HR & People", badge: "NEW" },
 
   // SUPPORT & FEEDBACK
-  { id: "support_tickets", label: "Support Tickets", icon: Headphones, path: "/support-tickets", department: "Support & Feedback", badge: "LIVE" },
+  { id: "support_tickets", label: "Support Tickets", icon: Headphones, path: "/support-tickets", department: "Support & Feedback" },
+  { id: "live_chat", label: "Live Chat Desk", icon: MessageSquare, path: "/live-chat", department: "Support & Feedback", badge: "LIVE" },
   { id: "feedback_inbox", label: "Feedback Inbox", icon: MessageSquare, path: "/feedback", department: "Support & Feedback" },
 
   // COMMUNITY & CONTENT
@@ -265,6 +267,7 @@ const PAGE_ACCESS: Record<AdminRole, PageId[]> = {
 
     // Support & Feedback
     "support_tickets",
+    "live_chat",
     "feedback_inbox",
 
     // Technology & Config
@@ -295,7 +298,7 @@ const PAGE_ACCESS: Record<AdminRole, PageId[]> = {
   support_executive: [
     "dashboard",
     "auto_trade_manager",
-    "support_tickets", "feedback_inbox",
+    "support_tickets", "live_chat", "feedback_inbox",
     "agent_command",
   ],
 

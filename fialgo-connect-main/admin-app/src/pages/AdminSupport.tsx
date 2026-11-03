@@ -6,13 +6,14 @@ import {
   Search, 
   MessageSquare, 
   Clock, 
-  Filter, 
-  MoreVertical,
-  ChevronRight,
-  User,
-  Send,
-  CheckCircle2,
-  AlertCircle
+  ChevronRight, 
+  User, 
+  Send, 
+  CheckCircle2, 
+  AlertCircle,
+  RefreshCcw,
+  Smartphone,
+  Laptop
 } from "lucide-react";
 import {
   parseChatMessage,
@@ -38,6 +39,8 @@ export default function AdminSupport() {
   const [lightboxMedia, setLightboxMedia] = useState<ChatAttachment | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [fileAccept, setFileAccept] = useState<string>("*/*");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [channelFilter, setChannelFilter] = useState<"all" | "web" | "mobile" | "unresolved">("all");
 
   const triggerFilePicker = (acceptType: 'all' | 'image' | 'video' | 'document') => {
     let accept = "*/*";
@@ -71,32 +74,33 @@ export default function AdminSupport() {
     setStagedAttachments(prev => prev.filter((_, i) => i !== idx));
   };
 
-  useEffect(() => {
-    const fetchTickets = async () => {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('support_tickets')
-        .select('*')
-        .order('created_at', { ascending: false });
+  const fetchTickets = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('support_tickets')
+      .select('*')
+      .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error("Support fetch failed:", error);
-        setTickets([]);
-      } else {
-        const userIds = [...new Set((data || []).map(t => t.user_id).filter(Boolean))];
-        const profileMap: Record<string, any> = {};
-        if (userIds.length > 0) {
-          const { data: profiles } = await supabase.from("profiles").select("id, full_name, email").in("id", userIds);
-          (profiles || []).forEach(p => { profileMap[p.id] = p; });
-        }
-        setTickets((data || []).map(t => ({ ...t, profiles: profileMap[t.user_id] || { full_name: "User", email: "" } })));
+    if (error) {
+      console.error("Support fetch failed:", error);
+      setTickets([]);
+    } else {
+      const userIds = [...new Set((data || []).map(t => t.user_id).filter(Boolean))];
+      const profileMap: Record<string, any> = {};
+      if (userIds.length > 0) {
+        const { data: profiles } = await supabase.from("profiles").select("id, full_name, email").in("id", userIds);
+        (profiles || []).forEach(p => { profileMap[p.id] = p; });
       }
-      setLoading(false);
-    };
+      setTickets((data || []).map(t => ({ ...t, profiles: profileMap[t.user_id] || { full_name: "User", email: "" } })));
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
     fetchTickets();
     
     // Subscribe to new tickets
-    const sub = supabase.channel('support_tickets')
+    const sub = supabase.channel('admin_live_chat_desk')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'support_tickets' }, () => {
         fetchTickets();
       })
@@ -121,13 +125,16 @@ export default function AdminSupport() {
 
     const sub = supabase.channel(`ticket_replies_${selectedTicket.id}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'ticket_replies', filter: `ticket_id=eq.${selectedTicket.id}` }, (payload) => {
-        setMessages(prev => [...prev, payload.new]);
+        setMessages(prev => {
+          if (prev.some(m => m.id === payload.new.id)) return prev;
+          return [...prev, payload.new];
+        });
         setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
       })
       .subscribe();
 
     return () => { supabase.removeChannel(sub); };
-  }, [selectedTicket]);
+  }, [selectedTicket?.id]);
 
   const sendMessage = async () => {
     if ((!newMessage.trim() && stagedAttachments.length === 0) || !selectedTicket) return;
@@ -143,223 +150,299 @@ export default function AdminSupport() {
     
     if (!error) {
       if (selectedTicket.status === 'open') {
-        await supabase.from('support_tickets').update({ status: 'in_progress' }).eq('id', selectedTicket.id);
+        await supabase.from('support_tickets').update({ status: 'in_progress', updated_at: new Date().toISOString() }).eq('id', selectedTicket.id);
         setSelectedTicket((prev: any) => prev ? { ...prev, status: 'in_progress' } : null);
       }
     }
   };
 
+  const isMobileSession = (t: any) => {
+    const sub = (t.subject || '').toLowerCase();
+    const desc = (t.description || '').toLowerCase();
+    return sub.includes('mobile') || desc.includes('mobile');
+  };
+
+  const filteredTickets = tickets.filter(t => {
+    if (channelFilter === 'unresolved' && t.status === 'resolved') return false;
+    if (channelFilter === 'mobile' && !isMobileSession(t)) return false;
+    if (channelFilter === 'web' && isMobileSession(t)) return false;
+    if (!searchTerm.trim()) return true;
+    const q = searchTerm.toLowerCase();
+    return (
+      (t.subject || '').toLowerCase().includes(q) ||
+      (t.id || '').toLowerCase().includes(q) ||
+      (t.profiles?.full_name || '').toLowerCase().includes(q) ||
+      (t.profiles?.email || '').toLowerCase().includes(q)
+    );
+  });
+
   return (
-    <div className="space-y-8 animate-fade-in-up h-full flex flex-col">
+    <div className="space-y-6 h-full flex flex-col font-sans">
+      {/* Header aligned with SupportTicketsPage style */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-white mb-1">Support Command</h1>
-          <p className="text-slate-500 text-sm font-medium uppercase tracking-[0.2em]">Platform Assistance Terminal</p>
+          <h1 className="text-xl font-bold tracking-widest text-white uppercase flex items-center gap-2.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+            Live Chat Desk
+          </h1>
+          <p className="text-neutral-500 text-[10px] font-bold uppercase tracking-[0.2em] mt-1">
+            Real-Time User Messaging Terminal // Web & Mobile Live Stream
+          </p>
         </div>
         <div className="flex items-center gap-3">
-             <div className="px-5 py-2.5 bg-slate-900 border border-slate-800 rounded-2xl flex items-center gap-4">
-                <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-blue-500" />
-                    <span className="text-[10px] font-bold text-slate-400 uppercase">{tickets.filter(t => t.status !== 'resolved').length} Active</span>
-                </div>
-                <div className="w-px h-4 bg-slate-800" />
-                <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                    <span className="text-[10px] font-bold text-slate-400 uppercase">Live Ops</span>
-                </div>
-             </div>
+          <div className="px-4 py-2 bg-[#18181c] border border-white/[0.08] rounded-lg flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-blue-500" />
+              <span className="text-[10px] font-bold text-neutral-300 uppercase tracking-widest">
+                {tickets.filter(t => t.status !== 'resolved').length} Active
+              </span>
+            </div>
+            <div className="w-px h-3 bg-white/10" />
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+              <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">Human Desk Online</span>
+            </div>
+          </div>
+          <button
+            onClick={fetchTickets}
+            className="px-4 py-2 bg-[#18181c] border border-white/[0.08] rounded-lg text-[10px] font-bold text-neutral-400 hover:text-white uppercase tracking-widest flex items-center gap-2 transition-colors"
+          >
+            <RefreshCcw size={12} className={loading ? "animate-spin" : ""} /> Sync
+          </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 flex-1 overflow-hidden min-h-[600px]">
-        {/* Ticket List */}
-        <div className="lg:col-span-1 bg-slate-900/30 border border-slate-800 rounded-[2.5rem] flex flex-col shadow-2xl relative overflow-hidden backdrop-blur-sm">
-          <div className="p-6 border-b border-slate-800 bg-slate-900/50">
-            <div className="relative mb-4">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600" size={16} />
-              <Input 
-                placeholder="Search ticket IDs..." 
-                className="bg-slate-950 border-slate-800 pl-10 rounded-xl h-11"
+      {/* Main Console Split */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 overflow-hidden min-h-[640px]">
+        {/* Left Side: Client Sessions List */}
+        <div className="lg:col-span-1 bg-[#121214] border border-white/[0.08] rounded-xl flex flex-col shadow-xl overflow-hidden">
+          <div className="p-4 border-b border-white/[0.08] bg-[#18181c]/60 space-y-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" size={14} />
+              <input 
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search clients or ticket IDs..." 
+                className="w-full bg-[#0d0d0f] border border-white/[0.08] text-white pl-9 pr-3 py-2 text-xs rounded-lg placeholder:text-neutral-600 focus:outline-none focus:border-blue-500 transition-colors"
               />
             </div>
-            <div className="flex items-center justify-between text-[10px] font-bold text-slate-600 uppercase tracking-widest px-1">
-                <span>Recent Inquiries</span>
-                <span className="flex items-center gap-1 text-blue-500 underline decoration-blue-500/20 underline-offset-4 cursor-pointer">All Statuses <ChevronRight size={10} /></span>
+            {/* Filter Chips */}
+            <div className="flex items-center gap-1.5 overflow-x-auto text-[10px] font-bold uppercase tracking-widest">
+              {[
+                { id: "all", label: "All Chats" },
+                { id: "unresolved", label: "Open" },
+                { id: "web", label: "💻 Web" },
+                { id: "mobile", label: "📱 Mobile" },
+              ].map(f => (
+                <button
+                  key={f.id}
+                  onClick={() => setChannelFilter(f.id as any)}
+                  className={`px-2.5 py-1 rounded-md transition-colors ${
+                    channelFilter === f.id
+                      ? "bg-blue-600 text-white"
+                      : "bg-[#18181c] text-neutral-400 hover:text-white border border-white/[0.06]"
+                  }`}
+                >
+                  {f.label}
+                </button>
+              ))}
             </div>
           </div>
           
-          <div className="flex-1 overflow-y-auto custom-scrollbar">
-            {tickets.length === 0 ? (
-                <div className="p-12 text-center">
-                    <LifeBuoy className="mx-auto text-slate-800 mb-4" size={48} />
-                    <p className="text-slate-500 text-sm italic">Queue clear. No pending tickets.</p>
-                </div>
+          <div className="flex-1 overflow-y-auto divide-y divide-white/[0.04]">
+            {filteredTickets.length === 0 ? (
+              <div className="p-12 text-center">
+                <LifeBuoy className="mx-auto text-neutral-700 mb-3" size={36} />
+                <p className="text-neutral-500 text-xs uppercase tracking-wider">Queue Clear // No Active Chats</p>
+              </div>
             ) : (
-                <div className="divide-y divide-slate-800/10">
-                    {tickets.map((ticket) => (
-                        <div key={ticket.id} onClick={() => setSelectedTicket(ticket)} className={`p-6 hover:bg-blue-500/5 cursor-pointer transition-all group relative border-l-2 ${selectedTicket?.id === ticket.id ? 'border-blue-500 bg-blue-500/5' : 'border-transparent hover:border-blue-500'}`}>
-                            <div className="flex justify-between items-start mb-2">
-                                <span className="text-[10px] font-mono text-slate-600 uppercase">#{ticket.id.slice(0, 8)}</span>
-                                <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded uppercase ${
-                                    ticket.status === 'open' ? 'bg-amber-500/10 text-amber-500' :
-                                    ticket.status === 'resolved' ? 'bg-emerald-500/10 text-emerald-500' :
-                                    'bg-blue-500/10 text-blue-500'
-                                }`}>
-                                    {ticket.status}
-                                </span>
-                            </div>
-                            <h4 className="text-sm font-bold text-slate-200 mb-1 group-hover:text-blue-400 transition-colors line-clamp-1">{ticket.subject}</h4>
-                            <div className="flex items-center justify-between">
-                                <p className="text-xs text-slate-500 font-medium">{ticket.profiles?.full_name || 'System User'}</p>
-                                <span className="text-[10px] text-slate-600 flex items-center gap-1">
-                                    <Clock size={10} /> 
-                                    {new Date(ticket.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                </span>
-                            </div>
-                        </div>
-                    ))}
-                </div>
+              filteredTickets.map((ticket) => {
+                const isSelected = selectedTicket?.id === ticket.id;
+                const isMobile = isMobileSession(ticket);
+                return (
+                  <div
+                    key={ticket.id}
+                    onClick={() => setSelectedTicket(ticket)}
+                    className={`p-4 cursor-pointer transition-colors relative border-l-2 ${
+                      isSelected
+                        ? "border-blue-500 bg-blue-500/10"
+                        : "border-transparent hover:bg-white/[0.03]"
+                    }`}
+                  >
+                    <div className="flex justify-between items-center mb-1.5">
+                      <div className="flex items-center gap-1.5">
+                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider flex items-center gap-1 ${
+                          isMobile ? "bg-purple-500/15 text-purple-400 border border-purple-500/20" : "bg-cyan-500/15 text-cyan-400 border border-cyan-500/20"
+                        }`}>
+                          {isMobile ? <Smartphone size={10} /> : <Laptop size={10} />}
+                          {isMobile ? "Mobile" : "Web"}
+                        </span>
+                        <span className="text-[10px] font-mono text-neutral-500 uppercase">
+                          #{ticket.id.slice(0, 8)}
+                        </span>
+                      </div>
+                      <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider ${
+                        ticket.status === 'open' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' :
+                        ticket.status === 'resolved' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
+                        'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                      }`}>
+                        {ticket.status}
+                      </span>
+                    </div>
+
+                    <h4 className="text-xs font-bold text-neutral-200 mb-1 line-clamp-1">
+                      {ticket.subject}
+                    </h4>
+
+                    <div className="flex items-center justify-between text-[11px] text-neutral-500 font-medium">
+                      <p className="truncate max-w-[140px]">{ticket.profiles?.full_name || 'Trader'}</p>
+                      <span className="text-[10px] text-neutral-600 flex items-center gap-1 font-mono">
+                        <Clock size={10} /> 
+                        {new Date(ticket.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })
             )}
           </div>
         </div>
 
-        {/* Conversation View */}
-        <div className="lg:col-span-2 bg-slate-900/30 border border-slate-800 rounded-[2.5rem] flex flex-col shadow-2xl overflow-hidden relative backdrop-blur-sm">
+        {/* Right Side: Conversation View */}
+        <div className="lg:col-span-2 bg-[#121214] border border-white/[0.08] rounded-xl flex flex-col shadow-xl overflow-hidden relative">
           {!selectedTicket ? (
-            <>
-              <div className="p-8 border-b border-slate-800 bg-slate-900/50 flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-blue-600/10 border border-blue-500/20 flex items-center justify-center text-blue-500">
-                    <User size={24} />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-white mb-0.5">Initialize Communication</h3>
-                    <p className="text-xs text-slate-500 font-medium italic">Select a ticket from the master queue to begin resolution</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon" className="text-slate-600 hover:text-white rounded-xl">
-                        <AlertCircle size={20} />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="text-slate-600 hover:text-white rounded-xl">
-                        <MoreVertical size={20} />
-                    </Button>
-                </div>
+            <div className="flex-1 flex flex-col items-center justify-center p-12 text-center">
+              <div className="w-16 h-16 rounded-2xl bg-white/[0.03] border border-white/[0.08] flex items-center justify-center text-neutral-600 mb-4">
+                <MessageSquare size={28} />
               </div>
-
-              <div className="flex-1 p-12 flex flex-col items-center justify-center text-center opacity-40">
-                <div className="w-24 h-24 bg-slate-800/10 border-2 border-dashed border-slate-800 rounded-3xl mb-6 flex items-center justify-center">
-                    <MessageSquare className="text-slate-800" size={40} />
-                </div>
-                <p className="text-slate-600 text-sm font-bold uppercase tracking-[0.2em] mb-2">Workspace Inactive</p>
-                <p className="max-w-[280px] text-slate-700 text-xs italic">Pending selection of an operational ticket from the tactical sidebar.</p>
-              </div>
-
-              <div className="p-8 border-t border-slate-800 bg-slate-900/20">
-                <div className="relative">
-                  <Input 
-                    disabled
-                    placeholder="Secure response channel locked..." 
-                    className="bg-slate-950/20 border-slate-800/50 h-16 rounded-2xl pl-6 pr-16 italic"
-                  />
-                  <button disabled className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-slate-800/20 text-slate-700 rounded-xl flex items-center justify-center">
-                    <Send size={18} />
-                  </button>
-                </div>
-              </div>
-            </>
+              <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-1">
+                Select Client Session
+              </h3>
+              <p className="text-xs text-neutral-500 max-w-sm">
+                Choose an incoming ticket or live inquiry from the left queue to open the real-time communications console.
+              </p>
+            </div>
           ) : (
             <>
-              <div className="p-6 border-b border-slate-800 bg-slate-900/50 flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-blue-600/10 border border-blue-500/20 flex items-center justify-center text-blue-500 uppercase font-bold text-sm">
+              {/* Active Ticket Top Bar */}
+              <div className="p-4 border-b border-white/[0.08] bg-[#18181c]/70 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-blue-600/15 border border-blue-500/30 flex items-center justify-center text-blue-400 font-bold text-xs uppercase">
                     {selectedTicket.profiles?.full_name?.charAt(0) || "U"}
                   </div>
                   <div>
-                    <h3 className="text-md font-bold text-white mb-0.5">{selectedTicket.subject}</h3>
-                    <p className="text-[11px] text-slate-500 font-medium">
-                      {selectedTicket.profiles?.full_name || "System User"} • {selectedTicket.priority} Priority
+                    <h3 className="text-sm font-bold text-white leading-none mb-1 flex items-center gap-2">
+                      {selectedTicket.subject}
+                      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider bg-white/[0.06] text-neutral-400 font-mono">
+                        #{selectedTicket.id.slice(0, 8)}
+                      </span>
+                    </h3>
+                    <p className="text-[11px] text-neutral-400">
+                      {selectedTicket.profiles?.full_name || "Trader"} 
+                      {selectedTicket.profiles?.email ? ` • ${selectedTicket.profiles.email}` : ""}
                     </p>
                   </div>
                 </div>
+
                 <div className="flex items-center gap-2">
-                    {selectedTicket.status !== 'resolved' && (
-                      <Button onClick={async () => {
-                        await supabase.from('support_tickets').update({ status: 'resolved' }).eq('id', selectedTicket.id);
+                  {selectedTicket.status !== 'resolved' ? (
+                    <button
+                      onClick={async () => {
+                        await supabase.from('support_tickets').update({ status: 'resolved', updated_at: new Date().toISOString() }).eq('id', selectedTicket.id);
                         setSelectedTicket({...selectedTicket, status: 'resolved'});
-                      }} variant="outline" size="sm" className="border-emerald-500/20 text-emerald-500 hover:bg-emerald-500/10 text-[10px] uppercase tracking-widest h-8">
-                          Mark Resolved
-                      </Button>
-                    )}
+                      }}
+                      className="px-3 py-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 transition-colors"
+                    >
+                      <CheckCircle2 size={12} /> Mark Solved
+                    </button>
+                  ) : (
+                    <button
+                      onClick={async () => {
+                        await supabase.from('support_tickets').update({ status: 'in_progress', updated_at: new Date().toISOString() }).eq('id', selectedTicket.id);
+                        setSelectedTicket({...selectedTicket, status: 'in_progress'});
+                      }}
+                      className="px-3 py-1.5 rounded-lg border border-blue-500/30 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 transition-colors"
+                    >
+                      Reopen
+                    </button>
+                  )}
                 </div>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-6 space-y-6">
-                {/* Initial Ticket Description */}
-                <div className="flex flex-col items-start gap-2 max-w-[80%]">
-                  <div className="bg-slate-800/50 border border-slate-700/50 p-4 rounded-2xl rounded-tl-sm text-sm text-slate-300">
-                    {selectedTicket.description}
-                  </div>
-                  <span className="text-[10px] text-slate-600 px-2">User • {new Date(selectedTicket.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+              {/* Message Feed */}
+              <div className="flex-1 overflow-y-auto p-5 space-y-4 bg-[#0e0e10]">
+                {/* Initial Description Card */}
+                <div className="p-3.5 rounded-lg bg-[#18181c] border border-white/[0.06] text-xs text-neutral-300 max-w-[85%]">
+                  <p className="text-[9px] font-bold text-neutral-500 uppercase tracking-widest mb-1.5">User Inquiry / Context</p>
+                  <p className="whitespace-pre-wrap leading-relaxed">{selectedTicket.description}</p>
+                  <span className="text-[9px] text-neutral-600 block mt-2 font-mono">
+                    {new Date(selectedTicket.created_at).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
+                  </span>
                 </div>
 
                 {messages.map((msg, i) => {
-                  // We treat admin replies as admin_id !== null, user replies as admin_id === null
-                  const isAdmin = msg.admin_id && msg.admin_id !== selectedTicket.user_id;
-                  
+                  const isAdmin = Boolean(msg.admin_id && msg.admin_id !== selectedTicket.user_id);
+                  const parsed = parseChatMessage(msg.message);
+
                   return (
-                    <div key={msg.id || i} className={`flex flex-col gap-2 max-w-[80%] ${isAdmin ? 'ml-auto items-end' : 'items-start'}`}>
-                      <div className={`p-4 rounded-2xl text-sm ${isAdmin ? 'bg-blue-600 text-white rounded-tr-sm' : 'bg-slate-800/50 border border-slate-700/50 text-slate-300 rounded-tl-sm'}`}>
-                        {(() => {
-                          const parsed = parseChatMessage(msg.message);
-                          return (
-                            <>
-                              {parsed.text ? <p className="whitespace-pre-wrap">{parsed.text}</p> : null}
-                              {parsed.attachments && parsed.attachments.length > 0 && (
-                                <div className="space-y-2 mt-2">
-                                  {parsed.attachments.map((att, aIdx) => {
-                                    if (att.type === 'image') {
-                                      return (
-                                        <div key={aIdx} className="overflow-hidden rounded-xl border border-white/20 cursor-pointer" onClick={() => setLightboxMedia(att)}>
-                                          <img src={att.url} alt={att.name} className="max-h-56 max-w-full object-cover hover:scale-105 transition-transform" />
-                                          <span className="text-[10px] block px-2 py-1 bg-black/40 text-white/90 truncate">{att.name}</span>
-                                        </div>
-                                      );
-                                    }
-                                    if (att.type === 'video') {
-                                      return (
-                                        <div key={aIdx} className="overflow-hidden rounded-xl border border-white/20">
-                                          <video src={att.url} controls className="max-h-56 max-w-full rounded-xl" />
-                                          <span className="text-[10px] block px-2 py-1 bg-black/40 text-white/90 truncate">🎥 {att.name}</span>
-                                        </div>
-                                      );
-                                    }
-                                    return (
-                                      <a
-                                        key={aIdx}
-                                        href={att.url}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        download={att.name}
-                                        className="flex items-center gap-2 p-2.5 rounded-xl bg-black/20 hover:bg-black/30 border border-white/10 transition-colors text-white"
-                                      >
-                                        <FileText size={18} className="text-blue-300 shrink-0" />
-                                        <div className="min-w-0 flex-1">
-                                          <p className="text-xs font-bold truncate">{att.name}</p>
-                                          {att.size && <span className="text-[10px] opacity-60">{(att.size / 1024).toFixed(1)} KB</span>}
-                                        </div>
-                                        <Download size={14} className="shrink-0 opacity-80" />
-                                      </a>
-                                    );
-                                  })}
-                                </div>
-                              )}
-                            </>
-                          );
-                        })()}
+                    <div
+                      key={msg.id || i}
+                      className={`flex flex-col gap-1 max-w-[80%] ${isAdmin ? 'ml-auto items-end' : 'items-start'}`}
+                    >
+                      <div className={`p-3.5 rounded-xl text-xs leading-relaxed ${
+                        isAdmin
+                          ? 'bg-blue-600 text-white rounded-tr-sm shadow-lg shadow-blue-600/10'
+                          : 'bg-[#18181c] border border-white/[0.08] text-neutral-200 rounded-tl-sm'
+                      }`}>
+                        {parsed.text ? <p className="whitespace-pre-wrap">{parsed.text}</p> : null}
+                        
+                        {parsed.attachments && parsed.attachments.length > 0 && (
+                          <div className="space-y-2 mt-2">
+                            {parsed.attachments.map((att, aIdx) => {
+                              if (att.type === 'image') {
+                                return (
+                                  <div
+                                    key={aIdx}
+                                    className="overflow-hidden rounded-lg border border-white/10 cursor-pointer"
+                                    onClick={() => setLightboxMedia(att)}
+                                  >
+                                    <img src={att.url} alt={att.name} className="max-h-56 max-w-full object-cover hover:scale-105 transition-transform" />
+                                    <span className="text-[10px] block px-2 py-1 bg-black/60 text-white truncate">{att.name}</span>
+                                  </div>
+                                );
+                              }
+                              if (att.type === 'video') {
+                                return (
+                                  <div key={aIdx} className="overflow-hidden rounded-lg border border-white/10">
+                                    <video src={att.url} controls className="max-h-56 max-w-full rounded-lg" />
+                                    <span className="text-[10px] block px-2 py-1 bg-black/60 text-white truncate">🎥 {att.name}</span>
+                                  </div>
+                                );
+                              }
+                              return (
+                                <a
+                                  key={aIdx}
+                                  href={att.url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  download={att.name}
+                                  className="flex items-center gap-2 p-2 rounded-lg bg-black/30 hover:bg-black/50 border border-white/10 transition-colors text-white"
+                                >
+                                  <FileText size={16} className="text-blue-300 shrink-0" />
+                                  <div className="min-w-0 flex-1">
+                                    <p className="text-xs font-bold truncate">{att.name}</p>
+                                    {att.size && <span className="text-[9px] opacity-60">{(att.size / 1024).toFixed(1)} KB</span>}
+                                  </div>
+                                  <Download size={13} className="shrink-0 opacity-80" />
+                                </a>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
-                      <span className="text-[10px] text-slate-600 px-2">
-                        {isAdmin ? 'Admin' : 'User'} • {new Date(msg.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                      <span className="text-[9px] text-neutral-500 px-1 font-mono">
+                        {isAdmin ? 'Human Desk Officer' : 'Trader'} • {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
                   );
@@ -379,47 +462,47 @@ export default function AdminSupport() {
 
               {/* Staged attachments preview */}
               {stagedAttachments.length > 0 && (
-                <div className="px-6 py-2.5 bg-slate-950/70 border-t border-slate-800 flex gap-2 overflow-x-auto">
+                <div className="px-4 py-2 bg-[#141416] border-t border-white/[0.08] flex gap-2 overflow-x-auto">
                   {stagedAttachments.map((att, idx) => (
-                    <div key={idx} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-xs font-medium text-white shadow-sm">
-                      {att.type === 'image' && <ImageIcon size={14} className="text-blue-400" />}
-                      {att.type === 'video' && <Video size={14} className="text-purple-400" />}
-                      {att.type === 'document' && <FileText size={14} className="text-emerald-400" />}
+                    <div key={idx} className="flex items-center gap-2 px-2.5 py-1 rounded-md bg-[#1e1e24] border border-white/[0.08] text-[11px] font-medium text-white shadow-sm">
+                      {att.type === 'image' && <ImageIcon size={12} className="text-blue-400" />}
+                      {att.type === 'video' && <Video size={12} className="text-purple-400" />}
+                      {att.type === 'document' && <FileText size={12} className="text-emerald-400" />}
                       <span className="max-w-[120px] truncate">{att.name}</span>
-                      <button type="button" onClick={() => removeStagedAttachment(idx)} className="text-slate-400 hover:text-rose-400 ml-1">
-                        <X size={14} />
+                      <button type="button" onClick={() => removeStagedAttachment(idx)} className="text-neutral-400 hover:text-rose-400 ml-1">
+                        <X size={12} />
                       </button>
                     </div>
                   ))}
                 </div>
               )}
 
-              <div className="p-6 border-t border-slate-800 bg-slate-900/20">
-                {/* Media toolbar */}
-                <div className="flex items-center gap-4 mb-3">
+              {/* Input Bar */}
+              <div className="p-3.5 border-t border-white/[0.08] bg-[#141416]">
+                <div className="flex items-center gap-3 mb-2 px-1 text-[11px] font-medium text-neutral-400">
                   <button
                     type="button"
                     onClick={() => triggerFilePicker('image')}
-                    className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-blue-400 transition-colors font-medium"
+                    className="flex items-center gap-1 hover:text-blue-400 transition-colors"
                   >
-                    <ImageIcon size={15} className="text-blue-500" />
-                    <span>Attach Photo</span>
+                    <ImageIcon size={13} className="text-blue-500" />
+                    <span>Photo</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => triggerFilePicker('video')}
-                    className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-purple-400 transition-colors font-medium"
+                    className="flex items-center gap-1 hover:text-purple-400 transition-colors"
                   >
-                    <Video size={15} className="text-purple-500" />
-                    <span>Attach Video</span>
+                    <Video size={13} className="text-purple-500" />
+                    <span>Video</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => triggerFilePicker('document')}
-                    className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-emerald-400 transition-colors font-medium"
+                    className="flex items-center gap-1 hover:text-emerald-400 transition-colors"
                   >
-                    <FileText size={15} className="text-emerald-500" />
-                    <span>Attach Document</span>
+                    <FileText size={13} className="text-emerald-500" />
+                    <span>Document</span>
                   </button>
                 </div>
 
@@ -428,19 +511,23 @@ export default function AdminSupport() {
                     type="button"
                     onClick={() => triggerFilePicker('all')}
                     title="Attach Any File"
-                    className="p-3 text-slate-400 hover:text-blue-400 bg-slate-950/60 border border-slate-800 rounded-2xl transition-colors shrink-0"
+                    className="p-2.5 text-neutral-400 hover:text-white bg-[#1a1a1f] border border-white/[0.08] rounded-lg transition-colors shrink-0"
                   >
-                    <Paperclip size={18} />
+                    <Paperclip size={16} />
                   </button>
-                  <Input 
+                  <input
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
-                    placeholder={selectedTicket.status === 'resolved' ? "Ticket resolved. Cannot reply." : "Type response to user..."}
+                    placeholder={selectedTicket.status === 'resolved' ? "Ticket resolved. Mark active to reply." : "Type response to client..."}
                     disabled={selectedTicket.status === 'resolved'}
-                    className="bg-slate-950/50 border-slate-800 focus:border-blue-500/50 h-14 rounded-2xl pl-4 pr-16 text-white flex-1"
+                    className="bg-[#1a1a1f] border border-white/[0.08] focus:border-blue-500 h-11 rounded-lg px-3.5 text-xs text-white placeholder:text-neutral-500 flex-1 outline-none transition-colors"
                   />
-                  <button type="submit" disabled={(!newMessage.trim() && stagedAttachments.length === 0) || selectedTicket.status === 'resolved'} className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-blue-600 hover:bg-blue-500 text-white disabled:opacity-50 disabled:bg-slate-800 rounded-xl flex items-center justify-center transition-colors">
-                    <Send size={16} />
+                  <button
+                    type="submit"
+                    disabled={(!newMessage.trim() && stagedAttachments.length === 0) || selectedTicket.status === 'resolved'}
+                    className="h-11 px-4 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:bg-neutral-800 text-white text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-colors"
+                  >
+                    <Send size={14} /> Send
                   </button>
                 </form>
               </div>
@@ -449,30 +536,13 @@ export default function AdminSupport() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {[
-            { label: "Critical Priority", count: tickets.filter(t => t.priority?.toLowerCase() === 'high' || t.priority?.toLowerCase() === 'critical').length, icon: AlertCircle, color: "text-rose-500" },
-            { label: "Awaiting Input", count: tickets.filter(t => t.status === 'open').length, icon: Clock, color: "text-amber-500" },
-            { label: "Recently Resolved", count: tickets.filter(t => t.status === 'resolved').length, icon: CheckCircle2, color: "text-emerald-500" },
-          ].map((stat) => (
-              <div key={stat.label} className="bg-slate-900/30 border border-slate-800 p-6 rounded-2xl flex items-center gap-6">
-                <div className={`p-4 rounded-xl bg-slate-950 border border-slate-800 ${stat.color}`}>
-                    <stat.icon size={24} />
-                </div>
-                <div>
-                   <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">{stat.label}</p>
-                   <p className="text-2xl font-bold text-white tracking-tight">{stat.count}</p>
-                </div>
-              </div>
-          ))}
-      </div>
       {/* Lightbox Modal */}
       {lightboxMedia && (
         <div
           onClick={() => setLightboxMedia(null)}
           className="fixed inset-0 z-[99999] bg-black/85 backdrop-blur-md flex items-center justify-center p-6"
         >
-          <div onClick={(e) => e.stopPropagation()} className="relative max-w-[90vw] max-h-[90vh] rounded-2xl overflow-hidden border border-white/10 bg-[#111]">
+          <div onClick={(e) => e.stopPropagation()} className="relative max-w-[90vw] max-h-[90vh] rounded-xl overflow-hidden border border-white/10 bg-[#111]">
             <button
               onClick={() => setLightboxMedia(null)}
               className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/70 text-white flex items-center justify-center hover:bg-black transition-colors z-10"

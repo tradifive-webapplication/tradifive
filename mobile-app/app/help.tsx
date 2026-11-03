@@ -121,7 +121,7 @@ export default function HelpCentre() {
         if (data && data.length > 0) {
           setTickets(data.map((t: any) => ({
             id: t.id.toString(),
-            subject: t.description ? (t.description.substring(0, 30) + '...') : 'Support Ticket',
+            subject: t.subject || (t.description ? (t.description.substring(0, 30) + '...') : 'Support Ticket'),
             category: t.category || 'General',
             description: t.description || '',
             status: t.status || 'open',
@@ -150,7 +150,10 @@ export default function HelpCentre() {
   const [newDesc, setNewDesc] = useState('');
 
   const [ticketInput, setTicketInput] = useState('');
-  const [botInput, setBotInput] = useState('');
+  const [liveInput, setLiveInput] = useState('');
+  const [liveTicket, setLiveTicket] = useState<SupportTicket | null>(null);
+  const [liveMessages, setLiveMessages] = useState<ChatReply[]>([]);
+  const [isLiveLoading, setIsLiveLoading] = useState(false);
   const [stagedAttachments, setStagedAttachments] = useState<ChatAttachment[]>([]);
   const [isUploading, setIsUploading] = useState(false);
 
@@ -232,9 +235,52 @@ export default function HelpCentre() {
     setStagedAttachments(prev => prev.filter((_, i) => i !== idx));
   };
 
-  const [botMessages, setBotMessages] = useState<any[]>([
-    { id: '1', role: 'ai', text: "Hello! I am Tradifive's Intelligent Assistant. How can I help you today?", time: new Date() }
-  ]);
+  const fetchOrInitLiveChat = async () => {
+    if (!currentUser?.id) return;
+    setIsLiveLoading(true);
+    try {
+      const { data: openTkts } = await supabase
+        .from('support_tickets')
+        .select('*')
+        .eq('user_id', currentUser.id)
+        .in('status', ['open', 'in_progress', 'in-progress'])
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      let current = openTkts && openTkts.length > 0 ? openTkts[0] : null;
+
+      if (!current) {
+        const { data: created } = await supabase
+          .from('support_tickets')
+          .insert([{
+            user_id: currentUser.id,
+            subject: 'Live Support (Mobile App)',
+            description: 'Live chat inquiry started from Mobile App.',
+            status: 'open',
+            priority: 'high',
+            category: 'Live Support'
+          }])
+          .select()
+          .single();
+        current = created;
+      }
+
+      if (current) {
+        setLiveTicket(current);
+        const { data: replies } = await supabase
+          .from('ticket_replies')
+          .select('*')
+          .eq('ticket_id', current.id)
+          .order('created_at', { ascending: true });
+        setLiveMessages(replies || []);
+      }
+    } catch (e) {
+      console.warn("Init live chat failed:", e);
+    }
+    setIsLiveLoading(false);
+  };
+
+
 
   const replyScrollRef = useRef<ScrollView>(null);
   const botScrollRef = useRef<ScrollView>(null);
@@ -254,7 +300,43 @@ export default function HelpCentre() {
     if (viewMode === 'live_chat') {
       setTimeout(() => botScrollRef.current?.scrollToEnd({ animated: true }), 100);
     }
-  }, [viewMode, botMessages]);
+  }, [viewMode, liveMessages]);
+
+  useEffect(() => {
+    if (viewMode === 'live_chat') {
+      fetchOrInitLiveChat();
+    }
+  }, [viewMode, currentUser?.id]);
+
+  useEffect(() => {
+    if (!liveTicket?.id || viewMode !== 'live_chat') return;
+
+    const channel = supabase
+      .channel(`mobile_live_${liveTicket.id}`)
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'ticket_replies',
+        filter: `ticket_id=eq.${liveTicket.id}`
+      }, (payload) => {
+        setLiveMessages(prev => {
+          if (prev.some(m => m.id === payload.new.id)) return prev;
+          return [...prev, payload.new];
+        });
+        setTimeout(() => botScrollRef.current?.scrollToEnd({ animated: true }), 100);
+      })
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'support_tickets',
+        filter: `id=eq.${liveTicket.id}`
+      }, (payload) => {
+        setLiveTicket(payload.new as any);
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [liveTicket?.id, viewMode]);
 
   const handleOpenTicket = (ticket: SupportTicket) => {
     h(Haptics.ImpactFeedbackStyle.Medium);
@@ -299,6 +381,8 @@ export default function HelpCentre() {
         .from('support_tickets')
         .insert([{
           user_id: currentUser?.id,
+
+          subject: subject,
           description: desc,
           category: cat,
           status: 'open'
@@ -309,6 +393,7 @@ export default function HelpCentre() {
           .from('user_feedback')
           .insert([{
             user_id: currentUser?.id,
+
             feedback_text: desc,
             category: cat
           }]);
@@ -350,6 +435,48 @@ export default function HelpCentre() {
     } catch (e) {
       console.log('Ticket reply insert error:', e);
     }
+  };
+
+  const handleSendLiveMessage = async () => {
+    if ((!liveInput.trim() && stagedAttachments.length === 0) || !liveTicket) return;
+    h(Haptics.ImpactFeedbackStyle.Light);
+
+    const serialized = serializeChatMessage(liveInput, stagedAttachments);
+    setLiveInput('');
+    setStagedAttachments([]);
+
+    const tempReply: ChatReply = {
+      id: `temp_${Date.now()}`,
+      ticket_id: liveTicket.id,
+      message: serialized,
+      admin_id: null,
+      created_at: new Date().toISOString()
+    };
+
+    setLiveMessages(prev => [...prev, tempReply]);
+    setTimeout(() => botScrollRef.current?.scrollToEnd({ animated: true }), 100);
+
+    try {
+      const { data } = await supabase.from('ticket_replies').insert([{
+        ticket_id: liveTicket.id,
+        admin_id: null,
+        message: serialized
+      }]).select().single();
+
+      if (data) {
+        setLiveMessages(prev => prev.map(m => m.id === tempReply.id ? data : m));
+      }
+    } catch (e) {
+      console.warn('Live reply error:', e);
+    }
+  };
+
+  const handleMarkLiveSolved = async () => {
+    if (!liveTicket) return;
+    h(Haptics.ImpactFeedbackStyle.Medium);
+    await supabase.from('support_tickets').update({ status: 'resolved', updated_at: new Date().toISOString() }).eq('id', liveTicket.id);
+    setLiveTicket(prev => prev ? { ...prev, status: 'resolved' } : null);
+    Alert.alert("Resolved", "Live support session has been closed. Have a great day!");
   };
 
   const handleSendBotMessage = () => {
@@ -458,7 +585,7 @@ export default function HelpCentre() {
           </TouchableOpacity>
           <Text style={[styles.headerTitle, { color: currentHeaderStyle === 'simple' ? '#000000' : '#ffffff' }]}>
             {viewMode === 'hub' ? 'Help Centre' :
-              viewMode === 'live_chat' ? 'Assistant' :
+              viewMode === 'live_chat' ? 'Live Support Desk' :
                 viewMode === 'ticket_detail' ? `Ticket #${selectedTicket?.id}` : 'Open a Ticket'}
           </Text>
         </Animated.View>
@@ -523,8 +650,8 @@ export default function HelpCentre() {
                     <View style={[styles.actionIcon, { backgroundColor: '#dbeafe' }]}>
                       <MessageSquare size={22} color="#2563eb" />
                     </View>
-                    <Text style={styles.actionTitle}>Live Assistant</Text>
-                    <Text style={styles.actionDesc}>Chat with AI support</Text>
+                    <Text style={styles.actionTitle}>Live Support Desk</Text>
+                    <Text style={styles.actionDesc}>Talk live with operations team</Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity style={styles.actionCard} onPress={() => { h(Haptics.ImpactFeedbackStyle.Medium); setViewMode('ticket_step_contacted'); }} activeOpacity={0.85}>
@@ -964,8 +1091,208 @@ export default function HelpCentre() {
           </View>
         )}
 
-        {/* LIVE ASSISTANT CHAT */}
+        {/* LIVE HUMAN DESK CHAT */}
         {viewMode === 'live_chat' && (
+          <View style={styles.chatContainer}>
+            {/* Live Chat Top Info Bar */}
+            <View style={{ backgroundColor: '#ffffff', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderColor: '#f1f5f9', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#10b981' }} />
+                  <Text style={{ fontSize: 13, fontFamily: 'Inter_700Bold', color: '#0f172a' }}>Human Support Desk</Text>
+                </View>
+                <Text style={{ fontSize: 11, fontFamily: 'Inter_500Medium', color: '#64748b', marginTop: 2 }}>
+                  {liveTicket?.subject || 'Connecting with operator...'}
+                </Text>
+              </View>
+              {liveTicket && liveTicket.status !== 'resolved' && (
+                <TouchableOpacity onPress={handleMarkLiveSolved} style={{ paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, backgroundColor: '#ecfdf5', borderWidth: 1, borderColor: '#a7f3d0' }}>
+                  <Text style={{ fontSize: 11, fontFamily: 'Inter_700Bold', color: '#059669' }}>Mark Solved</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+
+            <ScrollView
+              ref={botScrollRef}
+              contentContainerStyle={styles.chatScroll}
+              showsVerticalScrollIndicator={false}
+            >
+              {liveMessages.length === 0 ? (
+                <View style={{ padding: 24, alignItems: 'center', justifyContent: 'center' }}>
+                  <Text style={{ fontSize: 13, color: '#64748b', textAlign: 'center' }}>
+                    Welcome to Live Support! Ask any question or report an issue and a human support officer will assist you immediately.
+                  </Text>
+                </View>
+              ) : (
+                liveMessages.map((msg) => {
+                  const isAdmin = msg.admin_id !== null;
+                  const parsed = parseChatMessage(msg.message);
+
+                  return (
+                    <View
+                      key={msg.id}
+                      style={[styles.bubbleWrapper, isAdmin ? { justifyContent: 'flex-start' } : { justifyContent: 'flex-end' }]}
+                    >
+                      <View style={[
+                        styles.chatBubble,
+                        isAdmin ? styles.adminBubble : styles.userBubble
+                      ]}>
+                        {isAdmin && (
+                          <Text style={{ fontSize: 10, fontFamily: 'Inter_700Bold', color: '#2563eb', marginBottom: 4 }}>
+                            Human Support Officer
+                          </Text>
+                        )}
+                        {parsed.text ? (
+                          <Text style={[styles.bubbleText, isAdmin ? { color: '#0f172a' } : { color: '#ffffff' }]}>
+                            {parsed.text}
+                          </Text>
+                        ) : null}
+
+                        {parsed.attachments && parsed.attachments.length > 0 && (
+                          <View style={{ marginTop: parsed.text ? 8 : 0, gap: 6 }}>
+                            {parsed.attachments.map((att, aIdx) => {
+                              if (att.type === 'image') {
+                                return (
+                                  <TouchableOpacity key={aIdx} onPress={() => Linking.openURL(att.url)} activeOpacity={0.9}>
+                                    <Image
+                                      source={{ uri: att.url }}
+                                      style={{ width: 220, height: 150, borderRadius: 12, backgroundColor: '#1e293b' }}
+                                      resizeMode="cover"
+                                    />
+                                    <Text style={{ fontSize: 10, color: isAdmin ? '#64748b' : 'rgba(255,255,255,0.7)', marginTop: 2 }}>
+                                      📷 {att.name}
+                                    </Text>
+                                  </TouchableOpacity>
+                                );
+                              }
+                              if (att.type === 'video') {
+                                return (
+                                  <TouchableOpacity
+                                    key={aIdx}
+                                    onPress={() => Linking.openURL(att.url)}
+                                    style={{
+                                      flexDirection: 'row',
+                                      alignItems: 'center',
+                                      gap: 8,
+                                      padding: 10,
+                                      borderRadius: 10,
+                                      backgroundColor: isAdmin ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.15)',
+                                    }}
+                                  >
+                                    <Video size={18} color={isAdmin ? '#2563eb' : '#93c5fd'} />
+                                    <View style={{ flex: 1 }}>
+                                      <Text style={{ fontSize: 12, fontWeight: '700', color: isAdmin ? '#0f172a' : '#fff' }} numberOfLines={1}>
+                                        {att.name}
+                                      </Text>
+                                      <Text style={{ fontSize: 10, color: isAdmin ? '#64748b' : 'rgba(255,255,255,0.7)' }}>
+                                        Tap to play video
+                                      </Text>
+                                    </View>
+                                  </TouchableOpacity>
+                                );
+                              }
+                              return (
+                                <TouchableOpacity
+                                  key={aIdx}
+                                  onPress={() => Linking.openURL(att.url)}
+                                  style={{
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    gap: 8,
+                                    padding: 10,
+                                    borderRadius: 10,
+                                    backgroundColor: isAdmin ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.15)',
+                                  }}
+                                >
+                                  <FileText size={18} color={isAdmin ? '#2563eb' : '#93c5fd'} />
+                                  <View style={{ flex: 1 }}>
+                                    <Text style={{ fontSize: 12, fontWeight: '700', color: isAdmin ? '#0f172a' : '#fff' }} numberOfLines={1}>
+                                      {att.name}
+                                    </Text>
+                                    <Text style={{ fontSize: 10, color: isAdmin ? '#64748b' : 'rgba(255,255,255,0.7)' }}>
+                                      Tap to view document
+                                    </Text>
+                                  </View>
+                                </TouchableOpacity>
+                              );
+                            })}
+                          </View>
+                        )}
+
+                        <Text style={[styles.bubbleTime, isAdmin ? { color: '#94a3b8' } : { color: 'rgba(255,255,255,0.6)' }]}>
+                          {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </Text>
+                      </View>
+                    </View>
+                  );
+                })
+              )}
+            </ScrollView>
+
+            {/* Staged Attachments Preview Strip */}
+            {stagedAttachments.length > 0 && (
+              <View style={{ paddingHorizontal: 16, paddingVertical: 8, backgroundColor: '#ffffff', borderTopWidth: 1, borderTopColor: '#e2e8f0', flexDirection: 'row', gap: 8 }}>
+                {stagedAttachments.map((att, idx) => (
+                  <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#f1f5f9', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8 }}>
+                    {att.type === 'image' && <ImageIcon size={14} color="#2563eb" />}
+                    {att.type === 'video' && <Video size={14} color="#7c3aed" />}
+                    {att.type === 'document' && <FileText size={14} color="#059669" />}
+                    <Text style={{ fontSize: 11, color: '#334155', maxWidth: 100 }} numberOfLines={1}>{att.name}</Text>
+                    <TouchableOpacity onPress={() => removeStagedAttachment(idx)}>
+                      <X size={14} color="#94a3b8" />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {/* Media Attachment Toolbar */}
+            {(!liveTicket || liveTicket.status !== 'resolved') && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 16, paddingVertical: 8, backgroundColor: '#ffffff', borderTopWidth: 1, borderTopColor: '#f1f5f9' }}>
+                <TouchableOpacity onPress={pickPhoto} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                  <ImageIcon size={16} color="#2563eb" />
+                  <Text style={{ fontSize: 12, fontWeight: '600', color: '#2563eb' }}>Photo</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity onPress={pickVideo} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                  <Video size={16} color="#7c3aed" />
+                  <Text style={{ fontSize: 12, fontWeight: '600', color: '#7c3aed' }}>Video</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity onPress={pickDocument} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                  <FileText size={16} color="#059669" />
+                  <Text style={{ fontSize: 12, fontWeight: '600', color: '#059669' }}>Doc</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {/* INPUT BAR */}
+            {(!liveTicket || liveTicket.status !== 'resolved') ? (
+              <View style={styles.inputBar}>
+                <TextInput
+                  style={[styles.chatInput, Platform.OS === 'web' ? { outlineStyle: 'none' } as any : {}]}
+                  placeholder={isUploading ? "Uploading attachment..." : "Type message to human support officer..."}
+                  placeholderTextColor="#94a3b8"
+                  value={liveInput}
+                  onChangeText={setLiveInput}
+                  editable={!isUploading}
+                />
+                <TouchableOpacity
+                  style={[styles.sendBtn, (!liveInput.trim() && stagedAttachments.length === 0) && { opacity: 0.5 }]}
+                  disabled={(!liveInput.trim() && stagedAttachments.length === 0) || isUploading}
+                  onPress={handleSendLiveMessage}
+                >
+                  <Send size={18} color="#fff" />
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View style={styles.resolvedBar}>
+                <Text style={styles.resolvedText}>Live support session resolved and closed.</Text>
+              </View>
+            )}
+          </View>
+        )}
+        {/* dead code removed */ false && (
           <View style={styles.chatContainer}>
             <ScrollView
               ref={botScrollRef}
