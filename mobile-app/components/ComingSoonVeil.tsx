@@ -19,8 +19,8 @@ export default function ComingSoonVeil({ featureTitle, subtitle, topOffset }: Co
         styles.overlayContainer,
         topOffset !== undefined && { top: topOffset },
         {
-          borderTopLeftRadius: 40,
-          borderTopRightRadius: 40,
+          borderTopLeftRadius: topOffset === 0 ? 0 : 40,
+          borderTopRightRadius: topOffset === 0 ? 0 : 40,
           overflow: 'hidden',
         },
       ]}
@@ -28,14 +28,14 @@ export default function ComingSoonVeil({ featureTitle, subtitle, topOffset }: Co
     >
       {/* ── NATIVE BACKDROP BLUR (Soft Subtle Dark-Blue Frosted Glass Blur) ── */}
       <BlurView
-        intensity={Platform.OS === 'android' ? 25 : 18}
+        intensity={Platform.OS === 'android' ? 70 : 50}
         tint="dark"
         experimentalBlurMethod="dimezisBlurView"
         style={[
           StyleSheet.absoluteFill,
           {
-            borderTopLeftRadius: 40,
-            borderTopRightRadius: 40,
+            borderTopLeftRadius: topOffset === 0 ? 0 : 40,
+          borderTopRightRadius: topOffset === 0 ? 0 : 40,
             overflow: 'hidden',
           },
         ]}
@@ -46,16 +46,16 @@ export default function ComingSoonVeil({ featureTitle, subtitle, topOffset }: Co
         style={[
           StyleSheet.absoluteFill,
           {
-            backgroundColor: 'rgba(8, 16, 32, 0.40)',
-            borderTopLeftRadius: 40,
-            borderTopRightRadius: 40,
+            backgroundColor: isDark ? 'rgba(7, 13, 26, 0.58)' : 'rgba(15, 23, 42, 0.42)',
+            borderTopLeftRadius: topOffset === 0 ? 0 : 40,
+          borderTopRightRadius: topOffset === 0 ? 0 : 40,
             borderWidth: 1,
             borderColor: 'rgba(56, 189, 248, 0.18)',
             overflow: 'hidden',
             ...(Platform.OS === 'web'
               ? ({
-                  backdropFilter: 'blur(8px)',
-                  WebkitBackdropFilter: 'blur(8px)',
+                  backdropFilter: 'blur(16px)',
+                  WebkitBackdropFilter: 'blur(16px)',
                 } as any)
               : {}),
           },

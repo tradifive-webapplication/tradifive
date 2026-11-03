@@ -305,13 +305,6 @@ USER CONTEXT: Mobile App User. KEEP RESPONSES VERY SHORT. Max 2-3 sentences.`;
           >
             <X size={18} color={isDark ? '#ffffff' : '#0f172a'} />
           </TouchableOpacity>
-
-          {/* Full Screen Coming Soon Blur Veil */}
-          <ComingSoonVeil
-            featureTitle="AI Trading Coach"
-            subtitle="Automated real-time trade feedback, smart journaling analysis & risk guardian coaching are launching soon."
-            topOffset={0}
-          />
       
       {/* Header */}
       <View style={[s.header, { backgroundColor: isDark ? '#0a0a0a' : '#ffffff', borderBottomColor: isDark ? '#1a1a1a' : '#f1f5f9' }]}>
@@ -410,6 +403,12 @@ USER CONTEXT: Mobile App User. KEEP RESPONSES VERY SHORT. Max 2-3 sentences.`;
               </View>
             </View>
           </View>
+          {/* Full Screen Coming Soon Blur Veil covering entire chat */}
+          <ComingSoonVeil
+            featureTitle="AI Trading Coach"
+            subtitle="Automated real-time trade feedback, smart journaling analysis & risk guardian coaching are launching soon."
+            topOffset={0}
+          />
         </View>
       </View>
 
