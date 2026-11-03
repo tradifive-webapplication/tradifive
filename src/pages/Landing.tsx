@@ -382,7 +382,7 @@ function Hero({ onStart, onSignIn }: { onStart: () => void; onSignIn: () => void
           {/* LEFT: Content */}
           <div className="hero-content-left" style={{ width: "100%", maxWidth: 640, marginTop: "60px" }}>
             {/* Badge */}
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="hero-badge" style={{ display: "inline-flex", width: "fit-content", alignItems: "center", gap: 8, background: "#171717", border: "1px solid rgba(255, 255, 255, 0.1)", padding: "6px 16px 6px 8px", borderRadius: "100px", marginBottom: 32, backdropFilter: "blur(20px)" }}>
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="hero-badge" style={{ display: "inline-flex", width: "fit-content", alignItems: "center", gap: 8, background: "#171717", border: "none", padding: "6px 16px 6px 8px", borderRadius: "100px", marginBottom: 32, backdropFilter: "blur(20px)" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 14, height: 14, borderRadius: "50%", background: "rgba(99,102,241,0.2)" }}><div className="pulse-dot" style={{ width: 4, height: 4, borderRadius: "50%", background: "#818cf8" }} /></div>
               <span className="hero-badge-text" style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.9)", letterSpacing: "0.5px" }}>AI-Powered Trading Ecosystem</span>
             </motion.div>
@@ -926,7 +926,7 @@ function Pricing({ onStart }: { onStart: () => void }) {
           <div ref={useReveal()} className="rv" style={{ marginBottom: 16 }}>
             <span style={{
               background: "rgba(59, 130, 246, 0.12)",
-              border: "1px solid rgba(59, 130, 246, 0.3)",
+              border: "none",
               color: "#60a5fa",
               padding: "6px 18px",
               borderRadius: "100px",
@@ -1015,8 +1015,8 @@ function Pricing({ onStart }: { onStart: () => void }) {
                   padding: "20px 24px",
                   background: "#171717",
                   borderRadius: 20,
-                  border: "1px solid rgba(255, 255, 255, 0.08)",
-                  boxShadow: "inset 0 1px 0 0 rgba(255,255,255,0.05), 0 0 0 1px rgba(255,255,255,0.05), 0 2px 4px rgba(0,0,0,0.2)",
+                  border: "none",
+                  boxShadow: "none",
                   transition: "all 0.3s ease",
                   cursor: "pointer",
                 }}
@@ -1030,7 +1030,7 @@ function Pricing({ onStart }: { onStart: () => void }) {
                       height: 42,
                       borderRadius: 12,
                       background: "rgba(59, 130, 246, 0.15)",
-                      border: "1px solid rgba(59, 130, 246, 0.3)",
+                      border: "none",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
@@ -1046,7 +1046,7 @@ function Pricing({ onStart }: { onStart: () => void }) {
                         </h3>
                         <span style={{
                           background: "rgba(59, 130, 246, 0.15)",
-                          border: "1px solid rgba(59, 130, 246, 0.3)",
+                          border: "none",
                           color: "#60a5fa",
                           fontSize: 10,
                           fontWeight: 800,
@@ -1061,7 +1061,7 @@ function Pricing({ onStart }: { onStart: () => void }) {
                           padding: "3px 9px",
                           borderRadius: 8,
                           background: "rgba(255, 255, 255, 0.05)",
-                          border: "1px solid rgba(255, 255, 255, 0.08)",
+                          border: "none",
                           color: "rgba(255, 255, 255, 0.7)",
                           fontSize: 10.5,
                           fontWeight: 700
@@ -1121,7 +1121,7 @@ function Pricing({ onStart }: { onStart: () => void }) {
                           padding: "14px 18px",
                           borderRadius: 14,
                           background: "rgba(255, 255, 255, 0.03)",
-                          border: "1px solid rgba(255, 255, 255, 0.06)",
+                          border: "none",
                           marginBottom: 18,
                           display: "flex",
                           alignItems: "center",
@@ -1149,7 +1149,7 @@ function Pricing({ onStart }: { onStart: () => void }) {
                             padding: "6px 12px",
                             borderRadius: 8,
                             background: "rgba(59, 130, 246, 0.1)",
-                            border: "1px solid rgba(59, 130, 246, 0.2)",
+                            border: "none",
                             color: "rgba(255, 255, 255, 0.75)",
                             fontSize: 11,
                             fontWeight: 600
@@ -1222,8 +1222,8 @@ function Pricing({ onStart }: { onStart: () => void }) {
                   padding: "20px 24px",
                   background: "#171717",
                   borderRadius: 20,
-                  border: "1px solid rgba(255, 255, 255, 0.08)",
-                  boxShadow: "inset 0 1px 0 0 rgba(255,255,255,0.05), 0 0 0 1px rgba(255,255,255,0.05), 0 2px 4px rgba(0,0,0,0.2)",
+                  border: "none",
+                  boxShadow: "none",
                   transition: "all 0.3s ease",
                   cursor: "pointer",
                 }}
@@ -1237,7 +1237,7 @@ function Pricing({ onStart }: { onStart: () => void }) {
                       height: 42,
                       borderRadius: 12,
                       background: "rgba(16, 185, 129, 0.15)",
-                      border: "1px solid rgba(16, 185, 129, 0.3)",
+                      border: "none",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
@@ -1253,7 +1253,7 @@ function Pricing({ onStart }: { onStart: () => void }) {
                         </h3>
                         <span style={{
                           background: "rgba(16, 185, 129, 0.15)",
-                          border: "1px solid rgba(16, 185, 129, 0.3)",
+                          border: "none",
                           color: "#34d399",
                           fontSize: 10,
                           fontWeight: 800,
@@ -1268,7 +1268,7 @@ function Pricing({ onStart }: { onStart: () => void }) {
                           padding: "3px 9px",
                           borderRadius: 8,
                           background: "rgba(255, 255, 255, 0.05)",
-                          border: "1px solid rgba(255, 255, 255, 0.08)",
+                          border: "none",
                           color: "rgba(255, 255, 255, 0.7)",
                           fontSize: 10.5,
                           fontWeight: 700
@@ -1328,7 +1328,7 @@ function Pricing({ onStart }: { onStart: () => void }) {
                           padding: "14px 18px",
                           borderRadius: 14,
                           background: "rgba(255, 255, 255, 0.03)",
-                          border: "1px solid rgba(255, 255, 255, 0.06)",
+                          border: "none",
                           marginBottom: 18,
                           display: "flex",
                           alignItems: "center",
@@ -1429,8 +1429,8 @@ function Pricing({ onStart }: { onStart: () => void }) {
                   padding: "20px 24px",
                   background: "#171717",
                   borderRadius: 20,
-                  border: "1px solid rgba(255, 255, 255, 0.08)",
-                  boxShadow: "inset 0 1px 0 0 rgba(255,255,255,0.05), 0 0 0 1px rgba(255,255,255,0.05), 0 2px 4px rgba(0,0,0,0.2)",
+                  border: "none",
+                  boxShadow: "none",
                   transition: "all 0.3s ease",
                   cursor: "pointer",
                 }}
@@ -1444,7 +1444,7 @@ function Pricing({ onStart }: { onStart: () => void }) {
                       height: 42,
                       borderRadius: 12,
                       background: "rgba(255, 255, 255, 0.05)",
-                      border: "1px solid rgba(255, 255, 255, 0.1)",
+                      border: "none",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
@@ -1470,7 +1470,7 @@ function Pricing({ onStart }: { onStart: () => void }) {
                         padding: "7px 14px",
                         borderRadius: 10,
                         background: "rgba(255, 255, 255, 0.06)",
-                        border: "1px solid rgba(255, 255, 255, 0.12)",
+                        border: "none",
                         color: "#fff",
                         fontSize: 12,
                         fontWeight: 700,
@@ -1559,8 +1559,8 @@ function Pricing({ onStart }: { onStart: () => void }) {
                 padding: "20px 24px",
                 borderRadius: 20,
                 background: "#171717",
-                border: "1px solid rgba(255, 255, 255, 0.08)",
-                boxShadow: "inset 0 1px 0 0 rgba(255,255,255,0.05), 0 0 0 1px rgba(255,255,255,0.05), 0 2px 4px rgba(0,0,0,0.2)",
+                border: "none",
+                boxShadow: "none",
                 flexWrap: "wrap",
                 gap: 16
               }}>
@@ -1570,7 +1570,7 @@ function Pricing({ onStart }: { onStart: () => void }) {
                     height: 42,
                     borderRadius: 12,
                     background: "rgba(59, 130, 246, 0.12)",
-                    border: "1px solid rgba(59, 130, 246, 0.25)",
+                    border: "none",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -1595,7 +1595,7 @@ function Pricing({ onStart }: { onStart: () => void }) {
                     padding: "9px 20px",
                     borderRadius: 12,
                     background: "rgba(59, 130, 246, 0.15)",
-                    border: "1px solid rgba(59, 130, 246, 0.3)",
+                    border: "none",
                     color: "#60a5fa",
                     fontSize: 12.5,
                     fontWeight: 700,
