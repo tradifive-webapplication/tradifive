@@ -1739,7 +1739,41 @@ export default function DashboardScreen() {
   const scrollY = React.useRef(new Animated.Value(0)).current;
   const maxHeaderScroll = Math.max(0, (headerStyle === 'simple' ? insets.top + 74 : insets.top + 104) - insets.top);
 
-  // Linear native scroll translation — zero diffClamp jitter on slow drags
+  const headerHeight = insets.top + 64;
+  const headerOpacity = scrollY.interpolate({
+    inputRange: [120, 160],
+    outputRange: [0, 1],
+    extrapolate: 'clamp',
+  });
+
+  // Track scroll direction for bottom navigation hiding & reveal
+  const lastScrollY = React.useRef(0);
+  const isTabBarVisible = React.useRef(true);
+
+  const handleScroll = (event: any) => {
+    const currentY = event.nativeEvent.contentOffset.y;
+    const diff = currentY - lastScrollY.current;
+
+    if (currentY <= 15) {
+      if (!isTabBarVisible.current) {
+        isTabBarVisible.current = true;
+        DeviceEventEmitter.emit('toggleTabBar', { show: true });
+      }
+    } else if (diff > 8 && currentY > 40) {
+      if (isTabBarVisible.current) {
+        isTabBarVisible.current = false;
+        DeviceEventEmitter.emit('toggleTabBar', { show: false });
+      }
+    } else if (diff < -8) {
+      if (!isTabBarVisible.current) {
+        isTabBarVisible.current = true;
+        DeviceEventEmitter.emit('toggleTabBar', { show: true });
+      }
+    }
+    lastScrollY.current = currentY;
+  };
+
+  // Linear native scroll translation
   const headerTranslateY = scrollY.interpolate({
     inputRange: [0, maxHeaderScroll],
     outputRange: [0, -maxHeaderScroll],
@@ -1897,19 +1931,74 @@ export default function DashboardScreen() {
         pointerEvents="none"
       />
 
-      {/* ── HEADER ── */}
+
+      {/* ── COMPACT SMART STICKY HEADER (Reveals smoothly when scrolled deep) ── */}
+      {headerStyle !== 'simple' && (
+        <Animated.View
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: headerHeight,
+            backgroundColor: '#000000',
+            zIndex: 100,
+            paddingTop: insets.top + 8,
+            opacity: headerOpacity,
+            borderBottomLeftRadius: 32,
+            borderBottomRightRadius: 32,
+            overflow: 'hidden',
+          }}
+          pointerEvents="box-none"
+        >
+          <Image
+            source={require('../../assets/images/top-glow.png')}
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, width: '100%', height: 80, opacity: 0.8 }}
+            resizeMode="stretch"
+          />
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, height: 48 }}>
+            <Text style={{ fontSize: 22, fontFamily: 'Inter_700Bold', color: '#fff', letterSpacing: -0.5 }}>
+              {activeTab === 'dashboard' ? 'Dashboard' : 'Home'}
+            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
+              <TouchableOpacity onPress={() => { h(); router.push('/notifications' as any); }} style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center' }}>
+                <Bell size={22} color="#fff" />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => router.setParams({ openProfile: 'true' })}>
+                <Image source={{ uri: getAvatarUrl(currentUser?.avatar_url, currentUser?.email) }} style={{ width: 32, height: 32, borderRadius: 16 }} />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Animated.View>
+      )}
+
+      {/* ── HEADER (Absolute Header with Smooth Parallax Fade) ── */}
       {(activeTab === 'dashboard' || activeTab === 'feed' || activeTab === 'community' || activeTab === 'contests') && (
         <Animated.View style={[
           styles.header,
           {
             zIndex: 10,
-            opacity: activeCardId ? 0.15 : 1,
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            opacity: activeCardId ? 0.15 : scrollY.interpolate({
+              inputRange: [0, 80],
+              outputRange: [1, 0],
+              extrapolate: 'clamp',
+            }),
             height: headerStyle === 'simple' ? insets.top + 74 : insets.top + 104,
             backgroundColor: headerStyle === 'simple' ? (activeCardId ? (isDark ? '#000' : '#090d16') : (isDark ? theme.background : '#ffffff')) : 'transparent',
             borderBottomWidth: headerStyle === 'simple' && !isDark ? 1 : 0,
             borderBottomColor: isDark ? theme.cardBorder : '#e2e8f0',
-            position: 'relative',
-            transform: headerStyle === 'simple' ? [] : [{ translateY: headerTranslateY }]
+            transform: headerStyle === 'simple' ? [] : [{
+              translateY: scrollY.interpolate({
+                inputRange: [0, 80],
+                outputRange: [0, -50],
+                extrapolate: 'clamp',
+              })
+            }],
+            pointerEvents: 'box-none',
           }
         ]}>
           {headerStyle !== 'simple' && (
@@ -1976,15 +2065,15 @@ export default function DashboardScreen() {
       )}
 
 
-      {/* ── WHITE CONTENT CARD (Slides up naturally with page content for smooth unified scroll) ── */}
+      {/* ── WHITE CONTENT CARD (Natural 1:1 speed, zero vibration, smooth whole-page scroll) ── */}
       <Animated.View style={[
         styles.card,
         {
-          marginTop: headerStyle === 'simple' ? 0 : -34,
+          marginTop: headerStyle === 'simple' ? insets.top + 74 : insets.top + 70,
           borderTopLeftRadius: headerStyle === 'simple' ? 0 : 40,
           borderTopRightRadius: headerStyle === 'simple' ? 0 : 40,
           backgroundColor: activeCardId ? '#090d16' : (isDark ? theme.background : (activeTab === 'feed' ? '#f8fafc' : '#fff')),
-          transform: headerStyle === 'simple' ? [] : [{ translateY: headerTranslateY }],
+          transform: [],
         }
       ]}>
         {activeTab === 'dashboard' && (
@@ -1995,7 +2084,7 @@ export default function DashboardScreen() {
               contentContainerStyle={{ flexGrow: 1, paddingBottom: 140, paddingTop: 24 }}
             onScroll={Animated.event(
               [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-              { useNativeDriver: true }
+              { useNativeDriver: true, listener: handleScroll }
             )}
             scrollEventThrottle={16}
             refreshControl={
@@ -2476,7 +2565,7 @@ export default function DashboardScreen() {
               contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 140 }}
               onScroll={Animated.event(
                 [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-                { useNativeDriver: true }
+                { useNativeDriver: true, listener: handleScroll }
               )}
               scrollEventThrottle={16}
             >

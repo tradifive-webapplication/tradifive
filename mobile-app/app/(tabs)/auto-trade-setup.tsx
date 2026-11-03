@@ -490,7 +490,7 @@ export default function AutoTradeSetupScreen() {
             borderTopLeftRadius: headerStyle === 'simple' ? 0 : 40,
             borderTopRightRadius: headerStyle === 'simple' ? 0 : 40,
             backgroundColor: isDark ? theme.background : '#f8fafc',
-            transform: headerStyle === 'simple' ? [] : [{ translateY: headerTranslateY }],
+            transform: [],
           },
         ]}
       >
@@ -504,7 +504,7 @@ export default function AutoTradeSetupScreen() {
           contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 14, paddingBottom: 220 }}
           onScroll={Animated.event(
             [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-            { useNativeDriver: true }
+            { useNativeDriver: true, listener: handleScroll }
           )}
           scrollEventThrottle={16}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#8E8E93" />}

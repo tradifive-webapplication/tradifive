@@ -144,6 +144,30 @@ export default function TabLayout() {
   const [activeNavItem, setActiveNavItem] = useState<any>({ label: 'Journal', icon: BookOpen });
   const scrollY = useRef(new Animated.Value(0)).current;
 
+  // Floating bottom navigation scroll-hide animation
+  const tabBarTranslateY = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const sub = DeviceEventEmitter.addListener('toggleTabBar', ({ show }: { show: boolean }) => {
+      Animated.spring(tabBarTranslateY, {
+        toValue: show ? 0 : 120,
+        useNativeDriver: true,
+        tension: 65,
+        friction: 11,
+      }).start();
+    });
+    return () => sub.remove();
+  }, []);
+
+  useEffect(() => {
+    Animated.spring(tabBarTranslateY, {
+      toValue: 0,
+      useNativeDriver: true,
+      tension: 65,
+      friction: 11,
+    }).start();
+  }, [pathname]);
+
   const initStore = useStore(state => state.init);
   const currentUser = useStore(state => state.currentUser);
   const followerCount = useStore(state => state.getFollowerCount());

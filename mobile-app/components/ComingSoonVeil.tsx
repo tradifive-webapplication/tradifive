@@ -26,10 +26,10 @@ export default function ComingSoonVeil({ featureTitle, subtitle, topOffset }: Co
       ]}
       pointerEvents="auto"
     >
-      {/* ── NATIVE BACKDROP BLUR (Soft Subtle Glass Blur) ── */}
+      {/* ── NATIVE BACKDROP BLUR (Soft Subtle Dark-Blue Frosted Glass Blur) ── */}
       <BlurView
-        intensity={Platform.OS === 'android' ? 55 : 30}
-        tint={isDark ? 'dark' : 'light'}
+        intensity={Platform.OS === 'android' ? 25 : 18}
+        tint="dark"
         experimentalBlurMethod="dimezisBlurView"
         style={[
           StyleSheet.absoluteFill,
@@ -41,19 +41,21 @@ export default function ComingSoonVeil({ featureTitle, subtitle, topOffset }: Co
         ]}
       />
 
-      {/* Subtle frosted glass tint that softly blurs cards and prevents all touch interaction */}
+      {/* Subtle translucent dark-blue glass tint — zero white colour, gentle blue-tinted blur */}
       <View
         style={[
           StyleSheet.absoluteFill,
           {
-            backgroundColor: isDark ? 'rgba(9, 13, 22, 0.40)' : 'rgba(255, 255, 255, 0.48)',
+            backgroundColor: 'rgba(8, 16, 32, 0.40)',
             borderTopLeftRadius: 40,
             borderTopRightRadius: 40,
+            borderWidth: 1,
+            borderColor: 'rgba(56, 189, 248, 0.18)',
             overflow: 'hidden',
             ...(Platform.OS === 'web'
               ? ({
-                  backdropFilter: 'blur(10px)',
-                  WebkitBackdropFilter: 'blur(10px)',
+                  backdropFilter: 'blur(8px)',
+                  WebkitBackdropFilter: 'blur(8px)',
                 } as any)
               : {}),
           },
@@ -66,15 +68,15 @@ export default function ComingSoonVeil({ featureTitle, subtitle, topOffset }: Co
           style={[
             styles.badgePill,
             {
-              backgroundColor: isDark ? 'rgba(15, 23, 42, 0.94)' : 'rgba(255, 255, 255, 0.96)',
-              borderColor: isDark ? 'rgba(56, 189, 248, 0.40)' : 'rgba(56, 189, 248, 0.45)',
+              backgroundColor: 'rgba(10, 20, 38, 0.94)',
+              borderColor: 'rgba(56, 189, 248, 0.55)',
               shadowColor: '#000',
-              shadowOpacity: isDark ? 0.45 : 0.12,
+              shadowOpacity: 0.45,
             },
           ]}
         >
           <View style={styles.pulseDot} />
-          <Text style={[styles.badgeText, { color: isDark ? '#ffffff' : '#0f172a' }]}>
+          <Text style={[styles.badgeText, { color: '#ffffff' }]}>
             {featureTitle ? `${featureTitle} · ` : ''}Coming Soon
           </Text>
         </View>
@@ -83,7 +85,7 @@ export default function ComingSoonVeil({ featureTitle, subtitle, topOffset }: Co
           <Text
             style={[
               styles.badgeSubtitle,
-              { color: isDark ? 'rgba(226, 232, 240, 0.85)' : 'rgba(71, 85, 105, 0.85)' },
+              { color: 'rgba(186, 215, 248, 0.90)' },
             ]}
           >
             {subtitle}
