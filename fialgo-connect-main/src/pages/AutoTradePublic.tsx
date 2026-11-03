@@ -38,8 +38,8 @@ const fialgoFaqItems = [
     answer: "While you can run FiAlgo V1 on your personal laptop or desktop during market hours, we strongly recommend a low-latency Windows VPS (Virtual Private Server) with under 20ms ping to your broker. This ensures your algorithms execute 24/5 even when your personal computer is turned off.",
   },
   {
-    question: "What is the difference between the Free Demo, Backtest, and Live Licenses?",
-    answer: "The Free Demo build lets you run FiAlgo V1 on any MT5 demo account with all 8 risk modules active and zero risk. The Backtest build lets you run fast historical simulations inside MT5 Strategy Tester. Live Licenses unlock automated live trading on real accounts: choose between the 3-Year Enterprise Pass (₹1,00,000 · 0% profit share) or the Performance Partner Plan (₹10,000 setup · weekly 50% split).",
+    question: "What is the difference between the 3-Day Free Demo, Backtest, and Live Licenses?",
+    answer: "The 3-Day Free Demo build lets you run FiAlgo V1 on any MT5 demo account with all 8 risk modules active and zero risk for 3 full days. The Backtest build lets you run fast historical simulations inside MT5 Strategy Tester. Live Licenses unlock automated live trading on real accounts: choose between the 3-Year Enterprise Pass (₹1,00,000 · 0% profit share) or the Performance Partner Plan (₹10,000 setup · weekly 50% split).",
   },
   {
     question: "Which brokers and account types are supported?",

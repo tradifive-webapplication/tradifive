@@ -41,59 +41,68 @@ enum ENUM_TF_THEME
 //| INPUTS (initial values - everything marked "live" can be changed |
 //| from the dashboard SET page while the EA is running)             |
 //+------------------------------------------------------------------+
-input group "=== Identification ==="
+input group "=== TradiFive License & Identification ==="
+input string LicenseKey                = "";         // TradiFive License Key (registered at tradifive.com)
 input ulong  MagicNumber               = 20261007;   // Magic number (only trades with this magic are managed)
 
-input group "=== Strategy (live: SET page) ==="
-input double InpStartLot               = 0.01;       // Lot of level 0
-input double InpLotIncrement           = 0.01;       // Lot added per level (Lot = StartLot + LotIncrement x level)
-input double InpGridDistance           = 4.00;       // Grid distance (PRICE units)
-input double InpTPDistance             = 2.00;       // Basket TP distance from weighted average (PRICE units)
-input bool   InpPlaceTPOnPositions     = true;       // Put basket TP on every position (SL is NEVER set)
-input int    InpStartDirection         = 0;          // 0 = BUY, 1 = SELL (used only when pending start is OFF)
-input bool   InpStartWithPendingOrders = true;       // Start with BUY + SELL pending orders
-input double InpStartPendingDistance   = 1.50;       // Start order distance (price units)
-input int    InpStartPendingMode       = 1;          // 0 = LIMIT, 1 = STOP
+input group "=== Trading & Risk Controls ==="
+input double InpStartLot               = 0.01;       // Initial Lot Size (e.g. 0.01 per $1,000)
+input double InpDailyTargetPct         = 2.0;        // Daily Profit Target % (2.0% - 5.0%)
+input bool   InpUseDrawdownProtection  = true;       // Automated Drawdown Protection
+input double InpMaximumDrawdownPercent = 10.0;       // Max Emergency Drawdown Limit %
 
-input group "=== Safety limits (live: SET page) ==="
-input int    InpMaximumOrdersPerBasket = 50;         // Max open positions in one basket
-input double InpMaximumLot             = 10.00;      // Max lot of a single grid position
-input double InpMaximumTotalLots       = 50.00;      // Max total lots of all Tradifive positions
-input bool   InpUseSpreadFilter        = true;       // Block NEW trades when spread too high
-input int    InpMaximumSpreadPoints    = 500;        // Max spread in POINTS
-input bool   InpUseDrawdownProtection  = false;      // Emergency protection (close everything and halt)
-input double InpMaximumDrawdownPercent = 30.0;       // Floating loss as % of balance that triggers protection
-input bool   ClearHaltOnInit           = false;      // true = clear a previous drawdown halt when EA starts
+//====================================================================
+// PROPRIETARY ALGORITHMIC ENGINE CONSTANTS (Hidden from User Dialog)
+//====================================================================
 
-input group "=== Daily / session control (live: SET page) ==="
-input bool   InpDailyTargetOn          = true;       // Stop for the day when the daily profit target is reached
-input double InpDailyTargetPct         = 3.0;        // Daily profit target % (2 - 5) of day-start balance
-input bool   InpDailyLossOn            = false;      // Stop for the day when daily loss limit is reached
-input double InpDailyLossPct           = 10.0;       // Daily loss limit (% of day-start balance)
-input bool   InpSessionOn              = true;       // Only START new cycles inside the session window
-input string InpSessionStartTime       = "09:30";    // Session start (HH:MM)
-input string InpSessionEndTime         = "12:00";    // Session end (HH:MM)
-input bool   InpSessionLocalClock      = true;       // true = use PC (local) clock, false = broker server clock
-input bool   InpSessionRunPast         = true;       // After session end keep running until the daily target is reached
-input bool   InpCloseAtSessionEnd      = false;      // Close all positions when the session ends (ignored if run-past)
+const double InpLotIncrement           = 0.01;       // Lot added per level (Lot = StartLot + LotIncrement x level)
+const double InpGridDistance           = 4.00;       // Grid distance (PRICE units)
+const double InpTPDistance             = 2.00;       // Basket TP distance from weighted average (PRICE units)
+const bool   InpPlaceTPOnPositions     = true;       // Put basket TP on every position (SL is NEVER set)
+const int    InpStartDirection         = 0;          // 0 = BUY, 1 = SELL (used only when pending start is OFF)
+const bool   InpStartWithPendingOrders = true;       // Start with BUY + SELL pending orders
+const double InpStartPendingDistance   = 1.50;       // Start order distance (price units)
+const int    InpStartPendingMode       = 1;          // 0 = LIMIT, 1 = STOP
 
-input group "=== Execution / display ==="
-input int    DeviationPoints           = 50;         // Max slippage (points) for market orders
-input bool   ShowGridLevels            = true;       // Show next grid price line on chart
+// Internal Safety Limits
+const int    InpMaximumOrdersPerBasket = 30;         // Max open positions in one basket
+const double InpMaximumLot             = 10.00;      // Max lot of a single grid position
+const double InpMaximumTotalLots       = 50.00;      // Max total lots of all Tradifive positions
+const bool   InpUseSpreadFilter        = true;       // Block NEW trades when spread too high
+const int    InpMaximumSpreadPoints    = 500;        // Max spread in POINTS
 
-input group "=== License ==="
-input string LicenseKey                = "";         // License key (or leave empty to auto-authenticate online with TradiFive)
-input bool   RequireLicense            = true;       // true = strictly lock algorithm to authorized MT5 account only
-input int    TrialDays                 = 0;          // Requires registered account license
-input string SupportContact            = "support@tradifive.com";   // Shown to the user when the license is not valid
+
+const bool   ClearHaltOnInit           = false;      // true = clear a previous drawdown halt when EA starts
+
+// Internal Session & Cutoff Controls
+const bool   InpDailyTargetOn          = true;       // Stop for the day when the daily profit target is reached
+
+const bool   InpDailyLossOn            = true;      // Stop for the day when daily loss limit is reached
+const double InpDailyLossPct           = 10.0;       // Daily loss limit (% of day-start balance)
+const bool   InpSessionOn              = true;       // Only START new cycles inside the session window
+const string InpSessionStartTime       = "08:30";    // Session start (HH:MM)
+const string InpSessionEndTime         = "14:00";    // Session end (HH:MM)
+const bool   InpSessionLocalClock      = true;       // true = use PC (local) clock, false = broker server clock
+const bool   InpSessionRunPast         = false;      // Do NOT run past session end (08:30 to 14:00 only)
+const bool   InpCloseAtSessionEnd      = false;      // Close all positions when the session ends (ignored if run-past)
+
+// Internal Execution Controls
+const int    DeviationPoints           = 50;         // Max slippage (points) for market orders
+const bool   ShowGridLevels            = false;       // Show next grid price line on chart
+
+// License & Demo Controls
+
+const bool   RequireLicense            = true;       // true = strictly lock algorithm to authorized MT5 account only
+const int    TrialDays                 = 3;          // Requires registered account license
+const string SupportContact            = "support@tradifive.com";   // Shown to the user when the license is not valid
 
 input group "=== Dashboard ==="
 input bool          ShowDashboard      = true;       // Show the dashboard
-input bool          ApplyChartTheme    = true;       // Light-blue candles + dark chart while the EA runs (restored on removal)
-input int           DashX              = 10;         // Dashboard X offset
-input int           DashY              = 20;         // Dashboard Y offset
+const bool          ApplyChartTheme    = true;       // Light-blue candles + dark chart while the EA runs (restored on removal)
+const int           DashX              = 10;         // Dashboard X offset
+const int           DashY              = 20;         // Dashboard Y offset
 input ENUM_TF_THEME DashTheme          = TF_THEME_CYAN; // Colour theme
-input bool          UseSavedSettings   = true;       // Remember settings changed in the SET page (per symbol+magic)
+const bool          UseSavedSettings   = false;       // Remember settings changed in the SET page (per symbol+magic)
 
 //+------------------------------------------------------------------+
 //| Live settings store. The EA code keeps using the old names       |
@@ -138,7 +147,7 @@ bool   g_settingsChanged=false;
 #define SessionLocal             (g_s[S_SES_CLOCK]>0.5)
 #define SessionRunPast           (g_s[S_SES_RUNPAST]>0.5)
 
-#define TF_NF 26
+#define TF_NF 4
 
 //--- settings field table (drives the SET page)
 struct TFField
@@ -191,31 +200,9 @@ int TFParseTime(string s)
 void TFS_BuildFields()
 {
    TFF(0, "Start lot",            0,S_START_LOT,0.01,100.0,2);
-   TFF(1, "Lot increment",        0,S_LOT_INC,  0.0, 10.0, 2);
-   TFF(2, "Grid gap (price)",     0,S_GRID,     0.01,1000.0,2);
-   TFF(3, "TP distance (price)",  0,S_TP,       0.01,1000.0,2);
-   TFF(4, "First trade",          2,S_START_DIR,0,1,0,S_PEND_ON,true);
-   TFF(5, "Start with pending",   1,S_PEND_ON,  0,1,0);
-   TFF(6, "Start order type",     2,S_PEND_MODE,0,1,0,S_PEND_ON);
-   TFF(7, "Start distance",       0,S_PEND_DIST,0.01,1000.0,2,S_PEND_ON);
-   TFF(8, "TP on positions",      1,S_TP_POS,   0,1,0);
-   TFF(9, "Max orders / basket",  0,S_MAX_ORD,  1,1000,0);
-   TFF(10,"Max lot",              0,S_MAX_LOT,  0.01,1000.0,2);
-   TFF(11,"Max total lots",       0,S_MAX_TOT,  0.01,10000.0,2);
-   TFF(12,"Spread filter",        1,S_SPR_ON,   0,1,0);
-   TFF(13,"Max spread (points)",  0,S_SPR_MAX,  0,100000,0,S_SPR_ON);
-   TFF(14,"Drawdown protect",     1,S_DD_ON,    0,1,0);
-   TFF(15,"Max drawdown %",       0,S_DD_PCT,   0.5,100.0,1,S_DD_ON);
-   TFF(16,"Daily profit target",  1,S_DT_ON,    0,1,0);
-   TFF(17,"Daily target % (2-5)", 0,S_DT_PCT,   2.0,5.0,1,S_DT_ON);
-   TFF(18,"Daily loss limit",     1,S_DL_ON,    0,1,0);
-   TFF(19,"Daily loss %",         0,S_DL_PCT,   0.1,100.0,1,S_DL_ON);
-   TFF(20,"Session window",       1,S_SES_ON,   0,1,0);
-   TFF(21,"Start time (HH:MM)",   3,S_SES_START,0,1439,0,S_SES_ON);
-   TFF(22,"End time (HH:MM)",     3,S_SES_END,  0,1439,0,S_SES_ON);
-   TFF(23,"Clock: server / PC",   2,S_SES_CLOCK,0,1,0,S_SES_ON);
-   TFF(24,"Run past end to target",1,S_SES_RUNPAST,0,1,0,S_SES_ON);
-   TFF(25,"Close at session end", 1,S_SES_CLOSE,0,1,0,S_SES_ON);
+   TFF(1, "Daily target % (2-5)", 0,S_DT_PCT,   2.0,5.0,1);
+   TFF(2, "Max drawdown %",       0,S_DD_PCT,   0.5,100.0,1);
+   TFF(3, "Drawdown protect",     1,S_DD_ON,    0,1,0);
 }
 
 string TFSetKey(const int i)
@@ -245,8 +232,8 @@ void TFS_LoadInputs()
    g_s[S_SES_ON]=InpSessionOn?1.0:0.0;
    int s0=TFParseTime(InpSessionStartTime);
    int e0=TFParseTime(InpSessionEndTime);
-   if(s0<0) s0=570;
-   if(e0<0) e0=720;
+   if(s0<0) s0=510;
+   if(e0<0) e0=840;
    g_s[S_SES_START]=(double)s0;
    g_s[S_SES_END]=(double)e0;
    g_s[S_SES_CLOSE]=InpCloseAtSessionEnd?1.0:0.0;
@@ -1727,7 +1714,7 @@ private:
       HeaderStatic(true,false);
       AddHit(H_RESET,812,8,64,28);
       AddHit(H_BACK,884,8,60,28);
-      string ct[3]={"STRATEGY","EXECUTION & RISK","DAILY CONTROL & SESSION"};
+      string ct[3]={"USER CONTROLS","PROPRIETARY CORE","SESSION DEFENSE"};
       for(int c=0;c<3;c++)
       {
          const int cx=16+c*324;
@@ -1742,6 +1729,30 @@ private:
          m_s.RRect(bx,by,96,24,6,TFC_BOX,TFC_BOX,TFC_LINE,1.0);
          AddHit(H_FIELD+fi,bx,by,96,24);
       }
+
+      // Card 1: Proprietary Core Info (Encrypted & Protected)
+      m_s.Txt(356,104,"Grid Spacing Logic",TFC_DIM,11);
+      m_s.Txt(620,104,"ENCRYPTED",TFC_GOLD,10,true,TA_RIGHT);
+      m_s.Txt(356,130,"Auto-Averaging Formula",TFC_DIM,11);
+      m_s.Txt(620,130,"PROTECTED",TFC_GOLD,10,true,TA_RIGHT);
+      m_s.Txt(356,156,"Adaptive TP Distance",TFC_DIM,11);
+      m_s.Txt(620,156,"DYNAMIC",TFC_POS,10,true,TA_RIGHT);
+      m_s.Txt(356,182,"Pending Start Hedging",TFC_DIM,11);
+      m_s.Txt(620,182,"LOCKED",TFC_POS,10,true,TA_RIGHT);
+      m_s.Txt(356,208,"Strategy IP Security",TFC_DIM,11);
+      m_s.Txt(620,208,"AES-256",m_acc,10,true,TA_RIGHT);
+
+      // Card 2: Session Defense Info (08:30 - 14:00)
+      m_s.Txt(680,104,"Trading Window",TFC_DIM,11);
+      m_s.Txt(944,104,"08:30 - 14:00",TFC_WHITE,10,true,TA_RIGHT);
+      m_s.Txt(680,130,"85% Target Banking",TFC_DIM,11);
+      m_s.Txt(944,130,"ENABLED",TFC_POS,10,true,TA_RIGHT);
+      m_s.Txt(680,156,"14:00 Grid Freeze",TFC_DIM,11);
+      m_s.Txt(944,156,"ACTIVE",TFC_POS,10,true,TA_RIGHT);
+      m_s.Txt(680,182,"NY Session Defense",TFC_DIM,11);
+      m_s.Txt(944,182,"BREAK-EVEN",TFC_GOLD,10,true,TA_RIGHT);
+      m_s.Txt(680,208,"Drawdown Shield",TFC_DIM,11);
+      m_s.Txt(944,208,"ACTIVE",TFC_POS,10,true,TA_RIGHT);
       Card(16,368,948,64);
       Chip(m_s,32,378,"LICENSE KEY",0);
       m_s.RRect(128,376,520,26,7,TFC_BOX,TFC_BOX,TFC_LINE,1.0);
@@ -3284,8 +3295,34 @@ bool DayControl()
       if(base>0.0)
       {
          const double pct=(real+fl)/base*100.0;
+         const int currentMin=TFNowMin();
+
+         // 1. Full Target Reached (e.g. >= 2.0%)
          if(DailyTargetOn && pct>=DailyTargetPct)
+         {
             TriggerDayHalt("Daily profit target reached ("+DoubleToString(pct,2)+"%)",1);
+            return true;
+         }
+
+         // 2. The 85% Target Banking Rule (Lock & Bank if >= 85% of target achieved)
+         const double nearTargetPct=DailyTargetPct*0.85;
+         if(DailyTargetOn && pct>=nearTargetPct)
+         {
+            Log("TIME & TARGET PROFIT BANK: 85%+ of daily target achieved ("+DoubleToString(pct,2)+"% >= "+DoubleToString(nearTargetPct,2)+"%). Banking profit and closing the day.");
+            TriggerDayHalt("Target Satisfied (Banked 85%+ Target: "+DoubleToString(pct,2)+"% before NY session)",1);
+            return true;
+         }
+
+         // 3. 14:00 (2:00 PM) Cutoff: If trades are open and overall profit is breakeven or positive (>= 0), close all and exit immediately
+         if(currentMin>=840)
+         {
+            if((real+fl)>=0.0 && CountTradifivePositions()>0)
+            {
+               Log("SESSION CUTOFF (14:00): Trade reached Break-Even / Positive. Closing all positions to protect capital before NY volatility.");
+               TriggerDayHalt("14:00 Cutoff Hit - Closed at Break-Even ("+DoubleToString(pct,2)+"%)",1);
+               return true;
+            }
+         }
          else if(DailyLossOn && pct<=-DailyLossPct)
             TriggerDayHalt("Daily loss limit reached ("+DoubleToString(pct,2)+"%)",2);
       }
@@ -3539,6 +3576,15 @@ void PlaceNextGrid(const bool buy,const BasketInfo &b)
    if(oppositeCount>0)
       return;
 
+   // 14:00 (2:00 PM) NY Session Defense: Freeze grid (Zero new averaging levels into NY volatility)
+   if(TFNowMin()>=840)
+   {
+      g_note="14:00 Cutoff - Grid Frozen (No new positions into NY)";
+      ThrottledLog(buy?7:8,"14:00 session cutoff reached. Grid frozen to protect against New York session volatility.",30);
+      RemoveGridLine();
+      return;
+   }
+
    if(CountPendings(buy)>0)
    {
       Log("Removing leftover "+side+" pending order(s). Grid levels are opened at market when price reaches the level.");
@@ -3785,7 +3831,10 @@ void ManageBuyBasket()
    const int prevCount=g_prevBuyCount;
    LogBasketChange(true,b);
 
-   const double tp=NormalizeDouble(b.wavg+TPDistance,_Digits);
+   double tpDist=TPDistance;
+   if(TFNowMin()>=840)
+      tpDist=0.30; // 14:00 Break-Even Compression (0.30 buffer for spread & commission)
+   const double tp=NormalizeDouble(b.wavg+tpDist,_Digits);
    UpdateTPLine(true,tp);
 
    if(!g_closeBuy && prevCount>0 && b.count<prevCount && LastCloseWasTP(true))
@@ -3827,7 +3876,10 @@ void ManageSellBasket()
    const int prevCount=g_prevSellCount;
    LogBasketChange(false,b);
 
-   const double tp=NormalizeDouble(b.wavg-TPDistance,_Digits);
+   double tpDist=TPDistance;
+   if(TFNowMin()>=840)
+      tpDist=0.30; // 14:00 Break-Even Compression (0.30 buffer for spread & commission)
+   const double tp=NormalizeDouble(b.wavg-tpDist,_Digits);
    UpdateTPLine(false,tp);
 
    if(!g_closeSell && prevCount>0 && b.count<prevCount && LastCloseWasTP(false))

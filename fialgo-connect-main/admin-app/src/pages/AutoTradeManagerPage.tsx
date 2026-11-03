@@ -722,7 +722,10 @@ export default function AutoTradeManagerPage() {
 
   // Approve ₹99,999 Lifetime Payment & Issue License Key
   const handleApprovePayment = async (payment: LicensePaymentRequest) => {
-    const generatedKey = generateTradifiveLicenseKey(payment.mt5_account_number);
+    const currentDayIndex = Math.floor((Date.now() - 1704067200000) / 86400000);
+    const is3Year = payment.plan_tier === "three_years" || payment.amount === "100000";
+    const expDays = is3Year ? currentDayIndex + 1095 : currentDayIndex + 7;
+    const generatedKey = generateTradifiveLicenseKey(payment.mt5_account_number, expDays);
     const updatedPayment: LicensePaymentRequest = {
       ...payment,
       status: "approved",
@@ -1087,7 +1090,10 @@ export default function AutoTradeManagerPage() {
   // Regenerate / Issue Real Cryptographic License Key
   const regenerateLicenseKey = async (record: AutoTradeRecord) => {
     const targetAccountNum = record.bound_account || record.mt5_account_number;
-    const newKey = generateTradifiveLicenseKey(targetAccountNum);
+    const currentDayIndex = Math.floor((Date.now() - 1704067200000) / 86400000);
+    const is3Year = record.plan_tier === "three_years" || record.license_plan?.toLowerCase().includes("enterprise") || record.license_plan?.toLowerCase().includes("3-year");
+    const expDays = is3Year ? currentDayIndex + 1095 : currentDayIndex + 7;
+    const newKey = generateTradifiveLicenseKey(targetAccountNum, expDays);
 
     const updated: AutoTradeRecord = {
       ...record,

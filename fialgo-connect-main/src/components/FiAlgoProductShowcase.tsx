@@ -782,10 +782,10 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                   </div>
                   <div>
                     <div style={{ fontSize: 12, fontWeight: 700, color: "#fff", display: "flex", alignItems: "center", gap: 6 }}>
-                      Free Demo &amp; Strategy Tester Build
+                      3-Day Free Demo &amp; Strategy Tester Build
                     </div>
                     <div style={{ fontSize: 11, color: "rgba(255, 255, 255, 0.5)", marginTop: 1 }}>
-                      Test on any MT5 demo account or Strategy Tester with zero risk.
+                      Test FiAlgo V1 for 3 full days on any MT5 demo account with zero risk.
                     </div>
                   </div>
                 </div>
@@ -817,7 +817,7 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                     e.currentTarget.style.color = "#60a5fa";
                   }}
                 >
-                  {downloadingDemo ? "✓ Downloaded" : "↓ Download Free Demo (.ex5)"}
+                  {downloadingDemo ? "✓ Downloaded" : "↓ Download 3-Day Demo (.ex5)"}
                 </button>
               </div>
 

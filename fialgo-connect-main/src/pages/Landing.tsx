@@ -1581,10 +1581,10 @@ function Pricing({ onStart }: { onStart: () => void }) {
                   </div>
                   <div>
                     <strong style={{ fontSize: 14, color: "#fff", display: "block", fontWeight: 700 }}>
-                      100% Capital Isolation Guarantee
+                      100% Capital Isolation Guarantee · 3-Day Free Demo Trial
                     </strong>
                     <span style={{ fontSize: 12.5, color: "rgba(255, 255, 255, 0.5)", marginTop: 2, display: "block" }}>
-                      Tradifive is not a broker and never holds custody of your trading deposit. Your funds remain in your broker at all times.
+                      Experience FiAlgo V1 automated trading risk-free on any MT5 demo account for 3 full days. Your capital stays with your broker.
                     </span>
                   </div>
                 </div>
@@ -1603,7 +1603,7 @@ function Pricing({ onStart }: { onStart: () => void }) {
                     transition: "all 0.2s",
                   }}
                 >
-                  Download Free Demo EA (.ex5)
+                  Start 3-Day Free Demo Trial (.ex5)
                 </button>
               </div>
 

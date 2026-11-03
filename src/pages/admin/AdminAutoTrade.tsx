@@ -681,7 +681,10 @@ export default function AdminAutoTrade() {
       (payment.user_id && r.user_id === payment.user_id)
     );
     const targetAccountNum = cleanAccount || String(existingRec?.bound_account || existingRec?.mt5_account_number || "").replace(/\D/g, "");
-    const generatedKey = generateTradifiveLicenseKey(targetAccountNum);
+    const currentDayIndex = Math.floor((Date.now() - 1704067200000) / 86400000);
+    const is3Year = payment.plan_tier === "three_years" || payment.amount === "100000";
+    const expDays = is3Year ? currentDayIndex + 1095 : currentDayIndex + 7;
+    const generatedKey = generateTradifiveLicenseKey(targetAccountNum, expDays);
     const updatedPayment: LicensePaymentRequest = {
       ...payment,
       mt5_account_number: targetAccountNum || payment.mt5_account_number,
@@ -1000,7 +1003,10 @@ Thank you for trading with TradiFive & FiAlgo V1!`;
   // Regenerate / Issue Real Cryptographic License Key
   const regenerateLicenseKey = async (record: AutoTradeRecord) => {
     const targetAccountNum = record.bound_account || record.mt5_account_number;
-    const newKey = generateTradifiveLicenseKey(targetAccountNum);
+    const currentDayIndex = Math.floor((Date.now() - 1704067200000) / 86400000);
+    const is3Year = record.plan_tier === "three_years" || record.license_plan?.toLowerCase().includes("enterprise") || record.license_plan?.toLowerCase().includes("3-year");
+    const expDays = is3Year ? currentDayIndex + 1095 : currentDayIndex + 7;
+    const newKey = generateTradifiveLicenseKey(targetAccountNum, expDays);
 
     const updated: AutoTradeRecord = {
       ...record,
