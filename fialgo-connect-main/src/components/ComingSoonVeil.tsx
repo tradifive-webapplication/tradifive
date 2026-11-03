@@ -20,7 +20,7 @@ export default function ComingSoonVeil({ featureTitle }: ComingSoonVeilProps) {
         className="absolute inset-0 z-30 rounded-[inherit] pointer-events-none overflow-hidden"
       >
         {/* Soft, light frosted blur confined strictly to THIS page container (<main>) */}
-        <div className="absolute inset-0 backdrop-blur-md bg-slate-900/40 dark:bg-black/55 pointer-events-none rounded-[inherit]" />
+        <div className="absolute inset-0 backdrop-blur-[6px] bg-white/25 dark:bg-black/30 pointer-events-none rounded-[inherit]" />
 
         {/* Centered human-crafted card */}
         <div className="absolute inset-0 z-40 flex items-center justify-center p-4 sm:p-6 pointer-events-none overflow-y-auto">
