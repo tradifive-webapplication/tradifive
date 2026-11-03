@@ -180,10 +180,16 @@ export default function AutoTradeSetupScreen() {
 
   // Linear native scroll translation — zero diffClamp jitter on slow drags
   const scrollY = useRef(new Animated.Value(0)).current;
+  const headerHeight = insets.top + 72;
   const maxHeaderScroll = Math.max(0, (headerStyle === 'simple' ? insets.top + 74 : insets.top + 104) - insets.top);
   const headerTranslateY = scrollY.interpolate({
     inputRange: [0, maxHeaderScroll],
     outputRange: [0, -maxHeaderScroll],
+    extrapolate: 'clamp',
+  });
+  const headerOpacity = scrollY.interpolate({
+    inputRange: [140, 180],
+    outputRange: [0, 1],
     extrapolate: 'clamp',
   });
 
