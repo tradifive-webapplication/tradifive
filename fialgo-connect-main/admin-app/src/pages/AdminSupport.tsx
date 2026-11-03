@@ -17,8 +17,7 @@ import {
   FileText, 
   Download, 
   X,
-  Paperclip,
-  UserCheck
+  Paperclip
 } from "lucide-react";
 import {
   parseChatMessage,
@@ -213,64 +212,62 @@ export default function AdminSupport() {
   const resolvedCount = tickets.filter(t => t.status === "resolved").length;
   const totalCount = tickets.length;
 
+  const statusColor = (s: string) => {
+    if (s === "open") return "bg-red-500/10 text-red-500 border-red-500/20";
+    if (s === "in_progress") return "bg-blue-500/10 text-blue-500 border-blue-500/20";
+    return "bg-emerald-500/10 text-emerald-500 border-emerald-500/20";
+  };
+
   return (
-    <div className="space-y-5 font-sans pb-4">
+    <div className="space-y-6 font-sans">
       {/* 1. Header aligned with SupportTicketsPage style */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold tracking-widest text-white uppercase flex items-center gap-2.5">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
             Live Chat Desk
           </h1>
-          <p className="text-neutral-500 text-[9px] font-bold uppercase tracking-[0.2em] mt-1">
+          <p className="text-neutral-600 text-[9px] font-bold uppercase tracking-[0.2em] mt-1">
             Real-Time User Messaging Terminal // Web & Mobile Live Stream
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <div className="px-3.5 py-2 bg-[#1E1E1E] border border-white/5 rounded flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-blue-500" />
-              <span className="text-[10px] font-bold text-neutral-300 uppercase tracking-widest font-mono">
-                {openCount + inProgressCount} ACTIVE CHATS
-              </span>
-            </div>
-            <div className="w-px h-3 bg-white/10" />
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-500" />
-              <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">HUMAN OPERATOR ONLINE</span>
-            </div>
+          <div className="px-3.5 py-1.5 bg-[#1E1E1E] border border-white/5 rounded flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+            <span className="text-[9px] font-bold text-neutral-400 uppercase tracking-widest">
+              Human Operator Online
+            </span>
           </div>
           <button
             onClick={fetchTickets}
-            className="px-4 py-2 bg-[#1E1E1E] border border-white/5 rounded text-[10px] font-bold text-neutral-400 hover:text-white uppercase tracking-widest flex items-center gap-2 transition-colors"
+            className="px-4 py-2 bg-[#1E1E1E] border border-white/5 rounded text-[10px] font-bold text-neutral-500 hover:text-white transition-none uppercase tracking-widest flex items-center gap-2"
           >
             <RefreshCcw size={12} className={loading ? "animate-spin" : ""} /> Sync
           </button>
         </div>
       </div>
 
-      {/* 2. Top KPI Stat Boxes matching Support Tickets */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {/* 2. Top KPI Stat Boxes matching Support Tickets exactly */}
+      <div className="grid grid-cols-4 gap-4">
         {[
-          { label: "Active Live Chats", value: openCount + inProgressCount, sub: "Currently Ongoing" },
-          { label: "Awaiting Reply", value: openCount, sub: "Needs Attention" },
-          { label: "In Progress", value: inProgressCount, sub: "Operator Engaged" },
-          { label: "Resolved Today", value: resolvedCount, sub: "Successfully Closed" },
+          { label: "Total Chats", value: totalCount },
+          { label: "Active Live", value: openCount + inProgressCount },
+          { label: "Awaiting Reply", value: openCount },
+          { label: "Resolved", value: resolvedCount },
         ].map(s => (
-          <div key={s.label} className="bg-[#1E1E1E] border border-white/5 rounded p-4 shadow-sm">
-            <p className="text-[9px] text-neutral-500 font-bold uppercase tracking-widest mb-1">{s.label}</p>
-            <p className="text-xl font-bold text-white font-mono tracking-tight">{loading ? "..." : s.value}</p>
-            <p className="text-[8px] text-neutral-600 uppercase tracking-wider mt-1">{s.sub}</p>
+          <div key={s.label} className="bg-[#1E1E1E] border border-white/5 rounded p-4">
+            <p className="text-[9px] text-neutral-600 font-bold uppercase tracking-widest mb-1">{s.label}</p>
+            <p className="text-lg font-bold text-white font-mono">{loading ? "..." : s.value}</p>
           </div>
         ))}
       </div>
 
-      {/* 3. Main Split Console with Fixed Viewport and Scroll Views */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 h-[calc(100vh-270px)] min-h-[580px] max-h-[820px] overflow-hidden">
+      {/* 3. Main Split Console with Fixed Viewport and Dedicated Internal Scroll Views */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-280px)] min-h-[580px] max-h-[840px] overflow-hidden">
         {/* Left Side: Client Sessions Queue */}
         <div className="lg:col-span-1 bg-[#1E1E1E] border border-white/5 rounded-xl flex flex-col shadow-xl overflow-hidden h-full">
           {/* Search & Channel Filter Bar */}
-          <div className="p-3.5 border-b border-white/5 bg-[#17171A] space-y-2.5 shrink-0">
+          <div className="p-4 border-b border-white/5 bg-[#171717] space-y-3 shrink-0">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" size={13} />
               <input 
@@ -278,11 +275,11 @@ export default function AdminSupport() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search clients or ticket IDs..." 
-                className="w-full bg-[#101012] border border-white/5 text-white pl-8 pr-3 py-1.5 text-xs rounded placeholder:text-neutral-600 focus:outline-none focus:border-blue-500 transition-colors"
+                className="w-full bg-[#121212] border border-white/5 text-white pl-8 pr-3 py-2 text-[11px] rounded outline-none focus:border-white/20 placeholder:text-neutral-600 transition-colors"
               />
             </div>
-            {/* Filter Chips */}
-            <div className="flex items-center gap-1.5 overflow-x-auto text-[9px] font-bold uppercase tracking-widest">
+            {/* Filter Chips matching Support Tickets */}
+            <div className="flex items-center gap-2 overflow-x-auto">
               {[
                 { id: "all", label: "All Chats" },
                 { id: "unresolved", label: "Open" },
@@ -292,10 +289,10 @@ export default function AdminSupport() {
                 <button
                   key={f.id}
                   onClick={() => setChannelFilter(f.id as any)}
-                  className={`px-2.5 py-1 rounded transition-colors ${
+                  className={`px-3 py-1.5 rounded text-[8px] font-bold uppercase tracking-widest border transition-none ${
                     channelFilter === f.id
-                      ? "bg-blue-600 text-white font-bold"
-                      : "bg-[#101012] text-neutral-400 hover:text-white border border-white/5"
+                      ? "bg-white/10 border-white/10 text-white"
+                      : "bg-[#121212] border-white/5 text-neutral-500 hover:text-neutral-300"
                   }`}
                 >
                   {f.label}
@@ -304,12 +301,12 @@ export default function AdminSupport() {
             </div>
           </div>
           
-          {/* Scrollable List of Chats */}
-          <div className="flex-1 overflow-y-auto divide-y divide-white/[0.04] custom-scrollbar">
+          {/* Scrollable List of Chats with custom scrollbar */}
+          <div className="flex-1 overflow-y-auto divide-y divide-white/5 custom-scrollbar">
             {filteredTickets.length === 0 ? (
               <div className="p-12 text-center">
                 <LifeBuoy className="mx-auto text-neutral-700 mb-2.5" size={32} />
-                <p className="text-neutral-500 text-[10px] font-bold uppercase tracking-widest">Queue Clear // No Active Chats</p>
+                <p className="text-neutral-600 text-[10px] font-bold uppercase tracking-widest">Queue Clear // No Active Chats</p>
               </div>
             ) : (
               filteredTickets.map((ticket) => {
@@ -319,40 +316,35 @@ export default function AdminSupport() {
                   <div
                     key={ticket.id}
                     onClick={() => setSelectedTicket(ticket)}
-                    className={`p-3.5 cursor-pointer transition-colors relative border-l-2 ${
+                    className={`p-4 cursor-pointer transition-none border-l-2 ${
                       isSelected
-                        ? "border-blue-500 bg-blue-500/10"
-                        : "border-transparent hover:bg-white/[0.02]"
+                        ? "border-blue-500 bg-white/[0.04]"
+                        : "border-transparent hover:bg-white/[0.01]"
                     }`}
                   >
-                    <div className="flex justify-between items-center mb-1">
+                    <div className="flex justify-between items-center mb-1.5">
                       <div className="flex items-center gap-1.5">
-                        <span className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded uppercase tracking-wider flex items-center gap-1 ${
-                          isMobile ? "bg-purple-500/10 text-purple-400 border border-purple-500/20" : "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"
+                        <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-widest border font-mono ${
+                          isMobile ? "bg-purple-500/10 text-purple-400 border-purple-500/20" : "bg-cyan-500/10 text-cyan-400 border-cyan-500/20"
                         }`}>
-                          {isMobile ? <Smartphone size={9} /> : <Laptop size={9} />}
                           {isMobile ? "MOBILE" : "WEB"}
                         </span>
-                        <span className="text-[10px] font-mono text-neutral-500 uppercase">
+                        <span className="text-[10px] font-mono text-neutral-500 font-bold uppercase">
                           #{ticket.id.slice(0, 8)}
                         </span>
                       </div>
-                      <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider ${
-                        ticket.status === 'open' ? 'bg-red-500/10 text-red-400 border border-red-500/20' :
-                        ticket.status === 'resolved' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
-                        'bg-blue-500/10 text-blue-400 border border-blue-500/20'
-                      }`}>
+                      <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-widest border ${statusColor(ticket.status)}`}>
                         {ticket.status.replace('_', ' ')}
                       </span>
                     </div>
 
-                    <h4 className="text-xs font-bold text-neutral-200 mb-1 line-clamp-1">
+                    <h4 className="text-[11px] font-bold text-white uppercase tracking-tight mb-1 truncate">
                       {ticket.subject}
                     </h4>
 
-                    <div className="flex items-center justify-between text-[11px] text-neutral-500 font-medium">
-                      <p className="truncate max-w-[140px] text-neutral-400 font-medium">{ticket.profiles?.full_name || 'Trader'}</p>
-                      <span className="text-[10px] text-neutral-600 flex items-center gap-1 font-mono">
+                    <div className="flex items-center justify-between text-[10px] text-neutral-500">
+                      <p className="truncate max-w-[150px] uppercase font-bold text-neutral-400">{ticket.profiles?.full_name || 'Trader'}</p>
+                      <span className="text-[9px] text-neutral-600 flex items-center gap-1 font-mono">
                         <Clock size={10} /> 
                         {new Date(ticket.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
@@ -371,31 +363,30 @@ export default function AdminSupport() {
               <div className="w-14 h-14 rounded-2xl bg-white/[0.02] border border-white/5 flex items-center justify-center text-neutral-600 mb-3">
                 <MessageSquare size={26} />
               </div>
-              <h3 className="text-xs font-bold text-white uppercase tracking-widest mb-1">
+              <h3 className="text-[11px] font-bold text-white uppercase tracking-widest mb-1">
                 Select Client Live Session
               </h3>
-              <p className="text-[11px] text-neutral-500 max-w-sm leading-relaxed">
+              <p className="text-[10px] text-neutral-500 max-w-sm leading-relaxed">
                 Choose an incoming ticket or live inquiry from the left queue to open the real-time communications console.
               </p>
             </div>
           ) : (
             <>
               {/* Pinned Top Bar */}
-              <div className="p-3.5 border-b border-white/5 bg-[#17171A] flex items-center justify-between shrink-0">
+              <div className="p-4 border-b border-white/5 bg-[#171717] flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded bg-blue-600/15 border border-blue-500/30 flex items-center justify-center text-blue-400 font-bold text-xs uppercase">
+                  <div className="w-8 h-8 rounded bg-white/5 border border-white/10 flex items-center justify-center text-neutral-300 font-bold text-xs uppercase">
                     {selectedTicket.profiles?.full_name?.charAt(0) || "T"}
                   </div>
                   <div>
-                    <h3 className="text-xs font-bold text-white leading-none mb-1 flex items-center gap-2">
+                    <h3 className="text-[13px] font-bold text-white uppercase tracking-tight leading-none mb-1 flex items-center gap-2">
                       {selectedTicket.subject}
-                      <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded uppercase tracking-wider bg-white/[0.04] text-neutral-400">
+                      <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded uppercase tracking-wider bg-white/5 text-neutral-400 border border-white/5">
                         #{selectedTicket.id.slice(0, 8)}
                       </span>
                     </h3>
-                    <p className="text-[11px] text-neutral-400">
-                      {selectedTicket.profiles?.full_name || "Trader"} 
-                      {selectedTicket.profiles?.email ? ` • ${selectedTicket.profiles.email}` : ""}
+                    <p className="text-[10px] text-neutral-500 font-mono">
+                      By {selectedTicket.profiles?.full_name || "Trader"} {selectedTicket.profiles?.email ? `• ${selectedTicket.profiles.email}` : ""}
                     </p>
                   </div>
                 </div>
@@ -408,9 +399,9 @@ export default function AdminSupport() {
                         setSelectedTicket((prev: any) => prev ? { ...prev, status: 'resolved' } : null);
                         setTickets(prev => prev.map(t => t.id === selectedTicket.id ? { ...t, status: 'resolved' } : t));
                       }}
-                      className="px-3 py-1.5 rounded border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 transition-colors"
+                      className="px-3 py-1.5 text-[9px] font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded uppercase flex items-center gap-1.5 tracking-wider transition-colors"
                     >
-                      <CheckCircle2 size={12} /> Mark Solved
+                      <CheckCircle2 size={11} /> Mark Solved
                     </button>
                   ) : (
                     <button
@@ -419,7 +410,7 @@ export default function AdminSupport() {
                         setSelectedTicket((prev: any) => prev ? { ...prev, status: 'in_progress' } : null);
                         setTickets(prev => prev.map(t => t.id === selectedTicket.id ? { ...t, status: 'in_progress' } : t));
                       }}
-                      className="px-3 py-1.5 rounded border border-blue-500/30 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 transition-colors"
+                      className="px-3 py-1.5 text-[9px] font-bold bg-blue-600 hover:bg-blue-700 text-white rounded uppercase flex items-center gap-1.5 tracking-wider transition-colors"
                     >
                       Reopen
                     </button>
@@ -428,18 +419,21 @@ export default function AdminSupport() {
               </div>
 
               {/* Internal Scrollable Message Feed */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-3.5 bg-[#121214] custom-scrollbar">
-                {/* Initial Description Card */}
-                <div className="p-3 rounded bg-[#17171A] border border-white/5 text-xs text-neutral-300 max-w-[85%] shadow-sm">
-                  <div className="flex items-center justify-between mb-1">
-                    <p className="text-[9px] font-bold text-neutral-500 uppercase tracking-widest">User Inquiry / Context</p>
+              <div className="flex-1 overflow-y-auto p-5 space-y-4 bg-[#121212] custom-scrollbar">
+                {/* Initial Description Card matching Support modal */}
+                <div className="bg-white/[0.02] border border-white/5 rounded-xl p-4 max-w-[90%] shadow-sm">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-widest border ${statusColor(selectedTicket.status)}`}>
+                      {selectedTicket.status.replace('_', ' ')}
+                    </span>
                     <span className="text-[9px] text-neutral-600 font-mono">
                       {new Date(selectedTicket.created_at).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
                     </span>
                   </div>
-                  <p className="whitespace-pre-wrap leading-relaxed text-neutral-300 text-[12px]">{selectedTicket.description}</p>
+                  <p className="whitespace-pre-wrap leading-relaxed text-neutral-300 text-[11px]">{selectedTicket.description}</p>
                 </div>
 
+                {/* Message Bubbles matching Support modal design */}
                 {messages.map((msg, i) => {
                   const isAdmin = Boolean(msg.admin_id && msg.admin_id !== selectedTicket.user_id);
                   const parsed = parseChatMessage(msg.message);
@@ -447,76 +441,65 @@ export default function AdminSupport() {
                   return (
                     <div
                       key={msg.id || i}
-                      className={`flex items-start gap-2 max-w-[85%] ${isAdmin ? 'ml-auto justify-end' : 'justify-start'}`}
+                      className={`flex flex-col ${isAdmin ? 'items-end' : 'items-start'}`}
                     >
-                      {!isAdmin && (
-                        <div className="w-7 h-7 rounded bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 font-bold text-[10px] flex items-center justify-center shrink-0 mt-0.5 uppercase">
-                          {selectedTicket.profiles?.full_name?.charAt(0) || "T"}
-                        </div>
-                      )}
-                      
-                      <div className={`flex flex-col gap-1 ${isAdmin ? 'items-end' : 'items-start'}`}>
-                        <div className={`px-4 py-2.5 rounded-xl text-xs leading-relaxed ${
-                          isAdmin
-                            ? 'bg-blue-600 text-white rounded-tr-none shadow-md shadow-blue-600/20'
-                            : 'bg-[#18181C] border border-white/10 text-neutral-200 rounded-tl-none shadow-sm'
-                        }`}>
-                          {parsed.text ? <p className="whitespace-pre-wrap text-[13px]">{parsed.text}</p> : null}
-                          
-                          {parsed.attachments && parsed.attachments.length > 0 && (
-                            <div className="space-y-2 mt-2">
-                              {parsed.attachments.map((att, aIdx) => {
-                                if (att.type === 'image') {
-                                  return (
-                                    <div
-                                      key={aIdx}
-                                      className="overflow-hidden rounded-lg border border-white/10 cursor-pointer"
-                                      onClick={() => setLightboxMedia(att)}
-                                    >
-                                      <img src={att.url} alt={att.name} className="max-h-60 max-w-full object-cover hover:scale-102 transition-transform" />
-                                      <span className="text-[10px] block px-2 py-1 bg-black/60 text-white truncate font-mono">{att.name}</span>
-                                    </div>
-                                  );
-                                }
-                                if (att.type === 'video') {
-                                  return (
-                                    <div key={aIdx} className="overflow-hidden rounded-lg border border-white/10">
-                                      <video src={att.url} controls className="max-h-60 max-w-full rounded-lg" />
-                                      <span className="text-[10px] block px-2 py-1 bg-black/60 text-white truncate font-mono">🎥 {att.name}</span>
-                                    </div>
-                                  );
-                                }
+                      <div className={`p-3.5 rounded-xl max-w-[85%] text-[11px] leading-relaxed shadow-sm ${
+                        isAdmin
+                          ? 'bg-blue-600 text-white rounded-br-sm shadow-blue-600/20'
+                          : 'bg-[#1E1E1E] text-neutral-200 border border-white/5 rounded-bl-sm'
+                      }`}>
+                        {parsed.text ? <p className="whitespace-pre-wrap text-[12px]">{parsed.text}</p> : null}
+                        
+                        {parsed.attachments && parsed.attachments.length > 0 && (
+                          <div className="space-y-2 mt-2">
+                            {parsed.attachments.map((att, aIdx) => {
+                              if (att.type === 'image') {
                                 return (
-                                  <a
+                                  <div
                                     key={aIdx}
-                                    href={att.url}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    download={att.name}
-                                    className="flex items-center gap-2 p-2 rounded bg-black/30 hover:bg-black/50 border border-white/10 transition-colors text-white"
+                                    className="overflow-hidden rounded-lg border border-white/10 cursor-pointer group relative"
+                                    onClick={() => setLightboxMedia(att)}
                                   >
-                                    <FileText size={15} className="text-blue-300 shrink-0" />
-                                    <div className="min-w-0 flex-1">
-                                      <p className="text-xs font-bold truncate">{att.name}</p>
-                                      {att.size && <span className="text-[9px] opacity-60 font-mono">{(att.size / 1024).toFixed(1)} KB</span>}
+                                    <img src={att.url} alt={att.name} className="max-h-64 max-w-full object-cover transition-opacity duration-300" />
+                                    <div className="p-1.5 bg-black/60 text-white text-[9px] font-mono truncate flex items-center justify-between">
+                                      <span className="truncate">{att.name}</span>
+                                      <span className="text-neutral-400 ml-2 uppercase text-[8px]">Click to view</span>
                                     </div>
-                                    <Download size={13} className="shrink-0 opacity-80" />
-                                  </a>
+                                  </div>
                                 );
-                              })}
-                            </div>
-                          )}
-                        </div>
-                        <span className="text-[9px] text-neutral-500 px-1 font-mono">
-                          {isAdmin ? 'Human Desk Officer' : 'Trader'} • {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </span>
+                              }
+                              if (att.type === 'video') {
+                                return (
+                                  <div key={aIdx} className="overflow-hidden rounded-lg border border-white/10">
+                                    <video src={att.url} controls className="max-h-64 max-w-full rounded-lg bg-black" />
+                                    <span className="text-[9px] block p-1.5 bg-black/60 text-white truncate font-mono">🎥 {att.name}</span>
+                                  </div>
+                                );
+                              }
+                              return (
+                                <a
+                                  key={aIdx}
+                                  href={att.url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  download={att.name}
+                                  className="flex items-center gap-2 p-2 rounded bg-black/30 hover:bg-black/50 border border-white/10 transition-colors text-white"
+                                >
+                                  <FileText size={15} className="text-blue-300 shrink-0" />
+                                  <div className="min-w-0 flex-1">
+                                    <p className="text-[11px] font-bold truncate">{att.name}</p>
+                                    {att.size && <span className="text-[8px] opacity-60 font-mono">{(att.size / 1024).toFixed(1)} KB</span>}
+                                  </div>
+                                  <Download size={13} className="shrink-0 opacity-80" />
+                                </a>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
-
-                      {isAdmin && (
-                        <div className="w-7 h-7 rounded bg-blue-600/20 border border-blue-500/30 text-blue-300 font-bold text-[10px] flex items-center justify-center shrink-0 mt-0.5">
-                          HQ
-                        </div>
-                      )}
+                      <span className="text-[8px] text-neutral-600 mt-1 px-1 uppercase tracking-wider font-mono">
+                        {isAdmin ? 'Human Support Desk' : (selectedTicket.profiles?.full_name || 'Client')} • {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
                     </div>
                   );
                 })}
@@ -535,9 +518,9 @@ export default function AdminSupport() {
 
               {/* Staged attachments preview */}
               {stagedAttachments.length > 0 && (
-                <div className="px-4 py-2 bg-[#17171A] border-t border-white/5 flex gap-2 overflow-x-auto shrink-0">
+                <div className="px-4 py-2 bg-[#171717] border-t border-white/5 flex gap-2 overflow-x-auto shrink-0">
                   {stagedAttachments.map((att, idx) => (
-                    <div key={idx} className="flex items-center gap-2 px-2.5 py-1 rounded bg-[#202025] border border-white/10 text-[11px] font-medium text-white shadow-sm shrink-0">
+                    <div key={idx} className="flex items-center gap-2 px-2.5 py-1 rounded bg-[#222] border border-white/10 text-[10px] font-medium text-white shadow-sm shrink-0">
                       {att.type === 'image' && <ImageIcon size={12} className="text-blue-400" />}
                       {att.type === 'video' && <Video size={12} className="text-purple-400" />}
                       {att.type === 'document' && <FileText size={12} className="text-emerald-400" />}
@@ -550,41 +533,41 @@ export default function AdminSupport() {
                 </div>
               )}
 
-              {/* Pinned Input Bar at Bottom */}
-              <div className="p-3 border-t border-white/5 bg-[#17171A] shrink-0">
-                <div className="flex items-center gap-3 mb-2 px-1 text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+              {/* Pinned Input Bar at Bottom matching Support modal */}
+              <div className="p-4 border-t border-white/5 bg-[#171717] shrink-0">
+                <div className="flex items-center gap-4 mb-2.5 px-1 text-[9px] font-bold uppercase tracking-widest text-neutral-500">
                   <button
                     type="button"
                     onClick={() => triggerFilePicker('image')}
-                    className="flex items-center gap-1 hover:text-blue-400 transition-colors"
+                    className="flex items-center gap-1.5 hover:text-white transition-colors"
                   >
-                    <ImageIcon size={12} className="text-blue-500" />
+                    <ImageIcon size={12} className="text-neutral-400" />
                     <span>Photo</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => triggerFilePicker('video')}
-                    className="flex items-center gap-1 hover:text-purple-400 transition-colors"
+                    className="flex items-center gap-1.5 hover:text-white transition-colors"
                   >
-                    <Video size={12} className="text-purple-500" />
+                    <Video size={12} className="text-neutral-400" />
                     <span>Video</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => triggerFilePicker('document')}
-                    className="flex items-center gap-1 hover:text-emerald-400 transition-colors"
+                    className="flex items-center gap-1.5 hover:text-white transition-colors"
                   >
-                    <FileText size={12} className="text-emerald-500" />
+                    <FileText size={12} className="text-neutral-400" />
                     <span>Document</span>
                   </button>
                   {isUploading && (
-                    <span className="text-[10px] text-blue-400 animate-pulse ml-auto font-mono">
+                    <span className="text-[9px] text-blue-400 animate-pulse ml-auto font-mono uppercase tracking-widest">
                       Uploading media...
                     </span>
                   )}
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                   <input
                     type="text"
                     value={newMessage}
@@ -595,16 +578,16 @@ export default function AdminSupport() {
                         sendMessage();
                       }
                     }}
-                    placeholder="Type reply to trader (press Enter to send)..."
-                    className="flex-1 bg-[#101012] border border-white/5 text-white px-3.5 py-2 text-xs rounded placeholder:text-neutral-600 focus:outline-none focus:border-blue-500 transition-colors"
+                    placeholder="TYPE REPLY TO USER (PRESS ENTER TO SEND)..."
+                    className="flex-1 bg-[#121212] border border-white/5 rounded px-4 py-2.5 text-[11px] text-white outline-none focus:border-white/20 placeholder:text-neutral-600 transition-colors uppercase tracking-tight"
                   />
                   <button
                     onClick={sendMessage}
                     disabled={(!newMessage.trim() && stagedAttachments.length === 0) || sending}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white rounded text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-colors shadow-md shadow-blue-600/20 shrink-0"
+                    className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 transition-colors shadow-md shadow-blue-600/20 shrink-0"
                   >
                     <Send size={12} className={sending ? "animate-spin" : ""} />
-                    <span>Send</span>
+                    <span>{sending ? "Sending..." : "Reply"}</span>
                   </button>
                 </div>
               </div>
@@ -619,7 +602,7 @@ export default function AdminSupport() {
           className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4"
           onClick={() => setLightboxMedia(null)}
         >
-          <div className="relative max-w-4xl max-h-[90vh] flex flex-col items-center">
+          <div className="relative max-w-4xl max-h-[90vh] flex flex-col items-center" onClick={e => e.stopPropagation()}>
             <button 
               onClick={() => setLightboxMedia(null)}
               className="absolute -top-10 right-0 p-2 text-neutral-400 hover:text-white"
@@ -631,7 +614,18 @@ export default function AdminSupport() {
               alt={lightboxMedia.name} 
               className="max-w-full max-h-[85vh] object-contain rounded-lg border border-white/10" 
             />
-            <p className="text-white text-xs font-mono mt-3 px-3 py-1 bg-black/50 rounded">{lightboxMedia.name}</p>
+            <div className="mt-3 px-3 py-1 bg-black/60 border border-white/10 rounded flex items-center gap-3">
+              <span className="text-white text-xs font-mono">{lightboxMedia.name}</span>
+              <a 
+                href={lightboxMedia.url} 
+                download={lightboxMedia.name} 
+                target="_blank" 
+                rel="noreferrer"
+                className="text-[10px] text-blue-400 hover:underline uppercase font-bold"
+              >
+                Download
+              </a>
+            </div>
           </div>
         </div>
       )}
