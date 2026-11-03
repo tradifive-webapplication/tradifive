@@ -545,12 +545,12 @@ export default function Login() {
 
             {/* Left Side - Institutional Trading Showcase */}
       <div className="hidden lg:flex lg:w-1/2 p-6 bg-transparent shrink-0 items-center justify-center">
-        <div className="w-full h-full bg-[#0a0d14] rounded-[2rem] flex flex-col justify-between p-12 relative overflow-hidden shadow-2xl border border-white/10">
+        <div className="w-full h-full bg-black rounded-[2rem] flex flex-col justify-between p-12 relative overflow-hidden shadow-2xl border border-white/10">
           
-          {/* Ambient Glows */}
-          <div className="absolute -top-24 -left-24 w-96 h-96 bg-blue-600/15 rounded-full blur-[100px] pointer-events-none" />
-          <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-indigo-600/15 rounded-full blur-[120px] pointer-events-none" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-emerald-500/10 rounded-full blur-[90px] pointer-events-none" />
+
+
+
+
 
           {/* Top-Left Branding */}
           <motion.div
