@@ -370,8 +370,9 @@ export default function TabLayout() {
       label: 'AI Coach',
       icon: SparklesIcon,
       isLocked: true,
+      route: '/(tabs)/ai-coach',
       subItems: [
-        { label: 'AI Coach Insights', icon: SparklesIcon, action: 'ai' },
+        { label: 'AI Coach Insights', icon: SparklesIcon, route: '/(tabs)/ai-coach' },
         { label: 'Trade Feedback & Chat', icon: Chat, action: 'ai' },
       ],
     },

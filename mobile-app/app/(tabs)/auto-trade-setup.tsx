@@ -178,22 +178,12 @@ export default function AutoTradeSetupScreen() {
   // Wizard active step: 1 (Connect), 2 (Download), 3 (Payment), 4 (Activate)
   const [activeStep, setActiveStep] = useState<number>(1);
 
-  // Scroll and collapsible header animations matching other pages
+  // Linear native scroll translation — zero diffClamp jitter on slow drags
   const scrollY = useRef(new Animated.Value(0)).current;
-  const headerHeight = insets.top + 72;
-  const clampedScroll = Animated.diffClamp(
-    scrollY.interpolate({ inputRange: [0, 1], outputRange: [0, 1], extrapolateLeft: 'clamp' }),
-    0,
-    headerHeight
-  );
-  const headerTranslateY = clampedScroll.interpolate({
-    inputRange: [0, headerHeight],
-    outputRange: [0, -headerHeight],
-    extrapolate: 'clamp',
-  });
-  const headerOpacity = scrollY.interpolate({
-    inputRange: [140, 180],
-    outputRange: [0, 1],
+  const maxHeaderScroll = Math.max(0, (headerStyle === 'simple' ? insets.top + 74 : insets.top + 104) - insets.top);
+  const headerTranslateY = scrollY.interpolate({
+    inputRange: [0, maxHeaderScroll],
+    outputRange: [0, -maxHeaderScroll],
     extrapolate: 'clamp',
   });
 
@@ -471,7 +461,7 @@ export default function AutoTradeSetupScreen() {
               Auto Trade
             </Text>
           </View>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1, marginRight: 8 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 10 }}>
             <TouchableOpacity
               onPress={() => {
                 hSelect();
@@ -485,8 +475,8 @@ export default function AutoTradeSetupScreen() {
         </Animated.View>
       </Animated.View>
 
-      {/* ── MAIN CONTENT CARD ── */}
-      <View
+      {/* ── MAIN CONTENT CARD (Smooth unified whole-page scroll) ── */}
+      <Animated.View
         style={[
           styles.card,
           {
@@ -494,10 +484,11 @@ export default function AutoTradeSetupScreen() {
             borderTopLeftRadius: headerStyle === 'simple' ? 0 : 40,
             borderTopRightRadius: headerStyle === 'simple' ? 0 : 40,
             backgroundColor: isDark ? theme.background : '#f8fafc',
+            transform: headerStyle === 'simple' ? [] : [{ translateY: headerTranslateY }],
           },
         ]}
       >
-        <ScrollView
+        <Animated.ScrollView
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           nestedScrollEnabled={true}
@@ -505,6 +496,11 @@ export default function AutoTradeSetupScreen() {
           alwaysBounceVertical={true}
           overScrollMode="always"
           contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 14, paddingBottom: 220 }}
+          onScroll={Animated.event(
+            [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+            { useNativeDriver: true }
+          )}
+          scrollEventThrottle={16}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#8E8E93" />}
         >
           <View>
@@ -1648,8 +1644,8 @@ export default function AutoTradeSetupScreen() {
           )}
             </View>
           </View>
-        </ScrollView>
-      </View>
+        </Animated.ScrollView>
+      </Animated.View>
     </View>
   );
 }

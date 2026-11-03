@@ -26,9 +26,9 @@ export default function ComingSoonVeil({ featureTitle, subtitle, topOffset }: Co
       ]}
       pointerEvents="auto"
     >
-      {/* ── NATIVE BACKDROP BLUR (Soft Intensity 25) ── */}
+      {/* ── NATIVE BACKDROP BLUR (Soft Subtle Glass Blur) ── */}
       <BlurView
-        intensity={25}
+        intensity={Platform.OS === 'android' ? 55 : 30}
         tint={isDark ? 'dark' : 'light'}
         experimentalBlurMethod="dimezisBlurView"
         style={[
@@ -46,14 +46,14 @@ export default function ComingSoonVeil({ featureTitle, subtitle, topOffset }: Co
         style={[
           StyleSheet.absoluteFill,
           {
-            backgroundColor: isDark ? 'rgba(9, 13, 22, 0.45)' : 'rgba(255, 255, 255, 0.55)',
+            backgroundColor: isDark ? 'rgba(9, 13, 22, 0.40)' : 'rgba(255, 255, 255, 0.48)',
             borderTopLeftRadius: 40,
             borderTopRightRadius: 40,
             overflow: 'hidden',
             ...(Platform.OS === 'web'
               ? ({
-                  backdropFilter: 'blur(8px)',
-                  WebkitBackdropFilter: 'blur(8px)',
+                  backdropFilter: 'blur(10px)',
+                  WebkitBackdropFilter: 'blur(10px)',
                 } as any)
               : {}),
           },

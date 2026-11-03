@@ -1737,28 +1737,12 @@ export default function DashboardScreen() {
   }, [fetchPosts, refetchFeeds]);
 
   const scrollY = React.useRef(new Animated.Value(0)).current;
-  const headerHeight = insets.top + 64;
+  const maxHeaderScroll = Math.max(0, (headerStyle === 'simple' ? insets.top + 74 : insets.top + 104) - insets.top);
 
-  // Native DiffClamp for butter-smooth directional reveal
-  const clampedScroll = Animated.diffClamp(
-    scrollY.interpolate({
-      inputRange: [0, 1],
-      outputRange: [0, 1],
-      extrapolateLeft: 'clamp'
-    }),
-    0,
-    headerHeight
-  );
-
-  const headerTranslateY = clampedScroll.interpolate({
-    inputRange: [0, headerHeight],
-    outputRange: [0, -headerHeight],
-    extrapolate: 'clamp',
-  });
-
-  const headerOpacity = scrollY.interpolate({
-    inputRange: [140, 180],
-    outputRange: [0, 1], // Smoothly fades in over 40px
+  // Linear native scroll translation — zero diffClamp jitter on slow drags
+  const headerTranslateY = scrollY.interpolate({
+    inputRange: [0, maxHeaderScroll],
+    outputRange: [0, -maxHeaderScroll],
     extrapolate: 'clamp',
   });
 
@@ -1925,7 +1909,7 @@ export default function DashboardScreen() {
             borderBottomWidth: headerStyle === 'simple' && !isDark ? 1 : 0,
             borderBottomColor: isDark ? theme.cardBorder : '#e2e8f0',
             position: 'relative',
-            transform: []
+            transform: headerStyle === 'simple' ? [] : [{ translateY: headerTranslateY }]
           }
         ]}>
           {headerStyle !== 'simple' && (
@@ -1992,14 +1976,15 @@ export default function DashboardScreen() {
       )}
 
 
-      {/* ── WHITE CONTENT CARD (Stable layout: NO parent translateY to completely eliminate slow-scroll jitter) ── */}
-      <View style={[
+      {/* ── WHITE CONTENT CARD (Slides up naturally with page content for smooth unified scroll) ── */}
+      <Animated.View style={[
         styles.card,
         {
           marginTop: headerStyle === 'simple' ? 0 : -34,
           borderTopLeftRadius: headerStyle === 'simple' ? 0 : 40,
           borderTopRightRadius: headerStyle === 'simple' ? 0 : 40,
           backgroundColor: activeCardId ? '#090d16' : (isDark ? theme.background : (activeTab === 'feed' ? '#f8fafc' : '#fff')),
+          transform: headerStyle === 'simple' ? [] : [{ translateY: headerTranslateY }],
         }
       ]}>
         {activeTab === 'dashboard' && (
@@ -2010,7 +1995,7 @@ export default function DashboardScreen() {
               contentContainerStyle={{ flexGrow: 1, paddingBottom: 140, paddingTop: 24 }}
             onScroll={Animated.event(
               [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-              { useNativeDriver: false }
+              { useNativeDriver: true }
             )}
             scrollEventThrottle={16}
             refreshControl={
@@ -2491,7 +2476,7 @@ export default function DashboardScreen() {
               contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 140 }}
               onScroll={Animated.event(
                 [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-                { useNativeDriver: false }
+                { useNativeDriver: true }
               )}
               scrollEventThrottle={16}
             >
@@ -2552,7 +2537,7 @@ export default function DashboardScreen() {
                 contentContainerStyle={{ flexGrow: 1, paddingBottom: 140 }}
               onScroll={Animated.event(
                 [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-                { useNativeDriver: false }
+                { useNativeDriver: true }
               )}
               scrollEventThrottle={16}
               refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#8E8E93" progressViewOffset={10} />}
@@ -2676,7 +2661,7 @@ export default function DashboardScreen() {
               contentContainerStyle={{ paddingBottom: 140 }}
               onScroll={Animated.event(
                 [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-                { useNativeDriver: false }
+                { useNativeDriver: true }
               )}
               scrollEventThrottle={16}
             >
@@ -2770,7 +2755,7 @@ export default function DashboardScreen() {
               contentContainerStyle={{ paddingBottom: 140 }}
               onScroll={Animated.event(
                 [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-                { useNativeDriver: false }
+                { useNativeDriver: true }
               )}
               scrollEventThrottle={16}
             >
@@ -2860,7 +2845,7 @@ export default function DashboardScreen() {
               contentContainerStyle={{ flexGrow: 1, paddingBottom: 160, paddingTop: 16, backgroundColor: isDark ? theme.background : '#f8fafc' }}
               onScroll={Animated.event(
                 [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-                { useNativeDriver: false }
+                { useNativeDriver: true }
               )}
               onScrollBeginDrag={() => {
                 setActivePostMenu(null);
@@ -3090,7 +3075,7 @@ export default function DashboardScreen() {
                 </View>
               </View>
 
-              {/* Institutional Feed Segment Tabs: For You, Following, Verified Setups */}
+              {/* Institutional Feed Segment Tabs: For You, Following */}
               <View
                 style={{
                   marginHorizontal: 10,
@@ -3108,7 +3093,6 @@ export default function DashboardScreen() {
                 {[
                   { key: 'for_you', label: 'For You', icon: Sparkles },
                   { key: 'following', label: 'Following', icon: Users },
-                  { key: 'setups', label: 'Verified Setups', icon: BadgeCheck },
                 ].map((tab) => {
                   const isActive = feedSubTab === tab.key;
                   const IconComponent = tab.icon;
@@ -3375,7 +3359,7 @@ export default function DashboardScreen() {
           )}
           </View>
         )}
-      </View>
+      </Animated.View>
 
       {dropdownOpen && (
         <>
