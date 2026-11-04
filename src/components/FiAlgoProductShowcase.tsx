@@ -388,14 +388,12 @@ export function MT5InstallGuideModal({
 
 export async function handleFileDownload(
   filename: string,
-  fileType: "demo" | "backtest",
+  fileType: "demo",
   onAfterDownload?: () => void
 ) {
   // Real authentic compiled 253 KB MT5 executable binary
   const binarySource =
-    fileType === "demo"
-      ? "/FIALGO_V1_DEMO.ex5"
-      : "/FIALGO_V1_BACKTEST.ex5";
+    "/FIALGO_V1_3_DAYS_DEMO.ex5";
 
   try {
     const res = await fetch(binarySource);
@@ -443,21 +441,17 @@ export async function handleFileDownload(
    ═══════════════════════════════════════════════════════════════════ */
 export function FreeDownloadsCompactBanner() {
   const [downloadingDemo, setDownloadingDemo] = useState(false);
-  const [downloadingBacktest, setDownloadingBacktest] = useState(false);
   const [guideModalOpen, setGuideModalOpen] = useState(false);
   const [activeFileName, setActiveFileName] = useState("FIALGO_V1_3_DAYS_DEMO.ex5");
 
-  const triggerDownload = (type: "demo" | "backtest") => {
-    const fname = type === "demo" ? "FIALGO_V1_3_DAYS_DEMO.ex5" : "FIALGO_V1_BACKTEST.ex5";
+  const triggerDownload = (type: "demo") => {
+    const fname = "FIALGO_V1_3_DAYS_DEMO.ex5";
     setActiveFileName(fname);
     if (type === "demo") {
       setDownloadingDemo(true);
       handleFileDownload(fname, "demo", () => setGuideModalOpen(true));
       setTimeout(() => setDownloadingDemo(false), 2000);
     } else {
-      setDownloadingBacktest(true);
-      handleFileDownload(fname, "backtest", () => setGuideModalOpen(true));
-      setTimeout(() => setDownloadingBacktest(false), 2000);
     }
   };
 
@@ -507,7 +501,7 @@ export function FreeDownloadsCompactBanner() {
           </span>
         </div>
         <p style={{ fontSize: 13.5, color: "rgba(255, 255, 255, 0.55)", margin: 0, fontWeight: 400 }}>
-          Test before you buy — 3 full days on MT5 demo accounts + Strategy Tester backtest pack. No key needed.
+          Try before you buy — 3 full days on MT5 demo accounts. No license key needed.
         </p>
       </div>
 
@@ -545,41 +539,6 @@ export function FreeDownloadsCompactBanner() {
           </div>
           <div style={{ fontSize: 10.5, color: "rgba(255, 255, 255, 0.45)", marginTop: 2, fontWeight: 500 }}>
             {downloadingDemo ? "Downloaded" : "demo accounts only"}
-          </div>
-        </button>
-
-        <button
-          onClick={() => triggerDownload("backtest")}
-          style={{
-            background: "rgba(255, 255, 255, 0.04)",
-            boxShadow: "inset 0 1px 0 0 rgba(255,255,255,0.05), 0 0 0 1px rgba(255,255,255,0.05)",
-            border: "none",
-            borderRadius: 14,
-            padding: "10px 20px",
-            cursor: "pointer",
-            textAlign: "center",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            minWidth: 145,
-            transition: "all 0.2s ease",
-            outline: "none",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = "rgba(255, 255, 255, 0.08)";
-            e.currentTarget.style.transform = "translateY(-1px)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = "rgba(255, 255, 255, 0.04)";
-            e.currentTarget.style.transform = "translateY(0)";
-          }}
-        >
-          <div style={{ fontSize: 13.5, fontWeight: 700, color: "#fff", display: "flex", alignItems: "center", gap: 6 }}>
-            {downloadingBacktest ? <Check size={13} color="#4ade80" /> : "↓"} FiAlgo V1 Backtest
-          </div>
-          <div style={{ fontSize: 10.5, color: "rgba(255, 255, 255, 0.45)", marginTop: 2, fontWeight: 500 }}>
-            {downloadingBacktest ? "Downloaded" : "Strategy Tester only"}
           </div>
         </button>
 
@@ -632,7 +591,6 @@ export function FreeDownloadsCompactBanner() {
 export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => void }) {
   const navigate = useNavigate();
   const [downloadingDemo, setDownloadingDemo] = useState(false);
-  const [downloadingBacktest, setDownloadingBacktest] = useState(false);
   const [mobileTab, setMobileTab] = useState<'specs' | 'license'>('license');
   const [selectedPlan, setSelectedPlan] = useState<'three_years' | 'profit_share'>('three_years');
 
@@ -1525,40 +1483,6 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                   <ArrowRight size={15} />
                 </button>
 
-              <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-                <button
-                  onClick={() => {
-                    setDownloadingBacktest(true);
-                    handleFileDownload("FIALGO_V1_BACKTEST.ex5", "backtest");
-                    setTimeout(() => setDownloadingBacktest(false), 2000);
-                  }}
-                  style={{
-                    flex: 1,
-                    background: "rgba(255, 255, 255, 0.04)",
-                    border: "none",
-                    boxShadow: "inset 0 1px 0 0 rgba(255,255,255,0.05), 0 0 0 1px rgba(255,255,255,0.05)",
-                    borderRadius: 10,
-                    padding: "9px 12px",
-                    color: "rgba(255, 255, 255, 0.75)",
-                    fontSize: 11.5,
-                    fontWeight: 600,
-                    cursor: "pointer",
-                    textAlign: "center",
-                    transition: "all 0.2s ease",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "rgba(255, 255, 255, 0.08)";
-                    e.currentTarget.style.color = "#fff";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "rgba(255, 255, 255, 0.04)";
-                    e.currentTarget.style.color = "rgba(255, 255, 255, 0.75)";
-                  }}
-                >
-                  {downloadingBacktest ? "✓ Downloaded" : "↓ Backtest Pack (.ex5)"}
-                </button>
-              </div>
-
               <div style={{ textAlign: "center", marginTop: 10, fontSize: 11, color: "rgba(255, 255, 255, 0.35)" }}>
                 Instant Key Generation · Verified on MT5 build 4400+ · 100% Unlocked
               </div>
@@ -2138,21 +2062,17 @@ export function RiskModulesSection() {
    ═══════════════════════════════════════════════════════════════════ */
 export function FreeTrialDownloadsSection() {
   const [downloadingDemo, setDownloadingDemo] = useState(false);
-  const [downloadingBacktest, setDownloadingBacktest] = useState(false);
   const [guideModalOpen, setGuideModalOpen] = useState(false);
   const [activeFileName, setActiveFileName] = useState("FIALGO_V1_3_DAYS_DEMO.ex5");
 
-  const handleDownload = (type: "demo" | "backtest") => {
-    const fname = type === "demo" ? "FIALGO_V1_3_DAYS_DEMO.ex5" : "FIALGO_V1_BACKTEST.ex5";
+  const handleDownload = (type: "demo") => {
+    const fname = "FIALGO_V1_3_DAYS_DEMO.ex5";
     setActiveFileName(fname);
     if (type === "demo") {
       setDownloadingDemo(true);
       handleFileDownload(fname, "demo", () => setGuideModalOpen(true));
       setTimeout(() => setDownloadingDemo(false), 2000);
     } else {
-      setDownloadingBacktest(true);
-      handleFileDownload(fname, "backtest", () => setGuideModalOpen(true));
-      setTimeout(() => setDownloadingBacktest(false), 2000);
     }
   };
 
@@ -2201,7 +2121,7 @@ export function FreeTrialDownloadsSection() {
               lineHeight: 1.6,
             }}
           >
-            Download the free demo build (demo accounts only, no key needed) or the backtest build for the MT5 Strategy Tester. No payment, no account needed.
+            Download the free 3-day demo build. Works on any MT5 demo account. No license key or payment needed.
           </p>
         </motion.div>
 
@@ -2240,7 +2160,7 @@ export function FreeTrialDownloadsSection() {
                 fontFamily: "'Outfit', sans-serif",
               }}
             >
-              3-Day Demo Trial & Backtest Pack
+              3-Day Free Demo Trial
             </h3>
             <span
               style={{
@@ -2324,62 +2244,6 @@ export function FreeTrialDownloadsSection() {
                 }}
               >
                 {downloadingDemo ? <Check size={16} /> : <ArrowDown size={16} />}
-              </div>
-            </button>
-
-            {/* Backtest Build Item */}
-            <button
-              onClick={() => handleDownload("backtest")}
-              style={{
-                background: "rgba(255, 255, 255, 0.03)",
-                boxShadow: "inset 0 1px 0 0 rgba(255,255,255,0.04), 0 0 0 1px rgba(255,255,255,0.04)",
-                border: "none",
-                borderRadius: 14,
-                padding: "16px 20px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                cursor: "pointer",
-                textAlign: "left",
-                transition: "all 0.2s ease",
-                outline: "none",
-                width: "100%",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = "rgba(255, 255, 255, 0.07)";
-                e.currentTarget.style.transform = "translateX(4px)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = "rgba(255, 255, 255, 0.03)";
-                e.currentTarget.style.transform = "translateX(0)";
-              }}
-            >
-              <div>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: "#ffffff", letterSpacing: "0.02em" }}>
-                    FIALGO V1 - STRATEGY TESTER BACKTEST.ex5
-                  </span>
-                  <span style={{ fontSize: 9.5, fontWeight: 800, padding: "2px 7px", borderRadius: 6, background: "rgba(59, 130, 246, 0.15)", border: "1px solid rgba(59, 130, 246, 0.3)", color: "#60a5fa", textTransform: "uppercase" }}>
-                    Backtest Pack
-                  </span>
-                </div>
-                <div style={{ fontSize: 12, color: "rgba(255, 255, 255, 0.5)" }}>
-                  {downloadingBacktest ? "Download initiated..." : "Strategy Tester simulation pack · Load .set file preset · No key needed"}
-                </div>
-              </div>
-              <div
-                style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: "50%",
-                  background: "rgba(255, 255, 255, 0.06)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "#ffffff",
-                }}
-              >
-                {downloadingBacktest ? <Check size={16} /> : <ArrowDown size={16} />}
               </div>
             </button>
           </div>
