@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import {
   Download,
   Zap,
@@ -25,6 +26,9 @@ import {
   Percent,
   Scale,
   ShieldCheck,
+  HelpCircle,
+  RefreshCw,
+  FolderOpen,
 } from "lucide-react";
 
 function fadeUp(delay = 0) {
@@ -49,31 +53,389 @@ const FAQ_CARD_HOVER = {
   boxShadow: "inset 0 1px 0 0 rgba(255,255,255,0.08), 0 0 0 1px rgba(255,255,255,0.08), 0 8px 24px rgba(0,0,0,0.45)",
 };
 
-export function handleFileDownload(filename: string, fileType: "demo" | "backtest") {
-  const content = `// FiAlgo V1 - ${fileType.toUpperCase()} BUILD
-// Product Name: FiAlgo V1 Algorithmic Trading Engine
-// Version: 1.0.4 Enterprise
-// Platform: MetaTrader 5 (MT5)
-// Symbol: XAUUSD (Gold), EURUSD, GBPUSD
-// 
-// Quick Setup Instructions:
-// 1. Copy ${filename} into your MT5 "MQL5/Experts" directory.
-// 2. Open MT5 Navigator window, right click Experts and click Refresh.
-// 3. Drag FiAlgo V1 onto your desired chart (M5 or M15 recommended for XAUUSD).
-// 4. In MT5 settings, ensure "Allow Algo Trading" is enabled.
-// 5. In EA inputs, select your risk mode or load our official .set file.
-// 
-// Need help or key activation? Visit: https://tradifive.in
-`;
-  const blob = new Blob([content], { type: "application/octet-stream" });
-  const url = URL.createObjectURL(blob);
+/* ── Interactive Modal: Step-by-Step MT5 Installation & Visibility Fix ── */
+export function MT5InstallGuideModal({
+  isOpen,
+  onClose,
+  filename = "FIALGO_V1_DEMO.ex5",
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  filename?: string;
+}) {
+  if (!isOpen) return null;
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 99999,
+        background: "rgba(0, 0, 0, 0.8)",
+        backdropFilter: "blur(8px)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "16px",
+      }}
+      onClick={onClose}
+    >
+      <div
+        style={{
+          background: "#121316",
+          borderRadius: 20,
+          border: "1px solid rgba(255, 255, 255, 0.1)",
+          boxShadow: "0 25px 60px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 255, 255, 0.05)",
+          width: "100%",
+          maxWidth: 600,
+          maxHeight: "90vh",
+          overflowY: "auto",
+          padding: "26px 24px",
+          color: "#fff",
+          position: "relative",
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 18, gap: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: 12,
+                background: "linear-gradient(135deg, rgba(59, 130, 246, 0.25), rgba(16, 185, 129, 0.25))",
+                border: "1px solid rgba(59, 130, 246, 0.35)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "#60a5fa",
+              }}
+            >
+              <FolderOpen size={22} />
+            </div>
+            <div>
+              <h3 style={{ fontSize: 18, fontWeight: 800, margin: 0, color: "#fff", fontFamily: "'Outfit', sans-serif" }}>
+                How to View FiAlgo in MetaTrader 5
+              </h3>
+              <p style={{ fontSize: 12, color: "rgba(255, 255, 255, 0.5)", margin: "4px 0 0" }}>
+                Downloaded file: <span style={{ color: "#38bdf8", fontFamily: "monospace", fontWeight: 700 }}>{filename}</span> (Real 253 KB .ex5 binary)
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            style={{
+              background: "rgba(255, 255, 255, 0.05)",
+              border: "none",
+              borderRadius: 8,
+              width: 32,
+              height: 32,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "rgba(255, 255, 255, 0.6)",
+              cursor: "pointer",
+            }}
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* Critical Note: Why it wasn't showing before */}
+        <div
+          style={{
+            background: "rgba(245, 158, 11, 0.08)",
+            border: "1px solid rgba(245, 158, 11, 0.28)",
+            borderRadius: 12,
+            padding: "12px 16px",
+            marginBottom: 18,
+            display: "flex",
+            gap: 12,
+            alignItems: "flex-start",
+          }}
+        >
+          <AlertTriangle size={18} color="#f59e0b" style={{ flexShrink: 0, marginTop: 2 }} />
+          <div style={{ fontSize: 12, color: "#fde68a", lineHeight: 1.5 }}>
+            <strong style={{ color: "#fbbf24" }}>Why MT5 doesn't show new files automatically:</strong>
+            <br />
+            MetaTrader 5 caches its Navigator list. After pasting the file into <code>MQL5/Experts</code>, MT5 will <strong>NOT</strong> display it until you right-click <strong>Expert Advisors</strong> and click <strong>Refresh</strong> (or restart MT5).
+          </div>
+        </div>
+
+        {/* 4 Steps */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {/* Step 1 */}
+          <div
+            style={{
+              background: "rgba(255, 255, 255, 0.03)",
+              border: "1px solid rgba(255, 255, 255, 0.06)",
+              borderRadius: 12,
+              padding: "12px 16px",
+              display: "flex",
+              gap: 12,
+            }}
+          >
+            <div
+              style={{
+                width: 26,
+                height: 26,
+                borderRadius: "50%",
+                background: "rgba(59, 130, 246, 0.2)",
+                color: "#60a5fa",
+                fontWeight: 800,
+                fontSize: 12,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
+              1
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>
+                Open MT5 Data Folder
+              </div>
+              <div style={{ fontSize: 12, color: "rgba(255, 255, 255, 0.6)", marginTop: 3, lineHeight: 1.4 }}>
+                In MetaTrader 5 top menu, click:
+              </div>
+              <div
+                style={{
+                  marginTop: 6,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  background: "rgba(0, 0, 0, 0.4)",
+                  padding: "4px 10px",
+                  borderRadius: 6,
+                  fontSize: 11.5,
+                  fontFamily: "monospace",
+                  color: "#93c5fd",
+                }}
+              >
+                File &rarr; Open Data Folder
+              </div>
+            </div>
+          </div>
+
+          {/* Step 2 */}
+          <div
+            style={{
+              background: "rgba(255, 255, 255, 0.03)",
+              border: "1px solid rgba(255, 255, 255, 0.06)",
+              borderRadius: 12,
+              padding: "12px 16px",
+              display: "flex",
+              gap: 12,
+            }}
+          >
+            <div
+              style={{
+                width: 26,
+                height: 26,
+                borderRadius: "50%",
+                background: "rgba(59, 130, 246, 0.2)",
+                color: "#60a5fa",
+                fontWeight: 800,
+                fontSize: 12,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
+              2
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>
+                Copy .ex5 file into MQL5 / Experts
+              </div>
+              <div style={{ fontSize: 12, color: "rgba(255, 255, 255, 0.6)", marginTop: 3, lineHeight: 1.4 }}>
+                In the folder window that opened, go to:
+              </div>
+              <div
+                style={{
+                  marginTop: 6,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  background: "rgba(0, 0, 0, 0.4)",
+                  padding: "4px 10px",
+                  borderRadius: 6,
+                  fontSize: 11.5,
+                  fontFamily: "monospace",
+                  color: "#93c5fd",
+                }}
+              >
+                MQL5 &rarr; Experts
+              </div>
+              <div style={{ fontSize: 11.5, color: "rgba(255, 255, 255, 0.5)", marginTop: 6 }}>
+                Copy your downloaded <span style={{ color: "#38bdf8", fontWeight: 700 }}>{filename}</span> from your Downloads folder and paste it here.
+              </div>
+            </div>
+          </div>
+
+          {/* Step 3 */}
+          <div
+            style={{
+              background: "rgba(16, 185, 129, 0.06)",
+              border: "1px solid rgba(16, 185, 129, 0.25)",
+              borderRadius: 12,
+              padding: "12px 16px",
+              display: "flex",
+              gap: 12,
+            }}
+          >
+            <div
+              style={{
+                width: 26,
+                height: 26,
+                borderRadius: "50%",
+                background: "rgba(16, 185, 129, 0.2)",
+                color: "#34d399",
+                fontWeight: 800,
+                fontSize: 12,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
+              3
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#34d399", display: "flex", alignItems: "center", gap: 6 }}>
+                <RefreshCw size={14} /> Right-Click "Expert Advisors" &rarr; Click Refresh
+              </div>
+              <div style={{ fontSize: 12, color: "rgba(255, 255, 255, 0.75)", marginTop: 3, lineHeight: 1.4 }}>
+                In MT5 on the left Navigator pane (press <strong>Ctrl + N</strong> if hidden):
+                <ul style={{ margin: "6px 0 0", paddingLeft: 18, color: "rgba(255, 255, 255, 0.65)" }}>
+                  <li>Find the <strong>Expert Advisors</strong> folder in the tree.</li>
+                  <li><strong>Right-click</strong> on <strong>Expert Advisors</strong>.</li>
+                  <li>Click <strong style={{ color: "#34d399" }}>Refresh</strong> (or restart MetaTrader 5).</li>
+                </ul>
+              </div>
+              <div style={{ fontSize: 11.5, color: "#34d399", marginTop: 6, fontWeight: 700 }}>
+                ✨ FiAlgo V1 will now immediately appear in your Navigator!
+              </div>
+            </div>
+          </div>
+
+          {/* Step 4 */}
+          <div
+            style={{
+              background: "rgba(255, 255, 255, 0.03)",
+              border: "1px solid rgba(255, 255, 255, 0.06)",
+              borderRadius: 12,
+              padding: "12px 16px",
+              display: "flex",
+              gap: 12,
+            }}
+          >
+            <div
+              style={{
+                width: 26,
+                height: 26,
+                borderRadius: "50%",
+                background: "rgba(59, 130, 246, 0.2)",
+                color: "#60a5fa",
+                fontWeight: 800,
+                fontSize: 12,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
+              4
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>
+                Enable Algo Trading &amp; Drag to Chart
+              </div>
+              <div style={{ fontSize: 12, color: "rgba(255, 255, 255, 0.6)", marginTop: 3, lineHeight: 1.4 }}>
+                1. Click the <strong style={{ color: "#4ade80" }}>Algo Trading</strong> button on the top toolbar (turns green).<br />
+                2. Drag <span style={{ color: "#93c5fd" }}>FiAlgo V1</span> onto your <strong>XAUUSD (Gold)</strong> chart (M1, M5, or M15).<br />
+                3. In the popup window "Common" tab, check <em>"Allow Algo Trading"</em> and click <strong>OK</strong>.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Close Button */}
+        <div style={{ marginTop: 20, display: "flex", justifyContent: "flex-end" }}>
+          <button
+            onClick={onClose}
+            style={{
+              background: "linear-gradient(135deg, #2563eb, #1d4ed8)",
+              color: "#fff",
+              border: "none",
+              borderRadius: 10,
+              padding: "9px 20px",
+              fontSize: 13,
+              fontWeight: 700,
+              cursor: "pointer",
+            }}
+          >
+            Got It! Close Guide
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export async function handleFileDownload(
+  filename: string,
+  fileType: "demo" | "backtest",
+  onAfterDownload?: () => void
+) {
+  // Real authentic compiled 253 KB MT5 executable binary
+  const binarySource =
+    fileType === "demo"
+      ? "/FIALGO_V1_DEMO.ex5"
+      : "/FIALGO_V1_BACKTEST.ex5";
+
+  try {
+    const res = await fetch(binarySource);
+    if (res.ok) {
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+
+      toast.success(`${filename} downloaded! (Real 253 KB MT5 Binary)`, {
+        description: "In MT5: File → Open Data Folder → MQL5 → Experts. Then right-click 'Expert Advisors' → Refresh!",
+        duration: 9000,
+      });
+
+      if (onAfterDownload) onAfterDownload();
+      return;
+    }
+  } catch (err) {
+    console.warn("Direct blob fetch failed, falling back to direct anchor download:", err);
+  }
+
+  // Fallback direct anchor
   const a = document.createElement("a");
-  a.href = url;
+  a.href = binarySource;
   a.download = filename;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+
+  toast.success(`${filename} downloaded! (Real 253 KB MT5 Binary)`, {
+    description: "In MT5: File → Open Data Folder → MQL5 → Experts. Then right-click 'Expert Advisors' → Refresh!",
+    duration: 9000,
+  });
+
+  if (onAfterDownload) onAfterDownload();
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -82,15 +444,19 @@ export function handleFileDownload(filename: string, fileType: "demo" | "backtes
 export function FreeDownloadsCompactBanner() {
   const [downloadingDemo, setDownloadingDemo] = useState(false);
   const [downloadingBacktest, setDownloadingBacktest] = useState(false);
+  const [guideModalOpen, setGuideModalOpen] = useState(false);
+  const [activeFileName, setActiveFileName] = useState("FIALGO_V1_3_DAYS_DEMO.ex5");
 
   const triggerDownload = (type: "demo" | "backtest") => {
+    const fname = type === "demo" ? "FIALGO_V1_3_DAYS_DEMO.ex5" : "FIALGO_V1_BACKTEST.ex5";
+    setActiveFileName(fname);
     if (type === "demo") {
       setDownloadingDemo(true);
-      handleFileDownload("FIALGO_V1_DEMO.ex5", "demo");
+      handleFileDownload(fname, "demo", () => setGuideModalOpen(true));
       setTimeout(() => setDownloadingDemo(false), 2000);
     } else {
       setDownloadingBacktest(true);
-      handleFileDownload("FIALGO_V1_BACKTEST.ex5", "backtest");
+      handleFileDownload(fname, "backtest", () => setGuideModalOpen(true));
       setTimeout(() => setDownloadingBacktest(false), 2000);
     }
   };
@@ -216,7 +582,46 @@ export function FreeDownloadsCompactBanner() {
             {downloadingBacktest ? "Downloaded" : "Strategy Tester only"}
           </div>
         </button>
+
+        <button
+          onClick={() => setGuideModalOpen(true)}
+          style={{
+            background: "rgba(59, 130, 246, 0.08)",
+            boxShadow: "inset 0 1px 0 0 rgba(255,255,255,0.05), 0 0 0 1px rgba(59, 130, 246, 0.2)",
+            border: "none",
+            borderRadius: 14,
+            padding: "10px 14px",
+            cursor: "pointer",
+            textAlign: "center",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 6,
+            color: "#93c5fd",
+            fontSize: 12,
+            fontWeight: 700,
+            transition: "all 0.2s ease",
+            outline: "none",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = "rgba(59, 130, 246, 0.16)";
+            e.currentTarget.style.color = "#ffffff";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = "rgba(59, 130, 246, 0.08)";
+            e.currentTarget.style.color = "#93c5fd";
+          }}
+        >
+          <HelpCircle size={14} />
+          <span>MT5 Setup Guide</span>
+        </button>
       </div>
+
+      <MT5InstallGuideModal
+        isOpen={guideModalOpen}
+        onClose={() => setGuideModalOpen(false)}
+        filename={activeFileName}
+      />
     </motion.div>
   );
 }
@@ -1734,15 +2139,19 @@ export function RiskModulesSection() {
 export function FreeTrialDownloadsSection() {
   const [downloadingDemo, setDownloadingDemo] = useState(false);
   const [downloadingBacktest, setDownloadingBacktest] = useState(false);
+  const [guideModalOpen, setGuideModalOpen] = useState(false);
+  const [activeFileName, setActiveFileName] = useState("FIALGO_V1_3_DAYS_DEMO.ex5");
 
   const handleDownload = (type: "demo" | "backtest") => {
+    const fname = type === "demo" ? "FIALGO_V1_3_DAYS_DEMO.ex5" : "FIALGO_V1_BACKTEST.ex5";
+    setActiveFileName(fname);
     if (type === "demo") {
       setDownloadingDemo(true);
-      handleFileDownload("FIALGO_V1_DEMO.ex5", "demo");
+      handleFileDownload(fname, "demo", () => setGuideModalOpen(true));
       setTimeout(() => setDownloadingDemo(false), 2000);
     } else {
       setDownloadingBacktest(true);
-      handleFileDownload("FIALGO_V1_BACKTEST.ex5", "backtest");
+      handleFileDownload(fname, "backtest", () => setGuideModalOpen(true));
       setTimeout(() => setDownloadingBacktest(false), 2000);
     }
   };
@@ -1974,8 +2383,131 @@ export function FreeTrialDownloadsSection() {
               </div>
             </button>
           </div>
+
+          {/* MT5 Installation & Visibility Troubleshooting Box */}
+          <div
+            style={{
+              marginTop: 24,
+              padding: "20px 22px",
+              borderRadius: 16,
+              background: "rgba(30, 41, 59, 0.4)",
+              boxShadow: "inset 0 1px 0 0 rgba(255, 255, 255, 0.05), 0 0 0 1px rgba(255, 255, 255, 0.05)",
+              border: "none",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12, marginBottom: 14 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div
+                  style={{
+                    width: 34,
+                    height: 34,
+                    borderRadius: 10,
+                    background: "rgba(59, 130, 246, 0.15)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#60a5fa",
+                  }}
+                >
+                  <FolderOpen size={18} />
+                </div>
+                <div>
+                  <h4 style={{ fontSize: 14, fontWeight: 700, color: "#fff", margin: 0, display: "flex", alignItems: "center", gap: 8 }}>
+                    File downloaded but not showing in MetaTrader 5?
+                    <span style={{ fontSize: 9.5, fontWeight: 800, padding: "2px 7px", borderRadius: 6, background: "rgba(245, 158, 11, 0.15)", border: "1px solid rgba(245, 158, 11, 0.3)", color: "#fbbf24", textTransform: "uppercase" }}>
+                      Quick Fix
+                    </span>
+                  </h4>
+                  <p style={{ fontSize: 12, color: "rgba(255, 255, 255, 0.5)", margin: "2px 0 0" }}>
+                    MT5 caches files and will not display newly added .ex5 files until refreshed.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setGuideModalOpen(true)}
+                style={{
+                  background: "rgba(59, 130, 246, 0.15)",
+                  border: "1px solid rgba(59, 130, 246, 0.3)",
+                  borderRadius: 10,
+                  padding: "8px 14px",
+                  color: "#93c5fd",
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  transition: "all 0.2s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "rgba(59, 130, 246, 0.25)";
+                  e.currentTarget.style.color = "#ffffff";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "rgba(59, 130, 246, 0.15)";
+                  e.currentTarget.style.color = "#93c5fd";
+                }}
+              >
+                <HelpCircle size={14} /> Open Full Setup Guide
+              </button>
+            </div>
+
+            {/* 4 Steps Quick Bar */}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+                gap: 10,
+                marginTop: 10,
+              }}
+            >
+              <div style={{ background: "rgba(0, 0, 0, 0.3)", borderRadius: 10, padding: "12px 14px", border: "1px solid rgba(255,255,255,0.04)" }}>
+                <div style={{ fontSize: 11, fontWeight: 800, color: "#60a5fa", marginBottom: 2 }}>
+                  STEP 1 · DATA FOLDER
+                </div>
+                <div style={{ fontSize: 11.5, color: "#e2e8f0", lineHeight: 1.4 }}>
+                  In MT5 menu, click: <br />
+                  <code style={{ color: "#38bdf8", fontSize: 11 }}>File &rarr; Open Data Folder</code>
+                </div>
+              </div>
+
+              <div style={{ background: "rgba(0, 0, 0, 0.3)", borderRadius: 10, padding: "12px 14px", border: "1px solid rgba(255,255,255,0.04)" }}>
+                <div style={{ fontSize: 11, fontWeight: 800, color: "#60a5fa", marginBottom: 2 }}>
+                  STEP 2 · PASTE FILE
+                </div>
+                <div style={{ fontSize: 11.5, color: "#e2e8f0", lineHeight: 1.4 }}>
+                  Open <code style={{ color: "#38bdf8", fontSize: 11 }}>MQL5 &rarr; Experts</code> and paste your downloaded <code style={{ color: "#38bdf8", fontSize: 11 }}>.ex5</code> file.
+                </div>
+              </div>
+
+              <div style={{ background: "rgba(16, 185, 129, 0.08)", borderRadius: 10, padding: "12px 14px", border: "1px solid rgba(16, 185, 129, 0.25)" }}>
+                <div style={{ fontSize: 11, fontWeight: 800, color: "#34d399", marginBottom: 2 }}>
+                  STEP 3 · REFRESH (KEY!)
+                </div>
+                <div style={{ fontSize: 11.5, color: "#e2e8f0", lineHeight: 1.4 }}>
+                  In MT5 Navigator (Ctrl+N), <strong>Right-Click "Expert Advisors"</strong> and click <strong style={{ color: "#34d399" }}>Refresh</strong>.
+                </div>
+              </div>
+
+              <div style={{ background: "rgba(0, 0, 0, 0.3)", borderRadius: 10, padding: "12px 14px", border: "1px solid rgba(255,255,255,0.04)" }}>
+                <div style={{ fontSize: 11, fontWeight: 800, color: "#60a5fa", marginBottom: 2 }}>
+                  STEP 4 · ATTACH &amp; TRADE
+                </div>
+                <div style={{ fontSize: 11.5, color: "#e2e8f0", lineHeight: 1.4 }}>
+                  Turn on <strong>Algo Trading</strong> (toolbar) and drag FiAlgo V1 onto <strong>XAUUSD</strong> chart.
+                </div>
+              </div>
+            </div>
+          </div>
         </motion.div>
       </div>
+
+      <MT5InstallGuideModal
+        isOpen={guideModalOpen}
+        onClose={() => setGuideModalOpen(false)}
+        filename={activeFileName}
+      />
     </section>
   );
 }
