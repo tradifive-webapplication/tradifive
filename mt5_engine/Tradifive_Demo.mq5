@@ -5,7 +5,7 @@
 //+------------------------------------------------------------------+
 #property copyright "Tradifive"
 #property link      ""
-#property version   "2.00-DEMO"
+#property version   "2.01"
 #property description "Tradifive DEMO - 3-Day Free Trial. No license key needed."
 #property description "REQUIRES a MetaTrader 5 HEDGING account."
 #property description "HIGH RISK: test in Strategy Tester, then Demo, before any live use."
@@ -946,26 +946,6 @@ void TFLoadLogos()
 const string TF_WEBHOOK_URL = "https://rylwyxhupwpwsdbvuoej.supabase.co/functions/v1/mt5-webhook";
 const string TF_ANON_KEY    = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ5bHd5eGh1cHdwd3NkYnZ1b2VqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0MzI1NTcsImV4cCI6MjA5MjAwODU1N30.xuRj9PZgZys2b64pNnjhXOVyDjtGVFlBno2o9hiisHA";
 
-int      g_licStatus=3;       // 1 active, 2 expired / invalid, 3 trial
-datetime g_licTill=0;
-string   g_licKey="";
-string   g_licKeyMsg="";
-datetime g_licLast=0;
-
-string TFHexStr(const ulong v,const int digits)
-{
-   const string hx="0123456789ABCDEF";
-   string s="";
-   for(int i=digits-1;i>=0;i--)
-      s+=StringSubstr(hx,(int)((v>>(4*i))&0xF),1);
-   return s;
-}
-
-bool TFIsHex(const int c)
-{
-   return ((c>='0' && c<='9') || (c>='A' && c<='F') || (c>='a' && c<='f'));
-}
-
 string TFNormKey(string k)
 {
    StringToUpper(k);
@@ -976,222 +956,74 @@ string TFNormKey(string k)
    return k;
 }
 
-ulong TFHash64(const string s)
+int      g_licStatus = 3;       // 1 active, 2 expired, 3 trial
+datetime g_licTill   = 0;
+string   g_licKey    = "";
+string   g_licKeyMsg = "";
+datetime g_licLast   = 0;
+
+string TFDEMO_GV_Name()
 {
-   ulong h=0xCBF29CE484222325;
-   const ulong prime=0x100000001B3;
-   const int n=StringLen(s);
-   for(int i=0;i<n;i++)
-   {
-      h^=(ulong)(StringGetCharacter(s,i)&0xFF);
-      h*=prime;
-   }
-   return h;
-}
-
-ulong TFLicHash(const ulong login,const int expDays)
-{
-   ulong h=TFHash64(TF_SALT+":"+IntegerToString((long)login)+":"+IntegerToString(expDays));
-   h^=(h>>32);
-   return (h&0xFFFFFFFFFF);
-}
-
-bool TFParseKey(const string k,ulong &login,int &expDays,ulong &chk)
-{
-   if(StringLen(k)!=27)
-      return false;
-   if(StringSubstr(k,0,3)!="TF-" || StringGetCharacter(k,11)!='-' || StringGetCharacter(k,16)!='-')
-      return false;
-   for(int i=3;i<27;i++)
-   {
-      if(i==11 || i==16)
-         continue;
-      if(!TFIsHex((int)StringGetCharacter(k,i)))
-         return false;
-   }
-   login=0; chk=0;
-   int e=0;
-   for(int i=3;i<11;i++)  login=(login<<4)|(ulong)TFHexVal((int)StringGetCharacter(k,i));
-   for(int i=12;i<16;i++) e=(e<<4)|TFHexVal((int)StringGetCharacter(k,i));
-   for(int i=17;i<27;i++) chk=(chk<<4)|(ulong)TFHexVal((int)StringGetCharacter(k,i));
-   expDays=e;
-   return true;
-}
-
-bool TFCheckCloudAccount(const ulong login, string &outKey)
-{
-   if(MQLInfoInteger(MQL_TESTER) || login == 0) return false;
-   
-   // 1. Check system_settings table (ib_transfer_requests)
-   string url = "https://rylwyxhupwpwsdbvuoej.supabase.co/rest/v1/system_settings?id=eq.ib_transfer_requests";
-   string headers = "Content-Type: application/json\r\nAuthorization: Bearer " + TF_ANON_KEY + "\r\napikey: " + TF_ANON_KEY + "\r\n";
-   char postData[], result[];
-   string resultHeaders;
-   ResetLastError();
-   int res = WebRequest("GET", url, headers, 3000, postData, result, resultHeaders);
-   if(res == 200 && ArraySize(result) > 0)
-   {
-      string responseStr = CharArrayToString(result, 0, WHOLE_ARRAY, CP_UTF8);
-      string targetStr = "\"mt5_account_number\":\"" + IntegerToString((long)login) + "\"";
-      if(StringFind(responseStr, targetStr) >= 0)
-      {
-         ulong chk = TFLicHash(login, 10000);
-         outKey = "TF-" + TFHexStr(login, 8) + "-2710-" + TFHexStr(chk, 10);
-         return true;
-      }
-   }
-
-   // 2. Check mt5_accounts table directly
-   string url2 = "https://rylwyxhupwpwsdbvuoej.supabase.co/rest/v1/mt5_accounts?account_number=eq." + IntegerToString((long)login) + "&select=account_number,activation_key";
-   char result2[];
-   string resultHeaders2;
-   ResetLastError();
-   int res2 = WebRequest("GET", url2, headers, 3000, postData, result2, resultHeaders2);
-   if(res2 == 200 && ArraySize(result2) > 0)
-   {
-      string resp2 = CharArrayToString(result2, 0, WHOLE_ARRAY, CP_UTF8);
-      if(StringFind(resp2, "\"account_number\":") >= 0)
-      {
-         ulong chk = TFLicHash(login, 10000);
-         outKey = "TF-" + TFHexStr(login, 8) + "-2710-" + TFHexStr(chk, 10);
-         return true;
-      }
-   }
-
-   return false;
-}
-
-string TFLicGV(const string part)
-{
-   return "TFLIC3_"+IntegerToString((long)AccountInfoInteger(ACCOUNT_LOGIN))+"_"+part;
+   return "TFDEMO_START_" + IntegerToString((long)AccountInfoInteger(ACCOUNT_LOGIN));
 }
 
 void TFLicEval()
 {
-   g_licLast=TimeLocal();
-   g_licKeyMsg="";
+   g_licLast = TimeLocal();
+   const datetime now = TimeCurrent();
+
    if(MQLInfoInteger(MQL_TESTER))
    {
-      g_licStatus=1;
-      g_licTill=(datetime)4102444799;
+      g_licStatus = 3;
+      g_licTill = (datetime)(now + 3 * 86400);
+      g_licKeyMsg = "Strategy Tester 3-Day Demo";
       return;
    }
-   const datetime now=TimeCurrent();
-   bool keyOK=false;
-   datetime kt=0;
-   if(g_licKey!="")
+
+   const string gvName = TFDEMO_GV_Name();
+
+   // First run on this MT5 account: record start timestamp
+   if(!GlobalVariableCheck(gvName))
    {
-      ulong lg=0,ck=0;
-      int ed=0;
-      if(!TFParseKey(g_licKey,lg,ed,ck) || ck!=TFLicHash(lg,ed))
-         g_licKeyMsg="Invalid license key";
-      else if(lg!=0 && lg!=(ulong)AccountInfoInteger(ACCOUNT_LOGIN))
-         g_licKeyMsg="Account number didn't match";
-      else
-      {
-         keyOK=true;
-         kt=(datetime)(1704067200+(long)ed*86400+86399);
-      }
+      GlobalVariableSet(gvName, (double)now);
    }
-   if(keyOK)
+
+   datetime t0 = (datetime)(long)GlobalVariableGet(gvName);
+   if(t0 <= 0 || t0 > now + 86400)
    {
-      g_licTill=kt;
-      g_licStatus=(now<=kt)?1:2;
-      if(g_licStatus==2)
-         g_licKeyMsg="License expired on "+TimeToString(kt,TIME_DATE);
-      return;
+      t0 = now;
+      GlobalVariableSet(gvName, (double)now);
    }
-   const string tk=TFLicGV("TRIAL");
-   if(!GlobalVariableCheck(tk))
-      GlobalVariableSet(tk,(double)now);
-   const datetime t0=(datetime)(long)GlobalVariableGet(tk);
-   g_licTill=(datetime)((long)t0+(long)TrialDays*86400);
-   g_licStatus=(TrialDays>0 && now<=g_licTill)?3:2;
+
+   // Exactly 3 days (259,200 seconds) from first run
+   g_licTill = (datetime)((long)t0 + 3 * 86400);
+
+   if(now <= g_licTill)
+   {
+      g_licStatus = 3; // ACTIVE 3-DAY DEMO
+      g_licKeyMsg = "3-Day Free Demo Trial Active";
+   }
+   else
+   {
+      g_licStatus = 2; // EXPIRED
+      g_licKeyMsg = "3-Day Free Demo Trial Expired";
+   }
 }
 
 void TFLicSetKey(const string raw)
 {
-   g_licKey=TFNormKey(raw);
-   if(g_licKey=="")
-   {
-      GlobalVariableDel(TFLicGV("KEY_L"));
-      GlobalVariableDel(TFLicGV("KEY_E"));
-      GlobalVariableDel(TFLicGV("KEY_C"));
-   }
-   else
-   {
-      ulong lg=0,ck=0;
-      int ed=0;
-      if(TFParseKey(g_licKey,lg,ed,ck))
-      {
-         GlobalVariableSet(TFLicGV("KEY_L"),(double)lg);
-         GlobalVariableSet(TFLicGV("KEY_E"),(double)ed);
-         GlobalVariableSet(TFLicGV("KEY_C"),(double)ck);
-      }
-   }
-   TFLicEval();
+   // No license key required in demo build
 }
 
 void TFLicLoad()
 {
-   const ulong currentLogin = (ulong)AccountInfoInteger(ACCOUNT_LOGIN);
    g_licKey = "";
-
-   // 1. Purge any stale global variables from other accounts or old test builds
-   if(GlobalVariableCheck(TFLicGV("KEY_L")))
-   {
-      ulong savedAcc = (ulong)GlobalVariableGet(TFLicGV("KEY_L"));
-      if(savedAcc != 0 && savedAcc != currentLogin)
-      {
-         Print("[Tradifive Security] Detected stale key for foreign account #", savedAcc, ". Purging old cache for current login #", currentLogin);
-         GlobalVariablesDeleteAll("TFLIC");
-      }
-   }
-
-   // 2. Load legitimate global variables if they match current account
-   if(GlobalVariableCheck(TFLicGV("KEY_L")) && GlobalVariableCheck(TFLicGV("KEY_E")) && GlobalVariableCheck(TFLicGV("KEY_C")))
-   {
-      ulong savedAcc = (ulong)GlobalVariableGet(TFLicGV("KEY_L"));
-      if(savedAcc == currentLogin)
-      {
-         g_licKey = "TF-" + TFHexStr(savedAcc, 8)
-                  + "-" + TFHexStr((ulong)GlobalVariableGet(TFLicGV("KEY_E")), 4)
-                  + "-" + TFHexStr((ulong)GlobalVariableGet(TFLicGV("KEY_C")), 10);
-      }
-      else
-      {
-         GlobalVariablesDeleteAll("TFLIC");
-      }
-   }
-
-   // 3. Fallback to EA input LicenseKey
-   if(g_licKey == "")
-   {
-      g_licKey = TFNormKey(LicenseKey);
-   }
-
-   // 4. Verify that g_licKey belongs to currentLogin; if it belongs to someone else, clear it so it doesn't block legitimate user!
-   if(g_licKey != "")
-   {
-      ulong licAcc = 0, licChk = 0;
-      int licExp = 0;
-      if(TFParseKey(g_licKey, licAcc, licExp, licChk))
-      {
-         if(licAcc != 0 && licAcc != currentLogin)
-         {
-            Print("[Tradifive Security] Discarding foreign key #", licAcc, " (current MT5 login is #", currentLogin, ")");
-            g_licKey = "";
-            GlobalVariablesDeleteAll("TFLIC");
-         }
-      }
-   }
-
    TFLicEval();
 }
 
 void TFLicTick()
 {
-   if(g_licLast==0 || (TimeLocal()-g_licLast)>=30)
+   if(g_licLast == 0 || (TimeLocal() - g_licLast) >= 10)
       TFLicEval();
 }
 
@@ -1201,7 +1033,8 @@ bool TFLicBlocked()
 {
    if(g_licSuspended) return true;
    if(GlobalVariableCheck("TRADIFIVE_MASTER_SWITCH") && GlobalVariableGet("TRADIFIVE_MASTER_SWITCH") == 0) return true;
-   return (RequireLicense && g_licStatus==2 && !MQLInfoInteger(MQL_TESTER));
+   // In Demo build, blocked when 3-day trial expires
+   return (g_licStatus == 2 && !MQLInfoInteger(MQL_TESTER));
 }
 
 bool TFLicenseOK()
@@ -1213,7 +1046,13 @@ bool TFLicenseOK()
 
 int TFLicDays()
 {
-   return (int)MathCeil((double)(g_licTill-TimeCurrent())/86400.0);
+   const datetime now = TimeCurrent();
+   if(g_licTill <= now) return 0;
+   long diff = (long)g_licTill - (long)now;
+   int days = (int)MathCeil((double)diff / 86400.0);
+   if(days > 3) days = 3;
+   if(days < 0) days = 0;
+   return days;
 }
 
 //+------------------------------------------------------------------+
@@ -1919,17 +1758,16 @@ private:
       // license
       {
          const int ls=g_licStatus;
-         const uint lc=(ls==1)?TFC_POS:((ls==3)?TFC_GOLD:TFC_NEG);
          const int dl=TFLicDays();
+         const uint lc=(ls==3 && dl>0)?TFC_POS:TFC_NEG;
          m_d.Disc(430,326,4.5,lc,lc,0,0,TFA(lc,150),5.0);
-         m_d.Txt(442,326,(ls==1)?"ACTIVE":((ls==3)?"TRIAL":"EXPIRED"),lc,15,true);
+         m_d.Txt(442,326,(ls==3 && dl>0)?"3-DAY DEMO":"EXPIRED",lc,15,true);
          m_d.Txt(600,326,(g_licTill>0)?TimeToString(g_licTill,TIME_DATE):"-",TFC_TXT,15,true);
-         m_d.Txt(800,326,(ls==2)?"0 days":IntegerToString(dl)+((dl==1)?" day":" days"),lc,15,true);
+         m_d.Txt(800,326,(ls==2 || dl<=0)?"0 days":IntegerToString(dl)+((dl==1)?" day":" days"),lc,15,true);
          string sub;
-         if(ls==1)      sub="License verified successfully";
-         else if(ls==3) sub="3-Day Free Demo Trial - " + IntegerToString(TFLicDays()) + " day(s) remaining. Visit tradifive.com to unlock full version.";
-         else           sub=((g_licKeyMsg!="")?g_licKeyMsg+".  ":"")+"Contact support: "+SupportContact;
-         m_d.Txt(424,346,sub,(ls==1)?TFC_DIM:lc,9);
+         if(ls==3 && dl>0) sub="3-Day Free Demo Trial · " + IntegerToString(dl) + " day(s) remaining · No key needed";
+         else              sub="Demo trial ended · Visit tradifive.com to unlock full version";
+         m_d.Txt(424,346,sub,(ls==2 || dl<=0)?lc:TFC_DIM,9);
       }
 
       // live trades (bottom strip)

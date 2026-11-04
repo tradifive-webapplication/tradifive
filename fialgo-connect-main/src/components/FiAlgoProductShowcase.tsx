@@ -29,6 +29,7 @@ import {
   HelpCircle,
   RefreshCw,
   FolderOpen,
+  X,
 } from "lucide-react";
 
 function fadeUp(delay = 0) {
