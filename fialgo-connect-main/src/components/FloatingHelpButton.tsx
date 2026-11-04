@@ -12,10 +12,8 @@ import {
   CheckCircle2,
   Minimize2,
   Maximize2,
-  LifeBuoy,
-  User,
-  Sparkles,
-  Bot
+  Minus,
+  LifeBuoy
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -31,6 +29,14 @@ export default function FloatingHelpButton() {
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
+  const [isBig, setIsBig] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem("tf_support_window_size") === "big";
+    } catch {
+      return false;
+    }
+  });
+  const [unreadCount, setUnreadCount] = useState<number>(0);
   const [user, setUser] = useState<any>(null);
   const [activeTicket, setActiveTicket] = useState<any | null>(null);
   const [messages, setMessages] = useState<any[]>([]);
@@ -44,6 +50,20 @@ export default function FloatingHelpButton() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [fileAccept, setFileAccept] = useState("*/*");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const toggleWindowSize = () => {
+    const next = !isBig;
+    setIsBig(next);
+    try {
+      localStorage.setItem("tf_support_window_size", next ? "big" : "normal");
+    } catch {}
+  };
+
+  const handleOpen = () => {
+    setIsOpen(true);
+    setIsMinimized(false);
+    setUnreadCount(0);
+  };
 
   // 1. Check user auth
   useEffect(() => {
@@ -60,12 +80,11 @@ export default function FloatingHelpButton() {
     };
   }, []);
 
-  // 2. Fetch or load active ticket when opened
+  // 2. Fetch or load active ticket when opened or user identified
   useEffect(() => {
-    if (!isOpen || !user?.id) return;
+    if (!user?.id) return;
 
     const fetchTicket = async () => {
-      // Find latest non-resolved ticket
       const { data } = await supabase
         .from("support_tickets")
         .select("*")
@@ -76,8 +95,8 @@ export default function FloatingHelpButton() {
 
       if (data && data.length > 0) {
         setActiveTicket(data[0]);
-      } else {
-        // Auto-create live chat session
+      } else if (isOpen) {
+        // Auto-create live chat session if window is opened and no active ticket exists
         const { data: newTicket } = await supabase
           .from("support_tickets")
           .insert([
@@ -101,7 +120,7 @@ export default function FloatingHelpButton() {
     fetchTicket();
   }, [isOpen, user?.id]);
 
-  // 3. Fetch messages for active ticket and subscribe to Realtime
+  // 3. Fetch replies, subscribe to Realtime, and maintain 3s polling backup
   useEffect(() => {
     if (!activeTicket?.id) {
       setMessages([]);
@@ -115,13 +134,15 @@ export default function FloatingHelpButton() {
         .eq("ticket_id", activeTicket.id)
         .order("created_at", { ascending: true });
 
-      setMessages(data || []);
-      setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
+      if (data) {
+        setMessages(data);
+        setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
+      }
     };
 
     fetchReplies();
 
-    // Subscribe to new replies
+    // Realtime channel
     const channel = supabase
       .channel(`floating_ticket_${activeTicket.id}`)
       .on(
@@ -137,6 +158,9 @@ export default function FloatingHelpButton() {
             if (prev.some((m) => m.id === payload.new.id)) return prev;
             return [...prev, payload.new];
           });
+          if (payload.new.admin_id && (!isOpen || isMinimized)) {
+            setUnreadCount((c) => c + 1);
+          }
           setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
         }
       )
@@ -157,10 +181,35 @@ export default function FloatingHelpButton() {
       )
       .subscribe();
 
+    // 3-second polling sync fallback
+    const interval = setInterval(async () => {
+      const { data } = await supabase
+        .from("ticket_replies")
+        .select("*")
+        .eq("ticket_id", activeTicket.id)
+        .order("created_at", { ascending: true });
+
+      if (data && data.length > 0) {
+        setMessages((prev) => {
+          if (data.length > prev.length) {
+            const newCount = data.length - prev.length;
+            const newItems = data.slice(prev.length);
+            if (newItems.some((m) => m.admin_id) && (!isOpen || isMinimized)) {
+              setUnreadCount((c) => c + newCount);
+            }
+            setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
+            return data;
+          }
+          return prev;
+        });
+      }
+    }, 3000);
+
     return () => {
       supabase.removeChannel(channel);
+      clearInterval(interval);
     };
-  }, [activeTicket?.id]);
+  }, [activeTicket?.id, isOpen, isMinimized]);
 
   // 4. File picker trigger
   const triggerFilePicker = (acceptType: "all" | "image" | "video" | "document") => {
@@ -212,9 +261,6 @@ export default function FloatingHelpButton() {
     setIsSending(true);
 
     const serialized = serializeChatMessage(inputText, stagedAttachments);
-    const textSnapshot = inputText.trim();
-    const attsSnapshot = [...stagedAttachments];
-
     setInputText("");
     setStagedAttachments([]);
 
@@ -253,7 +299,7 @@ export default function FloatingHelpButton() {
     await supabase.from("support_tickets").update({ status: "resolved" }).eq("id", activeTicket.id);
     setActiveTicket((prev: any) => ({ ...prev, status: "resolved" }));
     setResolvedNotice(true);
-    toast.success("Ticket marked as resolved");
+    toast.success("Ticket marked as solved");
   };
 
   // Only show after user is logged in, and never show on landing/login/auth or admin pages
@@ -279,12 +325,15 @@ export default function FloatingHelpButton() {
       {/* Floating Action Button */}
       <motion.button
         onClick={() => {
-          setIsOpen(!isOpen);
-          setIsMinimized(false);
+          if (isOpen) {
+            setIsOpen(false);
+          } else {
+            handleOpen();
+          }
         }}
         whileHover={{ scale: 1.08 }}
         whileTap={{ scale: 0.92 }}
-        aria-label="Open Live Support"
+        aria-label="Open Live Support Desk"
         style={{
           position: "fixed",
           bottom: 24,
@@ -303,23 +352,56 @@ export default function FloatingHelpButton() {
           border: "none",
         }}
       >
-        <span
-          style={{
-            position: "absolute",
-            top: 2,
-            right: 2,
-            width: 13,
-            height: 13,
-            borderRadius: "50%",
-            background: "#10b981",
-            border: "2px solid #fff",
-            boxShadow: "0 0 8px #10b981",
-          }}
-        />
+        {/* Pulsing online green dot if no unread messages */}
+        {unreadCount === 0 && (
+          <span
+            style={{
+              position: "absolute",
+              top: 2,
+              right: 2,
+              width: 12,
+              height: 12,
+              borderRadius: "50%",
+              background: "#10b981",
+              border: "2px solid #fff",
+              boxShadow: "0 0 8px #10b981",
+            }}
+          />
+        )}
+
+        {/* Glowing red unread badge when admin replied */}
+        {unreadCount > 0 && (
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: [1, 1.15, 1] }}
+            transition={{ repeat: Infinity, duration: 1.5 }}
+            style={{
+              position: "absolute",
+              top: -4,
+              right: -4,
+              minWidth: 22,
+              height: 22,
+              borderRadius: 11,
+              background: "#ef4444",
+              color: "#fff",
+              fontSize: 11,
+              fontWeight: 800,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "0 5px",
+              border: "2px solid #0f172a",
+              boxShadow: "0 0 12px rgba(239, 68, 68, 0.9)",
+            }}
+          >
+            {unreadCount}
+          </motion.div>
+        )}
+
         {isOpen ? <X size={26} strokeWidth={2.2} /> : <MessageSquare size={26} strokeWidth={2.2} />}
       </motion.button>
 
-      {/* Floating Chat Window */}
+      {/* Floating Chat Window with Customizable Sizing (Big or Small) */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -328,29 +410,37 @@ export default function FloatingHelpButton() {
               opacity: 1,
               y: 0,
               scale: 1,
-              height: isMinimized ? 64 : 540,
+              width: isMinimized
+                ? "min(340px, calc(100vw - 32px))"
+                : isBig
+                ? "min(760px, calc(100vw - 32px))"
+                : "min(400px, calc(100vw - 32px))",
+              height: isMinimized
+                ? 62
+                : isBig
+                ? "min(780px, calc(100vh - 120px))"
+                : 560,
             }}
             exit={{ opacity: 0, y: 30, scale: 0.95 }}
-            transition={{ duration: 0.25, ease: "easeOut" }}
+            transition={{ duration: 0.22, ease: "easeOut" }}
             style={{
               position: "fixed",
               bottom: 92,
               right: 24,
               zIndex: 9991,
-              width: "min(390px, calc(100vw - 32px))",
               background: "#121214",
-              borderRadius: 22,
+              borderRadius: 20,
               border: "1px solid rgba(255, 255, 255, 0.1)",
-              boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255,255,255,0.06)",
+              boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255,255,255,0.06)",
               display: "flex",
               flexDirection: "column",
               overflow: "hidden",
             }}
           >
-            {/* Header */}
+            {/* Header: Human-Made & Sizing Controls */}
             <div
               style={{
-                padding: "14px 18px",
+                padding: "12px 16px",
                 background: "linear-gradient(to bottom, #1a1a1f, #141417)",
                 borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
                 display: "flex",
@@ -365,8 +455,8 @@ export default function FloatingHelpButton() {
                     width: 36,
                     height: 36,
                     borderRadius: 10,
-                    background: "rgba(59, 130, 246, 0.2)",
-                    border: "1px solid rgba(59, 130, 246, 0.4)",
+                    background: "rgba(59, 130, 246, 0.18)",
+                    border: "1px solid rgba(59, 130, 246, 0.35)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -377,56 +467,111 @@ export default function FloatingHelpButton() {
                 </div>
                 <div>
                   <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                    <h4 style={{ fontSize: 14, fontWeight: 800, color: "#fff", margin: 0 }}>
+                    <h4 style={{ fontSize: 14, fontWeight: 700, color: "#fff", margin: 0 }}>
                       Live Support Desk
                     </h4>
-                    <span
+                    <div
                       style={{
-                        fontSize: 9,
-                        fontWeight: 800,
-                        padding: "2px 6px",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 4,
+                        padding: "2px 7px",
                         borderRadius: 100,
-                        background: "rgba(16, 185, 129, 0.15)",
-                        color: "#34d399",
-                        border: "1px solid rgba(16, 185, 129, 0.3)",
-                        textTransform: "uppercase",
+                        background: "rgba(16, 185, 129, 0.12)",
+                        border: "1px solid rgba(16, 185, 129, 0.25)",
                       }}
                     >
-                      HUMAN AGENT ONLINE
-                    </span>
+                      <span
+                        style={{
+                          width: 5,
+                          height: 5,
+                          borderRadius: "50%",
+                          background: "#10b981",
+                          boxShadow: "0 0 6px #10b981",
+                        }}
+                      />
+                      <span
+                        style={{
+                          fontSize: 9,
+                          fontWeight: 700,
+                          color: "#34d399",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.04em",
+                        }}
+                      >
+                        Online
+                      </span>
+                    </div>
                   </div>
-                  <span style={{ fontSize: 11, color: "rgba(255, 255, 255, 0.45)" }}>
-                    {activeTicket ? `Ticket #${activeTicket.id.slice(0, 8)} · Real Human Officer` : "Real Human Assistance"}
+                  <span style={{ fontSize: 11, color: "rgba(255, 255, 255, 0.5)" }}>
+                    {activeTicket ? `Ticket #${activeTicket.id.slice(0, 8)} · Support Team` : "Support Desk"}
                   </span>
                 </div>
               </div>
 
+              {/* Window Controls: Big/Small Toggle, Minimize, Close */}
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <button
+                  type="button"
+                  onClick={toggleWindowSize}
+                  style={{
+                    background: isBig ? "rgba(59, 130, 246, 0.2)" : "rgba(255, 255, 255, 0.06)",
+                    border: isBig ? "1px solid rgba(59, 130, 246, 0.4)" : "1px solid rgba(255, 255, 255, 0.12)",
+                    color: isBig ? "#60a5fa" : "rgba(255, 255, 255, 0.75)",
+                    cursor: "pointer",
+                    padding: "4px 8px",
+                    borderRadius: 6,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 4,
+                    fontSize: 10,
+                    fontWeight: 700,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.05em",
+                    transition: "all 0.15s ease",
+                  }}
+                  title={isBig ? "Switch to Compact View (Small)" : "Expand to Spacious View (Big)"}
+                >
+                  {isBig ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
+                  <span>{isBig ? "Compact" : "Expand"}</span>
+                </button>
+
+                <button
+                  type="button"
                   onClick={() => setIsMinimized(!isMinimized)}
                   style={{
-                    background: "transparent",
-                    border: "none",
-                    color: "rgba(255, 255, 255, 0.5)",
+                    background: "rgba(255, 255, 255, 0.06)",
+                    border: "1px solid rgba(255, 255, 255, 0.12)",
+                    color: "rgba(255, 255, 255, 0.75)",
                     cursor: "pointer",
-                    padding: 4,
+                    padding: "4px 6px",
+                    borderRadius: 6,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                   }}
-                  title={isMinimized ? "Expand" : "Minimize"}
+                  title={isMinimized ? "Restore Window" : "Minimize Window"}
                 >
-                  {isMinimized ? <Maximize2 size={16} /> : <Minimize2 size={16} />}
+                  <Minus size={14} />
                 </button>
+
                 <button
+                  type="button"
                   onClick={() => setIsOpen(false)}
                   style={{
-                    background: "transparent",
-                    border: "none",
-                    color: "rgba(255, 255, 255, 0.5)",
+                    background: "rgba(255, 255, 255, 0.06)",
+                    border: "1px solid rgba(255, 255, 255, 0.12)",
+                    color: "rgba(255, 255, 255, 0.75)",
                     cursor: "pointer",
-                    padding: 4,
+                    padding: "4px 6px",
+                    borderRadius: 6,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                   }}
-                  title="Close"
+                  title="Close Desk"
                 >
-                  <X size={17} />
+                  <X size={14} />
                 </button>
               </div>
             </div>
@@ -439,7 +584,7 @@ export default function FloatingHelpButton() {
                   style={{
                     flex: 1,
                     overflowY: "auto",
-                    padding: "16px 16px",
+                    padding: isBig ? "20px 24px" : "16px 16px",
                     display: "flex",
                     flexDirection: "column",
                     gap: 12,
@@ -464,25 +609,25 @@ export default function FloatingHelpButton() {
                     </div>
                   )}
 
-                  {/* Intro message */}
+                  {/* Intro message: Human-Made & Welcoming */}
                   <div
                     style={{
                       alignSelf: "flex-start",
-                      maxWidth: "85%",
-                      padding: "10px 14px",
+                      maxWidth: isBig ? "70%" : "85%",
+                      padding: "12px 16px",
                       borderRadius: "14px 14px 14px 2px",
-                      background: "#1e1e24",
+                      background: "#1a1a20",
                       border: "1px solid rgba(255, 255, 255, 0.08)",
                       color: "rgba(255, 255, 255, 0.9)",
                       fontSize: 13,
-                      lineHeight: 1.45,
+                      lineHeight: 1.5,
                     }}
                   >
-                    <p style={{ margin: 0, fontWeight: 600 }}>
-                      👋 Hello! You are directly connected with TradiFive's Human Operations Team.
+                    <p style={{ margin: 0, fontWeight: 600, color: "#fff" }}>
+                      👋 Hi! Welcome to TradiFive Support. How can we help you today?
                     </p>
-                    <span style={{ fontSize: 11, color: "rgba(255, 255, 255, 0.55)", marginTop: 4, display: "block" }}>
-                      Our real support staff is on desk. Send your messages, MT5 screenshots, videos, or documents below for personal assistance.
+                    <span style={{ fontSize: 11.5, color: "rgba(255, 255, 255, 0.6)", marginTop: 4, display: "block" }}>
+                      Feel free to message us with questions about your algo, MT5 setup, or account. You can also attach screenshots and files below.
                     </span>
                   </div>
 
@@ -496,7 +641,7 @@ export default function FloatingHelpButton() {
                         key={m.id || idx}
                         style={{
                           alignSelf: isUser ? "flex-end" : "flex-start",
-                          maxWidth: "85%",
+                          maxWidth: isBig ? "72%" : "85%",
                           display: "flex",
                           flexDirection: "column",
                           gap: 4,
@@ -535,7 +680,13 @@ export default function FloatingHelpButton() {
                                       <img
                                         src={att.url}
                                         alt={att.name}
-                                        style={{ width: "100%", maxHeight: 180, objectFit: "cover", display: "block" }}
+                                        style={{
+                                          width: "100%",
+                                          maxHeight: isBig ? 340 : 180,
+                                          objectFit: "contain",
+                                          display: "block",
+                                          background: "#050505",
+                                        }}
                                       />
                                       <span
                                         style={{
@@ -567,7 +718,11 @@ export default function FloatingHelpButton() {
                                       <video
                                         src={att.url}
                                         controls
-                                        style={{ width: "100%", maxHeight: 180, display: "block" }}
+                                        style={{
+                                          width: "100%",
+                                          maxHeight: isBig ? 320 : 180,
+                                          display: "block",
+                                        }}
                                       />
                                       <span
                                         style={{
@@ -629,10 +784,11 @@ export default function FloatingHelpButton() {
                             fontSize: 10,
                             color: "rgba(255, 255, 255, 0.4)",
                             alignSelf: isUser ? "flex-end" : "flex-start",
-                            paddingHorizontal: 4,
+                            paddingLeft: 4,
+                            paddingRight: 4,
                           }}
                         >
-                          {isUser ? "You" : "Human Support Officer"} ·{" "}
+                          {isUser ? "You" : "TradiFive Support"} ·{" "}
                           {new Date(m.created_at || Date.now()).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                         </span>
                       </div>
@@ -828,7 +984,7 @@ export default function FloatingHelpButton() {
                       value={inputText}
                       onChange={(e) => setInputText(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSendMessage()}
-                      placeholder="Type message to human support officer..."
+                      placeholder="Type your message here (Press Enter to send)..."
                       style={{
                         flex: 1,
                         background: "transparent",
