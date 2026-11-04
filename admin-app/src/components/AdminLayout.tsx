@@ -252,11 +252,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {!isEmbed && (
           <header className="h-14 sm:h-15 flex items-center justify-between px-4 sm:px-6 md:px-8 bg-[#121214]/95 backdrop-blur-md border-b border-white/[0.08] relative z-40 select-none shrink-0">
           <div className="flex items-center gap-2 min-w-0">
-            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-bold tracking-wider uppercase shrink-0">
-              <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
-              Tradifive
-            </span>
-            <ChevronRight size={13} className="text-neutral-600 shrink-0" />
             <h2 className="text-xs sm:text-sm font-semibold text-white tracking-wide truncate max-w-[160px] sm:max-w-xs">
               {pageName === "Auto Trade Admin" ? "Auto Trade Registry" : pageName}
             </h2>
