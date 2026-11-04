@@ -122,25 +122,26 @@ export function FreeDownloadsCompactBanner() {
               letterSpacing: "-0.01em",
             }}
           >
-            Free downloads
+            Free 3-Day Demo Trial
           </h4>
           <span
             style={{
-              background: "rgba(255, 255, 255, 0.08)",
-              color: "rgba(255, 255, 255, 0.8)",
+              background: "rgba(16, 185, 129, 0.12)",
+              border: "1px solid rgba(16, 185, 129, 0.25)",
+              color: "#34d399",
               fontSize: 10,
-              fontWeight: 700,
+              fontWeight: 800,
               padding: "2px 8px",
               borderRadius: 100,
               textTransform: "uppercase",
               letterSpacing: "0.08em",
             }}
           >
-            FiAlgo V1
+            3 Days Trial
           </span>
         </div>
         <p style={{ fontSize: 13.5, color: "rgba(255, 255, 255, 0.55)", margin: 0, fontWeight: 400 }}>
-          Test before you pay — no key, no account needed.
+          Test before you buy — 3 full days on MT5 demo accounts + Strategy Tester backtest pack. No key needed.
         </p>
       </div>
 
@@ -1820,17 +1821,34 @@ export function FreeTrialDownloadsSection() {
             <Download size={20} color="#ffffff" />
           </div>
 
-          <h3
-            style={{
-              fontSize: 22,
-              fontWeight: 800,
-              color: "#ffffff",
-              margin: "0 0 8px",
-              fontFamily: "'Outfit', sans-serif",
-            }}
-          >
-            Free backtest pack
-          </h3>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8, flexWrap: "wrap" }}>
+            <h3
+              style={{
+                fontSize: 22,
+                fontWeight: 800,
+                color: "#ffffff",
+                margin: 0,
+                fontFamily: "'Outfit', sans-serif",
+              }}
+            >
+              3-Day Demo Trial & Backtest Pack
+            </h3>
+            <span
+              style={{
+                background: "rgba(16, 185, 129, 0.12)",
+                border: "1px solid rgba(16, 185, 129, 0.25)",
+                color: "#34d399",
+                fontSize: 10,
+                fontWeight: 800,
+                padding: "3px 10px",
+                borderRadius: 100,
+                textTransform: "uppercase",
+                letterSpacing: "0.06em",
+              }}
+            >
+              3 Days Free Trial
+            </span>
+          </div>
           <p
             style={{
               fontSize: 14,
@@ -1839,12 +1857,12 @@ export function FreeTrialDownloadsSection() {
               lineHeight: 1.6,
             }}
           >
-            Run it in MT5 Strategy Tester — no key needed. Load the .set file in the Inputs tab to get the same report shown below.
+            Experience FIALGO V1 risk-free with our 3-day demo trial on MT5 demo accounts, or run historical tick simulations in Strategy Tester — full automated algorithm execution, no license key needed for trial.
           </p>
 
           {/* Download List Items (inner FAQ pill style) */}
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            {/* Demo Build Item */}
+            {/* 3-Day Demo Trial Build Item */}
             <button
               onClick={() => handleDownload("demo")}
               style={{
@@ -1872,11 +1890,16 @@ export function FreeTrialDownloadsSection() {
               }}
             >
               <div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "#ffffff", marginBottom: 3, letterSpacing: "0.02em" }}>
-                  FIALGO V1 - DEMO.ex5
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: "#ffffff", letterSpacing: "0.02em" }}>
+                    FIALGO V1 - 3 DAYS DEMO TRIAL.ex5
+                  </span>
+                  <span style={{ fontSize: 9.5, fontWeight: 800, padding: "2px 7px", borderRadius: 6, background: "rgba(16, 185, 129, 0.15)", border: "1px solid rgba(16, 185, 129, 0.3)", color: "#34d399", textTransform: "uppercase" }}>
+                    3 Days Free
+                  </span>
                 </div>
-                <div style={{ fontSize: 12, color: "rgba(255, 255, 255, 0.45)" }}>
-                  {downloadingDemo ? "Download initiated..." : "Free demo build · demo accounts only · no key needed"}
+                <div style={{ fontSize: 12, color: "rgba(255, 255, 255, 0.5)" }}>
+                  {downloadingDemo ? "Download initiated..." : "Full 3-day demo trial · Run live on MT5 demo accounts · No license key needed"}
                 </div>
               </div>
               <div
@@ -1923,11 +1946,16 @@ export function FreeTrialDownloadsSection() {
               }}
             >
               <div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "#ffffff", marginBottom: 3, letterSpacing: "0.02em" }}>
-                  FIALGO V1 - BACKTEST.ex5
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: "#ffffff", letterSpacing: "0.02em" }}>
+                    FIALGO V1 - STRATEGY TESTER BACKTEST.ex5
+                  </span>
+                  <span style={{ fontSize: 9.5, fontWeight: 800, padding: "2px 7px", borderRadius: 6, background: "rgba(59, 130, 246, 0.15)", border: "1px solid rgba(59, 130, 246, 0.3)", color: "#60a5fa", textTransform: "uppercase" }}>
+                    Backtest Pack
+                  </span>
                 </div>
-                <div style={{ fontSize: 12, color: "rgba(255, 255, 255, 0.45)" }}>
-                  {downloadingBacktest ? "Download initiated..." : "Strategy Tester only · no key needed"}
+                <div style={{ fontSize: 12, color: "rgba(255, 255, 255, 0.5)" }}>
+                  {downloadingBacktest ? "Download initiated..." : "Strategy Tester simulation pack · Load .set file preset · No key needed"}
                 </div>
               </div>
               <div
