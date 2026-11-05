@@ -146,6 +146,61 @@ export default function PrivacyPolicyPublic() {
           Under the Digital Personal Data Protection Act 2023 (India), GDPR, CCPA, and other regional frameworks, you hold the right to retrieve or purge your personal data. By accessing your Settings panel inside the user application, you can initiate a complete profile wipe. Upon request, all trading records, ledger integrations, and dashboard data will be expunged from primary server vaults within thirty (30) days.
         </p>
       </div>
+      {/* Section 06 - Google User Data Policy & OAuth 2.0 Compliance */}
+      <div className="border-t border-zinc-800/60 pt-8 mt-10 space-y-4">
+        <span className="font-mono text-[10px] text-indigo-400 block tracking-widest uppercase">Section 06</span>
+        <h2 className="text-xl md:text-2xl font-black text-white tracking-tight">Google API Services & OAuth 2.0 User Data Policy</h2>
+
+        <div className="bg-white/[0.01] border-l-2 border-indigo-500/30 pl-4 py-2.5 my-4 text-[13px] text-zinc-400 leading-relaxed italic">
+          <strong>Summary:</strong> When you use "Sign in with Google", we only request your primary email, name, and profile picture strictly for authentication. We never sell or share Google user data.
+        </div>
+
+        <p className="text-sm text-zinc-400 leading-relaxed">
+          Tradifive enables users to authenticate using Google OAuth 2.0 services ("Sign in with Google"). This section details our explicit policies regarding Google user data:
+        </p>
+
+        <ul className="space-y-3 pl-1 text-[13.5px] text-zinc-400">
+          <li className="flex items-start gap-2.5">
+            <span className="text-indigo-400 mt-1 select-none font-mono font-black">—</span>
+            <span><strong>Data Accessed & Collected:</strong> We access only basic Google profile information: your verified email address, full name, and avatar image URL provided by Google during sign-in.</span>
+          </li>
+          <li className="flex items-start gap-2.5">
+            <span className="text-indigo-400 mt-1 select-none font-mono font-black">—</span>
+            <span><strong>How Data Is Used:</strong> Google user data is strictly utilized to authenticate your identity, establish your unique Tradifive account profile, and securely persist your authorized software session.</span>
+          </li>
+          <li className="flex items-start gap-2.5">
+            <span className="text-indigo-400 mt-1 select-none font-mono font-black">—</span>
+            <span><strong>No Transfer, Resale, or Advertising:</strong> Tradifive does not sell, license, rent, or transfer Google user data to any third parties, brokers, data brokers, advertising networks, or external marketing entities under any circumstances.</span>
+          </li>
+          <li className="flex items-start gap-2.5">
+            <span className="text-indigo-400 mt-1 select-none font-mono font-black">—</span>
+            <span><strong>No Credit Evaluation or Automated Profiling:</strong> We do not use Google user data for creditworthiness assessments, lending decisions, or personalized targeted advertising.</span>
+          </li>
+          <li className="flex items-start gap-2.5">
+            <span className="text-indigo-400 mt-1 select-none font-mono font-black">—</span>
+            <span><strong>Revocation of Google Access:</strong> You may revoke Tradifive's access to your Google account at any time via your <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener noreferrer" className="text-indigo-400 underline">Google Account Security Permissions</a>. Upon revocation, you can also request total profile deletion via <a href="/delete-account" className="text-indigo-400 underline">https://www.tradifive.in/delete-account</a>.</span>
+          </li>
+          <li className="flex items-start gap-2.5">
+            <span className="text-indigo-400 mt-1 select-none font-mono font-black">—</span>
+            <span><strong>Limited Use Compliance:</strong> Tradifive's use and transfer to any other app of information received from Google APIs will adhere to the <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noopener noreferrer" className="text-indigo-400 underline font-medium">Google API Services User Data Policy</a>, including the Limited Use requirements.</span>
+          </li>
+        </ul>
+      </div>
+
+      {/* Section 07 - Contact Information */}
+      <div className="border-t border-zinc-800/60 pt-8 mt-10 space-y-4">
+        <span className="font-mono text-[10px] text-indigo-400 block tracking-widest uppercase">Section 07</span>
+        <h2 className="text-xl md:text-2xl font-black text-white tracking-tight">Contact Information & Privacy Officer</h2>
+        <p className="text-sm text-zinc-400">
+          If you have any questions, concerns, or requests regarding this Privacy Policy or how your data is handled, you may contact our dedicated Compliance & Privacy team:
+        </p>
+        <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-xl p-5 text-sm space-y-2 text-zinc-300">
+          <p><strong>Entity:</strong> TradiFive Technologies</p>
+          <p><strong>Contact Email:</strong> <a href="mailto:support@tradifive.in" className="text-indigo-400 underline">support@tradifive.in</a> / <a href="mailto:nikhilharake369@gmail.com" className="text-indigo-400 underline">nikhilharake369@gmail.com</a></p>
+          <p><strong>Headquarters:</strong> Belgaum, Karnataka, India - 591113</p>
+          <p><strong>Official Website:</strong> <a href="https://www.tradifive.in" className="text-indigo-400 underline">https://www.tradifive.in</a></p>
+        </div>
+      </div>
     </LegalLayout>
   );
 }
