@@ -49,15 +49,11 @@ jobs:
         run: |
           npx expo prebuild --platform android --clean --no-install
 
-      - name: Generate Release Signing Keystore
+      - name: Copy Permanent Release Keystore
         working-directory: mobile-app
         run: |
           mkdir -p android/app
-          keytool -genkeypair -v -storetype PKCS12 -keystore android/app/tradifive-release.keystore \
-            -alias tradifive \
-            -keyalg RSA -keysize 2048 -validity 10000 \
-            -storepass tradifive2026 -keypass tradifive2026 \
-            -dname "CN=TradiFive, OU=Mobile, O=TradiFive Technologies, L=Belgaum, ST=Karnataka, C=IN"
+          cp tradifive-release.keystore android/app/tradifive-release.keystore
 
       - name: Build Android App Bundle (.aab)
         working-directory: mobile-app/android
