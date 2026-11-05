@@ -55,11 +55,29 @@ export default function Login() {
     }
   }, [resendCooldown]);
 
-  // Handle email verification callback from verification link
+  // Handle email verification callback or OAuth error/return
   useEffect(() => {
     const verifiedParam = searchParams.get('verified');
+    const oauthError = searchParams.get('oauth_error');
     const hash = window.location.hash;
-    const isSignupCallback = verifiedParam === 'true' || hash.includes('type=signup') || hash.includes('confirmation_token');
+
+    if (oauthError) {
+      toast.error(`Google Login: ${decodeURIComponent(oauthError)}`, { duration: 10000 });
+      return;
+    }
+
+    if (hash.includes('error=')) {
+      const params = new URLSearchParams(hash.replace(/^#/, '?'));
+      const errorDesc = params.get('error_description') || params.get('error');
+      if (errorDesc) {
+        toast.error(`Login error: ${decodeURIComponent(errorDesc)}`, { duration: 10000 });
+        return;
+      }
+    }
+
+    // CRITICAL: Never sign out if returning from OAuth (OAuth may contain type=signup or access_token)
+    const isOAuth = hash.includes('access_token=') || searchParams.has('code');
+    const isSignupCallback = !isOAuth && (verifiedParam === 'true' || (hash.includes('type=signup') && !hash.includes('access_token=')) || hash.includes('confirmation_token'));
     if (isSignupCallback) {
       setIsLogin(true);
       setStep('auth');

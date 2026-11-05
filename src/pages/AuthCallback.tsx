@@ -35,6 +35,15 @@ export default function AuthCallback() {
     // Handle PKCE code exchange or implicit session reliably
     const handleWebAuth = async () => {
       try {
+        // Check for error in hash or query returned by OAuth provider
+        if (search.includes('error=') || hash.includes('error=')) {
+          const params = new URLSearchParams((search || hash).replace(/^#/, '?'));
+          const errorDesc = params.get('error_description') || params.get('error');
+          console.error('[OAuth Error]:', errorDesc);
+          navigate(`/login?oauth_error=${encodeURIComponent(errorDesc || 'Authentication failed')}`, { replace: true });
+          return;
+        }
+
         // 1. Check if session was already initialized by detectSessionInUrl
         let { data: { session } } = await supabase.auth.getSession();
 
