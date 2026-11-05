@@ -17,8 +17,9 @@ export default function AuthCallback() {
     const deepLink = `mobileapp://auth-callback${search}${hash}`;
     setDeepLinkTarget(deepLink);
 
-    // If on a mobile device or in-app browser, immediately redirect to native app
-    if (isMobileDevice) {
+    // Only redirect to native app if explicitly requested by the native mobile app
+    const isNativeAppSource = search.includes('source=mobileapp') || search.includes('mobileapp=true');
+    if (isMobileDevice && isNativeAppSource) {
       setStatus('Redirecting back to TradiFive App...');
       window.location.replace(deepLink);
 
@@ -30,34 +31,51 @@ export default function AuthCallback() {
       return () => clearTimeout(fallbackTimer);
     }
 
-    // Desktop web flow:
-    // Handle PKCE code exchange or implicit session
+    // Web flow (Desktop and Mobile Web):
+    // Handle PKCE code exchange or implicit session reliably
     const handleWebAuth = async () => {
       try {
-        if (search.includes('code=')) {
-          const urlParams = new URLSearchParams(search);
-          const code = urlParams.get('code');
-          if (code) {
-            const { error } = await supabase.auth.exchangeCodeForSession(code);
-            if (error) console.warn('[AuthCallback Web] PKCE code exchange error:', error.message);
-          }
+        // 1. Check if session was already initialized by detectSessionInUrl
+        let { data: { session } } = await supabase.auth.getSession();
+
+        // 2. If not immediately available, wait for onAuthStateChange or PKCE exchange (up to 4s)
+        if (!session && (search.includes('code=') || hash.includes('access_token='))) {
+          session = await new Promise((resolve) => {
+            const { data: { subscription } } = supabase.auth.onAuthStateChange((event, s) => {
+              if (s && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED')) {
+                subscription.unsubscribe();
+                resolve(s);
+              }
+            });
+
+            // Parallel PKCE manual fallback if needed
+            if (search.includes('code=')) {
+              const urlParams = new URLSearchParams(search);
+              const code = urlParams.get('code');
+              if (code) {
+                supabase.auth.exchangeCodeForSession(code).then(({ data }) => {
+                  if (data?.session) {
+                    subscription.unsubscribe();
+                    resolve(data.session);
+                  }
+                }).catch(() => {});
+              }
+            }
+
+            setTimeout(() => {
+              subscription.unsubscribe();
+              resolve(null);
+            }, 4000);
+          });
         }
 
-        const { data: { session } } = await supabase.auth.getSession();
         if (session) {
           sessionStorage.setItem('fresh_login', 'true');
           sessionStorage.setItem('fialgo_loaded', 'true');
           navigate('/home', { replace: true });
         } else {
-          // Listen for auth state change
-          const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            if (session) {
-              subscription.unsubscribe();
-              sessionStorage.setItem('fresh_login', 'true');
-              sessionStorage.setItem('fialgo_loaded', 'true');
-              navigate('/home', { replace: true });
-            }
-          });
+          console.warn('[AuthCallback Web] No session established, returning to login');
+          navigate('/login', { replace: true });
         }
       } catch (err) {
         console.error('[AuthCallback Web Error]:', err);
