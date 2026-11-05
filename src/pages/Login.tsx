@@ -97,17 +97,17 @@ export default function Login() {
       setIsLogin(location.state.mode !== 'signup');
     }
 
-    // Handle authentication state changes
+    // Check if user already has an active session on mount
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        navigate("/home", { replace: true });
+      }
+    });
+
+    // Handle authentication state changes (e.g. returning from OAuth redirect)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      // Only redirect automatically if they JUST signed in or registered
-      if (session && (event === 'SIGNED_IN' || event === 'USER_UPDATED')) {
-        // We check if this was a programmatic redirect or a fresh login
-        // If they just arrived at the page and were already logged in, we let them stay
-        const isFreshLogin = sessionStorage.getItem('fresh_login') === 'true';
-        if (isFreshLogin) {
-          sessionStorage.removeItem('fresh_login');
-          navigate("/home");
-        }
+      if (session && (event === 'SIGNED_IN' || event === 'USER_UPDATED' || event === 'INITIAL_SESSION')) {
+        navigate("/home", { replace: true });
       }
     });
 
