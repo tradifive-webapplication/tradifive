@@ -127,6 +127,7 @@ const App = () => {
                 <Route path="/" element={isElectron ? <Navigate to="/home" replace /> : <Landing />} />
                 <Route path="/download" element={<DownloadAppPublic />} />
                 <Route path="/privacy-policy" element={<PrivacyPolicyPublic />} />
+                <Route path="/privacy" element={<PrivacyPolicyPublic />} />
                 <Route path="/terms-of-service" element={<TermsOfServicePublic />} />
                 <Route path="/terms" element={<TermsOfServicePublic />} />
                 <Route path="/delete-account" element={<DeleteAccountPublic />} />
