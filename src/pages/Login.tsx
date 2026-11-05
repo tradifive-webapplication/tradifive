@@ -504,7 +504,7 @@ export default function Login() {
         provider: 'google',
         options: {
           // Only redirect to our own origin — prevents open redirect
-          redirectTo: `${window.location.origin}/home`,
+          redirectTo: `${window.location.origin}/auth-callback`,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',

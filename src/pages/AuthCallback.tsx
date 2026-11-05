@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 
 export default function AuthCallback() {
   const navigate = useNavigate();
@@ -45,12 +45,16 @@ export default function AuthCallback() {
 
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
+          sessionStorage.setItem('fresh_login', 'true');
+          sessionStorage.setItem('fialgo_loaded', 'true');
           navigate('/home', { replace: true });
         } else {
           // Listen for auth state change
           const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
             if (session) {
               subscription.unsubscribe();
+              sessionStorage.setItem('fresh_login', 'true');
+              sessionStorage.setItem('fialgo_loaded', 'true');
               navigate('/home', { replace: true });
             }
           });
