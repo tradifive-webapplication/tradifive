@@ -29,9 +29,6 @@ jobs:
         with:
           node-version: 20
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
       - name: Cache Gradle Packages
         uses: actions/cache@v4
         with:
@@ -50,12 +47,13 @@ jobs:
       - name: Prebuild Native Android Project
         working-directory: mobile-app
         run: |
-          npx expo prebuild --platform android --clean
+          npx expo prebuild --platform android --clean --no-install
 
       - name: Generate Release Signing Keystore
-        working-directory: mobile-app/android/app
+        working-directory: mobile-app
         run: |
-          keytool -genkeypair -v -storetype PKCS12 -keystore tradifive-release.keystore \
+          mkdir -p android/app
+          keytool -genkeypair -v -storetype PKCS12 -keystore android/app/tradifive-release.keystore \
             -alias tradifive \
             -keyalg RSA -keysize 2048 -validity 10000 \
             -storepass tradifive2026 -keypass tradifive2026 \
