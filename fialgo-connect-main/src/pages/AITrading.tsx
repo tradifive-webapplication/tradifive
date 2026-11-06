@@ -1453,7 +1453,7 @@ MagicNumber=789104
                   <button
                     type="button"
                     onClick={() => setActiveStep(2)}
-                    className="w-full sm:w-auto px-6 py-2.5 rounded-full text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:hover:bg-slate-200 dark:text-slate-900 inline-flex items-center justify-center gap-2 cursor-pointer shadow-xs active:scale-[0.985]"
+                    className="w-full sm:w-auto px-6 py-2.5 rounded-full text-xs font-bold bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white inline-flex items-center justify-center gap-2 cursor-pointer shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_3px_8px_rgba(37,99,235,0.35)] active:scale-[0.985] transition-all duration-150 border-none"
                   >
                     <span>Continue to Step 2: Download FiAlgo V1</span>
                     <ArrowRight size={14} />
@@ -1582,7 +1582,7 @@ MagicNumber=789104
                     <button
                       type="button"
                       onClick={() => setActiveStep(2)}
-                      className="w-full py-3 px-4 rounded-xl text-xs sm:text-sm font-bold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:hover:bg-slate-100 dark:text-slate-900 flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer active:scale-[0.99]"
+                      className="w-full py-3 px-6 rounded-full text-xs sm:text-sm font-bold bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white flex items-center justify-center gap-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_3px_8px_rgba(37,99,235,0.35)] transition-all duration-150 cursor-pointer active:scale-[0.985] border-none"
                     >
                       <span>Continue to Step 2: Download FiAlgo V1</span>
                       <ArrowRight size={14} />
@@ -1881,9 +1881,9 @@ MagicNumber=789104
                       type="button"
                       onClick={handleSubmitProof}
                       disabled={isSubmittingProof || !proofFile || !mt5Account.trim() || !depositConfirmed}
-                      className={`w-full py-3 px-4 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer text-center ${
+                      className={`w-full py-3 px-6 rounded-full text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all duration-150 cursor-pointer text-center ${
                         proofFile && mt5Account.trim() && depositConfirmed
-                          ? "bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/20 active:scale-[0.99]"
+                          ? "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_3px_8px_rgba(37,99,235,0.35)] active:scale-[0.985] border-none"
                           : "bg-slate-100 dark:bg-white/5 text-slate-400 cursor-not-allowed border border-slate-200/60 dark:border-white/5"
                       }`}
                     >
@@ -1954,7 +1954,7 @@ MagicNumber=789104
                       <button
                         type="button"
                         onClick={handleDownloadEA}
-                        className="w-full py-3 px-5 rounded-full text-xs sm:text-sm font-bold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer active:scale-[0.985]"
+                        className="w-full py-3 px-6 rounded-full text-xs sm:text-sm font-bold bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white transition-all duration-150 flex items-center justify-center gap-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_3px_8px_rgba(37,99,235,0.35)] cursor-pointer active:scale-[0.985] border-none"
                       >
                         <Download size={15} />
                         <span>Download FiAlgo V1 File (.ex5)</span>
@@ -2132,7 +2132,7 @@ MagicNumber=789104
               <button
                 type="button"
                 onClick={() => setActiveStep(3)}
-                className="w-full sm:w-auto px-7 py-3 rounded-full text-xs sm:text-sm font-bold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 inline-flex items-center justify-center gap-2 cursor-pointer shadow-xs active:scale-[0.985]"
+                className="w-full sm:w-auto px-7 py-3 rounded-full text-xs sm:text-sm font-bold bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white inline-flex items-center justify-center gap-2 cursor-pointer shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_3px_8px_rgba(37,99,235,0.35)] active:scale-[0.985] transition-all duration-150 border-none"
               >
                 <span>Continue to Step 3: Select Plan &amp; Pay</span>
                 <ArrowRight size={14} />
@@ -2205,7 +2205,7 @@ MagicNumber=789104
                   <button
                     type="button"
                     onClick={() => setActiveStep(2)}
-                    className="w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 inline-flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="w-full sm:w-auto px-5 py-2.5 rounded-full text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 inline-flex items-center justify-center gap-1.5 cursor-pointer active:scale-[0.985] transition-all"
                   >
                     <ArrowLeft size={13} />
                     <span>Back to Step 2 (Download)</span>
@@ -2214,7 +2214,7 @@ MagicNumber=789104
                   <button
                     type="button"
                     onClick={() => setActiveStep(4)}
-                    className="w-full sm:w-auto px-6 py-3 rounded-xl text-xs sm:text-sm font-bold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer"
+                    className="w-full sm:w-auto px-7 py-3 rounded-full text-xs sm:text-sm font-bold bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white flex items-center justify-center gap-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_3px_8px_rgba(37,99,235,0.35)] transition-all duration-150 cursor-pointer active:scale-[0.985] border-none"
                   >
                     <span>Proceed to Step 4: Activate License Key</span>
                     <ArrowRight size={14} />
@@ -2314,7 +2314,7 @@ MagicNumber=789104
                   <button
                     type="button"
                     onClick={() => setActiveStep(2)}
-                    className="w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 inline-flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="w-full sm:w-auto px-5 py-2.5 rounded-full text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 inline-flex items-center justify-center gap-1.5 cursor-pointer active:scale-[0.985] transition-all"
                   >
                     <ArrowLeft size={13} />
                     <span>Back to Step 2 (Download)</span>
@@ -2323,7 +2323,7 @@ MagicNumber=789104
                   <button
                     type="button"
                     onClick={() => setActiveStep(4)}
-                    className="w-full sm:w-auto px-6 py-3 rounded-xl text-xs sm:text-sm font-bold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer"
+                    className="w-full sm:w-auto px-7 py-3 rounded-full text-xs sm:text-sm font-bold bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white flex items-center justify-center gap-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_3px_8px_rgba(37,99,235,0.35)] transition-all duration-150 cursor-pointer active:scale-[0.985] border-none"
                   >
                     <span>Check License Key Status in Step 4</span>
                     <ArrowRight size={14} />
@@ -2738,7 +2738,7 @@ MagicNumber=789104
                     <button
                       type="button"
                       onClick={() => setActiveStep(2)}
-                      className="w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 inline-flex items-center justify-center gap-1.5 cursor-pointer"
+                      className="w-full sm:w-auto px-5 py-2.5 rounded-full text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 inline-flex items-center justify-center gap-1.5 cursor-pointer active:scale-[0.985] transition-all"
                     >
                       <ArrowLeft size={13} />
                       <span>Back to Step 2 (Download)</span>
@@ -2748,9 +2748,9 @@ MagicNumber=789104
                       type="button"
                       onClick={handleSubmitPaymentRequest}
                       disabled={isSubmittingPayment || !paymentUtr.trim() || !paymentProofFile}
-                      className={`w-full sm:w-auto px-6 py-3 rounded-xl text-xs sm:text-sm font-bold inline-flex items-center justify-center gap-2 cursor-pointer shadow-xs transition-all active:scale-[0.99] ${
+                      className={`w-full sm:w-auto px-7 py-3 rounded-full text-xs sm:text-sm font-bold inline-flex items-center justify-center gap-2 cursor-pointer transition-all duration-150 active:scale-[0.985] ${
                         paymentUtr.trim() && paymentProofFile
-                          ? "bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/20"
+                          ? "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_3px_8px_rgba(37,99,235,0.35)] border-none"
                           : "bg-slate-100 text-slate-400 dark:bg-white/5 dark:text-slate-500 cursor-not-allowed border border-slate-200/60 dark:border-white/5"
                       }`}
                     >
@@ -3175,7 +3175,7 @@ MagicNumber=789104
                             <button
                               type="button"
                               onClick={() => handleCopyKey(activeKey)}
-                              className="px-4 py-2 rounded-lg text-xs font-bold bg-slate-900 text-white dark:bg-white dark:text-slate-900 hover:opacity-90 inline-flex items-center gap-1.5 cursor-pointer shadow-xs transition-all active:scale-[0.99]"
+                              className="px-5 py-2 rounded-full text-xs font-bold bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white inline-flex items-center gap-1.5 cursor-pointer shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_2px_6px_rgba(37,99,235,0.3)] transition-all duration-150 active:scale-[0.985] border-none"
                             >
                               {copiedKey ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
                               <span>{copiedKey ? "Copied" : "Copy Key"}</span>
@@ -3183,7 +3183,7 @@ MagicNumber=789104
                             <button
                               type="button"
                               onClick={handleDownloadEA}
-                              className="px-3.5 py-2 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/15 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-white/10 inline-flex items-center gap-1.5 cursor-pointer shadow-xs transition-colors"
+                              className="px-4 py-2 rounded-full text-xs font-semibold bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/15 text-slate-800 dark:text-slate-200 border border-slate-200/80 dark:border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)] inline-flex items-center gap-1.5 cursor-pointer transition-all duration-150 active:scale-[0.985]"
                               title="Download FiAlgo Expert Advisor (.ex5)"
                             >
                               <Download size={14} />
@@ -3317,7 +3317,7 @@ MagicNumber=789104
                 <button
                   type="button"
                   onClick={handleGoToDashboard}
-                  className="w-full py-3.5 px-5 rounded-xl text-xs sm:text-sm font-bold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:hover:bg-slate-200 dark:text-slate-900 flex items-center justify-center gap-2 cursor-pointer shadow-xs transition-all active:scale-[0.99]"
+                  className="w-full py-3.5 px-6 rounded-full text-xs sm:text-sm font-bold bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white flex items-center justify-center gap-2 cursor-pointer shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_4px_12px_rgba(37,99,235,0.4)] transition-all duration-150 active:scale-[0.985] border-none"
                 >
                   <span>Open AutoTrade Dashboard</span>
                   <ArrowRight size={15} />

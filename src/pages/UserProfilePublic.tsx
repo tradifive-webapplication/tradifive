@@ -961,10 +961,11 @@ export default function UserProfilePublic() {
                     {/* Follow button */}
                     <button
                       onClick={() => profile?.id && toggleFollowUser(profile.id, profile.display_name)}
-                      className={`flex items-center justify-center gap-1.5 px-5 py-2 rounded-full text-[12px] font-bold whitespace-nowrap transition-all duration-300 border-2 active:scale-95 ${followedUsers[profile?.id]
-                          ? 'bg-white dark:bg-[#1E1E1E] text-slate-700 dark:text-[#EEE] border-white dark:border-white/5 shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),_0_0_0_2px_#E7E7E7] dark:shadow-none'
-                          : 'bg-gradient-to-b from-[#60A5FA] to-[#3B82F6] dark:bg-none dark:bg-[#1E1E1E] text-white border-[#93C5FD] dark:border-[#3B82F6] shadow-[0_4px_7px_-5px_rgba(59,130,246,0.25),_0_0_0_2px_#3B82F6] dark:shadow-none'
-                        }`}
+                      className={`flex items-center justify-center gap-1.5 px-5 py-2 rounded-full text-[12px] font-bold whitespace-nowrap transition-all duration-150 active:scale-[0.985] ${
+                        followedUsers[profile?.id]
+                          ? "bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 text-slate-700 dark:text-slate-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)]"
+                          : "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_2px_6px_rgba(37,99,235,0.3)] border-none"
+                      }`}
                     >
                       {followedUsers[profile?.id] ? <><UserCheck size={13} /> Following</> : (hasRequested ? <><Clock size={13} /> Requested</> : <><UserPlus size={13} /> Follow</>)}
                     </button>
@@ -972,7 +973,7 @@ export default function UserProfilePublic() {
                     {/* Message button */}
                     <button
                       onClick={handleStartConversation}
-                      className="flex items-center justify-center gap-1.5 px-5 py-2 rounded-full bg-white dark:bg-[#1E1E1E] text-[#393939] dark:text-[#E2E8F0] text-[12px] font-bold whitespace-nowrap transition-all border-2 border-white dark:border-white/5 shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),_0_0_0_2px_#E7E7E7] dark:shadow-none active:scale-95"
+                      className="flex items-center justify-center gap-1.5 px-5 py-2 rounded-full bg-white dark:bg-[#1E1E1E] text-slate-700 dark:text-slate-200 text-[12px] font-bold whitespace-nowrap transition-all duration-150 border border-slate-200/80 dark:border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.6),0_1px_3px_rgba(0,0,0,0.05)] active:scale-[0.985]"
                     >
                       <Mail size={13} /> Message
                     </button>
@@ -985,7 +986,7 @@ export default function UserProfilePublic() {
                     )}
 
                     {/* More button */}
-                    <button className="p-2 rounded-full bg-white dark:bg-[#1E1E1E] text-[#393939] dark:text-[#E2E8F0] border-2 border-white dark:border-white/5 shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),_0_0_0_2px_#E7E7E7] dark:shadow-none active:scale-95 transition-all">
+                    <button className="p-2 rounded-full bg-white dark:bg-[#1E1E1E] text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.6),0_1px_3px_rgba(0,0,0,0.05)] active:scale-[0.985] transition-all duration-150">
                       <MoreHorizontal size={15} />
                     </button>
                   </div>
@@ -1396,10 +1397,11 @@ export default function UserProfilePublic() {
                         {/* Follow Button */}
                         <button
                           onClick={() => toggleFollowUser(person.id, displayName)}
-                          className={`shrink-0 flex items-center justify-center px-4 py-2.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider transition-all duration-300 border-2 active:scale-95 ${isFollowing
-                              ? 'bg-gradient-to-b from-[#F4F4F4]/50 to-[#FFFFFF]/60 dark:from-[#252528]/40 dark:to-[#1A1A1C]/50 text-slate-500 dark:text-[#999] border-slate-200 dark:border-white/5'
-                              : 'bg-white dark:bg-[#1E1E1E] text-[#393939] dark:text-[#E2E8F0] border-white dark:border-white/5 shadow-[0_4px_7px_-5px_rgba(0,0,0,0.1),_0_0_0_2px_#E7E7E7] dark:shadow-none'
-                            }`}
+                          className={`shrink-0 flex items-center justify-center px-4 py-1.5 rounded-full text-[11px] font-bold tracking-wider transition-all duration-150 active:scale-[0.985] ${
+                            isFollowing
+                              ? "bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 text-slate-500 dark:text-slate-400 shadow-[inset_0_1px_0_rgba(255,255,255,0.5)]"
+                              : "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_2px_5px_rgba(37,99,235,0.3)] border-none"
+                          }`}
                         >
                           {isFollowing ? 'Following' : 'Follow'}
                         </button>

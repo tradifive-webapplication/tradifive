@@ -23,7 +23,7 @@ export function FollowButton({
             <button
                 disabled={disabled}
                 onClick={onToggleFollow}
-                className={`bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 text-[10px] font-black uppercase tracking-wider px-3.5 py-1.5 rounded-full flex items-center justify-center gap-1 shrink-0 ${disabled ? 'cursor-default' : 'cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors'} ${className}`}
+                className={`bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-500 dark:text-slate-400 border border-slate-200/80 dark:border-white/10 text-[10.5px] font-bold uppercase tracking-wider px-4 py-1.5 rounded-full shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] flex items-center justify-center gap-1 shrink-0 transition-all duration-150 active:scale-[0.985] ${disabled ? 'cursor-default' : 'cursor-pointer'} ${className}`}
             >
                 {followingText}
             </button>
@@ -34,9 +34,9 @@ export function FollowButton({
         <button
             disabled={disabled}
             onClick={onToggleFollow}
-            className={`bg-gradient-to-b from-[#60A5FA] to-[#3B82F6] dark:bg-none dark:bg-[#3B82F6] text-white border border-[#93C5FD] dark:border-[#3B82F6] text-[10px] font-black uppercase tracking-wider px-3.5 py-1.5 rounded-full hover:scale-[1.03] transition-transform shrink-0 flex items-center justify-center gap-1 ${className}`}
+            className={`bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white text-[10.5px] font-bold uppercase tracking-wider px-4 py-1.5 rounded-full shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_2px_5px_rgba(37,99,235,0.3)] border-none transition-all duration-150 active:scale-[0.985] shrink-0 flex items-center justify-center gap-1.5 cursor-pointer ${className}`}
         >
-            <IconlyAddUser set="curved" primaryColor="currentColor" size={11} /> {text}
+            <IconlyAddUser set="curved" primaryColor="currentColor" size={12} /> {text}
         </button>
     );
 }

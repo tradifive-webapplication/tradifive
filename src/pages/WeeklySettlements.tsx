@@ -409,7 +409,7 @@ export default function WeeklySettlements() {
                   <button
                     type="button"
                     onClick={() => handleOpenPayment(currentSettlement)}
-                    className="h-11 px-6 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white text-xs font-bold transition-all shadow-md shadow-blue-500/25 flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap"
+                    className="h-11 px-7 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white text-xs font-bold transition-all duration-150 active:scale-[0.985] shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_3px_8px_rgba(37,99,235,0.35)] flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap border-none"
                   >
                     <ArrowUpRight size={15} />
                     <span>Pay Now ({curr}{currentSettlement.amount_payable.toFixed(0)})</span>
@@ -452,11 +452,7 @@ export default function WeeklySettlements() {
                 <button
                   key={f.id}
                   onClick={() => setSelectedStatusFilter(f.id)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
-                    selectedStatusFilter === f.id
-                      ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold shadow-xs"
-                      : "bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-600 dark:text-slate-300"
-                  }`}
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-150 active:scale-[0.985] cursor-pointer ${selectedStatusFilter === f.id ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_2px_4px_rgba(0,0,0,0.15)]" : "bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-600 dark:text-slate-300 border border-slate-200/50 dark:border-white/5"}`}
                 >
                   {f.label}
                 </button>
@@ -529,7 +525,7 @@ export default function WeeklySettlements() {
                           <button
                             type="button"
                             onClick={() => handleOpenDetails(s)}
-                            className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 text-slate-700 dark:text-slate-300 text-xs font-semibold cursor-pointer transition-colors"
+                            className="px-3.5 py-1 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 text-slate-700 dark:text-slate-300 border border-slate-200/60 dark:border-white/10 text-xs font-semibold cursor-pointer transition-all duration-150 active:scale-[0.985]"
                           >
                             View
                           </button>
@@ -538,7 +534,7 @@ export default function WeeklySettlements() {
                             <button
                               type="button"
                               onClick={() => handleOpenPayment(s)}
-                              className="px-3 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold cursor-pointer transition-colors shadow-xs"
+                              className="px-3.5 py-1 rounded-full bg-blue-600 hover:bg-blue-500 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_2px_4px_rgba(37,99,235,0.3)] text-xs font-bold cursor-pointer transition-all duration-150 active:scale-[0.985] border-none"
                             >
                               Pay
                             </button>
@@ -628,7 +624,7 @@ export default function WeeklySettlements() {
                         <button
                           type="button"
                           onClick={() => handleOpenPayment(s)}
-                          className="px-4 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-bold shadow-xs"
+                          className="px-4 py-1.5 rounded-full bg-blue-600 hover:bg-blue-500 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_2px_4px_rgba(37,99,235,0.3)] text-xs font-bold cursor-pointer transition-all duration-150 active:scale-[0.985] border-none"
                         >
                           Pay Now
                         </button>

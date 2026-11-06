@@ -3080,7 +3080,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
             <button
               type="button"
               onClick={() => setShowWithdrawalModal(true)}
-              className="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white text-xs font-bold transition-all shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full py-2.5 px-5 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white text-xs font-bold transition-all duration-150 active:scale-[0.985] shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_3px_8px_rgba(37,99,235,0.35)] flex items-center justify-center gap-2 cursor-pointer border-none"
             >
               <ArrowUpRight size={14} />
               <span>Request Weekly Withdrawal / Settle</span>
@@ -3088,7 +3088,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
             <button
               type="button"
               onClick={() => setShowSettlementModal(true)}
-              className="w-full py-2 px-4 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 text-xs font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full py-2.5 px-5 rounded-full bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 text-xs font-semibold border border-slate-200/60 dark:border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_1px_3px_rgba(0,0,0,0.05)] transition-all duration-150 active:scale-[0.985] flex items-center justify-center gap-2 cursor-pointer"
             >
               <QrCode size={13} className="text-slate-400" />
               <span>Remit Platform Share (Crypto / UPI)</span>
@@ -3174,7 +3174,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
 
             <button
               onClick={() => setShowSettlementModal(true)}
-              className="inline-flex items-center gap-1.5 h-[34px] px-3.5 rounded-[12px] border border-blue-600 bg-blue-600 text-white text-[11px] font-bold hover:bg-blue-700 self-start sm:self-auto transition-all cursor-pointer shadow-xs"
+              className="inline-flex items-center gap-1.5 h-[36px] px-4 rounded-full bg-blue-600 hover:bg-blue-500 text-white text-[11.5px] font-bold shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_2px_6px_rgba(37,99,235,0.3)] self-start sm:self-auto transition-all duration-150 active:scale-[0.985] cursor-pointer border-none"
             >
               <Upload size={13} className="text-white" />
               <span>Upload Settlement Proof</span>
@@ -3768,7 +3768,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
                 <button
                   type="button"
                   onClick={handleSendWhatsAppWithdrawal}
-                  className="w-full py-3 px-4 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] active:scale-[0.99] text-white text-xs font-bold transition-all shadow-md shadow-emerald-500/20 flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full py-3 px-5 rounded-full bg-gradient-to-r from-[#22c55e] to-[#16a34a] hover:from-[#16a34a] hover:to-[#15803d] text-white text-xs font-bold transition-all duration-150 active:scale-[0.985] shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_3px_8px_rgba(34,197,94,0.35)] flex items-center justify-center gap-2 cursor-pointer border-none"
                 >
                   <Phone size={15} />
                   <span>Send Request to WhatsApp Finance Desk</span>

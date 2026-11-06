@@ -1111,7 +1111,7 @@ export default function Discover() {
                                                 <div className="flex items-center gap-2">
                                                     <button
                                                         onClick={() => setDetailsModalProduct(product)}
-                                                        className="px-3 py-2 rounded-xl border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 text-slate-700 dark:text-slate-200 text-xs font-bold transition-all cursor-pointer flex items-center gap-1 shadow-sm"
+                                                        className="px-4 py-2 rounded-full border border-slate-200/80 dark:border-white/10 bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 text-xs font-bold transition-all duration-150 active:scale-[0.985] cursor-pointer flex items-center gap-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
                                                     >
                                                         <Eye size={13} />
                                                         <span>Details</span>
@@ -1127,7 +1127,7 @@ export default function Discover() {
                                                                 const randomHex = Math.random().toString(36).substring(2, 6).toUpperCase();
                                                                 setGeneratedLicenseKey(isFiAlgo ? `FIALGO-V1-${randomHex}-${Date.now().toString().slice(-4)}` : `TRDF-${prefix}-${randomHex}-${Date.now().toString().slice(-4)}`);
                                                             }}
-                                                            className="px-3.5 py-2 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-bold hover:bg-emerald-500/20 transition-all cursor-pointer flex items-center gap-1.5 shadow-sm"
+                                                            className="px-4 py-2 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-bold hover:bg-emerald-500/20 transition-all duration-150 active:scale-[0.985] cursor-pointer flex items-center gap-1.5 shadow-sm"
                                                         >
                                                             <Check size={13} strokeWidth={3} />
                                                             <span>Active</span>
@@ -1135,7 +1135,7 @@ export default function Discover() {
                                                     ) : (
                                                         <button
                                                             onClick={() => handlePurchase(product)}
-                                                            className="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-black shadow-md shadow-blue-500/25 transition-all active:scale-95 flex items-center gap-1 cursor-pointer"
+                                                            className="px-4 py-2 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white text-xs font-bold shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_2px_6px_rgba(37,99,235,0.3)] transition-all duration-150 active:scale-[0.985] flex items-center gap-1.5 cursor-pointer border-none"
                                                         >
                                                             <span>Buy</span>
                                                             <ArrowRight size={13} strokeWidth={2.5} />
@@ -1327,7 +1327,7 @@ export default function Discover() {
                                                 setDetailsModalProduct(null);
                                                 handlePurchase(prod);
                                             }}
-                                            className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-black shadow-md shadow-blue-500/25 transition-all active:scale-95 flex items-center gap-2 cursor-pointer"
+                                            className="px-6 py-2.5 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white text-xs font-bold shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_3px_8px_rgba(37,99,235,0.35)] transition-all duration-150 active:scale-[0.985] flex items-center gap-2 cursor-pointer border-none"
                                         >
                                             <span>Buy License Now</span>
                                             <ArrowRight size={14} strokeWidth={2.5} />

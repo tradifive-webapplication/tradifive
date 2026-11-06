@@ -1239,10 +1239,9 @@ export default function Home() {
                                                             setCustomizeActiveTab('watchlist');
                                                             setShowCustomizeModal(true);
                                                         }}
-                                                        className="px-6 py-2 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-extrabold text-[11px] uppercase tracking-wider transition-all shadow-sm hover:shadow active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer select-none"
-                                                    >
-                                                        <Plus size={13} strokeWidth={2.5} />
-                                                        <span>+ ADD</span>
+                                                        className="px-6 py-2.5 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-bold text-xs tracking-wide transition-all duration-150 shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_2px_6px_rgba(37,99,235,0.3)] active:scale-[0.985] flex items-center justify-center gap-1.5 cursor-pointer select-none border-none">
+                                                        <Plus size={13} strokeWidth={2.5} />
+                                                        <span>Add Pair</span>
                                                     </button>
                                                 </div>
                                             ) : (
