@@ -393,7 +393,7 @@ function Hero({ onStart, onSignIn }: { onStart: () => void; onSignIn: () => void
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.1 }}
               className="hero-title"
-              style={{ fontFamily: "'Outfit', 'Inter', sans-serif", fontSize: "clamp(28px, 4.5vw, 50px)", fontWeight: 900, lineHeight: 1.15, letterSpacing: "-0.04em", marginTop: -8, marginBottom: 20, color: "#fff" }}
+              style={{ fontSize: "clamp(28px, 4.5vw, 50px)", fontWeight: 900, lineHeight: 1.15, letterSpacing: "-0.04em", marginTop: -8, marginBottom: 20, color: "#fff" }}
             >
               <BlurText
                 text={"The Ultimate AI Ecosystem\nfor Modern Traders."}
@@ -713,8 +713,7 @@ function HowItWorks() {
                       maxWidth: isMobile ? "100%" : 400,
                       background: "#121214", borderRadius: 24, padding: isMobile ? 20 : 32,
                       border: "1px solid rgba(255,255,255,0.08)",
-                      boxShadow: `inset 0 1px 0 0 rgba(255,255,255,0.05), 0 20px 40px rgba(0,0,0,0.5), 0 0 40px ${step.colorBg}`,
-                    }}
+                      boxShadow: `inset 0 1px 0 0 rgba(255,255,255,0.05), 0 20px 40px rgba(0,0,0,0.5), 0 0 40px ${step.colorBg}` }}
                   >
                     <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 12 : 16, marginBottom: isMobile ? 14 : 20 }}>
                       <div style={{
@@ -723,8 +722,7 @@ function HowItWorks() {
                         border: `1.5px solid ${step.colorBorder}`,
                         display: "flex", alignItems: "center", justifyContent: "center",
                         color: step.color,
-                        boxShadow: `0 0 20px ${step.colorBg}`,
-                      }}>
+                        boxShadow: `0 0 20px ${step.colorBg}` }}>
                         {step.icon}
                       </div>
                       <div>
@@ -835,8 +833,7 @@ function PhoneMockup({ screen }: { screen: any }) {
       position: "relative",
       overflow: "hidden",
       backdropFilter: "blur(10px)",
-      flexShrink: 0,
-    }}>
+      flexShrink: 0 }}>
       {/* Notch */}
       <div style={{ position: "absolute", top: 14, left: "50%", transform: "translateX(-50%)", width: 80, height: 22, background: "#000", borderRadius: 20, zIndex: 10, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
         <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#1a1a2e", border: "1px solid rgba(255,255,255,0.05)" }} />
@@ -973,8 +970,7 @@ function Pricing({ onStart }: { onStart: () => void }) {
                 boxShadow: pricingCategory === "autotrade" ? "0 4px 14px rgba(37, 99, 235, 0.4)" : "none",
                 display: "inline-flex",
                 alignItems: "center",
-                gap: 8,
-              }}
+                gap: 8 }}
             >
               <Zap size={14} />
               <span>FiAlgo V1 AutoTrade Licenses (₹1L & ₹10K)</span>
@@ -994,8 +990,7 @@ function Pricing({ onStart }: { onStart: () => void }) {
                 color: pricingCategory === "platform" ? "#fff" : "rgba(255, 255, 255, 0.6)",
                 display: "inline-flex",
                 alignItems: "center",
-                gap: 8,
-              }}
+                gap: 8 }}
             >
               <ShieldCheck size={14} />
               <span>Platform Membership (Journal & AI Coach)</span>
@@ -1018,8 +1013,7 @@ function Pricing({ onStart }: { onStart: () => void }) {
                   border: "none",
                   boxShadow: "none",
                   transition: "all 0.3s ease",
-                  cursor: "pointer",
-                }}
+                  cursor: "pointer" }}
                 onClick={() => setEnterpriseExpanded(!enterpriseExpanded)}
               >
                 {/* FAQ Header Row */}
@@ -1200,8 +1194,7 @@ function Pricing({ onStart }: { onStart: () => void }) {
                               alignItems: "center",
                               gap: 8,
                               boxShadow: "0 4px 14px rgba(37, 99, 235, 0.35)",
-                              transition: "transform 0.15s ease",
-                            }}
+                              transition: "transform 0.15s ease" }}
                             onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.02)")}
                             onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
                           >
@@ -1225,8 +1218,7 @@ function Pricing({ onStart }: { onStart: () => void }) {
                   border: "none",
                   boxShadow: "none",
                   transition: "all 0.3s ease",
-                  cursor: "pointer",
-                }}
+                  cursor: "pointer" }}
                 onClick={() => setPerformanceExpanded(!performanceExpanded)}
               >
                 {/* FAQ Header Row */}
@@ -1407,8 +1399,7 @@ function Pricing({ onStart }: { onStart: () => void }) {
                               alignItems: "center",
                               gap: 8,
                               boxShadow: "0 4px 14px rgba(5, 150, 105, 0.35)",
-                              transition: "transform 0.15s ease",
-                            }}
+                              transition: "transform 0.15s ease" }}
                             onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.02)")}
                             onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
                           >
@@ -1432,8 +1423,7 @@ function Pricing({ onStart }: { onStart: () => void }) {
                   border: "none",
                   boxShadow: "none",
                   transition: "all 0.3s ease",
-                  cursor: "pointer",
-                }}
+                  cursor: "pointer" }}
                 onClick={() => setComparisonTableExpanded(!comparisonTableExpanded)}
               >
                 {/* FAQ Header Row */}
@@ -1600,8 +1590,7 @@ function Pricing({ onStart }: { onStart: () => void }) {
                     fontSize: 12.5,
                     fontWeight: 700,
                     cursor: "pointer",
-                    transition: "all 0.2s",
-                  }}
+                    transition: "all 0.2s" }}
                 >
                   Start 3-Day Free Demo Trial (.ex5)
                 </button>
@@ -2303,8 +2292,7 @@ export default function TradiFive() {
             borderRadius: 12,
             fontWeight: 600,
             fontSize: 15,
-            textDecoration: 'none',
-          }}
+            textDecoration: 'none' }}
         >
           Open App
         </a>

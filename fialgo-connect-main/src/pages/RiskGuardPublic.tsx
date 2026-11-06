@@ -95,10 +95,9 @@ export default function RiskGuardPublic() {
   const handleStart = () => navigate("/login");
 
   return (
-    <div style={{ background: "#02040a", minHeight: "100vh", color: "#fff", fontFamily: "'Inter', sans-serif" }}>
+    <div style={{ background: "#02040a", minHeight: "100vh", color: "#fff" }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-        * { box-sizing: border-box; }
+                * { box-sizing: border-box; }
         @media (max-width: 768px) {
           .rg-hero { grid-template-columns: 1fr !important; }
           .rg-steps { grid-template-columns: 1fr 1fr !important; }

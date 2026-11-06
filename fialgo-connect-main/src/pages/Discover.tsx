@@ -530,7 +530,7 @@ export default function Discover() {
                         <div className="flex items-stretch gap-6 overflow-x-auto scrollbar-hide">
                             <div className="flex items-center gap-2 text-slate-800 dark:text-slate-200 font-extrabold text-base shrink-0 select-none py-3 pr-2">
                                 <IconlyDiscovery set="curved" primaryColor="currentColor" size={20} className="text-slate-800 dark:text-slate-200" stroke="bold" />
-                                <span className="tracking-tight text-[16px] font-black" style={{ fontFamily: "'Outfit', sans-serif" }}>Discover</span>
+                                <span className="tracking-tight text-[16px] font-black" >Discover</span>
                             </div>
                             <div className="flex items-stretch gap-1 select-none pt-1">
                                 {CATEGORIES.map(category => {
@@ -610,11 +610,11 @@ export default function Discover() {
                     {!searchQuery && (
                         <div className="w-full flex justify-center relative select-none">
                             <style>
-                                {`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap');`}
+                                {``}
                             </style>
                             {activeTab === "Marketplace" ? (
                                 <div className="w-full max-w-[1400px] mx-auto px-4 md:px-8 lg:px-12 py-8 md:py-12 relative z-10">
-                                    <h1 className="capitalize text-[32px] md:text-[48px] text-[#060607] dark:text-[#F2F3F5] leading-[1.05] mb-4 tracking-[-0.03em]" style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 900 }}>
+                                    <h1 className="capitalize text-[32px] md:text-[48px] text-[#060607] dark:text-[#F2F3F5] leading-[1.05] mb-4 tracking-[-0.03em]" style={{ fontWeight: 900 }}>
                                         Algorithm <br />Marketplace
                                     </h1>
                                     <p className="text-base md:text-[17px] text-[#4E5058] dark:text-[#B5BAC1] max-w-xl leading-relaxed font-medium">
@@ -623,7 +623,7 @@ export default function Discover() {
                                 </div>
                             ) : (
                                 <div className="w-full max-w-[1400px] mx-auto px-4 md:px-8 lg:px-12 py-8 md:py-12 relative z-10">
-                                    <h1 className="capitalize text-[32px] md:text-[48px] text-[#060607] dark:text-[#F2F3F5] leading-[1.05] mb-4 tracking-[-0.03em]" style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 900 }}>
+                                    <h1 className="capitalize text-[32px] md:text-[48px] text-[#060607] dark:text-[#F2F3F5] leading-[1.05] mb-4 tracking-[-0.03em]" style={{ fontWeight: 900 }}>
                                         Find your community <br />on Tradifive
                                     </h1>
                                     <p className="text-base md:text-[17px] text-[#4E5058] dark:text-[#B5BAC1] max-w-xl leading-relaxed font-medium">

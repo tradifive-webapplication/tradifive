@@ -294,7 +294,7 @@ Please verify and process my remittance. Thank you!`;
 
               <h1
                 className="text-[24px] sm:text-[26px] font-extrabold text-slate-900 dark:text-white tracking-tight"
-                style={{ fontFamily: "'Inter', sans-serif" }}
+                
               >
                 Partner &amp; Referral Program
               </h1>
@@ -340,7 +340,7 @@ Please verify and process my remittance. Thank you!`;
             <div>
               <h3
                 className="text-[20px] sm:text-[22px] xl:text-[24px] font-bold text-slate-900 dark:text-white tracking-tight leading-none whitespace-nowrap mb-1"
-                style={{ fontFamily: "'Inter', sans-serif" }}
+                
               >
                 ₹{earnedCash.toLocaleString()}
               </h3>
@@ -368,7 +368,7 @@ Please verify and process my remittance. Thank you!`;
             <div>
               <h3
                 className="text-[20px] sm:text-[22px] xl:text-[24px] font-bold text-slate-900 dark:text-white tracking-tight leading-none whitespace-nowrap mb-1"
-                style={{ fontFamily: "'Inter', sans-serif" }}
+                
               >
                 ₹{pendingCash.toLocaleString()}
               </h3>
@@ -397,7 +397,7 @@ Please verify and process my remittance. Thank you!`;
               <div className="flex items-baseline gap-1.5 mb-1">
                 <h3
                   className="text-[20px] sm:text-[22px] xl:text-[24px] font-bold text-slate-900 dark:text-white tracking-tight leading-none whitespace-nowrap"
-                  style={{ fontFamily: "'Inter', sans-serif" }}
+                  
                 >
                   {activeBrokers}
                 </h3>
@@ -430,7 +430,7 @@ Please verify and process my remittance. Thank you!`;
               <div className="flex items-center justify-between gap-2 mb-1">
                 <h3
                   className="text-[18px] sm:text-[20px] font-bold text-slate-900 dark:text-white tracking-tight leading-none whitespace-nowrap truncate"
-                  style={{ fontFamily: "'Inter', sans-serif" }}
+                  
                 >
                   {currentTier.name}
                 </h3>
@@ -466,7 +466,7 @@ Please verify and process my remittance. Thank you!`;
                   </div>
                   <h2
                     className="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight"
-                    style={{ fontFamily: "'Inter', sans-serif" }}
+                    
                   >
                     Your Unique Referral Workstation
                   </h2>
@@ -606,7 +606,7 @@ Please verify and process my remittance. Thank you!`;
                   <div className="space-y-0.5">
                     <h3
                       className="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2"
-                      style={{ fontFamily: "'Inter', sans-serif" }}
+                      
                     >
                       <Trophy size={18} className="text-amber-500" />
                       <span>Affiliate Commission Tiers</span>
@@ -646,7 +646,7 @@ Please verify and process my remittance. Thank you!`;
 
                           <h4
                             className="text-base font-bold text-slate-900 dark:text-white"
-                            style={{ fontFamily: "'Inter', sans-serif" }}
+                            
                           >
                             {tier.name}
                           </h4>
@@ -654,7 +654,7 @@ Please verify and process my remittance. Thank you!`;
                           <div className="pt-1 pb-1">
                             <div
                               className="text-[22px] sm:text-[24px] font-bold text-emerald-600 dark:text-emerald-400"
-                              style={{ fontFamily: "'Inter', sans-serif" }}
+                              
                             >
                               {tier.upfrontBonus}
                               <span className="text-xs font-semibold text-slate-400 ml-1">/ Trader</span>
@@ -686,7 +686,7 @@ Please verify and process my remittance. Thank you!`;
                 <div className="space-y-0.5">
                   <h3
                     className="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight"
-                    style={{ fontFamily: "'Inter', sans-serif" }}
+                    
                   >
                     How The Referral Program Works
                   </h3>
@@ -742,7 +742,7 @@ Please verify and process my remittance. Thank you!`;
                   <div>
                     <h3
                       className="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2"
-                      style={{ fontFamily: "'Inter', sans-serif" }}
+                      
                     >
                       <Users size={17} className="text-blue-500" />
                       <span>Your Referred Traders Log</span>
@@ -856,7 +856,7 @@ Please verify and process my remittance. Thank you!`;
                   <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Available For Withdrawal:</span>
                   <div
                     className="text-[26px] sm:text-[28px] font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 leading-none"
-                    style={{ fontFamily: "'Inter', sans-serif" }}
+                    
                   >
                     ₹{earnedCash.toLocaleString()}
                   </div>
@@ -967,7 +967,7 @@ Please verify and process my remittance. Thank you!`;
                 <div className="space-y-1 pt-2">
                   <h3
                     className="text-base font-bold text-slate-900 dark:text-white"
-                    style={{ fontFamily: "'Inter', sans-serif" }}
+                    
                   >
                     Scan to Join TradiFive
                   </h3>
@@ -1029,7 +1029,7 @@ Please verify and process my remittance. Thank you!`;
                   </div>
                   <h3
                     className="text-lg font-bold text-slate-900 dark:text-white"
-                    style={{ fontFamily: "'Inter', sans-serif" }}
+                    
                   >
                     Withdraw Referral Commissions
                   </h3>
@@ -1042,7 +1042,7 @@ Please verify and process my remittance. Thank you!`;
                   <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Withdrawable Balance:</span>
                   <span
                     className="text-xl font-bold text-emerald-600"
-                    style={{ fontFamily: "'Inter', sans-serif" }}
+                    
                   >
                     ₹{earnedCash.toLocaleString()}
                   </span>

@@ -330,8 +330,7 @@ function AppShowcase({ onStart }: { onStart: () => void }) {
                 boxShadow: activeFeature === i
                   ? "0 4px 12px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.1)"
                   : "none",
-                backdropFilter: activeFeature === i ? "blur(12px)" : "none",
-              }}
+                backdropFilter: activeFeature === i ? "blur(12px)" : "none" }}
             >
               <span style={{ color: activeFeature === i ? f.color : "inherit", display: "flex" }}>{f.icon}</span>
               {f.label}
@@ -400,8 +399,7 @@ function AppShowcase({ onStart }: { onStart: () => void }) {
                   borderRadius: 44,
                   border: "12px solid #111",
                   boxShadow: "0 30px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.08)",
-                  background: "#000",
-                }}
+                  background: "#000" }}
               >
                 {/* Hardware Buttons */}
                 <div style={{ position: "absolute", top: 110, left: -14, width: 3, height: 26, background: "#222", borderRadius: "2px 0 0 2px" }} /> {/* Action */}
@@ -459,8 +457,7 @@ export default function DownloadAppPublic() {
     <div style={{ background: "transparent", minHeight: "100vh", color: "#fff", position: "relative" }}>
       <PremiumBackground />
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
-        * { box-sizing: border-box; }
+                * { box-sizing: border-box; }
         
         .dl-hero {
           display: grid;
@@ -655,7 +652,7 @@ export default function DownloadAppPublic() {
               </div>
               <span style={{ color: "rgba(255,255,255,0.9)", fontSize: 12, fontWeight: 600, letterSpacing: "0.5px", textTransform: "uppercase" }}>Apps for Every Platform</span>
             </div>
-            <h1 style={{ fontFamily: "'Outfit', 'Inter', sans-serif", fontSize: "clamp(28px, 4.5vw, 50px)", fontWeight: 900, color: "#fff", lineHeight: 1.15, letterSpacing: "-0.04em", marginBottom: 20 }}>
+            <h1 style={{ fontSize: "clamp(28px, 4.5vw, 50px)", fontWeight: 900, color: "#fff", lineHeight: 1.15, letterSpacing: "-0.04em", marginBottom: 20 }}>
               Take <span style={{ background: "linear-gradient(to right, #6366f1, #7c3aed)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>TradiFive</span><br />
               Everywhere
             </h1>
@@ -787,8 +784,7 @@ export default function DownloadAppPublic() {
               borderRadius: 100, 
               padding: "16px 44px", 
               fontWeight: 800, 
-              fontSize: 15, 
-            }}
+              fontSize: 15 }}
           >
             Create Free Account
           </button>

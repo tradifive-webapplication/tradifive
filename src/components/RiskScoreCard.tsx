@@ -83,19 +83,16 @@ function FloatingParticles({ color }: { color: string }) {
             left: `${p.x}%`,
             top: `${p.y}%`,
             background: color,
-            opacity: 0.25,
-          }}
+            opacity: 0.25 }}
           animate={{
             y: [-8, 8, -8],
             x: [-4, 4, -4],
-            opacity: [0.15, 0.35, 0.15],
-          }}
+            opacity: [0.15, 0.35, 0.15] }}
           transition={{
             duration: p.dur,
             repeat: Infinity,
             delay: p.delay,
-            ease: 'easeInOut',
-          }}
+            ease: 'easeInOut' }}
         />
       ))}
     </div>
@@ -279,16 +276,14 @@ export function RiskScoreCard({ score = 0 }: RiskScoreCardProps) {
             className="absolute -inset-5 rounded-full pointer-events-none blur-2xl"
             style={{
               background: `radial-gradient(circle, ${shieldGlow}, transparent 70%)`,
-              opacity: 0.5,
-            }}
+              opacity: 0.5 }}
           />
 
           {/* Ambient pulse behind shield */}
           <motion.div
             className="absolute -inset-3 rounded-full pointer-events-none"
             style={{
-              background: `radial-gradient(circle, ${shieldGlow}, transparent 70%)`,
-            }}
+              background: `radial-gradient(circle, ${shieldGlow}, transparent 70%)` }}
             animate={{ opacity: [0.2, 0.4, 0.2], scale: [0.95, 1.05, 0.95] }}
             transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
           />
@@ -301,8 +296,7 @@ export function RiskScoreCard({ score = 0 }: RiskScoreCardProps) {
               style={{
                 clipPath: 'polygon(50% 0%, 100% 14%, 100% 68%, 50% 100%, 0% 68%, 0% 14%)',
                 background: shieldGradient,
-                boxShadow: `0 20px 50px -10px ${shieldGlow}`,
-              }}
+                boxShadow: `0 20px 50px -10px ${shieldGlow}` }}
             />
 
             {/* Top reflection / glass highlight */}
@@ -311,8 +305,7 @@ export function RiskScoreCard({ score = 0 }: RiskScoreCardProps) {
               style={{
                 clipPath: 'polygon(50% 0%, 100% 14%, 100% 68%, 50% 100%, 0% 68%, 0% 14%)',
                 background: 'linear-gradient(175deg, rgba(255,255,255,0.40) 0%, rgba(255,255,255,0.12) 30%, transparent 55%)',
-                pointerEvents: 'none',
-              }}
+                pointerEvents: 'none' }}
             />
 
             {/* Inner border / edge highlight */}
@@ -321,8 +314,7 @@ export function RiskScoreCard({ score = 0 }: RiskScoreCardProps) {
               style={{
                 clipPath: 'polygon(50% 0%, 100% 14%, 100% 68%, 50% 100%, 0% 68%, 0% 14%)',
                 background: 'linear-gradient(160deg, rgba(255,255,255,0.30) 0%, rgba(255,255,255,0.03) 60%, rgba(255,255,255,0.08) 100%)',
-                pointerEvents: 'none',
-              }}
+                pointerEvents: 'none' }}
             />
 
             {/* Bottom subtle reflection */}
@@ -331,8 +323,7 @@ export function RiskScoreCard({ score = 0 }: RiskScoreCardProps) {
               style={{
                 clipPath: 'polygon(50% 0%, 100% 14%, 100% 68%, 50% 100%, 0% 68%, 0% 14%)',
                 background: 'linear-gradient(0deg, rgba(255,255,255,0.08) 0%, transparent 25%)',
-                pointerEvents: 'none',
-              }}
+                pointerEvents: 'none' }}
             />
           {/* Score content */}
           <div className="absolute inset-0 flex flex-col items-center justify-center -mt-1 z-10">
@@ -395,15 +386,13 @@ export function RiskScoreCard({ score = 0 }: RiskScoreCardProps) {
             transition={{ delay: 1.2, duration: 1.2, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] }}
             className="h-full rounded-full relative overflow-hidden"
             style={{
-              background: 'linear-gradient(90deg, #6D5DF6, #3B82F6, #10B981)',
-            }}
+              background: 'linear-gradient(90deg, #6D5DF6, #3B82F6, #10B981)' }}
           >
             {/* Shimmer effect */}
             <motion.div
               className="absolute inset-0"
               style={{
-                background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.25) 50%, transparent 100%)',
-              }}
+                background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.25) 50%, transparent 100%)' }}
               animate={{ x: ['-100%', '200%'] }}
               transition={{ delay: 2.5, duration: 2, repeat: Infinity, repeatDelay: 4, ease: 'easeInOut' }}
             />

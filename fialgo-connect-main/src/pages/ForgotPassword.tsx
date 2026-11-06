@@ -42,7 +42,7 @@ export default function ForgotPassword() {
 
   return (
     <div 
-      style={{ fontFamily: "'Inter', sans-serif" }}
+      
       className="flex min-h-screen bg-slate-50 dark:bg-[#141414] items-center justify-center px-6 relative overflow-hidden font-sans"
     >
       <div className="absolute top-0 right-0 w-[50%] h-[50%] bg-slate-100 dark:bg-[#1E1E1E] rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2 opacity-30" />
@@ -77,8 +77,7 @@ export default function ForgotPassword() {
           className="bg-white dark:bg-[#1E1E1E] border border-slate-100 dark:border-[#333333] rounded-2xl p-8 shadow-[0_15px_40px_rgba(0,0,0,0.02)] relative overflow-hidden"
           style={{
             transition: 'all 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
-            transformStyle: 'preserve-3d',
-          }}
+            transformStyle: 'preserve-3d' }}
         >
           {!isSent ? (
             <form onSubmit={handleSubmit} className="space-y-6 relative z-10">

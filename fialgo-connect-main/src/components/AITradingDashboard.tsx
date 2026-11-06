@@ -1120,7 +1120,7 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
             </div>
 
             <div className="flex flex-wrap items-baseline gap-3">
-              <h3 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight" style={{ fontFamily: "'Inter', sans-serif" }}>
+              <h3 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight" >
                 Goal: {currencySymbol}{dailyTargetProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </h3>
               <span className="text-xs text-slate-500 dark:text-slate-400">
@@ -1150,7 +1150,7 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
               <span className="text-[10px] sm:text-[10.5px] font-extrabold uppercase tracking-wider text-slate-400 block">
                 Monthly Target (22 Trading Days)
               </span>
-              <span className="text-[15px] sm:text-[17px] font-bold text-emerald-600 dark:text-emerald-400 font-mono" style={{ fontFamily: "'Inter', sans-serif" }}>
+              <span className="text-[15px] sm:text-[17px] font-bold text-emerald-600 dark:text-emerald-400 font-mono" >
                 +{currencySymbol}{monthlyTargetProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </span>
             </div>
@@ -1181,7 +1181,7 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
             </p>
             <h3 className={`text-[22px] sm:text-[26px] font-medium tracking-tight leading-none ${
               totalNetProfit > 0 ? 'text-emerald-500' : totalNetProfit < 0 ? 'text-rose-500' : 'text-slate-900 dark:text-white'
-            }`} style={{ fontFamily: "'Inter', sans-serif" }}>
+            }`} >
               {totalNetProfit > 0 ? '+' : totalNetProfit < 0 ? '-' : ''}{currencySymbol}{Math.abs(totalNetProfit).toFixed(2)}
             </h3>
           </div>
@@ -1215,7 +1215,7 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
             </div>
             <h3 className={`text-[22px] sm:text-[26px] font-medium tracking-tight leading-none ${
               runningFloatingPnl > 0 ? 'text-emerald-500' : runningFloatingPnl < 0 ? 'text-rose-500' : 'text-slate-900 dark:text-white'
-            }`} style={{ fontFamily: "'Inter', sans-serif" }}>
+            }`} >
               {runningFloatingPnl > 0 ? '+' : runningFloatingPnl < 0 ? '-' : ''}{currencySymbol}{Math.abs(runningFloatingPnl).toFixed(2)}
             </h3>
           </div>
@@ -1230,7 +1230,7 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
             <p className="text-[10.5px] sm:text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-wider mb-2">
               Live Equity
             </p>
-            <h3 className="text-[22px] sm:text-[26px] font-medium text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
+            <h3 className="text-[22px] sm:text-[26px] font-medium text-slate-900 dark:text-white tracking-tight leading-none" >
               {currencySymbol}{runningEquity.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </h3>
           </div>
@@ -1252,7 +1252,7 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
             </div>
             <h3 className={`text-[22px] sm:text-[26px] font-medium tracking-tight leading-none ${
               todayPnl > 0 ? 'text-emerald-500' : todayPnl < 0 ? 'text-rose-500' : 'text-slate-900 dark:text-white'
-            }`} style={{ fontFamily: "'Inter', sans-serif" }}>
+            }`} >
               {todayPnl > 0 ? '+' : todayPnl < 0 ? '-' : ''}{currencySymbol}{Math.abs(todayPnl).toFixed(2)}
             </h3>
           </div>
@@ -1270,7 +1270,7 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
             <p className="text-[10.5px] sm:text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-wider mb-2">
               Win Rate
             </p>
-            <h3 className="text-[22px] sm:text-[26px] font-medium text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
+            <h3 className="text-[22px] sm:text-[26px] font-medium text-slate-900 dark:text-white tracking-tight leading-none" >
               {winRatePct}%
             </h3>
           </div>
@@ -1285,7 +1285,7 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
             <p className="text-[10.5px] sm:text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-wider mb-2">
               Max Drawdown
             </p>
-            <h3 className="text-[22px] sm:text-[26px] font-medium text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
+            <h3 className="text-[22px] sm:text-[26px] font-medium text-slate-900 dark:text-white tracking-tight leading-none" >
               {maxDrawdownPct}%
             </h3>
           </div>
@@ -1308,31 +1308,31 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-x-4 gap-y-3 sm:gap-y-0 sm:divide-x divide-slate-100 dark:divide-white/5">
           <div className="sm:px-3">
             <span className="text-[10px] sm:text-[10.5px] font-extrabold uppercase tracking-wider text-slate-400 block mb-1">Total Deposits</span>
-            <span className="font-mono font-semibold text-slate-900 dark:text-white text-[15px] sm:text-[16px] block" style={{ fontFamily: "'Inter', sans-serif" }}>
+            <span className="font-mono font-semibold text-slate-900 dark:text-white text-[15px] sm:text-[16px] block" >
               {currencySymbol}{totalDeposits.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           </div>
           <div className="sm:px-3">
             <span className="text-[10px] sm:text-[10.5px] font-extrabold uppercase tracking-wider text-slate-400 block mb-1">Total Withdrawals</span>
-            <span className="font-mono font-semibold text-slate-900 dark:text-white text-[15px] sm:text-[16px] block" style={{ fontFamily: "'Inter', sans-serif" }}>
+            <span className="font-mono font-semibold text-slate-900 dark:text-white text-[15px] sm:text-[16px] block" >
               {currencySymbol}{totalWithdrawals.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           </div>
           <div className="sm:px-3 pt-2.5 sm:pt-0 border-t border-slate-100 dark:border-white/5 sm:border-t-0">
             <span className="text-[10px] sm:text-[10.5px] font-extrabold uppercase tracking-wider text-slate-400 block mb-1">Used Margin</span>
-            <span className="font-mono font-semibold text-slate-900 dark:text-white text-[15px] sm:text-[16px] block" style={{ fontFamily: "'Inter', sans-serif" }}>
+            <span className="font-mono font-semibold text-slate-900 dark:text-white text-[15px] sm:text-[16px] block" >
               {currencySymbol}{usedMargin.toFixed(2)} <span className="text-[11px] text-slate-400 font-normal">({runningEquity > 0 ? ((usedMargin / runningEquity) * 100).toFixed(1) : '0.0'}%)</span>
             </span>
           </div>
           <div className="sm:px-3 pt-2.5 sm:pt-0 border-t border-slate-100 dark:border-white/5 sm:border-t-0">
             <span className="text-[10px] sm:text-[10.5px] font-extrabold uppercase tracking-wider text-slate-400 block mb-1">Free Margin</span>
-            <span className="font-mono font-semibold text-emerald-600 dark:text-emerald-400 text-[15px] sm:text-[16px] block" style={{ fontFamily: "'Inter', sans-serif" }}>
+            <span className="font-mono font-semibold text-emerald-600 dark:text-emerald-400 text-[15px] sm:text-[16px] block" >
               {currencySymbol}{freeMargin.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           </div>
           <div className="sm:px-3 pt-2.5 sm:pt-0 border-t border-slate-100 dark:border-white/5 sm:border-t-0">
             <span className="text-[10px] sm:text-[10.5px] font-extrabold uppercase tracking-wider text-slate-400 block mb-1">Margin Level</span>
-            <span className="font-mono font-semibold text-slate-900 dark:text-white text-[15px] sm:text-[16px] block" style={{ fontFamily: "'Inter', sans-serif" }}>
+            <span className="font-mono font-semibold text-slate-900 dark:text-white text-[15px] sm:text-[16px] block" >
               {usedMargin > 0 && marginLevel !== null ? `${marginLevel}%` : 'Safe (100%)'}
             </span>
           </div>
@@ -1594,13 +1594,13 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
                                   {pos.type}
                                 </span>
                               </td>
-                              <td className="py-3 px-3 text-[13px] font-medium text-slate-700 dark:text-slate-300 tabular-nums" style={{ fontFamily: "'Inter', sans-serif" }}>
+                              <td className="py-3 px-3 text-[13px] font-medium text-slate-700 dark:text-slate-300 tabular-nums" >
                                 {pos.lot.toFixed(2)}
                               </td>
-                              <td className="py-3 px-3 text-[12.5px] font-medium text-slate-500 dark:text-slate-400 tabular-nums" style={{ fontFamily: "'Inter', sans-serif" }}>
+                              <td className="py-3 px-3 text-[12.5px] font-medium text-slate-500 dark:text-slate-400 tabular-nums" >
                                 {pos.openPrice}
                               </td>
-                              <td className="py-3 px-3 text-[12.5px] font-medium text-slate-800 dark:text-slate-200 tabular-nums" style={{ fontFamily: "'Inter', sans-serif" }}>
+                              <td className="py-3 px-3 text-[12.5px] font-medium text-slate-800 dark:text-slate-200 tabular-nums" >
                                 {pos.currentPrice}
                               </td>
                               <td className="py-3 px-3 text-[11px] font-mono text-slate-400">
@@ -1608,7 +1608,7 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
                               </td>
                               <td className={`py-3 px-3 text-[13px] font-medium tabular-nums text-right ${
                                 pos.floatingPnl >= 0 ? 'text-[#10B981]' : 'text-[#F06363]'
-                              }`} style={{ fontFamily: "'Inter', sans-serif" }}>
+                              }`} >
                                 {pos.floatingPnl >= 0 ? '+' : '-'}{currencySymbol}{Math.abs(pos.floatingPnl).toFixed(2)}
                               </td>
                               <td className="py-3 px-3 text-right">
@@ -1675,10 +1675,10 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
                                 {trade.type}
                               </span>
                             </td>
-                            <td className="py-3.5 px-3 text-[13px] font-medium text-slate-700 dark:text-slate-300 tabular-nums" style={{ fontFamily: "'Inter', sans-serif" }}>
+                            <td className="py-3.5 px-3 text-[13px] font-medium text-slate-700 dark:text-slate-300 tabular-nums" >
                               {trade.lot.toFixed(2)}
                             </td>
-                            <td className="py-3.5 px-3 text-[12px] font-medium text-slate-500 dark:text-slate-400 tabular-nums" style={{ fontFamily: "'Inter', sans-serif" }}>
+                            <td className="py-3.5 px-3 text-[12px] font-medium text-slate-500 dark:text-slate-400 tabular-nums" >
                               {trade.openPrice} &gt; {trade.closePrice}
                             </td>
                             <td className="py-3.5 px-3 text-[11.5px] font-medium text-slate-500 dark:text-slate-400 tabular-nums">
@@ -1689,7 +1689,7 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
                             </td>
                             <td className={`py-3.5 px-3 text-[13px] font-medium tabular-nums text-right ${
                               trade.pnl >= 0 ? 'text-[#10B981]' : 'text-[#F06363]'
-                            }`} style={{ fontFamily: "'Inter', sans-serif" }}>
+                            }`} >
                               {trade.pnl > 0 ? '+' : trade.pnl < 0 ? '-' : ''}{currencySymbol}{Math.abs(trade.pnl).toFixed(2)}
                             </td>
                           </tr>

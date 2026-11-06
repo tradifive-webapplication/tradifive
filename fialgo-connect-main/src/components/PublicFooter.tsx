@@ -120,8 +120,7 @@ export default function PublicFooter() {
                     border: "none",
                     boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 4px rgba(0, 0, 0, 0.3)",
                     cursor: "pointer",
-                    outline: "none",
-                  }}
+                    outline: "none" }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.background = "linear-gradient(135deg, #253347 0%, #131c33 100%)";
                     e.currentTarget.style.color = "#93c5fd";

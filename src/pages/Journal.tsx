@@ -65,8 +65,7 @@ export default function Journal() {
                 className="w-full sm:w-auto justify-center text-[12.5px] sm:text-[13px] font-semibold text-white flex items-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] py-2 px-4 rounded-xl shadow-md cursor-pointer shrink-0"
                 style={{
                   background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-                  boxShadow: '0 2px 10px rgba(245,158,11,0.3)',
-                }}
+                  boxShadow: '0 2px 10px rgba(245,158,11,0.3)' }}
               >
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
@@ -110,8 +109,7 @@ export default function Journal() {
                    className="w-full sm:w-auto justify-center text-[12.5px] sm:text-[13px] font-semibold text-white flex items-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] py-2 px-4 rounded-xl shadow-md cursor-pointer shrink-0"
                    style={{
                       background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-                      boxShadow: '0 2px 10px rgba(59,130,246,0.3)',
-                   }}
+                      boxShadow: '0 2px 10px rgba(59,130,246,0.3)' }}
                 >
                    <Key size={14} />
                    Connect for Today

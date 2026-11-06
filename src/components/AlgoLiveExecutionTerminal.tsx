@@ -195,8 +195,7 @@ export default function AlgoLiveExecutionTerminal() {
         background: "#171717",
         boxShadow: "inset 0 1px 0 0 rgba(255,255,255,0.05), 0 0 0 1px rgba(255,255,255,0.05), 0 2px 4px rgba(0,0,0,0.2)",
         borderRadius: 20,
-        border: "none",
-      }}
+        border: "none" }}
       className="p-4 sm:p-5 relative overflow-hidden font-sans"
     >
       {/* Background ambient accents */}
@@ -241,7 +240,7 @@ export default function AlgoLiveExecutionTerminal() {
             </span>
             <span
               className="text-base sm:text-lg font-extrabold text-white tabular-nums tracking-tight"
-              style={{ fontFamily: "'Inter', sans-serif" }}
+              
             >
               {currentStep.price.toFixed(currentSetup.pipDecimals)}
             </span>
@@ -283,7 +282,7 @@ export default function AlgoLiveExecutionTerminal() {
             className={`text-lg sm:text-xl font-black tabular-nums transition-colors ${
               currentStep.pnl >= 0 ? "text-emerald-400" : "text-rose-400"
             }`}
-            style={{ fontFamily: "'Inter', sans-serif" }}
+            
           >
             {formatINR(currentStep.pnl)}
           </motion.div>
@@ -526,7 +525,7 @@ export default function AlgoLiveExecutionTerminal() {
           </span>
           <span
             className="text-base sm:text-lg font-extrabold text-emerald-400 tabular-nums"
-            style={{ fontFamily: "'Inter', sans-serif" }}
+            
           >
             {formatINR(totalProfitToday)} (+2.84%)
           </span>

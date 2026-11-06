@@ -693,8 +693,7 @@ export default function RiskGuard() {
                         width: 36, height: 36, borderRadius: 10, flexShrink: 0,
                         background: 'rgba(59,130,246,0.15)',
                         border: '1px solid rgba(59,130,246,0.3)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                     }}>
+                        display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <ShieldCheck size={18} className="text-blue-600 dark:text-blue-400" />
                      </div>
                      <div>
@@ -720,8 +719,7 @@ export default function RiskGuard() {
                         background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
                         border: 'none', borderRadius: 12, padding: '9px 18px',
                         cursor: 'pointer', flexShrink: 0,
-                        boxShadow: '0 2px 10px rgba(59,130,246,0.3)',
-                     }}
+                        boxShadow: '0 2px 10px rgba(59,130,246,0.3)' }}
                   >
                      <Key size={14} />
                      Connect for Today

@@ -150,7 +150,7 @@ export default function PageIntroAnimation({ onComplete }: { onComplete: () => v
             initial={{ opacity:0, y:8, letterSpacing:"0.4em" }}
             animate={{ opacity:1, y:0, letterSpacing:"-0.02em" }}
             transition={{ delay:0.55, duration:0.7, ease:[0.16,1,0.3,1] }}
-            style={{ fontSize:26, fontWeight:900, fontFamily:"'Outfit','Inter',sans-serif", background:"linear-gradient(90deg,#fff 0%,#c4b5fd 50%,#60a5fa 100%)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", backgroundClip:"text" }}
+            style={{ fontSize:26, fontWeight:900, background:"linear-gradient(90deg,#fff 0%,#c4b5fd 50%,#60a5fa 100%)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", backgroundClip:"text" }}
           >
             Tradifive
           </motion.div>
@@ -158,7 +158,7 @@ export default function PageIntroAnimation({ onComplete }: { onComplete: () => v
           {/* Tagline */}
           <motion.div initial={{ opacity:0, y:6 }} animate={{ opacity:0.5, y:0 }} transition={{ delay:0.85, duration:0.6 }}
             style={{ fontSize:11, fontWeight:600, color:"rgba(255,255,255,0.55)", letterSpacing:"0.25em", textTransform:"uppercase" }}>
-            AI · Trading · Ecosystem
+            AI ï¿½ Trading ï¿½ Ecosystem
           </motion.div>
 
           {/* Progress bar */}

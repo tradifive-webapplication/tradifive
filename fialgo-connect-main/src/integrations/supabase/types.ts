@@ -41,10 +41,8 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "active_bots_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
+            foreignKeyName: "active_bots_user_id_fkey", columns: ["user_id"]
+            isOneToOne: false, referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -136,17 +134,13 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "ai_coach_messages_session_id_fkey"
-            columns: ["session_id"]
-            isOneToOne: false
-            referencedRelation: "ai_coach_sessions"
+            foreignKeyName: "ai_coach_messages_session_id_fkey", columns: ["session_id"]
+            isOneToOne: false, referencedRelation: "ai_coach_sessions"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "ai_coach_messages_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
+            foreignKeyName: "ai_coach_messages_user_id_fkey", columns: ["user_id"]
+            isOneToOne: false, referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -184,10 +178,8 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "ai_coach_sessions_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
+            foreignKeyName: "ai_coach_sessions_user_id_fkey", columns: ["user_id"]
+            isOneToOne: false, referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -234,10 +226,8 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "billing_history_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
+            foreignKeyName: "billing_history_user_id_fkey", columns: ["user_id"]
+            isOneToOne: false, referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -269,17 +259,13 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "channel_members_channel_id_fkey"
-            columns: ["channel_id"]
-            isOneToOne: false
-            referencedRelation: "channels"
+            foreignKeyName: "channel_members_channel_id_fkey", columns: ["channel_id"]
+            isOneToOne: false, referencedRelation: "channels"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "channel_members_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
+            foreignKeyName: "channel_members_user_id_fkey", columns: ["user_id"]
+            isOneToOne: false, referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -308,17 +294,13 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "channel_messages_channel_id_fkey"
-            columns: ["channel_id"]
-            isOneToOne: false
-            referencedRelation: "community_channels"
+            foreignKeyName: "channel_messages_channel_id_fkey", columns: ["channel_id"]
+            isOneToOne: false, referencedRelation: "community_channels"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "channel_messages_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
+            foreignKeyName: "channel_messages_user_id_fkey", columns: ["user_id"]
+            isOneToOne: false, referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -374,10 +356,8 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "channels_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
+            foreignKeyName: "channels_created_by_fkey", columns: ["created_by"]
+            isOneToOne: false, referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -412,10 +392,8 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "community_channels_creator_id_fkey"
-            columns: ["creator_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
+            foreignKeyName: "community_channels_creator_id_fkey", columns: ["creator_id"]
+            isOneToOne: false, referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -465,24 +443,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "competition_entries_competition_id_fkey"
-            columns: ["competition_id"]
-            isOneToOne: false
-            referencedRelation: "competitions"
+            foreignKeyName: "competition_entries_competition_id_fkey", columns: ["competition_id"]
+            isOneToOne: false, referencedRelation: "competitions"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "competition_entries_mt5_account_id_fkey"
-            columns: ["mt5_account_id"]
-            isOneToOne: false
-            referencedRelation: "mt5_accounts"
+            foreignKeyName: "competition_entries_mt5_account_id_fkey", columns: ["mt5_account_id"]
+            isOneToOne: false, referencedRelation: "mt5_accounts"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "competition_entries_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
+            foreignKeyName: "competition_entries_user_id_fkey", columns: ["user_id"]
+            isOneToOne: false, referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -517,17 +489,13 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "competition_leaderboard_competition_id_fkey"
-            columns: ["competition_id"]
-            isOneToOne: false
-            referencedRelation: "competitions"
+            foreignKeyName: "competition_leaderboard_competition_id_fkey", columns: ["competition_id"]
+            isOneToOne: false, referencedRelation: "competitions"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "competition_leaderboard_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
+            foreignKeyName: "competition_leaderboard_user_id_fkey", columns: ["user_id"]
+            isOneToOne: false, referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -643,17 +611,13 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "direct_messages_receiver_id_fkey"
-            columns: ["receiver_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
+            foreignKeyName: "direct_messages_receiver_id_fkey", columns: ["receiver_id"]
+            isOneToOne: false, referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "direct_messages_sender_id_fkey"
-            columns: ["sender_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
+            foreignKeyName: "direct_messages_sender_id_fkey", columns: ["sender_id"]
+            isOneToOne: false, referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -691,24 +655,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "dm_conversations_last_message_id_fkey"
-            columns: ["last_message_id"]
-            isOneToOne: false
-            referencedRelation: "direct_messages"
+            foreignKeyName: "dm_conversations_last_message_id_fkey", columns: ["last_message_id"]
+            isOneToOne: false, referencedRelation: "direct_messages"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "dm_conversations_user1_id_fkey"
-            columns: ["user1_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
+            foreignKeyName: "dm_conversations_user1_id_fkey", columns: ["user1_id"]
+            isOneToOne: false, referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "dm_conversations_user2_id_fkey"
-            columns: ["user2_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
+            foreignKeyName: "dm_conversations_user2_id_fkey", columns: ["user2_id"]
+            isOneToOne: false, referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -782,10 +740,8 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "feed_watchlist_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
+            foreignKeyName: "feed_watchlist_user_id_fkey", columns: ["user_id"]
+            isOneToOne: false, referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -892,10 +848,8 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "mt5_accounts_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
+            foreignKeyName: "mt5_accounts_user_id_fkey", columns: ["user_id"]
+            isOneToOne: false, referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1164,10 +1118,8 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "profiles_referred_by_fkey"
-            columns: ["referred_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
+            foreignKeyName: "profiles_referred_by_fkey", columns: ["referred_by"]
+            isOneToOne: false, referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1208,17 +1160,13 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "referrals_referred_id_fkey"
-            columns: ["referred_id"]
-            isOneToOne: true
-            referencedRelation: "profiles"
+            foreignKeyName: "referrals_referred_id_fkey", columns: ["referred_id"]
+            isOneToOne: true, referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "referrals_referrer_id_fkey"
-            columns: ["referrer_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
+            foreignKeyName: "referrals_referrer_id_fkey", columns: ["referrer_id"]
+            isOneToOne: false, referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1259,17 +1207,13 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "risk_breach_logs_trade_id_fkey"
-            columns: ["trade_id"]
-            isOneToOne: false
-            referencedRelation: "trades"
+            foreignKeyName: "risk_breach_logs_trade_id_fkey", columns: ["trade_id"]
+            isOneToOne: false, referencedRelation: "trades"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "risk_breach_logs_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
+            foreignKeyName: "risk_breach_logs_user_id_fkey", columns: ["user_id"]
+            isOneToOne: false, referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1295,17 +1239,13 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "social_follow_requests_requester_id_fkey"
-            columns: ["requester_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
+            foreignKeyName: "social_follow_requests_requester_id_fkey", columns: ["requester_id"]
+            isOneToOne: false, referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "social_follow_requests_target_id_fkey"
-            columns: ["target_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
+            foreignKeyName: "social_follow_requests_target_id_fkey", columns: ["target_id"]
+            isOneToOne: false, referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1331,17 +1271,13 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "social_follows_follower_id_fkey"
-            columns: ["follower_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
+            foreignKeyName: "social_follows_follower_id_fkey", columns: ["follower_id"]
+            isOneToOne: false, referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "social_follows_following_id_fkey"
-            columns: ["following_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
+            foreignKeyName: "social_follows_following_id_fkey", columns: ["following_id"]
+            isOneToOne: false, referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1367,17 +1303,13 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "social_post_bookmarks_post_id_fkey"
-            columns: ["post_id"]
-            isOneToOne: false
-            referencedRelation: "social_posts"
+            foreignKeyName: "social_post_bookmarks_post_id_fkey", columns: ["post_id"]
+            isOneToOne: false, referencedRelation: "social_posts"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "social_post_bookmarks_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
+            foreignKeyName: "social_post_bookmarks_user_id_fkey", columns: ["user_id"]
+            isOneToOne: false, referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1415,24 +1347,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "social_post_comments_parent_comment_id_fkey"
-            columns: ["parent_comment_id"]
-            isOneToOne: false
-            referencedRelation: "social_post_comments"
+            foreignKeyName: "social_post_comments_parent_comment_id_fkey", columns: ["parent_comment_id"]
+            isOneToOne: false, referencedRelation: "social_post_comments"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "social_post_comments_post_id_fkey"
-            columns: ["post_id"]
-            isOneToOne: false
-            referencedRelation: "social_posts"
+            foreignKeyName: "social_post_comments_post_id_fkey", columns: ["post_id"]
+            isOneToOne: false, referencedRelation: "social_posts"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "social_post_comments_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
+            foreignKeyName: "social_post_comments_user_id_fkey", columns: ["user_id"]
+            isOneToOne: false, referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1458,17 +1384,13 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "social_post_likes_post_id_fkey"
-            columns: ["post_id"]
-            isOneToOne: false
-            referencedRelation: "social_posts"
+            foreignKeyName: "social_post_likes_post_id_fkey", columns: ["post_id"]
+            isOneToOne: false, referencedRelation: "social_posts"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "social_post_likes_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
+            foreignKeyName: "social_post_likes_user_id_fkey", columns: ["user_id"]
+            isOneToOne: false, referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1545,17 +1467,13 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "social_posts_linked_trade_id_fkey"
-            columns: ["linked_trade_id"]
-            isOneToOne: false
-            referencedRelation: "trades"
+            foreignKeyName: "social_posts_linked_trade_id_fkey", columns: ["linked_trade_id"]
+            isOneToOne: false, referencedRelation: "trades"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "social_posts_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
+            foreignKeyName: "social_posts_user_id_fkey", columns: ["user_id"]
+            isOneToOne: false, referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1653,10 +1571,8 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "ticket_replies_ticket_id_fkey"
-            columns: ["ticket_id"]
-            isOneToOne: false
-            referencedRelation: "support_tickets"
+            foreignKeyName: "ticket_replies_ticket_id_fkey", columns: ["ticket_id"]
+            isOneToOne: false, referencedRelation: "support_tickets"
             referencedColumns: ["id"]
           },
         ]
@@ -1769,17 +1685,13 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "trades_bot_id_fkey"
-            columns: ["bot_id"]
-            isOneToOne: false
-            referencedRelation: "active_bots"
+            foreignKeyName: "trades_bot_id_fkey", columns: ["bot_id"]
+            isOneToOne: false, referencedRelation: "active_bots"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "trades_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
+            foreignKeyName: "trades_user_id_fkey", columns: ["user_id"]
+            isOneToOne: false, referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1844,10 +1756,8 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "user_achievements_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
+            foreignKeyName: "user_achievements_user_id_fkey", columns: ["user_id"]
+            isOneToOne: false, referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1939,17 +1849,13 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "user_follows_follower_id_fkey"
-            columns: ["follower_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
+            foreignKeyName: "user_follows_follower_id_fkey", columns: ["follower_id"]
+            isOneToOne: false, referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "user_follows_following_id_fkey"
-            columns: ["following_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
+            foreignKeyName: "user_follows_following_id_fkey", columns: ["following_id"]
+            isOneToOne: false, referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1984,17 +1890,13 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "user_mission_progress_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: false
-            referencedRelation: "daily_missions"
+            foreignKeyName: "user_mission_progress_mission_id_fkey", columns: ["mission_id"]
+            isOneToOne: false, referencedRelation: "daily_missions"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "user_mission_progress_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
+            foreignKeyName: "user_mission_progress_user_id_fkey", columns: ["user_id"]
+            isOneToOne: false, referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -2059,10 +1961,8 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "user_risk_configs_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "profiles"
+            foreignKeyName: "user_risk_configs_user_id_fkey", columns: ["user_id"]
+            isOneToOne: true, referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -2100,10 +2000,8 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "user_xp_ledger_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
+            foreignKeyName: "user_xp_ledger_user_id_fkey", columns: ["user_id"]
+            isOneToOne: false, referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -2162,10 +2060,8 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "weekly_streak_checkins_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
+            foreignKeyName: "weekly_streak_checkins_user_id_fkey", columns: ["user_id"]
+            isOneToOne: false, referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -2200,10 +2096,8 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "xp_reward_redemptions_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
+            foreignKeyName: "xp_reward_redemptions_user_id_fkey", columns: ["user_id"]
+            isOneToOne: false, referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]

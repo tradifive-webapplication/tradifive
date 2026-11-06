@@ -282,7 +282,7 @@ export default function JournalTradesTable({ onTradeClick }: JournalTradesTableP
             {isLoading ? (
               <Skeleton className="h-[18px] w-20 bg-slate-200 dark:bg-white/10 rounded" />
             ) : (
-              <span className={`text-[13px] font-medium text-slate-900 dark:text-white tabular-nums ${hideBalance || hideOnlyBalance || percentageOnly ? 'blur-[5.5px] select-none opacity-50' : ''}`} style={{ fontFamily: "'Inter', sans-serif" }}>
+              <span className={`text-[13px] font-medium text-slate-900 dark:text-white tabular-nums ${hideBalance || hideOnlyBalance || percentageOnly ? 'blur-[5.5px] select-none opacity-50' : ''}`} >
                 {fmtMoney(balance, { raw: true })}
               </span>
             )}
@@ -292,7 +292,7 @@ export default function JournalTradesTable({ onTradeClick }: JournalTradesTableP
             {isLoading ? (
               <Skeleton className="h-[18px] w-16 bg-slate-200 dark:bg-white/10 rounded" />
             ) : (
-              <span className={`text-[13px] font-medium tabular-nums ${profitAndLoss >= 0 ? "text-[#10B981]" : "text-[#F06363]"}`} style={{ fontFamily: "'Inter', sans-serif" }}>
+              <span className={`text-[13px] font-medium tabular-nums ${profitAndLoss >= 0 ? "text-[#10B981]" : "text-[#F06363]"}`} >
                 {formatPnl(profitAndLoss)}
               </span>
             )}
@@ -302,7 +302,7 @@ export default function JournalTradesTable({ onTradeClick }: JournalTradesTableP
             {isLoading ? (
               <Skeleton className="h-[18px] w-20 bg-slate-200 dark:bg-white/10 rounded" />
             ) : (
-              <span className={`text-[13px] font-medium text-slate-900 dark:text-white tabular-nums ${hideBalance || hideOnlyBalance || percentageOnly ? 'blur-[5.5px] select-none opacity-50' : ''}`} style={{ fontFamily: "'Inter', sans-serif" }}>
+              <span className={`text-[13px] font-medium text-slate-900 dark:text-white tabular-nums ${hideBalance || hideOnlyBalance || percentageOnly ? 'blur-[5.5px] select-none opacity-50' : ''}`} >
                 {fmtMoney(equity, { raw: true })}
               </span>
             )}
@@ -312,7 +312,7 @@ export default function JournalTradesTable({ onTradeClick }: JournalTradesTableP
             {isLoading ? (
               <Skeleton className="h-[18px] w-12 bg-slate-200 dark:bg-white/10 rounded" />
             ) : (
-              <span className={`text-[13px] font-medium text-slate-900 dark:text-white tabular-nums ${hideBalance || percentageOnly ? 'blur-[5.5px] select-none opacity-50' : ''}`} style={{ fontFamily: "'Inter', sans-serif" }}>
+              <span className={`text-[13px] font-medium text-slate-900 dark:text-white tabular-nums ${hideBalance || percentageOnly ? 'blur-[5.5px] select-none opacity-50' : ''}`} >
                 {fmtMoney(0, { raw: true })}
               </span>
             )}
@@ -322,7 +322,7 @@ export default function JournalTradesTable({ onTradeClick }: JournalTradesTableP
             {isLoading ? (
               <Skeleton className="h-[18px] w-20 bg-slate-200 dark:bg-white/10 rounded" />
             ) : (
-              <span className={`text-[13px] font-medium text-slate-900 dark:text-white tabular-nums ${hideBalance || hideOnlyBalance || percentageOnly ? 'blur-[5.5px] select-none opacity-50' : ''}`} style={{ fontFamily: "'Inter', sans-serif" }}>
+              <span className={`text-[13px] font-medium text-slate-900 dark:text-white tabular-nums ${hideBalance || hideOnlyBalance || percentageOnly ? 'blur-[5.5px] select-none opacity-50' : ''}`} >
                 {fmtMoney(equity, { raw: true })}
               </span>
             )}
@@ -334,7 +334,7 @@ export default function JournalTradesTable({ onTradeClick }: JournalTradesTableP
             {isLoading ? (
               <Skeleton className="h-[18px] w-8 bg-slate-200 dark:bg-white/10 rounded" />
             ) : (
-              <span className={`text-[13px] font-medium text-slate-900 dark:text-white tabular-nums ${hideBalance || percentageOnly ? 'blur-[5.5px] select-none opacity-50' : ''}`} style={{ fontFamily: "'Inter', sans-serif" }}>
+              <span className={`text-[13px] font-medium text-slate-900 dark:text-white tabular-nums ${hideBalance || percentageOnly ? 'blur-[5.5px] select-none opacity-50' : ''}`} >
                 {"\u221E"}
               </span>
             )}

@@ -554,7 +554,6 @@ export default function Login() {
   return (
     <div
       style={{
-        fontFamily: "'Inter', sans-serif",
         background: "linear-gradient(to right, #3b82f6 0%, #93c5fd 35%, #eff6ff 60%, #ffffff 85%)"
       }}
       className="flex h-screen h-[100dvh] w-screen font-sans selection:bg-primary/10 relative overflow-hidden dark:!bg-black"
@@ -797,8 +796,7 @@ export default function Login() {
                         background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 50%, #3b82f6 100%)',
                         boxShadow: '0 4px 14px rgba(37,99,235,0.35), 0 1px 3px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.2)',
                         transition: 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
-                        transformStyle: 'preserve-3d',
-                      }}
+                        transformStyle: 'preserve-3d' }}
                       onMouseEnter={e => { if (!isLoading) { e.currentTarget.style.transform = 'translateY(-4px) rotateX(6deg) scale(1.02)'; e.currentTarget.style.boxShadow = '0 12px 30px rgba(37,99,235,0.4), 0 4px 10px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.25)'; } }}
                       onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0) rotateX(0deg) scale(1)'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(37,99,235,0.35), 0 1px 3px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.2)'; }}
                       onMouseDown={e => { e.currentTarget.style.transform = 'translateY(-1px) rotateX(2deg) scale(0.98)'; }}
@@ -823,8 +821,7 @@ export default function Login() {
                     className="text-primary hover:text-primary/70 ml-1 font-bold"
                     style={{
                       transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-                      display: 'inline-block',
-                    }}
+                      display: 'inline-block' }}
                     onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px) scale(1.05)'; e.currentTarget.style.textShadow = '0 2px 8px rgba(37,99,235,0.3)'; }}
                     onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0) scale(1)'; e.currentTarget.style.textShadow = 'none'; }}
                   >
@@ -868,8 +865,7 @@ export default function Login() {
                         style={{
                           background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 50%, #3b82f6 100%)',
                           boxShadow: '0 4px 14px rgba(37,99,235,0.35), 0 1px 3px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.2)',
-                          transition: 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
-                        }}
+                          transition: 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)' }}
                       >
                         {isLoading ? "Processing..." : (
                           <>
@@ -908,8 +904,7 @@ export default function Login() {
                       className="w-full text-white font-bold uppercase tracking-wide text-xs lg:text-sm py-3 lg:py-3.5 rounded-xl flex items-center justify-center disabled:opacity-50"
                       style={{
                         background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 50%, #3b82f6 100%)',
-                        boxShadow: '0 4px 14px rgba(37,99,235,0.35), 0 1px 3px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.2)',
-                      }}
+                        boxShadow: '0 4px 14px rgba(37,99,235,0.35), 0 1px 3px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.2)' }}
                     >
                       Back to Login
                     </button>
@@ -970,8 +965,7 @@ export default function Login() {
                         background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 50%, #3b82f6 100%)',
                         boxShadow: '0 4px 14px rgba(37,99,235,0.35), 0 1px 3px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.2)',
                         transition: 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
-                        transformStyle: 'preserve-3d',
-                      }}
+                        transformStyle: 'preserve-3d' }}
                       onMouseEnter={e => { if (otpCode.length === 6) { e.currentTarget.style.transform = 'translateY(-3px) scale(1.01)'; } }}
                       onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0) scale(1)'; }}
                     >
@@ -1062,8 +1056,7 @@ export default function Login() {
                           background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 50%, #3b82f6 100%)',
                           boxShadow: '0 4px 14px rgba(37,99,235,0.35), 0 1px 3px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.2)',
                           transition: 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
-                          transformStyle: 'preserve-3d',
-                        }}
+                          transformStyle: 'preserve-3d' }}
                         onMouseEnter={e => { if (!isLoading && otpCode.length === 6) { e.currentTarget.style.transform = 'translateY(-4px) rotateX(6deg) scale(1.02)'; e.currentTarget.style.boxShadow = '0 12px 30px rgba(37,99,235,0.4), 0 4px 10px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.25)'; } }}
                         onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0) rotateX(0deg) scale(1)'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(37,99,235,0.35), 0 1px 3px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.2)'; }}
                         onMouseDown={e => { if (!isLoading && otpCode.length === 6) e.currentTarget.style.transform = 'translateY(-1px) rotateX(2deg) scale(0.98)'; }}

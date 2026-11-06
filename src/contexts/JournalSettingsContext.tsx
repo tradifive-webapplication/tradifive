@@ -126,8 +126,7 @@ export function JournalSettingsProvider({ children }: { children: React.ReactNod
       percentageOnly: effectivePercentageOnly,
       setPercentageOnly: handleSetPercentageOnly,
       formatMoney,
-      isSettingsLoading,
-    }}>
+      isSettingsLoading }}>
       {children}
     </JournalSettingsContext.Provider>
   );

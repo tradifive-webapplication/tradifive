@@ -2381,7 +2381,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
 
               className="text-[20px] xl:text-[22px] font-bold text-slate-900 dark:text-white tracking-tight leading-none whitespace-nowrap"
 
-              style={{ fontFamily: "'Inter', sans-serif" }}
+              
 
             >
 
@@ -2437,7 +2437,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
 
               className={`text-[20px] xl:text-[22px] font-bold tracking-tight leading-none whitespace-nowrap ${netProfitAllTime >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}
 
-              style={{ fontFamily: "'Inter', sans-serif" }}
+              
 
             >
 
@@ -2543,7 +2543,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
 
               className={`text-[20px] xl:text-[22px] font-bold tracking-tight leading-none whitespace-nowrap ${todayProfit >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}
 
-              style={{ fontFamily: "'Inter', sans-serif" }}
+              
 
             >
 
@@ -2635,7 +2635,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
 
               className="text-[20px] xl:text-[22px] font-bold text-slate-900 dark:text-white tracking-tight leading-none whitespace-nowrap"
 
-              style={{ fontFamily: "'Inter', sans-serif" }}
+              
 
             >
 
@@ -2691,7 +2691,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
 
               className="text-[20px] xl:text-[22px] font-bold text-slate-900 dark:text-white tracking-tight leading-none whitespace-nowrap"
 
-              style={{ fontFamily: "'Inter', sans-serif" }}
+              
 
             >
 
@@ -2769,7 +2769,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
 
               <div className="flex items-center gap-2">
 
-                <h2 className="text-[15px] font-bold text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
+                <h2 className="text-[15px] font-bold text-slate-900 dark:text-white tracking-tight leading-none" >
 
                   Net Profit & Equity Curve
 
@@ -2893,7 +2893,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
 
                           <div className="text-[11px] text-slate-400 font-medium">{data.time}</div>
 
-                          <div className="text-[17px] font-bold text-emerald-600 mt-0.5" style={{ fontFamily: "'Inter', sans-serif" }}>
+                          <div className="text-[17px] font-bold text-emerald-600 mt-0.5" >
 
                             +{currencySymbol}{Number(convertAmount(data.netProfit)).toLocaleString()} Net Profit
 
@@ -2951,7 +2951,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
 
               <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Profit Factor</p>
 
-              <h4 className="text-[18px] font-medium text-slate-900 dark:text-white tracking-tight mt-0.5" style={{ fontFamily: "'Inter', sans-serif" }}>
+              <h4 className="text-[18px] font-medium text-slate-900 dark:text-white tracking-tight mt-0.5" >
 
                 {quantMetrics.profitFactor}
 
@@ -2963,7 +2963,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
 
               <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Sharpe Ratio</p>
 
-              <h4 className="text-[18px] font-medium text-slate-900 dark:text-white tracking-tight mt-0.5" style={{ fontFamily: "'Inter', sans-serif" }}>
+              <h4 className="text-[18px] font-medium text-slate-900 dark:text-white tracking-tight mt-0.5" >
 
                 {quantMetrics.sharpeRatio}
 
@@ -2975,7 +2975,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
 
               <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Max Drawdown</p>
 
-              <h4 className="text-[18px] font-medium text-emerald-600 dark:text-emerald-400 tracking-tight mt-0.5" style={{ fontFamily: "'Inter', sans-serif" }}>
+              <h4 className="text-[18px] font-medium text-emerald-600 dark:text-emerald-400 tracking-tight mt-0.5" >
 
                 {quantMetrics.maxDrawdownPct > 0 ? `-${quantMetrics.maxDrawdownPct}%` : "0.0%"}
 
@@ -2987,7 +2987,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
 
               <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Avg Win Trade</p>
 
-              <h4 className="text-[18px] font-medium text-slate-900 dark:text-white tracking-tight mt-0.5" style={{ fontFamily: "'Inter', sans-serif" }}>
+              <h4 className="text-[18px] font-medium text-slate-900 dark:text-white tracking-tight mt-0.5" >
 
                 {quantMetrics.winCount > 0 ? `+${formatMoney(quantMetrics.avgWinTrade)}` : formatMoney(0)}
 
@@ -3009,7 +3009,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
                 <div className="w-6 h-6 rounded-lg bg-blue-600/10 text-blue-600 flex items-center justify-center font-bold text-xs">
                   50
                 </div>
-                <h2 className="text-[15px] font-bold text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
+                <h2 className="text-[15px] font-bold text-slate-900 dark:text-white tracking-tight leading-none" >
                   Weekly Profit Split (50 / 50)
                 </h2>
               </div>
@@ -3031,7 +3031,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
                   </span>
                   <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">Retained in MT5</span>
                 </div>
-                <h3 className="text-[22px] font-medium text-slate-900 dark:text-white tracking-tight leading-none my-1" style={{ fontFamily: "'Inter', sans-serif" }}>
+                <h3 className="text-[22px] font-medium text-slate-900 dark:text-white tracking-tight leading-none my-1" >
                   +{formatMoney(clientShareToday)}
                 </h3>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
@@ -3048,7 +3048,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
                   <span className="text-[10px] font-bold text-slate-400">Weekly Settlement</span>
                 </div>
                 <div className="flex items-baseline gap-2 my-1">
-                  <h3 className="text-[22px] font-bold text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
+                  <h3 className="text-[22px] font-bold text-slate-900 dark:text-white tracking-tight leading-none" >
                     ₹{adminShareTodayInr.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </h3>
                 </div>
@@ -3103,7 +3103,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
           <div>
             <div className="flex items-center gap-2">
               <ShieldCheck size={18} className="text-blue-500" />
-              <h2 className="text-[15px] font-bold text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
+              <h2 className="text-[15px] font-bold text-slate-900 dark:text-white tracking-tight leading-none" >
                 FiAlgo V1 Operating Agreement & Performance Settlement
               </h2>
               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-200/50">
@@ -3280,7 +3280,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
 
                   <div>
 
-                    <h3 className="text-[15px] font-bold text-slate-900 dark:text-white tracking-tight leading-tight" style={{ fontFamily: "'Inter', sans-serif" }}>
+                    <h3 className="text-[15px] font-bold text-slate-900 dark:text-white tracking-tight leading-tight" >
 
                       Weekly 50/50% Profit Share Settlement
 
@@ -3330,7 +3330,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
 
                 <div className="text-right shrink-0">
 
-                  <div className="text-[20px] font-bold text-emerald-600 dark:text-emerald-400 tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
+                  <div className="text-[20px] font-bold text-emerald-600 dark:text-emerald-400 tracking-tight leading-none" >
 
                     ${adminShareTodayUsdt} USDT
 

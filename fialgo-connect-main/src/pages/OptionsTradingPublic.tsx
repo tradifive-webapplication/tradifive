@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 export default function OptionsTradingPublic() {
   const navigate = useNavigate();
   return (
-    <div style={{ background: "#02040a", minHeight: "100vh", color: "#fff", fontFamily: "'Inter', sans-serif" }}>
+    <div style={{ background: "#02040a", minHeight: "100vh", color: "#fff" }}>
       <PublicNavbar onSignIn={() => navigate("/login")} onSignUp={() => navigate("/login")} onDownloadClick={() => navigate("/download")} />
       <StarsBackground />
       <main style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "70vh", textAlign: "center", padding: "0 24px" }}>

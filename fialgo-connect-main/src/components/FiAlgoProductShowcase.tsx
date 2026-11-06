@@ -77,8 +77,7 @@ export function MT5InstallGuideModal({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        padding: "16px",
-      }}
+        padding: "16px" }}
       onClick={onClose}
     >
       <div
@@ -93,8 +92,7 @@ export function MT5InstallGuideModal({
           overflowY: "auto",
           padding: "26px 24px",
           color: "#fff",
-          position: "relative",
-        }}
+          position: "relative" }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -110,13 +108,12 @@ export function MT5InstallGuideModal({
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                color: "#60a5fa",
-              }}
+                color: "#60a5fa" }}
             >
               <FolderOpen size={22} />
             </div>
             <div>
-              <h3 style={{ fontSize: 18, fontWeight: 800, margin: 0, color: "#fff", fontFamily: "'Outfit', sans-serif" }}>
+              <h3 style={{ fontSize: 18, fontWeight: 800, margin: 0, color: "#fff" }}>
                 How to View FiAlgo in MetaTrader 5
               </h3>
               <p style={{ fontSize: 12, color: "rgba(255, 255, 255, 0.5)", margin: "4px 0 0" }}>
@@ -136,8 +133,7 @@ export function MT5InstallGuideModal({
               alignItems: "center",
               justifyContent: "center",
               color: "rgba(255, 255, 255, 0.6)",
-              cursor: "pointer",
-            }}
+              cursor: "pointer" }}
           >
             <X size={18} />
           </button>
@@ -153,8 +149,7 @@ export function MT5InstallGuideModal({
             marginBottom: 18,
             display: "flex",
             gap: 12,
-            alignItems: "flex-start",
-          }}
+            alignItems: "flex-start" }}
         >
           <AlertTriangle size={18} color="#f59e0b" style={{ flexShrink: 0, marginTop: 2 }} />
           <div style={{ fontSize: 12, color: "#fde68a", lineHeight: 1.5 }}>
@@ -174,8 +169,7 @@ export function MT5InstallGuideModal({
               borderRadius: 12,
               padding: "12px 16px",
               display: "flex",
-              gap: 12,
-            }}
+              gap: 12 }}
           >
             <div
               style={{
@@ -189,8 +183,7 @@ export function MT5InstallGuideModal({
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                flexShrink: 0,
-              }}
+                flexShrink: 0 }}
             >
               1
             </div>
@@ -212,8 +205,7 @@ export function MT5InstallGuideModal({
                   borderRadius: 6,
                   fontSize: 11.5,
                   fontFamily: "monospace",
-                  color: "#93c5fd",
-                }}
+                  color: "#93c5fd" }}
               >
                 File &rarr; Open Data Folder
               </div>
@@ -228,8 +220,7 @@ export function MT5InstallGuideModal({
               borderRadius: 12,
               padding: "12px 16px",
               display: "flex",
-              gap: 12,
-            }}
+              gap: 12 }}
           >
             <div
               style={{
@@ -243,8 +234,7 @@ export function MT5InstallGuideModal({
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                flexShrink: 0,
-              }}
+                flexShrink: 0 }}
             >
               2
             </div>
@@ -266,8 +256,7 @@ export function MT5InstallGuideModal({
                   borderRadius: 6,
                   fontSize: 11.5,
                   fontFamily: "monospace",
-                  color: "#93c5fd",
-                }}
+                  color: "#93c5fd" }}
               >
                 MQL5 &rarr; Experts
               </div>
@@ -285,8 +274,7 @@ export function MT5InstallGuideModal({
               borderRadius: 12,
               padding: "12px 16px",
               display: "flex",
-              gap: 12,
-            }}
+              gap: 12 }}
           >
             <div
               style={{
@@ -300,8 +288,7 @@ export function MT5InstallGuideModal({
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                flexShrink: 0,
-              }}
+                flexShrink: 0 }}
             >
               3
             </div>
@@ -331,8 +318,7 @@ export function MT5InstallGuideModal({
               borderRadius: 12,
               padding: "12px 16px",
               display: "flex",
-              gap: 12,
-            }}
+              gap: 12 }}
           >
             <div
               style={{
@@ -346,8 +332,7 @@ export function MT5InstallGuideModal({
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                flexShrink: 0,
-              }}
+                flexShrink: 0 }}
             >
               4
             </div>
@@ -376,8 +361,7 @@ export function MT5InstallGuideModal({
               padding: "9px 20px",
               fontSize: 13,
               fontWeight: 700,
-              cursor: "pointer",
-            }}
+              cursor: "pointer" }}
           >
             Got It! Close Guide
           </button>
@@ -467,8 +451,7 @@ export function FreeDownloadsCompactBanner() {
         justifyContent: "space-between",
         flexWrap: "wrap",
         gap: 18,
-        position: "relative",
-      }}
+        position: "relative" }}
     >
       {/* Left text */}
       <div style={{ minWidth: 240 }}>
@@ -478,10 +461,7 @@ export function FreeDownloadsCompactBanner() {
               fontSize: 18,
               fontWeight: 800,
               color: "#ffffff",
-              margin: 0,
-              fontFamily: "'Outfit', 'Inter', sans-serif",
-              letterSpacing: "-0.01em",
-            }}
+              margin: 0, letterSpacing: "-0.01em" }}
           >
             Free 3-Day Demo Trial
           </h4>
@@ -495,8 +475,7 @@ export function FreeDownloadsCompactBanner() {
               padding: "2px 8px",
               borderRadius: 100,
               textTransform: "uppercase",
-              letterSpacing: "0.08em",
-            }}
+              letterSpacing: "0.08em" }}
           >
             3 Days Trial
           </span>
@@ -524,8 +503,7 @@ export function FreeDownloadsCompactBanner() {
             justifyContent: "center",
             minWidth: 145,
             transition: "all 0.2s ease",
-            outline: "none",
-          }}
+            outline: "none" }}
           onMouseEnter={(e) => {
             e.currentTarget.style.background = "rgba(255, 255, 255, 0.08)";
             e.currentTarget.style.transform = "translateY(-1px)";
@@ -561,8 +539,7 @@ export function FreeDownloadsCompactBanner() {
             fontSize: 12,
             fontWeight: 700,
             transition: "all 0.2s ease",
-            outline: "none",
-          }}
+            outline: "none" }}
           onMouseEnter={(e) => {
             e.currentTarget.style.background = "rgba(59, 130, 246, 0.16)";
             e.currentTarget.style.color = "#ffffff";
@@ -655,8 +632,7 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
               boxShadow: "inset 0 1px 0 0 rgba(255,255,255,0.05), 0 0 0 1px rgba(255,255,255,0.05)",
               borderRadius: 100,
               padding: "5px 14px",
-              marginBottom: 14,
-            }}
+              marginBottom: 14 }}
           >
             <Cpu size={13} color="#ffffff" />
             <span
@@ -665,8 +641,7 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                 fontSize: 10.5,
                 fontWeight: 700,
                 letterSpacing: 1.8,
-                textTransform: "uppercase",
-                fontFamily: "'Inter', sans-serif",
+                textTransform: "uppercase"
               }}
             >
               PRODUCT SPECIFICATIONS
@@ -677,12 +652,9 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
             style={{
               fontSize: "clamp(26px, 3vw, 40px)",
               fontWeight: 800,
-              color: "#ffffff",
-              fontFamily: "'Outfit', sans-serif",
-              letterSpacing: "-0.02em",
+              color: "#ffffff", letterSpacing: "-0.02em",
               margin: "0 0 12px",
-              lineHeight: 1.2,
-            }}
+              lineHeight: 1.2 }}
           >
             Meet FiAlgo V1.{" "}
             <span className="bg-gradient-to-r from-blue-400 via-indigo-300 to-emerald-400 bg-clip-text text-transparent">
@@ -696,8 +668,7 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
               color: "rgba(255, 255, 255, 0.5)",
               maxWidth: 580,
               margin: "0 auto",
-              lineHeight: 1.6,
-            }}
+              lineHeight: 1.6 }}
           >
             The complete automated trading system. Engineered for XAUUSD (Gold) on MetaTrader 5 with disciplined execution cycles and automated news blackout windows.
           </p>
@@ -717,8 +688,7 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
               background: "radial-gradient(circle, rgba(59, 130, 246, 0.25) 0%, rgba(99, 102, 241, 0.1) 45%, transparent 70%)",
               filter: "blur(36px)",
               pointerEvents: "none",
-              zIndex: 0,
-            }}
+              zIndex: 0 }}
           />
 
           {/* Floating Stage with Feature Badges */}
@@ -744,8 +714,7 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                 gap: 5,
                 fontSize: 10,
                 fontWeight: 700,
-                color: "#93c5fd",
-              }}
+                color: "#93c5fd" }}
             >
               <Zap size={11} color="#60a5fa" />
               <span>&lt; 3ms Speed</span>
@@ -772,8 +741,7 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                 gap: 5,
                 fontSize: 10,
                 fontWeight: 700,
-                color: "#86efac",
-              }}
+                color: "#86efac" }}
             >
               <Shield size={11} color="#4ade80" />
               <span>News Filter</span>
@@ -791,8 +759,7 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                 style={{
                   maxHeight: 260,
                   width: "auto",
-                  filter: "drop-shadow(0 16px 24px rgba(0,0,0,0.45))",
-                }}
+                  filter: "drop-shadow(0 16px 24px rgba(0,0,0,0.45))" }}
               />
             </motion.div>
 
@@ -808,8 +775,7 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                 background: "radial-gradient(ellipse at center, rgba(96, 165, 250, 0.3) 0%, rgba(0,0,0,0.7) 50%, transparent 75%)",
                 borderRadius: "50%",
                 pointerEvents: "none",
-                zIndex: 1,
-              }}
+                zIndex: 1 }}
             />
           </div>
 
@@ -827,8 +793,7 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
               fontSize: 10.5,
               fontWeight: 700,
               color: "rgba(255,255,255,0.85)",
-              letterSpacing: 0.3,
-            }}
+              letterSpacing: 0.3 }}
           >
             <span style={{ color: "#60a5fa" }}>★</span>
             <span>MetaTrader 5 Automated Gold Algo</span>
@@ -845,8 +810,7 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
               border: "1px solid rgba(255, 255, 255, 0.08)",
               borderRadius: 14,
               padding: 4,
-              gap: 4,
-            }}
+              gap: 4 }}
           >
             <button
               onClick={() => setMobileTab('license')}
@@ -865,8 +829,7 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                 alignItems: "center",
                 justifyContent: "center",
                 gap: 6,
-                transition: "all 0.2s ease",
-              }}
+                transition: "all 0.2s ease" }}
             >
               <Zap size={14} />
               <span>Plans & Pricing</span>
@@ -878,8 +841,7 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                   borderRadius: 6,
                   background: mobileTab === 'license' ? "rgba(96, 165, 250, 0.18)" : "rgba(255, 255, 255, 0.08)",
                   color: mobileTab === 'license' ? "#93c5fd" : "rgba(255, 255, 255, 0.4)",
-                  border: mobileTab === 'license' ? "1px solid rgba(96, 165, 250, 0.3)" : "1px solid transparent",
-                }}
+                  border: mobileTab === 'license' ? "1px solid rgba(96, 165, 250, 0.3)" : "1px solid transparent" }}
               >
                 2 Tiers
               </span>
@@ -901,8 +863,7 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                 alignItems: "center",
                 justifyContent: "center",
                 gap: 6,
-                transition: "all 0.2s ease",
-              }}
+                transition: "all 0.2s ease" }}
             >
               <Package size={14} />
               <span>Specifications</span>
@@ -925,8 +886,7 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                 marginTop: 14,
                 marginBottom: -68,
                 position: "relative",
-                zIndex: 10,
-              }}
+                zIndex: 10 }}
             >
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -947,8 +907,7 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                     background: "radial-gradient(circle, rgba(96, 165, 250, 0.22) 0%, transparent 70%)",
                     filter: "blur(32px)",
                     pointerEvents: "none",
-                    zIndex: 0,
-                  }}
+                    zIndex: 0 }}
                 />
                 <img
                   src="/fialgo-v1-box.png"
@@ -958,8 +917,7 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                     width: "auto",
                     position: "relative",
                     zIndex: 2,
-                    filter: "drop-shadow(0 15px 25px rgba(0,0,0,0.35)) drop-shadow(0 4px 10px rgba(0,0,0,0.2))",
-                  }}
+                    filter: "drop-shadow(0 15px 25px rgba(0,0,0,0.35)) drop-shadow(0 4px 10px rgba(0,0,0,0.2))" }}
                 />
               </motion.div>
             </div>
@@ -974,8 +932,7 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                 flexDirection: "column",
                 justifyContent: "space-between",
                 position: "relative",
-                zIndex: 1,
-              }}
+                zIndex: 1 }}
             >
               <div>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
@@ -988,8 +945,7 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                         background: "rgba(255, 255, 255, 0.06)",
                         display: "flex",
                         alignItems: "center",
-                        justifyContent: "center",
-                      }}
+                        justifyContent: "center" }}
                     >
                       <Package size={18} color="#ffffff" />
                     </div>
@@ -999,8 +955,7 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                           fontSize: 18,
                           fontWeight: 800,
                           color: "#fff",
-                          margin: 0,
-                          fontFamily: "'Outfit', sans-serif",
+                          margin: 0
                         }}
                       >
                         FiAlgo V1 Product Details
@@ -1027,8 +982,7 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                             padding: "8px 11px",
                             borderRadius: 10,
                             background: "rgba(255, 255, 255, 0.03)",
-                            minHeight: 50,
-                          }}
+                            minHeight: 50 }}
                         >
                           <span style={{ color: "rgba(255, 255, 255, 0.45)", fontWeight: 500, fontSize: 11 }}>{spec.label}</span>
                           <div style={{ display: "flex", alignItems: "center", gap: 5, flexWrap: "wrap", marginTop: 2 }}>
@@ -1036,8 +990,7 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                               style={{
                                 color: spec.highlight ? "#60a5fa" : "#ffffff",
                                 fontWeight: 700,
-                                fontSize: 12,
-                              }}
+                                fontSize: 12 }}
                             >
                               {spec.value}
                             </span>
@@ -1049,8 +1002,7 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                                   fontSize: 8.5,
                                   fontWeight: 700,
                                   padding: "1px 5px",
-                                  borderRadius: 5,
-                                }}
+                                  borderRadius: 5 }}
                               >
                                 {spec.badge}
                               </span>
@@ -1073,8 +1025,7 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                           padding: "8px 11px",
                           borderRadius: 10,
                           background: "rgba(255, 255, 255, 0.03)",
-                          minHeight: 50,
-                        }}
+                          minHeight: 50 }}
                       >
                         <span style={{ color: "rgba(255, 255, 255, 0.45)", fontWeight: 500, fontSize: 11 }}>{spec.label}</span>
                         <span style={{ color: "#ffffff", fontWeight: 700, fontSize: 12, marginTop: 2 }}>{spec.value}</span>
@@ -1090,8 +1041,7 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                       justifyContent: "space-between",
                       padding: "8px 12px",
                       borderRadius: 10,
-                      background: "rgba(255, 255, 255, 0.03)",
-                    }}
+                      background: "rgba(255, 255, 255, 0.03)" }}
                   >
                     <span style={{ color: "rgba(255, 255, 255, 0.45)", fontWeight: 500, fontSize: 11 }}>
                       {specRow4[2].label}
@@ -1104,8 +1054,7 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                         background: "rgba(96, 165, 250, 0.1)",
                         padding: "2px 8px",
                         borderRadius: 6,
-                        border: "1px solid rgba(96, 165, 250, 0.2)",
-                      }}
+                        border: "1px solid rgba(96, 165, 250, 0.2)" }}
                     >
                       {specRow4[2].value}
                     </span>
@@ -1126,8 +1075,7 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                   alignItems: "center",
                   justifyContent: "space-between",
                   flexWrap: "wrap",
-                  gap: 12,
-                }}
+                  gap: 12 }}
               >
                 <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 220 }}>
                   <div
@@ -1140,8 +1088,7 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      flexShrink: 0,
-                    }}
+                      flexShrink: 0 }}
                   >
                     <Shield size={16} color="#60a5fa" />
                   </div>
@@ -1171,8 +1118,7 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                     cursor: "pointer",
                     transition: "all 0.2s ease",
                     whiteSpace: "nowrap",
-                    boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 4px rgba(0, 0, 0, 0.3)",
-                  }}
+                    boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 4px rgba(0, 0, 0, 0.3)" }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.background = "linear-gradient(135deg, #253347 0%, #131c33 100%)";
                     e.currentTarget.style.color = "#93c5fd";
@@ -1205,8 +1151,7 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                     alignItems: "center",
                     justifyContent: "center",
                     gap: 6,
-                    transition: "all 0.2s ease",
-                  }}
+                    transition: "all 0.2s ease" }}
                 >
                   <span>View Plans & Pricing (2 Tiers)</span>
                   <ArrowRight size={14} />
@@ -1225,8 +1170,7 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "space-between",
-                position: "relative",
-              }}
+                position: "relative" }}
             >
               <div>
                 {/* Mobile Back Link to Specs */}
@@ -1243,8 +1187,7 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                       display: "inline-flex",
                       alignItems: "center",
                       gap: 6,
-                      padding: 0,
-                    }}
+                      padding: 0 }}
                   >
                     <span>&larr; View Technical Specifications</span>
                   </button>
@@ -1260,8 +1203,7 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                     background: "#111111",
                     borderRadius: 14,
                     border: "1px solid rgba(255, 255, 255, 0.08)",
-                    marginBottom: 16,
-                  }}
+                    marginBottom: 16 }}
                 >
                   <button
                     onClick={() => setSelectedPlan('three_years')}
@@ -1279,8 +1221,7 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                       alignItems: "center",
                       justifyContent: "center",
                       gap: 5,
-                      transition: "all 0.2s ease",
-                    }}
+                      transition: "all 0.2s ease" }}
                   >
                     <span>🌟 3-Yr Pass (₹1L)</span>
                   </button>
@@ -1301,8 +1242,7 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                       alignItems: "center",
                       justifyContent: "center",
                       gap: 5,
-                      transition: "all 0.2s ease",
-                    }}
+                      transition: "all 0.2s ease" }}
                   >
                     <span>⚡ Performance (₹10K)</span>
                   </button>
@@ -1320,8 +1260,7 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                       padding: "3px 10px",
                       borderRadius: 100,
                       letterSpacing: 0.8,
-                      textTransform: "uppercase",
-                    }}
+                      textTransform: "uppercase" }}
                   >
                     {selectedPlan === 'three_years' ? "Enterprise · 0% Profit Share" : "Performance · Pay on Profit"}
                   </span>
@@ -1335,10 +1274,7 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                     fontSize: 20,
                     fontWeight: 800,
                     color: "#ffffff",
-                    margin: "0 0 6px",
-                    fontFamily: "'Outfit', sans-serif",
-                    letterSpacing: "-0.01em",
-                  }}
+                    margin: "0 0 6px", letterSpacing: "-0.01em" }}
                 >
                   {selectedPlan === 'three_years' ? "FiAlgo V1 3-Year Enterprise Pass" : "FiAlgo V1 Performance License"}
                 </h3>
@@ -1359,8 +1295,7 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                     marginBottom: 12,
                     display: "flex",
                     alignItems: "center",
-                    justifyContent: "space-between",
-                  }}
+                    justifyContent: "space-between" }}
                 >
                   <div>
                     <div style={{ fontSize: 10, color: "rgba(255, 255, 255, 0.4)", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.8 }}>
@@ -1371,10 +1306,7 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                         style={{
                           fontSize: 26,
                           fontWeight: 900,
-                          color: selectedPlan === 'three_years' ? "#60a5fa" : "#34d399",
-                          fontFamily: "'Outfit', sans-serif",
-                          letterSpacing: "-0.02em",
-                        }}
+                          color: selectedPlan === 'three_years' ? "#60a5fa" : "#34d399", letterSpacing: "-0.02em" }}
                       >
                         {selectedPlan === 'three_years' ? "₹1,00,000" : "₹10,000"}
                       </span>
@@ -1393,8 +1325,7 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                         fontWeight: 700,
                         padding: "3px 8px",
                         borderRadius: 6,
-                        letterSpacing: 0.3,
-                      }}
+                        letterSpacing: 0.3 }}
                     >
                       {selectedPlan === 'three_years' ? "100% Profits Kept" : "Pay on Green Only"}
                     </span>
@@ -1411,8 +1342,7 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                     marginBottom: 16,
                     display: "flex",
                     alignItems: "center",
-                    gap: 9,
-                  }}
+                    gap: 9 }}
                 >
                   {selectedPlan === 'three_years' ? (
                     <ShieldCheck size={14} color="#60a5fa" style={{ flexShrink: 0 }} />
@@ -1466,8 +1396,7 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                     justifyContent: "center",
                     gap: 8,
                     transition: "all 0.2s ease",
-                    outline: "none",
-                  }}
+                    outline: "none" }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.transform = "translateY(-1px)";
                     e.currentTarget.style.background = selectedPlan === 'three_years' ? "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)" : "linear-gradient(135deg, #10b981 0%, #059669 100%)";
@@ -1543,8 +1472,7 @@ export function HowItWorksSection() {
                 fontSize: 11,
                 fontWeight: 700,
                 letterSpacing: 2,
-                textTransform: "uppercase",
-                fontFamily: "'Inter', sans-serif",
+                textTransform: "uppercase"
               }}
             >
               HOW IT WORKS
@@ -1554,12 +1482,9 @@ export function HowItWorksSection() {
             style={{
               fontSize: "clamp(26px, 3vw, 40px)",
               fontWeight: 800,
-              color: "#fff",
-              fontFamily: "'Outfit', sans-serif",
-              lineHeight: 1.2,
+              color: "#fff", lineHeight: 1.2,
               letterSpacing: "-0.02em",
-              margin: "0 0 12px",
-            }}
+              margin: "0 0 12px" }}
           >
             From checkout to{" "}
             <span className="bg-gradient-to-r from-blue-400 via-indigo-300 to-emerald-400 bg-clip-text text-transparent">
@@ -1572,8 +1497,7 @@ export function HowItWorksSection() {
               color: "rgba(255, 255, 255, 0.5)",
               lineHeight: 1.6,
               maxWidth: 540,
-              margin: 0,
-            }}
+              margin: 0 }}
           >
             Get up and running in minutes with plug-and-play installation on your MetaTrader 5 terminal.
           </p>
@@ -1585,8 +1509,7 @@ export function HowItWorksSection() {
             display: "grid",
             gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))",
             gap: 16,
-            marginBottom: 20,
-          }}
+            marginBottom: 20 }}
         >
           {steps.map((step, i) => (
             <motion.div
@@ -1599,8 +1522,7 @@ export function HowItWorksSection() {
                 flexDirection: "column",
                 justifyContent: "space-between",
                 minHeight: 140,
-                transition: "all 0.25s ease",
-              }}
+                transition: "all 0.25s ease" }}
               whileHover={FAQ_CARD_HOVER}
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
@@ -1609,8 +1531,7 @@ export function HowItWorksSection() {
                     fontSize: 17,
                     fontWeight: 700,
                     color: "#ffffff",
-                    margin: 0,
-                    fontFamily: "'Outfit', sans-serif",
+                    margin: 0
                   }}
                 >
                   {step.title}
@@ -1620,8 +1541,7 @@ export function HowItWorksSection() {
                     fontSize: 24,
                     fontWeight: 800,
                     color: "rgba(255, 255, 255, 0.25)",
-                    lineHeight: 1,
-                    fontFamily: "'Outfit', sans-serif",
+                    lineHeight: 1
                   }}
                 >
                   {step.num}
@@ -1632,8 +1552,7 @@ export function HowItWorksSection() {
                   fontSize: 13,
                   color: "rgba(255, 255, 255, 0.55)",
                   margin: 0,
-                  lineHeight: 1.55,
-                }}
+                  lineHeight: 1.55 }}
               >
                 {step.desc}
               </p>
@@ -1649,16 +1568,14 @@ export function HowItWorksSection() {
             padding: "20px 28px",
             display: "grid",
             gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-            gap: 20,
-          }}
+            gap: 20 }}
         >
           {specs.map((item, idx) => (
             <div
               key={item.label}
               style={{
                 borderLeft: idx > 0 ? "1px solid rgba(255, 255, 255, 0.08)" : "none",
-                paddingLeft: idx > 0 ? 20 : 0,
-              }}
+                paddingLeft: idx > 0 ? 20 : 0 }}
             >
               <div
                 style={{
@@ -1667,8 +1584,7 @@ export function HowItWorksSection() {
                   fontWeight: 700,
                   letterSpacing: "0.14em",
                   textTransform: "uppercase",
-                  marginBottom: 4,
-                  fontFamily: "'Inter', sans-serif",
+                  marginBottom: 4
                 }}
               >
                 {item.label}
@@ -1677,8 +1593,7 @@ export function HowItWorksSection() {
                 style={{
                   fontSize: 15,
                   fontWeight: 700,
-                  color: "#ffffff",
-                  fontFamily: "'Outfit', sans-serif",
+                  color: "#ffffff"
                 }}
               >
                 {item.value}
@@ -1771,8 +1686,7 @@ export function WhatYouGetSection() {
                 fontSize: 11,
                 fontWeight: 700,
                 letterSpacing: 2,
-                textTransform: "uppercase",
-                fontFamily: "'Inter', sans-serif",
+                textTransform: "uppercase"
               }}
             >
               WHAT YOU GET
@@ -1782,12 +1696,9 @@ export function WhatYouGetSection() {
             style={{
               fontSize: "clamp(26px, 3vw, 40px)",
               fontWeight: 800,
-              color: "#fff",
-              fontFamily: "'Outfit', sans-serif",
-              lineHeight: 1.2,
+              color: "#fff", lineHeight: 1.2,
               letterSpacing: "-0.02em",
-              margin: "0 0 12px",
-            }}
+              margin: "0 0 12px" }}
           >
             Inside{" "}
             <span className="bg-gradient-to-r from-blue-400 via-indigo-300 to-emerald-400 bg-clip-text text-transparent">
@@ -1800,8 +1711,7 @@ export function WhatYouGetSection() {
               color: "rgba(255, 255, 255, 0.5)",
               lineHeight: 1.6,
               maxWidth: 540,
-              margin: 0,
-            }}
+              margin: 0 }}
           >
             Complete feature suite engineered for high-precision algorithmic Gold trading.
           </p>
@@ -1812,8 +1722,7 @@ export function WhatYouGetSection() {
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-            gap: 16,
-          }}
+            gap: 16 }}
         >
           {cards.map((card, i) => {
             const Icon = card.icon;
@@ -1828,8 +1737,7 @@ export function WhatYouGetSection() {
                   flexDirection: "column",
                   justifyContent: "flex-start",
                   minHeight: 140,
-                  transition: "all 0.25s ease",
-                }}
+                  transition: "all 0.25s ease" }}
                 whileHover={FAQ_CARD_HOVER}
               >
                 {/* Icon box */}
@@ -1842,8 +1750,7 @@ export function WhatYouGetSection() {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    marginBottom: 16,
-                  }}
+                    marginBottom: 16 }}
                 >
                   <Icon size={17} color="#ffffff" />
                 </div>
@@ -1855,8 +1762,7 @@ export function WhatYouGetSection() {
                     fontWeight: 700,
                     color: "#ffffff",
                     margin: "0 0 6px",
-                    lineHeight: 1.35,
-                    fontFamily: "'Outfit', sans-serif",
+                    lineHeight: 1.35
                   }}
                 >
                   {card.title}
@@ -1868,8 +1774,7 @@ export function WhatYouGetSection() {
                       fontSize: 12,
                       color: "rgba(255, 255, 255, 0.45)",
                       margin: "4px 0 0",
-                      fontWeight: 500,
-                    }}
+                      fontWeight: 500 }}
                   >
                     {card.subtext}
                   </p>
@@ -1880,8 +1785,7 @@ export function WhatYouGetSection() {
                       fontSize: 12,
                       color: "rgba(255, 255, 255, 0.45)",
                       margin: "4px 0 0",
-                      lineHeight: 1.45,
-                    }}
+                      lineHeight: 1.45 }}
                   >
                     {card.desc}
                   </p>
@@ -1955,8 +1859,7 @@ export function RiskModulesSection() {
                 fontSize: 11,
                 fontWeight: 700,
                 letterSpacing: 2,
-                textTransform: "uppercase",
-                fontFamily: "'Inter', sans-serif",
+                textTransform: "uppercase"
               }}
             >
               RISK MODULES
@@ -1966,12 +1869,9 @@ export function RiskModulesSection() {
             style={{
               fontSize: "clamp(26px, 3vw, 40px)",
               fontWeight: 800,
-              color: "#fff",
-              fontFamily: "'Outfit', sans-serif",
-              lineHeight: 1.2,
+              color: "#fff", lineHeight: 1.2,
               letterSpacing: "-0.02em",
-              margin: "0 0 12px",
-            }}
+              margin: "0 0 12px" }}
           >
             8 modules.{" "}
             <span className="bg-gradient-to-r from-blue-400 via-indigo-300 to-emerald-400 bg-clip-text text-transparent">
@@ -1984,8 +1884,7 @@ export function RiskModulesSection() {
               color: "rgba(255, 255, 255, 0.5)",
               maxWidth: 580,
               margin: 0,
-              lineHeight: 1.6,
-            }}
+              lineHeight: 1.6 }}
           >
             Every module is a toggle on the on-chart dashboard. The EA remembers your choice per chart and magic number.
           </p>
@@ -1996,8 +1895,7 @@ export function RiskModulesSection() {
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-            gap: 16,
-          }}
+            gap: 16 }}
         >
           {modules.map((mod, i) => (
             <motion.div
@@ -2008,8 +1906,7 @@ export function RiskModulesSection() {
                 padding: "24px 22px",
                 display: "flex",
                 flexDirection: "column",
-                transition: "all 0.25s ease",
-              }}
+                transition: "all 0.25s ease" }}
               whileHover={FAQ_CARD_HOVER}
             >
               <div style={{ marginBottom: 16 }}>
@@ -2022,8 +1919,7 @@ export function RiskModulesSection() {
                     fontSize: 10,
                     fontWeight: 700,
                     color: "rgba(255, 255, 255, 0.8)",
-                    letterSpacing: 0.5,
-                  }}
+                    letterSpacing: 0.5 }}
                 >
                   {mod.num}
                 </span>
@@ -2033,10 +1929,7 @@ export function RiskModulesSection() {
                   fontSize: 16,
                   fontWeight: 700,
                   color: "#ffffff",
-                  margin: "0 0 10px",
-                  fontFamily: "'Outfit', sans-serif",
-                  letterSpacing: "0.02em",
-                }}
+                  margin: "0 0 10px", letterSpacing: "0.02em" }}
               >
                 {mod.title}
               </h4>
@@ -2045,8 +1938,7 @@ export function RiskModulesSection() {
                   fontSize: 13,
                   color: "rgba(255, 255, 255, 0.55)",
                   margin: 0,
-                  lineHeight: 1.6,
-                }}
+                  lineHeight: 1.6 }}
               >
                 {mod.desc}
               </p>
@@ -2090,8 +1982,7 @@ export function FreeTrialDownloadsSection() {
                 fontSize: 11,
                 fontWeight: 700,
                 letterSpacing: 2,
-                textTransform: "uppercase",
-                fontFamily: "'Inter', sans-serif",
+                textTransform: "uppercase"
               }}
             >
               TRY BEFORE YOU BUY
@@ -2101,12 +1992,9 @@ export function FreeTrialDownloadsSection() {
             style={{
               fontSize: "clamp(26px, 3vw, 40px)",
               fontWeight: 800,
-              color: "#fff",
-              fontFamily: "'Outfit', sans-serif",
-              lineHeight: 1.2,
+              color: "#fff", lineHeight: 1.2,
               letterSpacing: "-0.02em",
-              margin: "0 0 12px",
-            }}
+              margin: "0 0 12px" }}
           >
             Free trial &{" "}
             <span className="bg-gradient-to-r from-blue-400 via-indigo-300 to-emerald-400 bg-clip-text text-transparent">
@@ -2119,8 +2007,7 @@ export function FreeTrialDownloadsSection() {
               color: "rgba(255, 255, 255, 0.5)",
               maxWidth: 580,
               margin: 0,
-              lineHeight: 1.6,
-            }}
+              lineHeight: 1.6 }}
           >
             Download the free 3-day demo build. Works on any MT5 demo account. No license key or payment needed.
           </p>
@@ -2132,8 +2019,7 @@ export function FreeTrialDownloadsSection() {
           style={{
             ...FAQ_CARD_STYLE,
             padding: "36px 32px",
-            position: "relative",
-          }}
+            position: "relative" }}
         >
           {/* Download icon box */}
           <div
@@ -2145,8 +2031,7 @@ export function FreeTrialDownloadsSection() {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              marginBottom: 20,
-            }}
+              marginBottom: 20 }}
           >
             <Download size={20} color="#ffffff" />
           </div>
@@ -2157,8 +2042,7 @@ export function FreeTrialDownloadsSection() {
                 fontSize: 22,
                 fontWeight: 800,
                 color: "#ffffff",
-                margin: 0,
-                fontFamily: "'Outfit', sans-serif",
+                margin: 0
               }}
             >
               3-Day Free Demo Trial
@@ -2173,8 +2057,7 @@ export function FreeTrialDownloadsSection() {
                 padding: "3px 10px",
                 borderRadius: 100,
                 textTransform: "uppercase",
-                letterSpacing: "0.06em",
-              }}
+                letterSpacing: "0.06em" }}
             >
               3 Days Free Trial
             </span>
@@ -2184,8 +2067,7 @@ export function FreeTrialDownloadsSection() {
               fontSize: 14,
               color: "rgba(255, 255, 255, 0.55)",
               margin: "0 0 28px",
-              lineHeight: 1.6,
-            }}
+              lineHeight: 1.6 }}
           >
             Experience FIALGO V1 risk-free with our 3-day demo trial on MT5 demo accounts, or run historical tick simulations in Strategy Tester — full automated algorithm execution, no license key needed for trial.
           </p>
@@ -2208,8 +2090,7 @@ export function FreeTrialDownloadsSection() {
                 textAlign: "left",
                 transition: "all 0.2s ease",
                 outline: "none",
-                width: "100%",
-              }}
+                width: "100%" }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.background = "rgba(255, 255, 255, 0.07)";
                 e.currentTarget.style.transform = "translateX(4px)";
@@ -2241,8 +2122,7 @@ export function FreeTrialDownloadsSection() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  color: "#ffffff",
-                }}
+                  color: "#ffffff" }}
               >
                 {downloadingDemo ? <Check size={16} /> : <ArrowDown size={16} />}
               </div>

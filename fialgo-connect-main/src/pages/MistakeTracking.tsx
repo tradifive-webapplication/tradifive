@@ -310,7 +310,7 @@ export default function MistakeTracking() {
             <div className="flex items-center gap-3">
               <h1
                 className="text-[28px] sm:text-[32px] font-bold text-slate-900 dark:text-white tracking-tight leading-none"
-                style={{ fontFamily: "'Inter', sans-serif" }}
+                
               >
                 AI Mistake Tracking &amp; Behavioral Coach
               </h1>
@@ -360,7 +360,7 @@ export default function MistakeTracking() {
             </div>
             <div className="flex items-end justify-between">
               <div className="flex items-baseline gap-1.5 leading-none">
-                <h3 className="text-[26px] font-medium text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
+                <h3 className="text-[26px] font-medium text-slate-900 dark:text-white tracking-tight leading-none" >
                   82<span className="text-sm font-normal text-slate-400">/100</span>
                 </h3>
                 <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
@@ -385,7 +385,7 @@ export default function MistakeTracking() {
             </div>
             <div className="flex items-end justify-between">
               <div>
-                <h3 className="text-[26px] font-medium text-rose-600 dark:text-rose-400 tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
+                <h3 className="text-[26px] font-medium text-rose-600 dark:text-rose-400 tracking-tight leading-none" >
                   -${totalMistakeLoss.toFixed(2)}
                 </h3>
                 <p className="text-[10px] text-slate-400 mt-0.5">Preventable Capital Drain</p>
@@ -431,7 +431,7 @@ export default function MistakeTracking() {
             </div>
             <div className="flex items-end justify-between">
               <div className="flex items-baseline gap-1.5 leading-none">
-                <h3 className="text-[26px] font-medium text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
+                <h3 className="text-[26px] font-medium text-slate-900 dark:text-white tracking-tight leading-none" >
                   4 Days
                 </h3>
                 <span className="text-[11px] font-bold text-slate-400">

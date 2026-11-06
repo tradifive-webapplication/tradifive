@@ -97,10 +97,9 @@ export default function CommunityHubPublic() {
   ];
 
   return (
-    <div style={{ background: "#02040a", minHeight: "100vh", color: "#fff", fontFamily: "'Inter', sans-serif" }}>
+    <div style={{ background: "#02040a", minHeight: "100vh", color: "#fff" }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-        * { box-sizing: border-box; }
+                * { box-sizing: border-box; }
         body { background: #02040a; }
         @media (max-width: 768px) {
           .feat-row { grid-template-columns: 1fr !important; }

@@ -287,8 +287,7 @@ export default function Strategy() {
                   transition={{ duration: 0.8, ease: "circOut" }}
                   className="absolute h-full bg-blue-600 rounded-full"
                   style={{
-                    boxShadow: '0 0-12px rgba(37, 99, 235, 0.6)',
-                  }}
+                    boxShadow: '0 0-12px rgba(37, 99, 235, 0.6)' }}
                 />
                 {/* Visual Glow Layer */}
                 <motion.div

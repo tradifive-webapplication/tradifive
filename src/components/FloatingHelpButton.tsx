@@ -349,8 +349,7 @@ export default function FloatingHelpButton() {
           alignItems: "center",
           justifyContent: "center",
           cursor: "pointer",
-          border: "none",
-        }}
+          border: "none" }}
       >
         {/* Pulsing online green dot if no unread messages */}
         {unreadCount === 0 && (
@@ -364,8 +363,7 @@ export default function FloatingHelpButton() {
               borderRadius: "50%",
               background: "#10b981",
               border: "2px solid #fff",
-              boxShadow: "0 0 8px #10b981",
-            }}
+              boxShadow: "0 0 8px #10b981" }}
           />
         )}
 
@@ -391,8 +389,7 @@ export default function FloatingHelpButton() {
               justifyContent: "center",
               padding: "0 5px",
               border: "2px solid #0f172a",
-              boxShadow: "0 0 12px rgba(239, 68, 68, 0.9)",
-            }}
+              boxShadow: "0 0 12px rgba(239, 68, 68, 0.9)" }}
           >
             {unreadCount}
           </motion.div>
@@ -419,8 +416,7 @@ export default function FloatingHelpButton() {
                 ? 62
                 : isBig
                 ? "min(780px, calc(100vh - 120px))"
-                : 560,
-            }}
+                : 560 }}
             exit={{ opacity: 0, y: 30, scale: 0.95 }}
             transition={{ duration: 0.22, ease: "easeOut" }}
             style={{
@@ -434,8 +430,7 @@ export default function FloatingHelpButton() {
               boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255,255,255,0.06)",
               display: "flex",
               flexDirection: "column",
-              overflow: "hidden",
-            }}
+              overflow: "hidden" }}
           >
             {/* Header: Human-Made & Sizing Controls */}
             <div
@@ -446,8 +441,7 @@ export default function FloatingHelpButton() {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
-                flexShrink: 0,
-              }}
+                flexShrink: 0 }}
             >
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <div
@@ -460,8 +454,7 @@ export default function FloatingHelpButton() {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    color: "#60a5fa",
-                  }}
+                    color: "#60a5fa" }}
                 >
                   <LifeBuoy size={20} />
                 </div>
@@ -478,8 +471,7 @@ export default function FloatingHelpButton() {
                         padding: "2px 7px",
                         borderRadius: 100,
                         background: "rgba(16, 185, 129, 0.12)",
-                        border: "1px solid rgba(16, 185, 129, 0.25)",
-                      }}
+                        border: "1px solid rgba(16, 185, 129, 0.25)" }}
                     >
                       <span
                         style={{
@@ -487,8 +479,7 @@ export default function FloatingHelpButton() {
                           height: 5,
                           borderRadius: "50%",
                           background: "#10b981",
-                          boxShadow: "0 0 6px #10b981",
-                        }}
+                          boxShadow: "0 0 6px #10b981" }}
                       />
                       <span
                         style={{
@@ -496,8 +487,7 @@ export default function FloatingHelpButton() {
                           fontWeight: 700,
                           color: "#34d399",
                           textTransform: "uppercase",
-                          letterSpacing: "0.04em",
-                        }}
+                          letterSpacing: "0.04em" }}
                       >
                         Online
                       </span>
@@ -528,8 +518,7 @@ export default function FloatingHelpButton() {
                     fontWeight: 700,
                     textTransform: "uppercase",
                     letterSpacing: "0.05em",
-                    transition: "all 0.15s ease",
-                  }}
+                    transition: "all 0.15s ease" }}
                   title={isBig ? "Switch to Compact View (Small)" : "Expand to Spacious View (Big)"}
                 >
                   {isBig ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
@@ -548,8 +537,7 @@ export default function FloatingHelpButton() {
                     borderRadius: 6,
                     display: "flex",
                     alignItems: "center",
-                    justifyContent: "center",
-                  }}
+                    justifyContent: "center" }}
                   title={isMinimized ? "Restore Window" : "Minimize Window"}
                 >
                   <Minus size={14} />
@@ -567,8 +555,7 @@ export default function FloatingHelpButton() {
                     borderRadius: 6,
                     display: "flex",
                     alignItems: "center",
-                    justifyContent: "center",
-                  }}
+                    justifyContent: "center" }}
                   title="Close Desk"
                 >
                   <X size={14} />
@@ -588,8 +575,7 @@ export default function FloatingHelpButton() {
                     display: "flex",
                     flexDirection: "column",
                     gap: 12,
-                    background: "#0c0c0e",
-                  }}
+                    background: "#0c0c0e" }}
                 >
                   {/* Resolution Notice Banner */}
                   {resolvedNotice && (
@@ -602,8 +588,7 @@ export default function FloatingHelpButton() {
                         color: "#6ee7b7",
                         fontSize: 12,
                         fontWeight: 600,
-                        textAlign: "center",
-                      }}
+                        textAlign: "center" }}
                     >
                       🎉 This inquiry was resolved! Feel free to send a message anytime if you need more help.
                     </div>
@@ -620,8 +605,7 @@ export default function FloatingHelpButton() {
                       border: "1px solid rgba(255, 255, 255, 0.08)",
                       color: "rgba(255, 255, 255, 0.9)",
                       fontSize: 13,
-                      lineHeight: 1.5,
-                    }}
+                      lineHeight: 1.5 }}
                   >
                     <p style={{ margin: 0, fontWeight: 600, color: "#fff" }}>
                       👋 Hi! Welcome to TradiFive Support. How can we help you today?
@@ -644,8 +628,7 @@ export default function FloatingHelpButton() {
                           maxWidth: isBig ? "72%" : "85%",
                           display: "flex",
                           flexDirection: "column",
-                          gap: 4,
-                        }}
+                          gap: 4 }}
                       >
                         <div
                           style={{
@@ -656,8 +639,7 @@ export default function FloatingHelpButton() {
                             color: "#fff",
                             fontSize: 13,
                             lineHeight: 1.45,
-                            wordBreak: "break-word",
-                          }}
+                            wordBreak: "break-word" }}
                         >
                           {parsed.text && <p style={{ margin: 0 }}>{parsed.text}</p>}
 
@@ -674,8 +656,7 @@ export default function FloatingHelpButton() {
                                         borderRadius: 10,
                                         overflow: "hidden",
                                         border: "1px solid rgba(255,255,255,0.2)",
-                                        cursor: "pointer",
-                                      }}
+                                        cursor: "pointer" }}
                                     >
                                       <img
                                         src={att.url}
@@ -685,8 +666,7 @@ export default function FloatingHelpButton() {
                                           maxHeight: isBig ? 340 : 180,
                                           objectFit: "contain",
                                           display: "block",
-                                          background: "#050505",
-                                        }}
+                                          background: "#050505" }}
                                       />
                                       <span
                                         style={{
@@ -697,8 +677,7 @@ export default function FloatingHelpButton() {
                                           color: "rgba(255,255,255,0.8)",
                                           overflow: "hidden",
                                           textOverflow: "ellipsis",
-                                          whiteSpace: "nowrap",
-                                        }}
+                                          whiteSpace: "nowrap" }}
                                       >
                                         📷 {att.name}
                                       </span>
@@ -712,8 +691,7 @@ export default function FloatingHelpButton() {
                                       style={{
                                         borderRadius: 10,
                                         overflow: "hidden",
-                                        border: "1px solid rgba(255,255,255,0.2)",
-                                      }}
+                                        border: "1px solid rgba(255,255,255,0.2)" }}
                                     >
                                       <video
                                         src={att.url}
@@ -721,8 +699,7 @@ export default function FloatingHelpButton() {
                                         style={{
                                           width: "100%",
                                           maxHeight: isBig ? 320 : 180,
-                                          display: "block",
-                                        }}
+                                          display: "block" }}
                                       />
                                       <span
                                         style={{
@@ -733,8 +710,7 @@ export default function FloatingHelpButton() {
                                           color: "rgba(255,255,255,0.8)",
                                           overflow: "hidden",
                                           textOverflow: "ellipsis",
-                                          whiteSpace: "nowrap",
-                                        }}
+                                          whiteSpace: "nowrap" }}
                                       >
                                         🎥 {att.name}
                                       </span>
@@ -757,8 +733,7 @@ export default function FloatingHelpButton() {
                                       background: "rgba(0,0,0,0.25)",
                                       border: "1px solid rgba(255,255,255,0.12)",
                                       textDecoration: "none",
-                                      color: "#fff",
-                                    }}
+                                      color: "#fff" }}
                                   >
                                     <FileText size={18} color="#60a5fa" />
                                     <div style={{ flex: 1, minWidth: 0 }}>
@@ -785,8 +760,7 @@ export default function FloatingHelpButton() {
                             color: "rgba(255, 255, 255, 0.4)",
                             alignSelf: isUser ? "flex-end" : "flex-start",
                             paddingLeft: 4,
-                            paddingRight: 4,
-                          }}
+                            paddingRight: 4 }}
                         >
                           {isUser ? "You" : "TradiFive Support"} ·{" "}
                           {new Date(m.created_at || Date.now()).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
@@ -806,8 +780,7 @@ export default function FloatingHelpButton() {
                       borderTop: "1px solid rgba(255,255,255,0.06)",
                       display: "flex",
                       gap: 8,
-                      overflowX: "auto",
-                    }}
+                      overflowX: "auto" }}
                   >
                     {stagedAttachments.map((att, idx) => (
                       <div
@@ -822,8 +795,7 @@ export default function FloatingHelpButton() {
                           alignItems: "center",
                           gap: 6,
                           fontSize: 11,
-                          color: "#fff",
-                        }}
+                          color: "#fff" }}
                       >
                         {att.type === "image" && <ImageIcon size={13} color="#60a5fa" />}
                         {att.type === "video" && <Video size={13} color="#a78bfa" />}
@@ -839,8 +811,7 @@ export default function FloatingHelpButton() {
                             color: "rgba(255,255,255,0.6)",
                             cursor: "pointer",
                             padding: 0,
-                            display: "flex",
-                          }}
+                            display: "flex" }}
                         >
                           <X size={13} />
                         </button>
@@ -858,8 +829,7 @@ export default function FloatingHelpButton() {
                       borderTop: "1px solid rgba(255, 255, 255, 0.05)",
                       display: "flex",
                       justifyContent: "space-between",
-                      alignItems: "center",
-                    }}
+                      alignItems: "center" }}
                   >
                     <span style={{ fontSize: 11, color: "rgba(255, 255, 255, 0.4)" }}>
                       Problem solved?
@@ -877,8 +847,7 @@ export default function FloatingHelpButton() {
                         cursor: "pointer",
                         display: "flex",
                         alignItems: "center",
-                        gap: 4,
-                      }}
+                        gap: 4 }}
                     >
                       <CheckCircle2 size={12} />
                       Mark Solved
@@ -891,8 +860,7 @@ export default function FloatingHelpButton() {
                   style={{
                     padding: "12px 14px",
                     background: "#141418",
-                    borderTop: "1px solid rgba(255, 255, 255, 0.08)",
-                  }}
+                    borderTop: "1px solid rgba(255, 255, 255, 0.08)" }}
                 >
                   {/* Hidden file input */}
                   <input
@@ -919,8 +887,7 @@ export default function FloatingHelpButton() {
                         display: "flex",
                         alignItems: "center",
                         gap: 4,
-                        fontSize: 11,
-                      }}
+                        fontSize: 11 }}
                     >
                       <ImageIcon size={15} color="#60a5fa" />
                       <span>Photo</span>
@@ -939,8 +906,7 @@ export default function FloatingHelpButton() {
                         display: "flex",
                         alignItems: "center",
                         gap: 4,
-                        fontSize: 11,
-                      }}
+                        fontSize: 11 }}
                     >
                       <Video size={15} color="#a78bfa" />
                       <span>Video</span>
@@ -959,8 +925,7 @@ export default function FloatingHelpButton() {
                         display: "flex",
                         alignItems: "center",
                         gap: 4,
-                        fontSize: 11,
-                      }}
+                        fontSize: 11 }}
                     >
                       <FileText size={15} color="#34d399" />
                       <span>Document</span>
@@ -976,8 +941,7 @@ export default function FloatingHelpButton() {
                       background: "rgba(255,255,255,0.05)",
                       border: "1px solid rgba(255,255,255,0.1)",
                       borderRadius: 14,
-                      padding: "4px 8px 4px 12px",
-                    }}
+                      padding: "4px 8px 4px 12px" }}
                   >
                     <input
                       type="text"
@@ -992,8 +956,7 @@ export default function FloatingHelpButton() {
                         outline: "none",
                         color: "#fff",
                         fontSize: 13,
-                        padding: "8px 0",
-                      }}
+                        padding: "8px 0" }}
                     />
 
                     <button
@@ -1005,8 +968,7 @@ export default function FloatingHelpButton() {
                         border: "none",
                         color: "rgba(255,255,255,0.5)",
                         cursor: "pointer",
-                        padding: 6,
-                      }}
+                        padding: 6 }}
                     >
                       <Paperclip size={16} />
                     </button>
@@ -1026,8 +988,7 @@ export default function FloatingHelpButton() {
                         alignItems: "center",
                         justifyContent: "center",
                         cursor: "pointer",
-                        opacity: !inputText.trim() && stagedAttachments.length === 0 ? 0.4 : 1,
-                      }}
+                        opacity: !inputText.trim() && stagedAttachments.length === 0 ? 0.4 : 1 }}
                     >
                       <Send size={15} />
                     </button>
@@ -1056,8 +1017,7 @@ export default function FloatingHelpButton() {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              padding: 24,
-            }}
+              padding: 24 }}
           >
             <div
               onClick={(e) => e.stopPropagation()}
@@ -1068,8 +1028,7 @@ export default function FloatingHelpButton() {
                 borderRadius: 16,
                 overflow: "hidden",
                 border: "1px solid rgba(255,255,255,0.15)",
-                background: "#111",
-              }}
+                background: "#111" }}
             >
               <button
                 onClick={() => setLightboxMedia(null)}
@@ -1087,8 +1046,7 @@ export default function FloatingHelpButton() {
                   alignItems: "center",
                   justifyContent: "center",
                   cursor: "pointer",
-                  zIndex: 10,
-                }}
+                  zIndex: 10 }}
               >
                 <X size={18} />
               </button>
@@ -1099,8 +1057,7 @@ export default function FloatingHelpButton() {
                   maxWidth: "100%",
                   maxHeight: "85vh",
                   display: "block",
-                  objectFit: "contain",
-                }}
+                  objectFit: "contain" }}
               />
               <div
                 style={{
@@ -1108,8 +1065,7 @@ export default function FloatingHelpButton() {
                   background: "#18181c",
                   display: "flex",
                   alignItems: "center",
-                  justifyContent: "space-between",
-                }}
+                  justifyContent: "space-between" }}
               >
                 <span style={{ fontSize: 13, color: "#fff", fontWeight: 600 }}>
                   {lightboxMedia.name}
@@ -1129,8 +1085,7 @@ export default function FloatingHelpButton() {
                     textDecoration: "none",
                     display: "flex",
                     alignItems: "center",
-                    gap: 6,
-                  }}
+                    gap: 6 }}
                 >
                   <Download size={13} />
                   Download

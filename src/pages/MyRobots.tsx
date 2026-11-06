@@ -110,7 +110,7 @@ export default function MyRobots() {
             <div className="flex items-center gap-3">
               <h1 
                 className="text-[28px] sm:text-[32px] font-bold text-slate-900 dark:text-white tracking-tight leading-none"
-                style={{ fontFamily: "'Inter', sans-serif" }}
+                
               >
                 Robots
               </h1>
@@ -186,7 +186,7 @@ export default function MyRobots() {
               ) : (
                 <h3 
                   className="text-[26px] font-medium text-slate-900 dark:text-white tracking-tight leading-none"
-                  style={{ fontFamily: "'Inter', sans-serif" }}
+                  
                 >
                   {totalBots}
                 </h3>
@@ -214,7 +214,7 @@ export default function MyRobots() {
                 <div className="flex items-baseline gap-1.5 leading-none">
                   <h3 
                     className="text-[26px] font-medium text-slate-900 dark:text-white tracking-tight leading-none"
-                    style={{ fontFamily: "'Inter', sans-serif" }}
+                    
                   >
                     {activeBots}
                   </h3>
@@ -245,7 +245,7 @@ export default function MyRobots() {
               ) : (
                 <h3 
                   className={`text-[26px] font-medium tracking-tight leading-none ${totalProfit >= 0 ? "text-[#10B981]" : "text-rose-500"}`}
-                  style={{ fontFamily: "'Inter', sans-serif" }}
+                  
                 >
                   {totalProfit >= 0 ? "+" : ""}{totalProfit.toFixed(1)}%
                 </h3>
@@ -278,7 +278,7 @@ export default function MyRobots() {
                   <span className={`w-2.5 h-2.5 rounded-full ${isMasterRunning ? "bg-[#10B981] animate-pulse" : "bg-amber-500"}`} />
                   <h3 
                     className="text-[24px] font-medium text-slate-900 dark:text-white tracking-tight leading-none"
-                    style={{ fontFamily: "'Inter', sans-serif" }}
+                    
                   >
                     {isMasterRunning ? "Running" : "Paused"}
                   </h3>
@@ -419,7 +419,7 @@ export default function MyRobots() {
                         </div>
                         <h3 
                           className="text-[16px] sm:text-[18px] font-bold text-slate-900 dark:text-white tracking-tight leading-snug"
-                          style={{ fontFamily: "'Inter', sans-serif" }}
+                          
                         >
                           {bot.name}
                         </h3>
@@ -453,7 +453,7 @@ export default function MyRobots() {
                       </span>
                       <span 
                         className="text-[13px] sm:text-[14px] font-bold text-slate-800 dark:text-slate-100 tracking-tight leading-none"
-                        style={{ fontFamily: "'Inter', sans-serif" }}
+                        
                       >
                         {bot.pair}
                       </span>
@@ -469,7 +469,7 @@ export default function MyRobots() {
                       </span>
                       <span 
                         className="text-[14px] sm:text-[15px] font-bold text-emerald-600 dark:text-emerald-400 tracking-tight leading-none"
-                        style={{ fontFamily: "'Inter', sans-serif" }}
+                        
                       >
                         {bot.profit >= 0 ? "+" : ""}{bot.profit.toFixed(2)}%
                       </span>
@@ -482,7 +482,7 @@ export default function MyRobots() {
                       </span>
                       <span 
                         className="text-[13px] sm:text-[14px] font-bold text-slate-800 dark:text-slate-100 tracking-tight leading-none"
-                        style={{ fontFamily: "'Inter', sans-serif" }}
+                        
                       >
                         {bot.trades} TPS
                       </span>

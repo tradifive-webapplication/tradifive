@@ -96,8 +96,7 @@ export default function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      padding: 24,
-    }} onClick={handleClose}>
+      padding: 24 }} onClick={handleClose}>
       <motion.div
         className="waitlist-card"
         initial={{ opacity: 0, scale: 0.95, y: 10 }}
@@ -254,8 +253,7 @@ export default function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
                       color: "#fff",
                       fontSize: 14,
                       outline: "none",
-                      transition: "all 0.25s",
-                    }}
+                      transition: "all 0.25s" }}
                     onFocus={(e) => {
                       e.target.style.borderColor = "#6366f1";
                       e.target.style.background = "rgba(255, 255, 255, 0.04)";
@@ -287,8 +285,7 @@ export default function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
                       color: "#fff",
                       fontSize: 14,
                       outline: "none",
-                      transition: "all 0.25s",
-                    }}
+                      transition: "all 0.25s" }}
                     onFocus={(e) => {
                       e.target.style.borderColor = "#6366f1";
                       e.target.style.background = "rgba(255, 255, 255, 0.04)";
@@ -321,8 +318,7 @@ export default function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
                       outline: "none",
                       resize: "none",
                       fontFamily: "inherit",
-                      transition: "all 0.25s",
-                    }}
+                      transition: "all 0.25s" }}
                     onFocus={(e) => {
                       e.target.style.borderColor = "#6366f1";
                       e.target.style.background = "rgba(255, 255, 255, 0.04)";

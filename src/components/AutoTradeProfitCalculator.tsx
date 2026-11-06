@@ -137,8 +137,7 @@ export default function AutoTradeProfitCalculator({
           background: "#171717",
           boxShadow: "inset 0 1px 0 0 rgba(255,255,255,0.05), 0 0 0 1px rgba(255,255,255,0.05), 0 2px 4px rgba(0,0,0,0.2)",
           borderRadius: 20,
-          border: "none",
-        }}
+          border: "none" }}
         className="text-white p-2.5 sm:p-5"
       >
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 sm:gap-5 items-stretch">
@@ -150,8 +149,7 @@ export default function AutoTradeProfitCalculator({
               background: "#141414",
               boxShadow: "inset 0 1px 0 0 rgba(255,255,255,0.05), 0 0 0 1px rgba(255,255,255,0.05)",
               borderRadius: 16,
-              border: "none",
-            }}
+              border: "none" }}
             className="lg:col-span-7 p-3.5 sm:p-6 flex flex-col justify-between space-y-5 sm:space-y-6"
           >
             <div className="space-y-6">
@@ -173,7 +171,7 @@ export default function AutoTradeProfitCalculator({
                   </label>
                   <span
                     className="text-2xl font-semibold text-white tracking-normal tabular-nums"
-                    style={{ fontFamily: "'Inter', sans-serif" }}
+                    
                   >
                     {formatINR(deposit)}
                   </span>
@@ -190,8 +188,7 @@ export default function AutoTradeProfitCalculator({
                     onChange={(e) => setDeposit(Number(e.target.value))}
                     className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-blue-500 focus:outline-none"
                     style={{
-                      background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${((deposit - 100000) / (1000000 - 100000)) * 100}%, rgba(255,255,255,0.08) ${((deposit - 100000) / (1000000 - 100000)) * 100}%, rgba(255,255,255,0.08) 100%)`,
-                    }}
+                      background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${((deposit - 100000) / (1000000 - 100000)) * 100}%, rgba(255,255,255,0.08) ${((deposit - 100000) / (1000000 - 100000)) * 100}%, rgba(255,255,255,0.08) 100%)` }}
                   />
                 </div>
 
@@ -207,8 +204,7 @@ export default function AutoTradeProfitCalculator({
                         style={{
                           background: isSelected ? "rgba(59, 130, 246, 0.16)" : "rgba(255, 255, 255, 0.03)",
                           border: isSelected ? "1px solid rgba(59, 130, 246, 0.4)" : "1px solid rgba(255, 255, 255, 0.06)",
-                          color: isSelected ? "#93c5fd" : "rgba(255, 255, 255, 0.65)",
-                        }}
+                          color: isSelected ? "#93c5fd" : "rgba(255, 255, 255, 0.65)" }}
                         className="py-1.5 text-xs font-semibold rounded-lg transition-all text-center tabular-nums hover:text-white cursor-pointer active:scale-95"
                       >
                         {item.label}
@@ -227,13 +223,13 @@ export default function AutoTradeProfitCalculator({
                   <div className="flex items-center gap-2">
                     <span
                       className="text-xl sm:text-2xl font-semibold text-white tracking-normal tabular-nums"
-                      style={{ fontFamily: "'Inter', sans-serif" }}
+                      
                     >
                       {dailyRate.toFixed(1)}% / day
                     </span>
                     <span
                       className="text-[11px] sm:text-xs font-medium px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 tabular-nums whitespace-nowrap"
-                      style={{ fontFamily: "'Inter', sans-serif" }}
+                      
                     >
                       ~{formatINR(dailyProfit)} / day
                     </span>
@@ -251,8 +247,7 @@ export default function AutoTradeProfitCalculator({
                     onChange={(e) => setDailyRate(Number(e.target.value))}
                     className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-blue-500 focus:outline-none"
                     style={{
-                      background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${((dailyRate - 2.0) / (5.0 - 2.0)) * 100}%, rgba(255,255,255,0.08) ${((dailyRate - 2.0) / (5.0 - 2.0)) * 100}%, rgba(255,255,255,0.08) 100%)`,
-                    }}
+                      background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${((dailyRate - 2.0) / (5.0 - 2.0)) * 100}%, rgba(255,255,255,0.08) ${((dailyRate - 2.0) / (5.0 - 2.0)) * 100}%, rgba(255,255,255,0.08) 100%)` }}
                   />
                 </div>
 
@@ -268,8 +263,7 @@ export default function AutoTradeProfitCalculator({
                         style={{
                           background: isSelected ? "rgba(59, 130, 246, 0.16)" : "rgba(255, 255, 255, 0.03)",
                           border: isSelected ? "1px solid rgba(59, 130, 246, 0.4)" : "1px solid rgba(255, 255, 255, 0.06)",
-                          color: isSelected ? "#93c5fd" : "rgba(255, 255, 255, 0.65)",
-                        }}
+                          color: isSelected ? "#93c5fd" : "rgba(255, 255, 255, 0.65)" }}
                         className="py-1.5 text-xs font-semibold rounded-lg transition-all text-center tabular-nums hover:text-white cursor-pointer active:scale-95"
                       >
                         {val.toFixed(1)}%
@@ -295,8 +289,7 @@ export default function AutoTradeProfitCalculator({
               background: "#141414",
               boxShadow: "inset 0 1px 0 0 rgba(255,255,255,0.05), 0 0 0 1px rgba(255,255,255,0.05)",
               borderRadius: 16,
-              border: "none",
-            }}
+              border: "none" }}
             className="lg:col-span-5 p-3.5 sm:p-6 flex flex-col justify-between space-y-5"
           >
             <div className="space-y-4 sm:space-y-5">
@@ -307,7 +300,7 @@ export default function AutoTradeProfitCalculator({
                 </span>
                 <span
                   className="flex items-center gap-1 text-xs font-medium text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20 tabular-nums"
-                  style={{ fontFamily: "'Inter', sans-serif" }}
+                  
                 >
                   <TrendingUp className="w-3.5 h-3.5" /> +{roiPercent.toFixed(0)}% ROI
                 </span>
@@ -320,7 +313,7 @@ export default function AutoTradeProfitCalculator({
                 </span>
                 <h3
                   className="text-2xl sm:text-[32px] font-bold text-emerald-400 tracking-tight leading-tight tabular-nums"
-                  style={{ fontFamily: "'Inter', sans-serif" }}
+                  
                 >
                   +{formatINR(monthlyProfit)}
                 </h3>
@@ -334,15 +327,14 @@ export default function AutoTradeProfitCalculator({
                 style={{
                   background: "rgba(255, 255, 255, 0.025)",
                   boxShadow: "inset 0 1px 0 0 rgba(255,255,255,0.04), 0 0 0 1px rgba(255,255,255,0.05)",
-                  borderRadius: 12,
-                }}
+                  borderRadius: 12 }}
                 className="p-3 sm:p-3.5 space-y-2 text-xs"
               >
                 <div className="flex justify-between items-center text-slate-300">
                   <span className="font-normal text-slate-400">Your Initial Deposit:</span>
                   <span
                     className="font-medium text-white tabular-nums"
-                    style={{ fontFamily: "'Inter', sans-serif" }}
+                    
                   >
                     {formatINR(deposit)}
                   </span>
@@ -352,7 +344,7 @@ export default function AutoTradeProfitCalculator({
                   <span className="font-normal text-slate-400">+ Monthly Algo Profit:</span>
                   <span
                     className="font-medium text-emerald-400 tabular-nums"
-                    style={{ fontFamily: "'Inter', sans-serif" }}
+                    
                   >
                     +{formatINR(monthlyProfit)}
                   </span>
@@ -363,7 +355,7 @@ export default function AutoTradeProfitCalculator({
                   <span className="font-medium text-xs sm:text-sm">Total In Your MT5 Account:</span>
                   <span
                     className="text-sm sm:text-base font-semibold text-emerald-400 tabular-nums"
-                    style={{ fontFamily: "'Inter', sans-serif" }}
+                    
                   >
                     {formatINR(endingBalance)}
                   </span>

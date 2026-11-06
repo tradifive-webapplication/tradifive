@@ -68,7 +68,7 @@ export default function Feedback() {
         <div className="flex items-center justify-between mt-2 mb-10 h-[60px]">
            <div className="flex flex-col pt-1">
               <h1 
-                style={{ fontFamily: "'Inter', sans-serif" }}
+                
                 className="text-[32px] font-black uppercase tracking-tighter text-foreground leading-none"
               >
                 Product Intelligence
@@ -82,7 +82,7 @@ export default function Feedback() {
            {/* A. RATING SYSTEM */}
            <motion.section initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="w-full">
              <div className="bg-white dark:bg-[#1E1E1E] rounded-[24px] p-10 border border-slate-100 dark:border-[#333333] dark:border-white/5 shadow-sm text-center">
-               <h2 style={{ fontFamily: "'Inter', sans-serif" }} className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-8">Overall Satisfaction Index</h2>
+               <h2  className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-8">Overall Satisfaction Index</h2>
                <div className="flex justify-center gap-2 mb-8">
                  {[1, 2, 3, 4, 5].map((star) => (
                    <button 
@@ -121,7 +121,7 @@ export default function Feedback() {
            {/* B. SMART QUESTIONS */}
            <motion.section initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="w-full">
              <div className="bg-white dark:bg-[#1E1E1E] rounded-[24px] p-8 border border-slate-100 dark:border-[#333333] dark:border-white/5 shadow-sm">
-               <h2 style={{ fontFamily: "'Inter', sans-serif" }} className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-8 flex items-center gap-2">
+               <h2  className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-8 flex items-center gap-2">
                  <MessageSquare size={16} className="text-slate-200" /> Contextual Insights Engine
                </h2>
                
@@ -153,7 +153,7 @@ export default function Feedback() {
            {/* C. BUG REPORT SYSTEM */}
            <motion.section initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="w-full">
              <div className="bg-white dark:bg-[#1E1E1E] rounded-[24px] p-8 border border-border/80 shadow-sm">
-               <h2 style={{ fontFamily: "'Inter', sans-serif" }} className="text-[14px] font-bold text-foreground uppercase tracking-wider mb-6 flex items-center gap-2">
+               <h2  className="text-[14px] font-bold text-foreground uppercase tracking-wider mb-6 flex items-center gap-2">
                  <Bug size={18} className="text-primary" /> Report an Issue
                </h2>
                

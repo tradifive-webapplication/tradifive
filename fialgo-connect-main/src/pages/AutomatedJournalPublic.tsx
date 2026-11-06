@@ -8,8 +8,7 @@ import PublicFooter from "@/components/PublicFooter";
 
 const G = () => (
   <style>{`
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
-    :root {
+        :root {
       --bg: #02040a;
       --ink: #ffffff;
       --ink2: rgba(255, 255, 255, 0.7);
@@ -20,10 +19,10 @@ const G = () => (
     body {
       background: var(--bg);
       color: var(--ink);
-      font-family: 'Inter', sans-serif;
+      font-family: 'Plus Jakarta Sans', sans-serif;
     }
     h1, h2, h3 {
-      font-family: 'Inter', sans-serif;
+      font-family: 'Plus Jakarta Sans', sans-serif;
       letter-spacing: -0.02em;
     }
     .text-glow {
@@ -83,7 +82,7 @@ export default function AutomatedJournalPublic() {
               <span style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.6)", textTransform: "none", letterSpacing: "0.2px" }}>Real-time Telemetry Sync</span>
             </div>
 
-            <h1 style={{ fontSize: "clamp(36px, 5vw, 68px)", fontWeight: 800, lineHeight: 1.1, letterSpacing: "-0.05em", marginBottom: 24, color: "#fff", fontFamily: "Inter, sans-serif" }}>
+            <h1 style={{ fontSize: "clamp(36px, 5vw, 68px)", fontWeight: 800, lineHeight: 1.1, letterSpacing: "-0.05em", marginBottom: 24, color: "#fff" }}>
               <span style={{ background: "linear-gradient(to right, #3b82f6, #ffffff 60%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Data-Driven.</span><br />
               <span className="text-glow">Discipline.</span>
             </h1>
@@ -124,8 +123,7 @@ export default function AutomatedJournalPublic() {
               aspectRatio: "1/1",
               overflow: "hidden",
               borderRadius: "40px",
-              background: "#02040a",
-            }}>
+              background: "#02040a" }}>
               <img
                 src="/Dis.jpeg"
                 alt="Automated Journal"

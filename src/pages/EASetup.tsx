@@ -189,7 +189,7 @@ export default function EASetup() {
             <div className="flex items-center gap-3">
               <h1 
                 className="text-[28px] sm:text-[30px] font-bold text-slate-900 dark:text-white tracking-tight leading-none"
-                style={{ fontFamily: "'Inter', sans-serif" }}
+                
               >
                 License &amp; Activation
               </h1>

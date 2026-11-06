@@ -18,8 +18,7 @@ import { TradeExecution3D, JournalGraphs3D, RiskGuard3D } from "../components/Te
 ═══════════════════════════════════ */
 const G = () => (
   <style>{`
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
-
+    
     @media (max-width: 1023px) {
       body { overflow: hidden !important; }
       #root > div > main, 
@@ -62,12 +61,12 @@ const G = () => (
     body{
       background: var(--bg);
       color: var(--ink);
-      font-family: 'Inter', sans-serif;
+      font-family: 'Plus Jakarta Sans', sans-serif;
       overflow-x: hidden;
       -webkit-font-smoothing: antialiased;
 }
     h1,h2,h3,h4,h5,h6 {
-      font-family: 'Inter', sans-serif;
+      font-family: 'Plus Jakarta Sans', sans-serif;
       letter-spacing: -0.02em;
 }
 
@@ -173,7 +172,7 @@ const G = () => (
       font-weight: 700;
       color: #fff;
       margin-bottom: 16px;
-      font-family: 'Inter', sans-serif;
+      font-family: 'Plus Jakarta Sans', sans-serif;
 }
     .step-desc {
       font-size: 15px;

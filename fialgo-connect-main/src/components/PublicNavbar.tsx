@@ -410,8 +410,7 @@ export default function PublicNavbar({
                     gap: 5,
                     padding: "6px 12px",
                     borderRadius: 999,
-                    transition: "all 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
-                  }}
+                    transition: "all 0.2s cubic-bezier(0.16, 1, 0.3, 1)" }}
                   aria-expanded={featuresDropdownOpen}
                   aria-haspopup="true"
                 >
@@ -421,8 +420,7 @@ export default function PublicNavbar({
                     style={{
                       transition: "transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
                       transform: featuresDropdownOpen ? "rotate(180deg)" : "rotate(0deg)",
-                      opacity: featuresDropdownOpen ? 1 : 0.65,
-                    }}
+                      opacity: featuresDropdownOpen ? 1 : 0.65 }}
                   />
                 </button>
 
@@ -558,22 +556,19 @@ export default function PublicNavbar({
                 borderTopLeftRadius: "28px",
                 borderBottomLeftRadius: "28px",
                 borderTopRightRadius: "0px",
-                borderBottomRightRadius: "0px",
-              }}
+                borderBottomRightRadius: "0px" }}
             >
               {/* Subtle top accent line */}
               <div style={{
                 position: "absolute", top: 0, left: "15%", right: "15%", height: 1,
-                background: "linear-gradient(to right, transparent, rgba(99,102,241,0.5), transparent)",
-              }} />
+                background: "linear-gradient(to right, transparent, rgba(99,102,241,0.5), transparent)" }} />
 
               {/* Ambient glow */}
               <div style={{
                 position: "absolute", top: -80, right: -80,
                 width: 260, height: 260,
                 background: "radial-gradient(circle, rgba(99,102,241,0.08) 0%, transparent 70%)",
-                pointerEvents: "none",
-              }} />
+                pointerEvents: "none" }} />
 
               {/* â”€â”€ Header â”€â”€ */}
               <div style={{ padding: "24px 24px 20px", display: "flex", justifyContent: "space-between", alignItems: "center", flexShrink: 0 }}>
@@ -590,8 +585,7 @@ export default function PublicNavbar({
                     borderRadius: 16, width: 34, height: 34,
                     display: "flex", alignItems: "center", justifyContent: "center",
                     color: "rgba(255,255,255,0.5)", cursor: "pointer",
-                    transition: "all 0.15s",
-                  }}
+                    transition: "all 0.15s" }}
                 >
                   <X size={14} />
                 </motion.button>
@@ -609,8 +603,7 @@ export default function PublicNavbar({
                   display: "flex",
                   flexDirection: "column",
                   gap: 4,
-                  WebkitOverflowScrolling: "touch",
-                }}
+                  WebkitOverflowScrolling: "touch" }}
               >
 
                 {/* Collapsible Features Dropdown Header */}
@@ -629,8 +622,7 @@ export default function PublicNavbar({
                     fontWeight: 700,
                     color: "rgba(255,255,255,0.45)",
                     letterSpacing: "0.16em",
-                    textTransform: "uppercase",
-                  }}
+                    textTransform: "uppercase" }}
                 >
                   <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
                     Features
@@ -641,8 +633,7 @@ export default function PublicNavbar({
                         color: "#60a5fa",
                         padding: "1px 6px",
                         borderRadius: 100,
-                        fontWeight: 700,
-                      }}
+                        fontWeight: 700 }}
                     >
                       {MOBILE_FEATURES.length}
                     </span>
@@ -652,8 +643,7 @@ export default function PublicNavbar({
                     style={{
                       transform: mobileFeaturesOpen ? "rotate(180deg)" : "rotate(0deg)",
                       transition: "transform 0.2s ease",
-                      color: "rgba(255,255,255,0.45)",
-                    }}
+                      color: "rgba(255,255,255,0.45)" }}
                   />
                 </button>
 
@@ -664,8 +654,7 @@ export default function PublicNavbar({
                       display: "flex",
                       flexDirection: "column",
                       gap: 8,
-                      marginBottom: 14,
-                    }}
+                      marginBottom: 14 }}
                   >
                     {MOBILE_FEATURES.map((feat) => {
                       const Icon = feat.icon;
@@ -689,8 +678,7 @@ export default function PublicNavbar({
                             alignItems: "center",
                             gap: 12,
                             transition: "all 0.2s ease",
-                            outline: "none",
-                          }}
+                            outline: "none" }}
                           onMouseEnter={(e) => {
                             e.currentTarget.style.background = "#202020";
                             e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.14)";
@@ -713,8 +701,7 @@ export default function PublicNavbar({
                               alignItems: "center",
                               justifyContent: "center",
                               flexShrink: 0,
-                              color: feat.color,
-                            }}
+                              color: feat.color }}
                           >
                             <Icon size={16} />
                           </div>
@@ -733,8 +720,7 @@ export default function PublicNavbar({
                                     background: feat.bgColor,
                                     border: `1px solid ${feat.borderColor}`,
                                     color: feat.color,
-                                    letterSpacing: 0.4,
-                                  }}
+                                    letterSpacing: 0.4 }}
                                 >
                                   {feat.badge}
                                 </span>
@@ -747,8 +733,7 @@ export default function PublicNavbar({
                                 marginTop: 3,
                                 whiteSpace: "nowrap",
                                 overflow: "hidden",
-                                textOverflow: "ellipsis",
-                              }}
+                                textOverflow: "ellipsis" }}
                             >
                               {feat.desc}
                             </div>
@@ -785,8 +770,7 @@ export default function PublicNavbar({
                           border: "1px solid rgba(255, 255, 255, 0.08)",
                           boxShadow: "inset 0 1px 0 0 rgba(255, 255, 255, 0.05), 0 0 0 1px rgba(255, 255, 255, 0.05), 0 2px 4px rgba(0, 0, 0, 0.2)",
                           transition: "all 0.2s ease",
-                          cursor: "pointer",
-                        }}
+                          cursor: "pointer" }}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.background = "#202020";
                           e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.14)";
@@ -803,8 +787,7 @@ export default function PublicNavbar({
                           background: "rgba(255,255,255,0.04)",
                           border: "1px solid rgba(255,255,255,0.08)",
                           display: "flex", alignItems: "center", justifyContent: "center",
-                          flexShrink: 0,
-                        }}>
+                          flexShrink: 0 }}>
                           <Icon size={15} color="rgba(255,255,255,0.65)" />
                         </div>
                         <span style={{ fontSize: 13.5, fontWeight: 600, color: "rgba(255,255,255,0.9)" }}>{item.label}</span>
@@ -843,8 +826,7 @@ export default function PublicNavbar({
                   borderTop: "1px solid rgba(255,255,255,0.05)",
                   display: "flex", flexDirection: "column", gap: 10,
                   flexShrink: 0,
-                  background: "rgba(255,255,255,0.01)",
-                }}
+                  background: "rgba(255,255,255,0.01)" }}
               >
                 <motion.button
                   whileTap={{ scale: 0.97 }}
@@ -865,8 +847,7 @@ export default function PublicNavbar({
                     cursor: "pointer",
                     boxShadow: "inset 0 1px 0 0 rgba(255, 255, 255, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.12), 0 2px 4px rgba(0, 0, 0, 0.2)",
                     transition: "all 0.2s ease",
-                    outline: "none",
-                  }}
+                    outline: "none" }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.background = "#1e1e1e";
                     e.currentTarget.style.color = "#ffffff";
@@ -899,8 +880,7 @@ export default function PublicNavbar({
                     gap: "8px",
                     cursor: "pointer",
                     transition: "all 0.2s ease",
-                    outline: "none",
-                  }}
+                    outline: "none" }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.background = "linear-gradient(135deg, #253347 0%, #131c33 100%)";
                     e.currentTarget.style.color = "#93c5fd";

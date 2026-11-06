@@ -354,8 +354,7 @@ export function Card2() {
               <div
                 className="absolute inset-0 rounded-xl border border-white/10 bg-[#080808]/5 text-white/20"
                 style={{
-                  backgroundImage: "repeating-linear-gradient(45deg, transparent, transparent 6px, currentColor 6px, currentColor 7px)",
-                }}
+                  backgroundImage: "repeating-linear-gradient(45deg, transparent, transparent 6px, currentColor 6px, currentColor 7px)" }}
               />
 
               {/* Foreground Card sliding up and right on hover or cycle activation (0.5rem offset) */}
@@ -363,8 +362,7 @@ export function Card2() {
                 className="absolute inset-0 w-full h-full rounded-xl bg-[#080808]/5  border border-white/10 shadow-[inset_0_0_0_1px_rgba(255,255,255,1)] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.01)] p-3 hover:bg-[#080808]/5 transition-colors duration-300 backdrop-blur-[2px] flex items-center justify-between gap-3 cursor-pointer"
                 animate={{
                   x: isActive ? "0.5rem" : "0rem",
-                  y: isActive ? "-0.5rem" : "0rem",
-                }}
+                  y: isActive ? "-0.5rem" : "0rem" }}
                 transition={{ type: "spring", stiffness: 200, damping: 16 }}
                 onMouseEnter={() => setHoveredIdx(i)}
                 onMouseLeave={() => setHoveredIdx(null)}
@@ -434,8 +432,7 @@ export function Card2() {
             key={i}
             className="flex-1 h-full rounded-xl  border border-white/10 relative overflow-hidden bg-[#080808]/5 text-white/20"
             style={{
-              backgroundImage: "repeating-linear-gradient(45deg, transparent, transparent 6px, currentColor 6px, currentColor 7px)",
-            }}
+              backgroundImage: "repeating-linear-gradient(45deg, transparent, transparent 6px, currentColor 6px, currentColor 7px)" }}
           >
             {/* Animated Solid Filled Bar at bottom */}
             <motion.div
@@ -448,14 +445,12 @@ export function Card2() {
                   `${Math.max(10, h - 20)}%`,
                   `${Math.min(90, h + 8)}%`,
                   `${h}%`
-                ],
-              }}
+                ] }}
               transition={{
                 repeat: Infinity,
                 duration: 3 + (i % 3) * 0.8,
                 ease: "easeInOut",
-                delay: i * 0.1,
-              }}
+                delay: i * 0.1 }}
             />
           </div>
         ))}
@@ -534,13 +529,11 @@ export function Card3() {
             animate={{
               y: isVisible ? yOffset : slot < 0 ? -150 : 150,
               scale,
-              opacity: isVisible ? opacity : 0,
-            }}
+              opacity: isVisible ? opacity : 0 }}
             transition={{
               y: { type: "spring", stiffness: 500, damping: 35 },
               scale: { type: "spring", stiffness: 500, damping: 35 },
-              opacity: { duration: 0.25, ease: "easeOut" },
-            }}
+              opacity: { duration: 0.25, ease: "easeOut" } }}
           >
             <div className={`w-full rounded-2xl border border-white/10 flex items-center gap-2.5 ${isActive
               ? "px-3 py-2.5 bg-[#000] border-white/10"
@@ -582,8 +575,7 @@ export function Card3() {
             className="rounded-full bg-foreground/25"
             animate={{
               width: i === activeIdx ? 14 : 4,
-              opacity: i === activeIdx ? 0.7 : 0.2,
-            }}
+              opacity: i === activeIdx ? 0.7 : 0.2 }}
             style={{ height: 3 }}
             transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
           />
@@ -678,8 +670,7 @@ export function Card4() {
                     animate={{ width: `${ns.fill}%`, opacity: isActive ? 1 : 0.25 }}
                     transition={{
                       width: { duration: 1.2, delay: i * 0.1, type: "spring", bounce: 0.2 },
-                      opacity: { duration: 0.4 },
-                    }}
+                      opacity: { duration: 0.4 } }}
                   >
                     {/* Scanning light beam effect inside the bar */}
                     {isActive && (
@@ -742,8 +733,7 @@ export function Card4() {
                 initial={{ opacity: 0, y: -8 }}
                 animate={{
                   opacity: qi === 0 ? 1 : qi === 1 ? 0.8 : qi === 2 ? 0.5 : 0.25,
-                  y: 0,
-                }}
+                  y: 0 }}
                 transition={{ type: "spring", stiffness: 500, damping: 35, delay: qi * 0.05 }}
               >
                 <div className="flex items-center gap-1 mb-1">

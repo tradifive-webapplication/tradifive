@@ -104,8 +104,7 @@ function CompetitionsDashboardSkeleton() {
             className="absolute inset-0 opacity-40 bg-cover bg-center"
             style={{
               backgroundImage:
-                "url('https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?q=80&w=2071&auto=format&fit=crop')",
-            }}
+                "url('https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?q=80&w=2071&auto=format&fit=crop')" }}
           />
           <div className="absolute inset-0 bg-gradient-to-r from-black via-black/30 to-transparent z-10" />
 

@@ -44,7 +44,7 @@ export default function ResetPassword() {
 
   return (
     <div 
-      style={{ fontFamily: "'Inter', sans-serif" }}
+      
       className="flex min-h-screen bg-white dark:bg-[#1E1E1E] items-center justify-center px-6 relative overflow-hidden font-sans"
     >
       <div className="absolute top-0 left-0 w-[50%] h-[50%] bg-slate-50 dark:bg-[#141414] rounded-full blur-[120px] -translate-y-1/2 -translate-x-1/2 opacity-30" />

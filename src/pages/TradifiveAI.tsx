@@ -759,7 +759,7 @@ ${persona === "Strict Guard" ? `> [!WARNING]
     if (normalized.includes("overtrade") || normalized.includes("3 pm") || normalized.includes("slippage") || normalized.includes("after 3")) {
       return `Let's analyze your late-session trading behavior. Overtrading after 3:00 PM EST is one of the most common pitfalls for funded traders.
 
-#### 🕒 Slippage & Market Dynamics after 15:00 EST:
+#### 🕒 Slippage & Market Dynamics after 15:00, EST:
 - **Liquidity Drain**: European desks have closed for the day. Market depth drops by over 60%, causing spreads on pairs like EUR/USD or GBP/USD to widen significantly.
 - **Slippage Penalty**: Your average slippage on trades opened after 3 PM is **2.4 pips**, meaning you are paying a heavy tax just to enter the market.
 - **Range-bound Traps**: Afternoon markets tend to compress into low-volume ranges. Breakout strategies fail 80% of the time after 3 PM.
@@ -1637,7 +1637,7 @@ ${JSON.stringify(contextData)}`;
           </div>
 
           {/* Navigation Items */}
-          <div className="flex-1 overflow-y-auto pt-5 flex flex-col no-scrollbar" style={{ fontFamily: 'Inter, sans-serif' }}>
+          <div className="flex-1 overflow-y-auto pt-5 flex flex-col no-scrollbar" >
 
             {/* Top Workspace buttons: New Chat & Search are aligned systematically */}
             <div className="px-4">

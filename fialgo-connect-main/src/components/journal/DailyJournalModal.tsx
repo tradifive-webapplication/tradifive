@@ -1025,8 +1025,7 @@ export default function DailyJournalModal({ isOpen, onClose, date, trades, accou
                                 boxShadow: "0 4px 6px -1px rgba(0,0,0,0.05)",
                                 fontSize: "11px",
                                 fontWeight: "600",
-                                color: isDark ? "#fff" : "#0f172a",
-                              }}
+                                color: isDark ? "#fff" : "#0f172a" }}
                               formatter={(value: any) => [fmtDailyValue(Number(value), { showSign: true }), "Cumulative P&L"]}
                             />
                             <Area type="monotone" dataKey="pnl" stroke="#6366f1" strokeWidth={2} fill="url(#modalPnlGrad)" />

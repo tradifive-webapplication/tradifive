@@ -48,7 +48,7 @@ const StyledWrapper = styled.div`
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 6px rgba(0, 0, 0, 0.3);
     font-size: 14px;
     font-weight: 700;
-    font-family: 'Outfit', sans-serif;
+    font-family: 'Plus Jakarta Sans', sans-serif;
     color: #60a5fa;
     cursor: pointer;
     border: none;

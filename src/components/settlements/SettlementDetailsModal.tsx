@@ -58,7 +58,7 @@ export default function SettlementDetailsModal({
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className="text-[16px] font-bold text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
+                  <h3 className="text-[16px] font-bold text-slate-900 dark:text-white tracking-tight leading-none" >
                     Settlement Details
                   </h3>
                   <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300">
@@ -122,7 +122,7 @@ export default function SettlementDetailsModal({
                   </span>
                 </div>
 
-                <div className="text-[20px] sm:text-[22px] font-bold text-slate-900 dark:text-white tracking-tight mt-1.5" style={{ fontFamily: "'Inter', sans-serif" }}>
+                <div className="text-[20px] sm:text-[22px] font-bold text-slate-900 dark:text-white tracking-tight mt-1.5" >
                   {isLoss ? (
                     <span className="text-slate-500">Zero Fee (Loss Offset Active)</span>
                   ) : (

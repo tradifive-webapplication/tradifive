@@ -70,8 +70,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
       icons={{
         success: <CheckCircle2 className="h-[18px] w-[18px] text-[#FFFFFF] fill-[#10b981]" />,
         error: <AlertCircle className="h-[18px] w-[18px] text-[#FFFFFF] fill-[#f97316]" />,
-        info: <Info className="h-[18px] w-[18px] text-[#FFFFFF] fill-[#64748b]" />,
-      }}
+        info: <Info className="h-[18px] w-[18px] text-[#FFFFFF] fill-[#64748b]" /> }}
       toastOptions={{
         classNames: {
           toast:
@@ -79,8 +78,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
           description: "group-[.toast]:text-[#111111]/80 text-[13px]",
           actionButton: "group-[.toast]:bg-transparent group-[.toast]:text-[#111111] font-normal text-[13px] px-3 py-1 border-l border-slate-300 rounded-none ml-auto",
           cancelButton: "group-[.toast]:bg-transparent group-[.toast]:text-[#111111]/70 font-normal rounded-xl text-[13px] px-3 py-1",
-        },
-      }}
+        } }}
       {...props}
     />
   );

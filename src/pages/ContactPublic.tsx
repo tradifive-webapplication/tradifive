@@ -165,10 +165,9 @@ export default function ContactPublic() {
   ];
 
   return (
-    <div style={{ background: "#02040a", minHeight: "100vh", color: "#fff", fontFamily: "'Inter', sans-serif", overflowX: "hidden" }}>
+    <div style={{ background: "#02040a", minHeight: "100vh", color: "#fff", overflowX: "hidden" }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-        * { box-sizing: border-box; }
+                * { box-sizing: border-box; }
         
         .contact-grid {
           display: grid;
@@ -223,7 +222,7 @@ export default function ContactPublic() {
           color: #fff;
           outline: none;
           transition: border-color 0.2s, background-color 0.2s;
-          font-family: 'Inter', sans-serif;
+          font-family: 'Plus Jakarta Sans', sans-serif;
         }
 
         .contact-input::placeholder { color: rgba(255,255,255,0.25); }
@@ -293,8 +292,7 @@ export default function ContactPublic() {
                   flexDirection: "column",
                   alignItems: "center",
                   textAlign: "center",
-                  transition: "all 0.3s ease",
-                }}
+                  transition: "all 0.3s ease" }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.boxShadow = "inset 0 1px 0 0 rgba(255,255,255,0.1), 0 0 0 1px rgba(255,255,255,0.1), 0 8px 16px rgba(0,0,0,0.4)";
                 }}
@@ -312,8 +310,7 @@ export default function ContactPublic() {
                   alignItems: "center",
                   justifyContent: "center",
                   color: card.color,
-                  marginBottom: 24,
-                }}>
+                  marginBottom: 24 }}>
                   {card.icon}
                 </div>
 
@@ -331,8 +328,7 @@ export default function ContactPublic() {
                     textDecoration: "none",
                     transition: "color 0.2s",
                     borderBottom: "1px solid rgba(255,255,255,0.2)",
-                    paddingBottom: 2,
-                  }}
+                    paddingBottom: 2 }}
                   onMouseEnter={(e) => e.currentTarget.style.color = "#ffffff"}
                   onMouseLeave={(e) => e.currentTarget.style.color = "#fff"}
                 >
@@ -362,8 +358,7 @@ export default function ContactPublic() {
                 padding: "40px 32px",
                 boxShadow: "inset 0 1px 0 0 rgba(255,255,255,0.05), 0 0 0 1px rgba(255,255,255,0.05), 0 2px 4px rgba(0,0,0,0.2)",
                 width: "100%",
-                transition: "box-shadow 0.3s ease",
-              }}
+                transition: "box-shadow 0.3s ease" }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.boxShadow = "inset 0 1px 0 0 rgba(255,255,255,0.1), 0 0 0 1px rgba(255,255,255,0.1), 0 8px 16px rgba(0,0,0,0.4)";
               }}
@@ -467,8 +462,7 @@ export default function ContactPublic() {
                     fontWeight: 700,
                     cursor: "pointer",
                     boxShadow: "0 4px 15px rgba(255, 255, 255, 0.1)",
-                    transition: "box-shadow 0.3s, background-color 0.3s",
-                  }}
+                    transition: "box-shadow 0.3s, background-color 0.3s" }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.boxShadow = "0 8px 25px rgba(255, 255, 255, 0.2)";
                     e.currentTarget.style.backgroundColor = "#f4f4f5";
@@ -496,8 +490,7 @@ export default function ContactPublic() {
                 display: "flex",
                 flexDirection: "column",
                 gap: 28,
-                transition: "box-shadow 0.3s ease",
-              }}
+                transition: "box-shadow 0.3s ease" }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.boxShadow = "inset 0 1px 0 0 rgba(255,255,255,0.1), 0 0 0 1px rgba(255,255,255,0.1), 0 8px 16px rgba(0,0,0,0.4)";
               }}
@@ -529,8 +522,7 @@ export default function ContactPublic() {
                       border: "1px solid rgba(255,255,255,0.04)",
                       color: "#fff",
                       textDecoration: "none",
-                      transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
-                    }}
+                      transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)" }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.borderColor = social.color;
                       e.currentTarget.style.background = `${social.color}08`;
@@ -565,8 +557,7 @@ export default function ContactPublic() {
                         justifyContent: "center",
                         color: "rgba(255,255,255,0.6)",
                         transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
-                        flexShrink: 0,
-                      }}
+                        flexShrink: 0 }}
                     >
                       {social.icon}
                     </div>
@@ -600,8 +591,7 @@ export default function ContactPublic() {
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
-                  transition: "box-shadow 0.3s ease",
-                }}
+                  transition: "box-shadow 0.3s ease" }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.boxShadow = "inset 0 1px 0 0 rgba(255,255,255,0.1), 0 0 0 1px rgba(255,255,255,0.1), 0 8px 16px rgba(0,0,0,0.4)";
                 }}

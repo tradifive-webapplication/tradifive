@@ -110,7 +110,7 @@ function FAQItem({ item, isOpen, onToggle }: { item: typeof faqItems[0]; isOpen:
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div style={{ display: "flex", alignItems: "center" }}>
-          <h4 style={{ fontSize: 15, fontWeight: 700, color: "#fff", margin: 0, fontFamily: "'Outfit', sans-serif" }}>{item.question}</h4>
+          <h4 style={{ fontSize: 15, fontWeight: 700, color: "#fff", margin: 0 }}>{item.question}</h4>
         </div>
         <motion.div
           animate={{ rotate: isOpen ? 180 : 0 }}
@@ -133,9 +133,7 @@ function FAQItem({ item, isOpen, onToggle }: { item: typeof faqItems[0]; isOpen:
               style={{
                 paddingTop: 14,
                 marginTop: 14,
-                borderTop: "1px solid rgba(255,255,255,0.05)",
-                fontFamily: "'Inter', sans-serif",
-                fontSize: 14,
+                borderTop: "1px solid rgba(255,255,255,0.05)", fontSize: 14,
                 color: "rgba(255,255,255,0.4)",
                 lineHeight: 1.65,
                 fontWeight: 400
@@ -190,11 +188,8 @@ export default function TradifiveAIPublic() {
       style={{
         background: "#02040a",
         minHeight: "100vh",
-        color: "#fff",
-        fontFamily: "'Inter', sans-serif",
-        display: "flex",
-        flexDirection: "column",
-      }}
+        color: "#fff", display: "flex",
+        flexDirection: "column" }}
     >
       <PublicNavbar
         onSignIn={handleStart}
@@ -212,8 +207,7 @@ export default function TradifiveAIPublic() {
               overflow: "hidden",
               display: "flex",
               flexDirection: "column",
-              alignItems: "flex-start",
-            }}
+              alignItems: "flex-start" }}
           >
             {/* Inline CSS style tag for keyframe animations to keep component self-contained */}
             <style>{`
@@ -283,8 +277,7 @@ export default function TradifiveAIPublic() {
                     fontSize: 8.5,
                     fontWeight: 700,
                     letterSpacing: 1.2,
-                    textTransform: "uppercase",
-                    fontFamily: "'Inter', sans-serif",
+                    textTransform: "uppercase"
                   }}
                 >
                   Artificial Intelligence
@@ -302,8 +295,7 @@ export default function TradifiveAIPublic() {
                   color: "#fff",
                   lineHeight: 1.15,
                   letterSpacing: "-0.025em",
-                  marginBottom: 12,
-                  fontFamily: "'Outfit', sans-serif",
+                  marginBottom: 12
                 }}
               >
                 Meet Your New
@@ -322,8 +314,7 @@ export default function TradifiveAIPublic() {
                   lineHeight: 1.5,
                   marginBottom: 22,
                   fontWeight: 400,
-                  maxWidth: 320,
-                }}
+                  maxWidth: 320 }}
               >
                 TradiFive AI doesn't just show you data. It understands your
                 behavior, optimizes your edge, and talks you out of making
@@ -344,8 +335,7 @@ export default function TradifiveAIPublic() {
                     background: "radial-gradient(circle, rgba(230,215,200,0.3) 0%, transparent 70%)",
                     filter: "blur(12px)",
                     zIndex: 1,
-                    pointerEvents: "none",
-                  }}
+                    pointerEvents: "none" }}
                 />
 
                 <motion.button
@@ -366,8 +356,7 @@ export default function TradifiveAIPublic() {
                     alignItems: "center",
                     gap: 6,
                     letterSpacing: "0.06em",
-                    transition: "all 0.2s ease",
-                  }}
+                    transition: "all 0.2s ease" }}
                 >
                   SEE IN ACTION &rarr;
                 </motion.button>
@@ -387,16 +376,14 @@ export default function TradifiveAIPublic() {
                 borderRadius: "8px",
                 border: "none",
                 overflow: "hidden",
-                background: "transparent",
-              }}
+                background: "transparent" }}
             >
               <img
                 src="/aicoachdesktop.png"
                 alt="TradiFive AI Coach Dashboard"
                 style={{
                   width: "100%",
-                  display: "block",
-                }}
+                  display: "block" }}
               />
               {/* Bottom fade */}
               <div
@@ -407,8 +394,7 @@ export default function TradifiveAIPublic() {
                   right: 0,
                   height: "15%",
                   background: "linear-gradient(to top, #02040a 0%, transparent 100%)",
-                  pointerEvents: "none",
-                }}
+                  pointerEvents: "none" }}
               />
             </motion.div>
 
@@ -423,8 +409,7 @@ export default function TradifiveAIPublic() {
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "flex-start",
-                gap: "10px",
-                fontFamily: "'Outfit', sans-serif",
+                gap: "10px"
               }}
             >
               <div
@@ -432,8 +417,7 @@ export default function TradifiveAIPublic() {
                   fontSize: 13,
                   color: "rgba(255, 255, 255, 0.45)",
                   fontWeight: 500,
-                  letterSpacing: "0.02em",
-                }}
+                  letterSpacing: "0.02em" }}
               >
                 Everything you need for disciplined trading:
               </div>
@@ -447,8 +431,7 @@ export default function TradifiveAIPublic() {
                   padding: "6px 0",
                   // Fade out scroll boundaries
                   maskImage: "linear-gradient(to right, transparent, white 8%, white 92%, transparent)",
-                  WebkitMaskImage: "linear-gradient(to right, transparent, white 8%, white 92%, transparent)",
-                }}
+                  WebkitMaskImage: "linear-gradient(to right, transparent, white 8%, white 92%, transparent)" }}
               >
                 <motion.div
                   animate={{ x: ["0%", "-50%"] }}
@@ -461,15 +444,13 @@ export default function TradifiveAIPublic() {
                       style={{
                         display: "inline-flex",
                         alignItems: "center",
-                        gap: "16px",
-                      }}
+                        gap: "16px" }}
                     >
                       <span
                         style={{
                           fontSize: 12.5,
                           fontWeight: 700,
-                          color: "rgba(255, 255, 255, 0.95)",
-                        }}
+                          color: "rgba(255, 255, 255, 0.95)" }}
                       >
                         {label}
                       </span>
@@ -490,8 +471,7 @@ export default function TradifiveAIPublic() {
                 position: "relative",
                 minHeight: "calc(100vh + 200px)",
                 overflow: "visible",
-                backgroundColor: "#02040a",
-              }}
+                backgroundColor: "#02040a" }}
             >
               {/* LaserFlow — full background */}
               <div style={{ position: "absolute", inset: 0, zIndex: 0 }}>
@@ -526,8 +506,7 @@ export default function TradifiveAIPublic() {
                   zIndex: 6,
                   display: "flex",
                   flexDirection: "column",
-                  alignItems: "flex-start",
-                }}
+                  alignItems: "flex-start" }}
               >
                 {/* Badge */}
                 <motion.div
@@ -544,8 +523,7 @@ export default function TradifiveAIPublic() {
                     padding: "6px 16px 6px 8px",
                     borderRadius: "100px",
                     marginBottom: 32,
-                    backdropFilter: "blur(20px)",
-                  }}
+                    backdropFilter: "blur(20px)" }}
                 >
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 14, height: 14, borderRadius: "50%", background: "rgba(99,102,241,0.2)" }}>
                     <div style={{ width: 4, height: 4, borderRadius: "50%", background: "#818cf8", animation: "pulse 2s infinite" }} />
@@ -559,14 +537,12 @@ export default function TradifiveAIPublic() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.7, delay: 0.1 }}
                   style={{
-                    fontFamily: "'Outfit', 'Inter', sans-serif",
                     fontSize: "clamp(28px, 4.5vw, 50px)",
                     fontWeight: 900,
                     lineHeight: 1.15,
                     letterSpacing: "-0.04em",
                     marginBottom: 20,
-                    color: "#fff",
-                  }}
+                    color: "#fff" }}
                 >
                   Meet Your New<br />
                   <span style={{ background: "linear-gradient(to right, #ffffff, #3b82f6)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>AI Trading Coach.</span>
@@ -583,8 +559,7 @@ export default function TradifiveAIPublic() {
                     lineHeight: 1.6,
                     maxWidth: 540,
                     marginBottom: 40,
-                    fontWeight: 400,
-                  }}
+                    fontWeight: 400 }}
                 >
                   TradiFive AI doesn't just show you data. It understands your
                   behavior, optimizes your edge, and talks you out of making
@@ -632,8 +607,7 @@ export default function TradifiveAIPublic() {
                   width: "min(1180px, 94%)",
                   zIndex: 5,
                   maskImage: "linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 80%, rgba(0,0,0,0.85) 86%, rgba(0,0,0,0.6) 91%, rgba(0,0,0,0.3) 95%, rgba(0,0,0,0.1) 98%, rgba(0,0,0,0) 100%)",
-                  WebkitMaskImage: "linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 80%, rgba(0,0,0,0.85) 86%, rgba(0,0,0,0.6) 91%, rgba(0,0,0,0.3) 95%, rgba(0,0,0,0.1) 98%, rgba(0,0,0,0) 100%)",
-                }}
+                  WebkitMaskImage: "linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 80%, rgba(0,0,0,0.85) 86%, rgba(0,0,0,0.6) 91%, rgba(0,0,0,0.3) 95%, rgba(0,0,0,0.1) 98%, rgba(0,0,0,0) 100%)" }}
               >
                 {/* Glow behind image */}
                 <motion.div
@@ -650,8 +624,7 @@ export default function TradifiveAIPublic() {
                     background: "radial-gradient(ellipse, rgba(96,165,250,0.30) 0%, rgba(168,85,247,0.15) 40%, transparent 70%)",
                     filter: "blur(28px)",
                     pointerEvents: "none",
-                    zIndex: -1,
-                  }}
+                    zIndex: -1 }}
                 />
                 {/* Main dashboard screenshot — no border */}
                 <img
@@ -663,8 +636,7 @@ export default function TradifiveAIPublic() {
                     borderRadius: "16px 16px 0 0",
                     border: "none",
                     backgroundColor: "#0a0a0f",
-                    boxShadow: "0 -32px 120px rgba(96,165,250,0.10), 0 0 80px rgba(168,85,247,0.08)",
-                  }}
+                    boxShadow: "0 -32px 120px rgba(96,165,250,0.10), 0 0 80px rgba(168,85,247,0.08)" }}
                 />
               </motion.div>
 
@@ -686,18 +658,14 @@ export default function TradifiveAIPublic() {
                     alignItems: "flex-start",
                     justifyContent: "center",
                     gap: "12px",
-                    marginBottom: 40,
-                    fontFamily: "'Outfit', sans-serif",
-                    marginTop: "-20px",
-                  }}
+                    marginBottom: 40, marginTop: "-20px" }}
                 >
                   <div
                     style={{
                       fontSize: 14,
                       color: "rgba(255, 255, 255, 0.45)",
                       fontWeight: 500,
-                      letterSpacing: "0.02em",
-                    }}
+                      letterSpacing: "0.02em" }}
                   >
                     Everything you need for disciplined trading:
                   </div>
@@ -709,8 +677,7 @@ export default function TradifiveAIPublic() {
                       gap: "12px 20px",
                       fontSize: 15,
                       fontWeight: 600,
-                      color: "rgba(255, 255, 255, 0.9)",
-                    }}
+                      color: "rgba(255, 255, 255, 0.9)" }}
                   >
                     {["AI Coach", "Risk Guard", "Smart Journal", "Competitions", "Community Hub", "Analytics"].map((label, i) => (
                       <React.Fragment key={label}>
@@ -762,8 +729,7 @@ export default function TradifiveAIPublic() {
                     fontSize: isMobile ? 8.5 : 9.5,
                     fontWeight: 700,
                     letterSpacing: 1.2,
-                    textTransform: "uppercase",
-                    fontFamily: "'Inter', sans-serif",
+                    textTransform: "uppercase"
                   }}
                 >
                   TradiFive AI
@@ -772,15 +738,13 @@ export default function TradifiveAIPublic() {
 
               <h2
                 style={{
-                  fontFamily: "'Outfit', sans-serif",
                   fontSize: isMobile ? "28px" : "clamp(30px, 3.5vw, 48px)",
                   fontWeight: 800,
                   color: "#09090b",
                   lineHeight: 1.15,
                   letterSpacing: "-0.02em",
                   maxWidth: 700,
-                  margin: "0 auto 16px",
-                }}
+                  margin: "0 auto 16px" }}
               >
                 The First AI Coach That Actually Knows Your Trading Style
               </h2>
@@ -790,8 +754,7 @@ export default function TradifiveAIPublic() {
                   color: "rgba(9,9,11,0.6)",
                   maxWidth: 580,
                   margin: "0 auto",
-                  lineHeight: 1.6,
-                }}
+                  lineHeight: 1.6 }}
               >
                 TradiFive AI tracks your patterns, monitors your live execution, and guides you back to discipline before emotional mistakes cost you.
               </p>
@@ -812,8 +775,7 @@ export default function TradifiveAIPublic() {
                   scale: isMobile ? 1 : imageScale,
                   transformOrigin: "center center",
                   width: "92%",
-                  maxWidth: 1600,
-                }}
+                  maxWidth: 1600 }}
               >
                 <motion.img
                   src="/aicoachmini (2).png"
@@ -848,8 +810,7 @@ export default function TradifiveAIPublic() {
                     display: isMobile ? "none" : "flex",
                     alignItems: "center",
                     justifyContent: "space-between",
-                    gap: 32,
-                  }}
+                    gap: 32 }}
                 >
                   {/* Left: Big white text — no box, raw typography */}
                   <motion.div
@@ -859,41 +820,31 @@ export default function TradifiveAIPublic() {
                       opacity: messageOpacity,
                       y: messageY,
                       marginTop: -300,
-                      marginLeft: 300,
-                    }}
+                      marginLeft: 300 }}
                   >
                     <p style={{
-                      margin: "0 0 10px 0",
-                      fontFamily: "'Outfit', sans-serif",
-                      fontSize: "clamp(11px, 1.1vw, 14px)",
+                      margin: "0 0 10px 0", fontSize: "clamp(11px, 1.1vw, 14px)",
                       fontWeight: 600,
                       letterSpacing: "0.18em",
                       textTransform: "uppercase",
-                      color: "rgba(168, 85, 247, 0.9)",
-                    }}>
+                      color: "rgba(168, 85, 247, 0.9)" }}>
                       Always with you
                     </p>
                     <h3 style={{
-                      margin: "0 0 16px 0",
-                      fontFamily: "'Outfit', sans-serif",
-                      fontSize: "clamp(28px, 3.5vw, 52px)",
+                      margin: "0 0 16px 0", fontSize: "clamp(28px, 3.5vw, 52px)",
                       fontWeight: 900,
                       lineHeight: 1.1,
                       letterSpacing: "-0.02em",
-                      color: "#ffffff",
-                    }}>
+                      color: "#ffffff" }}>
                       Mini AI Coach.<br />
                       <span style={{ color: "rgba(255,255,255,0.5)" }}>Always On.</span>
                     </h3>
                     <p style={{
-                      margin: 0,
-                      fontFamily: "'Inter', sans-serif",
-                      fontSize: "clamp(13px, 1.2vw, 17px)",
+                      margin: 0, fontSize: "clamp(13px, 1.2vw, 17px)",
                       color: "rgba(255,255,255,0.65)",
                       lineHeight: 1.7,
                       fontWeight: 400,
-                      maxWidth: 380,
-                    }}>
+                      maxWidth: 380 }}>
                       Instant AI coaching on every page — no switching, no waiting.
                       Jump into a session the moment emotion takes over your trades.
                     </p>
@@ -941,8 +892,7 @@ export default function TradifiveAIPublic() {
                       flexShrink: 0,
                       opacity: miniPhotoOpacity,
                       y: miniPhotoY,
-                      marginTop: -100,
-                    }}
+                      marginTop: -100 }}
                   >
                     <img
                       src="/minicoach.png"
@@ -968,16 +918,15 @@ export default function TradifiveAIPublic() {
                     border: "1px solid rgba(168, 85, 247, 0.2)",
                     borderRadius: 100,
                     padding: "6px 12px",
-                    marginBottom: 12,
-                  }}
+                    marginBottom: 12 }}
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a855f7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z" />
                   </svg>
-                  <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#a855f7", lineHeight: 1 }}>Always with you</span>
+                  <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#a855f7", lineHeight: 1 }}>Always with you</span>
                 </div>
-                <h3 style={{ margin: "0 0 10px 0", fontFamily: "'Outfit', sans-serif", fontSize: 26, fontWeight: 800, lineHeight: 1.1, color: "#09090b" }}>Mini AI Coach.<br /><span style={{ color: "rgba(9,9,11,0.5)" }}>Always On.</span></h3>
-                <p style={{ margin: 0, fontFamily: "'Inter', sans-serif", fontSize: 15, color: "rgba(9,9,11,0.65)", lineHeight: 1.45 }}>Jump into a session the moment emotion takes over. Let our AI guide you back to clarity and keep your trades disciplined and on track.</p>
+                <h3 style={{ margin: "0 0 10px 0", fontSize: 26, fontWeight: 800, lineHeight: 1.1, color: "#09090b" }}>Mini AI Coach.<br /><span style={{ color: "rgba(9,9,11,0.5)" }}>Always On.</span></h3>
+                <p style={{ margin: 0, fontSize: 15, color: "rgba(9,9,11,0.65)", lineHeight: 1.45 }}>Jump into a session the moment emotion takes over. Let our AI guide you back to clarity and keep your trades disciplined and on track.</p>
               </div>
 
               {/* Arrow pointing up */}
@@ -1016,21 +965,19 @@ export default function TradifiveAIPublic() {
                 }}
               >
                 <Brain size={9} color="#ffffff" />
-                <span style={{ color: "#ffffff", fontSize: 8.5, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase", fontFamily: "'Inter', sans-serif" }}>
+                <span style={{ color: "#ffffff", fontSize: 8.5, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase" }}>
                   AI Coach Capabilities
                 </span>
               </div>
               <h2
                 style={{
-                  fontFamily: "'Outfit', sans-serif",
                   fontSize: "clamp(28px, 3.2vw, 44px)",
                   fontWeight: 800,
                   color: "#ffffff",
                   lineHeight: 1.15,
                   letterSpacing: "-0.02em",
                   maxWidth: 620,
-                  margin: "0 auto 16px",
-                }}
+                  margin: "0 auto 16px" }}
               >
                 Your Trading Psychology,{" "}
                 <span style={{ background: "linear-gradient(135deg, #a855f7, #60a5fa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
@@ -1062,8 +1009,7 @@ export default function TradifiveAIPublic() {
                       background: "#171717",
                       boxShadow: "inset 0 1px 0 0 rgba(255,255,255,0.05), 0 0 0 1px rgba(255,255,255,0.05), 0 2px 4px rgba(0,0,0,0.2)",
                       borderRadius: 20,
-                      transition: "box-shadow 0.3s ease",
-                    }}
+                      transition: "box-shadow 0.3s ease" }}
                   >
                     <motion.div
                       initial={{ scale: 0.8, opacity: 0 }}
@@ -1079,20 +1025,17 @@ export default function TradifiveAIPublic() {
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        marginBottom: 20,
-                      }}
+                        marginBottom: 20 }}
                     >
                       <Icon size={22} color={feat.color} />
                     </motion.div>
                     <h4
                       style={{
-                        fontFamily: "'Outfit', sans-serif",
                         fontSize: 18,
                         fontWeight: 700,
                         color: "#ffffff",
                         marginBottom: 10,
-                        lineHeight: 1.3,
-                      }}
+                        lineHeight: 1.3 }}
                     >
                       {feat.title}
                     </h4>
@@ -1101,8 +1044,7 @@ export default function TradifiveAIPublic() {
                         fontSize: 14,
                         color: "rgba(255,255,255,0.55)",
                         lineHeight: 1.65,
-                        margin: 0,
-                      }}
+                        margin: 0 }}
                     >
                       {feat.description}
                     </p>
@@ -1138,20 +1080,18 @@ export default function TradifiveAIPublic() {
                 }}
               >
                 <MessageCircle size={9} color="#ffffff" />
-                <span style={{ color: "#ffffff", fontSize: 8.5, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase", fontFamily: "'Inter', sans-serif" }}>
+                <span style={{ color: "#ffffff", fontSize: 8.5, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase" }}>
                   FAQ
                 </span>
               </div>
               <h2
                 style={{
-                  fontFamily: "'Outfit', sans-serif",
                   fontSize: "clamp(26px, 3vw, 40px)",
                   fontWeight: 800,
                   color: "#ffffff",
                   lineHeight: 1.2,
                   letterSpacing: "-0.02em",
-                  marginBottom: 12,
-                }}
+                  marginBottom: 12 }}
               >
                 Frequently Asked Questions
               </h2>
@@ -1174,7 +1114,7 @@ export default function TradifiveAIPublic() {
 
             {/* CTA below FAQ */}
             <motion.div {...fadeUp(0.2)} style={{ textAlign: "center", marginTop: 64 }}>
-              <p style={{ fontSize: 15, color: "rgba(255,255,255,0.4)", marginBottom: 20, fontFamily: "'Inter', sans-serif" }}>
+              <p style={{ fontSize: 15, color: "rgba(255,255,255,0.4)", marginBottom: 20 }}>
                 Still have questions? Start for free and see it in action.
               </p>
               <button
@@ -1190,8 +1130,7 @@ export default function TradifiveAIPublic() {
                   cursor: "pointer",
                   letterSpacing: "0.04em",
                   boxShadow: "none",
-                  transition: "transform 0.2s ease",
-                }}
+                  transition: "transform 0.2s ease" }}
                 onMouseEnter={(e) => {
                   (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-2px)";
                 }}

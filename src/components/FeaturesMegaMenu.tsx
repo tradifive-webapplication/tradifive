@@ -103,8 +103,7 @@ export default function FeaturesMegaMenu({
             WebkitFontSmoothing: "antialiased",
             textAlign: "left",
             pointerEvents: "auto",
-            userSelect: "none",
-          }}
+            userSelect: "none" }}
         >
           {/* Main 2-Column Grid (FundingPips Style) */}
           <div
@@ -112,8 +111,7 @@ export default function FeaturesMegaMenu({
               display: "grid",
               gridTemplateColumns: "1fr 1fr",
               gap: 16,
-              alignItems: "stretch",
-            }}
+              alignItems: "stretch" }}
           >
             {/* ══════════════════════════════════════════════════════
                 LEFT COLUMN: 5 FEATURE ITEMS (Vertical Stack)
@@ -123,8 +121,7 @@ export default function FeaturesMegaMenu({
                 display: "flex",
                 flexDirection: "column",
                 gap: 4,
-                justifyContent: "space-between",
-              }}
+                justifyContent: "space-between" }}
             >
               {FEATURES.map((feat) => {
                 const isHovered = hoveredId === feat.id;
@@ -152,8 +149,7 @@ export default function FeaturesMegaMenu({
                       justifyContent: "center",
                       transition: "all 0.18s cubic-bezier(0.16, 1, 0.3, 1)",
                       width: "100%",
-                      outline: "none",
-                    }}
+                      outline: "none" }}
                   >
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, width: "100%" }}>
                       <div
@@ -165,8 +161,7 @@ export default function FeaturesMegaMenu({
                           letterSpacing: "-0.01em",
                           whiteSpace: "nowrap",
                           overflow: "hidden",
-                          textOverflow: "ellipsis",
-                        }}
+                          textOverflow: "ellipsis" }}
                       >
                         {feat.title}
                       </div>
@@ -196,8 +191,7 @@ export default function FeaturesMegaMenu({
                         transition: "color 0.18s ease",
                         whiteSpace: "nowrap",
                         overflow: "hidden",
-                        textOverflow: "ellipsis",
-                      }}
+                        textOverflow: "ellipsis" }}
                     >
                       {feat.desc}
                     </div>
@@ -220,8 +214,7 @@ export default function FeaturesMegaMenu({
                 flexDirection: "column",
                 justifyContent: "space-between",
                 overflow: "hidden",
-                position: "relative",
-              }}
+                position: "relative" }}
             >
               {/* Top: 3D Visual Artwork Banner */}
               <div
@@ -237,8 +230,7 @@ export default function FeaturesMegaMenu({
                   flexDirection: "column",
                   justifyContent: "flex-end",
                   padding: "16px",
-                  boxShadow: "inset 0 0 40px rgba(56, 189, 248, 0.15)",
-                }}
+                  boxShadow: "inset 0 0 40px rgba(56, 189, 248, 0.15)" }}
               >
                 {/* 3D artwork background image */}
                 <img
@@ -251,8 +243,7 @@ export default function FeaturesMegaMenu({
                     height: "100%",
                     objectFit: "cover",
                     opacity: 0.85,
-                    filter: "contrast(1.15) brightness(0.95)",
-                  }}
+                    filter: "contrast(1.15) brightness(0.95)" }}
                   onError={(e) => {
                     e.currentTarget.style.display = "none";
                   }}
@@ -265,8 +256,7 @@ export default function FeaturesMegaMenu({
                     inset: 0,
                     background:
                       "linear-gradient(180deg, rgba(8, 11, 22, 0.2) 0%, rgba(8, 11, 22, 0.85) 100%)",
-                    pointerEvents: "none",
-                  }}
+                    pointerEvents: "none" }}
                 />
 
                 {/* Bold headline on top of graphic */}
@@ -281,8 +271,7 @@ export default function FeaturesMegaMenu({
                       borderRadius: 100,
                       padding: "2.5px 8px",
                       marginBottom: 6,
-                      backdropFilter: "blur(8px)",
-                    }}
+                      backdropFilter: "blur(8px)" }}
                   >
                     <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#38bdf8", boxShadow: "0 0 6px #38bdf8" }} />
                     <span style={{ fontSize: 9.5, fontWeight: 800, color: "#38bdf8", letterSpacing: "0.08em", textTransform: "uppercase" }}>ALGO V1</span>
@@ -294,8 +283,7 @@ export default function FeaturesMegaMenu({
                       color: "#ffffff",
                       lineHeight: 1.15,
                       letterSpacing: "-0.03em",
-                      textShadow: "0 2px 10px rgba(0,0,0,0.8)",
-                    }}
+                      textShadow: "0 2px 10px rgba(0,0,0,0.8)" }}
                   >
                     FiAlgo V1<br />
                     Quant Engine
@@ -312,8 +300,7 @@ export default function FeaturesMegaMenu({
                       fontWeight: 700,
                       color: "#ffffff",
                       lineHeight: 1.3,
-                      letterSpacing: "-0.01em",
-                    }}
+                      letterSpacing: "-0.01em" }}
                   >
                     Automate trades with FiAlgo V1
                   </div>
@@ -322,8 +309,7 @@ export default function FeaturesMegaMenu({
                       fontSize: 11,
                       color: "rgba(255, 255, 255, 0.52)",
                       lineHeight: 1.45,
-                      marginTop: 3,
-                    }}
+                      marginTop: 3 }}
                   >
                     Institutional MT5 Gold execution with built-in risk protection, automated news filtering & verified edge.
                   </div>
@@ -351,8 +337,7 @@ export default function FeaturesMegaMenu({
                     cursor: "pointer",
                     transition: "all 0.2s ease",
                     width: "100%",
-                    outline: "none",
-                  }}
+                    outline: "none" }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.background = "linear-gradient(135deg, #22324f 0%, #111c34 100%)";
                     e.currentTarget.style.color = "#93c5fd";

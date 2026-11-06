@@ -109,7 +109,7 @@ export default function SettlementPaymentModal({
                 <CreditCard size={18} />
               </div>
               <div>
-                <h3 className="text-[16px] font-bold text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
+                <h3 className="text-[16px] font-bold text-slate-900 dark:text-white tracking-tight leading-none" >
                   Remit Weekly Profit Share
                 </h3>
                 <p className="text-[11.5px] text-slate-400 mt-1">
@@ -132,7 +132,7 @@ export default function SettlementPaymentModal({
               <span className="text-[10px] font-extrabold uppercase tracking-wider text-blue-700 dark:text-blue-400 block">
                 Tradifive 50% Platform Share
               </span>
-              <div className="text-[24px] font-bold text-slate-900 dark:text-white tracking-tight mt-0.5" style={{ fontFamily: "'Inter', sans-serif" }}>
+              <div className="text-[24px] font-bold text-slate-900 dark:text-white tracking-tight mt-0.5" >
                 {amountPayableFormatted}
               </div>
               <span className="text-[11px] text-slate-400 font-medium">

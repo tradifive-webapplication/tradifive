@@ -247,7 +247,7 @@ void ExecuteOrder(ENUM_ORDER_TYPE orderType)
             <div className="flex items-center gap-3">
               <h1 
                 className="text-[28px] sm:text-[32px] font-bold text-slate-900 dark:text-white tracking-tight leading-none"
-                style={{ fontFamily: "'Inter', sans-serif" }}
+                
               >
                 Strategy Builder
               </h1>
@@ -297,7 +297,7 @@ void ExecuteOrder(ENUM_ORDER_TYPE orderType)
             <div className="flex items-end justify-between">
               <h3 
                 className="text-[26px] font-medium text-slate-900 dark:text-white tracking-tight leading-none"
-                style={{ fontFamily: "'Inter', sans-serif" }}
+                
               >
                 14 Built
               </h3>
@@ -320,7 +320,7 @@ void ExecuteOrder(ENUM_ORDER_TYPE orderType)
             <div className="flex items-end justify-between">
               <h3 
                 className="text-[26px] font-medium text-emerald-600 dark:text-emerald-400 tracking-tight leading-none"
-                style={{ fontFamily: "'Inter', sans-serif" }}
+                
               >
                 68.5%
               </h3>
@@ -343,7 +343,7 @@ void ExecuteOrder(ENUM_ORDER_TYPE orderType)
             <div className="flex items-end justify-between">
               <h3 
                 className="text-[26px] font-medium text-slate-900 dark:text-white tracking-tight leading-none"
-                style={{ fontFamily: "'Inter', sans-serif" }}
+                
               >
                 1.92 PF
               </h3>
@@ -368,7 +368,7 @@ void ExecuteOrder(ENUM_ORDER_TYPE orderType)
                 <span className="w-2.5 h-2.5 rounded-full bg-[#10B981] animate-pulse" />
                 <h3 
                   className="text-[22px] font-medium text-slate-900 dark:text-white tracking-tight leading-none"
-                  style={{ fontFamily: "'Inter', sans-serif" }}
+                  
                 >
                   MQL5 + Python
                 </h3>
@@ -704,7 +704,7 @@ void ExecuteOrder(ENUM_ORDER_TYPE orderType)
                           <span className="text-[10px] font-extrabold uppercase text-slate-400">
                             Win Rate
                           </span>
-                          <span className="text-base font-bold text-emerald-600 dark:text-emerald-400" style={{ fontFamily: "'Inter', sans-serif" }}>
+                          <span className="text-base font-bold text-emerald-600 dark:text-emerald-400" >
                             71.4%
                           </span>
                         </div>
@@ -712,7 +712,7 @@ void ExecuteOrder(ENUM_ORDER_TYPE orderType)
                           <span className="text-[10px] font-extrabold uppercase text-slate-400">
                             Net Return
                           </span>
-                          <span className="text-base font-bold text-emerald-600 dark:text-emerald-400" style={{ fontFamily: "'Inter', sans-serif" }}>
+                          <span className="text-base font-bold text-emerald-600 dark:text-emerald-400" >
                             +34.2%
                           </span>
                         </div>
@@ -720,7 +720,7 @@ void ExecuteOrder(ENUM_ORDER_TYPE orderType)
                           <span className="text-[10px] font-extrabold uppercase text-slate-400">
                             Max DD
                           </span>
-                          <span className="text-base font-bold text-slate-800 dark:text-white" style={{ fontFamily: "'Inter', sans-serif" }}>
+                          <span className="text-base font-bold text-slate-800 dark:text-white" >
                             4.1%
                           </span>
                         </div>

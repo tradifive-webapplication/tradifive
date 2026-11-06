@@ -132,7 +132,7 @@ const METRIC_CONTENT: Record<string, React.ReactNode> = {
       </div>
       <div className="flex items-end justify-between mt-1">
         <div>
-          <h3 className="text-[28px] font-medium text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>₹0</h3>
+          <h3 className="text-[28px] font-medium text-slate-900 dark:text-white tracking-tight leading-none" >₹0</h3>
           <p className="text-[13px] font-medium text-slate-500 dark:text-slate-400 mt-1">
             P&L: <span className="text-[#F06363]">-₹2,001.78</span>
           </p>
@@ -150,7 +150,7 @@ const METRIC_CONTENT: Record<string, React.ReactNode> = {
         <MetricTooltip content="The percentage of winning trades relative to your total executed trades (excluding pending orders)." />
       </div>
       <div className="flex items-center justify-between">
-        <h3 className="text-[26px] font-medium text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>52.96%</h3>
+        <h3 className="text-[26px] font-medium text-slate-900 dark:text-white tracking-tight leading-none" >52.96%</h3>
         <WinRateGauge winPct={52.96} wins={134} even={2} losses={119} />
       </div>
     </>
@@ -183,7 +183,7 @@ const METRIC_CONTENT: Record<string, React.ReactNode> = {
         <MetricTooltip content="The average profit of your winning trades compared to the average loss of your losing trades (Win/Loss Ratio)." />
       </div>
       <div className="flex items-center justify-between">
-        <h3 className="text-[26px] font-medium text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>0.49</h3>
+        <h3 className="text-[26px] font-medium text-slate-900 dark:text-white tracking-tight leading-none" >0.49</h3>
         <WinLossBar avgWin={18.5} avgLoss={37.7} />
       </div>
     </>
@@ -195,7 +195,7 @@ const METRIC_CONTENT: Record<string, React.ReactNode> = {
         <MetricTooltip content="Gross profits divided by gross losses. A profit factor above 1.0 means your trading strategy is profitable." />
       </div>
       <div className="flex items-center justify-between">
-        <h3 className="text-[26px] font-medium text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>0.55</h3>
+        <h3 className="text-[26px] font-medium text-slate-900 dark:text-white tracking-tight leading-none" >0.55</h3>
         <CircularGauge value={0.55} />
       </div>
     </>
@@ -353,7 +353,7 @@ export default function JournalMetrics({
         </div>
         <div className="flex items-end justify-between mt-1">
           <div>
-            <h3 className={`text-[20px] sm:text-[24px] lg:text-[26px] font-medium text-slate-900 dark:text-white tracking-tight leading-none transition-all duration-300 ${hideBalance || hideOnlyBalance || percentageOnly ? 'blur-[5px] select-none opacity-40' : ''}`} style={{ fontFamily: "'Inter', sans-serif" }}>
+            <h3 className={`text-[20px] sm:text-[24px] lg:text-[26px] font-medium text-slate-900 dark:text-white tracking-tight leading-none transition-all duration-300 ${hideBalance || hideOnlyBalance || percentageOnly ? 'blur-[5px] select-none opacity-40' : ''}`} >
               {formatMoney(balance, { raw: true })}
             </h3>
             <p className="text-[12px] sm:text-[13px] font-medium text-slate-500 dark:text-slate-400 mt-1">
@@ -383,7 +383,7 @@ export default function JournalMetrics({
           <MetricTooltip content="The percentage of winning trades relative to your total executed trades (excluding pending orders)." />
         </div>
         <div className="flex items-center justify-between">
-          <h3 className="text-[20px] sm:text-[24px] lg:text-[26px] font-medium text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>{winRate}%</h3>
+          <h3 className="text-[20px] sm:text-[24px] lg:text-[26px] font-medium text-slate-900 dark:text-white tracking-tight leading-none" >{winRate}%</h3>
           <WinRateGauge winPct={winRate} wins={totalWins} even={totalEvens} losses={totalLosses} />
         </div>
       </>
@@ -438,7 +438,7 @@ export default function JournalMetrics({
           <MetricTooltip content="The average profit of your winning trades compared to the average loss of your losing trades (Win/Loss Ratio)." />
         </div>
         <div className="flex items-center justify-between">
-          <h3 className="text-[20px] sm:text-[24px] lg:text-[26px] font-medium text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
+          <h3 className="text-[20px] sm:text-[24px] lg:text-[26px] font-medium text-slate-900 dark:text-white tracking-tight leading-none" >
             {avgWinLossRatio > 0 ? avgWinLossRatio.toFixed(2) : "0.00"}
           </h3>
           <WinLossBar avgWin={avgWin} avgLoss={avgLoss} />
@@ -463,7 +463,7 @@ export default function JournalMetrics({
           <MetricTooltip content="Gross profits divided by gross losses. A profit factor above 1.0 means your trading strategy is profitable." />
         </div>
         <div className="flex items-center justify-between">
-          <h3 className="text-[20px] sm:text-[24px] lg:text-[26px] font-medium text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
+          <h3 className="text-[20px] sm:text-[24px] lg:text-[26px] font-medium text-slate-900 dark:text-white tracking-tight leading-none" >
             {profitFactor > 0 ? profitFactor.toFixed(2) : "0.00"}
           </h3>
           <CircularGauge value={profitFactor > 0 ? profitFactor : 0} />

@@ -105,8 +105,7 @@ function FeatureCard({ feat }: { feat: any }) {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "#000",
-        }}
+          background: "#000" }}
       >
         {/* IMAGE CONTAINER — starts with padding & rounded corners, expands to fill */}
         <motion.div
@@ -118,8 +117,7 @@ function FeatureCard({ feat }: { feat: any }) {
             bottom: inset,
             borderRadius,
             overflow: "hidden",
-            zIndex: 0,
-          }}
+            zIndex: 0 }}
         >
           {!imageError ? (
             <img
@@ -129,8 +127,7 @@ function FeatureCard({ feat }: { feat: any }) {
                 width: "100%",
                 height: "100%",
                 objectFit: "cover",
-                objectPosition: "top center",
-              }}
+                objectPosition: "top center" }}
               onError={() => setImageError(true)}
             />
           ) : (
@@ -142,8 +139,7 @@ function FeatureCard({ feat }: { feat: any }) {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                background: "#0a0a0a",
-              }}
+                background: "#0a0a0a" }}
             >
               <div style={{ textAlign: "center" }}>
                 <div style={{ color: "rgba(255,255,255,0.15)", marginBottom: 12, display: "flex", justifyContent: "center" }}>
@@ -166,8 +162,7 @@ function FeatureCard({ feat }: { feat: any }) {
               inset: 0,
               backgroundColor: "rgba(0,0,0,0.85)",
               backdropFilter: "blur(6px)",
-              opacity: overlayOpacity,
-            }}
+              opacity: overlayOpacity }}
           />
 
           {/* Radial color glow */}
@@ -177,8 +172,7 @@ function FeatureCard({ feat }: { feat: any }) {
               inset: 0,
               background: `radial-gradient(circle at center, ${feat.color}30 0%, transparent 60%)`,
               mixBlendMode: "screen",
-              pointerEvents: "none",
-            }}
+              pointerEvents: "none" }}
           />
         </motion.div>
 
@@ -194,8 +188,7 @@ function FeatureCard({ feat }: { feat: any }) {
             flexDirection: "column",
             alignItems: "center",
             opacity: textOpacity,
-            y: textY,
-          }}
+            y: textY }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20, justifyContent: "center" }}>
             <div
@@ -208,8 +201,7 @@ function FeatureCard({ feat }: { feat: any }) {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                backdropFilter: "blur(12px)",
-              }}
+                backdropFilter: "blur(12px)" }}
             >
               {feat.icon}
             </div>
@@ -219,8 +211,7 @@ function FeatureCard({ feat }: { feat: any }) {
                 fontSize: 13,
                 fontWeight: 800,
                 letterSpacing: 2,
-                textTransform: "uppercase",
-              }}
+                textTransform: "uppercase" }}
             >
               {feat.featureNumber}
             </span>
@@ -234,8 +225,7 @@ function FeatureCard({ feat }: { feat: any }) {
               letterSpacing: "-0.02em",
               lineHeight: 1.1,
               marginBottom: 24,
-              textShadow: "0 4px 24px rgba(0,0,0,0.6)",
-            }}
+              textShadow: "0 4px 24px rgba(0,0,0,0.6)" }}
           >
             {feat.title}
           </h3>
@@ -248,8 +238,7 @@ function FeatureCard({ feat }: { feat: any }) {
               maxWidth: 700,
               margin: "0 auto",
               textShadow: "0 2px 16px rgba(0,0,0,0.8)",
-              fontWeight: 500,
-            }}
+              fontWeight: 500 }}
           >
             {feat.desc}
           </p>
@@ -345,8 +334,7 @@ export default function DeepDiveFeatures() {
                 textTransform: "uppercase",
                 fontSize: "clamp(9px, 1.5vw, 11px)",
                 fontWeight: 700,
-                letterSpacing: 2,
-              }}
+                letterSpacing: 2 }}
             >
               FEATURES
             </span>
@@ -358,8 +346,7 @@ export default function DeepDiveFeatures() {
               color: "#fff",
               letterSpacing: "-0.03em",
               lineHeight: 1.1,
-              marginBottom: 24,
-            }}
+              marginBottom: 24 }}
           >
             <span style={{ background: "linear-gradient(to right, #ffffff, #3b82f6)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
               Six Powerful Systems.
@@ -373,8 +360,7 @@ export default function DeepDiveFeatures() {
               fontSize: "clamp(15px, 3vw, 18px)",
               maxWidth: 600,
               margin: "0 auto",
-              lineHeight: 1.6,
-            }}
+              lineHeight: 1.6 }}
           >
             Everything you need to trade, learn, improve, connect, and grow—all from one platform.
           </p>

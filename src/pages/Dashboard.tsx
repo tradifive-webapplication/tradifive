@@ -226,7 +226,7 @@ const Dashboard = () => {
                 <WalletIcon />
                 <span className="text-[10.5px] sm:text-[11px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Account Equity</span>
               </div>
-              <h3 className="text-[20px] sm:text-[22px] font-semibold text-slate-900 dark:text-white tracking-tight leading-none mb-1" style={{ fontFamily: "'Inter', sans-serif" }}>
+              <h3 className="text-[20px] sm:text-[22px] font-semibold text-slate-900 dark:text-white tracking-tight leading-none mb-1" >
                 {currSym}{equity > 0 ? equity.toLocaleString('en-US', { minimumFractionDigits: 2 }) : '0.00'}
               </h3>
             </div>
@@ -242,7 +242,7 @@ const Dashboard = () => {
                 <TrendUpIcon />
                 <span className="text-[10.5px] sm:text-[11px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Today's P&L</span>
               </div>
-              <h3 className={`text-[20px] sm:text-[22px] font-semibold tracking-tight leading-none mb-1 ${todayProfit === 0 ? 'text-slate-900 dark:text-white' : (todayProfit > 0 ? 'text-emerald-500' : 'text-rose-500')}`} style={{ fontFamily: "'Inter', sans-serif" }}>
+              <h3 className={`text-[20px] sm:text-[22px] font-semibold tracking-tight leading-none mb-1 ${todayProfit === 0 ? 'text-slate-900 dark:text-white' : (todayProfit > 0 ? 'text-emerald-500' : 'text-rose-500')}`} >
                 {pnlTodayStr}
               </h3>
             </div>
@@ -258,7 +258,7 @@ const Dashboard = () => {
                 <Target size={15} className="text-slate-400" />
                 <span className="text-[10.5px] sm:text-[11px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Win Rate</span>
               </div>
-              <h3 className="text-[20px] sm:text-[22px] font-semibold text-slate-900 dark:text-white tracking-tight leading-none mb-1" style={{ fontFamily: "'Inter', sans-serif" }}>
+              <h3 className="text-[20px] sm:text-[22px] font-semibold text-slate-900 dark:text-white tracking-tight leading-none mb-1" >
                 {winRate}%
               </h3>
             </div>
@@ -275,7 +275,7 @@ const Dashboard = () => {
                 <span className="text-[10.5px] sm:text-[11px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Discipline</span>
               </div>
               <div className="flex items-end gap-1.5 mb-1">
-                <h3 className="text-[20px] sm:text-[22px] font-semibold text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
+                <h3 className="text-[20px] sm:text-[22px] font-semibold text-slate-900 dark:text-white tracking-tight leading-none" >
                   {avgDisciplineScore !== null ? avgDisciplineScore : '—'}
                 </h3>
                 {avgDisciplineScore !== null && <span className="text-xs font-bold text-slate-400 mb-0.5">/ 100</span>}

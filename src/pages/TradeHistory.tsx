@@ -437,7 +437,7 @@ export default function TradeHistory() {
             <div className="flex items-center gap-3">
               <h1
                 className="text-[28px] sm:text-[32px] font-bold text-slate-900 dark:text-white tracking-tight leading-none"
-                style={{ fontFamily: "'Inter', sans-serif" }}
+                
               >
                 Order & Activity Ledger
               </h1>
@@ -507,7 +507,7 @@ export default function TradeHistory() {
               <div className="flex items-baseline gap-1.5 leading-none">
                 <h3
                   className="text-[26px] font-medium text-slate-900 dark:text-white tracking-tight leading-none"
-                  style={{ fontFamily: "'Inter', sans-serif" }}
+                  
                 >
                   {totalPurchases}
                 </h3>
@@ -534,7 +534,7 @@ export default function TradeHistory() {
             <div className="flex items-end justify-between">
               <h3
                 className={`text-[26px] font-medium tracking-tight leading-none ${totalProfit >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-500"}`}
-                style={{ fontFamily: "'Inter', sans-serif" }}
+                
               >
                 {totalProfit >= 0 ? "+" : ""}${totalProfit.toFixed(2)}
               </h3>
@@ -558,7 +558,7 @@ export default function TradeHistory() {
               <div className="flex items-baseline gap-1.5 leading-none">
                 <h3
                   className="text-[26px] font-medium text-slate-900 dark:text-white tracking-tight leading-none"
-                  style={{ fontFamily: "'Inter', sans-serif" }}
+                  
                 >
                   {winRate}%
                 </h3>
@@ -587,7 +587,7 @@ export default function TradeHistory() {
                 <span className="w-2.5 h-2.5 rounded-full bg-[#10B981] animate-pulse" />
                 <h3
                   className="text-[22px] font-medium text-slate-900 dark:text-white tracking-tight leading-none"
-                  style={{ fontFamily: "'Inter', sans-serif" }}
+                  
                 >
                   2.1ms Ping
                 </h3>
@@ -695,7 +695,7 @@ export default function TradeHistory() {
                       </div>
                       <h4
                         className="text-[17px] font-bold text-slate-900 dark:text-white tracking-tight leading-snug"
-                        style={{ fontFamily: "'Inter', sans-serif" }}
+                        
                       >
                         {algo.name}
                       </h4>
@@ -923,7 +923,7 @@ export default function TradeHistory() {
                                 <p
                                   className={`text-sm font-bold tracking-tight leading-none ${isWin ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
                                     }`}
-                                  style={{ fontFamily: "'Inter', sans-serif" }}
+                                  
                                 >
                                   {order.pnl >= 0 ? "+" : ""}${order.pnl.toFixed(2)}
                                 </p>

@@ -68,8 +68,7 @@ export function PublicFAQ({ faqs = defaultFaqs }: { faqs?: { q: string; a: strin
                 boxShadow: "inset 0 1px 0 0 rgba(255,255,255,0.05), 0 0 0 1px rgba(255,255,255,0.05), 0 2px 4px rgba(0,0,0,0.2)",
                 borderRadius: 20,
                 overflow: "hidden",
-                transition: "box-shadow 0.3s ease",
-              }}
+                transition: "box-shadow 0.3s ease" }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.boxShadow = "inset 0 1px 0 0 rgba(255,255,255,0.1), 0 0 0 1px rgba(255,255,255,0.1), 0 8px 16px rgba(0,0,0,0.4)";
               }}
@@ -92,8 +91,7 @@ export function PublicFAQ({ faqs = defaultFaqs }: { faqs?: { q: string; a: strin
                   fontWeight: 700,
                   textAlign: "left",
                   cursor: "pointer",
-                  outline: "none",
-                }}
+                  outline: "none" }}
               >
                 <span>{faq.q}</span>
                 <motion.div animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.25 }}>
@@ -116,8 +114,7 @@ export function PublicFAQ({ faqs = defaultFaqs }: { faqs?: { q: string; a: strin
                       lineHeight: 1.6,
                       borderTop: "1px solid rgba(255,255,255,0.02)",
                       marginTop: -4,
-                      paddingTop: 16,
-                    }}>
+                      paddingTop: 16 }}>
                       {faq.a}
                     </div>
                   </motion.div>

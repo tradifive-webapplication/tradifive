@@ -57,7 +57,7 @@ function ChartCard({
     >
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-[14px] font-bold text-slate-900 dark:text-slate-200 tracking-tight leading-tight" style={{ fontFamily: "'Outfit', sans-serif" }}>{title}</h3>
+          <h3 className="text-[14px] font-bold text-slate-900 dark:text-slate-200 tracking-tight leading-tight" >{title}</h3>
           {legend && <div className="mt-2">{legend}</div>}
         </div>
         {filters && (

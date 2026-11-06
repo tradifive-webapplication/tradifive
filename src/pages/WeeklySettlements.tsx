@@ -137,7 +137,7 @@ export default function WeeklySettlements() {
               <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-md shadow-blue-500/20 shrink-0">
                 <Receipt size={18} />
               </div>
-              <h1 className="text-[20px] sm:text-[22px] font-bold text-slate-900 dark:text-white tracking-tight" style={{ fontFamily: "'Inter', sans-serif" }}>
+              <h1 className="text-[20px] sm:text-[22px] font-bold text-slate-900 dark:text-white tracking-tight" >
                 Weekly Profit Settlement
               </h1>
               <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-200/60 shrink-0">
@@ -183,7 +183,7 @@ export default function WeeklySettlements() {
               </div>
             </div>
             <div>
-              <h3 className="text-[22px] font-bold text-emerald-600 dark:text-emerald-400 tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
+              <h3 className="text-[22px] font-bold text-emerald-600 dark:text-emerald-400 tracking-tight leading-none" >
                 +{curr}{summary.totalTradingProfit.toLocaleString(undefined, { minimumFractionDigits: 2 })}
               </h3>
               <p className="text-[11px] font-medium text-slate-400 mt-2 truncate">
@@ -203,7 +203,7 @@ export default function WeeklySettlements() {
               </div>
             </div>
             <div>
-              <h3 className="text-[22px] font-bold text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
+              <h3 className="text-[22px] font-bold text-slate-900 dark:text-white tracking-tight leading-none" >
                 {curr}{summary.tradifiveShare.toLocaleString(undefined, { minimumFractionDigits: 2 })}
               </h3>
               <p className="text-[11px] font-medium text-slate-400 mt-2 truncate">
@@ -223,7 +223,7 @@ export default function WeeklySettlements() {
               </div>
             </div>
             <div>
-              <h3 className="text-[22px] font-bold text-slate-900 dark:text-white tracking-tight leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
+              <h3 className="text-[22px] font-bold text-slate-900 dark:text-white tracking-tight leading-none" >
                 +{curr}{summary.yourShare.toLocaleString(undefined, { minimumFractionDigits: 2 })}
               </h3>
               <p className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400 mt-2 truncate">
@@ -247,7 +247,7 @@ export default function WeeklySettlements() {
             <div>
               <h3 className={`text-[22px] font-bold tracking-tight leading-none ${
                 summary.pendingPayment > 0 ? "text-amber-600 dark:text-amber-400" : "text-slate-900 dark:text-white"
-              }`} style={{ fontFamily: "'Inter', sans-serif" }}>
+              }`} >
                 {curr}{summary.pendingPayment.toLocaleString(undefined, { minimumFractionDigits: 2 })}
               </h3>
               <div className="flex items-center justify-between mt-2 pt-0.5">
@@ -275,7 +275,7 @@ export default function WeeklySettlements() {
               <div>
                 <div className="flex items-center gap-2.5 flex-wrap">
                   <span className="w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse" />
-                  <h2 className="text-[16px] font-bold text-slate-900 dark:text-white tracking-tight" style={{ fontFamily: "'Inter', sans-serif" }}>
+                  <h2 className="text-[16px] font-bold text-slate-900 dark:text-white tracking-tight" >
                     Current Settlement Cycle: {currentSettlement.week_label}
                   </h2>
                   <span className={`text-[10.5px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
@@ -432,7 +432,7 @@ export default function WeeklySettlements() {
         <div className={cardBoxStyle}>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
             <div>
-              <h2 className="text-[16px] font-bold text-slate-900 dark:text-white tracking-tight" style={{ fontFamily: "'Inter', sans-serif" }}>
+              <h2 className="text-[16px] font-bold text-slate-900 dark:text-white tracking-tight" >
                 Weekly Settlement History
               </h2>
               <p className="text-[11.5px] text-slate-400 mt-0.5">

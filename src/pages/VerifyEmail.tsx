@@ -79,7 +79,7 @@ export default function VerifyEmail() {
 
   return (
     <div 
-      style={{ fontFamily: "'Inter', sans-serif" }}
+      
       className="flex min-h-screen bg-white dark:bg-[#1E1E1E] items-center justify-center px-6 relative overflow-hidden font-sans"
     >
       <div className="absolute top-0 right-0 w-[50%] h-[50%] bg-slate-50 dark:bg-[#141414] rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2 opacity-30" />
@@ -132,8 +132,7 @@ export default function VerifyEmail() {
                   background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 50%, #3b82f6 100%)',
                   boxShadow: '0 4px 14px rgba(37,99,235,0.35), 0 1px 3px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.2)',
                   transition: 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
-                  transformStyle: 'preserve-3d',
-                }}
+                  transformStyle: 'preserve-3d' }}
                 onMouseEnter={e => { if (!(code.length < 6 || isLoading)) { e.currentTarget.style.transform = 'translateY(-4px) rotateX(6deg) scale(1.02)'; e.currentTarget.style.boxShadow = '0 12px 30px rgba(37,99,235,0.4), 0 4px 10px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.25)'; } }}
                 onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0) rotateX(0deg) scale(1)'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(37,99,235,0.35), 0 1px 3px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.2)'; }}
                 onMouseDown={e => { e.currentTarget.style.transform = 'translateY(-1px) rotateX(2deg) scale(0.98)'; }}
