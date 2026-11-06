@@ -1114,11 +1114,7 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                     fontSize: 11,
                     fontWeight: 700,
                     padding: "8px 14px",
-                    borderRadius: 10,
-                    cursor: "pointer",
-                    transition: "all 0.2s ease",
-                    whiteSpace: "nowrap",
-                    boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 4px rgba(0, 0, 0, 0.3)" }}
+                    borderRadius: 100, cursor: "pointer", transition: "all 0.15s cubic-bezier(0.2, 0.8, 0.2, 1)", whiteSpace: "nowrap", boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 6px rgba(0, 0, 0, 0.3)" }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.background = "linear-gradient(135deg, #253347 0%, #131c33 100%)";
                     e.currentTarget.style.color = "#93c5fd";
@@ -1383,10 +1379,7 @@ export function FiAlgoV1ProductSection({ onGetStarted }: { onGetStarted?: () => 
                   style={{
                     width: "100%",
                     padding: "13px 20px",
-                    borderRadius: 12,
-                    border: "none",
-                    cursor: "pointer",
-                    background: selectedPlan === 'three_years' ? "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)" : "linear-gradient(135deg, #059669 0%, #047857 100%)",
+                    borderRadius: 100, border: "none", cursor: "pointer", background: selectedPlan === 'three_years' ? "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)" : "linear-gradient(135deg, #064e3b 0%, #022c22 100%)",
                     boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 2px 6px rgba(0, 0, 0, 0.3)",
                     color: "#ffffff",
                     fontSize: 14,

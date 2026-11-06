@@ -959,13 +959,7 @@ function Pricing({ onStart }: { onStart: () => void }) {
               onClick={() => setPricingCategory("autotrade")}
               style={{
                 padding: "10px 22px",
-                borderRadius: 12,
-                fontSize: 13,
-                fontWeight: 700,
-                border: "none",
-                cursor: "pointer",
-                transition: "all 0.2s",
-                background: pricingCategory === "autotrade" ? "linear-gradient(135deg, #2563eb, #1d4ed8)" : "transparent",
+                borderRadius: 100, fontSize: 13, fontWeight: 700, border: "none", cursor: "pointer", transition: "all 0.15s cubic-bezier(0.2, 0.8, 0.2, 1)", background: pricingCategory === "autotrade" ? "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)" : "transparent",
                 color: pricingCategory === "autotrade" ? "#fff" : "rgba(255, 255, 255, 0.6)",
                 boxShadow: pricingCategory === "autotrade" ? "0 4px 14px rgba(37, 99, 235, 0.4)" : "none",
                 display: "inline-flex",
@@ -1022,8 +1016,7 @@ function Pricing({ onStart }: { onStart: () => void }) {
                     <div style={{
                       width: 42,
                       height: 42,
-                      borderRadius: 12,
-                      background: "rgba(59, 130, 246, 0.15)",
+                      borderRadius: 100, background: "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)", boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 6px rgba(0, 0, 0, 0.3)",
                       border: "none",
                       display: "flex",
                       alignItems: "center",
@@ -1181,22 +1174,8 @@ function Pricing({ onStart }: { onStart: () => void }) {
                           </div>
                           <button
                             onClick={() => navigate("/features/auto-trade")}
-                            style={{
-                              padding: "11px 22px",
-                              borderRadius: 12,
-                              background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
-                              color: "#fff",
-                              fontSize: 13,
-                              fontWeight: 800,
-                              border: "none",
-                              cursor: "pointer",
-                              display: "inline-flex",
-                              alignItems: "center",
-                              gap: 8,
-                              boxShadow: "0 4px 14px rgba(37, 99, 235, 0.35)",
-                              transition: "transform 0.15s ease" }}
-                            onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.02)")}
-                            onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
+                            className="btn-tradifive"
+                            style={{ padding: "11px 22px", fontSize: 13, fontWeight: 700 }}
                           >
                             <span>Get 3-Year Enterprise License (₹1,00,000)</span>
                             <ArrowRight size={15} />
@@ -1386,22 +1365,8 @@ function Pricing({ onStart }: { onStart: () => void }) {
                           </div>
                           <button
                             onClick={() => navigate("/features/auto-trade")}
-                            style={{
-                              padding: "11px 22px",
-                              borderRadius: 12,
-                              background: "linear-gradient(135deg, #059669 0%, #047857 100%)",
-                              color: "#fff",
-                              fontSize: 13,
-                              fontWeight: 800,
-                              border: "none",
-                              cursor: "pointer",
-                              display: "inline-flex",
-                              alignItems: "center",
-                              gap: 8,
-                              boxShadow: "0 4px 14px rgba(5, 150, 105, 0.35)",
-                              transition: "transform 0.15s ease" }}
-                            onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.02)")}
-                            onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
+                            className="btn-tradifive-success"
+                            style={{ padding: "11px 22px", fontSize: 13, fontWeight: 700 }}
                           >
                             <span>Get Performance License (₹10,000)</span>
                             <ArrowRight size={15} />
@@ -1581,16 +1546,8 @@ function Pricing({ onStart }: { onStart: () => void }) {
 
                 <button
                   onClick={() => navigate("/features/auto-trade")}
-                  style={{
-                    padding: "9px 20px",
-                    borderRadius: 12,
-                    background: "rgba(59, 130, 246, 0.15)",
-                    border: "none",
-                    color: "#60a5fa",
-                    fontSize: 12.5,
-                    fontWeight: 700,
-                    cursor: "pointer",
-                    transition: "all 0.2s" }}
+                  className="btn-tradifive"
+                  style={{ padding: "9px 20px", fontSize: 12.5, fontWeight: 700 }}
                 >
                   Start 3-Day Free Demo Trial (.ex5)
                 </button>

@@ -874,7 +874,7 @@ export default function Discover() {
                                                 {isPurchased ? (
                                                     <button
                                                         onClick={() => navigate('/order-history')}
-                                                        className="px-3.5 py-2 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[11px] font-black hover:bg-emerald-500/20 transition-all cursor-pointer flex items-center gap-1.5 shadow-sm"
+                                                        className="btn-tradifive-success px-4 py-2 text-[11px] font-bold"
                                                     >
                                                         <Check size={13} strokeWidth={3} />
                                                         <span>Active EA</span>
@@ -882,7 +882,7 @@ export default function Discover() {
                                                 ) : (
                                                     <button
                                                         onClick={() => handlePurchase(algo)}
-                                                        className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[12px] font-black shadow-md shadow-blue-500/25 transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer"
+                                                        className="btn-tradifive px-4 py-2 text-[12px] font-bold"
                                                     >
                                                         <span>Buy License</span>
                                                         <ArrowRight size={13} strokeWidth={2.5} />

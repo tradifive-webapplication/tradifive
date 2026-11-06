@@ -220,7 +220,7 @@ export function PricingCards({ selectedPlan, onSelectPlan, onUpgradeClick, isSta
           <h3 className="text-[16px] font-bold text-slate-800 dark:text-white mb-2 relative z-10">Standard</h3>
           <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1] mb-6 min-h-[36px]">For beginners learning discipline & journaling</p>
           <div className={`flex items-baseline gap-1 ${billingInterval === 'monthly' ? 'mb-6' : 'mb-1'}`}>
-            <span className="text-[32px] font-extrabold text-slate-900 dark:text-white" style={{ fontFamily: "'Open Sans', sans-serif" }}>₹{standardPrice.monthly}</span>
+            <span className="text-[32px] font-extrabold text-slate-900 dark:text-white" >₹{standardPrice.monthly}</span>
             <span className="text-[12px] font-medium text-slate-500">/ month</span>
           </div>
           {billingInterval === 'annually' && (
@@ -229,7 +229,7 @@ export function PricingCards({ selectedPlan, onSelectPlan, onUpgradeClick, isSta
           <button
             onClick={() => !isCurrentPlan('starter') && handleUpgrade('starter')}
             disabled={isCurrentPlan('starter')}
-            className={`w-full flex items-center justify-center h-10 rounded-full border border-slate-300 dark:border-white/5 bg-slate-200 dark:bg-[#1E1E1E] text-slate-800 dark:text-white font-bold text-[13px] hover:bg-slate-300 dark:hover:bg-[#2A2A2A] transition-all active:scale-95 mb-4 ${isCurrentPlan('starter') ? 'opacity-60 cursor-not-allowed' : ''}`}
+            className={`w-full flex items-center justify-center h-10 rounded-full border border-slate-300 dark:border-white/5 bg-slate-200 dark:bg-[#1E1E1E] text-slate-800 dark:text-white font-bold text-[13px] hover:bg-slate-300 dark:hover:bg-[#2A2A2A] transition-all active:scale-[0.985] mb-4 ${isCurrentPlan('starter') ? 'opacity-60 cursor-not-allowed' : ''}`}
           >
             {isCurrentPlan('starter') ? 'Current Plan' : 'Get Standard'}
           </button>
@@ -258,7 +258,7 @@ export function PricingCards({ selectedPlan, onSelectPlan, onUpgradeClick, isSta
           </h3>
           <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1] mb-6 min-h-[36px]">Designed to make traders consistent, not lucky.</p>
           <div className={`flex items-baseline gap-1 ${billingInterval === 'monthly' ? 'mb-6' : 'mb-1'}`}>
-            <span className="text-[32px] font-extrabold text-slate-900 dark:text-white" style={{ fontFamily: "'Open Sans', sans-serif" }}>₹{proPrice.monthly}</span>
+            <span className="text-[32px] font-extrabold text-slate-900 dark:text-white" >₹{proPrice.monthly}</span>
             <span className="text-[12px] font-medium text-slate-500">/ month</span>
           </div>
           {billingInterval === 'annually' && (
@@ -267,7 +267,7 @@ export function PricingCards({ selectedPlan, onSelectPlan, onUpgradeClick, isSta
           <button
             onClick={() => !isCurrentPlan('pro') && handleUpgrade('pro')}
             disabled={isCurrentPlan('pro')}
-            className={`w-full flex items-center justify-center h-12 rounded-full font-bold text-[13px] transition-all active:scale-95 mb-4 ${isCurrentPlan('pro') ? 'opacity-60 cursor-not-allowed saturate-50 bg-amber-600 text-white' : 'btn-glow-primary'}`}
+            className={`w-full flex items-center justify-center h-12 rounded-full font-bold text-[13px] transition-all active:scale-[0.985] mb-4 ${isCurrentPlan('pro') ? 'opacity-60 cursor-not-allowed saturate-50 bg-amber-600 text-white' : 'btn-glow-primary'}`}
             style={!isCurrentPlan('pro') ? { background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', boxShadow: '0 0 30px rgba(245, 158, 11, 0.35), 0 8px 30px rgba(0, 0, 0, 0.3)' } : {}}
           >
             {isCurrentPlan('pro') ? 'Current Plan' : (!isStandalone && activePlan === 'elite') ? 'Downgrade to Pro' : 'Get Pro'}
@@ -297,7 +297,7 @@ export function PricingCards({ selectedPlan, onSelectPlan, onUpgradeClick, isSta
             <h3 className="text-[16px] font-bold text-slate-800 dark:text-white mb-2 relative z-10">Elite</h3>
             <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1] mb-6 min-h-[36px] relative z-10">For serious traders, mentors & automation users</p>
             <div className={`flex items-baseline gap-1 ${billingInterval === 'monthly' ? 'mb-6' : 'mb-1'}`}>
-              <span className="text-[32px] font-extrabold text-slate-900 dark:text-white" style={{ fontFamily: "'Open Sans', sans-serif" }}>₹{elitePrice.monthly}</span>
+              <span className="text-[32px] font-extrabold text-slate-900 dark:text-white" >₹{elitePrice.monthly}</span>
               <span className="text-[12px] font-medium text-slate-500">/ month</span>
             </div>
             {billingInterval === 'annually' && (
@@ -306,7 +306,7 @@ export function PricingCards({ selectedPlan, onSelectPlan, onUpgradeClick, isSta
             <button
               onClick={() => !isCurrentPlan('elite') && handleUpgrade('elite')}
               disabled={isCurrentPlan('elite')}
-              className={`w-full flex items-center justify-center h-10 rounded-full border border-slate-300 dark:border-white/5 bg-slate-200 dark:bg-[#1E1E1E] text-slate-800 dark:text-white font-bold text-[13px] hover:bg-slate-300 dark:hover:bg-[#2A2A2A] transition-all active:scale-95 mb-4 ${isCurrentPlan('elite') ? 'opacity-60 cursor-not-allowed' : ''}`}
+              className={`w-full flex items-center justify-center h-10 rounded-full border border-slate-300 dark:border-white/5 bg-slate-200 dark:bg-[#1E1E1E] text-slate-800 dark:text-white font-bold text-[13px] hover:bg-slate-300 dark:hover:bg-[#2A2A2A] transition-all active:scale-[0.985] mb-4 ${isCurrentPlan('elite') ? 'opacity-60 cursor-not-allowed' : ''}`}
             >
               {isCurrentPlan('elite') ? 'Current Plan' : 'Get Elite'}
             </button>
@@ -338,7 +338,7 @@ export function PricingCards({ selectedPlan, onSelectPlan, onUpgradeClick, isSta
           )}
           <button
             onClick={(e) => { e.stopPropagation(); toast.success("Redirecting to Contact form...", { icon: <CheckCircle className="text-emerald-500" /> }); }}
-            className={`w-full flex items-center justify-center h-10 rounded-full border border-emerald-500 dark:border-emerald-500/50 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-bold text-[13px] hover:bg-emerald-100 dark:hover:bg-emerald-500/20 transition-all active:scale-95 mb-4`}
+            className={`w-full flex items-center justify-center h-10 rounded-full border border-emerald-500 dark:border-emerald-500/50 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-bold text-[13px] hover:bg-emerald-100 dark:hover:bg-emerald-500/20 transition-all active:scale-[0.985] mb-4`}
           >
             Contact Us &rarr;
           </button>

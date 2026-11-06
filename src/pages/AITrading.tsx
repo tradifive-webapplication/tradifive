@@ -1453,7 +1453,7 @@ MagicNumber=789104
                   <button
                     type="button"
                     onClick={() => setActiveStep(2)}
-                    className="w-full sm:w-auto px-5 py-2.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:hover:bg-slate-200 dark:text-slate-900 inline-flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+                    className="btn-tradifive w-full sm:w-auto px-6 py-2.5 text-xs font-bold inline-flex items-center justify-center gap-2 cursor-pointer"
                   >
                     <span>Continue to Step 2: Download FiAlgo V1</span>
                     <ArrowRight size={14} />
@@ -1954,7 +1954,7 @@ MagicNumber=789104
                       <button
                         type="button"
                         onClick={handleDownloadEA}
-                        className="w-full py-3 px-5 rounded-xl text-xs sm:text-sm font-semibold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer active:scale-[0.99]"
+                        className="btn-tradifive w-full py-3 px-5 text-xs sm:text-sm font-bold flex items-center justify-center gap-2 cursor-pointer"
                       >
                         <Download size={15} />
                         <span>Download FiAlgo V1 File (.ex5)</span>
@@ -2123,7 +2123,7 @@ MagicNumber=789104
               <button
                 type="button"
                 onClick={() => setActiveStep(1)}
-                className="w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 inline-flex items-center justify-center gap-1.5 cursor-pointer"
+                className="btn-tradifive-secondary w-full sm:w-auto px-5 py-2.5 text-xs font-semibold inline-flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <ArrowLeft size={13} />
                 <span>Back to Step 1 (Broker)</span>
@@ -2132,7 +2132,7 @@ MagicNumber=789104
               <button
                 type="button"
                 onClick={() => setActiveStep(3)}
-                className="w-full sm:w-auto px-6 py-3 rounded-xl text-xs sm:text-sm font-bold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 inline-flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+                className="btn-tradifive w-full sm:w-auto px-7 py-3 text-xs sm:text-sm font-bold inline-flex items-center justify-center gap-2 cursor-pointer"
               >
                 <span>Continue to Step 3: Select Plan &amp; Pay</span>
                 <ArrowRight size={14} />

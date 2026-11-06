@@ -622,7 +622,7 @@ export default function Login() {
                 <div className="grid grid-cols-2 gap-3 lg:gap-4 mb-5 lg:mb-8" style={{ perspective: '800px' }}>
                   <button
                     onClick={handleGoogleLogin}
-                    className="flex items-center justify-center gap-2 bg-white dark:bg-[#1E1E1E] border border-slate-200/60 dark:border-[#333333] hover:bg-slate-50 dark:hover:bg-[#141414] hover:border-slate-300 dark:hover:border-[#444444] py-2.5 lg:py-3 rounded-xl text-[11px] lg:text-[12px] font-bold uppercase text-slate-700 dark:text-slate-200 transition-all shadow-sm"
+                    className="flex items-center justify-center gap-2 bg-white dark:bg-[#1E1E1E] border border-slate-200/60 dark:border-[#333333] hover:bg-slate-50 dark:hover:bg-[#141414] hover:border-slate-300 dark:hover:border-[#444444] py-2.5 lg:py-3 rounded-full text-[11px] lg:text-[12px] font-bold uppercase text-slate-700 dark:text-slate-200 transition-all shadow-sm"
                     style={{ transition: 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)', transformStyle: 'preserve-3d' }}
                     onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px) rotateX(4deg) scale(1.02)'; e.currentTarget.style.boxShadow = '0 8px 25px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.8)'; }}
                     onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0) rotateX(0deg) scale(1)'; e.currentTarget.style.boxShadow = ''; }}
@@ -637,7 +637,7 @@ export default function Login() {
                   </button>
                   <button
                     onClick={handleAppleLogin}
-                    className="flex items-center justify-center gap-2 bg-white dark:bg-[#1E1E1E] border border-slate-200/60 dark:border-[#333333] hover:bg-slate-50 dark:hover:bg-[#141414] hover:border-slate-300 dark:hover:border-[#444444] py-2.5 lg:py-3 rounded-xl text-[11px] lg:text-[12px] font-bold uppercase text-slate-700 dark:text-slate-200 transition-all shadow-sm"
+                    className="flex items-center justify-center gap-2 bg-white dark:bg-[#1E1E1E] border border-slate-200/60 dark:border-[#333333] hover:bg-slate-50 dark:hover:bg-[#141414] hover:border-slate-300 dark:hover:border-[#444444] py-2.5 lg:py-3 rounded-full text-[11px] lg:text-[12px] font-bold uppercase text-slate-700 dark:text-slate-200 transition-all shadow-sm"
                     style={{ transition: 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)', transformStyle: 'preserve-3d' }}
                     onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px) rotateX(4deg) scale(1.02)'; e.currentTarget.style.boxShadow = '0 8px 25px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.8)'; }}
                     onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0) rotateX(0deg) scale(1)'; e.currentTarget.style.boxShadow = ''; }}
@@ -791,7 +791,7 @@ export default function Login() {
                     <button
                       type="submit"
                       disabled={isLoading}
-                      className="w-full text-white font-bold uppercase tracking-wide text-xs lg:text-sm py-3 lg:py-3.5 rounded-xl flex items-center justify-center disabled:opacity-50"
+                      className="w-full text-white font-bold uppercase tracking-wide text-xs lg:text-sm py-3 lg:py-3.5 rounded-full flex items-center justify-center disabled:opacity-50"
                       style={{
                         background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 50%, #3b82f6 100%)',
                         boxShadow: '0 4px 14px rgba(37,99,235,0.35), 0 1px 3px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.2)',
@@ -861,7 +861,7 @@ export default function Login() {
                       <button
                         type="submit"
                         disabled={isLoading}
-                        className="w-full text-white font-bold uppercase tracking-wide text-xs lg:text-sm py-3 lg:py-3.5 rounded-xl flex items-center justify-center disabled:opacity-50"
+                        className="w-full text-white font-bold uppercase tracking-wide text-xs lg:text-sm py-3 lg:py-3.5 rounded-full flex items-center justify-center disabled:opacity-50"
                         style={{
                           background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 50%, #3b82f6 100%)',
                           boxShadow: '0 4px 14px rgba(37,99,235,0.35), 0 1px 3px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.2)',
@@ -901,7 +901,7 @@ export default function Login() {
                         setIsResetSent(false);
                         setStep('auth');
                       }}
-                      className="w-full text-white font-bold uppercase tracking-wide text-xs lg:text-sm py-3 lg:py-3.5 rounded-xl flex items-center justify-center disabled:opacity-50"
+                      className="w-full text-white font-bold uppercase tracking-wide text-xs lg:text-sm py-3 lg:py-3.5 rounded-full flex items-center justify-center disabled:opacity-50"
                       style={{
                         background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 50%, #3b82f6 100%)',
                         boxShadow: '0 4px 14px rgba(37,99,235,0.35), 0 1px 3px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.2)' }}
@@ -960,7 +960,7 @@ export default function Login() {
                     <button
                       type="submit"
                       disabled={isLoading || otpCode.length !== 6}
-                      className="w-full text-white font-bold uppercase tracking-wide text-xs lg:text-sm py-3 lg:py-3.5 rounded-xl flex items-center justify-center shadow-lg transition-all disabled:opacity-50 cursor-pointer"
+                      className="w-full text-white font-bold uppercase tracking-wide text-xs lg:text-sm py-3 lg:py-3.5 rounded-full flex items-center justify-center shadow-lg transition-all disabled:opacity-50 cursor-pointer"
                       style={{
                         background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 50%, #3b82f6 100%)',
                         boxShadow: '0 4px 14px rgba(37,99,235,0.35), 0 1px 3px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.2)',
@@ -1051,7 +1051,7 @@ export default function Login() {
                       <button
                         type="submit"
                         disabled={isLoading || otpCode.length !== 6}
-                        className="w-full text-white font-bold uppercase tracking-wide text-xs lg:text-sm py-3 lg:py-3.5 rounded-xl flex items-center justify-center disabled:opacity-50"
+                        className="w-full text-white font-bold uppercase tracking-wide text-xs lg:text-sm py-3 lg:py-3.5 rounded-full flex items-center justify-center disabled:opacity-50"
                         style={{
                           background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 50%, #3b82f6 100%)',
                           boxShadow: '0 4px 14px rgba(37,99,235,0.35), 0 1px 3px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.2)',

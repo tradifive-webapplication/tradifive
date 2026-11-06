@@ -289,7 +289,9 @@ export default function PublicNavbar({
           transform: translateY(-1px);
           box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.16), 0 0 0 1px rgba(255, 255, 255, 0.18), 0 2px 4px rgba(0, 0, 0, 0.25);
         }
-        
+        .nav-btn-signin:active {
+          transform: scale(0.985) !important;
+        }
         .nav-btn-get-started {
           padding: 10px 22px;
           border-radius: 100px;
@@ -312,9 +314,8 @@ export default function PublicNavbar({
           box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 4px 12px rgba(0, 0, 0, 0.4);
         }
         .nav-btn-get-started:active {
-          transform: translateY(0);
+          transform: scale(0.985) !important;
         }
-
         @media (max-width: 768px) {
           .public-nav-container { padding: 0 20px !important; }
           .public-nav-logo-icon { height: 28px !important; margin-left: -4px; }
@@ -829,14 +830,14 @@ export default function PublicNavbar({
                   background: "rgba(255,255,255,0.01)" }}
               >
                 <motion.button
-                  whileTap={{ scale: 0.97 }}
+                  whileTap={{ scale: 0.985 }}
                   onClick={(e: any) => { setMobileMenuOpen(false); handleSignIn(e); }}
                   style={{
                     background: "#171717",
                     border: "none",
                     color: "rgba(255, 255, 255, 0.9)",
                     padding: "12px",
-                    borderRadius: "12px",
+                    borderRadius: "100px",
                     fontSize: "14.5px",
                     fontWeight: 600,
                     width: "100%",
@@ -862,7 +863,7 @@ export default function PublicNavbar({
                   Sign In
                 </motion.button>
                 <motion.button
-                  whileTap={{ scale: 0.97 }}
+                  whileTap={{ scale: 0.985 }}
                   onClick={() => { setMobileMenuOpen(false); handleSignUp(); }}
                   style={{
                     background: "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)",
@@ -870,7 +871,7 @@ export default function PublicNavbar({
                     boxShadow: "inset 0 1px 0 rgba(255,255,255,0.1), 0 2px 6px rgba(0,0,0,0.3)",
                     color: "#60a5fa",
                     padding: "13px",
-                    borderRadius: "12px",
+                    borderRadius: "100px",
                     fontSize: "14.5px",
                     fontWeight: 700,
                     width: "100%",
