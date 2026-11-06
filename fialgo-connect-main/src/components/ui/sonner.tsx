@@ -66,7 +66,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
     <Sonner
       theme={theme as ToasterProps["theme"]}
       className="toaster group"
-      position="top-right"
+      position="top-center"
       icons={{
         success: <CheckCircle2 className="h-[18px] w-[18px] text-[#FFFFFF] fill-[#10b981]" />,
         error: <AlertCircle className="h-[18px] w-[18px] text-[#FFFFFF] fill-[#f97316]" />,
@@ -74,10 +74,10 @@ const Toaster = ({ ...props }: ToasterProps) => {
       toastOptions={{
         classNames: {
           toast:
-            "group toast group-[.toaster]:bg-[#F1F5F9] group-[.toaster]:border group-[.toaster]:border-slate-200 group-[.toaster]:text-[#111111] group-[.toaster]:shadow-sm group-[.toaster]:rounded-xl group-[.toaster]:py-2.5 group-[.toaster]:px-4 font-sans text-[14px] font-normal tracking-tight",
-          description: "group-[.toast]:text-[#111111]/80 text-[13px]",
-          actionButton: "group-[.toast]:bg-transparent group-[.toast]:text-[#111111] font-normal text-[13px] px-3 py-1 border-l border-slate-300 rounded-none ml-auto",
-          cancelButton: "group-[.toast]:bg-transparent group-[.toast]:text-[#111111]/70 font-normal rounded-xl text-[13px] px-3 py-1",
+            "group toast group-[.toaster]:bg-white dark:group-[.toaster]:bg-[#18181b] group-[.toaster]:border group-[.toaster]:border-slate-200/90 dark:group-[.toaster]:border-white/10 group-[.toaster]:text-slate-800 dark:group-[.toaster]:text-slate-100 group-[.toaster]:shadow-[inset_0_1px_0_rgba(255,255,255,1),0_8px_24px_-4px_rgba(0,0,0,0.12)] dark:group-[.toaster]:shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_8px_24px_-4px_rgba(0,0,0,0.4)] group-[.toaster]:rounded-full group-[.toaster]:py-2.5 group-[.toaster]:px-6 font-sans text-[13.5px] font-bold tracking-normal flex items-center justify-center gap-2.5",
+          description: "group-[.toast]:text-slate-500 dark:group-[.toast]:text-slate-400 text-[12px] font-medium",
+          actionButton: "group-[.toast]:bg-blue-600 group-[.toast]:text-white font-bold text-[12px] px-3.5 py-1 rounded-full shadow-xs active:scale-[0.985]",
+          cancelButton: "group-[.toast]:bg-slate-100 dark:group-[.toast]:bg-white/10 group-[.toast]:text-slate-700 dark:group-[.toast]:text-slate-200 font-semibold rounded-full text-[12px] px-3 py-1 active:scale-[0.985]",
         } }}
       {...props}
     />
