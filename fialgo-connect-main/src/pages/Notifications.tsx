@@ -740,11 +740,7 @@ export default function Notifications() {
           <div className="flex items-center gap-2 sm:gap-2.5">
             <button
               onClick={markAllRead}
-              className="px-4 py-2 sm:py-2.5 rounded-full text-[12px] sm:text-[13px] font-bold text-[#60a5fa] hover:text-[#93c5fd] transition-all duration-150 active:scale-[0.985] flex items-center gap-1.5 sm:gap-2 border-none shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_2px_6px_rgba(0,0,0,0.25)] cursor-pointer"
-              style={{
-                background: "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)"
-              }}
-            >
+              className="px-4 py-2 sm:py-2.5 rounded-full text-[12px] sm:text-[13px] font-bold bg-white hover:bg-slate-50 text-slate-800 hover:text-blue-600 border border-slate-200/90 shadow-[inset_0_1px_0_rgba(255,255,255,1),0_1px_3px_rgba(0,0,0,0.06)] dark:bg-gradient-to-r dark:from-[#1e293b] dark:to-[#0f172a] dark:text-[#60a5fa] dark:hover:text-[#93c5fd] dark:border-none dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_2px_6px_rgba(0,0,0,0.25)] transition-all duration-150 active:scale-[0.985] flex items-center gap-1.5 sm:gap-2 cursor-pointer">
               <IconlyTickSquare set="curved" primaryColor="currentColor" size={16} />
               <span>Verify All</span>
             </button>
@@ -829,7 +825,7 @@ export default function Notifications() {
                     </>
                   ) : (
                     <>
-                      <button onClick={(e) => { e.stopPropagation(); acceptFollowRequest(req.id, req.requester_id); }} className="px-4 py-1.5 bg-slate-900 dark:bg-white hover:opacity-80 text-white dark:text-slate-900 text-[12px] font-bold rounded-full transition-all active:scale-95">Accept</button>
+                      <button onClick={(e) => { e.stopPropagation(); acceptFollowRequest(req.id, req.requester_id); }} className="px-4 py-1.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_2px_5px_rgba(37,99,235,0.3)] text-[12px] font-bold rounded-full transition-all duration-150 active:scale-[0.985] border-none">Accept</button>
                       <button onClick={(e) => { e.stopPropagation(); declineFollowRequest(req.id); }} className="px-4 py-1.5 bg-slate-100 dark:bg-[#1E1E1E] hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-[#CCC] text-[12px] font-bold rounded-full transition-all">Decline</button>
                     </>
                   )}

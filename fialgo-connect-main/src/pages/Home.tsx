@@ -968,11 +968,7 @@ export default function Home() {
         <div className="flex items-center gap-2 sm:gap-3">
             <button
                 onClick={() => setIsCreatePostModalOpen(true)}
-                className="flex items-center justify-center gap-2 px-4 sm:px-5 h-10 rounded-full font-bold text-[13px] cursor-pointer select-none transition-all duration-150 active:scale-[0.985] shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_2px_6px_rgba(0,0,0,0.25)] border-none"
-                style={{
-                  background: "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)",
-                  color: "#60a5fa"
-                }}
+                className="flex items-center justify-center gap-2 px-4 sm:px-5 h-10 rounded-full font-bold text-[13px] cursor-pointer select-none transition-all duration-150 active:scale-[0.985] bg-white hover:bg-slate-50 text-slate-800 hover:text-blue-600 border border-slate-200/90 shadow-[inset_0_1px_0_rgba(255,255,255,1),0_1px_3px_rgba(0,0,0,0.06)] dark:bg-gradient-to-r dark:from-[#1e293b] dark:to-[#0f172a] dark:text-[#60a5fa] dark:hover:text-[#93c5fd] dark:border-none dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_2px_6px_rgba(0,0,0,0.25)]"
                 title="Create New Post"
             >
                 <Plus size={16} strokeWidth={2.5} className="text-blue-600 dark:text-blue-400" /> <span className="hidden sm:inline">New Post</span>

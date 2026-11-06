@@ -980,21 +980,7 @@ export default function FloatingHelpButton() {
                       type="button"
                       onClick={handleSendMessage}
                       disabled={isSending || (!inputText.trim() && stagedAttachments.length === 0)}
-                      style={{
-                        width: 34,
-                        height: 34,
-                        borderRadius: "50%",
-                        background: "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)",
-                        border: "none",
-                        color: "#60a5fa",
-                        boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 2px 6px rgba(0, 0, 0, 0.3)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        cursor: "pointer",
-                        opacity: isSending || (!inputText.trim() && stagedAttachments.length === 0) ? 0.4 : 1,
-                        transition: "all 0.15s cubic-bezier(0.2, 0.8, 0.2, 1)"
-                      }}
+                      className="w-[34px] h-[34px] rounded-full flex items-center justify-center cursor-pointer transition-all duration-150 active:scale-[0.985] disabled:opacity-40 bg-white hover:bg-slate-50 text-blue-600 border border-slate-200/90 shadow-[inset_0_1px_0_rgba(255,255,255,1),0_1px_3px_rgba(0,0,0,0.06)] dark:bg-gradient-to-r dark:from-[#1e293b] dark:to-[#0f172a] dark:text-[#60a5fa] dark:border-none dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_2px_6px_rgba(0,0,0,0.3)]"
                     >
                       {isSending ? (
                         <div

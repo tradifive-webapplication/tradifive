@@ -16,7 +16,7 @@ const buttonVariants = cva(
         secondary: "bg-slate-100 dark:bg-[#2B2B2B] text-slate-900 dark:text-slate-100 hover:bg-slate-200 dark:hover:bg-[#3B3B3B] shadow-[0_1px_2px_rgba(0,0,0,0.05)] border border-slate-200/50 dark:border-[#333333]",
         ghost: "hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-full",
         link: "text-blue-600 dark:text-blue-400 underline-offset-4 hover:underline",
-        tradifive: "bg-gradient-to-r from-[#1e293b] to-[#0f172a] hover:from-[#253347] hover:to-[#131c33] text-[#60a5fa] hover:text-[#93c5fd] shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_2px_6px_rgba(0,0,0,0.3)] border-none",
+        tradifive: "bg-white hover:bg-slate-50 text-slate-800 hover:text-blue-600 border border-slate-200/90 shadow-[inset_0_1px_0_rgba(255,255,255,1),0_1px_3px_rgba(0,0,0,0.06)] dark:bg-gradient-to-r dark:from-[#1e293b] dark:to-[#0f172a] dark:hover:from-[#253347] dark:hover:to-[#131c33] dark:text-[#60a5fa] dark:hover:text-[#93c5fd] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_2px_6px_rgba(0,0,0,0.3)] dark:border-none",
       },
       size: {
         default: "h-9 px-4 text-xs tracking-wide",
