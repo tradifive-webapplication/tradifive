@@ -5,22 +5,23 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[8px] font-medium transition-all active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full font-bold transition-all duration-150 active:scale-[0.985] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 outline-none select-none",
   {
     variants: {
       variant: {
-        default: "bg-[#3b82f6] hover:bg-[#2563eb] text-white shadow-[0_2px_8px_-2px_rgba(59,130,246,0.4),inset_0_1px_1px_rgba(255,255,255,0.3)] border border-[#2563eb]",
-        destructive: "bg-[#f53a3a] hover:bg-[#df2c2c] text-white shadow-[0_2px_8px_-2px_rgba(245,58,58,0.4),inset_0_1px_1px_rgba(255,255,255,0.3)] border border-[#d62828]",
-        outline: "border border-slate-200 dark:border-[#333333] bg-white dark:bg-[#1a1a1c] hover:bg-slate-50 dark:hover:bg-[#232325] shadow-[0_2px_4px_-1px_rgba(0,0,0,0.05),inset_0_1px_1px_rgba(255,255,255,0.05)] text-slate-800 dark:text-white",
-        secondary: "bg-slate-100 dark:bg-[#2B2B2B] text-slate-900 dark:text-slate-100 hover:bg-slate-200 dark:hover:bg-[#3B3B3B] shadow-[0_1px_2px_rgba(0,0,0,0.05)] border border-slate-200/50 dark:border-[#333333]",
-        ghost: "hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300",
-        link: "text-blue-600 dark:text-blue-400 underline-offset-4 hover:underline",
+        default: "bg-gradient-to-r from-[#1e293b] to-[#0f172a] hover:from-[#253347] hover:to-[#131c33] text-[#60a5fa] hover:text-[#93c5fd] shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_2px_6px_rgba(0,0,0,0.3)] border-none",
+        solid: "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_2px_8px_rgba(37,99,235,0.4)] border-none",
+        destructive: "bg-gradient-to-r from-red-950/80 to-slate-900 hover:from-red-900/80 hover:to-slate-900 text-red-400 hover:text-red-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_2px_6px_rgba(0,0,0,0.3)] border border-red-500/20",
+        outline: "bg-[#171717] hover:bg-[#222222] text-white/90 hover:text-white shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1),0_0_0_1px_rgba(255,255,255,0.12),0_2px_4px_rgba(0,0,0,0.2)] border-none",
+        secondary: "bg-[#171717] hover:bg-[#222222] text-white/90 hover:text-white shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1),0_0_0_1px_rgba(255,255,255,0.12),0_2px_4px_rgba(0,0,0,0.2)] border-none",
+        ghost: "hover:bg-slate-800/50 text-slate-300 hover:text-white rounded-full",
+        link: "text-blue-400 underline-offset-4 hover:underline",
       },
       size: {
-        default: "h-8 px-3 text-[13px]",
-        sm: "h-7 px-2 text-[12px]",
-        lg: "h-9 px-4 text-[13px]",
-        icon: "h-8 w-8",
+        default: "h-9 px-4 text-xs tracking-wide",
+        sm: "h-7 px-3 text-[11px] tracking-wide",
+        lg: "h-11 px-6 text-sm tracking-wide",
+        icon: "h-8 w-8 rounded-full",
       },
     },
     defaultVariants: {
@@ -45,5 +46,3 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 Button.displayName = "Button";
 
 export { Button, buttonVariants };
-
-
