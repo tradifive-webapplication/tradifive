@@ -424,9 +424,11 @@ function Hero({ onStart, onSignIn }: { onStart: () => void; onSignIn: () => void
                 onClick={onStart}
                 className="btn-glow-primary"
                 whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                whileTap={{ scale: 0.985 }}
+                style={{ padding: "13px 28px", fontSize: 14, fontWeight: 700, borderRadius: 100 }}
               >
-                Start Free <ArrowRight size={16} />
+                <span>Start Free</span>
+                <ArrowRight size={16} />
               </motion.button>
               <motion.button
                 onClick={() => {
@@ -440,7 +442,8 @@ function Hero({ onStart, onSignIn }: { onStart: () => void; onSignIn: () => void
                 }}
                 className="btn-ghost"
                 whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                whileTap={{ scale: 0.985 }}
+                style={{ padding: "13px 26px", fontSize: 14, fontWeight: 600, borderRadius: 100 }}
               >
                 Learn More
               </motion.button>
@@ -954,17 +957,48 @@ function Pricing({ onStart }: { onStart: () => void }) {
           </p>
 
           {/* Primary Category Switcher */}
-          <div style={{ display: "inline-flex", padding: 4, borderRadius: 16, background: "rgba(255, 255, 255, 0.05)", border: "1px solid rgba(255, 255, 255, 0.1)" }}>
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              padding: 4,
+              borderRadius: 100,
+              background: "rgba(255, 255, 255, 0.04)",
+              border: "1px solid rgba(255, 255, 255, 0.08)",
+              boxShadow: "inset 0 1px 2px rgba(0, 0, 0, 0.4)",
+              gap: 4
+            }}
+          >
             <button
               onClick={() => setPricingCategory("autotrade")}
               style={{
                 padding: "10px 22px",
-                borderRadius: 100, fontSize: 13, fontWeight: 700, border: "none", cursor: "pointer", transition: "all 0.15s cubic-bezier(0.2, 0.8, 0.2, 1)", background: pricingCategory === "autotrade" ? "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)" : "transparent",
-                color: pricingCategory === "autotrade" ? "#fff" : "rgba(255, 255, 255, 0.6)",
-                boxShadow: pricingCategory === "autotrade" ? "0 4px 14px rgba(37, 99, 235, 0.4)" : "none",
+                borderRadius: 100,
+                fontSize: 13,
+                fontWeight: 700,
+                border: "none",
+                cursor: "pointer",
+                transition: "all 0.15s cubic-bezier(0.2, 0.8, 0.2, 1)",
+                background: pricingCategory === "autotrade"
+                  ? "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)"
+                  : "transparent",
+                color: pricingCategory === "autotrade"
+                  ? "#60a5fa"
+                  : "rgba(255, 255, 255, 0.6)",
+                boxShadow: pricingCategory === "autotrade"
+                  ? "inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 2px 6px rgba(0, 0, 0, 0.35)"
+                  : "none",
                 display: "inline-flex",
                 alignItems: "center",
-                gap: 8 }}
+                gap: 8,
+                outline: "none"
+              }}
+              onMouseEnter={(e) => {
+                if (pricingCategory !== "autotrade") e.currentTarget.style.color = "#ffffff";
+              }}
+              onMouseLeave={(e) => {
+                if (pricingCategory !== "autotrade") e.currentTarget.style.color = "rgba(255, 255, 255, 0.6)";
+              }}
             >
               <Zap size={14} />
               <span>FiAlgo V1 AutoTrade Licenses (₹1L & ₹10K)</span>
@@ -974,17 +1008,32 @@ function Pricing({ onStart }: { onStart: () => void }) {
               onClick={() => setPricingCategory("platform")}
               style={{
                 padding: "10px 22px",
-                borderRadius: 12,
+                borderRadius: 100,
                 fontSize: 13,
                 fontWeight: 700,
                 border: "none",
                 cursor: "pointer",
-                transition: "all 0.2s",
-                background: pricingCategory === "platform" ? "rgba(255, 255, 255, 0.12)" : "transparent",
-                color: pricingCategory === "platform" ? "#fff" : "rgba(255, 255, 255, 0.6)",
+                transition: "all 0.15s cubic-bezier(0.2, 0.8, 0.2, 1)",
+                background: pricingCategory === "platform"
+                  ? "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)"
+                  : "transparent",
+                color: pricingCategory === "platform"
+                  ? "#60a5fa"
+                  : "rgba(255, 255, 255, 0.6)",
+                boxShadow: pricingCategory === "platform"
+                  ? "inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 2px 6px rgba(0, 0, 0, 0.35)"
+                  : "none",
                 display: "inline-flex",
                 alignItems: "center",
-                gap: 8 }}
+                gap: 8,
+                outline: "none"
+              }}
+              onMouseEnter={(e) => {
+                if (pricingCategory !== "platform") e.currentTarget.style.color = "#ffffff";
+              }}
+              onMouseLeave={(e) => {
+                if (pricingCategory !== "platform") e.currentTarget.style.color = "rgba(255, 255, 255, 0.6)";
+              }}
             >
               <ShieldCheck size={14} />
               <span>Platform Membership (Journal & AI Coach)</span>
