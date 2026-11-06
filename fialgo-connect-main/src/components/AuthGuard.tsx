@@ -49,7 +49,21 @@ export const AuthGuard = ({ children }: { children: React.ReactNode }) => {
         // the auth lock. This avoids NavigatorLockAcquireTimeoutError when
         // multiple components (AuthGuard, useDashboardData, AppSidebar)
         // all try to call getUser() simultaneously on mount.
-        const { data: { session } } = await supabase.auth.getSession();
+        let { data: { session } } = await supabase.auth.getSession();
+
+        if (!session) {
+          // If URL has OAuth callback params, wait for Supabase to finish exchanging before navigating away
+          const hasOAuthParams = window.location.search.includes('code=') || window.location.hash.includes('access_token=');
+          if (hasOAuthParams) {
+            // Wait up to 3 seconds for session to populate from URL
+            const startWait = Date.now();
+            while (!session && Date.now() - startWait < 3000) {
+              await new Promise(r => setTimeout(r, 200));
+              const res = await supabase.auth.getSession();
+              session = res.data.session;
+            }
+          }
+        }
 
         if (!session) {
           if (isMounted.current) {

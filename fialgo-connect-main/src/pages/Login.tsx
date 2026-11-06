@@ -55,11 +55,29 @@ export default function Login() {
     }
   }, [resendCooldown]);
 
-  // Handle email verification callback from verification link
+  // Handle email verification callback or OAuth error/return
   useEffect(() => {
     const verifiedParam = searchParams.get('verified');
+    const oauthError = searchParams.get('oauth_error');
     const hash = window.location.hash;
-    const isSignupCallback = verifiedParam === 'true' || hash.includes('type=signup') || hash.includes('confirmation_token');
+
+    if (oauthError) {
+      toast.error(`Google Login: ${decodeURIComponent(oauthError)}`, { duration: 10000 });
+      return;
+    }
+
+    if (hash.includes('error=')) {
+      const params = new URLSearchParams(hash.replace(/^#/, '?'));
+      const errorDesc = params.get('error_description') || params.get('error');
+      if (errorDesc) {
+        toast.error(`Login error: ${decodeURIComponent(errorDesc)}`, { duration: 10000 });
+        return;
+      }
+    }
+
+    // CRITICAL: Never sign out if returning from OAuth (OAuth may contain type=signup or access_token)
+    const isOAuth = hash.includes('access_token=') || searchParams.has('code');
+    const isSignupCallback = !isOAuth && (verifiedParam === 'true' || (hash.includes('type=signup') && !hash.includes('access_token=')) || hash.includes('confirmation_token'));
     if (isSignupCallback) {
       setIsLogin(true);
       setStep('auth');
@@ -97,17 +115,17 @@ export default function Login() {
       setIsLogin(location.state.mode !== 'signup');
     }
 
-    // Handle authentication state changes
+    // Check if user already has an active session on mount
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        navigate("/home", { replace: true });
+      }
+    });
+
+    // Handle authentication state changes (e.g. returning from OAuth redirect)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      // Only redirect automatically if they JUST signed in or registered
-      if (session && (event === 'SIGNED_IN' || event === 'USER_UPDATED')) {
-        // We check if this was a programmatic redirect or a fresh login
-        // If they just arrived at the page and were already logged in, we let them stay
-        const isFreshLogin = sessionStorage.getItem('fresh_login') === 'true';
-        if (isFreshLogin) {
-          sessionStorage.removeItem('fresh_login');
-          navigate("/home");
-        }
+      if (session && (event === 'SIGNED_IN' || event === 'USER_UPDATED' || event === 'INITIAL_SESSION')) {
+        navigate("/home", { replace: true });
       }
     });
 
@@ -504,7 +522,7 @@ export default function Login() {
         provider: 'google',
         options: {
           // Only redirect to our own origin — prevents open redirect
-          redirectTo: `${window.location.origin}/home`,
+          redirectTo: `${window.location.origin}/auth-callback`,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
