@@ -499,7 +499,7 @@ export default function Strategy() {
                               License Approved & Verified
                             </span>
                             <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100">
-                              "Performance Partner (₹10,000 Setup + Daily 50% Share)"
+                              "Performance Partner (₹10,000 Setup + Daily 50% Profit Share)"
                             </h4>
                           </div>
                         </div>
@@ -530,7 +530,7 @@ export default function Strategy() {
                     /* If Not Approved / Unpaid: Show the Two Plan Options & Talk with Team */
                     <div className="space-y-5">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {/* Option 1: 1 Lakh Lifetime License */}
+                        {/* Option 1: ₹1 Lakh (3-Year License) License */}
                         <div
                           onClick={() => setSelectedPlanForInquiry("lifetime")}
                           className={`p-4 rounded-2xl border-2 transition-all cursor-pointer relative ${
@@ -546,17 +546,17 @@ export default function Strategy() {
                             </span>
                           </div>
                           <h4 className="text-[13px] font-black text-slate-900 dark:text-white">
-                            1 Lakh Lifetime
+                            ₹1 Lakh (3-Year License)
                           </h4>
                           <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-                            ₹1,00,000 / $1,200 one-time. Keep 100% of all profits. 1 hardware-bound permanent key.
+                            ₹1,00,000 / $1,200 for 3 Years (1,095 Days). Keep 100% of all profits. 1 hardware-bound cryptographic key.
                           </p>
                           <div className="mt-3 text-xs font-bold text-amber-600 dark:text-amber-400">
-                            Full Ownership
+                            3-Year Dedicated License
                           </div>
                         </div>
 
-                        {/* Option 2: 50/50 Profit Split Partner */}
+                        {/* Option 2: ₹10,000 (50/50 Profit Split) Partner */}
                         <div
                           onClick={() => setSelectedPlanForInquiry("50_50")}
                           className={`p-4 rounded-2xl border-2 transition-all cursor-pointer relative ${
@@ -572,13 +572,13 @@ export default function Strategy() {
                             </span>
                           </div>
                           <h4 className="text-[13px] font-black text-slate-900 dark:text-white">
-                            50/50 Profit Split
+                            ₹10,000 (50/50 Profit Split)
                           </h4>
                           <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-                            ₹0 Upfront. Split daily trading profits 50/50 with Tradifive via crypto remittance.
+                            ₹10,000 Setup. Split daily trading profits 50/50 with Tradifive. Managed algorithmic execution.
                           </p>
                           <div className="mt-3 text-xs font-bold text-sky-600 dark:text-sky-400">
-                            Zero Initial Cost
+                            Performance Partnership
                           </div>
                         </div>
                       </div>
@@ -596,8 +596,8 @@ export default function Strategy() {
                         href={`https://wa.me/919999999999?text=${encodeURIComponent(
                           `Hello Tradifive Team! I want to get an MT5 EA License Key for Account #${accountNumber || "new"}. I am interested in the ${
                             selectedPlanForInquiry === "lifetime"
-                              ? "₹1 Lakh Lifetime License (0% Profit Share)"
-                              : "50/50 Profit Split Partner"
+                              ? "₹1 Lakh 3-Year License (0% Profit Share)"
+                              : "₹10,000 Performance Partner (50/50 Profit Split)"
                           } plan. Please help me get activated.`
                         )}`}
                         target="_blank"
