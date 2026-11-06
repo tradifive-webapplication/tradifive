@@ -966,10 +966,14 @@ export default function Home() {
 
     const headerActions = (
         <div className="flex items-center gap-2 sm:gap-3">
-            <button
-                onClick={() => setIsCreatePostModalOpen(true)}
-                className="flex items-center justify-center gap-2 px-3.5 sm:px-5 h-10 rounded-full bg-white dark:bg-[#1E1E1E] text-slate-800 dark:text-slate-100 border border-slate-200/80 dark:border-white/10 font-bold text-[13px] hover:bg-slate-50 dark:hover:bg-[#252528] transition-all shadow-sm active:scale-95 select-none"
-                title="Create New Post"
+            <button
+                onClick={() => setIsCreatePostModalOpen(true)}
+                className="flex items-center justify-center gap-2 px-4 sm:px-5 h-10 rounded-full font-bold text-[13px] cursor-pointer select-none transition-all duration-150 active:scale-[0.985] shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_2px_6px_rgba(0,0,0,0.25)] border-none"
+                style={{
+                  background: "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)",
+                  color: "#60a5fa"
+                }}
+                title="Create New Post"
             >
                 <Plus size={16} strokeWidth={2.5} className="text-blue-600 dark:text-blue-400" /> <span className="hidden sm:inline">New Post</span>
             </button>
@@ -1215,7 +1219,7 @@ export default function Home() {
                                                     setCustomizeActiveTab('watchlist');
                                                     setShowCustomizeModal(true);
                                                 }}
-                                                className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-blue-50 hover:bg-blue-100 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 font-bold text-[11px] transition-all cursor-pointer select-none"
+                                                className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 hover:bg-blue-100 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 font-bold text-[11px] border border-blue-500/20 transition-all cursor-pointer select-none active:scale-[0.985]"
                                                 title="Add Pairs"
                                             >
                                                 <Plus size={12} strokeWidth={2.5} />

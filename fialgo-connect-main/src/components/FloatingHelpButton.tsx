@@ -837,20 +837,23 @@ export default function FloatingHelpButton() {
                     <button
                       onClick={handleMarkResolved}
                       style={{
-                        padding: "3px 10px",
-                        borderRadius: 8,
-                        background: "rgba(16, 185, 129, 0.12)",
-                        border: "1px solid rgba(16, 185, 129, 0.25)",
+                        padding: "5px 14px",
+                        borderRadius: 100,
+                        background: "linear-gradient(135deg, #064e3b 0%, #022c22 100%)",
+                        border: "1px solid rgba(52, 211, 153, 0.3)",
+                        boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 4px rgba(0, 0, 0, 0.25)",
                         color: "#34d399",
                         fontSize: 11,
                         fontWeight: 700,
                         cursor: "pointer",
                         display: "flex",
                         alignItems: "center",
-                        gap: 4 }}
+                        gap: 5,
+                        transition: "all 0.15s cubic-bezier(0.2, 0.8, 0.2, 1)"
+                      }}
                     >
                       <CheckCircle2 size={12} />
-                      Mark Solved
+                      <span>Mark Solved</span>
                     </button>
                   </div>
                 )}
@@ -980,17 +983,32 @@ export default function FloatingHelpButton() {
                       style={{
                         width: 34,
                         height: 34,
-                        borderRadius: 10,
-                        background: "linear-gradient(135deg, #2563eb, #1d4ed8)",
+                        borderRadius: "50%",
+                        background: "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)",
                         border: "none",
-                        color: "#fff",
+                        color: "#60a5fa",
+                        boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 2px 6px rgba(0, 0, 0, 0.3)",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
                         cursor: "pointer",
-                        opacity: !inputText.trim() && stagedAttachments.length === 0 ? 0.4 : 1 }}
+                        opacity: isSending || (!inputText.trim() && stagedAttachments.length === 0) ? 0.4 : 1,
+                        transition: "all 0.15s cubic-bezier(0.2, 0.8, 0.2, 1)"
+                      }}
                     >
-                      <Send size={15} />
+                      {isSending ? (
+                        <div
+                          style={{
+                            width: 14,
+                            height: 14,
+                            borderRadius: "50%",
+                            border: "2px solid rgba(96, 165, 250, 0.3)",
+                            borderTopColor: "#60a5fa",
+                            animation: "spin 0.8s linear infinite" }}
+                        />
+                      ) : (
+                        <Send size={15} style={{ marginLeft: 1 }} />
+                      )}
                     </button>
                   </div>
                 </div>

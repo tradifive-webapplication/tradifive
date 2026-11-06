@@ -740,18 +740,21 @@ export default function Notifications() {
           <div className="flex items-center gap-2 sm:gap-2.5">
             <button
               onClick={markAllRead}
-              className="px-3.5 sm:px-4 py-2 sm:py-2.5 bg-slate-100/80 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl text-[12px] sm:text-[13px] font-semibold text-slate-700 dark:text-slate-200 transition-colors flex items-center gap-1.5 sm:gap-2"
+              className="px-4 py-2 sm:py-2.5 rounded-full text-[12px] sm:text-[13px] font-bold text-[#60a5fa] hover:text-[#93c5fd] transition-all duration-150 active:scale-[0.985] flex items-center gap-1.5 sm:gap-2 border-none shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_2px_6px_rgba(0,0,0,0.25)] cursor-pointer"
+              style={{
+                background: "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)"
+              }}
             >
-              <IconlyTickSquare set="curved" primaryColor="currentColor" size={16} className="text-slate-500 dark:text-slate-400" />
-              Verify All
+              <IconlyTickSquare set="curved" primaryColor="currentColor" size={16} />
+              <span>Verify All</span>
             </button>
             <button
               onClick={clearAllNotifications}
-              className="px-3.5 sm:px-4 py-2 sm:py-2.5 bg-rose-50/80 dark:bg-rose-500/10 hover:bg-rose-100 dark:hover:bg-rose-500/20 rounded-xl text-[12px] sm:text-[13px] font-semibold text-rose-600 dark:text-rose-400 transition-colors flex items-center gap-1.5 sm:gap-2"
+              className="px-4 py-2 sm:py-2.5 rounded-full text-[12px] sm:text-[13px] font-bold text-rose-600 dark:text-rose-400 bg-rose-50 hover:bg-rose-100 dark:bg-rose-500/10 dark:hover:bg-rose-500/20 border border-rose-200 dark:border-rose-500/20 transition-all duration-150 active:scale-[0.985] flex items-center gap-1.5 sm:gap-2 cursor-pointer shadow-xs"
               title="Purge Archive"
             >
               <IconlyDelete set="curved" primaryColor="currentColor" size={16} />
-              Purge Archive
+              <span>Purge Archive</span>
             </button>
           </div>
         </div>
