@@ -1051,10 +1051,10 @@ export default function Settings() {
          <div className="absolute inset-0 hidden sm:block" onClick={handleCloseSettings} />
 
          {/* Centered Settings Dialog Modal Box */}
-         <div className="relative w-full h-full sm:h-auto max-w-[1440px] max-h-full sm:max-h-[880px] rounded-none sm:rounded-[16px] bg-white dark:bg-[#121212] text-slate-800 dark:text-[#dbdee1] flex overflow-hidden shadow-2xl border-0 sm:border sm:border-slate-200/60 dark:sm:border-white/5 z-10 pb-16 md:pb-0">
+         <div className="relative w-full h-full sm:h-[88vh] sm:max-h-[880px] max-w-[1440px] rounded-none sm:rounded-[16px] bg-white dark:bg-[#121212] text-slate-800 dark:text-[#dbdee1] flex overflow-hidden shadow-2xl border-0 sm:border sm:border-slate-200/60 dark:sm:border-white/5 z-10 pb-16 md:pb-0">
             
             {/* LEFT SIDEBAR PANEL inside Modal */}
-            <div className={`${mobileShowDetails ? 'hidden md:flex' : 'flex'} w-full md:w-64 bg-[#f2f3f5] dark:bg-[#1E1E1E] flex-col h-full border-r border-slate-200/60 dark:border-white/5 shrink-0`}>
+            <div className={`${mobileShowDetails ? 'hidden md:flex' : 'flex'} w-full md:w-64 bg-[#f2f3f5] dark:bg-[#1E1E1E] flex-col h-full min-h-0 border-r border-slate-200/60 dark:border-white/5 shrink-0`}>
                {/* Mobile Header for Settings Sidebar */}
                <div className="flex md:hidden items-center justify-between px-4 py-3 border-b border-slate-200/60 dark:border-white/5 bg-white dark:bg-[#1A1A1C] shrink-0">
                   <span className="text-[14px] font-extrabold uppercase tracking-wider text-slate-800 dark:text-white">Settings</span>
@@ -1063,7 +1063,7 @@ export default function Settings() {
                   </button>
                </div>
 
-               <div className="py-6 px-4 flex flex-col gap-4 h-full overflow-y-auto amazing-scrollbar">
+               <div className="py-6 px-4 flex flex-col gap-4 flex-1 min-h-0 overflow-y-auto scrollbar-hide">
                             {/* Mini Profile Display */}
                   <div 
                      onClick={() => {
@@ -1218,7 +1218,7 @@ export default function Settings() {
             </div>
 
             {/* RIGHT CONTENT PANEL inside Modal */}
-            <div className={`${mobileShowDetails ? 'flex' : 'hidden md:flex'} flex-1 bg-white dark:bg-[#121212] h-full overflow-hidden relative flex flex-col`}>
+            <div className={`${mobileShowDetails ? 'flex' : 'hidden md:flex'} flex-1 min-w-0 bg-white dark:bg-[#121212] h-full min-h-0 overflow-hidden relative flex flex-col`}>
                
                {/* Fixed Header outside the scrollable container at the top */}
                <div className="bg-white/95 dark:bg-[#1E1E1E]/95 backdrop-blur-sm px-4 sm:px-6 md:px-8 py-3 border-b border-slate-150 dark:border-white/5 flex items-center justify-between shrink-0">
@@ -1247,7 +1247,7 @@ export default function Settings() {
                </div>
 
                {/* Scrollable Content Container */}
-               <div id="settings-scroll-container" className="w-full flex-1 overflow-y-auto amazing-scrollbar scroll-smooth">
+               <div id="settings-scroll-container" className="w-full flex-1 min-h-0 overflow-y-auto scrollbar-hide scroll-smooth overscroll-contain">
 
                   {/* Scrollable Content wrapper with padding */}
                   <div className="w-full mx-auto pt-4 sm:pt-10 px-3 sm:px-10 pb-28 sm:pb-12 space-y-6">
@@ -2246,7 +2246,7 @@ export default function Settings() {
                            <X size={20} />
                         </button>
                      </div>
-                     <form onSubmit={(e) => { e.preventDefault(); handleUpdateProfile(); setIsEditModalOpen(false); }} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto amazing-scrollbar">
+                     <form onSubmit={(e) => { e.preventDefault(); handleUpdateProfile(); setIsEditModalOpen(false); }} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto scrollbar-hide">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                            <div>
                               <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1">First Name</label>
