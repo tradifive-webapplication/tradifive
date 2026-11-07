@@ -221,7 +221,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
   return (
     <div className="fixed inset-0 z-[99999] bg-[#08080A] text-white flex flex-col overflow-y-auto selection:bg-blue-600/30">
       {/* ── TOP HEADER BAR ── */}
-      <header className="w-full h-16 border-b border-white/[0.06] px-6 sm:px-10 flex items-center justify-between shrink-0 bg-[#08080A]/80 backdrop-blur-md sticky top-0 z-50">
+      <header className="w-full h-16 px-6 sm:px-10 flex items-center justify-between shrink-0 bg-[#08080A]/80 backdrop-blur-md sticky top-0 z-50">
         <div className="flex items-center gap-2.5">
           <img 
             src="/tf-logo.png" 
@@ -252,18 +252,12 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
       {/* ── MAIN CONTENT WORKSPACE ── */}
       <div className="flex-1 w-full max-w-6xl mx-auto flex flex-col md:flex-row px-6 sm:px-10 py-8 md:py-12 gap-10 md:gap-16">
         {/* ── LEFT SIDEBAR (PROFILE SETUP) ── */}
-        <aside className="w-full md:w-56 shrink-0 flex flex-col border-b md:border-b-0 md:border-r border-white/[0.06] pb-6 md:pb-0 md:pr-8 pt-4">
+        <aside className="w-full md:w-56 shrink-0 flex flex-col pb-6 md:pb-0 md:pr-8 pt-4">
           <div className="text-[11px] font-mono font-bold tracking-[0.2em] text-zinc-500 uppercase mb-6">
             PROFILE SETUP
           </div>
 
           <div className="flex flex-row md:flex-col gap-4 md:gap-5 overflow-x-auto md:overflow-x-visible pb-2 md:pb-0 scrollbar-none">
-            {/* Static Language item */}
-            <div className="flex flex-col shrink-0">
-              <span className="text-[10px] font-mono tracking-wider text-zinc-500 uppercase">LANGUAGE</span>
-              <span className="text-xs text-zinc-300 font-medium mt-0.5">English</span>
-            </div>
-
             {/* Dynamic Steps */}
             {STEPS_ORDER.map((s, idx) => {
               const isCurrent = idx === currentStepIndex;
@@ -347,7 +341,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
                       onChange={(e) => setName(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && isContinueEnabled() && handleNext()}
                       placeholder="Your name"
-                      className="w-full bg-transparent border-b-2 border-zinc-800 focus:border-white text-2xl sm:text-3xl font-medium text-white placeholder-zinc-700 py-3.5 outline-none transition-colors"
+                      className="w-full bg-transparent text-2xl sm:text-3xl font-medium text-white placeholder-zinc-700 py-3.5 outline-none transition-colors"
                     />
                   </div>
                   <p className="text-xs text-zinc-400 mb-8">
@@ -379,7 +373,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
                       onChange={handleHandleChange}
                       onKeyDown={(e) => e.key === 'Enter' && isContinueEnabled() && handleNext()}
                       placeholder="yourhandle"
-                      className="w-full bg-transparent border-b-2 border-zinc-800 focus:border-white text-2xl sm:text-3xl font-medium text-white placeholder-zinc-700 py-3.5 outline-none transition-colors"
+                      className="w-full bg-transparent text-2xl sm:text-3xl font-medium text-white placeholder-zinc-700 py-3.5 outline-none transition-colors"
                     />
                     {isCheckingHandle && (
                       <div className="absolute right-2 text-zinc-400">
@@ -646,17 +640,17 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
                   Your profile has been created. Welcome to the TradiFive ecosystem.
                 </p>
 
-                <div className="bg-[#121316] border border-white/[0.08] rounded-2xl p-6 mb-8 space-y-4">
-                  <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
+                <div className="bg-[#121316] rounded-2xl p-6 mb-8 space-y-4">
+                  <div className="flex items-center justify-between pb-1">
                     <span className="text-xs font-mono text-zinc-500">TRADER IDENTITY</span>
                     <span className="text-sm font-bold text-white">{name} <span className="text-blue-400">(@{handle})</span></span>
                   </div>
-                  <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
+                  <div className="flex items-center justify-between pb-1">
                     <span className="text-xs font-mono text-zinc-500">STYLE & MARKET</span>
                     <span className="text-sm font-semibold text-zinc-200">{style || "Day trading"} · {market || "Forex"}</span>
                   </div>
                   {selectedEdges.length > 0 && (
-                    <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
+                    <div className="flex items-center justify-between pb-1">
                       <span className="text-xs font-mono text-zinc-500">TRADING EDGE</span>
                       <span className="text-sm font-semibold text-zinc-200">{selectedEdges.join(", ")}</span>
                     </div>
