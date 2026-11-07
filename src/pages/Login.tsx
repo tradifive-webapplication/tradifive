@@ -116,16 +116,36 @@ export default function Login() {
     }
 
     // Check if user already has an active session on mount
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        navigate("/home", { replace: true });
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (session?.user) {
+        const { data: prof } = await supabase
+          .from('profiles')
+          .select('has_chosen_username')
+          .eq('id', session.user.id)
+          .maybeSingle();
+
+        if (!prof || prof.has_chosen_username === false || prof.has_chosen_username === null) {
+          navigate("/onboarding", { replace: true });
+        } else {
+          navigate("/home", { replace: true });
+        }
       }
     });
 
     // Handle authentication state changes (e.g. returning from OAuth redirect)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session && (event === 'SIGNED_IN' || event === 'USER_UPDATED' || event === 'INITIAL_SESSION')) {
-        navigate("/home", { replace: true });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user && (event === 'SIGNED_IN' || event === 'USER_UPDATED' || event === 'INITIAL_SESSION')) {
+        const { data: prof } = await supabase
+          .from('profiles')
+          .select('has_chosen_username')
+          .eq('id', session.user.id)
+          .maybeSingle();
+
+        if (!prof || prof.has_chosen_username === false || prof.has_chosen_username === null) {
+          navigate("/onboarding", { replace: true });
+        } else {
+          navigate("/home", { replace: true });
+        }
       }
     });
 
@@ -193,7 +213,18 @@ export default function Login() {
     }
 
     toast.success("Welcome back!");
-    navigate("/home");
+
+    const { data: prof } = await supabase
+      .from('profiles')
+      .select('has_chosen_username')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    if (!prof || prof.has_chosen_username === false || prof.has_chosen_username === null) {
+      navigate("/onboarding", { replace: true });
+    } else {
+      navigate("/home", { replace: true });
+    }
   };
 
   const handleResendSignupEmail = async () => {

@@ -81,7 +81,19 @@ export default function AuthCallback() {
         if (session) {
           sessionStorage.setItem('fresh_login', 'true');
           sessionStorage.setItem('fialgo_loaded', 'true');
-          navigate('/home', { replace: true });
+
+          // Check if user has already chosen their username
+          const { data: prof } = await supabase
+            .from('profiles')
+            .select('has_chosen_username')
+            .eq('id', session.user.id)
+            .maybeSingle();
+
+          if (!prof || prof.has_chosen_username === false || prof.has_chosen_username === null) {
+            navigate('/onboarding', { replace: true });
+          } else {
+            navigate('/home', { replace: true });
+          }
         } else {
           console.warn('[AuthCallback Web] No session established, returning to login');
           navigate('/login', { replace: true });

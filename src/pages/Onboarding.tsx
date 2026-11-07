@@ -9,14 +9,43 @@ export default function OnboardingPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!user) {
-        navigate("/login");
+    let mounted = true;
+
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!mounted) return;
+
+      if (session?.user) {
+        setUser(session.user);
+        setLoading(false);
       } else {
-        setUser(user);
+        const timer = setTimeout(async () => {
+          if (!mounted) return;
+          const { data: { user: currentUser } } = await supabase.auth.getUser();
+          if (currentUser) {
+            setUser(currentUser);
+          } else {
+            navigate("/login", { replace: true });
+          }
+          setLoading(false);
+        }, 500);
+        return () => clearTimeout(timer);
       }
-      setLoading(false);
+    };
+
+    checkSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user && mounted) {
+        setUser(session.user);
+        setLoading(false);
+      }
     });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, [navigate]);
 
   if (loading || !user) {
@@ -30,7 +59,7 @@ export default function OnboardingPage() {
   return (
     <OnboardingFlow
       user={user}
-      onComplete={() => navigate("/home")}
+      onComplete={() => navigate("/home", { replace: true })}
     />
   );
 }

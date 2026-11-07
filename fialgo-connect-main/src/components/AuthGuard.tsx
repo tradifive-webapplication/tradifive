@@ -103,16 +103,14 @@ export const AuthGuard = ({ children }: { children: React.ReactNode }) => {
         if (session?.user) {
           const user = session.user;
           setSessionUser(user);
-          const profileChecked = sessionStorage.getItem(`fialgo_profile_checked_${user.id}`) === "true";
           const isValidUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(user.id);
 
-          if (!profileChecked && isValidUUID) {
+          if (isValidUUID) {
             const { data: existingProfile } = await supabase
               .from('profiles')
-              .select('id, username, has_chosen_username, is_banned, full_name, preferred_market')
+              .select('id, username, has_chosen_username, is_banned, is_frozen, full_name, preferred_market')
               .eq('id', user.id)
               .maybeSingle();
-
 
             if (existingProfile && (existingProfile.is_banned || existingProfile.is_frozen)) {
               // User is banned or restricted
@@ -124,11 +122,7 @@ export const AuthGuard = ({ children }: { children: React.ReactNode }) => {
             }
 
             if (!existingProfile) {
-              // Allow the app to proceed; if they need a profile, the database trigger
-              // or OAuth fallback below will create it. We don't want to suspend them just because
-              // the profile is temporarily missing.
-
-              // First-time OAuth user — create a profile from auth metadata
+              // First-time OAuth user — create a profile from auth metadata with has_chosen_username = false
               const meta = user.user_metadata || {};
               const emailUsername = user.email?.split('@')[0]?.toLowerCase().replace(/[^a-z0-9]/g, '') || "trader";
               const resolvedName = meta.full_name || meta.name || `${meta.first_name || ''} ${meta.last_name || ''}`.trim() || emailUsername;
@@ -142,44 +136,24 @@ export const AuthGuard = ({ children }: { children: React.ReactNode }) => {
                 full_name: resolvedName,
                 display_name: resolvedName,
                 username: resolvedUsername,
+                has_chosen_username: false,
                 avatar_url: meta.avatar_url || meta.picture || "/default-avatar.svg",
                 xp_total: 0,
                 xp_level: 1,
                 streak_days: 0,
                 created_at: new Date().toISOString(),
               }, { onConflict: 'id' });
+
+              if (isMounted.current && window.location.pathname !== '/onboarding') {
+                navigate("/onboarding", { replace: true });
+                return;
+              }
             } else {
               if (existingProfile.has_chosen_username === false || existingProfile.has_chosen_username === null) {
-                setSetupInitialStep('username');
-                setRequiresSetup(true);
-              }
-            }
-            sessionStorage.setItem(`fialgo_profile_checked_${user.id}`, "true");
-          } else {
-            // Even if already checked in session, ensure we catch UUID usernames on page reloads
-            const { data: existingProfile } = await supabase
-              .from('profiles')
-              .select('username, has_chosen_username, is_banned, full_name, preferred_market')
-              .eq('id', user.id)
-              .maybeSingle();
-
-
-            if (existingProfile && (existingProfile.is_banned || existingProfile.is_frozen)) {
-              // User is banned or restricted, kick them out.
-              sessionStorage.removeItem("fialgo_loaded");
-              if (isMounted.current) {
-                navigate("/account-frozen");
-              }
-              return;
-            }
-
-            if (!existingProfile) {
-              // Profile is missing, allow them through so the app/trigger can recreate it
-              // Do not kick them out as suspended.
-            } else {
-              if (existingProfile.has_chosen_username === false || existingProfile.has_chosen_username === null) {
-                setSetupInitialStep('username');
-                setRequiresSetup(true);
+                if (isMounted.current && window.location.pathname !== '/onboarding') {
+                  navigate("/onboarding", { replace: true });
+                  return;
+                }
               }
             }
           }
