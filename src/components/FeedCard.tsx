@@ -961,12 +961,12 @@ function FeedCard({
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter className="mt-6 flex justify-end gap-3">
-                        <AlertDialogClose render={<button className="bg-slate-100 dark:bg-[#1E1E1E] hover:bg-slate-200 dark:hover:bg-[#222] text-slate-800 dark:text-slate-200 border-none px-4 py-2 rounded-lg font-medium transition-colors" />}>Cancel</AlertDialogClose>
+                        <AlertDialogClose render={<button className="h-[38px] px-5 rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-[#1E1E1E] hover:bg-slate-50 dark:hover:bg-[#222] text-slate-800 dark:text-slate-200 font-semibold text-[13.5px] transition-all duration-150 active:scale-[0.985] shadow-sm" />}>Cancel</AlertDialogClose>
                         <AlertDialogClose 
                             onClick={() => {
                                 if (onDelete) onDelete(feed.id);
                             }}
-                            render={<button className="bg-rose-500 hover:bg-rose-600 text-white border-none px-4 py-2 rounded-lg font-medium transition-colors" />}
+                            render={<button className="h-[38px] px-5 rounded-full bg-rose-500 hover:bg-rose-600 text-white font-bold text-[13.5px] transition-all duration-150 active:scale-[0.985] shadow-sm shadow-rose-500/25" />}
                         >
                             Yes, Delete
                         </AlertDialogClose>

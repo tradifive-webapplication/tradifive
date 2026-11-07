@@ -463,10 +463,10 @@ function InboxSkeleton() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button 
-          className="flex items-center justify-center w-10 h-10 rounded-xl border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:shadow-none shadow-[0_4px_7px_-5px_rgba(0,0,0,0.08),0_0_0_2px_#E2E8F0] dark:shadow-none text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-all hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#D0D0D5] dark:hover:shadow-none active:scale-95 cursor-pointer outline-none"
+          className="flex items-center justify-center w-10 h-10 rounded-full border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#1E1E1E] text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white shadow-sm hover:bg-slate-50 dark:hover:bg-[#252525] transition-all duration-150 active:scale-[0.985] cursor-pointer outline-none"
           title="Inbox Actions"
         >
-          <Menu size={20} />
+          <Menu size={18} />
         </button>
       </DropdownMenuTrigger>
       
@@ -586,13 +586,17 @@ function InboxSkeleton() {
             </div>
             
             {/* SaaS Filter Tabs (Favorites, Mentors, Support) */}
-            <div className="flex items-center gap-1.5 p-1 bg-slate-100/80 dark:bg-[#121212] rounded-full border border-slate-200/30 dark:border-white/5 text-[11px] font-bold shrink-0 overflow-x-auto scrollbar-hide">
+            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide py-0.5">
               <button 
                 onClick={() => {
                   setActiveFilter("all");
                   triggerHaptic("selection");
                 }}
-                className={`flex-1 min-w-[55px] py-1.5 rounded-full text-center transition-all ${activeFilter === "all" ? 'bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] dark:shadow-none shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:shadow-none border border-white dark:border-white/5 text-slate-900 dark:text-white' : 'text-slate-450 hover:text-slate-850 dark:text-slate-400 dark:hover:text-slate-300 border border-transparent'}`}
+                className={`px-3.5 py-1.5 rounded-full text-[12px] font-bold transition-all shrink-0 border active:scale-[0.985] ${
+                  activeFilter === "all" 
+                    ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-slate-900 dark:border-white shadow-sm' 
+                    : 'bg-white dark:bg-[#1E1E1E] text-slate-600 dark:text-[#B5BAC1] border-slate-200/80 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20'
+                }`}
               >
                 All
               </button>
@@ -605,7 +609,11 @@ function InboxSkeleton() {
                   triggerHaptic("selection");
                   setActiveFilter("favorites");
                 }}
-                className={`flex-1 min-w-[80px] py-1.5 flex items-center justify-center gap-1.5 rounded-full text-center transition-all ${activeFilter === "favorites" ? 'bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] dark:shadow-none shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:shadow-none border border-white dark:border-white/5 text-slate-900 dark:text-white' : 'text-slate-450 hover:text-slate-850 dark:text-slate-400 dark:hover:text-slate-300 border border-transparent'} ${!canAccess('inbox_favorites') ? 'opacity-60' : ''}`}
+                className={`px-3.5 py-1.5 flex items-center justify-center gap-1.5 rounded-full text-[12px] font-bold transition-all shrink-0 border active:scale-[0.985] ${
+                  activeFilter === "favorites" 
+                    ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-slate-900 dark:border-white shadow-sm' 
+                    : 'bg-white dark:bg-[#1E1E1E] text-slate-600 dark:text-[#B5BAC1] border-slate-200/80 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20'
+                } ${!canAccess('inbox_favorites') ? 'opacity-60' : ''}`}
               >
                 {!canAccess('inbox_favorites') && <div className="text-amber-500"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></div>}
                 Favorites
@@ -615,7 +623,11 @@ function InboxSkeleton() {
                   setActiveFilter("mentors");
                   triggerHaptic("selection");
                 }}
-                className={`flex-1 min-w-[75px] py-1.5 rounded-full text-center transition-all ${activeFilter === "mentors" ? 'bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] dark:shadow-none shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:shadow-none border border-white dark:border-white/5 text-slate-900 dark:text-white' : 'text-slate-450 hover:text-slate-850 dark:text-slate-400 dark:hover:text-slate-300 border border-transparent'}`}
+                className={`px-3.5 py-1.5 rounded-full text-[12px] font-bold transition-all shrink-0 border active:scale-[0.985] ${
+                  activeFilter === "mentors" 
+                    ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-slate-900 dark:border-white shadow-sm' 
+                    : 'bg-white dark:bg-[#1E1E1E] text-slate-600 dark:text-[#B5BAC1] border-slate-200/80 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20'
+                }`}
               >
                 Mentors
               </button>
@@ -628,7 +640,11 @@ function InboxSkeleton() {
                   triggerHaptic("selection");
                   setActiveFilter("support");
                 }}
-                className={`flex-1 min-w-[70px] py-1.5 flex items-center justify-center gap-1.5 rounded-full text-center transition-all ${activeFilter === "support" ? 'bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] dark:shadow-none shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:shadow-none border border-white dark:border-white/5 text-slate-900 dark:text-white' : 'text-slate-450 hover:text-slate-850 dark:text-slate-400 dark:hover:text-slate-300 border border-transparent'} ${!canAccess('inbox_support') ? 'opacity-60' : ''}`}
+                className={`px-3.5 py-1.5 flex items-center justify-center gap-1.5 rounded-full text-[12px] font-bold transition-all shrink-0 border active:scale-[0.985] ${
+                  activeFilter === "support" 
+                    ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-slate-900 dark:border-white shadow-sm' 
+                    : 'bg-white dark:bg-[#1E1E1E] text-slate-600 dark:text-[#B5BAC1] border-slate-200/80 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20'
+                } ${!canAccess('inbox_support') ? 'opacity-60' : ''}`}
               >
                 {!canAccess('inbox_support') && <div className="text-amber-500"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></div>}
                 Support
@@ -1028,7 +1044,7 @@ function InboxSkeleton() {
                       toast.success("Attachment selector opened");
                       triggerHaptic("light");
                     }} 
-                    className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:shadow-none shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:shadow-none hover:shadow-[0_6px_10px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#E2E8F0] dark:hover:shadow-none flex items-center justify-center transition-all text-slate-400 dark:text-slate-400 hover:text-blue-500 shrink-0 outline-none active:scale-95"
+                    className="w-10 h-10 sm:w-11 sm:h-11 rounded-full border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#1E1E1E] text-slate-600 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400 shadow-sm hover:bg-slate-50 dark:hover:bg-[#252525] flex items-center justify-center transition-all duration-150 active:scale-[0.985] shrink-0 outline-none"
                     title="Add attachment"
                   >
                     <IconlyPlus set="curved" primaryColor="currentColor" size={19} />
@@ -1047,10 +1063,14 @@ function InboxSkeleton() {
                   <button 
                     type="submit" 
                     disabled={!inputText.trim()} 
-                    className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:shadow-none shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:shadow-none hover:shadow-[0_6px_10px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#E2E8F0] dark:hover:shadow-none disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-all text-slate-400 dark:text-slate-400 hover:text-blue-500 shrink-0 outline-none active:scale-95 group"
+                    className={`w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center transition-all duration-150 shrink-0 outline-none active:scale-[0.985] ${
+                      inputText.trim() 
+                        ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-sm shadow-blue-500/25 cursor-pointer' 
+                        : 'border border-slate-200/60 dark:border-white/5 bg-slate-100 dark:bg-[#1A1A1A] text-slate-400 dark:text-slate-600 opacity-40 cursor-not-allowed'
+                    }`}
                     title="Send message"
                   >
-                    <IconlySend set="curved" primaryColor="currentColor" size={19} className="mr-0.5 group-hover:translate-x-0.5 transition-transform" />
+                    <IconlySend set="curved" primaryColor="currentColor" size={19} className="mr-0.5" />
                   </button>
                 </form>
               </div>
@@ -1120,7 +1140,7 @@ function InboxSkeleton() {
                     {activeConv.roleTag} &bull; {activeConv.department} Desk
                   </p>
                   
-                  <Link to={`/user/${activeConv.username || activeConv.name.replace(/\s+/g, '').toLowerCase()}`} className="mt-4 inline-flex items-center justify-center gap-1.5 w-full py-2.5 rounded-xl text-[12px] font-extrabold uppercase tracking-wider text-slate-900 dark:text-white transition-all bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] dark:shadow-none shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:shadow-none border border-white dark:border-white/5 hover:opacity-90">
+                  <Link to={`/user/${activeConv.username || activeConv.name.replace(/\s+/g, '').toLowerCase()}`} className="mt-4 inline-flex items-center justify-center gap-1.5 w-full h-[38px] rounded-full text-[12px] font-extrabold uppercase tracking-wider text-slate-900 dark:text-white transition-all bg-white dark:bg-[#1E1E1E] shadow-sm border border-slate-200/90 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-[#252525] active:scale-[0.985]">
                     View Profile
                   </Link>
                 </div>
@@ -1129,7 +1149,7 @@ function InboxSkeleton() {
                 <div className="grid grid-cols-2 gap-2 px-1">
                   <button 
                     onClick={handleToggleMute}
-                    className="flex flex-col items-center justify-center py-3 rounded-2xl transition-all group bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] dark:shadow-none shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:shadow-none border border-white dark:border-white/5 hover:opacity-90"
+                    className="flex flex-col items-center justify-center py-3 rounded-2xl transition-all group bg-white dark:bg-[#1E1E1E] shadow-sm border border-slate-200/90 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-[#252525] active:scale-[0.985]"
                   >
                     {isMuted ? (
                       <IconlyVolumeOff set="curved" primaryColor="currentColor" size={18} className="text-slate-800 dark:text-slate-200 mb-1 transition-colors" />
@@ -1141,7 +1161,7 @@ function InboxSkeleton() {
 
                   <button 
                     onClick={() => toast.info(`Starting direct audio sync with ${activeConv.name}`)}
-                    className="flex flex-col items-center justify-center py-3 rounded-2xl transition-all group bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] dark:shadow-none shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:shadow-none border border-white dark:border-white/5 hover:opacity-90"
+                    className="flex flex-col items-center justify-center py-3 rounded-2xl transition-all group bg-white dark:bg-[#1E1E1E] shadow-sm border border-slate-200/90 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-[#252525] active:scale-[0.985]"
                   >
                     <Phone size={18} className="text-slate-800 dark:text-slate-200 mb-1 transition-colors" />
                     <span className="text-[11.5px] font-extrabold text-slate-900 dark:text-white mt-1">Direct Call</span>

@@ -2360,7 +2360,7 @@ export default function Settings() {
                <button 
                  type="button" 
                  onClick={() => setShowLogoutConfirm(false)}
-                 className="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-[#333333] text-slate-700 dark:text-slate-300 font-semibold hover:bg-slate-50 dark:hover:bg-[#2A2A2A] transition-colors"
+                 className="h-[38px] px-5 rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-[#222226] text-slate-700 dark:text-slate-200 font-semibold text-[13.5px] hover:bg-slate-50 dark:hover:bg-[#2b2b30] transition-all duration-150 active:scale-[0.985] shadow-sm"
                >
                  Cancel
                </button>
@@ -2374,7 +2374,7 @@ export default function Settings() {
                    setIsLoggingOut(false);
                    navigate('/login');
                  }}
-                 className="px-5 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white font-semibold transition-colors shadow-md shadow-red-500/20 flex items-center justify-center min-w-[100px]"
+                 className="h-[38px] px-6 rounded-full bg-rose-500 hover:bg-rose-600 text-white font-bold text-[13.5px] transition-all duration-150 active:scale-[0.985] shadow-sm shadow-rose-500/25 flex items-center justify-center min-w-[105px]"
                >
                  {isLoggingOut ? (
                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
