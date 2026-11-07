@@ -418,15 +418,15 @@ function Hero({ onStart, onSignIn }: { onStart: () => void; onSignIn: () => void
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.3 }}
               className="hero-cta-group"
-              style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 32, width: "100%" }}
+              style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", marginBottom: 32, width: "100%" }}
             >
               <motion.button
                 onClick={onStart}
-                className="btn-glow-primary"
+                className="btn-tradifive-solid"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.985 }}
                 style={{
-                  padding: "8px 22px",
+                  padding: "0 22px",
                   fontSize: 13.5,
                   fontWeight: 700,
                   borderRadius: 100,
@@ -435,7 +435,12 @@ function Hero({ onStart, onSignIn }: { onStart: () => void; onSignIn: () => void
                   alignItems: "center",
                   justifyContent: "center",
                   gap: 8,
-                  whiteSpace: "nowrap"
+                  whiteSpace: "nowrap",
+                  background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
+                  color: "#ffffff",
+                  boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 2px 8px rgba(37, 99, 235, 0.35)",
+                  border: "none",
+                  cursor: "pointer"
                 }}
               >
                 <span>Start Free</span>
@@ -455,7 +460,7 @@ function Hero({ onStart, onSignIn }: { onStart: () => void; onSignIn: () => void
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.985 }}
                 style={{
-                  padding: "8px 20px",
+                  padding: "0 20px",
                   fontSize: 13.5,
                   fontWeight: 600,
                   borderRadius: 100,
@@ -463,7 +468,12 @@ function Hero({ onStart, onSignIn }: { onStart: () => void; onSignIn: () => void
                   display: "inline-flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  whiteSpace: "nowrap"
+                  whiteSpace: "nowrap",
+                  background: "#171717",
+                  color: "rgba(255, 255, 255, 0.9)",
+                  border: "1px solid rgba(255, 255, 255, 0.08)",
+                  boxShadow: "inset 0 1px 0 0 rgba(255, 255, 255, 0.1), 0 2px 4px rgba(0, 0, 0, 0.2)",
+                  cursor: "pointer"
                 }}
               >
                 Learn More

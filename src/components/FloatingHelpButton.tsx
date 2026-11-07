@@ -48,7 +48,36 @@ export default function FloatingHelpButton() {
   const [lightboxMedia, setLightboxMedia] = useState<ChatAttachment | null>(null);
   const [resolvedNotice, setResolvedNotice] = useState(false);
 
-  // ── Drag & Repositioning Logic with useMotionValue (Zero Re-render Glitch) ──
+  // ── Drag & Corner-Cycling Logic (Zero-Glitch, Drag Anywhere or Double-Click to Cycle Corners) ──
+  const getCorners = () => {
+    if (typeof window === "undefined") {
+      return [
+        { name: "bottom-right", x: 0, y: 0, label: "Bottom-Right" },
+        { name: "bottom-left", x: -500, y: 0, label: "Bottom-Left" },
+        { name: "top-left", x: -500, y: -500, label: "Top-Left" },
+        { name: "top-right", x: 0, y: -500, label: "Top-Right" },
+      ];
+    }
+    const maxLeft = -(window.innerWidth - 106);
+    const maxTop = -(window.innerHeight - 106);
+    return [
+      { name: "bottom-right", x: 0, y: 0, label: "Bottom-Right" },
+      { name: "bottom-left", x: maxLeft, y: 0, label: "Bottom-Left" },
+      { name: "top-left", x: maxLeft, y: maxTop, label: "Top-Left" },
+      { name: "top-right", x: 0, y: maxTop, label: "Top-Right" },
+    ];
+  };
+
+  const [activeCorner, setActiveCorner] = useState<"bottom-right" | "bottom-left" | "top-left" | "top-right">(() => {
+    try {
+      const savedCorner = localStorage.getItem("tf_support_corner");
+      if (savedCorner === "bottom-left" || savedCorner === "top-left" || savedCorner === "top-right" || savedCorner === "bottom-right") {
+        return savedCorner;
+      }
+    } catch {}
+    return "bottom-right";
+  });
+
   const initialPos = useRef<{ x: number; y: number }>(() => {
     try {
       const saved = localStorage.getItem("tf_support_btn_pos");
@@ -67,6 +96,8 @@ export default function FloatingHelpButton() {
 
   const [hasMoved, setHasMoved] = useState(() => initialPos.x !== 0 || initialPos.y !== 0);
   const [dragConstraints, setDragConstraints] = useState({ top: -600, bottom: 12, left: -1000, right: 12 });
+  const isDraggingRef = useRef(false);
+  const clickTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const updateBounds = () => {
@@ -84,14 +115,69 @@ export default function FloatingHelpButton() {
     return () => window.removeEventListener("resize", updateBounds);
   }, []);
 
+  const handleCornerCycle = () => {
+    const corners = getCorners();
+    const curX = x.get();
+    const curY = y.get();
+
+    let closestIdx = 0;
+    let minDist = Infinity;
+    corners.forEach((c, idx) => {
+      const dist = Math.hypot(c.x - curX, c.y - curY);
+      if (dist < minDist) {
+        minDist = dist;
+        closestIdx = idx;
+      }
+    });
+
+    const nextIdx = (closestIdx + 1) % corners.length;
+    const targetCorner = corners[nextIdx];
+
+    animate(x, targetCorner.x, { type: "spring", stiffness: 350, damping: 26 });
+    animate(y, targetCorner.y, { type: "spring", stiffness: 350, damping: 26 });
+
+    setActiveCorner(targetCorner.name as any);
+    setHasMoved(targetCorner.name !== "bottom-right");
+
+    try {
+      localStorage.setItem("tf_support_btn_pos", JSON.stringify({ x: targetCorner.x, y: targetCorner.y }));
+      localStorage.setItem("tf_support_corner", targetCorner.name);
+    } catch {}
+
+    toast.success(`Support button moved to ${targetCorner.label} corner`);
+  };
+
   const handleResetPos = () => {
     animate(x, 0, { type: "spring", stiffness: 400, damping: 28 });
     animate(y, 0, { type: "spring", stiffness: 400, damping: 28 });
     setHasMoved(false);
+    setActiveCorner("bottom-right");
     try {
       localStorage.removeItem("tf_support_btn_pos");
+      localStorage.removeItem("tf_support_corner");
     } catch {}
     toast.success("Support button reset to default bottom-right position");
+  };
+
+  const handleButtonClick = () => {
+    if (isDraggingRef.current) return;
+
+    if (clickTimerRef.current) {
+      // Second click arrived within 240ms -> DOUBLE CLICK!
+      clearTimeout(clickTimerRef.current);
+      clickTimerRef.current = null;
+      handleCornerCycle();
+    } else {
+      // First click: wait 240ms. If no second click arrives, toggle chat!
+      clickTimerRef.current = setTimeout(() => {
+        clickTimerRef.current = null;
+        if (isOpen) {
+          setIsOpen(false);
+        } else {
+          handleOpen();
+        }
+      }, 240);
+    }
   };
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -369,41 +455,67 @@ export default function FloatingHelpButton() {
 
   return (
     <>
-      {/* Floating Action Button (Movable / Draggable with Zero Glitch) */}
+      {/* Floating Action Button (Drag anywhere or Double-Click to cycle all 4 corners) */}
       <motion.button
         drag
         dragMomentum={false}
         dragElastic={0}
         dragConstraints={dragConstraints}
-        onDragEnd={() => {
-          const curX = x.get();
-          const curY = y.get();
-          const isMoved = Math.abs(curX) > 5 || Math.abs(curY) > 5;
-          setHasMoved(isMoved);
-          try {
-            if (isMoved) {
-              localStorage.setItem("tf_support_btn_pos", JSON.stringify({ x: curX, y: curY }));
-            } else {
-              localStorage.removeItem("tf_support_btn_pos");
-            }
-          } catch {}
-        }}
-        onTap={() => {
-          if (isOpen) {
-            setIsOpen(false);
-          } else {
-            handleOpen();
+        onDragStart={() => {
+          isDraggingRef.current = true;
+          if (clickTimerRef.current) {
+            clearTimeout(clickTimerRef.current);
+            clickTimerRef.current = null;
           }
         }}
-        onDoubleClick={(e) => {
-          e.stopPropagation();
-          handleResetPos();
+        onDragEnd={() => {
+          setTimeout(() => {
+            isDraggingRef.current = false;
+          }, 150);
+          const curX = x.get();
+          const curY = y.get();
+          const corners = getCorners();
+
+          let snapped = false;
+          for (const c of corners) {
+            if (Math.hypot(c.x - curX, c.y - curY) < 90) {
+              animate(x, c.x, { type: "spring", stiffness: 400, damping: 28 });
+              animate(y, c.y, { type: "spring", stiffness: 400, damping: 28 });
+              setActiveCorner(c.name as any);
+              setHasMoved(c.name !== "bottom-right");
+              try {
+                localStorage.setItem("tf_support_btn_pos", JSON.stringify({ x: c.x, y: c.y }));
+                localStorage.setItem("tf_support_corner", c.name);
+              } catch {}
+              snapped = true;
+              break;
+            }
+          }
+
+          if (!snapped) {
+            const isMoved = Math.abs(curX) > 10 || Math.abs(curY) > 10;
+            setHasMoved(isMoved);
+            const isLeft = typeof window !== "undefined" && curX < -(window.innerWidth - 106) / 2;
+            const isTop = typeof window !== "undefined" && curY < -(window.innerHeight - 106) / 2;
+            const quadrant = isTop ? (isLeft ? "top-left" : "top-right") : (isLeft ? "bottom-left" : "bottom-right");
+            setActiveCorner(quadrant);
+            try {
+              if (isMoved) {
+                localStorage.setItem("tf_support_btn_pos", JSON.stringify({ x: curX, y: curY }));
+                localStorage.setItem("tf_support_corner", quadrant);
+              } else {
+                localStorage.removeItem("tf_support_btn_pos");
+                localStorage.removeItem("tf_support_corner");
+              }
+            } catch {}
+          }
         }}
+        onClick={handleButtonClick}
         whileHover={{ scale: 1.08 }}
         whileTap={{ scale: 0.94 }}
         whileDrag={{ scale: 1.12, boxShadow: "0 20px 35px -5px rgba(37, 99, 235, 0.6), 0 0 0 2px rgba(255, 255, 255, 0.4)" }}
         aria-label="Open Live Support Desk"
-        title="Drag to reposition anywhere · Double-click to reset position · Click to open Support Desk"
+        title="Double-click to move to next corner · Drag anywhere · Click to open Support"
         style={{
           x,
           y,
@@ -496,8 +608,10 @@ export default function FloatingHelpButton() {
             transition={{ duration: 0.22, ease: "easeOut" }}
             style={{
               position: "fixed",
-              bottom: 92,
-              right: 24,
+              bottom: activeCorner.startsWith("bottom") ? 92 : undefined,
+              top: activeCorner.startsWith("top") ? 92 : undefined,
+              right: activeCorner.endsWith("right") ? 24 : undefined,
+              left: activeCorner.endsWith("left") ? 24 : undefined,
               zIndex: 9991,
               background: "#121214",
               borderRadius: 20,

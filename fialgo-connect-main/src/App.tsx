@@ -82,6 +82,7 @@ const AmlKycPolicyPublic = lazy(() => import("./pages/AmlKycPolicyPublic"));
 const CustomStrategiesPublic = lazy(() => import("./pages/CustomStrategiesPublic"));
 const OptionsTradingPublic = lazy(() => import("./pages/OptionsTradingPublic"));
 const PropFirmIntegrationsPublic = lazy(() => import("./pages/PropFirmIntegrationsPublic"));
+const OnboardingPage = lazy(() => import("./pages/Onboarding"));
 const AccountFrozen = lazy(() => import("./pages/AccountFrozen"));
 const AccountDeleted = lazy(() => import("./pages/AccountDeleted"));
 const AdminOverview = lazy(() => import("./pages/admin/AdminOverview"));
@@ -154,6 +155,7 @@ const App = () => {
                 <Route path="/features/custom-strategies" element={<CustomStrategiesPublic />} />
                 <Route path="/features/options-trading" element={<OptionsTradingPublic />} />
                 <Route path="/features/prop-firm-integrations" element={<PropFirmIntegrationsPublic />} />
+                <Route path="/onboarding" element={<OnboardingPage />} />
                 <Route path="/account-frozen" element={<AccountFrozen />} />
                 <Route path="/account-deleted" element={<AccountDeleted />} />
                 <Route path="/broker-auth/:brokerId" element={<BrokerAuth />} />
