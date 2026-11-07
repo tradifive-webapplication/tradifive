@@ -672,7 +672,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
               type="button"
               disabled={!isContinueEnabled() || isSaving}
               onClick={handleNext}
-              className={`h-11 px-8 rounded-full text-sm font-bold tracking-normal transition-all duration-200 inline-flex items-center justify-center gap-2 border-0 ${
+              className={`h-11 px-8 rounded-lg text-sm font-bold tracking-normal transition-all duration-200 inline-flex items-center justify-center gap-2 border-0 ${
                 isContinueEnabled()
                   ? "bg-gradient-to-br from-[#1e293b] to-[#0f172a] hover:from-[#253347] hover:to-[#131c33] text-[#60a5fa] hover:text-[#93c5fd] shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_2px_6px_rgba(0,0,0,0.3)] hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_4px_12px_rgba(0,0,0,0.4)] active:scale-[0.985] cursor-pointer"
                   : "bg-[#111622] text-[#60a5fa]/30 cursor-not-allowed opacity-50"
