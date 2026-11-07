@@ -986,43 +986,30 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
 
 
         filteredTrades.forEach((t) => {
-
           runningPnl += t.pnl;
-
           const currBal = Math.max(0, initialPointBal + runningPnl);
-
           const gainPct = initialPointBal > 0 ? Number(((runningPnl / initialPointBal) * 100).toFixed(2)) : 0;
 
+          const d = t.closedAtMs ? new Date(t.closedAtMs) : new Date();
+          const day = d.getDate();
+          const month = d.getMonth() + 1;
+          const hours = String(d.getHours()).padStart(2, '0');
+          const mins = String(d.getMinutes()).padStart(2, '0');
 
-
-          let label = t.closeTime;
-
-          if (chartTimeframe === "7D" || chartTimeframe === "30D" || chartTimeframe === "All") {
-
-            if (t.closedAtMs) {
-
-              const d = new Date(t.closedAtMs);
-
-              label = `${d.getDate()}/${d.getMonth() + 1}`;
-
+          let label = chartTimeframe === "Today" ? `${hours}:${mins}` : `${day}/${month} ${hours}:${mins}`;
+          if (points.some(p => p.time === label)) {
+            label = `${label}:${String(d.getSeconds()).padStart(2, '0')}`;
+            if (points.some(p => p.time === label)) {
+              label = `${label} (#${points.length})`;
             }
-
           }
 
-
-
           points.push({
-
             time: label,
-
             netProfit: Number(runningPnl.toFixed(2)),
-
             balance: Math.round(currBal),
-
             dailyGain: gainPct,
-
           });
-
         });
 
 
@@ -1116,6 +1103,59 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
     ];
 
   }, [chartTimeframe, accountBalance, todayProfit, netProfitAllTime, closedTrades, openPositions]);
+
+  // Clean, non-repeating ticks for Equity Curve chart
+  const chartTicks = useMemo(() => {
+    if (!chartData || chartData.length === 0) return undefined;
+    if (chartData.length <= 6) return chartData.map(p => p.time);
+
+    // Multi-day timeframes (7D, 30D, All):
+    if (chartTimeframe !== "Today") {
+      const ticks: string[] = [];
+      const seenDates = new Set<string>();
+
+      chartData.forEach((p, idx) => {
+        if (idx === 0) {
+          ticks.push(p.time);
+          return;
+        }
+        if (idx === chartData.length - 1 && p.time === "Now") {
+          return;
+        }
+        const dPart = p.time.includes(" ") ? p.time.split(" ")[0] : p.time;
+        if (!seenDates.has(dPart)) {
+          seenDates.add(dPart);
+          ticks.push(p.time);
+        }
+      });
+
+      const lastPoint = chartData[chartData.length - 1];
+      if (lastPoint && !ticks.includes(lastPoint.time)) {
+        ticks.push(lastPoint.time);
+      }
+
+      if (ticks.length > 7) {
+        const sampled: string[] = [ticks[0]];
+        const step = (ticks.length - 1) / 5;
+        for (let i = 1; i < 5; i++) {
+          sampled.push(ticks[Math.round(i * step)]);
+        }
+        sampled.push(ticks[ticks.length - 1]);
+        return sampled;
+      }
+
+      return ticks;
+    }
+
+    // Today timeframe: sample 4-6 evenly spaced time ticks
+    const sampled: string[] = [chartData[0].time];
+    const step = (chartData.length - 1) / 4;
+    for (let i = 1; i < 4; i++) {
+      sampled.push(chartData[Math.round(i * step)].time);
+    }
+    sampled.push(chartData[chartData.length - 1].time);
+    return sampled;
+  }, [chartData, chartTimeframe]);
 
 
 
@@ -2268,7 +2308,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
             <span className="text-[11px] font-bold text-slate-800 dark:text-slate-200">
               Weekly 50/50% Profit Share
             </span>
-            <span className="text-[10px] font-mono font-extrabold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 px-2 py-0.5 rounded-full border border-blue-200/60 dark:border-blue-500/20">
+            <span className="text-[10px] font-mono font-extrabold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-500/20 px-2.5 py-0.5 rounded-full border border-blue-200/60 dark:border-blue-400/30">
               Every {settlementDay}
             </span>
             <span className="text-[10px] font-mono font-bold text-slate-500 dark:text-slate-400 hidden sm:inline">
@@ -2281,7 +2321,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
             <button
               type="button"
               onClick={() => setShowWithdrawalModal(true)}
-              className="h-[36px] px-3.5 rounded-[14px] border-2 border-white dark:border-white/5 bg-gradient-to-b from-blue-600 to-blue-700 text-white shadow-[0_4px_7px_-5px_rgba(37,99,235,0.4),0_0_0_2px_#2563EB] text-[11px] font-bold tracking-tight cursor-pointer hover:shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-1.5 whitespace-nowrap"
+              className="h-[36px] px-4 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_3px_8px_rgba(37,99,235,0.35)] text-xs font-bold tracking-tight cursor-pointer transition-all duration-150 active:scale-[0.985] flex items-center justify-center gap-1.5 whitespace-nowrap border-none"
             >
               <ArrowUpRight size={13} className="text-white shrink-0" />
               <span>Weekly Withdrawal</span>
@@ -2651,7 +2691,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
 
               </span>
 
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400 border border-indigo-200/50 shrink-0">
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300 border border-indigo-200/50 dark:border-indigo-400/30 shrink-0">
 
                 {detectedBrokerName} IB
 
@@ -2707,7 +2747,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
 
               </span>
 
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400 border border-purple-200/50 shrink-0">
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300 border border-purple-200/50 dark:border-purple-400/30 shrink-0">
 
                 Zero Fees
 
@@ -2734,7 +2774,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
               <span className="text-[11.5px] font-extrabold uppercase tracking-wider text-blue-700 dark:text-blue-400">
                 Notice from Admin Desk
               </span>
-              <span className="text-[9.5px] font-bold px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-500/20 text-blue-800 dark:text-blue-300 border border-blue-300/40">
+              <span className="text-[9.5px] font-bold px-2.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-500/20 text-blue-800 dark:text-blue-300 border border-blue-300/40 dark:border-blue-400/30">
                 {adminBroadcast?.category || "Live Advisory"}
               </span>
               <span className="text-[10px] text-slate-400 font-mono">
@@ -2748,7 +2788,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
         </div>
 
         <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
-          <div className="px-3 py-1.5 rounded-lg bg-white dark:bg-white/10 border border-blue-200 dark:border-white/10 text-blue-700 dark:text-blue-300 text-[11px] font-bold flex items-center gap-1.5">
+          <div className="px-3 py-1.5 rounded-full bg-white dark:bg-[#1E2330] border border-blue-200 dark:border-white/10 text-blue-700 dark:text-blue-300 text-[11px] font-bold flex items-center gap-1.5">
             <Calendar size={12} className="text-blue-500" />
             <span>Settlement: Every {settlementDay}</span>
           </div>
@@ -2793,36 +2833,21 @@ Kindly review and process our weekly 50/50 profit clearance.`;
 
 
 
-            {/* Timeframe Filter Tabs (Matches Journal Pill Style) */}
-
-            <div className="flex items-center gap-1 p-1 bg-slate-100/80 dark:bg-white/5 rounded-[14px] border border-slate-200/60 dark:border-white/5 shrink-0 self-start sm:self-auto">
-
+            {/* Timeframe Filter Tabs (Matches Signature Pill Style) */}
+            <div className="flex items-center gap-1 p-1 bg-slate-100/80 dark:bg-white/5 rounded-full border border-slate-200/60 dark:border-white/5 shrink-0 self-start sm:self-auto">
               {(["Today", "7D", "30D", "All"] as const).map((tf) => (
-
                 <button
-
                   key={tf}
-
                   onClick={() => setChartTimeframe(tf)}
-
-                  className={`px-3 py-1 rounded-[10px] text-xs font-semibold transition-all ${
-
+                  className={`px-3 py-1 rounded-full text-xs font-semibold transition-all duration-150 active:scale-[0.985] cursor-pointer ${
                     chartTimeframe === tf 
-
-                      ? "bg-white dark:bg-[#252525] text-slate-900 dark:text-white shadow-[0_2px_4px_rgba(0,0,0,0.06)] font-bold" 
-
-                      : "text-slate-400 hover:text-slate-700 dark:hover:text-white"
-
+                      ? "bg-white dark:bg-[#252C3D] text-slate-900 dark:text-white shadow-[0_2px_5px_rgba(0,0,0,0.15)] dark:border dark:border-white/10 font-bold" 
+                      : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"
                   }`}
-
                 >
-
                   {tf}
-
                 </button>
-
               ))}
-
             </div>
 
           </div>
@@ -2835,90 +2860,57 @@ Kindly review and process our weekly 50/50 profit clearance.`;
 
             <ResponsiveContainer width="100%" height="100%">
 
-              <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-
+              <AreaChart data={chartData} margin={{ top: 10, right: 15, left: 10, bottom: 0 }}>
                 <defs>
-
                   <linearGradient id="profitGlowLight" x1="0" y1="0" x2="0" y2="1">
-
                     <stop offset="5%" stopColor="#10b981" stopOpacity={0.25} />
-
                     <stop offset="95%" stopColor="#10b981" stopOpacity={0.0} />
-
                   </linearGradient>
-
                 </defs>
-
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.15)" vertical={false} />
                 <XAxis 
-
                   dataKey="time" 
-
+                  ticks={chartTicks}
                   stroke="#94a3b8" 
-
-                  fontSize={11}
-
-                  tickLine={false}
-
-                  axisLine={false}
-
-                />
-
-                <YAxis 
-
-                  stroke="#94a3b8" 
-
-                  fontSize={11}
-
-                  tickLine={false}
-
-                  axisLine={false}
-
-                  tickFormatter={(val) => `${currencySymbol}${(convertAmount(val) / 1000).toFixed(0)}k`}
-
-                />
-
-                <Tooltip 
-
-                  content={({ active, payload }) => {
-
-                    if (active && payload && payload.length) {
-
-                      const data = payload[0].payload;
-
-                      return (
-
-                        <div className="p-3 rounded-[16px] bg-white border-2 border-white shadow-[0_4px_20px_rgba(0,0,0,0.1)] text-slate-800">
-
-                          <div className="text-[11px] text-slate-400 font-medium">{data.time}</div>
-
-                          <div className="text-[17px] font-bold text-emerald-600 mt-0.5" >
-
-                            +{currencySymbol}{Number(convertAmount(data.netProfit)).toLocaleString()} Net Profit
-
-                          </div>
-
-                          <div className="text-[11px] text-slate-500 mt-1 flex items-center justify-between gap-4">
-
-                            <span>Balance: <b className="text-slate-700">{currencySymbol}{Number(convertAmount(data.balance)).toLocaleString()}</b></span>
-
-                            <span className="text-emerald-600 font-bold">+{data.dailyGain}%</span>
-
-                          </div>
-
-                        </div>
-
-                      );
-
+                  fontSize={11} 
+                  tickLine={false} 
+                  axisLine={false} 
+                  tickFormatter={(val) => {
+                    if (val === "Start" || val === "Now" || val === "00:00" || val === "Initial") return val;
+                    if (chartTimeframe === "Today") {
+                      return val.includes(" ") ? val.split(" ")[1] : val;
                     }
-
-                    return null;
-
+                    return val.includes(" ") ? val.split(" ")[0] : val;
                   }}
-
                 />
-
+                <YAxis 
+                  width={68}
+                  stroke="#94a3b8" 
+                  fontSize={11} 
+                  tickLine={false} 
+                  axisLine={false} 
+                  tickFormatter={(val) => `${currencySymbol}${(convertAmount(val) / 1000).toFixed(0)}k`} 
+                />
+                <Tooltip 
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      const data = payload[0].payload;
+                      return (
+                        <div className="p-3 rounded-[16px] bg-white dark:bg-[#1A1F2C] border border-slate-200 dark:border-white/10 shadow-[0_4px_20px_rgba(0,0,0,0.15)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.5)] text-slate-800 dark:text-white backdrop-blur-md">
+                          <div className="text-[11px] text-slate-400 dark:text-slate-400 font-medium">{data.time}</div>
+                          <div className="text-[17px] font-bold text-emerald-600 dark:text-emerald-400 mt-0.5" >
+                            +{currencySymbol}{Number(convertAmount(data.netProfit)).toLocaleString()} Net Profit
+                          </div>
+                          <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 flex items-center justify-between gap-4">
+                            <span>Balance: <b className="text-slate-700 dark:text-white font-semibold">{currencySymbol}{Number(convertAmount(data.balance)).toLocaleString()}</b></span>
+                            <span className="text-emerald-600 dark:text-emerald-400 font-bold">+{data.dailyGain}%</span>
+                          </div>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
                 <Area 
 
                   type="monotone" 
@@ -3013,7 +3005,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
                   Weekly Profit Split (50 / 50)
                 </h2>
               </div>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-200/50">
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-200/50 dark:border-blue-400/30">
                 Cohort: Every {settlementDay}
               </span>
             </div>
@@ -3080,7 +3072,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
             <button
               type="button"
               onClick={() => setShowWithdrawalModal(true)}
-              className="w-full py-2.5 px-5 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white text-xs font-bold transition-all duration-150 active:scale-[0.985] shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_3px_8px_rgba(37,99,235,0.35)] flex items-center justify-center gap-2 cursor-pointer border-none"
+              className="w-full h-[38px] px-5 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white text-xs font-bold transition-all duration-150 active:scale-[0.985] shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_3px_8px_rgba(37,99,235,0.35)] flex items-center justify-center gap-2 cursor-pointer border-none"
             >
               <ArrowUpRight size={14} />
               <span>Request Weekly Withdrawal / Settle</span>
@@ -3088,9 +3080,9 @@ Kindly review and process our weekly 50/50 profit clearance.`;
             <button
               type="button"
               onClick={() => setShowSettlementModal(true)}
-              className="w-full py-2.5 px-5 rounded-full bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 text-xs font-semibold border border-slate-200/60 dark:border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_1px_3px_rgba(0,0,0,0.05)] transition-all duration-150 active:scale-[0.985] flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full h-[38px] px-5 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-[#1E2330] dark:hover:bg-[#252C3D] text-slate-800 dark:text-white text-xs font-semibold border border-slate-200/80 dark:border-white/15 shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_2px_5px_rgba(0,0,0,0.2)] transition-all duration-150 active:scale-[0.985] flex items-center justify-center gap-2 cursor-pointer"
             >
-              <QrCode size={13} className="text-slate-400" />
+              <QrCode size={13} className="text-blue-500 dark:text-blue-400" />
               <span>Remit Platform Share (Crypto / UPI)</span>
             </button>
           </div>
@@ -3598,68 +3590,37 @@ Kindly review and process our weekly 50/50 profit clearance.`;
 
 
 
-              {/* Submit Button (Compact Row, fully in view) */}
-
+              {/* Submit Button (Signature 38px Pills) */}
               <div className="flex items-center gap-2.5 pt-1">
-
                 <button
-
                   type="button"
-
                   onClick={() => setShowSettlementModal(false)}
-
-                  className="flex-1 py-2 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 text-xs font-semibold transition-colors border border-slate-200 dark:border-white/10 cursor-pointer"
-
+                  className="flex-1 h-[38px] px-5 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/15 text-slate-800 dark:text-white text-xs font-semibold border border-slate-200/80 dark:border-white/15 transition-all duration-150 active:scale-[0.985] cursor-pointer"
                 >
-
                   Cancel
-
                 </button>
-
                 <button
-
                   type="button"
-
                   disabled={isSubmittingProof || !proofImageBase64}
-
                   onClick={handleSubmitSettlement}
-
-                  className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm ${
-
+                  className={`flex-1 h-[38px] px-5 rounded-full text-xs font-bold transition-all duration-150 active:scale-[0.985] flex items-center justify-center gap-2 cursor-pointer ${
                     proofImageBase64 
-
-                      ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20" 
-
-                      : "bg-slate-200 text-slate-400 cursor-not-allowed"
-
+                      ? "bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_3px_8px_rgba(16,185,129,0.35)]" 
+                      : "bg-slate-200 dark:bg-white/5 text-slate-400 dark:text-slate-500 cursor-not-allowed border-none"
                   }`}
-
                 >
-
                   {isSubmittingProof ? (
-
                     <>
-
                       <RefreshCw size={13} className="animate-spin" />
-
                       <span>Submitting...</span>
-
                     </>
-
                   ) : (
-
                     <>
-
                       <CheckCircle2 size={13} />
-
                       <span>Submit Proof & Verify</span>
-
                     </>
-
                   )}
-
                 </button>
-
               </div>
 
             </motion.div>
@@ -3768,7 +3729,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
                 <button
                   type="button"
                   onClick={handleSendWhatsAppWithdrawal}
-                  className="w-full py-3 px-5 rounded-full bg-gradient-to-r from-[#22c55e] to-[#16a34a] hover:from-[#16a34a] hover:to-[#15803d] text-white text-xs font-bold transition-all duration-150 active:scale-[0.985] shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_3px_8px_rgba(34,197,94,0.35)] flex items-center justify-center gap-2 cursor-pointer border-none"
+                  className="w-full h-[38px] px-5 rounded-full bg-gradient-to-r from-[#22c55e] to-[#16a34a] hover:from-[#16a34a] hover:to-[#15803d] text-white text-xs font-bold transition-all duration-150 active:scale-[0.985] shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_3px_8px_rgba(34,197,94,0.35)] flex items-center justify-center gap-2 cursor-pointer border-none"
                 >
                   <Phone size={15} />
                   <span>Send Request to WhatsApp Finance Desk</span>
@@ -3778,10 +3739,10 @@ Kindly review and process our weekly 50/50 profit clearance.`;
                   type="button"
                   disabled={isSubmittingWithdrawal || withdrawalSubmitted}
                   onClick={handleSubmitWithdrawalRequest}
-                  className={`w-full py-2.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                  className={`w-full h-[38px] px-5 rounded-full text-xs font-bold transition-all duration-150 active:scale-[0.985] flex items-center justify-center gap-2 cursor-pointer ${
                     withdrawalSubmitted
-                      ? "bg-emerald-500 text-white"
-                      : "bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/20"
+                      ? "bg-emerald-500 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_3px_8px_rgba(16,185,129,0.35)]"
+                      : "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_3px_8px_rgba(37,99,235,0.35)] border-none"
                   }`}
                 >
                   {withdrawalSubmitted ? (
