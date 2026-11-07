@@ -222,13 +222,17 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
     <div className="fixed inset-0 z-[99999] bg-[#08080A] text-white flex flex-col overflow-y-auto selection:bg-blue-600/30">
       {/* ── TOP HEADER BAR ── */}
       <header className="w-full h-16 border-b border-white/[0.06] px-6 sm:px-10 flex items-center justify-between shrink-0 bg-[#08080A]/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/20">
-            <Sparkles className="w-4 h-4 text-white" />
-          </div>
-          <span className="text-base font-extrabold tracking-tight text-white flex items-center gap-1.5">
-            TradiFive <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 font-bold uppercase tracking-wider">Record</span>
-          </span>
+        <div className="flex items-center gap-2.5">
+          <img 
+            src="/tf-logo.png" 
+            alt="TradiFive Icon" 
+            className="w-[32px] h-[32px] object-contain shrink-0" 
+          />
+          <img 
+            src="/Dark mode logo with white.png" 
+            alt="TradiFive" 
+            className="h-[22px] w-auto object-contain shrink-0" 
+          />
         </div>
 
         <div className="flex items-center gap-5 text-xs">
@@ -246,11 +250,11 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
       </header>
 
       {/* ── MAIN CONTENT WORKSPACE ── */}
-      <div className="flex-1 w-full max-w-7xl mx-auto flex flex-col md:flex-row px-6 sm:px-10 py-8 md:py-14 gap-12 md:gap-20">
-        {/* ── LEFT SIDEBAR ("THE RECORD") ── */}
-        <aside className="w-full md:w-56 shrink-0 flex flex-col border-b md:border-b-0 md:border-r border-white/[0.06] pb-6 md:pb-0 md:pr-8">
-          <div className="text-[11px] font-mono font-bold tracking-[0.25em] text-zinc-500 uppercase mb-6">
-            THE RECORD
+      <div className="flex-1 w-full max-w-6xl mx-auto flex flex-col md:flex-row px-6 sm:px-10 py-8 md:py-12 gap-10 md:gap-16">
+        {/* ── LEFT SIDEBAR (PROFILE SETUP) ── */}
+        <aside className="w-full md:w-56 shrink-0 flex flex-col border-b md:border-b-0 md:border-r border-white/[0.06] pb-6 md:pb-0 md:pr-8 pt-4">
+          <div className="text-[11px] font-mono font-bold tracking-[0.2em] text-zinc-500 uppercase mb-6">
+            PROFILE SETUP
           </div>
 
           <div className="flex flex-row md:flex-col gap-4 md:gap-5 overflow-x-auto md:overflow-x-visible pb-2 md:pb-0 scrollbar-none">
@@ -299,109 +303,110 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
         </aside>
 
         {/* ── CENTER QUESTION CANVAS ── */}
-        <main className="flex-1 max-w-2xl flex flex-col justify-center min-h-[460px]">
-          {/* Back button */}
-          <div className="h-8 mb-4 flex items-center">
-            {currentStepIndex > 0 && (
-              <button
-                type="button"
-                onClick={handleBack}
-                className="inline-flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white transition-colors"
-              >
-                <ChevronLeft size={16} />
-                <span>Back</span>
-              </button>
-            )}
-          </div>
+        <div className="flex-1 flex items-center justify-center py-4 md:py-8">
+          <main className="w-full max-w-xl flex flex-col justify-center">
+            {/* Back button */}
+            <div className="h-8 mb-4 flex items-center">
+              {currentStepIndex > 0 && (
+                <button
+                  type="button"
+                  onClick={handleBack}
+                  className="inline-flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white transition-colors"
+                >
+                  <ChevronLeft size={16} />
+                  <span>Back</span>
+                </button>
+              )}
+            </div>
 
-          {/* Current Step Label */}
-          <div className="text-[11px] font-mono font-bold tracking-[0.2em] text-zinc-400 uppercase mb-3">
-            {currentStep}
-          </div>
+            {/* Current Step Label */}
+            <div className="text-[11px] font-mono font-bold tracking-[0.2em] text-zinc-400 uppercase mb-3">
+              {currentStep}
+            </div>
 
-          <AnimatePresence mode="wait">
-            {/* ── STEP 1: NAME ── */}
-            {currentStep === 'NAME' && (
-              <motion.div
-                key="step-name"
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -12 }}
-                transition={{ duration: 0.2 }}
-                className="flex flex-col"
-              >
-                <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-8">
-                  What should we call you?
-                </h1>
+            <AnimatePresence mode="wait">
+              {/* ── STEP 1: NAME ── */}
+              {currentStep === 'NAME' && (
+                <motion.div
+                  key="step-name"
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -12 }}
+                  transition={{ duration: 0.2 }}
+                  className="flex flex-col"
+                >
+                  <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-8">
+                    What should we call you?
+                  </h1>
 
-                <div className="mb-3">
-                  <input
-                    type="text"
-                    autoFocus
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && isContinueEnabled() && handleNext()}
-                    placeholder="Your name"
-                    className="w-full bg-transparent border-b border-zinc-700 focus:border-white text-xl sm:text-2xl text-white placeholder-zinc-600 py-3 outline-none transition-colors"
-                  />
-                </div>
-                <p className="text-xs text-zinc-500 mb-8">
-                  However you want to be addressed in your own journal.
-                </p>
-              </motion.div>
-            )}
+                  <div className="mb-3">
+                    <input
+                      type="text"
+                      autoFocus
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && isContinueEnabled() && handleNext()}
+                      placeholder="Your name"
+                      className="w-full bg-transparent border-b-2 border-zinc-800 focus:border-white text-2xl sm:text-3xl font-medium text-white placeholder-zinc-700 py-3.5 outline-none transition-colors"
+                    />
+                  </div>
+                  <p className="text-xs text-zinc-400 mb-8">
+                    However you want to be addressed across TradiFive.
+                  </p>
+                </motion.div>
+              )}
 
-            {/* ── STEP 2: HANDLE ── */}
-            {currentStep === 'HANDLE' && (
-              <motion.div
-                key="step-handle"
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -12 }}
-                transition={{ duration: 0.2 }}
-                className="flex flex-col"
-              >
-                <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-8">
-                  Claim your handle.
-                </h1>
+              {/* ── STEP 2: HANDLE ── */}
+              {currentStep === 'HANDLE' && (
+                <motion.div
+                  key="step-handle"
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -12 }}
+                  transition={{ duration: 0.2 }}
+                  className="flex flex-col"
+                >
+                  <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-8">
+                    Claim your handle.
+                  </h1>
 
-                <div className="mb-3 relative flex items-center">
-                  <span className="text-xl sm:text-2xl text-zinc-500 font-bold mr-1">@</span>
-                  <input
-                    type="text"
-                    autoFocus
-                    value={handle}
-                    onChange={handleHandleChange}
-                    onKeyDown={(e) => e.key === 'Enter' && isContinueEnabled() && handleNext()}
-                    placeholder="yourhandle"
-                    className="w-full bg-transparent border-b border-zinc-700 focus:border-white text-xl sm:text-2xl text-white placeholder-zinc-600 py-3 outline-none transition-colors"
-                  />
-                  {isCheckingHandle && (
-                    <div className="absolute right-2 text-zinc-400">
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                    </div>
-                  )}
-                </div>
+                  <div className="mb-3 relative flex items-center">
+                    <span className="text-2xl sm:text-3xl text-zinc-500 font-bold mr-1.5">@</span>
+                    <input
+                      type="text"
+                      autoFocus
+                      value={handle}
+                      onChange={handleHandleChange}
+                      onKeyDown={(e) => e.key === 'Enter' && isContinueEnabled() && handleNext()}
+                      placeholder="yourhandle"
+                      className="w-full bg-transparent border-b-2 border-zinc-800 focus:border-white text-2xl sm:text-3xl font-medium text-white placeholder-zinc-700 py-3.5 outline-none transition-colors"
+                    />
+                    {isCheckingHandle && (
+                      <div className="absolute right-2 text-zinc-400">
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                      </div>
+                    )}
+                  </div>
 
-                <div className="h-6 mb-6 flex items-center">
-                  {handleAvailable === true && (
-                    <span className="text-xs font-semibold text-emerald-400 flex items-center gap-1.5">
-                      <Check size={14} strokeWidth={3} /> @{handle} is free
-                    </span>
-                  )}
-                  {handleAvailable === false && (
-                    <span className="text-xs font-semibold text-red-400 flex items-center gap-1.5">
-                      <X size={14} strokeWidth={3} /> {handleError || "This handle is already taken."}
-                    </span>
-                  )}
-                  {handleAvailable === null && !isCheckingHandle && (
-                    <span className="text-xs text-zinc-500">
-                      This will be your unique trader identity across TradiFive.
-                    </span>
-                  )}
-                </div>
-              </motion.div>
-            )}
+                  <div className="h-6 mb-6 flex items-center">
+                    {handleAvailable === true && (
+                      <span className="text-xs font-semibold text-emerald-400 flex items-center gap-1.5">
+                        <Check size={14} strokeWidth={3} /> @{handle} is free
+                      </span>
+                    )}
+                    {handleAvailable === false && (
+                      <span className="text-xs font-semibold text-red-400 flex items-center gap-1.5">
+                        <X size={14} strokeWidth={3} /> {handleError || "This handle is already taken."}
+                      </span>
+                    )}
+                    {handleAvailable === null && !isCheckingHandle && (
+                      <span className="text-xs text-zinc-500">
+                        This will be your unique trader identity across TradiFive.
+                      </span>
+                    )}
+                  </div>
+                </motion.div>
+              )}
 
             {/* ── STEP 3: STYLE ── */}
             {currentStep === 'STYLE' && (
@@ -431,7 +436,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
                         key={item.label}
                         type="button"
                         onClick={() => setStyle(item.label)}
-                        className={`inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all duration-150 border ${
+                        className={`inline-flex items-center gap-2.5 px-5 py-2.5 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-150 border ${
                           isSelected
                             ? "bg-zinc-800 text-white border-zinc-500 shadow-md ring-1 ring-white/20"
                             : "bg-[#121316] text-zinc-300 border-white/[0.08] hover:border-white/20 hover:text-white"
@@ -476,7 +481,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
                         key={item.label}
                         type="button"
                         onClick={() => setMarket(item.label)}
-                        className={`inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all duration-150 border ${
+                        className={`inline-flex items-center gap-2.5 px-5 py-2.5 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-150 border ${
                           isSelected
                             ? "bg-zinc-800 text-white border-zinc-500 shadow-md ring-1 ring-white/20"
                             : "bg-[#121316] text-zinc-300 border-white/[0.08] hover:border-white/20 hover:text-white"
@@ -523,7 +528,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
                         key={item.label}
                         type="button"
                         onClick={() => toggleMultiSelect(item.label, selectedEdges, setSelectedEdges)}
-                        className={`inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all duration-150 border ${
+                        className={`inline-flex items-center gap-2.5 px-5 py-2.5 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-150 border ${
                           isSelected
                             ? "bg-zinc-800 text-white border-zinc-500 shadow-md ring-1 ring-white/20"
                             : "bg-[#121316] text-zinc-300 border-white/[0.08] hover:border-white/20 hover:text-white"
@@ -570,7 +575,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
                         key={item.label}
                         type="button"
                         onClick={() => toggleMultiSelect(item.label, selectedHereTo, setSelectedHereTo)}
-                        className={`inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all duration-150 border ${
+                        className={`inline-flex items-center gap-2.5 px-5 py-2.5 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-150 border ${
                           isSelected
                             ? "bg-zinc-800 text-white border-zinc-500 shadow-md ring-1 ring-white/20"
                             : "bg-[#121316] text-zinc-300 border-white/[0.08] hover:border-white/20 hover:text-white"
@@ -610,7 +615,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
                         key={item}
                         type="button"
                         onClick={() => setFoundUs(item)}
-                        className={`inline-flex items-center px-5 py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all duration-150 border ${
+                        className={`inline-flex items-center px-5 py-2.5 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-150 border ${
                           isSelected
                             ? "bg-zinc-800 text-white border-zinc-500 shadow-md ring-1 ring-white/20"
                             : "bg-[#121316] text-zinc-300 border-white/[0.08] hover:border-white/20 hover:text-white"
@@ -668,20 +673,20 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
           </AnimatePresence>
 
           {/* ── ACTION BUTTONS ── */}
-          <div className="flex items-center gap-4 mb-6">
+          <div className="flex items-center gap-4 mb-4">
             <button
               type="button"
               disabled={!isContinueEnabled() || isSaving}
               onClick={handleNext}
-              className={`h-[38px] px-7 rounded-lg text-xs sm:text-sm font-bold transition-all duration-150 inline-flex items-center justify-center gap-2 ${
+              className={`h-11 px-8 rounded-lg text-sm font-bold tracking-wide transition-all duration-150 inline-flex items-center justify-center gap-2 ${
                 isContinueEnabled()
-                  ? "bg-zinc-800 hover:bg-zinc-700 text-white border border-zinc-600 shadow-md active:scale-[0.985]"
-                  : "bg-zinc-900 text-zinc-600 border border-zinc-800 cursor-not-allowed opacity-60"
+                  ? "bg-white hover:bg-zinc-200 text-black shadow-lg shadow-white/5 active:scale-[0.985] cursor-pointer"
+                  : "bg-zinc-800 text-zinc-500 border border-zinc-700/50 cursor-not-allowed opacity-60"
               }`}
             >
               {isSaving ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Loader2 className="w-4 h-4 animate-spin text-black" />
                   <span>Saving...</span>
                 </>
               ) : currentStep === 'ACCOUNT' ? (
@@ -695,7 +700,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
               <button
                 type="button"
                 onClick={handleNext}
-                className="text-xs text-zinc-500 hover:text-zinc-300 font-medium transition-colors"
+                className="text-xs text-zinc-400 hover:text-white font-medium transition-colors px-2 py-1"
               >
                 Skip this
               </button>
@@ -703,18 +708,19 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
           </div>
 
           {/* ── DISCORD COMMUNITY BUTTON ── */}
-          <div className="mt-2">
+          <div className="mt-1">
             <a
               href="https://discord.gg/tradifive"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2.5 h-[38px] px-6 rounded-lg bg-[#11131c] hover:bg-[#161a29] border border-[#1e2538] text-xs font-semibold text-zinc-300 hover:text-white transition-all shadow-sm"
+              className="inline-flex items-center justify-center gap-2.5 h-11 px-6 rounded-lg bg-[#5865F2]/10 hover:bg-[#5865F2]/20 border border-[#5865F2]/30 text-xs font-semibold text-zinc-200 hover:text-white transition-all shadow-sm"
             >
               <MessageCircle size={15} className="text-[#5865F2]" />
               <span>Join the TradiFive Discord</span>
             </a>
           </div>
         </main>
+        </div>
       </div>
     </div>
   );

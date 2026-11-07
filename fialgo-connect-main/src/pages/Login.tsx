@@ -430,6 +430,7 @@ export default function Login() {
             last_name: cleanLastName,
             full_name: `${cleanFirstName} ${cleanLastName}`.trim(),
             username: generatedUsername,
+            has_chosen_username: false,
             avatar_url: "/default-avatar.svg",
             referred_by: referralCode || null,
             xp_total: 0,
