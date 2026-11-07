@@ -425,10 +425,21 @@ function Hero({ onStart, onSignIn }: { onStart: () => void; onSignIn: () => void
                 className="btn-glow-primary"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.985 }}
-                style={{ padding: "13px 28px", fontSize: 14, fontWeight: 700, borderRadius: 100 }}
+                style={{
+                  padding: "8px 22px",
+                  fontSize: 13.5,
+                  fontWeight: 700,
+                  borderRadius: 100,
+                  height: 38,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
+                  whiteSpace: "nowrap"
+                }}
               >
                 <span>Start Free</span>
-                <ArrowRight size={16} />
+                <ArrowRight size={15} />
               </motion.button>
               <motion.button
                 onClick={() => {
@@ -443,7 +454,17 @@ function Hero({ onStart, onSignIn }: { onStart: () => void; onSignIn: () => void
                 className="btn-ghost"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.985 }}
-                style={{ padding: "13px 26px", fontSize: 14, fontWeight: 600, borderRadius: 100 }}
+                style={{
+                  padding: "8px 20px",
+                  fontSize: 13.5,
+                  fontWeight: 600,
+                  borderRadius: 100,
+                  height: 38,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  whiteSpace: "nowrap"
+                }}
               >
                 Learn More
               </motion.button>

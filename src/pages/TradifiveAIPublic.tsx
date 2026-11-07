@@ -577,26 +577,37 @@ export default function TradifiveAIPublic() {
                     onClick={handleStart}
                     className="btn-glow-primary"
                     style={{
-                      padding: "13px 28px",
+                      padding: "8px 22px",
                       fontSize: 13.5,
                       fontWeight: 700,
                       borderRadius: 100,
+                      height: 38,
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 8,
+                      whiteSpace: "nowrap",
                       letterSpacing: "0.02em"
                     }}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.985 }}
                   >
                     <span>SEE IN ACTION</span>
-                    <ArrowRight size={16} />
+                    <ArrowRight size={15} />
                   </motion.button>
                   <motion.button
                     onClick={handleStart}
                     className="btn-ghost"
                     style={{
-                      padding: "13px 26px",
+                      padding: "8px 20px",
                       fontSize: 13.5,
                       fontWeight: 600,
-                      borderRadius: 100
+                      borderRadius: 100,
+                      height: 38,
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      whiteSpace: "nowrap"
                     }}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.985 }}
