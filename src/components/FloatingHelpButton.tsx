@@ -13,7 +13,8 @@ import {
   Minimize2,
   Maximize2,
   Minus,
-  LifeBuoy
+  LifeBuoy,
+  RotateCcw
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -46,6 +47,39 @@ export default function FloatingHelpButton() {
   const [isSending, setIsSending] = useState(false);
   const [lightboxMedia, setLightboxMedia] = useState<ChatAttachment | null>(null);
   const [resolvedNotice, setResolvedNotice] = useState(false);
+
+  // ── Drag & Repositioning Logic (Allows user to move button anywhere along bottom or right side) ──
+  const [btnPos, setBtnPos] = useState<{ x: number; y: number }>(() => {
+    try {
+      const saved = localStorage.getItem("tf_support_btn_pos");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (typeof parsed.x === "number" && typeof parsed.y === "number") {
+          return parsed;
+        }
+      }
+    } catch {}
+    return { x: 0, y: 0 };
+  });
+
+  const isDraggingRef = useRef(false);
+  const [dragConstraints, setDragConstraints] = useState({ top: -600, bottom: 12, left: -1000, right: 12 });
+
+  useEffect(() => {
+    const updateBounds = () => {
+      if (typeof window !== "undefined") {
+        setDragConstraints({
+          top: -(window.innerHeight - 90),
+          bottom: 12,
+          left: -(window.innerWidth - 80),
+          right: 12,
+        });
+      }
+    };
+    updateBounds();
+    window.addEventListener("resize", updateBounds);
+    return () => window.removeEventListener("resize", updateBounds);
+  }, []);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [fileAccept, setFileAccept] = useState("*/*");
@@ -322,18 +356,52 @@ export default function FloatingHelpButton() {
 
   return (
     <>
-      {/* Floating Action Button */}
+      {/* Floating Action Button (Movable / Draggable anywhere on bottom or right side) */}
       <motion.button
+        drag
+        dragMomentum={false}
+        dragElastic={0.08}
+        dragConstraints={dragConstraints}
+        onDragStart={() => {
+          isDraggingRef.current = true;
+        }}
+        onDragEnd={(_, info) => {
+          setTimeout(() => {
+            isDraggingRef.current = false;
+          }, 120);
+          setBtnPos((prev) => {
+            const nextX = Math.min(dragConstraints.right, Math.max(dragConstraints.left, prev.x + info.offset.x));
+            const nextY = Math.min(dragConstraints.bottom, Math.max(dragConstraints.top, prev.y + info.offset.y));
+            const next = { x: nextX, y: nextY };
+            try {
+              localStorage.setItem("tf_support_btn_pos", JSON.stringify(next));
+            } catch {}
+            return next;
+          });
+        }}
+        animate={{ x: btnPos.x, y: btnPos.y }}
+        transition={{ type: "spring", damping: 28, stiffness: 350 }}
         onClick={() => {
+          if (isDraggingRef.current) return;
           if (isOpen) {
             setIsOpen(false);
           } else {
             handleOpen();
           }
         }}
+        onDoubleClick={(e) => {
+          e.stopPropagation();
+          setBtnPos({ x: 0, y: 0 });
+          try {
+            localStorage.removeItem("tf_support_btn_pos");
+          } catch {}
+          toast.success("Support button reset to default bottom-right position");
+        }}
         whileHover={{ scale: 1.08 }}
-        whileTap={{ scale: 0.92 }}
+        whileTap={{ scale: 0.94 }}
+        whileDrag={{ scale: 1.12, boxShadow: "0 20px 35px -5px rgba(37, 99, 235, 0.6), 0 0 0 2px rgba(255, 255, 255, 0.4)" }}
         aria-label="Open Live Support Desk"
+        title="Drag to reposition anywhere · Double-click to reset position · Click to open Support Desk"
         style={{
           position: "fixed",
           bottom: 24,
@@ -348,8 +416,11 @@ export default function FloatingHelpButton() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          cursor: "pointer",
-          border: "none" }}
+          cursor: "grab",
+          touchAction: "none",
+          userSelect: "none",
+          border: "none",
+        }}
       >
         {/* Pulsing online green dot if no unread messages */}
         {unreadCount === 0 && (
@@ -421,8 +492,10 @@ export default function FloatingHelpButton() {
             transition={{ duration: 0.22, ease: "easeOut" }}
             style={{
               position: "fixed",
-              bottom: 92,
-              right: 24,
+              bottom: (typeof window !== "undefined" && btnPos.y < -(window.innerHeight / 2)) ? undefined : 92,
+              top: (typeof window !== "undefined" && btnPos.y < -(window.innerHeight / 2)) ? 92 : undefined,
+              right: (typeof window !== "undefined" && btnPos.x < -(window.innerWidth / 2)) ? undefined : 24,
+              left: (typeof window !== "undefined" && btnPos.x < -(window.innerWidth / 2)) ? 24 : undefined,
               zIndex: 9991,
               background: "#121214",
               borderRadius: 20,
@@ -501,6 +574,32 @@ export default function FloatingHelpButton() {
 
               {/* Window Controls: Big/Small Toggle, Minimize, Close */}
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                {(btnPos.x !== 0 || btnPos.y !== 0) && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBtnPos({ x: 0, y: 0 });
+                      try {
+                        localStorage.removeItem("tf_support_btn_pos");
+                      } catch {}
+                      toast.success("Button reset to default bottom-right position");
+                    }}
+                    style={{
+                      background: "rgba(255, 255, 255, 0.06)",
+                      border: "1px solid rgba(255, 255, 255, 0.12)",
+                      color: "rgba(255, 255, 255, 0.75)",
+                      cursor: "pointer",
+                      padding: "4px 6px",
+                      borderRadius: 6,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                    title="Reset button position to default bottom-right"
+                  >
+                    <RotateCcw size={13} />
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={toggleWindowSize}
