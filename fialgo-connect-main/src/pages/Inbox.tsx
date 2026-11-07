@@ -90,6 +90,16 @@ export default function InboxPage() {
   const [showDetails, setShowDetails] = useState(false);
   const [themeMode, setThemeMode] = useState(() => localStorage.getItem("theme") || "light");
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+  const messageEndRef = useRef<HTMLDivElement>(null);
+
+  const {
+    conversations: dbConversations,
+    messages: dbMessages,
+    loading: inboxLoading,
+    sendMessage
+  } = useInboxData(user?.id, activeConvId || null);
+
+  const displayedConversations = dbConversations;
 
   // ── REAL TIME (IST) ──
   const [currentISTTime, setCurrentISTTime] = useState<string>(() => {
@@ -208,17 +218,6 @@ export default function InboxPage() {
     pnlData: [],
     loading: false
   });
-
-  const messageEndRef = useRef<HTMLDivElement>(null);
-
-  const {
-    conversations: dbConversations,
-    messages: dbMessages,
-    loading: inboxLoading,
-    sendMessage
-  } = useInboxData(user?.id, activeConvId || null);
-
-  const displayedConversations = dbConversations;
 
   // Set active conversation: URL param takes priority, then first conversation
   useEffect(() => {
