@@ -1672,10 +1672,10 @@ Kindly review and process our weekly 50/50 profit clearance.`;
 
 
       // 2. Fetch from Edge Function mt5-webhook get_telemetry
-
       try {
-
-        const resp = await fetch('https://rylwyxhupwpwsdbvuoej.supabase.co/functions/v1/mt5-webhook', {
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://hcgylvdvlandtiuudefu.supabase.co';
+        const anon = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_8x-bgvCQJNkpA5z-PohZFg_WvRMAz7A';
+        const resp = await fetch(`${supabaseUrl}/functions/v1/mt5-webhook`, {
 
           method: 'POST',
 
