@@ -280,11 +280,12 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
 
     try {
       // 1. Fetch live telemetry from Edge Function (instantaneous service_role access, bypasses RLS)
-      const anon = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ5bHd5eGh1cHdwd3NkYnZ1b2VqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0MzI1NTcsImV4cCI6MjA5MjAwODU1N30.xuRj9PZgZys2b64pNnjhXOVyDjtGVFlBno2o9hiisHA';
+      const anon = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_8x-bgvCQJNkpA5z-PohZFg_WvRMAz7A';
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://hcgylvdvlandtiuudefu.supabase.co';
       let telemetryData: any = null;
 
       try {
-        const resp = await fetch('https://rylwyxhupwpwsdbvuoej.supabase.co/functions/v1/mt5-webhook', {
+        const resp = await fetch(`${supabaseUrl}/functions/v1/mt5-webhook`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -1084,7 +1085,7 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
                 Live Feed Connected:
               </span>
               <span>
-                MT5 Terminal <strong className="font-mono text-slate-900 dark:text-white">#{cleanAccount}</strong> is streaming live ticks.
+                MT5 Terminal <strong className="font-mono text-slate-900 dark:text-white">#{cleanAccount || "Unassigned"}</strong> is streaming live ticks.
               </span>
             </div>
             <div className="flex items-center gap-3 font-mono text-[11px]">
@@ -1734,7 +1735,7 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-[12px] font-medium text-slate-400 dark:text-[#778396]">Bound MT5 Account</span>
-                <span className="text-[13px] font-mono font-semibold text-slate-800 dark:text-[#E2E7EE] tabular-nums">#{cleanAccount}</span>
+                <span className="text-[13px] font-mono font-semibold text-slate-800 dark:text-[#E2E7EE] tabular-nums">#{cleanAccount || '—'}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-[12px] font-medium text-slate-400 dark:text-[#778396]">Broker Gateway</span>
@@ -1933,7 +1934,7 @@ export default function AITradingDashboard({ onBack, algo, mt5Account }: Props) 
                       </span>
                     </div>
                     <p className="text-[11.5px] text-slate-400 dark:text-slate-400">
-                      Real-time Expert Advisor logs directly streamed from MetaTrader 5 Terminal #{cleanAccount}
+                      Real-time Expert Advisor logs directly streamed from MetaTrader 5 Terminal #{cleanAccount || '—'}
                     </p>
                   </div>
                 </div>

@@ -446,7 +446,7 @@ export default function AITrading() {
     setIsCheckingConnection(true);
     try {
       // 1. Direct Edge function check
-      const res = await fetch("https://rylwyxhupwpwsdbvuoej.supabase.co/functions/v1/mt5-webhook", {
+      const res = await fetch("https://hcgylvdvlandtiuudefu.supabase.co/functions/v1/mt5-webhook", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -2060,13 +2060,13 @@ MagicNumber=789104
                             <div className="flex items-center gap-1.5 min-w-0 flex-1">
                               <Globe size={12} className="text-blue-500 shrink-0" />
                               <code className="text-[11px] font-mono text-blue-600 dark:text-blue-400 truncate select-all">
-                                https://rylwyxhupwpwsdbvuoej.supabase.co
+                                https://hcgylvdvlandtiuudefu.supabase.co
                               </code>
                             </div>
                             <button
                               type="button"
                               onClick={() => {
-                                navigator.clipboard.writeText("https://rylwyxhupwpwsdbvuoej.supabase.co");
+                                navigator.clipboard.writeText("https://hcgylvdvlandtiuudefu.supabase.co");
                                 toast.success("Webhook URL Copied!");
                               }}
                               className="px-2.5 py-1 rounded-md text-[10.5px] font-bold bg-blue-600 hover:bg-blue-700 text-white inline-flex items-center gap-1 shrink-0 cursor-pointer shadow-xs transition-colors"
@@ -3223,12 +3223,12 @@ MagicNumber=789104
                           </div>
                           <div className="flex items-center justify-between gap-2 bg-white dark:bg-[#121214] border border-slate-200/80 dark:border-white/10 rounded-lg p-1.5 pl-2.5">
                             <code className="font-mono text-[11px] text-blue-600 dark:text-blue-400 truncate select-all">
-                              https://rylwyxhupwpwsdbvuoej.supabase.co
+                              https://hcgylvdvlandtiuudefu.supabase.co
                             </code>
                             <button
                               type="button"
                               onClick={() => {
-                                navigator.clipboard.writeText("https://rylwyxhupwpwsdbvuoej.supabase.co");
+                                navigator.clipboard.writeText("https://hcgylvdvlandtiuudefu.supabase.co");
                                 toast.success("Webhook URL copied!");
                               }}
                               className="px-2 py-0.5 rounded text-[10.5px] font-semibold bg-blue-600 hover:bg-blue-700 text-white inline-flex items-center gap-1 shrink-0 cursor-pointer transition-colors"

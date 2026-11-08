@@ -1672,10 +1672,10 @@ Kindly review and process our weekly 50/50 profit clearance.`;
 
 
       // 2. Fetch from Edge Function mt5-webhook get_telemetry
-
       try {
-
-        const resp = await fetch('https://rylwyxhupwpwsdbvuoej.supabase.co/functions/v1/mt5-webhook', {
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://hcgylvdvlandtiuudefu.supabase.co';
+        const anon = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_8x-bgvCQJNkpA5z-PohZFg_WvRMAz7A';
+        const resp = await fetch(`${supabaseUrl}/functions/v1/mt5-webhook`, {
 
           method: 'POST',
 
@@ -2691,7 +2691,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
 
               </span>
 
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400 border border-indigo-200/50 shrink-0">
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300 border border-indigo-200/50 dark:border-indigo-400/30 shrink-0">
 
                 {detectedBrokerName} IB
 
@@ -2747,7 +2747,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
 
               </span>
 
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400 border border-purple-200/50 shrink-0">
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300 border border-purple-200/50 dark:border-purple-400/30 shrink-0">
 
                 Zero Fees
 
@@ -2774,7 +2774,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
               <span className="text-[11.5px] font-extrabold uppercase tracking-wider text-blue-700 dark:text-blue-400">
                 Notice from Admin Desk
               </span>
-              <span className="text-[9.5px] font-bold px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-500/20 text-blue-800 dark:text-blue-300 border border-blue-300/40">
+              <span className="text-[9.5px] font-bold px-2.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-500/20 text-blue-800 dark:text-blue-300 border border-blue-300/40 dark:border-blue-400/30">
                 {adminBroadcast?.category || "Live Advisory"}
               </span>
               <span className="text-[10px] text-slate-400 font-mono">
@@ -2788,7 +2788,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
         </div>
 
         <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
-          <div className="px-3 py-1.5 rounded-lg bg-white dark:bg-white/10 border border-blue-200 dark:border-white/10 text-blue-700 dark:text-blue-300 text-[11px] font-bold flex items-center gap-1.5">
+          <div className="px-3 py-1.5 rounded-full bg-white dark:bg-[#1E2330] border border-blue-200 dark:border-white/10 text-blue-700 dark:text-blue-300 text-[11px] font-bold flex items-center gap-1.5">
             <Calendar size={12} className="text-blue-500" />
             <span>Settlement: Every {settlementDay}</span>
           </div>
@@ -3729,7 +3729,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
                 <button
                   type="button"
                   onClick={handleSendWhatsAppWithdrawal}
-                  className="w-full py-3 px-5 rounded-full bg-gradient-to-r from-[#22c55e] to-[#16a34a] hover:from-[#16a34a] hover:to-[#15803d] text-white text-xs font-bold transition-all duration-150 active:scale-[0.985] shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_3px_8px_rgba(34,197,94,0.35)] flex items-center justify-center gap-2 cursor-pointer border-none"
+                  className="w-full h-[38px] px-5 rounded-full bg-gradient-to-r from-[#22c55e] to-[#16a34a] hover:from-[#16a34a] hover:to-[#15803d] text-white text-xs font-bold transition-all duration-150 active:scale-[0.985] shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_3px_8px_rgba(34,197,94,0.35)] flex items-center justify-center gap-2 cursor-pointer border-none"
                 >
                   <Phone size={15} />
                   <span>Send Request to WhatsApp Finance Desk</span>

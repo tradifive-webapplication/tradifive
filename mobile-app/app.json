@@ -25,9 +25,7 @@
       },
       "permissions": [
         "android.permission.INTERNET",
-        "android.permission.CAMERA",
-        "android.permission.READ_EXTERNAL_STORAGE",
-        "android.permission.WRITE_EXTERNAL_STORAGE"
+        "android.permission.CAMERA"
       ],
       "predictiveBackGestureEnabled": false
     },
@@ -60,8 +58,8 @@
       "typedRoutes": true
     },
     "extra": {
-      "supabaseUrl": "https://rylwyxhupwpwsdbvuoej.supabase.co",
-      "supabaseAnonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ5bHd5eGh1cHdwd3NkYnZ1b2VqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0MzI1NTcsImV4cCI6MjA5MjAwODU1N30.xuRj9PZgZys2b64pNnjhXOVyDjtGVFlBno2o9hiisHA",
+      "supabaseUrl": "https://hcgylvdvlandtiuudefu.supabase.co",
+      "supabaseAnonKey": "sb_publishable_8x-bgvCQJNkpA5z-PohZFg_WvRMAz7A",
       "router": {},
       "eas": {
         "projectId": "00e0a449-ddea-4b1b-b752-76d2042e2f47"

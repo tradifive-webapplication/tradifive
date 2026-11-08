@@ -1310,11 +1310,11 @@ export default function AutoTradeSetupScreen() {
                     </Text>
                     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 6, backgroundColor: isDark ? '#0c0e14' : '#ffffff', padding: 8, borderRadius: 8 }}>
                       <Text style={{ flex: 1, fontSize: 11, fontFamily: 'Inter_600SemiBold', color: '#38bdf8', marginRight: 8 }} numberOfLines={1}>
-                        https://rylwyxhupwpwsdbvuoej.supabase.co
+                        https://hcgylvdvlandtiuudefu.supabase.co
                       </Text>
                       <TouchableOpacity
                         activeOpacity={0.8}
-                        onPress={() => copyToClipboard('https://rylwyxhupwpwsdbvuoej.supabase.co', 'webhook')}
+                        onPress={() => copyToClipboard('https://hcgylvdvlandtiuudefu.supabase.co', 'webhook')}
                         style={styles.webhookCopyBtn}
                       >
                         {copiedWebhook ? <Check size={12} color="#10b981" /> : <Copy size={12} color="#38bdf8" />}
@@ -1601,13 +1601,13 @@ export default function AutoTradeSetupScreen() {
                       </Text>
                       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 6, backgroundColor: isDark ? '#141724' : '#ffffff', padding: 8, borderRadius: 8, borderWidth: 1, borderColor: isDark ? '#1e2433' : '#e2e8f0' }}>
                         <Text style={{ flex: 1, fontSize: 10.5, fontFamily: 'Inter_600SemiBold', color: '#38bdf8', marginRight: 6 }} numberOfLines={1}>
-                          https://rylwyxhupwpwsdbvuoej.supabase.co
+                          https://hcgylvdvlandtiuudefu.supabase.co
                         </Text>
                         <TouchableOpacity
                           activeOpacity={0.8}
                           onPress={() => {
                             hSelect();
-                            copyToClipboard('https://rylwyxhupwpwsdbvuoej.supabase.co', 'webhook');
+                            copyToClipboard('https://hcgylvdvlandtiuudefu.supabase.co', 'webhook');
                           }}
                           style={{ backgroundColor: '#0284c7', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}
                         >
