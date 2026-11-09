@@ -2,7 +2,7 @@
   "expo": {
     "name": "Tradifive",
     "slug": "mobile-app",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "mobileapp",
@@ -16,7 +16,7 @@
     },
     "android": {
       "package": "com.tradifive",
-      "versionCode": 2,
+      "versionCode": 3,
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -38,12 +38,9 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/tradifive-login-logo.png",
-          "imageWidth": 250,
-          "resizeMode": "contain",
-          "backgroundColor": "#0B1020",
+          "backgroundColor": "#000000",
           "dark": {
-            "backgroundColor": "#05070B"
+            "backgroundColor": "#000000"
           }
         }
       ],

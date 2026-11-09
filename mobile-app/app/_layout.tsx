@@ -31,14 +31,11 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
+    // Immediately hide the native splash window so splash.tsx displays the original animated logo with zero lag
+    SplashScreen.hideAsync().catch(() => {});
     const timer = setTimeout(() => {
       setFontTimeout(true);
-      SplashScreen.hideAsync().catch(() => {});
-    }, 1200);
-    if (fontsLoaded || fontError) {
-      clearTimeout(timer);
-      SplashScreen.hideAsync().catch(() => {});
-    }
+    }, 800);
     return () => clearTimeout(timer);
   }, [fontsLoaded, fontError]);
 
