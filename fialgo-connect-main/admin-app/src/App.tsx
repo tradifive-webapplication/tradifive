@@ -17,6 +17,7 @@ import WaitlistPage from './pages/WaitlistPage';
 import TradesPage from './pages/TradesPage';
 import RiskControlPage from './pages/RiskControlPage';
 import MT5MonitorPage from './pages/MT5MonitorPage';
+import AutoTradeManagerPage from './pages/AutoTradeManagerPage';
 import AlertsPage from './pages/AlertsPage';
 import PaymentsPage from './pages/PaymentsPage';
 import AuditLogsPage from './pages/AuditLogsPage';
@@ -130,6 +131,9 @@ function AppRoutes() {
         <Route path="/maintenance" element={<RoleGuard pageId="maintenance_master"><AdminTrading /></RoleGuard>} />
         <Route path="/risk-control" element={<RoleGuard pageId="risk_control"><RiskControlPage /></RoleGuard>} />
         <Route path="/mt5-monitor" element={<RoleGuard pageId="mt5_monitor"><MT5MonitorPage /></RoleGuard>} />
+        <Route path="/auto-trade-admin" element={<RoleGuard pageId="auto_trade_manager"><AutoTradeManagerPage /></RoleGuard>} />
+        <Route path="/auto-trade" element={<Navigate to="/auto-trade-admin" replace />} />
+        <Route path="/auto-trade-engine" element={<Navigate to="/auto-trade-admin" replace />} />
 
         <Route path="/alerts" element={<RoleGuard pageId="alerts"><AlertsPage /></RoleGuard>} />
         <Route path="/payments" element={<RoleGuard pageId="payments"><PaymentsPage /></RoleGuard>} />
