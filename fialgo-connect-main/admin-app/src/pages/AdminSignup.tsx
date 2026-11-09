@@ -54,6 +54,7 @@ export default function AdminSignup() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [secretDigits, setSecretDigits] = useState("");
   const [isCEO, setIsCEO] = useState(false);
+  const [assignedRole, setAssignedRole] = useState("employee");
   
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -81,6 +82,7 @@ export default function AdminSignup() {
       }
 
       setIsCEO(codeData.assigned_role === "ceo");
+      setAssignedRole(codeData.assigned_role || "employee");
       
       if (codeData.assigned_role === "ceo") {
         setStep(4);
@@ -129,6 +131,19 @@ export default function AdminSignup() {
       if (signUpError || !data.user) {
         toast.error(signUpError?.message || "Registration failed");
         return;
+      }
+
+      // Automatically register profile in admin_profiles table
+      try {
+        await supabase.from("admin_profiles").upsert({
+          id: data.user.id,
+          email: email.trim(),
+          full_name: fullName.trim(),
+          role: isCEO ? "ceo" : assignedRole,
+          is_active: true
+        });
+      } catch (pErr) {
+        console.warn("Could not insert admin profile immediately:", pErr);
       }
 
       // Clear the automatic session so they must log in with email & password

@@ -748,19 +748,53 @@ CREATE POLICY "allow_all_xp_reward_redemptions" ON public.xp_reward_redemptions 
 -- ── AUTO CREATE PROFILE ON USER SIGNUP (Email or Google OAuth) ──
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger AS $$
+DECLARE
+  v_role TEXT := 'user';
+  v_assigned_role TEXT;
+  v_invite_code TEXT;
+  v_full_name TEXT;
+  v_username TEXT;
 BEGIN
+  v_full_name := COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'name', split_part(NEW.email, '@', 1));
+  v_username := COALESCE(NEW.raw_user_meta_data->>'username', NEW.raw_user_meta_data->>'user_name', split_part(NEW.email, '@', 1) || '_' || substr(replace(NEW.id::text, '-', ''), 1, 6));
+
+  -- Check if user registered with clearance code
+  v_invite_code := NEW.raw_user_meta_data->>'invite_code';
+  IF v_invite_code IS NOT NULL AND v_invite_code <> '' THEN
+    SELECT assigned_role INTO v_assigned_role 
+    FROM public.signup_clearance_codes 
+    WHERE code = trim(v_invite_code) AND is_active = true 
+    LIMIT 1;
+
+    IF v_assigned_role IS NOT NULL THEN
+      v_role := v_assigned_role;
+      INSERT INTO public.admin_profiles (id, email, full_name, role, is_active)
+      VALUES (
+        NEW.id,
+        NEW.email,
+        v_full_name,
+        v_assigned_role,
+        true
+      )
+      ON CONFLICT (id) DO UPDATE SET
+        role = EXCLUDED.role,
+        full_name = EXCLUDED.full_name,
+        is_active = true;
+    END IF;
+  END IF;
+
   INSERT INTO public.profiles (
     id, email, full_name, display_name, username, avatar_url, has_chosen_username, role, subscription_status
   )
   VALUES (
     NEW.id,
     NEW.email,
-    COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'name', ''),
-    COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'name', split_part(NEW.email, '@', 1)),
-    COALESCE(NEW.raw_user_meta_data->>'username', NEW.raw_user_meta_data->>'user_name', ''),
+    v_full_name,
+    v_full_name,
+    v_username,
     COALESCE(NEW.raw_user_meta_data->>'avatar_url', NEW.raw_user_meta_data->>'picture', ''),
     false,
-    'user',
+    v_role,
     'standard'
   )
   ON CONFLICT (id) DO UPDATE SET

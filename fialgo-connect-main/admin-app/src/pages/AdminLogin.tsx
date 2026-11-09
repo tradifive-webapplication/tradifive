@@ -92,6 +92,29 @@ export default function AdminLogin() {
         return;
       }
 
+      // Check if admin profile exists; auto-heal if missing
+      const user = signInData?.user;
+      if (user) {
+        const { data: existingProf } = await supabase
+          .from("admin_profiles")
+          .select("id, role")
+          .eq("id", user.id)
+          .maybeSingle();
+
+        if (!existingProf) {
+          const invite = user.user_metadata?.invite_code;
+          const assignedRole = invite === "TRADIFIVE_ADMIN_2026" ? "ceo" : 
+                               invite === "TRADIFIVE_DEPT_2026" ? "operations_executive" : "employee";
+          await supabase.from("admin_profiles").upsert({
+            id: user.id,
+            email: user.email,
+            full_name: user.user_metadata?.full_name || "Admin",
+            role: assignedRole,
+            is_active: true
+          });
+        }
+      }
+
       // Cache the user metadata NOW while we have a fresh session response
       const meta = signInData?.user?.user_metadata || {};
       setCachedUserMeta(meta);
@@ -257,6 +280,22 @@ export default function AdminLogin() {
                 {loading ? "Verifying..." : "Establish Link"}
               </button>
             </form>
+          )}
+
+          {step1Complete && !adminUser && (
+            <div className="py-8 text-center space-y-4">
+              <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin mx-auto" />
+              <p className="text-[11px] text-neutral-400 font-bold uppercase tracking-widest">
+                Authorizing Terminal Clearance...
+              </p>
+              <button
+                type="button"
+                onClick={() => setStep1Complete(false)}
+                className="text-[10px] text-neutral-500 hover:text-white underline uppercase tracking-widest mt-2"
+              >
+                Return to Login
+              </button>
+            </div>
           )}
 
           {step1Complete && adminUser && !is2FAVerified && (
