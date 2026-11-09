@@ -990,8 +990,8 @@ void TFLoadLogos()
 //| before you sell the EA, then distribute the compiled .ex5 only.  |
 //+------------------------------------------------------------------+
 #define TF_SALT "TFv1-Zk39xQ-7mLpA2"
-const string TF_WEBHOOK_URL = "https://rylwyxhupwpwsdbvuoej.supabase.co/functions/v1/mt5-webhook";
-const string TF_ANON_KEY    = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ5bHd5eGh1cHdwd3NkYnZ1b2VqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0MzI1NTcsImV4cCI6MjA5MjAwODU1N30.xuRj9PZgZys2b64pNnjhXOVyDjtGVFlBno2o9hiisHA";
+const string TF_WEBHOOK_URL = "https://hcgylvdvlandtiuudefu.supabase.co/functions/v1/mt5-webhook";
+const string TF_ANON_KEY    = "sb_publishable_8x-bgvCQJNkpA5z-PohZFg_WvRMAz7A";
 
 int      g_licStatus=3;       // 1 active, 2 expired / invalid, 3 trial
 datetime g_licTill=0;
@@ -1070,7 +1070,7 @@ bool TFCheckCloudAccount(const ulong login, string &outKey)
    if(MQLInfoInteger(MQL_TESTER) || login == 0) return false;
    
    // 1. Check system_settings table (ib_transfer_requests)
-   string url = "https://rylwyxhupwpwsdbvuoej.supabase.co/rest/v1/system_settings?id=eq.ib_transfer_requests";
+   string url = "https://hcgylvdvlandtiuudefu.supabase.co/rest/v1/system_settings?id=eq.ib_transfer_requests";
    string headers = "Content-Type: application/json\r\nAuthorization: Bearer " + TF_ANON_KEY + "\r\napikey: " + TF_ANON_KEY + "\r\n";
    char postData[], result[];
    string resultHeaders;
@@ -1089,7 +1089,7 @@ bool TFCheckCloudAccount(const ulong login, string &outKey)
    }
 
    // 2. Check mt5_accounts table directly
-   string url2 = "https://rylwyxhupwpwsdbvuoej.supabase.co/rest/v1/mt5_accounts?account_number=eq." + IntegerToString((long)login) + "&select=account_number,activation_key";
+   string url2 = "https://hcgylvdvlandtiuudefu.supabase.co/rest/v1/mt5_accounts?account_number=eq." + IntegerToString((long)login) + "&select=account_number,activation_key";
    char result2[];
    string resultHeaders2;
    ResetLastError();
@@ -4109,8 +4109,8 @@ int OnInit()
          string cloudKey = "";
          bool isCloudApproved = TFCheckCloudAccount(currentAccount, cloudKey);
 
-         // If cloud approved OR if running on user's authorized account (#414416991)
-         if(isCloudApproved || currentAccount == 414416991)
+         // If cloud approved OR if running on user's authorized account (#414416991 or #36529229)
+         if(isCloudApproved || currentAccount == 414416991 || currentAccount == 36529229)
          {
             g_licKey = boundAccountKey;
             TFLicSetKey(boundAccountKey);
@@ -4361,14 +4361,14 @@ void PushCloudTelemetry()
          static bool s_warn4014 = false;
          if(!s_warn4014)
          {
-            Print("TRADIFIVE CLOUD: WebRequest URL not allowed in MT5. Go to Tools -> Options -> Expert Advisors, check 'Allow WebRequest for listed URL' and add 'https://rylwyxhupwpwsdbvuoej.supabase.co'");
+            Print("TRADIFIVE CLOUD: WebRequest URL not allowed in MT5. Go to Tools -> Options -> Expert Advisors, check 'Allow WebRequest for listed URL' and add 'https://hcgylvdvlandtiuudefu.supabase.co'");
             s_warn4014 = true;
          }
       }
    }
 
    // 2. Direct REST PATCH to system_settings for guaranteed instantaneous dashboard telemetry
-   string directSettingsUrl = "https://rylwyxhupwpwsdbvuoej.supabase.co/rest/v1/system_settings?id=eq.mt5_telemetry_live";
+   string directSettingsUrl = "https://hcgylvdvlandtiuudefu.supabase.co/rest/v1/system_settings?id=eq.mt5_telemetry_live";
    string patchHeaders = "Content-Type: application/json\r\nAuthorization: Bearer " + TF_ANON_KEY + "\r\napikey: " + TF_ANON_KEY + "\r\nPrefer: return=minimal\r\n";
    string patchPayload = StringFormat("{\"value\":{\"account_number\":\"%I64d\",\"broker\":\"%s\",\"broker_server\":\"%s\",\"balance\":%.2f,\"equity\":%.2f,\"margin\":%.2f,\"margin_free\":%.2f,\"margin_level\":%.2f,\"leverage\":%I64d,\"total_deposits\":%.2f,\"total_withdrawals\":%.2f,\"today_profit\":%.2f,\"net_profit\":%.2f,\"daily_target_pct\":%.1f,\"currency\":\"%s\",\"is_connected\":true,\"algo_status\":%s,\"license_status\":\"%s\",\"last_pulse\":\"%s\"}}",
                                       login, broker, broker, bal, eq, mgn, mgnFree, mgnLevel, lev, totalDep, totalWd, todayPnl, netPnl, (DailyTargetOn ? DailyTargetPct : 3.0), curr, (g_licSuspended ? "false" : "true"), (g_licSuspended ? "suspended" : "active"), TimeToString(TimeCurrent(), TIME_DATE|TIME_SECONDS));

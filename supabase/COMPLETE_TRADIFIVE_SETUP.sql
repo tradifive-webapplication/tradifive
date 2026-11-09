@@ -788,3 +788,24 @@ DROP POLICY IF EXISTS "auth_insert_avatars" ON storage.objects;
 CREATE POLICY "auth_insert_avatars" ON storage.objects FOR INSERT WITH CHECK (true);
 DROP POLICY IF EXISTS "auth_update_avatars" ON storage.objects;
 CREATE POLICY "auth_update_avatars" ON storage.objects FOR UPDATE USING (true);
+
+-- ── ADMIN & CLEARANCE CODES ──
+CREATE TABLE IF NOT EXISTS public.signup_clearance_codes (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  code TEXT UNIQUE NOT NULL,
+  assigned_role TEXT NOT NULL,
+  created_by_email TEXT,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+);
+
+ALTER TABLE public.signup_clearance_codes ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "allow_all_signup_clearance_codes" ON public.signup_clearance_codes;
+CREATE POLICY "allow_all_signup_clearance_codes" ON public.signup_clearance_codes FOR ALL USING (true) WITH CHECK (true);
+
+INSERT INTO public.signup_clearance_codes (code, assigned_role, created_by_email)
+VALUES 
+  ('TRADIFIVE_ADMIN_2026', 'ceo', 'system'),
+  ('TRADIFIVE_DEPT_2026', 'operations_executive', 'system'),
+  ('TRADIFIVE_STAFF_2026', 'employee', 'system')
+ON CONFLICT (code) DO NOTHING;
