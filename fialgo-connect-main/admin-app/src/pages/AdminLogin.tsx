@@ -60,7 +60,7 @@ export default function AdminLogin() {
   
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { adminUser, is2FAVerified, setIs2FAVerified, signOut } = useAdminAuth();
+  const { adminUser, is2FAVerified, setIs2FAVerified, signOut, refreshAdminUser } = useAdminAuth();
 
   // On mount: always sign out any stale session (e.g. from previous signup)
   // This resets adminUser to null so the email+password form always shows
@@ -118,6 +118,7 @@ export default function AdminLogin() {
       // Cache the user metadata NOW while we have a fresh session response
       const meta = signInData?.user?.user_metadata || {};
       setCachedUserMeta(meta);
+      await refreshAdminUser();
       // Mark step 1 as complete — this gates showing the 2FA form
       setStep1Complete(true);
       console.log("Step 1 login success. Cached metadata:", meta);

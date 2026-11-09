@@ -21,6 +21,7 @@ interface AdminAuthContextType {
   activeRole: AdminRole | null;
   is2FAVerified: boolean;
   setIs2FAVerified: (verified: boolean, keyId?: string) => void;
+  refreshAdminUser: () => Promise<void>;
 }
 
 const AdminAuthContext = createContext<AdminAuthContextType | undefined>(undefined);
@@ -196,25 +197,36 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
   }, [adminUser, is2FAVerified, usedKeyId, activeSessionLogId]);
 
   async function loadProfile(userId: string, email: string) {
-    const { data, error } = await supabase
-      .from("admin_profiles")
-      .select("role, full_name, avatar_url")
-      .eq("id", userId)
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from("admin_profiles")
+        .select("role, full_name")
+        .eq("id", userId)
+        .maybeSingle();
 
-    if (error || !data) {
-      console.warn("No admin profile found for user:", userId, error?.message);
-      return;
+      if (error || !data) {
+        console.warn("No admin profile found for user:", userId, error?.message);
+        return;
+      }
+
+      setAdminUser({
+        id: userId,
+        email,
+        full_name: data.full_name || email,
+        role: data.role as AdminRole,
+        avatar_url: (data as any)?.avatar_url || "",
+      });
+      setViewRole(data.role as AdminRole);
+    } catch (err) {
+      console.error("Failed to load admin profile:", err);
     }
+  }
 
-    setAdminUser({
-      id: userId,
-      email,
-      full_name: data.full_name || email,
-      role: data.role as AdminRole,
-      avatar_url: data.avatar_url,
-    });
-    setViewRole(data.role as AdminRole);
+  async function refreshAdminUser() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.user) {
+      await loadProfile(session.user.id, session.user.email ?? "");
+    }
   }
 
   async function signOut() {
@@ -244,7 +256,7 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
   const activeRole = viewRole ?? adminUser?.role ?? null;
 
   return (
-    <AdminAuthContext.Provider value={{ adminUser, loading, signOut, viewRole, setViewRole, activeRole, is2FAVerified, setIs2FAVerified }}>
+    <AdminAuthContext.Provider value={{ adminUser, loading, signOut, viewRole, setViewRole, activeRole, is2FAVerified, setIs2FAVerified, refreshAdminUser }}>
       {children}
     </AdminAuthContext.Provider>
   );

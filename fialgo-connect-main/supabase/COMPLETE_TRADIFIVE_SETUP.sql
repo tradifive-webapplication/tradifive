@@ -160,11 +160,14 @@ DROP POLICY IF EXISTS "allow_all_admin_pings" ON public.admin_pings;
 CREATE POLICY "allow_all_admin_pings" ON public.admin_pings FOR ALL USING (true) WITH CHECK (true);
 
 CREATE TABLE IF NOT EXISTS public.admin_profiles (
+  avatar_url TEXT,
   created_at TIMESTAMPTZ DEFAULT now(),
+  department TEXT DEFAULT 'Executive',
   email TEXT,
   full_name TEXT,
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  is_active BOOLEAN,
+  is_active BOOLEAN DEFAULT true,
+  last_login_at TIMESTAMPTZ,
   role TEXT,
   updated_at TIMESTAMPTZ DEFAULT now()
 );
