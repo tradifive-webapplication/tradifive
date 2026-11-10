@@ -460,23 +460,25 @@ function Hero({ onStart, onSignIn }: { onStart: () => void; onSignIn: () => void
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.985 }}
                 style={{
-                  padding: "0 20px",
+                  padding: "0 22px",
                   fontSize: 13.5,
-                  fontWeight: 600,
+                  fontWeight: 700,
                   borderRadius: 100,
                   height: 38,
                   display: "inline-flex",
                   alignItems: "center",
                   justifyContent: "center",
+                  gap: 8,
                   whiteSpace: "nowrap",
                   background: "#171717",
-                  color: "rgba(255, 255, 255, 0.9)",
+                  color: "#ffffff",
                   border: "none",
                   boxShadow: "none",
                   cursor: "pointer"
                 }}
               >
-                Learn More
+                <span>Learn More</span>
+                <ArrowRight size={15} />
               </motion.button>
             </motion.div>
 

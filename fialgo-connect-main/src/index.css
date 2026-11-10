@@ -429,12 +429,12 @@
   .btn-ghost {
     border-radius: 9999px !important;
     background: #171717 !important;
-    color: rgba(255, 255, 255, 0.9) !important;
+    color: #ffffff !important;
     border: none !important;
     box-shadow: none !important;
-    font-weight: 600 !important;
+    font-weight: 700 !important;
     font-size: 13.5px !important;
-    padding: 8px 20px !important;
+    padding: 8px 22px !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
