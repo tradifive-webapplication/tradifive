@@ -441,14 +441,15 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
                         key={item.label}
                         type="button"
                         onClick={() => setStyle(item.label)}
-                        className={`inline-flex items-center gap-2.5 px-5 py-3 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-150 border-0 ${
+                        className={`inline-flex items-center gap-2.5 h-11 px-5 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer select-none border ${
                           isSelected
-                            ? "bg-zinc-800 text-white shadow-md"
-                            : "bg-[#14151a] text-zinc-300 hover:bg-[#1c1e24] hover:text-white"
+                            ? "bg-gradient-to-r from-[#1e293b] to-[#0f172a] text-[#60a5fa] border-[#3b82f6]/50 shadow-[0_0_15px_rgba(59,130,246,0.18)] scale-[1.02]"
+                            : "bg-[#171717] text-zinc-300 hover:text-white border-white/[0.08] hover:border-white/[0.18] hover:bg-[#1f2026]"
                         }`}
                       >
-                        <Icon size={15} className={isSelected ? "text-blue-400" : "text-zinc-500"} />
+                        <Icon size={16} className={isSelected ? "text-[#60a5fa]" : "text-zinc-500"} />
                         <span>{item.label}</span>
+                        {isSelected && <Check size={14} className="text-[#60a5fa] ml-0.5" strokeWidth={3} />}
                       </button>
                     );
                   })}
@@ -486,14 +487,15 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
                         key={item.label}
                         type="button"
                         onClick={() => setMarket(item.label)}
-                        className={`inline-flex items-center gap-2.5 px-5 py-3 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-150 border-0 ${
+                        className={`inline-flex items-center gap-2.5 h-11 px-5 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer select-none border ${
                           isSelected
-                            ? "bg-zinc-800 text-white shadow-md"
-                            : "bg-[#14151a] text-zinc-300 hover:bg-[#1c1e24] hover:text-white"
+                            ? "bg-gradient-to-r from-[#1e293b] to-[#0f172a] text-[#60a5fa] border-[#3b82f6]/50 shadow-[0_0_15px_rgba(59,130,246,0.18)] scale-[1.02]"
+                            : "bg-[#171717] text-zinc-300 hover:text-white border-white/[0.08] hover:border-white/[0.18] hover:bg-[#1f2026]"
                         }`}
                       >
-                        <Icon size={15} className={isSelected ? "text-blue-400" : "text-zinc-500"} />
+                        <Icon size={16} className={isSelected ? "text-[#60a5fa]" : "text-zinc-500"} />
                         <span>{item.label}</span>
+                        {isSelected && <Check size={14} className="text-[#60a5fa] ml-0.5" strokeWidth={3} />}
                       </button>
                     );
                   })}
@@ -533,14 +535,15 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
                         key={item.label}
                         type="button"
                         onClick={() => toggleMultiSelect(item.label, selectedEdges, setSelectedEdges)}
-                        className={`inline-flex items-center gap-2.5 px-5 py-3 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-150 border-0 ${
+                        className={`inline-flex items-center gap-2.5 h-11 px-5 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer select-none border ${
                           isSelected
-                            ? "bg-zinc-800 text-white shadow-md"
-                            : "bg-[#14151a] text-zinc-300 hover:bg-[#1c1e24] hover:text-white"
+                            ? "bg-gradient-to-r from-[#1e293b] to-[#0f172a] text-[#60a5fa] border-[#3b82f6]/50 shadow-[0_0_15px_rgba(59,130,246,0.18)] scale-[1.02]"
+                            : "bg-[#171717] text-zinc-300 hover:text-white border-white/[0.08] hover:border-white/[0.18] hover:bg-[#1f2026]"
                         }`}
                       >
-                        <Icon size={15} className={isSelected ? "text-blue-400" : "text-zinc-500"} />
+                        <Icon size={16} className={isSelected ? "text-[#60a5fa]" : "text-zinc-500"} />
                         <span>{item.label}</span>
+                        {isSelected && <Check size={14} className="text-[#60a5fa] ml-0.5" strokeWidth={3} />}
                       </button>
                     );
                   })}
@@ -580,14 +583,15 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
                         key={item.label}
                         type="button"
                         onClick={() => toggleMultiSelect(item.label, selectedHereTo, setSelectedHereTo)}
-                        className={`inline-flex items-center gap-2.5 px-5 py-3 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-150 border-0 ${
+                        className={`inline-flex items-center gap-2.5 h-11 px-5 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer select-none border ${
                           isSelected
-                            ? "bg-zinc-800 text-white shadow-md"
-                            : "bg-[#14151a] text-zinc-300 hover:bg-[#1c1e24] hover:text-white"
+                            ? "bg-gradient-to-r from-[#1e293b] to-[#0f172a] text-[#60a5fa] border-[#3b82f6]/50 shadow-[0_0_15px_rgba(59,130,246,0.18)] scale-[1.02]"
+                            : "bg-[#171717] text-zinc-300 hover:text-white border-white/[0.08] hover:border-white/[0.18] hover:bg-[#1f2026]"
                         }`}
                       >
-                        <Icon size={15} className={isSelected ? "text-blue-400" : "text-zinc-500"} />
+                        <Icon size={16} className={isSelected ? "text-[#60a5fa]" : "text-zinc-500"} />
                         <span>{item.label}</span>
+                        {isSelected && <Check size={14} className="text-[#60a5fa] ml-0.5" strokeWidth={3} />}
                       </button>
                     );
                   })}
@@ -620,13 +624,14 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
                         key={item}
                         type="button"
                         onClick={() => setFoundUs(item)}
-                        className={`inline-flex items-center px-5 py-3 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-150 border-0 ${
+                        className={`inline-flex items-center gap-2 h-11 px-5 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer select-none border ${
                           isSelected
-                            ? "bg-zinc-800 text-white shadow-md"
-                            : "bg-[#14151a] text-zinc-300 hover:bg-[#1c1e24] hover:text-white"
+                            ? "bg-gradient-to-r from-[#1e293b] to-[#0f172a] text-[#60a5fa] border-[#3b82f6]/50 shadow-[0_0_15px_rgba(59,130,246,0.18)] scale-[1.02]"
+                            : "bg-[#171717] text-zinc-300 hover:text-white border-white/[0.08] hover:border-white/[0.18] hover:bg-[#1f2026]"
                         }`}
                       >
                         <span>{item}</span>
+                        {isSelected && <Check size={14} className="text-[#60a5fa] ml-0.5" strokeWidth={3} />}
                       </button>
                     );
                   })}
