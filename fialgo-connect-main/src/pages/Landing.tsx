@@ -438,7 +438,7 @@ function Hero({ onStart, onSignIn }: { onStart: () => void; onSignIn: () => void
                   whiteSpace: "nowrap",
                   background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
                   color: "#ffffff",
-                  boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 2px 8px rgba(37, 99, 235, 0.35)",
+                  boxShadow: "none",
                   border: "none",
                   cursor: "pointer"
                 }}
@@ -471,8 +471,8 @@ function Hero({ onStart, onSignIn }: { onStart: () => void; onSignIn: () => void
                   whiteSpace: "nowrap",
                   background: "#171717",
                   color: "rgba(255, 255, 255, 0.9)",
-                  border: "1px solid rgba(255, 255, 255, 0.08)",
-                  boxShadow: "inset 0 1px 0 0 rgba(255, 255, 255, 0.1), 0 2px 4px rgba(0, 0, 0, 0.2)",
+                  border: "none",
+                  boxShadow: "none",
                   cursor: "pointer"
                 }}
               >
