@@ -427,7 +427,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
                   How do you trade?
                 </h1>
 
-                <div className="flex flex-wrap gap-3 mb-8">
+                <div className="flex flex-wrap gap-2 sm:gap-2.5 mb-8">
                   {[
                     { label: "Day trading", icon: Sun },
                     { label: "Swing", icon: TrendingUp },
@@ -441,15 +441,14 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
                         key={item.label}
                         type="button"
                         onClick={() => setStyle(item.label)}
-                        className={`inline-flex items-center gap-2.5 h-11 px-5 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer select-none border ${
+                        className={`inline-flex items-center gap-2 h-8 px-3.5 rounded-full text-xs font-medium transition-all duration-150 cursor-pointer select-none border ${
                           isSelected
-                            ? "bg-gradient-to-r from-[#1e293b] to-[#0f172a] text-[#60a5fa] border-[#3b82f6]/50 shadow-[0_0_15px_rgba(59,130,246,0.18)] scale-[1.02]"
+                            ? "bg-gradient-to-r from-[#1e293b] to-[#0f172a] text-[#60a5fa] border-[#3b82f6]/50 shadow-[0_0_12px_rgba(59,130,246,0.15)]"
                             : "bg-[#171717] text-zinc-300 hover:text-white border-white/[0.08] hover:border-white/[0.18] hover:bg-[#1f2026]"
                         }`}
                       >
-                        <Icon size={16} className={isSelected ? "text-[#60a5fa]" : "text-zinc-500"} />
+                        <Icon size={14} className={isSelected ? "text-[#60a5fa]" : "text-zinc-500"} />
                         <span>{item.label}</span>
-                        {isSelected && <Check size={14} className="text-[#60a5fa] ml-0.5" strokeWidth={3} />}
                       </button>
                     );
                   })}
@@ -471,7 +470,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
                   What do you trade?
                 </h1>
 
-                <div className="flex flex-wrap gap-3 mb-8">
+                <div className="flex flex-wrap gap-2 sm:gap-2.5 mb-8">
                   {[
                     { label: "Futures", icon: BarChart2 },
                     { label: "Stocks", icon: TrendingUp },
@@ -487,15 +486,14 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
                         key={item.label}
                         type="button"
                         onClick={() => setMarket(item.label)}
-                        className={`inline-flex items-center gap-2.5 h-11 px-5 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer select-none border ${
+                        className={`inline-flex items-center gap-2 h-8 px-3.5 rounded-full text-xs font-medium transition-all duration-150 cursor-pointer select-none border ${
                           isSelected
-                            ? "bg-gradient-to-r from-[#1e293b] to-[#0f172a] text-[#60a5fa] border-[#3b82f6]/50 shadow-[0_0_15px_rgba(59,130,246,0.18)] scale-[1.02]"
+                            ? "bg-gradient-to-r from-[#1e293b] to-[#0f172a] text-[#60a5fa] border-[#3b82f6]/50 shadow-[0_0_12px_rgba(59,130,246,0.15)]"
                             : "bg-[#171717] text-zinc-300 hover:text-white border-white/[0.08] hover:border-white/[0.18] hover:bg-[#1f2026]"
                         }`}
                       >
-                        <Icon size={16} className={isSelected ? "text-[#60a5fa]" : "text-zinc-500"} />
+                        <Icon size={14} className={isSelected ? "text-[#60a5fa]" : "text-zinc-500"} />
                         <span>{item.label}</span>
-                        {isSelected && <Check size={14} className="text-[#60a5fa] ml-0.5" strokeWidth={3} />}
                       </button>
                     );
                   })}
@@ -517,7 +515,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
                   What's your edge?
                 </h1>
 
-                <div className="flex flex-wrap gap-3 mb-8">
+                <div className="flex flex-wrap gap-2 sm:gap-2.5 mb-8">
                   {[
                     { label: "ICT concepts", icon: Target },
                     { label: "SMC", icon: Layers },
@@ -535,15 +533,14 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
                         key={item.label}
                         type="button"
                         onClick={() => toggleMultiSelect(item.label, selectedEdges, setSelectedEdges)}
-                        className={`inline-flex items-center gap-2.5 h-11 px-5 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer select-none border ${
+                        className={`inline-flex items-center gap-2 h-8 px-3.5 rounded-full text-xs font-medium transition-all duration-150 cursor-pointer select-none border ${
                           isSelected
-                            ? "bg-gradient-to-r from-[#1e293b] to-[#0f172a] text-[#60a5fa] border-[#3b82f6]/50 shadow-[0_0_15px_rgba(59,130,246,0.18)] scale-[1.02]"
+                            ? "bg-gradient-to-r from-[#1e293b] to-[#0f172a] text-[#60a5fa] border-[#3b82f6]/50 shadow-[0_0_12px_rgba(59,130,246,0.15)]"
                             : "bg-[#171717] text-zinc-300 hover:text-white border-white/[0.08] hover:border-white/[0.18] hover:bg-[#1f2026]"
                         }`}
                       >
-                        <Icon size={16} className={isSelected ? "text-[#60a5fa]" : "text-zinc-500"} />
+                        <Icon size={14} className={isSelected ? "text-[#60a5fa]" : "text-zinc-500"} />
                         <span>{item.label}</span>
-                        {isSelected && <Check size={14} className="text-[#60a5fa] ml-0.5" strokeWidth={3} />}
                       </button>
                     );
                   })}
@@ -565,7 +562,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
                   What are you here to do?
                 </h1>
 
-                <div className="flex flex-wrap gap-3 mb-8">
+                <div className="flex flex-wrap gap-2 sm:gap-2.5 mb-8">
                   {[
                     { label: "Find consistency", icon: Compass },
                     { label: "Grow my account", icon: TrendingUp },
@@ -583,15 +580,14 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
                         key={item.label}
                         type="button"
                         onClick={() => toggleMultiSelect(item.label, selectedHereTo, setSelectedHereTo)}
-                        className={`inline-flex items-center gap-2.5 h-11 px-5 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer select-none border ${
+                        className={`inline-flex items-center gap-2 h-8 px-3.5 rounded-full text-xs font-medium transition-all duration-150 cursor-pointer select-none border ${
                           isSelected
-                            ? "bg-gradient-to-r from-[#1e293b] to-[#0f172a] text-[#60a5fa] border-[#3b82f6]/50 shadow-[0_0_15px_rgba(59,130,246,0.18)] scale-[1.02]"
+                            ? "bg-gradient-to-r from-[#1e293b] to-[#0f172a] text-[#60a5fa] border-[#3b82f6]/50 shadow-[0_0_12px_rgba(59,130,246,0.15)]"
                             : "bg-[#171717] text-zinc-300 hover:text-white border-white/[0.08] hover:border-white/[0.18] hover:bg-[#1f2026]"
                         }`}
                       >
-                        <Icon size={16} className={isSelected ? "text-[#60a5fa]" : "text-zinc-500"} />
+                        <Icon size={14} className={isSelected ? "text-[#60a5fa]" : "text-zinc-500"} />
                         <span>{item.label}</span>
-                        {isSelected && <Check size={14} className="text-[#60a5fa] ml-0.5" strokeWidth={3} />}
                       </button>
                     );
                   })}
@@ -613,7 +609,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
                   Where did you hear about us?
                 </h1>
 
-                <div className="flex flex-wrap gap-3 mb-8">
+                <div className="flex flex-wrap gap-2 sm:gap-2.5 mb-8">
                   {[
                     "Discord", "Instagram", "TikTok", "YouTube", "X", 
                     "A friend", "Google", "AI", "Reddit", "Somewhere else"
@@ -624,14 +620,13 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
                         key={item}
                         type="button"
                         onClick={() => setFoundUs(item)}
-                        className={`inline-flex items-center gap-2 h-11 px-5 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer select-none border ${
+                        className={`inline-flex items-center h-8 px-3.5 rounded-full text-xs font-medium transition-all duration-150 cursor-pointer select-none border ${
                           isSelected
-                            ? "bg-gradient-to-r from-[#1e293b] to-[#0f172a] text-[#60a5fa] border-[#3b82f6]/50 shadow-[0_0_15px_rgba(59,130,246,0.18)] scale-[1.02]"
+                            ? "bg-gradient-to-r from-[#1e293b] to-[#0f172a] text-[#60a5fa] border-[#3b82f6]/50 shadow-[0_0_12px_rgba(59,130,246,0.15)]"
                             : "bg-[#171717] text-zinc-300 hover:text-white border-white/[0.08] hover:border-white/[0.18] hover:bg-[#1f2026]"
                         }`}
                       >
                         <span>{item}</span>
-                        {isSelected && <Check size={14} className="text-[#60a5fa] ml-0.5" strokeWidth={3} />}
                       </button>
                     );
                   })}
