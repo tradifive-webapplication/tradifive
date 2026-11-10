@@ -250,9 +250,9 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
       </header>
 
       {/* ── MAIN CONTENT WORKSPACE ── */}
-      <div className="flex-1 w-full max-w-7xl mx-auto flex flex-col md:flex-row px-8 sm:px-12 md:px-16 py-6 md:py-10 gap-10 md:gap-20">
+      <div className="flex-1 w-full max-w-7xl mx-auto flex flex-col md:flex-row px-8 sm:px-12 md:px-16 py-6 md:py-10 gap-10 md:gap-12 lg:gap-16">
         {/* ── LEFT SIDEBAR ── */}
-        <aside className="w-full md:w-60 shrink-0 flex flex-col pb-6 md:pb-0 md:pr-6 pt-6 md:pt-16">
+        <aside className="w-full md:w-60 shrink-0 flex flex-col pb-6 md:pb-0 md:pr-6 pt-6 md:pt-28 lg:pt-32">
           <div className="flex flex-row md:flex-col gap-0 overflow-x-auto md:overflow-x-visible pb-2 md:pb-0 scrollbar-none">
             {/* Dynamic Steps */}
             {STEPS_ORDER.map((s, idx) => {
@@ -713,6 +713,9 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
           </div>
         </main>
         </div>
+
+        {/* ── RIGHT BALANCER (Ensures Center Question is 100% centered) ── */}
+        <div className="hidden md:block w-60 shrink-0 pointer-events-none" aria-hidden="true" />
       </div>
     </div>
   );
