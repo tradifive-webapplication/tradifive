@@ -180,6 +180,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
 
       // 3. Local sync & events
       localStorage.setItem("tradifive_cached_username", finalUsername);
+      localStorage.setItem("tradifive_cached_display_name", finalName);
       localStorage.setItem("tradifive_onboarding_completed", "true");
       window.dispatchEvent(new Event("tradifive_profile_update"));
 
@@ -356,7 +357,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
                     />
                   </div>
                   <p className="text-xs sm:text-sm text-zinc-500 mb-8">
-                    However you want to be addressed in your own journal.
+                    Your display name across the TradiFive ecosystem — journal, AI coach, community, and leaderboards.
                   </p>
                 </motion.div>
               )}
