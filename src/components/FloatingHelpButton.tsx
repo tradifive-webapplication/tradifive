@@ -613,10 +613,10 @@ export default function FloatingHelpButton() {
               overflow: "hidden"
             }}
           >
-            {/* Header: Clean Big-Tech Layout (Icon removed, clear status & controls) */}
+            {/* Header: Clean Big-Tech Layout (Single-line title, compact status & uniform icon controls) */}
             <div
               style={{
-                padding: "13px 18px",
+                padding: "12px 16px",
                 background: isDark
                   ? "linear-gradient(to bottom, #18181d, #121215)"
                   : "linear-gradient(to bottom, #ffffff, #f8fafc)",
@@ -624,84 +624,88 @@ export default function FloatingHelpButton() {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
-                flexShrink: 0
+                flexShrink: 0,
+                gap: 10
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
-                <div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <h4
-                      style={{
-                        fontSize: 14.5,
-                        fontWeight: 700,
-                        color: isDark ? "#ffffff" : "#0f172a",
-                        margin: 0,
-                        letterSpacing: "-0.01em"
-                      }}
-                    >
-                      Live Support Desk
-                    </h4>
-                    <div
-                      style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 4.5,
-                        padding: "2px 7.5px",
-                        borderRadius: 100,
-                        background: isDark ? "rgba(16, 185, 129, 0.12)" : "#ecfdf5",
-                        border: isDark ? "1px solid rgba(16, 185, 129, 0.25)" : "1px solid #a7f3d0"
-                      }}
-                    >
-                      <span
-                        style={{
-                          width: 5.5,
-                          height: 5.5,
-                          borderRadius: "50%",
-                          background: "#10b981",
-                          boxShadow: "0 0 6px #10b981"
-                        }}
-                      />
-                      <span
-                        style={{
-                          fontSize: 9.5,
-                          fontWeight: 700,
-                          color: isDark ? "#34d399" : "#059669",
-                          textTransform: "uppercase",
-                          letterSpacing: "0.04em"
-                        }}
-                      >
-                        Online
-                      </span>
-                    </div>
-                  </div>
-                  <span
+              <div style={{ display: "flex", flexDirection: "column", minWidth: 0, flex: 1 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 7, flexWrap: "nowrap" }}>
+                  <h4
                     style={{
-                      fontSize: 11,
-                      color: isDark ? "rgba(255, 255, 255, 0.45)" : "#64748b",
-                      display: "block",
-                      marginTop: 1,
+                      fontSize: 14,
+                      fontWeight: 700,
+                      color: isDark ? "#ffffff" : "#0f172a",
+                      margin: 0,
+                      letterSpacing: "-0.01em",
                       whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis"
+                      flexShrink: 0
                     }}
                   >
-                    {activeTicket ? `Ticket #${activeTicket.id.slice(0, 8)} · Support Team` : "TradiFive Customer Support"}
-                  </span>
+                    Live Support Desk
+                  </h4>
+                  <div
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 4,
+                      padding: "2px 6.5px",
+                      borderRadius: 100,
+                      background: isDark ? "rgba(16, 185, 129, 0.12)" : "#ecfdf5",
+                      border: isDark ? "1px solid rgba(16, 185, 129, 0.25)" : "1px solid #a7f3d0",
+                      flexShrink: 0
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: 5,
+                        height: 5,
+                        borderRadius: "50%",
+                        background: "#10b981",
+                        boxShadow: "0 0 6px #10b981"
+                      }}
+                    />
+                    <span
+                      style={{
+                        fontSize: 9,
+                        fontWeight: 700,
+                        color: isDark ? "#34d399" : "#059669",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.04em"
+                      }}
+                    >
+                      Online
+                    </span>
+                  </div>
                 </div>
+                <span
+                  style={{
+                    fontSize: 11,
+                    color: isDark ? "rgba(255, 255, 255, 0.45)" : "#64748b",
+                    display: "block",
+                    marginTop: 2,
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis"
+                  }}
+                >
+                  {activeTicket ? `Ticket #${activeTicket.id.slice(0, 8)} · Support Team` : "TradiFive Customer Support"}
+                </span>
               </div>
 
-              {/* Window Controls: Reset, Expand/Compact, Minimize, Close */}
-              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              {/* Window Controls: Reset, Expand/Compact, Minimize, Close (Uniform 28x28 icon buttons) */}
+              <div style={{ display: "flex", alignItems: "center", gap: 5, flexShrink: 0 }}>
                 {hasMoved && (
                   <button
                     type="button"
                     onClick={handleResetPos}
                     style={{
+                      width: 28,
+                      height: 28,
                       background: isDark ? "rgba(255, 255, 255, 0.06)" : "#f1f5f9",
                       border: isDark ? "1px solid rgba(255, 255, 255, 0.12)" : "1px solid #e2e8f0",
                       color: isDark ? "rgba(255, 255, 255, 0.75)" : "#475569",
                       cursor: "pointer",
-                      padding: "5px 7px",
+                      padding: 0,
                       borderRadius: 7,
                       display: "flex",
                       alignItems: "center",
@@ -718,6 +722,8 @@ export default function FloatingHelpButton() {
                   type="button"
                   onClick={toggleWindowSize}
                   style={{
+                    width: 28,
+                    height: 28,
                     background: isBig
                       ? (isDark ? "rgba(59, 130, 246, 0.2)" : "rgba(37, 99, 235, 0.1)")
                       : (isDark ? "rgba(255, 255, 255, 0.06)" : "#f1f5f9"),
@@ -728,32 +734,29 @@ export default function FloatingHelpButton() {
                       ? (isDark ? "#60a5fa" : "#2563eb")
                       : (isDark ? "rgba(255, 255, 255, 0.75)" : "#475569"),
                     cursor: "pointer",
-                    padding: "5px 9px",
+                    padding: 0,
                     borderRadius: 7,
                     display: "flex",
                     alignItems: "center",
-                    gap: 4,
-                    fontSize: 10,
-                    fontWeight: 700,
-                    textTransform: "uppercase",
-                    letterSpacing: "0.05em",
+                    justifyContent: "center",
                     transition: "all 0.15s ease"
                   }}
                   title={isBig ? "Switch to Compact View" : "Expand to Spacious View"}
                 >
                   {isBig ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
-                  <span>{isBig ? "Compact" : "Expand"}</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setIsMinimized(!isMinimized)}
                   style={{
+                    width: 28,
+                    height: 28,
                     background: isDark ? "rgba(255, 255, 255, 0.06)" : "#f1f5f9",
                     border: isDark ? "1px solid rgba(255, 255, 255, 0.12)" : "1px solid #e2e8f0",
                     color: isDark ? "rgba(255, 255, 255, 0.75)" : "#475569",
                     cursor: "pointer",
-                    padding: "5px 7px",
+                    padding: 0,
                     borderRadius: 7,
                     display: "flex",
                     alignItems: "center",
@@ -769,11 +772,13 @@ export default function FloatingHelpButton() {
                   type="button"
                   onClick={() => setIsOpen(false)}
                   style={{
+                    width: 28,
+                    height: 28,
                     background: isDark ? "rgba(255, 255, 255, 0.06)" : "#f1f5f9",
                     border: isDark ? "1px solid rgba(255, 255, 255, 0.12)" : "1px solid #e2e8f0",
                     color: isDark ? "rgba(255, 255, 255, 0.75)" : "#475569",
                     cursor: "pointer",
-                    padding: "5px 7px",
+                    padding: 0,
                     borderRadius: 7,
                     display: "flex",
                     alignItems: "center",
