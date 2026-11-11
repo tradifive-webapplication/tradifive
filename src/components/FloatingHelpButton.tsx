@@ -95,25 +95,106 @@ export default function FloatingHelpButton() {
   const y = useMotionValue(initialPos.y);
 
   const [hasMoved, setHasMoved] = useState(() => initialPos.x !== 0 || initialPos.y !== 0);
-  const [dragConstraints, setDragConstraints] = useState({ top: -600, bottom: 12, left: -1000, right: 12 });
   const isDraggingRef = useRef(false);
   const clickTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
-    const updateBounds = () => {
-      if (typeof window !== "undefined") {
-        setDragConstraints({
-          top: -(window.innerHeight - 90),
-          bottom: 12,
-          left: -(window.innerWidth - 80),
-          right: 12,
-        });
-      }
+  // ── High-Performance Live Pointer Drag (Tracks mouse visibly in real-time, drops wherever released) ──
+  const pointerDownRef = useRef<{ clientX: number; clientY: number; startX: number; startY: number } | null>(null);
+  const isDraggingStateRef = useRef(false);
+  const [isCurrentlyDragging, setIsCurrentlyDragging] = useState(false);
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
+    if (e.button !== 0 && e.pointerType === "mouse") return;
+    
+    // Prevent browser native ghost drag and text selection
+    e.preventDefault();
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {}
+
+    pointerDownRef.current = {
+      clientX: e.clientX,
+      clientY: e.clientY,
+      startX: x.get(),
+      startY: y.get(),
     };
-    updateBounds();
-    window.addEventListener("resize", updateBounds);
-    return () => window.removeEventListener("resize", updateBounds);
-  }, []);
+    isDraggingStateRef.current = false;
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLButtonElement>) => {
+    if (!pointerDownRef.current) return;
+
+    const deltaX = e.clientX - pointerDownRef.current.clientX;
+    const deltaY = e.clientY - pointerDownRef.current.clientY;
+
+    if (!isDraggingStateRef.current && Math.hypot(deltaX, deltaY) > 3) {
+      isDraggingStateRef.current = true;
+      isDraggingRef.current = true;
+      setIsCurrentlyDragging(true);
+      if (clickTimerRef.current) {
+        clearTimeout(clickTimerRef.current);
+        clickTimerRef.current = null;
+      }
+    }
+
+    if (isDraggingStateRef.current) {
+      let newX = pointerDownRef.current.startX + deltaX;
+      let newY = pointerDownRef.current.startY + deltaY;
+
+      if (typeof window !== "undefined") {
+        const maxLeft = -(window.innerWidth - 82);
+        const maxTop = -(window.innerHeight - 82);
+        newX = Math.min(12, Math.max(maxLeft, newX));
+        newY = Math.min(12, Math.max(maxTop, newY));
+      }
+
+      x.set(newX);
+      y.set(newY);
+    }
+  };
+
+  const handlePointerUp = (e: React.PointerEvent<HTMLButtonElement>) => {
+    if (!pointerDownRef.current) return;
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch {}
+
+    const wasDragging = isDraggingStateRef.current;
+    pointerDownRef.current = null;
+    setIsCurrentlyDragging(false);
+
+    if (wasDragging) {
+      // User dropped the button right where the mouse left it
+      const curX = x.get();
+      const curY = y.get();
+
+      const isMoved = Math.abs(curX) > 10 || Math.abs(curY) > 10;
+      setHasMoved(isMoved);
+
+      const isLeft = typeof window !== "undefined" && curX < -(window.innerWidth - 106) / 2;
+      const isTop = typeof window !== "undefined" && curY < -(window.innerHeight - 106) / 2;
+      const quadrant = isTop ? (isLeft ? "top-left" : "top-right") : (isLeft ? "bottom-left" : "bottom-right");
+      setActiveCorner(quadrant);
+
+      try {
+        if (isMoved) {
+          localStorage.setItem("tf_support_btn_pos", JSON.stringify({ x: curX, y: curY }));
+          localStorage.setItem("tf_support_corner", quadrant);
+        } else {
+          localStorage.removeItem("tf_support_btn_pos");
+          localStorage.removeItem("tf_support_corner");
+        }
+      } catch {}
+
+      setTimeout(() => {
+        isDraggingRef.current = false;
+        isDraggingStateRef.current = false;
+      }, 100);
+    } else {
+      isDraggingRef.current = false;
+      handleButtonClick();
+    }
+  };
 
   const handleCornerCycle = () => {
     const corners = getCorners();
@@ -455,67 +536,25 @@ export default function FloatingHelpButton() {
 
   return (
     <>
-      {/* Floating Action Button (Drag anywhere or Double-Click to cycle all 4 corners) */}
+      {/* Floating Action Button (Real-time live drag anywhere, drops wherever released) */}
       <motion.button
-        drag
-        dragMomentum={false}
-        dragElastic={0}
-        dragConstraints={dragConstraints}
-        onDragStart={() => {
-          isDraggingRef.current = true;
-          if (clickTimerRef.current) {
-            clearTimeout(clickTimerRef.current);
-            clickTimerRef.current = null;
-          }
+        draggable={false}
+        onDragStart={(e) => e.preventDefault()}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerUp}
+        whileHover={{ scale: isCurrentlyDragging ? 1.12 : 1.08 }}
+        whileTap={{ scale: isCurrentlyDragging ? 1.12 : 0.94 }}
+        animate={{
+          scale: isCurrentlyDragging ? 1.12 : 1,
+          boxShadow: isCurrentlyDragging
+            ? "0 20px 35px -5px rgba(37, 99, 235, 0.6), 0 0 0 2px rgba(255, 255, 255, 0.4)"
+            : "0 10px 25px -5px rgba(37, 99, 235, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.15)",
         }}
-        onDragEnd={() => {
-          setTimeout(() => {
-            isDraggingRef.current = false;
-          }, 150);
-          const curX = x.get();
-          const curY = y.get();
-          const corners = getCorners();
-
-          let snapped = false;
-          for (const c of corners) {
-            if (Math.hypot(c.x - curX, c.y - curY) < 90) {
-              animate(x, c.x, { type: "spring", stiffness: 400, damping: 28 });
-              animate(y, c.y, { type: "spring", stiffness: 400, damping: 28 });
-              setActiveCorner(c.name as any);
-              setHasMoved(c.name !== "bottom-right");
-              try {
-                localStorage.setItem("tf_support_btn_pos", JSON.stringify({ x: c.x, y: c.y }));
-                localStorage.setItem("tf_support_corner", c.name);
-              } catch {}
-              snapped = true;
-              break;
-            }
-          }
-
-          if (!snapped) {
-            const isMoved = Math.abs(curX) > 10 || Math.abs(curY) > 10;
-            setHasMoved(isMoved);
-            const isLeft = typeof window !== "undefined" && curX < -(window.innerWidth - 106) / 2;
-            const isTop = typeof window !== "undefined" && curY < -(window.innerHeight - 106) / 2;
-            const quadrant = isTop ? (isLeft ? "top-left" : "top-right") : (isLeft ? "bottom-left" : "bottom-right");
-            setActiveCorner(quadrant);
-            try {
-              if (isMoved) {
-                localStorage.setItem("tf_support_btn_pos", JSON.stringify({ x: curX, y: curY }));
-                localStorage.setItem("tf_support_corner", quadrant);
-              } else {
-                localStorage.removeItem("tf_support_btn_pos");
-                localStorage.removeItem("tf_support_corner");
-              }
-            } catch {}
-          }
-        }}
-        onClick={handleButtonClick}
-        whileHover={{ scale: 1.08 }}
-        whileTap={{ scale: 0.94 }}
-        whileDrag={{ scale: 1.12, boxShadow: "0 20px 35px -5px rgba(37, 99, 235, 0.6), 0 0 0 2px rgba(255, 255, 255, 0.4)" }}
+        transition={{ duration: 0.15 }}
         aria-label="Open Live Support Desk"
-        title="Double-click to move to next corner · Drag anywhere · Click to open Support"
+        title="Drag anywhere to reposition · Double-click to cycle corners · Click to open"
         style={{
           x,
           y,
@@ -528,11 +567,10 @@ export default function FloatingHelpButton() {
           borderRadius: "50%",
           background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
           color: "#fff",
-          boxShadow: "0 10px 25px -5px rgba(37, 99, 235, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.15)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          cursor: "grab",
+          cursor: isCurrentlyDragging ? "grabbing" : "grab",
           touchAction: "none",
           userSelect: "none",
           border: "none",
