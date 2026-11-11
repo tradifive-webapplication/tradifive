@@ -146,6 +146,9 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
       const finalUsername = handle || `trader_${user.id.slice(0, 6)}`;
       const finalName = name.trim() || user.email?.split('@')[0] || "Trader";
 
+      // Combine style and edge tags into comma-separated list for profile badges
+      const combinedStyle = Array.from(new Set([style, ...selectedEdges].filter(Boolean))).join(',') || style || "Day trading";
+
       // 1. Update Supabase profiles
       const { error: profileError } = await supabase
         .from('profiles')
@@ -153,7 +156,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
           full_name: finalName,
           display_name: finalName,
           username: finalUsername,
-          trading_style: style || "Day trading",
+          trading_style: combinedStyle,
           preferred_market: market ? market.toLowerCase() : "forex",
           has_chosen_username: true,
         })
