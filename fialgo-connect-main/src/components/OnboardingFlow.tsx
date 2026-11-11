@@ -223,16 +223,16 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
     <div className="fixed inset-0 z-[99999] bg-[#08080A] text-white flex flex-col overflow-y-auto selection:bg-blue-600/30">
       {/* ── TOP HEADER BAR ── */}
       <header className="w-full h-16 px-6 sm:px-10 flex items-center justify-between shrink-0 bg-[#08080A]/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-3">
           <img 
             src="/tf-logo.png" 
             alt="TradiFive Icon" 
-            className="w-[32px] h-[32px] object-contain shrink-0" 
+            className="w-[34px] h-[34px] sm:w-[38px] sm:h-[38px] object-contain shrink-0" 
           />
           <img 
             src="/Dark mode logo with white.png" 
             alt="TradiFive" 
-            className="h-[22px] w-auto object-contain shrink-0" 
+            className="h-[28px] sm:h-[33px] w-auto object-contain shrink-0" 
           />
         </div>
 
