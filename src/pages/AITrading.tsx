@@ -772,15 +772,6 @@ export default function AITrading() {
     setActiveStep(4);
   };
 
-  const handleApprovePaymentDemo = () => {
-    setPaymentStatus("approved");
-    localStorage.setItem("tradifive_payment_status", "approved");
-    localStorage.setItem("tradifive_auto_trade_setup", "true");
-    toast.success("License Key Unlocked!", {
-      description: "₹9,999 payment verified. Personal MT5 key is now active."
-    });
-  };
-
   const handleResetPayment = () => {
     setPaymentStatus("none");
     localStorage.removeItem("tradifive_payment_status");
@@ -1589,7 +1580,7 @@ MagicNumber=789104
                     </button>
                   </div>
 
-                  {/* Secondary Footers: Change Account & Discreet Dev Helper */}
+                  {/* Secondary Footers: Change Account */}
                   <div className="flex items-center justify-between gap-3 pt-1 border-t border-slate-200/60 dark:border-white/5 text-xs">
                     <button
                       type="button"
@@ -1597,21 +1588,6 @@ MagicNumber=789104
                       className="text-xs font-medium text-slate-500 hover:text-rose-600 dark:text-slate-400 dark:hover:text-rose-400 transition-colors cursor-pointer"
                     >
                       ← Change MT5 Account
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIbVerified(true);
-                        setTransferRequestStatus("approved");
-                        toast.success("Account Approved & Verified!", {
-                          description: "Vantage MT5 account verified with $500 minimum balance."
-                        });
-                      }}
-                      className="text-[11px] font-medium text-slate-400 hover:text-slate-700 dark:text-slate-500 dark:hover:text-slate-300 underline cursor-pointer"
-                      title="Simulate instant broker approval for testing"
-                    >
-                      Simulate approval (Demo)
                     </button>
                   </div>
                 </div>
@@ -2975,18 +2951,6 @@ MagicNumber=789104
                       <span>Email Support</span>
                     </a>
                   </div>
-
-                  {/* Discrete testing helper */}
-                  <div className="pt-2 border-t border-slate-200/60 dark:border-white/5 flex items-center justify-between text-[11px] text-slate-400">
-                    <span>Developer / Testing Helper:</span>
-                    <button
-                      type="button"
-                      onClick={handleApprovePaymentDemo}
-                      className="font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 underline cursor-pointer"
-                    >
-                      Simulate Instant Approval (Demo)
-                    </button>
-                  </div>
                 </div>
               </div>
             ) : !ibVerified ? (
@@ -3105,24 +3069,6 @@ MagicNumber=789104
                       <Mail size={14} />
                       <span>Email Support</span>
                     </a>
-                  </div>
-
-                  {/* Discrete testing helper */}
-                  <div className="pt-2 border-t border-slate-200/60 dark:border-white/5 flex items-center justify-between text-[11px] text-slate-400">
-                    <span>Developer / Testing Helper:</span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIbVerified(true);
-                        setTransferRequestStatus("approved");
-                        toast.success("Account Approved & License Key Unlocked!", {
-                          description: "MT5 account verified with $500 balance."
-                        });
-                      }}
-                      className="font-medium text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white underline cursor-pointer"
-                    >
-                      Instant Verify (Demo)
-                    </button>
                   </div>
                 </div>
 
