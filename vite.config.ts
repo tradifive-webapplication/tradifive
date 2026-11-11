@@ -16,6 +16,13 @@ export default defineConfig(({ mode }) => ({
     hmr: {
       overlay: false,
     },
+    proxy: {
+      '/api/economic-calendar': {
+        target: 'https://nfs.faireconomy.media',
+        changeOrigin: true,
+        rewrite: () => '/ff_calendar_thisweek.json',
+      },
+    },
   },
   optimizeDeps: { force: true },
   plugins: [
