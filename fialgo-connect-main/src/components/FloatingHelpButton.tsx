@@ -15,7 +15,8 @@ import {
   Minus,
   RotateCcw,
   AlertCircle,
-  Lightbulb
+  Lightbulb,
+  Mail
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -25,15 +26,17 @@ import {
   uploadSupportAttachment,
   ChatAttachment
 } from "@/utils/supportChat";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import ReportProblemModal from "./ReportProblemModal";
 import SuggestFeatureModal from "./SuggestFeatureModal";
 
 export default function FloatingHelpButton() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [showSuggestModal, setShowSuggestModal] = useState(false);
+  const [inboxUnread, setInboxUnread] = useState(0);
   const [isMinimized, setIsMinimized] = useState(false);
   const [isBig, setIsBig] = useState<boolean>(() => {
     try {
@@ -250,6 +253,19 @@ export default function FloatingHelpButton() {
       authListener.subscription.unsubscribe();
     };
   }, []);
+
+  // Fetch unread inbox messages for Mailbox badge in footer
+  useEffect(() => {
+    if (!user?.id) return;
+    supabase
+      .from("direct_messages")
+      .select("id", { count: "exact", head: true })
+      .eq("receiver_id", user.id)
+      .eq("is_read", false)
+      .then(({ count }) => {
+        if (typeof count === "number") setInboxUnread(count);
+      });
+  }, [user?.id]);
 
   // 2. Fetch or load active ticket when opened or user identified
   useEffect(() => {
@@ -494,157 +510,191 @@ export default function FloatingHelpButton() {
   return (
     <>
       {/* Bottom Floating Action Dock (Report, Suggest, Help - matches requested layout & Picture 3) */}
+      {/* ── 1. Bottom Footer Action Strip (Down below the white page, exactly matching Reference Image 3) ── */}
       <div
         style={{
           position: "fixed",
-          bottom: 24,
-          right: 24,
-          zIndex: 9990,
+          bottom: 8,
+          right: 28,
+          zIndex: 9988,
           display: "flex",
           alignItems: "center",
-          gap: 9,
+          gap: 18,
+          fontSize: 12,
+          fontWeight: 500,
+          color: isDark ? "rgba(255, 255, 255, 0.55)" : "#64748b",
+          userSelect: "none",
         }}
       >
-        {/* Report a Problem Pill Button */}
-        <motion.button
+        {/* Mailbox Link */}
+        <button
           type="button"
-          whileHover={{ scale: 1.04, y: -1 }}
-          whileTap={{ scale: 0.96 }}
-          onClick={() => setShowReportModal(true)}
-          title="Report a problem or bug"
+          onClick={() => navigate("/inbox")}
+          title="Open Inbox"
           style={{
-            padding: "8px 14px",
-            borderRadius: 9999,
-            background: isDark ? "rgba(18, 18, 20, 0.9)" : "rgba(255, 255, 255, 0.95)",
-            backdropFilter: "blur(16px)",
-            border: isDark ? "1px solid rgba(255, 255, 255, 0.12)" : "1px solid rgba(226, 232, 240, 0.95)",
-            boxShadow: isDark
-              ? "0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 1px 3px rgba(255, 255, 255, 0.05)"
-              : "0 10px 25px -5px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.05)",
-            display: "flex",
-            alignItems: "center",
-            gap: 6.5,
-            cursor: "pointer",
-            color: isDark ? "#ffffff" : "#0f172a",
-            fontSize: 12.5,
-            fontWeight: 600,
-            letterSpacing: "-0.01em",
-            userSelect: "none",
-            transition: "all 0.15s ease",
-          }}
-        >
-          <AlertCircle size={14} className="text-rose-500" />
-          <span>Report</span>
-        </motion.button>
-
-        {/* Suggest a Feature Pill Button */}
-        <motion.button
-          type="button"
-          whileHover={{ scale: 1.04, y: -1 }}
-          whileTap={{ scale: 0.96 }}
-          onClick={() => setShowSuggestModal(true)}
-          title="Suggest a new feature or idea"
-          style={{
-            padding: "8px 14px",
-            borderRadius: 9999,
-            background: isDark ? "rgba(18, 18, 20, 0.9)" : "rgba(255, 255, 255, 0.95)",
-            backdropFilter: "blur(16px)",
-            border: isDark ? "1px solid rgba(255, 255, 255, 0.12)" : "1px solid rgba(226, 232, 240, 0.95)",
-            boxShadow: isDark
-              ? "0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 1px 3px rgba(255, 255, 255, 0.05)"
-              : "0 10px 25px -5px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.05)",
-            display: "flex",
-            alignItems: "center",
-            gap: 6.5,
-            cursor: "pointer",
-            color: isDark ? "#ffffff" : "#0f172a",
-            fontSize: 12.5,
-            fontWeight: 600,
-            letterSpacing: "-0.01em",
-            userSelect: "none",
-            transition: "all 0.15s ease",
-          }}
-        >
-          <Lightbulb size={14} className="text-amber-500" />
-          <span>Suggest</span>
-        </motion.button>
-
-        {/* Help Circle Button (Matches Picture 3: Blue circular button with speech bubble and pulsing online green dot) */}
-        <motion.button
-          type="button"
-          whileHover={{ scale: 1.06, y: -1 }}
-          whileTap={{ scale: 0.94 }}
-          onClick={() => setIsOpen((prev) => !prev)}
-          aria-label="Open Live Support Desk"
-          title="Help & Support Desk"
-          style={{
-            position: "relative",
-            width: 52,
-            height: 52,
-            borderRadius: "50%",
-            background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
-            color: "#fff",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            cursor: "pointer",
+            background: "transparent",
             border: "none",
-            boxShadow: isDark
-              ? "0 12px 28px -5px rgba(37, 99, 235, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.2)"
-              : "0 12px 28px -5px rgba(37, 99, 235, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.3)",
-            userSelect: "none",
-            transition: "all 0.15s ease",
+            display: "flex",
+            alignItems: "center",
+            gap: 5.5,
+            cursor: "pointer",
+            color: "inherit",
+            fontSize: "inherit",
+            fontWeight: "inherit",
+            padding: 0,
+            transition: "color 0.15s ease",
           }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = isDark ? "#ffffff" : "#0f172a")}
+          onMouseLeave={(e) => (e.currentTarget.style.color = isDark ? "rgba(255, 255, 255, 0.55)" : "#64748b")}
         >
-          {/* Pulsing online green dot (Picture 3) */}
-          {unreadCount === 0 && (
+          <Mail size={13.5} />
+          <span>Mailbox</span>
+          {inboxUnread > 0 && (
             <span
               style={{
-                position: "absolute",
-                top: 2,
-                right: 2,
-                width: 13,
-                height: 13,
-                borderRadius: "50%",
-                background: "#10b981",
-                border: "2.5px solid #ffffff",
-                boxShadow: "0 0 8px rgba(16, 185, 129, 0.8)",
-              }}
-            />
-          )}
-
-          {/* Glowing red unread badge when admin replied */}
-          {unreadCount > 0 && (
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: [1, 1.15, 1] }}
-              transition={{ repeat: Infinity, duration: 1.5 }}
-              style={{
-                position: "absolute",
-                top: -3,
-                right: -3,
-                minWidth: 20,
-                height: 20,
-                borderRadius: 10,
-                background: "#ef4444",
-                color: "#fff",
-                fontSize: 10.5,
-                fontWeight: 800,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                padding: "0 4px",
-                border: "2px solid #ffffff",
-                boxShadow: "0 0 10px rgba(239, 68, 68, 0.9)",
+                padding: "1px 6px",
+                borderRadius: 9999,
+                background: isDark ? "#ffffff" : "#0f172a",
+                color: isDark ? "#0f172a" : "#ffffff",
+                fontSize: 10,
+                fontWeight: 700,
+                lineHeight: 1.2,
               }}
             >
-              {unreadCount}
-            </motion.div>
+              {inboxUnread}
+            </span>
           )}
+        </button>
 
-          {isOpen ? <X size={22} strokeWidth={2.4} /> : <MessageSquare size={22} strokeWidth={2.4} />}
-        </motion.button>
+        {/* Suggest Link (Opens bottom sheet with backside page scale & blur) */}
+        <button
+          type="button"
+          onClick={() => setShowSuggestModal(true)}
+          title="Suggest a Feature"
+          style={{
+            background: "transparent",
+            border: "none",
+            display: "flex",
+            alignItems: "center",
+            gap: 5.5,
+            cursor: "pointer",
+            color: "inherit",
+            fontSize: "inherit",
+            fontWeight: "inherit",
+            padding: 0,
+            transition: "color 0.15s ease",
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = isDark ? "#ffffff" : "#0f172a")}
+          onMouseLeave={(e) => (e.currentTarget.style.color = isDark ? "rgba(255, 255, 255, 0.55)" : "#64748b")}
+        >
+          <Lightbulb size={13.5} className="text-amber-500" />
+          <span>Suggest</span>
+        </button>
+
+        {/* Report Link (Opens bottom sheet with backside page scale & blur) */}
+        <button
+          type="button"
+          onClick={() => setShowReportModal(true)}
+          title="Report a Problem"
+          style={{
+            background: "transparent",
+            border: "none",
+            display: "flex",
+            alignItems: "center",
+            gap: 5.5,
+            cursor: "pointer",
+            color: "inherit",
+            fontSize: "inherit",
+            fontWeight: "inherit",
+            padding: 0,
+            transition: "color 0.15s ease",
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = isDark ? "#ffffff" : "#0f172a")}
+          onMouseLeave={(e) => (e.currentTarget.style.color = isDark ? "rgba(255, 255, 255, 0.55)" : "#64748b")}
+        >
+          <AlertCircle size={13.5} className="text-rose-500" />
+          <span>Report</span>
+        </button>
       </div>
+
+      {/* ── 2. Help Circle Button (Corner of white page, above footer strip - matches Image 3) ── */}
+      <motion.button
+        type="button"
+        whileHover={{ scale: 1.07 }}
+        whileTap={{ scale: 0.93 }}
+        onClick={() => setIsOpen((prev) => !prev)}
+        aria-label="Open Live Support Desk"
+        title="Help & Support Desk"
+        style={{
+          position: "fixed",
+          bottom: 34,
+          right: 28,
+          zIndex: 9989,
+          width: 48,
+          height: 48,
+          borderRadius: "50%",
+          background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
+          color: "#fff",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          cursor: "pointer",
+          border: "none",
+          boxShadow: isDark
+            ? "0 10px 25px -4px rgba(37, 99, 235, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.2)"
+            : "0 10px 25px -4px rgba(37, 99, 235, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.3)",
+          userSelect: "none",
+          transition: "all 0.15s ease",
+        }}
+      >
+        {/* Pulsing online green dot (Picture 3) */}
+        {unreadCount === 0 && (
+          <span
+            style={{
+              position: "absolute",
+              top: 2,
+              right: 2,
+              width: 12,
+              height: 12,
+              borderRadius: "50%",
+              background: "#10b981",
+              border: "2px solid #ffffff",
+              boxShadow: "0 0 8px rgba(16, 185, 129, 0.8)",
+            }}
+          />
+        )}
+
+        {/* Glowing red unread badge when admin replied */}
+        {unreadCount > 0 && (
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: [1, 1.15, 1] }}
+            transition={{ repeat: Infinity, duration: 1.5 }}
+            style={{
+              position: "absolute",
+              top: -3,
+              right: -3,
+              minWidth: 19,
+              height: 19,
+              borderRadius: 10,
+              background: "#ef4444",
+              color: "#fff",
+              fontSize: 10,
+              fontWeight: 800,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "0 4px",
+              border: "2px solid #ffffff",
+              boxShadow: "0 0 10px rgba(239, 68, 68, 0.9)",
+            }}
+          >
+            {unreadCount}
+          </motion.div>
+        )}
+
+        {isOpen ? <X size={20} strokeWidth={2.4} /> : <MessageSquare size={20} strokeWidth={2.4} />}
+      </motion.button>
 
       {/* Modals for Report a Problem & Suggest a Feature */}
       <ReportProblemModal

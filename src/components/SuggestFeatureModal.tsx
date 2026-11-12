@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Sparkles } from "lucide-react";
 import { supabase } from "@/lib/supabase";
@@ -21,6 +22,23 @@ export default function SuggestFeatureModal({
   const [problemSolved, setProblemSolved] = useState("");
   const [showOnBoard, setShowOnBoard] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Toggle backside page scaling & blur when bottom sheet is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.classList.add("tf-sheet-open");
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === "Escape") onClose();
+      };
+      window.addEventListener("keydown", handleKeyDown);
+      return () => {
+        document.body.classList.remove("tf-sheet-open");
+        window.removeEventListener("keydown", handleKeyDown);
+      };
+    } else {
+      document.body.classList.remove("tf-sheet-open");
+    }
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -69,31 +87,40 @@ export default function SuggestFeatureModal({
     }
   };
 
-  return (
+  return createPortal(
     <AnimatePresence>
-      <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
+      <div className="fixed inset-0 z-[99999] flex flex-col justify-end items-center pointer-events-auto">
         {/* Backdrop */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="fixed inset-0 bg-black/75 backdrop-blur-md"
+          className="fixed inset-0 bg-black/60 backdrop-blur-xs cursor-pointer"
         />
 
-        {/* Modal Window matching Picture 2 */}
+        {/* Bottom Sheet Drawer matching Picture 2 */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 16 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 16 }}
-          transition={{ duration: 0.2, ease: "easeOut" }}
-          className="relative w-full max-w-[560px] rounded-[24px] bg-[#0E0E11] border border-white/10 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.85)] overflow-hidden text-white font-sans z-10"
+          initial={{ y: "100%" }}
+          animate={{ y: 0 }}
+          exit={{ y: "100%" }}
+          transition={{ type: "spring", damping: 32, stiffness: 320 }}
+          drag="y"
+          dragConstraints={{ top: 0 }}
+          dragElastic={{ top: 0, bottom: 0.6 }}
+          onDragEnd={(_, info) => {
+            if (info.offset.y > 100 || info.velocity.y > 400) {
+              onClose();
+            }
+          }}
+          className="relative w-full max-w-[620px] rounded-t-[32px] sm:rounded-t-[36px] bg-[#0E0E11] border-t border-x border-white/12 shadow-[0_-20px_50px_rgba(0,0,0,0.85)] max-h-[88vh] overflow-y-auto amazing-scrollbar text-white font-sans z-10 pb-6"
         >
-          {/* Top handle pill */}
-          <div className="w-10 h-1 rounded-full bg-white/20 mx-auto mt-3" />
+          {/* Top handle pill for pulling down */}
+          <div className="w-12 h-1.5 rounded-full bg-white/25 mx-auto mt-3 mb-1 cursor-grab active:cursor-grabbing hover:bg-white/40 transition-colors" />
 
           {/* Close button */}
           <button
+            type="button"
             onClick={onClose}
             className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
           >
@@ -176,6 +203,7 @@ export default function SuggestFeatureModal({
           </form>
         </motion.div>
       </div>
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }

@@ -1047,3 +1047,27 @@ button:not(:disabled) {
 button:active:not(:disabled) {
   transform: scale(0.985) !important;
 }
+
+/* ══════ BOTTOM SHEET BACKGROUND SCALING & BLUR EFFECT ══════ */
+#root {
+  transform-origin: center top;
+  transition: transform 0.38s cubic-bezier(0.32, 0.72, 0, 1),
+              filter 0.38s cubic-bezier(0.32, 0.72, 0, 1),
+              border-radius 0.38s cubic-bezier(0.32, 0.72, 0, 1);
+  will-change: transform, filter;
+}
+
+body.tf-sheet-open {
+  overflow: hidden !important;
+  background-color: #09090b !important;
+}
+
+body.tf-sheet-open #root {
+  transform: scale(0.955) translateY(-8px);
+  filter: blur(4px) brightness(0.82);
+  border-radius: 26px;
+  overflow: hidden !important;
+  pointer-events: none;
+  user-select: none;
+  box-shadow: 0 0 50px rgba(0, 0, 0, 0.85);
+}
