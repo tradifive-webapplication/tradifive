@@ -44,6 +44,7 @@ import { getGamificationState } from "@/utils/gamification";
 import { calculateTradingMetrics } from "@/utils/tradeMetrics";
 import { FollowListModal } from "@/components/FollowListModal";
 import { validateUsername } from "@/utils/usernameValidation";
+import ShareProfileModal from "@/components/ShareProfileModal";
 
 // Placeholder display names to filter out from suggestions
 const WrappedTrophy = (props: any) => {
@@ -212,6 +213,7 @@ export default function Profile() {
   });
 
   const [followListState, setFollowListState] = useState<{ isOpen: boolean, type: 'followers' | 'following' }>({ isOpen: false, type: 'followers' });
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   // Real-time calculated metrics with mockup fallbacks
   const [totalTradesCount, setTotalTradesCount] = useState<number>(() => {
@@ -931,29 +933,29 @@ export default function Profile() {
               {/* Header Card (Consistent Tactile Neumorphic / Claymorphic Outer container with dual-border & soft shadow specs) */}
               <div className="bg-white dark:bg-[#1E1E1E] rounded-[24px] overflow-hidden border border-slate-200 dark:border-white/5 shadow-sm relative">
 
-                {/* Cover Banner */}
-                <div className="h-44 sm:h-52 w-full relative bg-[#1A1A1A] overflow-hidden border-b border-white/10 dark:border-white/5">
+                {/* Cover Banner (with smooth bottom fade into card background) */}
+                <div className="h-48 sm:h-56 w-full relative bg-white dark:bg-[#1E1E1E] overflow-hidden">
                   {loadingProfile ? (
                     <div className="w-full h-full animate-pulse bg-slate-350 dark:bg-[#1E1E1E]" />
                   ) : (
                     <div className="w-full h-full relative">
                       {(!profile?.banner_url) ? (
-                        <div className="w-full h-full bg-gradient-to-r from-slate-800 to-slate-900" />
+                        <div className="w-full h-full bg-gradient-to-r from-slate-800 to-slate-900 relative">
+                          <div className="absolute inset-0 bg-gradient-to-t from-white via-white/50 to-transparent dark:from-[#1E1E1E] dark:via-[#1E1E1E]/50 dark:to-transparent pointer-events-none" />
+                        </div>
                       ) : (
                         <>
                           <img
                             src={profile.banner_url}
                             alt="Cover"
-                            className="w-full h-full object-cover opacity-100"
+                            className="w-full h-full object-cover [mask-image:linear-gradient(to_bottom,black_30%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_bottom,black_30%,transparent_100%)]"
                             onError={(e) => { (e.target as HTMLImageElement).src = "/default-cover.png"; }}
                           />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent pointer-events-none" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-white via-white/50 to-transparent dark:from-[#1E1E1E] dark:via-[#1E1E1E]/50 dark:to-transparent pointer-events-none" />
                         </>
                       )}
                     </div>
                   )}
-
-
                 </div>
 
                 {/* Profile Details Area */}
@@ -1073,14 +1075,10 @@ export default function Profile() {
                         <IconlyEdit set="curved" primaryColor="currentColor" size={15} stroke="bold" strokeWidth={2} /> Edit
                       </button>
 
-                      {/* Share Button */}
+                      {/* Share Button (opens Big-Tech Share Profile Modal) */}
                       <button
-                        onClick={() => {
-                          const profileUrl = `${window.location.origin}/user/${profile?.username || "guest_trader"}`;
-                          navigator.clipboard.writeText(profileUrl);
-                          toast.success("Profile link copied to clipboard!");
-                        }}
-                        className="flex items-center justify-center gap-1.5 px-5 py-2 rounded-full bg-white dark:bg-[#2A2A2A] text-slate-700 dark:text-slate-200 text-[12px] font-bold whitespace-nowrap transition-all border border-slate-200 dark:border-white/10 shadow-sm hover:bg-slate-50 dark:hover:bg-[#333] active:scale-95"
+                        onClick={() => setIsShareModalOpen(true)}
+                        className="flex items-center justify-center gap-1.5 px-5 py-2 rounded-full bg-white dark:bg-[#2A2A2A] text-slate-700 dark:text-slate-200 text-[12px] font-bold whitespace-nowrap transition-all border border-slate-200 dark:border-white/10 shadow-sm hover:bg-slate-50 dark:hover:bg-[#333] active:scale-95 cursor-pointer"
                       >
                         <IconlySend set="curved" primaryColor="currentColor" size={15} stroke="bold" strokeWidth={2} /> Share
                       </button>
@@ -1796,6 +1794,23 @@ export default function Profile() {
           onClose={() => setFollowListState({ ...followListState, isOpen: false })}
           userId={userIdSync}
           type={followListState.type}
+        />
+
+        <ShareProfileModal
+          isOpen={isShareModalOpen}
+          onClose={() => setIsShareModalOpen(false)}
+          profile={{
+            display_name: profile?.display_name,
+            username: profile?.username,
+            avatar_url: profile?.avatar_url,
+            banner_url: profile?.banner_url,
+            bio: profile?.bio,
+            trading_style: profile?.trading_style,
+            trades_count: totalTradesCount,
+            win_rate: winRateVal,
+            followers_count: followerCount,
+            level: gamState?.level || 1,
+          }}
         />
       </DashboardLayout>
     </>

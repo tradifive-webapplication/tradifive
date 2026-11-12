@@ -339,12 +339,13 @@ export default function ProfileTab({
                   </>
                ) : (
                   <>
-                     <div className="h-28 bg-gradient-to-r from-slate-800 to-slate-900 relative">
+                     <div className="h-28 bg-white dark:bg-[#151515] relative overflow-hidden">
                         {profile.bannerUrl ? (
-                           <img src={profile.bannerUrl} alt="Banner" className="w-full h-full object-cover" />
+                           <img src={profile.bannerUrl} alt="Banner" className="w-full h-full object-cover [mask-image:linear-gradient(to_bottom,black_30%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_bottom,black_30%,transparent_100%)]" />
                         ) : (
-                           <div className="w-full h-full bg-cover bg-center opacity-40" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop')" }}></div>
+                           <div className="w-full h-full bg-cover bg-center opacity-40 [mask-image:linear-gradient(to_bottom,black_30%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_bottom,black_30%,transparent_100%)]" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop')" }}></div>
                         )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-white via-white/50 to-transparent dark:from-[#151515] dark:via-[#151515]/50 dark:to-transparent pointer-events-none" />
                      </div>
 
                      <div className="px-4 pb-4 relative pt-12">

@@ -90,13 +90,16 @@ export default function InboxPage() {
   const [showDetails, setShowDetails] = useState(false);
   const [themeMode, setThemeMode] = useState(() => localStorage.getItem("theme") || "light");
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+  const [partnerFallback, setPartnerFallback] = useState<any>(null);
   const messageEndRef = useRef<HTMLDivElement>(null);
+  const chatInputRef = useRef<HTMLInputElement>(null);
 
   const {
     conversations: dbConversations,
     messages: dbMessages,
     loading: inboxLoading,
-    sendMessage
+    sendMessage,
+    refetchConversations
   } = useInboxData(user?.id, activeConvId || null);
 
   const displayedConversations = dbConversations;
@@ -222,13 +225,37 @@ export default function InboxPage() {
   // Set active conversation: URL param takes priority, then first conversation
   useEffect(() => {
     const convParam = searchParams.get('conv');
+    const partnerIdParam = searchParams.get('partnerId');
     if (convParam) {
       setActiveConvId(convParam);
       setMobileView("chat");
+      refetchConversations?.();
     } else if (dbConversations.length > 0 && !activeConvId) {
       setActiveConvId(dbConversations[0].id);
     }
-  }, [dbConversations, searchParams]);
+
+    if (partnerIdParam) {
+      supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', partnerIdParam)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (data) setPartnerFallback(data);
+        });
+    }
+  }, [dbConversations, searchParams, refetchConversations]);
+
+  // Auto-focus chat input when navigated with focus=true or conv
+  useEffect(() => {
+    const shouldFocus = searchParams.get('focus') === 'true' || searchParams.get('conv');
+    if (shouldFocus) {
+      const timer = setTimeout(() => {
+        chatInputRef.current?.focus();
+      }, 200);
+      return () => clearTimeout(timer);
+    }
+  }, [activeConvId, searchParams]);
 
   // Only reset to first conversation if activeConvId is invalid AND there's no URL param
   useEffect(() => {
@@ -253,7 +280,24 @@ export default function InboxPage() {
     return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
-  const activeConv = dbConversations.find(c => c.id === activeConvId);
+  const foundConv = dbConversations.find(c => c.id === activeConvId);
+  const activeConv: any = foundConv || (partnerFallback ? {
+    id: activeConvId || searchParams.get('conv') || 'direct',
+    name: partnerFallback.display_name || partnerFallback.username || "User",
+    username: partnerFallback.username || "",
+    designation: partnerFallback.trading_style || "Trader",
+    department: "Direct Message",
+    roleTag: "Member",
+    unread: 0,
+    time: "Now",
+    content: "Start conversation...",
+    avatar: partnerFallback.avatar_url || "/default-avatar.svg",
+    verified: partnerFallback.is_verified || false,
+    status: "Online",
+    email: partnerFallback.email || "",
+    timezone: "UTC",
+    partnerId: partnerFallback.id,
+  } : null);
   const activeDetails = {
     handle: activeConv?.name ? activeConv.name.toLowerCase().replace(/\s+/g, ".") : "",
     departmentName: activeConv?.department ? `${activeConv.department} Department` : "General Department",
@@ -1052,6 +1096,7 @@ function InboxSkeleton() {
                   
                   <div className="flex-1 bg-slate-100 dark:bg-[#1E1E1E] border border-transparent rounded-[24px] flex items-center px-4 sm:px-5 py-1 sm:py-1.5 transition-all relative">
                     <input 
+                      ref={chatInputRef}
                       type="text" 
                       value={inputText}
                       onChange={(e) => setInputText(e.target.value)}

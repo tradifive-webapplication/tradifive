@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { calculateTradingMetrics } from "@/utils/tradeMetrics";
 import { FollowListModal } from "@/components/FollowListModal";
 import { CommentModal } from "@/components/CommentModal";
+import ShareProfileModal from "@/components/ShareProfileModal";
 
 // Placeholder display names to filter out from suggestions
 const PLACEHOLDER_NAMES = ["new trader", "guest trader", "demo trader", "trader", "guest"];
@@ -112,6 +113,7 @@ export default function UserProfilePublic() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<string>("Posts");
   const [suggestedTraders, setSuggestedTraders] = useState<any[]>([]);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   // Follow/Profile Stats matching image exactly
   const [followerCount, setFollowerCount] = useState(0);
@@ -578,17 +580,27 @@ export default function UserProfilePublic() {
       const { data: existing } = await supabase
         .from('dm_conversations').select('id')
         .eq('user1_id', user1_id).eq('user2_id', user2_id).maybeSingle();
-      if (existing) { navigate(`/inbox?conv=${existing.id}`); return; }
+      if (existing) {
+        navigate(`/inbox?conv=${existing.id}&partnerId=${targetId}&focus=true`);
+        return;
+      }
       const { data: existingReversed } = await supabase
         .from('dm_conversations').select('id')
         .eq('user1_id', user2_id).eq('user2_id', user1_id).maybeSingle();
-      if (existingReversed) { navigate(`/inbox?conv=${existingReversed.id}`); return; }
+      if (existingReversed) {
+        navigate(`/inbox?conv=${existingReversed.id}&partnerId=${targetId}&focus=true`);
+        return;
+      }
       const { data: created, error } = await supabase
         .from('dm_conversations')
         .insert({ user1_id, user2_id, last_message_at: new Date().toISOString() })
         .select().single();
-      if (error) { console.error(error); navigate('/inbox'); return; }
-      navigate(`/inbox?conv=${created.id}`);
+      if (error) {
+        console.error(error);
+        navigate(`/inbox?partnerId=${targetId}&focus=true`);
+        return;
+      }
+      navigate(`/inbox?conv=${created.id}&partnerId=${targetId}&focus=true`);
     } catch (err) {
       console.error('Error starting conversation:', err);
       navigate('/inbox');
@@ -816,33 +828,30 @@ export default function UserProfilePublic() {
 
             {/* Header Card (Consistent Tactile Neumorphic / Claymorphic Outer container with dual-border & soft shadow specs) */}
             <div className="bg-white dark:bg-[#1E1E1E] rounded-[32px] overflow-hidden border-2 border-white dark:border-white/5 shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),_0_0_0_2px_#E7E7E7] dark:shadow-none relative">
-              {/* Cover Banner */}
-              <div className="h-44 sm:h-52 w-full relative bg-slate-900 overflow-hidden border-b border-white/10 dark:border-white/5">
+              {/* Cover Banner (with smooth bottom fade into card background) */}
+              <div className="h-48 sm:h-56 w-full relative bg-white dark:bg-[#1E1E1E] overflow-hidden">
                 {loading ? (
                   <div className="w-full h-full animate-pulse bg-slate-350 dark:bg-[#1E1E1E]" />
                 ) : (
                   <div className="w-full h-full relative">
                     {(!profile?.banner_url || profile.banner_url === "/default-cover.png") ? (
-                      <div className="w-full h-full bg-[#1A1A1A] flex items-center justify-center text-slate-600 dark:text-slate-700">
+                      <div className="w-full h-full bg-[#1A1A1A] flex items-center justify-center text-slate-600 dark:text-slate-700 relative">
                         <Camera size={32} className="opacity-20" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-white via-white/50 to-transparent dark:from-[#1E1E1E] dark:via-[#1E1E1E]/50 dark:to-transparent pointer-events-none" />
                       </div>
                     ) : (
                       <>
                         <img
                           src={profile.banner_url}
                           alt="Cover"
-                          className="w-full h-full object-cover opacity-100"
+                          className="w-full h-full object-cover [mask-image:linear-gradient(to_bottom,black_30%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_bottom,black_30%,transparent_100%)]"
                           onError={(e) => { (e.target as HTMLImageElement).src = "/default-cover.png"; }}
                         />
-                        {/* Subtle bottom shadow just for contrast if needed */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent pointer-events-none" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-white via-white/50 to-transparent dark:from-[#1E1E1E] dark:via-[#1E1E1E]/50 dark:to-transparent pointer-events-none" />
                       </>
                     )}
                   </div>
                 )}
-
-
-
               </div>
 
               {/* Profile Details Area */}
@@ -984,6 +993,15 @@ export default function UserProfilePublic() {
                         <Radio size={13} /> Channel
                       </Link>
                     )}
+
+                    {/* Share button */}
+                    <button
+                      onClick={() => setIsShareModalOpen(true)}
+                      className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-full bg-white dark:bg-[#1E1E1E] text-slate-700 dark:text-slate-200 text-[12px] font-bold whitespace-nowrap transition-all duration-150 border border-slate-200/80 dark:border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.6),0_1px_3px_rgba(0,0,0,0.05)] active:scale-[0.985]"
+                      title="Share Profile"
+                    >
+                      <Share2 size={13} /> Share
+                    </button>
 
                     {/* More button */}
                     <button className="p-2 rounded-full bg-white dark:bg-[#1E1E1E] text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.6),0_1px_3px_rgba(0,0,0,0.05)] active:scale-[0.985] transition-all duration-150">
@@ -1529,6 +1547,12 @@ export default function UserProfilePublic() {
         onClose={() => setFollowListState({ ...followListState, isOpen: false })}
         userId={profile?.id}
         type={followListState.type}
+      />
+
+      <ShareProfileModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        profile={profile || {}}
       />
     </DashboardLayout>
   );

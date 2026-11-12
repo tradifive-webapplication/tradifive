@@ -3131,19 +3131,30 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
               <DropdownMenuContent align="start" side="top" sideOffset={12} className="w-[325px] rounded-[18px] p-0 bg-white dark:bg-[#1E1E1E] border border-slate-200/80 dark:border-white/5 shadow-[0_12px_40px_rgba(0,0,0,0.06),0_1px_4px_rgba(0,0,0,0.02)] overflow-visible font-sans relative">
 
-                {/* Cover Banner (Discord style) */}
+                {/* Cover Banner (Discord style with smooth bottom fade) */}
 
                 {bannerUrl ? (
 
-                  <div className="h-[100px] w-full relative rounded-t-[18px] overflow-hidden">
+                  <div className="h-[108px] w-full relative rounded-t-[18px] overflow-hidden bg-white dark:bg-[#1E1E1E]">
 
-                    <img src={bannerUrl} alt="Cover Banner" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = "/default-cover.png"; }} />
+                    <img
+                      src={bannerUrl}
+                      alt="Cover Banner"
+                      className="w-full h-full object-cover [mask-image:linear-gradient(to_bottom,black_30%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_bottom,black_30%,transparent_100%)]"
+                      onError={(e) => { (e.target as HTMLImageElement).src = "/default-cover.png"; }}
+                    />
+
+                    <div className="absolute inset-0 bg-gradient-to-t from-white via-white/50 to-transparent dark:from-[#1E1E1E] dark:via-[#1E1E1E]/50 dark:to-transparent pointer-events-none" />
 
                   </div>
 
                 ) : (
 
-                  <div className="h-[100px] bg-gradient-to-r from-blue-500 to-indigo-600 dark:from-indigo-600 dark:to-purple-600 w-full relative rounded-t-[18px]" />
+                  <div className="h-[108px] bg-gradient-to-r from-blue-500 to-indigo-600 dark:from-indigo-600 dark:to-purple-600 w-full relative rounded-t-[18px] overflow-hidden">
+
+                    <div className="absolute inset-0 bg-gradient-to-t from-white via-white/50 to-transparent dark:from-[#1E1E1E] dark:via-[#1E1E1E]/50 dark:to-transparent pointer-events-none" />
+
+                  </div>
 
                 )}
 
