@@ -67,8 +67,8 @@ export default function CustomEconomicCalendar() {
   const [selectedCurrency, setSelectedCurrency] = useState<string>('ALL');
   const [impactFilters, setImpactFilters] = useState<Record<string, boolean>>({
     High: true,
-    Medium: true,
-    Low: true,
+    Medium: false,
+    Low: false,
     Holiday: false,
   });
   const [filterDropdownOpen, setFilterDropdownOpen] = useState(false);

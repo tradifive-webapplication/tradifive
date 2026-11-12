@@ -57,7 +57,10 @@ export function useHomeData(userId: string) {
   });
 
   const [watchlist, setWatchlist] = useState<WatchItem[]>(() => getCache('home_cache_watchlist', []));
-  const [calendar, setCalendar] = useState<CalendarEvent[]>(() => getCache('home_cache_calendar', []));
+  const [calendar, setCalendar] = useState<CalendarEvent[]>(() => {
+    const cached = getCache('home_cache_calendar', []);
+    return (cached || []).filter((e: any) => (e.impact || '').toLowerCase() === 'high');
+  });
   const [followers, setFollowers] = useState<{ count: number; avatars: string[] }>(() => getCache('home_cache_followers', { count: 0, avatars: [] }));
   const [suggestions, setSuggestions] = useState<ProfileShort[]>(() => getCache('home_cache_suggestions', []));
   const [winningStreaks, setWinningStreaks] = useState<ProfileShort[]>(() => getCache('home_cache_winningStreaks', []));
@@ -86,7 +89,7 @@ export function useHomeData(userId: string) {
       ] = await Promise.all([
         supabase.from('social_posts').select('*, profiles(full_name, username, avatar_url)').neq('post_type', 'story').order('created_at', { ascending: false }).limit(50),
         userId ? supabase.from('feed_watchlist').select('*').eq('user_id', userId).order('sort_order', { ascending: true }).limit(20) : Promise.resolve({ data: [] } as any),
-        supabase.from('economic_calendar').select('*').order('event_time', { ascending: true }).limit(20),
+        supabase.from('economic_calendar').select('*').ilike('impact', '%high%').order('event_time', { ascending: true }).limit(30),
         userId ? supabase.from('social_follows').select('follower_id, profiles!social_follows_follower_id_fkey(avatar_url)', { count: 'exact' }).eq('following_id', userId).limit(5) : Promise.resolve({ data: [], count: 0 } as any),
         supabase.from('profiles').select('id, full_name, username, avatar_url, location, streak_days, win_rate, total_trades').neq('id', userId).limit(5),
         supabase.from('profiles').select('id, full_name, username, avatar_url, location, streak_days, win_rate, total_trades').order('streak_days', { ascending: false }).limit(3),
@@ -176,33 +179,32 @@ export function useHomeData(userId: string) {
       setWatchlist(finalWatch);
       localStorage.setItem('home_cache_watchlist', JSON.stringify(finalWatch));
 
-      // 2. Filter Calendar by activeMarket
-      let finalCal = [];
-      const rawCal = calData ?? [];
+      // 2. Filter Calendar by activeMarket (Keep ONLY High Impact events)
+      let finalCal: any[] = [];
+      const rawCal = (calData ?? []).filter((item: any) => (item.impact || '').toLowerCase() === 'high');
       if (activeMarket === 'indian') {
         finalCal = rawCal.filter(item => item.currency === 'INR');
       } else {
         finalCal = rawCal.filter(item => item.currency !== 'INR');
       }
 
-      // Try to fetch live Economic Calendar from ForexFactory for Global Market
+      // Try to fetch live Economic Calendar from ForexFactory for Global Market (High Impact Only)
       if (activeMarket !== 'indian') {
         try {
           const calRes = await fetch('https://api.allorigins.win/raw?url=https%3A%2F%2Fnfs.faireconomy.media%2Fff_calendar_thisweek.json');
           if (calRes.ok) {
             const liveEvents = await calRes.json();
-            const now = new Date();
+            // Strict filter: ONLY High Impact economic events
             const fetchedLive = liveEvents
-              .filter((e: any) => new Date(e.date).getTime() > now.getTime() - 86400000) // keep recent and future
-              .slice(0, 15) // limit to top 15 events
+              .filter((e: any) => (e.impact || '').toLowerCase() === 'high')
               .map((e: any, idx: number) => ({
-                id: `live-${idx}`,
+                id: `live-high-${idx}`,
                 event_time: e.date,
                 event_title: e.title,
                 currency: e.country,
-                impact: e.impact.toLowerCase(),
-                forecast: e.forecast,
-                previous: e.previous,
+                impact: 'high',
+                forecast: e.forecast || '',
+                previous: e.previous || '',
                 actual: null,
                 source: 'ForexFactory',
                 created_at: new Date().toISOString()
@@ -217,6 +219,9 @@ export function useHomeData(userId: string) {
         }
       }
 
+      if (finalCal.length === 0 && rawCal.length > 0) {
+        finalCal = rawCal;
+      }
 
       setCalendar(finalCal);
       localStorage.setItem('home_cache_calendar', JSON.stringify(finalCal));
