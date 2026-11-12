@@ -526,11 +526,11 @@ export default function FloatingHelpButton() {
           userSelect: "none",
         }}
       >
-        {/* Mailbox Link */}
+        {/* Live Chat Help Link */}
         <button
           type="button"
-          onClick={() => navigate("/inbox")}
-          title="Open Inbox"
+          onClick={() => setIsOpen((prev) => !prev)}
+          title="Open Live Chat Help"
           style={{
             background: "transparent",
             border: "none",
@@ -538,30 +538,47 @@ export default function FloatingHelpButton() {
             alignItems: "center",
             gap: 5.5,
             cursor: "pointer",
-            color: "inherit",
+            color: isOpen ? (isDark ? "#60a5fa" : "#2563eb") : "inherit",
             fontSize: "inherit",
             fontWeight: "inherit",
             padding: 0,
             transition: "color 0.15s ease",
           }}
           onMouseEnter={(e) => (e.currentTarget.style.color = isDark ? "#ffffff" : "#0f172a")}
-          onMouseLeave={(e) => (e.currentTarget.style.color = isDark ? "rgba(255, 255, 255, 0.55)" : "#64748b")}
+          onMouseLeave={(e) =>
+            (e.currentTarget.style.color = isOpen
+              ? isDark
+                ? "#60a5fa"
+                : "#2563eb"
+              : isDark
+              ? "rgba(255, 255, 255, 0.55)"
+              : "#64748b")
+          }
         >
-          <Mail size={13.5} />
-          <span>Mailbox</span>
-          {inboxUnread > 0 && (
+          <MessageSquare size={13.5} className="text-blue-500" />
+          <span>Live Chat</span>
+          <span
+            style={{
+              width: 6,
+              height: 6,
+              borderRadius: "50%",
+              background: "#10b981",
+              boxShadow: "0 0 6px #10b981",
+            }}
+          />
+          {unreadCount > 0 && (
             <span
               style={{
-                padding: "1px 6px",
+                padding: "1px 5px",
                 borderRadius: 9999,
-                background: isDark ? "#ffffff" : "#0f172a",
-                color: isDark ? "#0f172a" : "#ffffff",
-                fontSize: 10,
-                fontWeight: 700,
+                background: "#ef4444",
+                color: "#ffffff",
+                fontSize: 9.5,
+                fontWeight: 800,
                 lineHeight: 1.2,
               }}
             >
-              {inboxUnread}
+              {unreadCount}
             </span>
           )}
         </button>
