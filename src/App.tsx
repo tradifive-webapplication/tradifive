@@ -13,8 +13,34 @@ import { NetworkNotifier } from "@/components/NetworkNotifier";
 import { AdminRoute } from "./components/AdminRoute";
 import FloatingHelpButton from "./components/FloatingHelpButton";
 
-// ── All pages are lazy-loaded to split the 11MB monolithic bundle into
-//    small per-route chunks that iOS Safari WebKit can parse and execute.
+// ── All pages are lazy-loaded to split the bundle into per-route chunks.
+// Helper to automatically recover if a chunk fails to load due to a new deployment:
+function lazyWithRetry<T extends React.ComponentType<any>>(
+  factory: () => Promise<{ default: T }>
+) {
+  return lazy(async () => {
+    try {
+      return await factory();
+    } catch (error: any) {
+      const isChunkError =
+        error?.name === 'ChunkLoadError' ||
+        error?.message?.includes('Failed to fetch dynamically imported module') ||
+        error?.message?.includes('Loading chunk') ||
+        error?.message?.includes('dynamically imported module');
+
+      const key = `chunk_retry_${factory.name || 'route'}`;
+      const alreadyRetried = sessionStorage.getItem(key);
+
+      if (isChunkError && !alreadyRetried) {
+        sessionStorage.setItem(key, 'true');
+        window.location.reload();
+        return { default: (() => null) as unknown as T };
+      }
+      throw error;
+    }
+  });
+}
+
 const Landing = lazy(() => import("./pages/Landing"));
 const ContactPublic = lazy(() => import("./pages/ContactPublic"));
 const DownloadAppPublic = lazy(() => import("./pages/DownloadAppPublic"));
@@ -26,7 +52,7 @@ const Brokers = lazy(() => import("./pages/dashboard/Brokers"));
 const Reports = lazy(() => import("./pages/dashboard/Reports"));
 const Settings = lazy(() => import("./pages/Settings"));
 const BrokerConnect = lazy(() => import("./pages/BrokerConnect"));
-const Profile = lazy(() => import("./pages/Profile"));
+const Profile = lazyWithRetry(() => import("./pages/Profile"));
 const Channel = lazy(() => import("./pages/Channel"));
 const Inbox = lazy(() => import("./pages/Inbox"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -60,12 +86,12 @@ const MentorshipHub = lazy(() => import("./pages/MentorshipHub"));
 const MyStore = lazy(() => import("./pages/creator/MyStore"));
 const LiveSessions = lazy(() => import("./pages/creator/LiveSessions"));
 const Create = lazy(() => import("./pages/create"));
-const Home = lazy(() => import("./pages/Home"));
+const Home = lazyWithRetry(() => import("./pages/Home"));
 const Discover = lazy(() => import("./pages/Discover"));
 const DiscoverPublic = lazy(() => import("./pages/DiscoverPublic"));
 const ChannelsPublic = lazy(() => import("./pages/ChannelsPublic"));
 const PulseFeedsPublic = lazy(() => import("./pages/PulseFeedsPublic"));
-const UserProfilePublic = lazy(() => import("./pages/UserProfilePublic"));
+const UserProfilePublic = lazyWithRetry(() => import("./pages/UserProfilePublic"));
 const RiskGuardPublic = lazy(() => import("./pages/RiskGuardPublic"));
 const SmartJournalPublic = lazy(() => import("./pages/SmartJournalPublic"));
 const CommunityHubPublic = lazy(() => import("./pages/CommunityHubPublic"));
@@ -109,7 +135,22 @@ const AppRouter = isElectron ? HashRouter : BrowserRouter;
 
 const App = () => {
   useEffect(() => {
-    return initGlobalHaptics();
+    const cleanup = initGlobalHaptics();
+
+    // Idle prefetch of high-frequency social routes so clicking a profile never shows a loader
+    const prefetchKeyRoutes = () => {
+      import("./pages/UserProfilePublic");
+      import("./pages/Profile");
+      import("./pages/Home");
+    };
+
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      (window as any).requestIdleCallback(prefetchKeyRoutes);
+    } else {
+      setTimeout(prefetchKeyRoutes, 1200);
+    }
+
+    return cleanup;
   }, []);
 
   return (

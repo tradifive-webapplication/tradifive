@@ -139,6 +139,7 @@ function FeedCard({
 
     const authorName = feed.profiles?.full_name || "Anonymous Trader";
     const authorHandle = feed.profiles?.username ? `@${feed.profiles.username}` : "@anonymous";
+    const targetProfileParam = feed.profiles?.username || feed.user_id || authorHandle.replace('@', '');
     const authorAvatar = feed.profiles?.avatar_url || "/default-avatar.svg";
     const rawImages = Array.isArray(feed.media_urls) ? feed.media_urls : [];
     const images = rawImages.filter(url => typeof url === 'string' && url.trim() !== '' && !url.trim().startsWith('{') && !url.trim().startsWith('['));
@@ -421,7 +422,7 @@ function FeedCard({
                         isFollowing={followedUsers[feed.user_id || ""]}
                         onToggleFollow={onToggleFollow}
                     >
-                        <Link to={`/user/${authorHandle.replace('@', '')}`} className="shrink-0 hover:opacity-85 transition-opacity block">
+                        <Link to={`/user/${targetProfileParam}`} className="shrink-0 hover:opacity-85 transition-opacity block">
                             <img src={authorAvatar} alt={authorName} className="w-10 h-10 rounded-full bg-slate-200 object-cover" onError={(e) => { e.currentTarget.src = "/default-avatar.svg"; }} />
                         </Link>
                     </UserHoverCard>
@@ -436,7 +437,7 @@ function FeedCard({
                                 isFollowing={followedUsers[feed.user_id || ""]}
                                 onToggleFollow={onToggleFollow}
                             >
-                                <Link to={`/user/${authorHandle.replace('@', '')}`} className="hover:opacity-85 transition-opacity group/feedcard block">
+                                <Link to={`/user/${targetProfileParam}`} className="hover:opacity-85 transition-opacity group/feedcard block">
                                     <p className="text-[14px] font-bold text-slate-900 dark:text-white leading-tight group-hover/feedcard:text-blue-500 transition-colors">{authorName}</p>
                                 </Link>
                             </UserHoverCard>

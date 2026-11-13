@@ -1484,11 +1484,11 @@ export default function Profile() {
                       return (
                         <div key={person.id} className="flex items-center justify-between gap-3 group">
                           <div className="flex items-center gap-3 min-w-0">
-                            <Link to={`/user/${person.username || ""}`} className="shrink-0 hover:opacity-85 transition-opacity duration-300">
+                            <Link to={`/user/${person.username || person.id || ""}`} className="shrink-0 hover:opacity-85 transition-opacity duration-300">
                               <img src={displayAvatar} alt={displayName} className="w-10 h-10 rounded-full border border-slate-200/50 dark:border-white/5 object-cover bg-slate-100" onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.svg"; }} />
                             </Link>
                             <div className="min-w-0">
-                              <Link to={`/user/${person.username || ""}`}>
+                              <Link to={`/user/${person.username || person.id || ""}`}>
                                 <h4 className="font-bold text-slate-900 dark:text-white text-[13px] leading-tight hover:text-blue-600 cursor-pointer truncate transition-colors">{displayName}</h4>
                               </Link>
                               <p className="text-slate-450 dark:text-slate-400 text-[11px] leading-none mt-1 truncate font-medium">{displayHandle}</p>
