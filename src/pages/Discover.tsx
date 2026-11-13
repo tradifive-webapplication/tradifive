@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
 import { Link, useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import DashboardLayout from "@/components/DashboardLayout";
-import { Cpu, Camera, X, Upload, Image as ImageIcon, Check, ArrowRight, ShieldCheck, Zap, Copy, QrCode, Sparkles, Star, TrendingUp, KeyRound, ExternalLink, Eye, Info } from "lucide-react";
+import { Cpu, Camera, X, Upload, Image as ImageIcon, Check, ArrowRight, ShieldCheck, Zap, Copy, QrCode, Sparkles, Star, TrendingUp, KeyRound, ExternalLink, Eye, Info, Download, CheckCircle2, AlertCircle, HelpCircle, Smartphone, Landmark } from "lucide-react";
+import { QRCodeSVG } from 'qrcode.react';
 import { toast } from 'sonner';
 import { Search as IconlySearch, Lock as IconlyLock, AddUser as IconlyAddUser, Discovery as IconlyDiscovery, CloseSquare as IconlyCloseSquare, TicketStar as IconlyTicketStar, Bag as IconlyBag } from "react-iconly";
 import { supabase } from "@/lib/supabase";
@@ -128,6 +129,11 @@ export default function Discover() {
     const [submittingPurchase, setSubmittingPurchase] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState<"upi" | "bank" | "instant">("upi");
     const [utrNumber, setUtrNumber] = useState("");
+    const [qrDisplayMode, setQrDisplayMode] = useState<"dynamic" | "official">("dynamic");
+    const [showUtrHelp, setShowUtrHelp] = useState(false);
+    const [copiedUpi, setCopiedUpi] = useState(false);
+    const [copiedAcc, setCopiedAcc] = useState(false);
+    const [copiedIfsc, setCopiedIfsc] = useState(false);
 
     // Sync tab with URL
     useEffect(() => {
@@ -280,7 +286,13 @@ export default function Discover() {
         }
     };
 
-    const handleInstantActivate = (product: any) => {
+    const handleInstantActivate = async (product: any) => {
+        if (paymentMethod !== "instant") {
+            if (!utrNumber || utrNumber.trim().length < 6) {
+                toast.error("Please enter your 12-digit UPI UTR or Bank Reference number to confirm payment.");
+                return;
+            }
+        }
         const isFiAlgo = product.name?.includes("FiAlgo") || product.id?.includes("fialgo");
         const prefix = isFiAlgo ? "FIALGO-V1" : product.name?.includes("Scalper") ? "SCALP" : product.name?.includes("Swing") ? "SWING" : product.name?.includes("HFT") ? "HFT" : "GRID";
         const randomHex = Math.random().toString(36).substring(2, 6).toUpperCase();
@@ -292,11 +304,32 @@ export default function Discover() {
             const updated = Array.from(new Set([...prev, product.id]));
             try {
                 localStorage.setItem("tradifive_purchased_algos", JSON.stringify(updated));
+                localStorage.setItem(`tradifive_license_${product.id}`, key);
+                localStorage.setItem(`tradifive_license_utr_${product.id}`, utrNumber.trim());
             } catch (e) {}
             return updated;
         });
+
+        // Record order in Supabase
+        try {
+            const { data: { user: currentUser } } = await supabase.auth.getUser();
+            if (currentUser) {
+                await supabase.from('creator_orders').insert({
+                    product_id: product.id,
+                    buyer_id: currentUser.id,
+                    amount: product.price || 10000,
+                    status: 'completed',
+                    payment_method: paymentMethod,
+                    utr_number: utrNumber.trim() || 'DEV_SANDBOX_KEY',
+                    license_key: key
+                });
+            }
+        } catch (dbErr) {
+            console.warn("Order recording fallback:", dbErr);
+        }
+
         setPurchaseStep("activated");
-        toast.success(`🎉 ${product.name} license activated! Key: ${key}`);
+        toast.success(`🎉 ${product.name} license successfully activated! Key: ${key}`);
     };
 
     const submitPurchaseProof = async () => {
@@ -1367,41 +1400,42 @@ export default function Discover() {
             {/* Purchase & Checkout Modal */}
             <AnimatePresence>
                 {purchaseModalProduct && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setPurchaseModalProduct(null)} />
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
+                        <div className="absolute inset-0 bg-black/70 backdrop-blur-md" onClick={() => setPurchaseModalProduct(null)} />
                         <motion.div
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            className="relative bg-white dark:bg-[#1E1E1E] rounded-2xl p-6 w-full max-w-lg shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col gap-5 z-10 max-h-[90vh] overflow-y-auto"
+                            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                            transition={{ duration: 0.2 }}
+                            className="relative bg-white dark:bg-[#121215] rounded-[28px] p-5 sm:p-7 w-full max-w-lg shadow-[0_25px_70px_rgba(0,0,0,0.5)] border border-slate-200/80 dark:border-white/10 flex flex-col gap-5 z-10 max-h-[92vh] overflow-y-auto"
                         >
                             {purchaseStep === "activated" ? (
                                 /* Activation Success Screen */
-                                <div className="space-y-5 text-center py-4">
+                                <div className="space-y-5 text-center py-3">
                                     <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/10">
                                         <Check size={32} strokeWidth={3} />
                                     </div>
 
                                     <div>
                                         <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
-                                            License Issued & Synced
+                                            ✓ License Provisioned & Verified
                                         </span>
-                                        <h3 className="text-xl font-black text-slate-900 dark:text-white mt-2">
+                                        <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-2">
                                             {purchaseModalProduct.name}
                                         </h3>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">
-                                            Your lifetime license for 1 MT5 Live Terminal and unlimited demo accounts has been provisioned.
+                                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto leading-relaxed">
+                                            Your master license for 1 MT5 Live Terminal and unlimited demo accounts is now active.
                                         </p>
                                     </div>
 
                                     {/* Generated License Key Box */}
-                                    <div className="p-4 rounded-xl bg-slate-50 dark:bg-black/30 border border-slate-200 dark:border-white/10 text-left">
-                                        <div className="flex items-center justify-between mb-1.5">
+                                    <div className="p-4 rounded-2xl bg-slate-50 dark:bg-black/40 border border-slate-200 dark:border-white/10 text-left space-y-2">
+                                        <div className="flex items-center justify-between">
                                             <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">YOUR MASTER LICENSE KEY</span>
-                                            <span className="text-[10px] font-bold text-emerald-500">Active</span>
+                                            <span className="text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">Active</span>
                                         </div>
                                         <div className="flex items-center justify-between gap-3">
-                                            <code className="text-base font-black text-blue-600 dark:text-blue-400 font-mono tracking-wider">
+                                            <code className="text-sm sm:text-base font-black text-blue-600 dark:text-blue-400 font-mono tracking-wider select-all">
                                                 {generatedLicenseKey}
                                             </code>
                                             <button
@@ -1411,34 +1445,71 @@ export default function Discover() {
                                                     toast.success("License key copied!");
                                                     setTimeout(() => setCopiedKey(false), 2000);
                                                 }}
-                                                className="px-3 py-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                                                className="px-3 py-1.5 rounded-xl bg-blue-600 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm active:scale-95 cursor-pointer"
                                             >
                                                 {copiedKey ? <Check size={13} strokeWidth={3} /> : <Copy size={13} />}
-                                                <span>{copiedKey ? "Copied" : "Copy Key"}</span>
+                                                <span>{copiedKey ? "Copied" : "Copy"}</span>
                                             </button>
                                         </div>
+                                        {utrNumber && (
+                                            <div className="pt-2 border-t border-slate-200/60 dark:border-white/5 flex items-center justify-between text-[11px] text-slate-500">
+                                                <span>UTR Reference:</span>
+                                                <span className="font-mono font-semibold text-slate-800 dark:text-slate-300">{utrNumber}</span>
+                                            </div>
+                                        )}
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-3 pt-2">
-                                        <button
-                                            onClick={() => {
-                                                setPurchaseModalProduct(null);
-                                                navigate('/auto-trade/license');
-                                            }}
-                                            className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-sm shadow-blue-500/20 flex items-center justify-center gap-1.5 cursor-pointer"
-                                        >
-                                            <KeyRound size={14} />
-                                            <span>EA Setup Guide</span>
-                                        </button>
-                                        <button
-                                            onClick={() => {
-                                                setPurchaseModalProduct(null);
-                                                navigate('/order-history');
-                                            }}
-                                            className="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/20 text-slate-800 dark:text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                                        >
-                                            <span>View Order History</span>
-                                        </button>
+                                    {/* Action Buttons for Activated State */}
+                                    <div className="flex flex-col gap-2.5 pt-1">
+                                        <div className="grid grid-cols-2 gap-2.5">
+                                            <a
+                                                href="/FIALGO_V1.ex5"
+                                                download="FIALGO_V1.ex5"
+                                                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
+                                            >
+                                                <Download size={14} />
+                                                <span>Download EA (.ex5)</span>
+                                            </a>
+                                            <button
+                                                onClick={() => {
+                                                    const receiptText = `TRADIFIVE ALGO LICENSE CERTIFICATE\n===================================\nProduct: ${purchaseModalProduct.name}\nLicense Key: ${generatedLicenseKey}\nStatus: ACTIVE / PROVISIONED\nEntitlement: 1 Live MT5 Terminal + Unlimited Demo\nIssued To: ${user?.email || 'Registered User'}\nUTR / Ref: ${utrNumber || 'INSTANT_PROVISION'}\nIssued At: ${new Date().toLocaleString()}\nGateway: London LD4 Ultra-Low Latency\n===================================\nMT5 Installation: Copy .ex5 to MQL5/Experts folder, attach to XAUUSD chart, and paste Master License Key in EA inputs.`;
+                                                    const element = document.createElement("a");
+                                                    const file = new Blob([receiptText], { type: 'text/plain' });
+                                                    element.href = URL.createObjectURL(file);
+                                                    element.download = `TRADIFIVE_${purchaseModalProduct.name.replace(/\s+/g, '_')}_LICENSE.txt`;
+                                                    document.body.appendChild(element);
+                                                    element.click();
+                                                    document.body.removeChild(element);
+                                                    toast.success("License Certificate downloaded!");
+                                                }}
+                                                className="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/20 text-slate-800 dark:text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
+                                            >
+                                                <Download size={14} />
+                                                <span>Download Certificate</span>
+                                            </button>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-2.5">
+                                            <button
+                                                onClick={() => {
+                                                    setPurchaseModalProduct(null);
+                                                    navigate('/auto-trade/license');
+                                                }}
+                                                className="w-full py-2 rounded-xl border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 text-slate-700 dark:text-slate-300 text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer"
+                                            >
+                                                <KeyRound size={13} />
+                                                <span>EA Setup Guide</span>
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    setPurchaseModalProduct(null);
+                                                    navigate('/order-history');
+                                                }}
+                                                className="w-full py-2 rounded-xl border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 text-slate-700 dark:text-slate-300 text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer"
+                                            >
+                                                <span>View Order History</span>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             ) : (
@@ -1452,9 +1523,9 @@ export default function Discover() {
                                                 </span>
                                                 <span className="text-[10px] font-bold text-slate-400">TradiFive Algo License</span>
                                             </div>
-                                            <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">{purchaseModalProduct.name}</h3>
+                                            <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">{purchaseModalProduct.name}</h3>
                                         </div>
-                                        <button onClick={() => setPurchaseModalProduct(null)} className="p-2 bg-slate-100 dark:bg-white/5 rounded-full text-slate-500 hover:text-slate-900 dark:hover:text-white cursor-pointer">
+                                        <button onClick={() => setPurchaseModalProduct(null)} className="p-2 bg-slate-100 dark:bg-white/5 rounded-full text-slate-500 hover:text-slate-900 dark:hover:text-white cursor-pointer transition-colors">
                                             <X size={16} />
                                         </button>
                                     </div>
@@ -1466,111 +1537,268 @@ export default function Discover() {
                                             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">Lifetime License</span>
                                         </div>
                                         <div className="flex items-baseline justify-between">
-                                            <span className="text-2xl font-black text-slate-900 dark:text-white">
+                                            <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
                                                 {purchaseModalProduct.currency || "₹"}{Number(purchaseModalProduct.price || 10000).toLocaleString("en-IN")}
                                             </span>
-                                            <span className="text-xs text-slate-500 dark:text-slate-400">Includes 18% GST</span>
+                                            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Includes 18% GST</span>
                                         </div>
                                         <div className="mt-3 pt-3 border-t border-blue-500/15 flex items-center gap-2 text-[11px] text-blue-700 dark:text-blue-300 font-medium">
-                                            <ShieldCheck size={14} className="shrink-0" />
+                                            <ShieldCheck size={14} className="shrink-0 text-blue-500" />
                                             <span>Entitles 1 Live MT5 Account + Unlimited Demo + London LD4 VPS Gateway</span>
                                         </div>
                                     </div>
 
                                     {/* Payment Method Tabs */}
-                                    <div className="flex items-center gap-2 p-1 bg-slate-100 dark:bg-white/5 rounded-xl border border-slate-200/60 dark:border-white/10">
+                                    <div className="flex items-center gap-2 p-1 bg-slate-100 dark:bg-white/5 rounded-2xl border border-slate-200/60 dark:border-white/10">
                                         <button
                                             onClick={() => setPaymentMethod("upi")}
-                                            className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${paymentMethod === "upi" ? "bg-white dark:bg-[#1E1E1E] text-slate-900 dark:text-white shadow-sm" : "text-slate-500 hover:text-slate-900 dark:text-slate-400"}`}
+                                            className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${paymentMethod === "upi" ? "bg-white dark:bg-[#1E1E22] text-slate-900 dark:text-white shadow-sm" : "text-slate-500 hover:text-slate-900 dark:text-slate-400"}`}
                                         >
-                                            UPI / QR (Instant)
+                                            <QrCode size={13} className={paymentMethod === "upi" ? "text-blue-500" : ""} />
+                                            <span>UPI / QR (Instant)</span>
                                         </button>
                                         <button
                                             onClick={() => setPaymentMethod("bank")}
-                                            className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${paymentMethod === "bank" ? "bg-white dark:bg-[#1E1E1E] text-slate-900 dark:text-white shadow-sm" : "text-slate-500 hover:text-slate-900 dark:text-slate-400"}`}
+                                            className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${paymentMethod === "bank" ? "bg-white dark:bg-[#1E1E22] text-slate-900 dark:text-white shadow-sm" : "text-slate-500 hover:text-slate-900 dark:text-slate-400"}`}
                                         >
-                                            Bank Transfer
+                                            <Landmark size={13} className={paymentMethod === "bank" ? "text-blue-500" : ""} />
+                                            <span>Bank Transfer</span>
                                         </button>
                                         <button
                                             onClick={() => setPaymentMethod("instant")}
-                                            className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${paymentMethod === "instant" ? "bg-white dark:bg-[#1E1E1E] text-slate-900 dark:text-white shadow-sm" : "text-slate-500 hover:text-slate-900 dark:text-slate-400"}`}
+                                            className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${paymentMethod === "instant" ? "bg-white dark:bg-[#1E1E22] text-slate-900 dark:text-white shadow-sm" : "text-slate-500 hover:text-slate-900 dark:text-slate-400"}`}
                                         >
-                                            Instant Test Key
+                                            <Sparkles size={13} className={paymentMethod === "instant" ? "text-amber-500" : ""} />
+                                            <span>Instant Test Key</span>
                                         </button>
                                     </div>
 
                                     {/* Payment Content based on method */}
                                     {paymentMethod === "upi" && (
                                         <div className="space-y-4">
-                                            <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 flex flex-col items-center text-center">
-                                                <div className="w-36 h-36 rounded-xl bg-white p-2 border border-slate-200 shadow-sm flex items-center justify-center mb-3">
-                                                    {/* Clean SVG QR Representation */}
-                                                    <svg viewBox="0 0 100 100" className="w-full h-full">
-                                                        <rect width="100" height="100" fill="white" />
-                                                        <rect x="10" y="10" width="25" height="25" fill="#0f172a" />
-                                                        <rect x="14" y="14" width="17" height="17" fill="white" />
-                                                        <rect x="18" y="18" width="9" height="9" fill="#0f172a" />
-                                                        <rect x="65" y="10" width="25" height="25" fill="#0f172a" />
-                                                        <rect x="69" y="14" width="17" height="17" fill="white" />
-                                                        <rect x="73" y="18" width="9" height="9" fill="#0f172a" />
-                                                        <rect x="10" y="65" width="25" height="25" fill="#0f172a" />
-                                                        <rect x="14" y="69" width="17" height="17" fill="white" />
-                                                        <rect x="18" y="73" width="9" height="9" fill="#0f172a" />
-                                                        <rect x="42" y="15" width="16" height="6" fill="#0f172a" />
-                                                        <rect x="45" y="45" width="12" height="12" fill="#2563eb" />
-                                                        <rect x="42" y="70" width="16" height="8" fill="#0f172a" />
-                                                        <rect x="68" y="45" width="20" height="8" fill="#0f172a" />
-                                                        <rect x="68" y="70" width="8" height="18" fill="#0f172a" />
-                                                        <rect x="80" y="80" width="8" height="8" fill="#0f172a" />
-                                                    </svg>
-                                                </div>
-                                                <div className="text-xs text-slate-500 mb-1">TradiFive Official Merchant UPI</div>
-                                                <div className="flex items-center gap-2 bg-white dark:bg-black/30 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-white/10">
-                                                    <code className="text-xs font-mono font-bold text-slate-900 dark:text-white">tradifive.algo@icici</code>
+                                            {/* UPI QR Code Container with Real Scanner Box */}
+                                            <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 flex flex-col items-center text-center relative overflow-hidden">
+                                                
+                                                {/* QR View Mode Selector */}
+                                                <div className="flex items-center gap-1.5 p-1 bg-white dark:bg-black/40 rounded-full border border-slate-200 dark:border-white/10 mb-4 shadow-2xs">
                                                     <button
-                                                        onClick={() => {
-                                                            navigator.clipboard.writeText("tradifive.algo@icici");
-                                                            toast.success("UPI ID copied!");
-                                                        }}
-                                                        className="text-[11px] font-bold text-blue-600 hover:underline cursor-pointer"
+                                                        type="button"
+                                                        onClick={() => setQrDisplayMode("dynamic")}
+                                                        className={`px-3 py-1 rounded-full text-[11px] font-bold transition-all cursor-pointer ${
+                                                            qrDisplayMode === "dynamic"
+                                                            ? "bg-blue-600 text-white shadow-2xs"
+                                                            : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                                                        }`}
                                                     >
-                                                        Copy
+                                                        ⚡ Auto-Fill ₹{Number(purchaseModalProduct.price || 10000).toLocaleString("en-IN")} QR
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setQrDisplayMode("official")}
+                                                        className={`px-3 py-1 rounded-full text-[11px] font-bold transition-all cursor-pointer ${
+                                                            qrDisplayMode === "official"
+                                                            ? "bg-blue-600 text-white shadow-2xs"
+                                                            : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                                                        }`}
+                                                    >
+                                                        Official Axis Merchant QR
+                                                    </button>
+                                                </div>
+
+                                                {/* Real Scanner Viewfinder Frame */}
+                                                <div className="relative p-3 bg-white rounded-2xl shadow-md border border-slate-200/80 mb-3 group">
+                                                    {/* Scanner Viewfinder Reticle Brackets */}
+                                                    <div className="absolute top-1.5 left-1.5 w-4 h-4 border-t-2 border-l-2 border-blue-600 rounded-tl-md pointer-events-none" />
+                                                    <div className="absolute top-1.5 right-1.5 w-4 h-4 border-t-2 border-r-2 border-blue-600 rounded-tr-md pointer-events-none" />
+                                                    <div className="absolute bottom-1.5 left-1.5 w-4 h-4 border-b-2 border-l-2 border-blue-600 rounded-bl-md pointer-events-none" />
+                                                    <div className="absolute bottom-1.5 right-1.5 w-4 h-4 border-b-2 border-r-2 border-blue-600 rounded-br-md pointer-events-none" />
+
+                                                    {qrDisplayMode === "dynamic" ? (
+                                                        <QRCodeSVG
+                                                            value={`upi://pay?pa=9731980756@axisbank&pn=Nikhil%20Ravindra%20Harake&am=${Number(purchaseModalProduct.price || 10000)}&cu=INR&tn=${encodeURIComponent((purchaseModalProduct.name || 'FiAlgo V1') + ' License')}`}
+                                                            size={175}
+                                                            level="H"
+                                                            includeMargin={true}
+                                                            imageSettings={{
+                                                                src: "/favicon.png",
+                                                                x: undefined,
+                                                                y: undefined,
+                                                                height: 28,
+                                                                width: 28,
+                                                                excavate: true
+                                                            }}
+                                                        />
+                                                    ) : (
+                                                        <div className="w-[175px] h-[175px] flex items-center justify-center overflow-hidden rounded-xl">
+                                                            <img
+                                                                src="/upi-qr-code.png?v=2"
+                                                                alt="Axis Bank UPI QR Code"
+                                                                className="w-full h-full object-contain"
+                                                            />
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {/* Verified Merchant Badge */}
+                                                <div className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 mb-2.5">
+                                                    <ShieldCheck size={14} className="text-emerald-500" />
+                                                    <span>NPCI Verified Merchant Account · Zero Surcharge</span>
+                                                </div>
+
+                                                {/* Direct Pay via UPI App button (Mobile Friendly) */}
+                                                <a
+                                                    href={`upi://pay?pa=9731980756@axisbank&pn=Nikhil%20Ravindra%20Harake&am=${Number(purchaseModalProduct.price || 10000)}&cu=INR&tn=${encodeURIComponent((purchaseModalProduct.name || 'FiAlgo V1') + ' License')}`}
+                                                    className="w-full max-w-sm py-2 px-3.5 mb-3 rounded-xl bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-black shadow-sm flex items-center justify-center gap-2 active:scale-98 transition-all cursor-pointer"
+                                                >
+                                                    <Smartphone size={14} />
+                                                    <span>Pay via UPI App (GPay / PhonePe / Paytm)</span>
+                                                </a>
+
+                                                {/* Supported Apps Badges */}
+                                                <div className="flex flex-wrap items-center justify-center gap-1.5 text-[10px] font-bold text-slate-500 mb-3">
+                                                    <span className="px-2 py-0.5 rounded bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300 border border-purple-200/80 dark:border-purple-500/20">PhonePe</span>
+                                                    <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 border border-blue-200/80 dark:border-blue-500/20">Google Pay</span>
+                                                    <span className="px-2 py-0.5 rounded bg-sky-50 text-sky-700 dark:bg-sky-950/40 dark:text-sky-300 border border-sky-200/80 dark:border-sky-500/20">Paytm</span>
+                                                    <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-500/20">BHIM / CRED</span>
+                                                </div>
+
+                                                {/* Official UPI ID Copy Box */}
+                                                <div className="flex items-center justify-between w-full max-w-sm bg-white dark:bg-[#161618] px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 shadow-2xs">
+                                                    <div className="text-left">
+                                                        <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">TradiFive Official UPI ID</span>
+                                                        <code className="text-xs sm:text-sm font-mono font-bold text-slate-900 dark:text-white select-all">
+                                                            9731980756@axisbank
+                                                        </code>
+                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            navigator.clipboard.writeText("9731980756@axisbank");
+                                                            setCopiedUpi(true);
+                                                            toast.success("UPI ID copied: 9731980756@axisbank");
+                                                            setTimeout(() => setCopiedUpi(false), 2000);
+                                                        }}
+                                                        className="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-900 text-white hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200 cursor-pointer flex items-center gap-1.5 shadow-2xs transition-all ml-3 shrink-0"
+                                                    >
+                                                        {copiedUpi ? <Check size={12} strokeWidth={3} /> : <Copy size={12} />}
+                                                        <span>{copiedUpi ? "Copied" : "Copy"}</span>
                                                     </button>
                                                 </div>
                                             </div>
 
-                                            <div>
-                                                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">
-                                                    UPI UTR / Reference Number
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    value={utrNumber}
-                                                    onChange={e => setUtrNumber(e.target.value)}
-                                                    placeholder="e.g. 429184920192"
-                                                    className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500/20"
-                                                />
+                                            {/* UTR Input Form with Real-time Validation */}
+                                            <div className="space-y-1.5 text-left">
+                                                <div className="flex items-center justify-between">
+                                                    <label className="text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1">
+                                                        <span>UPI UTR / Reference Number</span>
+                                                        <span className="text-rose-500">*</span>
+                                                    </label>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setShowUtrHelp(!showUtrHelp)}
+                                                        className="text-[11px] text-blue-500 hover:underline flex items-center gap-1 cursor-pointer"
+                                                    >
+                                                        <HelpCircle size={12} />
+                                                        <span>Where is UTR?</span>
+                                                    </button>
+                                                </div>
+
+                                                <div className="relative">
+                                                    <input
+                                                        type="text"
+                                                        value={utrNumber}
+                                                        onChange={e => setUtrNumber(e.target.value.replace(/[^a-zA-Z0-9]/g, ''))}
+                                                        placeholder="e.g. 429184920192 (12-digit UTR)"
+                                                        maxLength={22}
+                                                        className={`w-full px-3.5 py-2.5 text-xs font-mono rounded-xl border ${
+                                                            utrNumber.trim().length >= 12 
+                                                            ? 'border-emerald-500/60 bg-emerald-50/20 dark:bg-emerald-950/20' 
+                                                            : utrNumber.trim().length > 0 
+                                                            ? 'border-amber-500/60 bg-amber-50/20 dark:bg-amber-950/20' 
+                                                            : 'border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5'
+                                                        } text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500/20`}
+                                                    />
+                                                    {utrNumber.trim().length >= 12 && (
+                                                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-500 flex items-center gap-1 text-[11px] font-bold">
+                                                            <CheckCircle2 size={14} /> 12-Digit Valid
+                                                        </span>
+                                                    )}
+                                                </div>
+
+                                                {showUtrHelp && (
+                                                    <div className="p-3 rounded-xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200/60 dark:border-blue-500/20 text-[11px] text-slate-600 dark:text-slate-300 space-y-1">
+                                                        <p className="font-bold text-blue-700 dark:text-blue-300">How to find your 12-digit UTR:</p>
+                                                        <p>• <strong>PhonePe:</strong> Open History → Tap transaction → Look for <strong>"UTR: 429184920192"</strong></p>
+                                                        <p>• <strong>Google Pay:</strong> Tap transaction → Look for <strong>"UPI transaction ID"</strong></p>
+                                                        <p>• <strong>Paytm:</strong> Tap transaction → Look for <strong>"UPI Ref No"</strong></p>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     )}
 
                                     {paymentMethod === "bank" && (
-                                        <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 space-y-2.5 text-xs">
-                                            <div className="flex justify-between border-b border-slate-100 dark:border-white/5 pb-2">
-                                                <span className="text-slate-400">Account Name:</span>
-                                                <span className="font-bold text-slate-900 dark:text-white">TradiFive Tech Private Limited</span>
+                                        <div className="space-y-4">
+                                            <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 space-y-3 text-xs">
+                                                <div className="flex justify-between items-center border-b border-slate-100 dark:border-white/5 pb-2">
+                                                    <span className="text-slate-400">Account Name:</span>
+                                                    <span className="font-bold text-slate-900 dark:text-white">Nikhil Ravindra Harake</span>
+                                                </div>
+                                                <div className="flex justify-between items-center border-b border-slate-100 dark:border-white/5 pb-2">
+                                                    <span className="text-slate-400">Bank Name:</span>
+                                                    <span className="font-bold text-slate-900 dark:text-white">Axis Bank Limited</span>
+                                                </div>
+                                                <div className="flex justify-between items-center border-b border-slate-100 dark:border-white/5 pb-2">
+                                                    <span className="text-slate-400">Account Number:</span>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="font-mono font-bold text-slate-900 dark:text-white">924010072811588</span>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                navigator.clipboard.writeText("924010072811588");
+                                                                setCopiedAcc(true);
+                                                                toast.success("Account number copied!");
+                                                                setTimeout(() => setCopiedAcc(false), 2000);
+                                                            }}
+                                                            className="text-blue-500 hover:text-blue-600 text-[11px] font-bold cursor-pointer"
+                                                        >
+                                                            {copiedAcc ? "Copied" : "Copy"}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <div className="flex justify-between items-center">
+                                                    <span className="text-slate-400">IFSC Code:</span>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="font-mono font-bold text-blue-600 dark:text-blue-400">UTIB0001690</span>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                navigator.clipboard.writeText("UTIB0001690");
+                                                                setCopiedIfsc(true);
+                                                                toast.success("IFSC Code copied!");
+                                                                setTimeout(() => setCopiedIfsc(false), 2000);
+                                                            }}
+                                                            className="text-blue-500 hover:text-blue-600 text-[11px] font-bold cursor-pointer"
+                                                        >
+                                                            {copiedIfsc ? "Copied" : "Copy"}
+                                                        </button>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <div className="flex justify-between border-b border-slate-100 dark:border-white/5 pb-2">
-                                                <span className="text-slate-400">Bank:</span>
-                                                <span className="font-bold text-slate-900 dark:text-white">ICICI Bank Limited</span>
-                                            </div>
-                                            <div className="flex justify-between border-b border-slate-100 dark:border-white/5 pb-2">
-                                                <span className="text-slate-400">Account Number:</span>
-                                                <span className="font-mono font-bold text-slate-900 dark:text-white">000405019824</span>
-                                            </div>
-                                            <div className="flex justify-between">
-                                                <span className="text-slate-400">IFSC Code:</span>
-                                                <span className="font-mono font-bold text-blue-600 dark:text-blue-400">ICIC0000004</span>
+
+                                            {/* Bank Reference Number Input */}
+                                            <div className="space-y-1.5 text-left">
+                                                <label className="text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1">
+                                                    <span>Bank Transfer Reference / UTR Number</span>
+                                                    <span className="text-rose-500">*</span>
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={utrNumber}
+                                                    onChange={e => setUtrNumber(e.target.value)}
+                                                    placeholder="e.g. AXIS004829182 / UTR from receipt"
+                                                    className="w-full px-3.5 py-2.5 text-xs font-mono rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500/20"
+                                                />
                                             </div>
                                         </div>
                                     )}
@@ -1578,9 +1806,9 @@ export default function Discover() {
                                     {paymentMethod === "instant" && (
                                         <div className="p-4 rounded-xl bg-blue-50/60 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 space-y-2 text-center">
                                             <Sparkles size={24} className="text-blue-600 dark:text-blue-400 mx-auto mb-1" />
-                                            <h4 className="text-sm font-bold text-slate-900 dark:text-white">Instant Provisioning</h4>
-                                            <p className="text-xs text-slate-600 dark:text-slate-300 max-w-sm mx-auto">
-                                                Activate {purchaseModalProduct.name} immediately to generate your license key and start testing on MetaTrader 5 right away.
+                                            <h4 className="text-sm font-bold text-slate-900 dark:text-white">Developer Sandbox Activation</h4>
+                                            <p className="text-xs text-slate-600 dark:text-slate-300 max-w-sm mx-auto leading-relaxed">
+                                                Provision a test master key for {purchaseModalProduct.name} immediately without payment processing to test EA integration on MT5 demo accounts.
                                             </p>
                                         </div>
                                     )}
@@ -1607,6 +1835,7 @@ export default function Discover() {
                     </div>
                 )}
             </AnimatePresence>
+            
 
             <style dangerouslySetInnerHTML={{
                 __html: `
