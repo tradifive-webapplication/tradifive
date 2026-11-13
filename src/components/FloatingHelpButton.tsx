@@ -541,10 +541,11 @@ export default function FloatingHelpButton() {
             cursor: "pointer",
             color: isOpen ? (isDark ? "#ffffff" : "#0f172a") : "inherit",
             fontSize: "inherit",
-            fontWeight: "inherit",
+            fontWeight: isOpen ? 600 : "inherit",
             padding: 0,
-            transition: "color 0.15s ease",
+            transition: "all 0.15s ease",
           }}
+          className="active:scale-95 hover:opacity-100"
           onMouseEnter={(e) => (e.currentTarget.style.color = isDark ? "#ffffff" : "#0f172a")}
           onMouseLeave={(e) =>
             (e.currentTarget.style.color = isOpen
@@ -645,7 +646,11 @@ export default function FloatingHelpButton() {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 30, scale: 0.96 }}
+            initial={{
+              opacity: 0,
+              y: activeCorner.startsWith("bottom") ? 90 : -90,
+              scale: 0.88,
+            }}
             animate={{
               opacity: 1,
               y: 0,
@@ -661,8 +666,19 @@ export default function FloatingHelpButton() {
                 ? "min(780px, calc(100vh - 120px))"
                 : 570
             }}
-            exit={{ opacity: 0, y: 30, scale: 0.96 }}
-            transition={{ duration: 0.22, ease: "easeOut" }}
+            exit={{
+              opacity: 0,
+              y: activeCorner.startsWith("bottom") ? 70 : -70,
+              scale: 0.9,
+              transition: { duration: 0.18, ease: [0.32, 0, 0.67, 0] }
+            }}
+            transition={{
+              y: { type: "spring", damping: 26, stiffness: 320, mass: 0.85 },
+              scale: { type: "spring", damping: 26, stiffness: 320, mass: 0.85 },
+              opacity: { duration: 0.2, ease: "easeOut" },
+              width: { type: "spring", damping: 30, stiffness: 340 },
+              height: { type: "spring", damping: 30, stiffness: 340 }
+            }}
             style={{
               position: "fixed",
               bottom: activeCorner.startsWith("bottom") ? 28 : undefined,
@@ -670,6 +686,15 @@ export default function FloatingHelpButton() {
               right: activeCorner.endsWith("right") ? 24 : undefined,
               left: activeCorner.endsWith("left") ? 24 : undefined,
               zIndex: 9991,
+              transformOrigin:
+                activeCorner === "bottom-right"
+                  ? "bottom right"
+                  : activeCorner === "bottom-left"
+                  ? "bottom left"
+                  : activeCorner === "top-right"
+                  ? "top right"
+                  : "top left",
+              willChange: "transform, opacity",
               background: isDark ? "#121214" : "#ffffff",
               borderRadius: 20,
               border: isDark ? "1px solid rgba(255, 255, 255, 0.1)" : "1px solid rgba(226, 232, 240, 0.9)",

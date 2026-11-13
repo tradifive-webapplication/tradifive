@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Image as ImageIcon, Trash2 } from "lucide-react";
+import { X, Image as ImageIcon, Trash2, ArrowRight } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { uploadSupportAttachment, ChatAttachment } from "@/utils/supportChat";
 import { toast } from "sonner";
@@ -288,9 +288,28 @@ export default function ReportProblemModal({
                   <button
                     type="submit"
                     disabled={isSubmitting || isUploading || !whatHappened.trim()}
-                    className="px-5 py-2.5 rounded-xl text-xs font-bold transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed bg-blue-600 hover:bg-blue-700 text-white shadow-xs cursor-pointer"
+                    style={{
+                      borderRadius: 100,
+                      padding: "9px 20px",
+                      fontWeight: 700,
+                      fontSize: 12.5,
+                      letterSpacing: "0.01em",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 6,
+                      background: "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)",
+                      color: "#ffffff",
+                      border: "none",
+                      boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 2px 6px rgba(0, 0, 0, 0.25)",
+                      cursor: isSubmitting || isUploading || !whatHappened.trim() ? "not-allowed" : "pointer",
+                      opacity: isSubmitting || isUploading || !whatHappened.trim() ? 0.45 : 1,
+                      transition: "all 0.18s ease",
+                    }}
+                    className="active:scale-95 hover:brightness-110"
                   >
-                    {isSubmitting ? "Sending..." : "Send Report"}
+                    <span>{isSubmitting ? "Sending..." : "Send Report"}</span>
+                    <ArrowRight size={13.5} strokeWidth={2.4} />
                   </button>
                 </div>
               </div>
