@@ -68,14 +68,15 @@ const ChatWithLines = ({ size = 20, set = "curved", stroke = "regular", classNam
 }
 
 const AnimatedCounter = ({ value }: { value: number }) => {
-    const prevValueRef = useRef(value);
-    const direction = value > prevValueRef.current ? 1 : -1;
+    const safeValue = Math.max(0, value || 0);
+    const prevValueRef = useRef(safeValue);
+    const direction = safeValue > prevValueRef.current ? 1 : -1;
 
     useEffect(() => {
-        prevValueRef.current = value;
-    }, [value]);
+        prevValueRef.current = safeValue;
+    }, [safeValue]);
 
-    const digits = String(value).split("");
+    const digits = String(safeValue).split("");
 
     return (
         <span className="relative flex items-center justify-center overflow-hidden h-[18px]">

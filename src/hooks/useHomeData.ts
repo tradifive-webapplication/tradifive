@@ -191,27 +191,70 @@ export function useHomeData(userId: string) {
       // Try to fetch live Economic Calendar from ForexFactory for Global Market (High Impact Only)
       if (activeMarket !== 'indian') {
         try {
-          const calRes = await fetch('https://api.allorigins.win/raw?url=https%3A%2F%2Fnfs.faireconomy.media%2Fff_calendar_thisweek.json');
-          if (calRes.ok) {
-            const liveEvents = await calRes.json();
+          // Prefer Vercel proxy rewrite /api/economic-calendar, fallback to direct ForexFactory CDN
+          let liveEvents: any[] = [];
+          try {
+            const calRes = await fetch('/api/economic-calendar', { cache: 'no-cache' });
+            if (calRes.ok) {
+              liveEvents = await calRes.json();
+            }
+          } catch {
+            // Direct fallback
+            const calRes = await fetch('https://nfs.faireconomy.media/ff_calendar_thisweek.json', { cache: 'no-cache' });
+            if (calRes.ok) {
+              liveEvents = await calRes.json();
+            }
+          }
+
+          if (Array.isArray(liveEvents) && liveEvents.length > 0) {
+            const now = new Date();
+            const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+
             // Strict filter: ONLY High Impact economic events
-            const fetchedLive = liveEvents
-              .filter((e: any) => (e.impact || '').toLowerCase() === 'high')
-              .map((e: any, idx: number) => ({
-                id: `live-high-${idx}`,
-                event_time: e.date,
-                event_title: e.title,
-                currency: e.country,
-                impact: 'high',
-                forecast: e.forecast || '',
-                previous: e.previous || '',
-                actual: null,
-                source: 'ForexFactory',
-                created_at: new Date().toISOString()
-              }));
+            const allHigh = liveEvents.filter((e: any) => (e.impact || '').toLowerCase() === 'high');
+
+            // Sort: upcoming & today's events first, then recent ones
+            allHigh.sort((a: any, b: any) => {
+              const timeA = new Date(a.date).getTime();
+              const timeB = new Date(b.date).getTime();
+              const isAFuture = timeA >= startOfToday;
+              const isBFuture = timeB >= startOfToday;
+              if (isAFuture && !isBFuture) return -1;
+              if (!isAFuture && isBFuture) return 1;
+              return timeA - timeB;
+            });
+
+            const fetchedLive = allHigh.map((e: any, idx: number) => ({
+              id: `live-high-${e.country || 'USD'}-${idx}-${e.date}`,
+              event_time: e.date,
+              event_title: e.title,
+              currency: e.country,
+              impact: 'high',
+              forecast: e.forecast || '',
+              previous: e.previous || '',
+              actual: e.actual || null,
+              source: 'ForexFactory',
+              created_at: new Date().toISOString()
+            }));
 
             if (fetchedLive.length > 0) {
               finalCal = fetchedLive;
+              // Background async sync to Supabase table so database always stays updated daily
+              supabase.from('economic_calendar').select('id', { count: 'exact', head: true }).then(async ({ count }) => {
+                if (!count || count < 5) {
+                  const rows = fetchedLive.slice(0, 15).map(item => ({
+                    event_title: item.event_title,
+                    currency: item.currency,
+                    event_time: item.event_time,
+                    impact: 'High',
+                    forecast: item.forecast,
+                    previous: item.previous,
+                    actual: item.actual,
+                    source: 'ForexFactory'
+                  }));
+                  await supabase.from('economic_calendar').insert(rows).catch(() => {});
+                }
+              }).catch(() => {});
             }
           }
         } catch (e) {
@@ -225,6 +268,7 @@ export function useHomeData(userId: string) {
 
       setCalendar(finalCal);
       localStorage.setItem('home_cache_calendar', JSON.stringify(finalCal));
+      localStorage.setItem('home_last_fetch_time', String(Date.now()));
 
     } catch (err) {
       console.error('Home page data loading failed:', err);
@@ -241,6 +285,25 @@ export function useHomeData(userId: string) {
 
   useEffect(() => {
     fetchAll();
+
+    // Auto-refresh daily & on tab re-focus (keeps economic calendar fresh)
+    const onFocus = () => {
+      const lastFetch = localStorage.getItem('home_last_fetch_time');
+      const now = Date.now();
+      // If more than 30 minutes since last full fetch, refresh silently
+      if (!lastFetch || now - Number(lastFetch) > 30 * 60 * 1000) {
+        fetchAll();
+      }
+    };
+    window.addEventListener('focus', onFocus);
+    window.addEventListener('visibilitychange', onFocus);
+
+    const refreshInterval = setInterval(onFocus, 30 * 60 * 1000); // 30 min periodic check
+    return () => {
+      window.removeEventListener('focus', onFocus);
+      window.removeEventListener('visibilitychange', onFocus);
+      clearInterval(refreshInterval);
+    };
   }, [userId, activeMarket]);
 
   // Real-time market data background polling

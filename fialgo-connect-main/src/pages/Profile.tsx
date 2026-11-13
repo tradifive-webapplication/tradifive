@@ -693,6 +693,7 @@ export default function Profile() {
 
     try {
       if (isFollowing) {
+        setFollowingCount(prev => Math.max(0, prev - 1));
         const { error } = await supabase
           .from('social_follows')
           .delete()
@@ -701,6 +702,7 @@ export default function Profile() {
         if (error) throw error;
         toast.info(`Unfollowed ${targetName}`);
       } else {
+        setFollowingCount(prev => prev + 1);
         const { error } = await supabase
           .from('social_follows')
           .insert([{ follower_id: user.id, following_id: targetUserId }]);
@@ -991,7 +993,7 @@ export default function Profile() {
                         onClick={() => setFollowListState({ isOpen: true, type: 'followers' })}
                         className="min-w-[75px] text-center cursor-pointer hover:opacity-70 transition-opacity"
                       >
-                        <p className="text-xl sm:text-[23px] font-extrabold text-slate-900 dark:text-white leading-none tracking-tight font-sans">{followerCount}</p>
+                        <p className="text-xl sm:text-[23px] font-extrabold text-slate-900 dark:text-white leading-none tracking-tight font-sans">{Math.max(0, followerCount)}</p>
                         <p className="text-[10px] font-bold text-slate-455 dark:text-slate-400 uppercase tracking-wider mt-2 leading-none">followers</p>
                       </div>
                       <div className="border-r border-slate-200 dark:border-white/5 h-8 self-center hidden sm:block" />
@@ -999,7 +1001,7 @@ export default function Profile() {
                         onClick={() => setFollowListState({ isOpen: true, type: 'following' })}
                         className="min-w-[75px] text-center cursor-pointer hover:opacity-70 transition-opacity"
                       >
-                        <p className="text-xl sm:text-[23px] font-extrabold text-slate-900 dark:text-white leading-none tracking-tight font-sans">{followingCount}</p>
+                        <p className="text-xl sm:text-[23px] font-extrabold text-slate-900 dark:text-white leading-none tracking-tight font-sans">{Math.max(0, followingCount)}</p>
                         <p className="text-[10px] font-bold text-slate-455 dark:text-slate-400 uppercase tracking-wider mt-2 leading-none">following</p>
                       </div>
                     </div>

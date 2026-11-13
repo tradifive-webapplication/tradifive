@@ -122,18 +122,19 @@ export default function AuthCallback() {
       textAlign: 'center'
     }}>
       <div style={{
-        width: 48,
-        height: 48,
-        border: '3px solid rgba(59, 130, 246, 0.2)',
+        width: 44,
+        height: 44,
+        border: '3px solid rgba(59, 130, 246, 0.18)',
         borderTopColor: '#3b82f6',
         borderRadius: '50%',
         animation: 'spin 0.8s linear infinite',
-        marginBottom: 20
+        marginBottom: 16
       }} />
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       
-      <h2 style={{ fontSize: 20, fontWeight: 700, margin: '0 0 8px 0' }}>TradiFive Authentication</h2>
-      <p style={{ fontSize: 14, color: '#94a3b8', margin: 0, maxWidth: 360, lineHeight: 1.5 }}>{status}</p>
+      <p style={{ fontSize: 13, color: '#94a3b8', margin: 0, maxWidth: 360, lineHeight: 1.5, letterSpacing: '-0.01em' }}>
+        {status}
+      </p>
 
       {isMobile && deepLinkTarget ? (
         <a

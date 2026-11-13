@@ -1096,7 +1096,7 @@ export default function Login() {
                       >
                         {isLoading ? "Verifying..." : (
                           <>
-                            Authorize Access
+                            Verify & Sign In
                             <IconlyArrowRight set="curved" primaryColor="currentColor" size={18} stroke="bold" strokeWidth={2} className="ml-2" />
                           </>
                         )}

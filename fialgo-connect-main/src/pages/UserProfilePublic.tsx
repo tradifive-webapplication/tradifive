@@ -488,7 +488,9 @@ export default function UserProfilePublic() {
       if (isFollowing) {
         // Unfollow
         setFollowedUsers(prev => ({ ...prev, [targetUserId]: false }));
-        setFollowerCount(prev => prev - 1);
+        if (targetUserId === profile?.id) {
+          setFollowerCount(prev => Math.max(0, prev - 1));
+        }
         const { error } = await supabase
           .from('social_follows')
           .delete()
@@ -887,7 +889,7 @@ export default function UserProfilePublic() {
                       onClick={() => handleFollowStatClick('followers')}
                       className="min-w-[75px] text-center cursor-pointer hover:opacity-70 transition-opacity"
                     >
-                      <p className="text-xl sm:text-[23px] font-extrabold text-slate-900 dark:text-white leading-none tracking-tight font-sans">{followerCount}</p>
+                      <p className="text-xl sm:text-[23px] font-extrabold text-slate-900 dark:text-white leading-none tracking-tight font-sans">{Math.max(0, followerCount)}</p>
                       <p className="text-[10px] font-bold text-slate-455 dark:text-slate-400 uppercase tracking-wider mt-2 leading-none">followers</p>
                     </div>
                     <div className="border-r border-slate-200 dark:border-white/5 h-8 self-center hidden sm:block" />
@@ -895,7 +897,7 @@ export default function UserProfilePublic() {
                       onClick={() => handleFollowStatClick('following')}
                       className="min-w-[75px] text-center cursor-pointer hover:opacity-70 transition-opacity"
                     >
-                      <p className="text-xl sm:text-[23px] font-extrabold text-slate-900 dark:text-white leading-none tracking-tight font-sans">{followingCount}</p>
+                      <p className="text-xl sm:text-[23px] font-extrabold text-slate-900 dark:text-white leading-none tracking-tight font-sans">{Math.max(0, followingCount)}</p>
                       <p className="text-[10px] font-bold text-slate-450 dark:text-slate-400 uppercase tracking-wider mt-2 leading-none">following</p>
                     </div>
 
