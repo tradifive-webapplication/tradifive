@@ -1396,8 +1396,7 @@ export default function UserProfilePublic() {
                     const isFollowing = followedUsers[person.id] || false;
                     const displayName = person.display_name || person.username || "Trader";
                     const displayAvatar = person.avatar_url || "/default-avatar.svg";
-                    const displayWinrate = person.win_rate ? `${person.win_rate}% Win Rate` : "Active Trader";
-                    const displayRole = person.bio ? (person.bio.length > 30 ? person.bio.substring(0, 30) + "..." : person.bio) : "Tradifive Member";
+                    const displayHandle = person.username ? `@${person.username}` : "@trader";
 
                     return (
                       <div key={person.id} className="flex items-center justify-between gap-3 group">
@@ -1409,8 +1408,7 @@ export default function UserProfilePublic() {
                             <Link to={`/user/${person.username || ""}`}>
                               <h4 className="font-bold text-slate-900 dark:text-white text-[13px] leading-tight hover:text-blue-600 cursor-pointer truncate transition-colors">{displayName}</h4>
                             </Link>
-                            <p className="text-slate-455 dark:text-slate-400 text-[10.5px] leading-none mt-1 truncate font-semibold">{displayWinrate}</p>
-                            <p className="text-slate-400 dark:text-slate-400 text-[10.5px] leading-none mt-1.5 truncate font-semibold">{displayRole}</p>
+                            <p className="text-slate-450 dark:text-slate-400 text-[11px] leading-none mt-1 truncate font-medium">{displayHandle}</p>
                           </div>
                         </div>
 
