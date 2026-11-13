@@ -277,7 +277,7 @@ export default function PublicNavbar({
           font-size: 13px;
           font-weight: 600;
           cursor: pointer;
-          padding: 8px 18px;
+          padding: 9px 20px;
           transition: all 0.2s ease;
           border-radius: 100px;
           box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.12), 0 2px 4px rgba(0, 0, 0, 0.2);
@@ -293,7 +293,7 @@ export default function PublicNavbar({
           transform: scale(0.985) !important;
         }
         .nav-btn-get-started {
-          padding: 10px 22px;
+          padding: 9px 22px;
           border-radius: 100px;
           background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
           color: #60a5fa;

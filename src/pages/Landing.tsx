@@ -418,35 +418,44 @@ function Hero({ onStart, onSignIn }: { onStart: () => void; onSignIn: () => void
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.3 }}
               className="hero-cta-group"
-              style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", marginBottom: 32, width: "100%" }}
+              style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap", marginBottom: 32, width: "100%" }}
             >
-              <motion.button
+              <button
                 onClick={onStart}
-                className="btn-tradifive-solid"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.985 }}
                 style={{
-                  padding: "0 22px",
-                  fontSize: 13.5,
-                  fontWeight: 700,
-                  borderRadius: 100,
-                  height: 38,
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 8,
-                  whiteSpace: "nowrap",
                   background: "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)",
                   color: "#60a5fa",
-                  boxShadow: "none",
                   border: "none",
-                  cursor: "pointer"
+                  boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 6px rgba(0, 0, 0, 0.3)",
+                  borderRadius: 100,
+                  padding: "13px 26px",
+                  fontSize: 14,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  transition: "all 0.2s ease",
+                  outline: "none",
+                  whiteSpace: "nowrap"
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "translateY(-1px)";
+                  e.currentTarget.style.background = "linear-gradient(135deg, #253347 0%, #131c33 100%)";
+                  e.currentTarget.style.color = "#93c5fd";
+                  e.currentTarget.style.boxShadow = "inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 4px 12px rgba(0, 0, 0, 0.4)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.background = "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)";
+                  e.currentTarget.style.color = "#60a5fa";
+                  e.currentTarget.style.boxShadow = "inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 6px rgba(0, 0, 0, 0.3)";
                 }}
               >
                 <span>Start Free</span>
-                <ArrowRight size={15} />
-              </motion.button>
-              <motion.button
+                <ArrowRight size={16} />
+              </button>
+              <button
                 onClick={() => {
                   const el = document.getElementById("features") || document.getElementById("how-it-works") || document.getElementById("problem");
                   if (el) {
@@ -456,30 +465,41 @@ function Hero({ onStart, onSignIn }: { onStart: () => void; onSignIn: () => void
                     onSignIn();
                   }
                 }}
-                className="btn-ghost"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.985 }}
                 style={{
-                  padding: "0 22px",
-                  fontSize: 13.5,
-                  fontWeight: 700,
+                  background: "#171717",
+                  color: "rgba(255, 255, 255, 0.9)",
+                  border: "none",
                   borderRadius: 100,
-                  height: 38,
+                  padding: "13px 24px",
+                  fontSize: 14,
+                  fontWeight: 600,
+                  cursor: "pointer",
                   display: "inline-flex",
                   alignItems: "center",
-                  justifyContent: "center",
                   gap: 8,
-                  whiteSpace: "nowrap",
-                  background: "#171717",
-                  color: "#ffffff",
-                  border: "none",
-                  boxShadow: "none",
-                  cursor: "pointer"
+                  boxShadow:
+                    "inset 0 1px 0 0 rgba(255, 255, 255, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.12), 0 2px 4px rgba(0, 0, 0, 0.2)",
+                  transition: "all 0.2s ease",
+                  outline: "none",
+                  whiteSpace: "nowrap"
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "translateY(-1px)";
+                  e.currentTarget.style.background = "#1e1e1e";
+                  e.currentTarget.style.color = "#ffffff";
+                  e.currentTarget.style.boxShadow =
+                    "inset 0 1px 0 0 rgba(255, 255, 255, 0.16), 0 0 0 1px rgba(255, 255, 255, 0.18), 0 2px 4px rgba(0, 0, 0, 0.25)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.background = "#171717";
+                  e.currentTarget.style.color = "rgba(255, 255, 255, 0.9)";
+                  e.currentTarget.style.boxShadow =
+                    "inset 0 1px 0 0 rgba(255, 255, 255, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.12), 0 2px 4px rgba(0, 0, 0, 0.2)";
                 }}
               >
                 <span>Learn More</span>
-                <ArrowRight size={15} />
-              </motion.button>
+              </button>
             </motion.div>
 
             {/* Trust Signals (Custom Layout) */}
@@ -2142,13 +2162,79 @@ function CTA({ onStart }: { onStart: () => void }) {
           Join Tradifive and get access to AI coaching, risk management, auto-sync journaling, verified traders, creator communities, and everything you need to grow consistently.
         </p>
 
-        <div ref={useReveal()} className="rv d3" style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap", marginBottom: 28 }}>
-          <motion.button onClick={onStart} className="btn-glow-primary" whileHover={{ scale: 1.04, y: -3 }} whileTap={{ scale: 0.97 }} style={{ padding: "15px 40px", fontSize: 15, fontWeight: 800 }}>
-            Start Free Today →
-          </motion.button>
-          <motion.button onClick={() => { const el = document.getElementById("capabilities"); el?.scrollIntoView({ behavior: "smooth" }); }} className="btn-ghost" whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.98 }} style={{ padding: "15px 40px", fontSize: 15 }}>
-            Explore Tradifive →
-          </motion.button>
+        <div ref={useReveal()} className="rv d3" style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap", marginBottom: 28 }}>
+          <button
+            onClick={onStart}
+            style={{
+              background: "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)",
+              color: "#60a5fa",
+              border: "none",
+              boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 6px rgba(0, 0, 0, 0.3)",
+              borderRadius: 100,
+              padding: "14px 34px",
+              fontSize: 15,
+              fontWeight: 700,
+              cursor: "pointer",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              transition: "all 0.2s ease",
+              outline: "none",
+              whiteSpace: "nowrap"
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "translateY(-1px)";
+              e.currentTarget.style.background = "linear-gradient(135deg, #253347 0%, #131c33 100%)";
+              e.currentTarget.style.color = "#93c5fd";
+              e.currentTarget.style.boxShadow = "inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 4px 12px rgba(0, 0, 0, 0.4)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.background = "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)";
+              e.currentTarget.style.color = "#60a5fa";
+              e.currentTarget.style.boxShadow = "inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 6px rgba(0, 0, 0, 0.3)";
+            }}
+          >
+            <span>Start Free Today</span>
+            <ArrowRight size={16} />
+          </button>
+          <button
+            onClick={() => { const el = document.getElementById("capabilities"); el?.scrollIntoView({ behavior: "smooth" }); }}
+            style={{
+              background: "#171717",
+              color: "rgba(255, 255, 255, 0.9)",
+              border: "none",
+              borderRadius: 100,
+              padding: "14px 32px",
+              fontSize: 15,
+              fontWeight: 600,
+              cursor: "pointer",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              boxShadow:
+                "inset 0 1px 0 0 rgba(255, 255, 255, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.12), 0 2px 4px rgba(0, 0, 0, 0.2)",
+              transition: "all 0.2s ease",
+              outline: "none",
+              whiteSpace: "nowrap"
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "translateY(-1px)";
+              e.currentTarget.style.background = "#1e1e1e";
+              e.currentTarget.style.color = "#ffffff";
+              e.currentTarget.style.boxShadow =
+                "inset 0 1px 0 0 rgba(255, 255, 255, 0.16), 0 0 0 1px rgba(255, 255, 255, 0.18), 0 2px 4px rgba(0, 0, 0, 0.25)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.background = "#171717";
+              e.currentTarget.style.color = "rgba(255, 255, 255, 0.9)";
+              e.currentTarget.style.boxShadow =
+                "inset 0 1px 0 0 rgba(255, 255, 255, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.12), 0 2px 4px rgba(0, 0, 0, 0.2)";
+            }}
+          >
+            <span>Explore Tradifive</span>
+          </button>
         </div>
         <p ref={useReveal()} className="rv d4" style={{ fontSize: 11.5, color: "rgba(255,255,255,0.22)", fontWeight: 600, letterSpacing: 0.5 }}>No Credit Card Required • Free Community Access • Cancel Anytime</p>
       </div>
