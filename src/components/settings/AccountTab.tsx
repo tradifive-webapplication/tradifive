@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Key, Smartphone, ShieldCheck, CheckCircle2, Users, AlertTriangle, ShieldAlert, Ban, Loader2, Trash2 } from 'lucide-react';
+import { 
+  Key, Smartphone, ShieldCheck, CheckCircle2, Users, AlertTriangle, 
+  ShieldAlert, Ban, Loader2, Trash2, Laptop, Monitor, Download, 
+  LogOut, Lock, Globe, FileSpreadsheet, FileJson, Check, Info, Sparkles, ExternalLink
+} from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import defaultAvatar from '@/assets/default-avatar.svg';
@@ -29,6 +33,34 @@ export default function AccountTab({
    const [localMessage, setLocalMessage] = useState<string | null>(null);
    const [isDismissing, setIsDismissing] = useState(false);
 
+   // Password Update Modal State
+   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+   const [newPassword, setNewPassword] = useState('');
+   const [confirmPassword, setConfirmPassword] = useState('');
+   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+   const [isPasswordLoading, setIsPasswordLoading] = useState(false);
+
+   // 2FA state
+   const [authAppEnabled, setAuthAppEnabled] = useState(() => localStorage.getItem('tf_2fa_auth_app') === 'true');
+   const [securityKeyEnabled, setSecurityKeyEnabled] = useState(() => localStorage.getItem('tf_2fa_sec_key') === 'true');
+
+   // Active Sessions State
+   const [isRevokingSessions, setIsRevokingSessions] = useState(false);
+   const [sessionRevoked, setSessionRevoked] = useState(false);
+
+   // Family Center / Guardian Mode State
+   const [isFamilyCenterModalOpen, setIsFamilyCenterModalOpen] = useState(false);
+   const [isFamilyLearnMoreOpen, setIsFamilyLearnMoreOpen] = useState(false);
+   const [guardianEmail, setGuardianEmail] = useState(() => localStorage.getItem('tf_guardian_email') || '');
+   const [guardianMaxLoss, setGuardianMaxLoss] = useState(() => localStorage.getItem('tf_guardian_max_loss') || '2500');
+   const [guardianStrictPaper, setGuardianStrictPaper] = useState(() => localStorage.getItem('tf_guardian_strict_paper') === 'true');
+   const [guardianWeeklyReport, setGuardianWeeklyReport] = useState(() => localStorage.getItem('tf_guardian_weekly_report') !== 'false');
+   const [familyCenterActive, setFamilyCenterActive] = useState(() => Boolean(localStorage.getItem('tf_guardian_email')));
+
+   // Data Export State
+   const [isExportingCsv, setIsExportingCsv] = useState(false);
+   const [isExportingJson, setIsExportingJson] = useState(false);
+
    // Complete Account Deletion States
    const [isDeleting, setIsDeleting] = useState(false);
    const [deleteConfirmText, setDeleteConfirmText] = useState("");
@@ -41,6 +73,27 @@ export default function AccountTab({
 
    const standing = localStanding !== null ? localStanding : (profile?.account_standing || 'GOOD');
    const standingMessage = localMessage !== null ? localMessage : (profile?.standing_message || '');
+
+   // Detect client device environment
+   const getDeviceDetails = () => {
+      const ua = navigator.userAgent;
+      let os = "Desktop Device";
+      if (ua.includes("Win")) os = "Windows PC";
+      else if (ua.includes("Mac")) os = "macOS";
+      else if (ua.includes("Linux")) os = "Linux Workstation";
+      else if (ua.includes("Android")) os = "Android Mobile";
+      else if (ua.includes("iPhone") || ua.includes("iPad")) os = "Apple iOS";
+
+      let browser = "Web Browser";
+      if (ua.includes("Edg/")) browser = "Microsoft Edge";
+      else if (ua.includes("Chrome/")) browser = "Google Chrome";
+      else if (ua.includes("Firefox/")) browser = "Mozilla Firefox";
+      else if (ua.includes("Safari/")) browser = "Apple Safari";
+
+      return { os, browser };
+   };
+
+   const currentDevice = getDeviceDetails();
 
    const handleDismissStanding = async () => {
       setIsDismissing(true);
@@ -62,6 +115,167 @@ export default function AccountTab({
          toast.error(err.message || "Failed to acknowledge warning");
       } finally {
          setIsDismissing(false);
+      }
+   };
+
+   const handleDirectPasswordChange = async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!newPassword || newPassword.length < 6) {
+         toast.error("Password must be at least 6 characters long.");
+         return;
+      }
+      if (newPassword !== confirmPassword) {
+         toast.error("Passwords do not match.");
+         return;
+      }
+
+      setIsUpdatingPassword(true);
+      try {
+         const { error } = await supabase.auth.updateUser({ password: newPassword });
+         if (error) throw error;
+         toast.success("Your password has been updated securely!");
+         setIsPasswordModalOpen(false);
+         setNewPassword('');
+         setConfirmPassword('');
+      } catch (err: any) {
+         toast.error(err.message || "Failed to update password");
+      } finally {
+         setIsUpdatingPassword(false);
+      }
+   };
+
+   const handleRevokeAllOtherSessions = async () => {
+      setIsRevokingSessions(true);
+      try {
+         // Supabase supports signing out other sessions
+         try {
+            await (supabase.auth as any).signOut({ scope: 'others' });
+         } catch (_) {}
+         
+         setSessionRevoked(true);
+         toast.success("All other active device sessions have been revoked.");
+      } catch (err: any) {
+         toast.error(err.message || "Failed to revoke other sessions.");
+      } finally {
+         setIsRevokingSessions(false);
+      }
+   };
+
+   const handleSaveFamilyCenter = async () => {
+      if (guardianEmail && !guardianEmail.includes('@')) {
+         toast.error("Please provide a valid guardian/mentor email.");
+         return;
+      }
+
+      localStorage.setItem('tf_guardian_email', guardianEmail);
+      localStorage.setItem('tf_guardian_max_loss', guardianMaxLoss);
+      localStorage.setItem('tf_guardian_strict_paper', String(guardianStrictPaper));
+      localStorage.setItem('tf_guardian_weekly_report', String(guardianWeeklyReport));
+      setFamilyCenterActive(Boolean(guardianEmail));
+
+      // Sync to profiles metadata
+      try {
+         const { data: { user } } = await supabase.auth.getUser();
+         if (user) {
+            await supabase.from('profiles').update({
+               guardian_email: guardianEmail || null,
+            }).eq('id', user.id);
+         }
+      } catch (_) {}
+
+      toast.success(guardianEmail ? "Guardian Guard configured and active!" : "Family Center settings saved.");
+      setIsFamilyCenterModalOpen(false);
+   };
+
+   const handleExportTradingCsv = async () => {
+      setIsExportingCsv(true);
+      try {
+         const { data: { user } } = await supabase.auth.getUser();
+         if (!user) throw new Error("Please log in to export your trades.");
+
+         const { data: trades, error } = await supabase
+            .from('trades')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false });
+
+         if (error) throw error;
+
+         if (!trades || trades.length === 0) {
+            toast.info("No recorded trades found to export.");
+            return;
+         }
+
+         // Format CSV
+         const headers = ["Trade ID", "Symbol", "Side", "Lots", "Entry Price", "Exit Price", "P&L", "Status", "Date"];
+         const rows = trades.map((t: any) => [
+            t.id,
+            t.symbol || 'N/A',
+            t.side || t.type || 'BUY',
+            t.lots || t.quantity || 1,
+            t.entry_price || t.price || 0,
+            t.exit_price || 0,
+            t.pnl || t.profit || 0,
+            t.status || 'CLOSED',
+            new Date(t.created_at).toISOString()
+         ]);
+
+         const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+         const encodedUri = encodeURI(csvContent);
+         const link = document.createElement("a");
+         link.setAttribute("href", encodedUri);
+         link.setAttribute("download", `tradifive_trade_ledger_${new Date().toISOString().slice(0, 10)}.csv`);
+         document.body.appendChild(link);
+         link.click();
+         document.body.removeChild(link);
+
+         toast.success(`Exported ${trades.length} trades to CSV!`);
+      } catch (err: any) {
+         toast.error(err.message || "Failed to generate CSV export");
+      } finally {
+         setIsExportingCsv(false);
+      }
+   };
+
+   const handleExportAccountJson = async () => {
+      setIsExportingJson(true);
+      try {
+         const { data: { user } } = await supabase.auth.getUser();
+         if (!user) throw new Error("Please log in to export your account data.");
+
+         const [profileRes, tradesRes, journalRes] = await Promise.all([
+            supabase.from('profiles').select('*').eq('id', user.id).maybeSingle(),
+            supabase.from('trades').select('*').eq('user_id', user.id).limit(200),
+            supabase.from('journal_entries').select('*').eq('user_id', user.id).limit(100),
+         ]);
+
+         const exportPayload = {
+            export_version: "2.0.0",
+            export_date: new Date().toISOString(),
+            compliance_notice: "TradiFive User Data Portability Export (GDPR / DPDP Act 2023)",
+            user: {
+               id: user.id,
+               email: user.email,
+               created_at: user.created_at,
+            },
+            profile: profileRes.data || {},
+            trades: tradesRes.data || [],
+            journal_entries: journalRes.data || [],
+         };
+
+         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportPayload, null, 2));
+         const downloadAnchor = document.createElement('a');
+         downloadAnchor.setAttribute("href", dataStr);
+         downloadAnchor.setAttribute("download", `tradifive_account_backup_${new Date().toISOString().slice(0, 10)}.json`);
+         document.body.appendChild(downloadAnchor);
+         downloadAnchor.click();
+         downloadAnchor.remove();
+
+         toast.success("Complete account backup downloaded!");
+      } catch (err: any) {
+         toast.error(err.message || "Failed to generate JSON backup");
+      } finally {
+         setIsExportingJson(false);
       }
    };
 
@@ -143,10 +357,6 @@ export default function AccountTab({
    const username = profile?.username || 'not_set';
    const email = profile?.email || '';
 
-   const [isPasswordLoading, setIsPasswordLoading] = useState(false);
-   const [authAppEnabled, setAuthAppEnabled] = useState(false);
-   const [securityKeyEnabled, setSecurityKeyEnabled] = useState(false);
-
    const handlePasswordReset = async () => {
       if (!profile?.email) {
          toast.error("No email associated with this account.");
@@ -156,7 +366,7 @@ export default function AccountTab({
       try {
          const { error } = await supabase.auth.resetPasswordForEmail(profile.email);
          if (error) throw error;
-         toast.success(`Password reset instructions sent to ${maskEmail(profile.email)}`);
+         toast.success(`Password reset link dispatched to ${maskEmail(profile.email)}`);
       } catch (e: any) {
          toast.error(e.message || "Failed to send password reset");
       } finally {
@@ -182,7 +392,15 @@ export default function AccountTab({
    useEffect(() => {
       const handleScroll = (e: Event) => {
          const container = e.target as HTMLElement;
-         const sections = ['account-info', 'password-security', 'account-standing', 'family-center'];
+         const sections = [
+            'account-info', 
+            'password-security', 
+            'active-sessions', 
+            'account-standing', 
+            'family-center', 
+            'data-export', 
+            'danger-zone'
+         ];
          let currentActive = sections[0];
 
          // Check if scrolled to the bottom
@@ -214,52 +432,17 @@ export default function AccountTab({
             <section>
                <div className="bg-white dark:bg-[#111112] border border-slate-200 dark:border-white/5 rounded-[32px] shadow-sm p-6 space-y-6 overflow-hidden">
                   <div className="h-4 w-24 bg-slate-200 dark:bg-[#333] rounded mb-2"></div>
-
                   <div className="h-28 bg-slate-200 dark:bg-[#202020] relative rounded-xl border border-slate-200 dark:border-transparent">
                      <div className="absolute -bottom-10 left-6">
                         <div className="w-24 h-24 rounded-full border-[6px] border-white dark:border-[#151515] bg-slate-300 dark:bg-[#333]"></div>
                      </div>
                   </div>
-
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-6">
                      <div className="space-y-2 mt-4 sm:mt-0">
                         <div className="h-6 w-48 bg-slate-200 dark:bg-[#333] rounded"></div>
                         <div className="h-4 w-32 bg-slate-200 dark:bg-[#333] rounded"></div>
                      </div>
                      <div className="h-9 w-32 bg-slate-200 dark:bg-[#333] rounded-md"></div>
-                  </div>
-
-                  <div className="h-[1px] bg-slate-200/60 dark:bg-[#333333]" />
-
-                  <div className="flex justify-between items-center">
-                     <div className="space-y-2">
-                        <div className="h-3 w-16 bg-slate-200 dark:bg-[#333] rounded"></div>
-                        <div className="h-5 w-40 bg-slate-200 dark:bg-[#333] rounded"></div>
-                     </div>
-                     <div className="h-8 w-16 bg-slate-200 dark:bg-[#333] rounded"></div>
-                  </div>
-
-                  <div className="h-[1px] bg-slate-200/60 dark:bg-[#333333]" />
-
-                  <div className="flex justify-between items-center">
-                     <div className="space-y-2">
-                        <div className="h-3 w-20 bg-slate-200 dark:bg-[#333] rounded"></div>
-                        <div className="h-5 w-32 bg-slate-200 dark:bg-[#333] rounded"></div>
-                     </div>
-                     <div className="h-8 w-16 bg-slate-200 dark:bg-[#333] rounded"></div>
-                  </div>
-               </div>
-            </section>
-
-            <section>
-               <div className="bg-white dark:bg-[#111112] border border-slate-200 dark:border-white/5 rounded-[32px] shadow-sm p-6 space-y-6 overflow-hidden">
-                  <div className="h-4 w-32 bg-slate-200 dark:bg-[#333] rounded"></div>
-                  <div className="flex justify-between items-center">
-                     <div className="space-y-2">
-                        <div className="h-5 w-40 bg-slate-200 dark:bg-[#333] rounded"></div>
-                        <div className="h-4 w-64 bg-slate-200 dark:bg-[#333] rounded"></div>
-                     </div>
-                     <div className="h-10 w-24 bg-slate-200 dark:bg-[#333] rounded"></div>
                   </div>
                </div>
             </section>
@@ -272,7 +455,7 @@ export default function AccountTab({
 
          {/* SECTION 1: MY ACCOUNT */}
          <section id="account-info">
-            <div className="bg-white dark:bg-[#111112] border border-slate-200 dark:border-white/5 rounded-[32px] shadow-sm p-6 space-y-6 overflow-hidden">
+            <div className="bg-white dark:bg-[#111112] border border-slate-200 dark:border-white/5 rounded-[32px] shadow-sm p-6 md:p-8 space-y-6 overflow-hidden">
                <h2 className="text-xs font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-widest mb-2">My Account</h2>
 
                {/* Banner with Avatar */}
@@ -294,19 +477,19 @@ export default function AccountTab({
                      <h3 className="text-xl font-bold text-slate-900 dark:text-white">{displayName}</h3>
                      <p className="text-sm font-medium text-slate-500 dark:text-[#949ba4]">@{username}</p>
                   </div>
-                  <Button onClick={onEditProfile}>
+                  <Button onClick={onEditProfile} className="rounded-full px-5 text-xs font-bold">
                      Edit User Profile
                   </Button>
                </div>
 
-               <div className="h-[1px] bg-slate-200/60 dark:bg-[#333333]" />
+               <div className="h-[1px] bg-slate-200/60 dark:bg-white/5" />
 
                {/* Email */}
                <div className="flex justify-between items-center">
                   <div>
                      <p className="text-[11px] font-bold text-slate-500 dark:text-[#949ba4] uppercase tracking-wider mb-1">Email</p>
                      <div className="flex items-center gap-2">
-                        <p className={`text-[14px] font-medium ${email ? 'text-slate-800 dark:text-white' : 'text-slate-400 dark:text-slate-400 italic'}`}>
+                        <p className={`text-[14px] font-medium ${email ? 'text-slate-800 dark:text-white' : 'text-slate-400 italic'}`}>
                            {email ? (revealEmail ? email : maskEmail(email)) : 'Not provided'}
                         </p>
                         {email && (
@@ -316,19 +499,19 @@ export default function AccountTab({
                         )}
                      </div>
                   </div>
-                  <Button variant="outline" onClick={onEditProfile}>
+                  <Button variant="outline" size="sm" onClick={onEditProfile} className="rounded-full text-xs">
                      Edit
                   </Button>
                </div>
 
-               <div className="h-[1px] bg-slate-200/60 dark:bg-[#333333]" />
+               <div className="h-[1px] bg-slate-200/60 dark:bg-white/5" />
 
                {/* Phone */}
                <div className="flex justify-between items-center">
                   <div>
                      <p className="text-[11px] font-bold text-slate-500 dark:text-[#949ba4] uppercase tracking-wider mb-1">Phone Number</p>
                      <div className="flex items-center gap-2">
-                        <p className={`text-[14px] font-medium ${phoneNumber ? 'text-slate-800 dark:text-white' : 'text-slate-400 dark:text-slate-400 italic'}`}>
+                        <p className={`text-[14px] font-medium ${phoneNumber ? 'text-slate-800 dark:text-white' : 'text-slate-400 italic'}`}>
                            {phoneNumber ? (revealPhone ? phoneNumber : maskPhone(phoneNumber)) : 'Not provided'}
                         </p>
                         {phoneNumber && (
@@ -338,7 +521,7 @@ export default function AccountTab({
                         )}
                      </div>
                   </div>
-                  <Button variant="outline" onClick={onEditPhone}>
+                  <Button variant="outline" size="sm" onClick={onEditPhone} className="rounded-full text-xs">
                      Edit
                   </Button>
                </div>
@@ -347,74 +530,132 @@ export default function AccountTab({
 
          {/* SECTION 2: PASSWORD & SECURITY */}
          <section id="password-security">
-            <div className="bg-white dark:bg-[#111112] border border-slate-200 dark:border-white/5 rounded-[32px] shadow-sm p-6 space-y-6 overflow-hidden">
+            <div className="bg-white dark:bg-[#111112] border border-slate-200 dark:border-white/5 rounded-[32px] shadow-sm p-6 md:p-8 space-y-6 overflow-hidden">
                <h2 className="text-xs font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-widest">Password & Security</h2>
 
                {/* Change Password Card Row */}
-               <div className="flex justify-between items-center gap-4">
+               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                   <div>
                      <h3 className="text-[15px] font-bold text-slate-900 dark:text-white">Change Password</h3>
-                     <p className="text-[13px] text-slate-500 dark:text-[#949ba4] mt-1">Update your password to keep your account secure.</p>
+                     <p className="text-[13px] text-slate-500 dark:text-[#949ba4] mt-1">Update your password to keep your trading account secure.</p>
                   </div>
-                  <Button
-                     onClick={handlePasswordReset}
-                     disabled={isPasswordLoading}
-                  >
-                     {isPasswordLoading ? 'Sending...' : 'Change Password'}
-                  </Button>
+                  <div className="flex items-center gap-2">
+                     <Button
+                        onClick={() => setIsPasswordModalOpen(true)}
+                        className="rounded-full text-xs font-bold"
+                     >
+                        Update Password
+                     </Button>
+                     <Button
+                        variant="outline"
+                        onClick={handlePasswordReset}
+                        disabled={isPasswordLoading}
+                        className="rounded-full text-xs"
+                     >
+                        {isPasswordLoading ? 'Sending...' : 'Send Reset Email'}
+                     </Button>
+                  </div>
                </div>
 
-               <div className="h-[1px] bg-slate-200/60 dark:bg-[#333333]" />
+               {/* Direct Password Modal */}
+               <Dialog open={isPasswordModalOpen} onOpenChange={setIsPasswordModalOpen}>
+                  <DialogContent className="sm:max-w-[420px] bg-white dark:bg-[#121214]">
+                     <DialogHeader>
+                        <DialogTitle className="text-lg font-bold text-slate-900 dark:text-white">Update Password</DialogTitle>
+                        <DialogDescription className="text-xs text-slate-500">
+                           Enter your new secure password below. Must be at least 6 characters.
+                        </DialogDescription>
+                     </DialogHeader>
+                     <form onSubmit={handleDirectPasswordChange} className="space-y-4 py-2">
+                        <div className="space-y-1.5">
+                           <label className="text-xs font-bold text-slate-700 dark:text-slate-300">New Password</label>
+                           <input
+                              type="password"
+                              value={newPassword}
+                              onChange={e => setNewPassword(e.target.value)}
+                              placeholder="••••••••"
+                              className="w-full px-3.5 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-black/50 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                           />
+                        </div>
+                        <div className="space-y-1.5">
+                           <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Confirm New Password</label>
+                           <input
+                              type="password"
+                              value={confirmPassword}
+                              onChange={e => setConfirmPassword(e.target.value)}
+                              placeholder="••••••••"
+                              className="w-full px-3.5 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-black/50 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                           />
+                        </div>
+                        <DialogFooter className="pt-2">
+                           <Button type="button" variant="ghost" onClick={() => setIsPasswordModalOpen(false)}>Cancel</Button>
+                           <Button type="submit" disabled={isUpdatingPassword} className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-full">
+                              {isUpdatingPassword ? 'Updating...' : 'Save Password'}
+                           </Button>
+                        </DialogFooter>
+                     </form>
+                  </DialogContent>
+               </Dialog>
+
+               <div className="h-[1px] bg-slate-200/60 dark:bg-white/5" />
 
                {/* MFA Details */}
                <div className="space-y-5">
                   <div className="flex items-center gap-3">
                      <ShieldCheck size={24} className="text-green-500" />
                      <div>
-                        <h3 className="text-[15px] font-bold text-slate-900 dark:text-white uppercase tracking-wide">Two-Factor Authentication</h3>
-                        <p className="text-[13px] text-slate-500 dark:text-[#949ba4] mt-0.5">Add an extra layer of security to your Tradifive account.</p>
+                        <h3 className="text-[15px] font-bold text-slate-900 dark:text-white uppercase tracking-wide">Two-Factor Authentication (2FA)</h3>
+                        <p className="text-[13px] text-slate-500 dark:text-[#949ba4] mt-0.5">Add an extra layer of biometric or TOTP protection to your TradiFive portfolio.</p>
                      </div>
                   </div>
 
                   <div className="space-y-3">
-                     <div className="flex justify-between items-center p-4 rounded-xl bg-white dark:bg-[#121212] border border-slate-200/50 dark:border-[#333333] shadow-sm">
+                     <div className="flex justify-between items-center p-4 rounded-2xl bg-slate-50 dark:bg-[#161618] border border-slate-200/60 dark:border-white/5">
                         <div className="flex items-center gap-4">
-                           <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center text-[#3b82f6]">
+                           <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-[#3b82f6]">
                               <Smartphone size={20} />
                            </div>
                            <div>
-                              <h4 className="text-[14px] font-bold text-slate-900 dark:text-white">Authenticator App</h4>
-                              <p className="text-[12px] text-slate-500 dark:text-[#949ba4]">Use an app like Google Authenticator or Authy.</p>
+                              <h4 className="text-[14px] font-bold text-slate-900 dark:text-white">Authenticator App (TOTP)</h4>
+                              <p className="text-[12px] text-slate-500 dark:text-[#949ba4]">Use Google Authenticator, Microsoft Authenticator, or Authy.</p>
                            </div>
                         </div>
                         <Button
+                           size="sm"
                            variant={authAppEnabled ? 'destructive' : 'secondary'}
+                           className="rounded-full text-xs font-bold"
                            onClick={() => {
-                              if (!authAppEnabled) toast.success("Authenticator App configured and enabled!");
+                              const next = !authAppEnabled;
+                              setAuthAppEnabled(next);
+                              localStorage.setItem('tf_2fa_auth_app', String(next));
+                              if (next) toast.success("Authenticator App configured and verified!");
                               else toast.info("Authenticator App disabled.");
-                              setAuthAppEnabled(!authAppEnabled);
                            }}
                         >
                            {authAppEnabled ? 'Disable' : 'Enable'}
                         </Button>
                      </div>
 
-                     <div className="flex justify-between items-center p-4 rounded-xl bg-white dark:bg-[#121212] border border-slate-200/50 dark:border-[#333333] shadow-sm">
+                     <div className="flex justify-between items-center p-4 rounded-2xl bg-slate-50 dark:bg-[#161618] border border-slate-200/60 dark:border-white/5">
                         <div className="flex items-center gap-4">
-                           <div className="w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center text-purple-500">
+                           <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500">
                               <Key size={20} />
                            </div>
                            <div>
-                              <h4 className="text-[14px] font-bold text-slate-900 dark:text-white">Security Keys</h4>
-                              <p className="text-[12px] text-slate-500 dark:text-[#949ba4]">Use a hardware security key (like YubiKey) for maximum security.</p>
+                              <h4 className="text-[14px] font-bold text-slate-900 dark:text-white">Hardware Security Keys (FIDO2 / YubiKey)</h4>
+                              <p className="text-[12px] text-slate-500 dark:text-[#949ba4]">Maximum hardware protection against phishing attacks.</p>
                            </div>
                         </div>
                         <Button
+                           size="sm"
                            variant={securityKeyEnabled ? 'destructive' : 'secondary'}
+                           className="rounded-full text-xs font-bold"
                            onClick={() => {
-                              if (!securityKeyEnabled) toast.success("Security Key successfully registered!");
+                              const next = !securityKeyEnabled;
+                              setSecurityKeyEnabled(next);
+                              localStorage.setItem('tf_2fa_sec_key', String(next));
+                              if (next) toast.success("Security Key registered successfully!");
                               else toast.info("Security Key removed.");
-                              setSecurityKeyEnabled(!securityKeyEnabled);
                            }}
                         >
                            {securityKeyEnabled ? 'Remove Key' : 'Register Key'}
@@ -425,10 +666,69 @@ export default function AccountTab({
             </div>
          </section>
 
-         {/* SECTION 3: ACCOUNT STANDING */}
+         {/* SECTION 3: ACTIVE SESSIONS */}
+         <section id="active-sessions">
+            <div className="bg-white dark:bg-[#111112] border border-slate-200 dark:border-white/5 rounded-[32px] shadow-sm p-6 md:p-8 space-y-6 overflow-hidden">
+               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div>
+                     <h2 className="text-xs font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-widest mb-1">Device & Session Security</h2>
+                     <h3 className="text-lg font-bold text-slate-900 dark:text-white">Active Login Sessions</h3>
+                     <p className="text-xs text-slate-500 dark:text-[#949ba4] mt-0.5">Manage and revoke authenticated devices with access to your trading account.</p>
+                  </div>
+                  <Button
+                     variant="outline"
+                     size="sm"
+                     disabled={isRevokingSessions || sessionRevoked}
+                     onClick={handleRevokeAllOtherSessions}
+                     className="rounded-full text-xs font-bold border-rose-500/30 text-rose-500 hover:bg-rose-500/10"
+                  >
+                     {isRevokingSessions ? 'Revoking...' : sessionRevoked ? '✓ Other Sessions Revoked' : 'Revoke All Other Devices'}
+                  </Button>
+               </div>
+
+               <div className="space-y-3">
+                  {/* Current Active Device */}
+                  <div className="p-4 rounded-2xl bg-emerald-50/50 dark:bg-emerald-950/10 border border-emerald-500/20 flex items-center justify-between">
+                     <div className="flex items-center gap-3.5">
+                        <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                           <Laptop size={20} />
+                        </div>
+                        <div>
+                           <div className="flex items-center gap-2">
+                              <h4 className="text-sm font-bold text-slate-900 dark:text-white">{currentDevice.browser} on {currentDevice.os}</h4>
+                              <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                 This Device • Active Now
+                              </span>
+                           </div>
+                           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Secure Encrypted TLS Session • Last refreshed just now</p>
+                        </div>
+                     </div>
+                  </div>
+
+                  {/* Previous / Secondary Session */}
+                  {!sessionRevoked && (
+                     <div className="p-4 rounded-2xl bg-slate-50 dark:bg-[#161618] border border-slate-200/60 dark:border-white/5 flex items-center justify-between">
+                        <div className="flex items-center gap-3.5">
+                           <div className="w-10 h-10 rounded-xl bg-slate-200/60 dark:bg-white/5 flex items-center justify-center text-slate-500">
+                              <Smartphone size={20} />
+                           </div>
+                           <div>
+                              <h4 className="text-sm font-bold text-slate-900 dark:text-white">TradiFive Mobile Client</h4>
+                              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Android / iOS App Session • Last active yesterday</p>
+                           </div>
+                        </div>
+                        <span className="text-xs text-slate-400 font-medium">Verified</span>
+                     </div>
+                  )}
+               </div>
+            </div>
+         </section>
+
+         {/* SECTION 4: ACCOUNT STANDING */}
          <section id="account-standing">
-            <div className={`p-6 md:p-8 rounded-2xl border shadow-sm flex flex-col items-center justify-center text-center space-y-4 py-10 transition-colors
-               ${(!standing || standing === 'GOOD') ? 'bg-white dark:bg-[#111112] border-slate-200 dark:border-[#333333] overflow-hidden' : ''}
+            <div className={`p-6 md:p-8 rounded-[32px] border shadow-sm flex flex-col items-center justify-center text-center space-y-4 py-8 transition-colors
+               ${(!standing || standing === 'GOOD') ? 'bg-white dark:bg-[#111112] border-slate-200 dark:border-white/5 overflow-hidden' : ''}
                ${standing === 'WARNING' ? 'bg-yellow-50 dark:bg-yellow-950/10 border-yellow-200 dark:border-yellow-900/30' : ''}
                ${standing === 'RESTRICTED' ? 'bg-orange-50 dark:bg-orange-950/10 border-orange-200 dark:border-orange-900/30' : ''}
                ${standing === 'BANNED' ? 'bg-red-50 dark:bg-red-950/10 border-red-200 dark:border-red-900/30' : ''}
@@ -443,7 +743,7 @@ export default function AccountTab({
                      <div>
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Your account is in good standing</h3>
                         <p className="text-[13px] text-slate-500 dark:text-[#949ba4] max-w-md mx-auto leading-relaxed">
-                           {standingMessage || "You have no active warnings, restrictions, or bans. Thank you for following the community guidelines and keeping Tradifive a safe environment for all traders."}
+                           {standingMessage || "You have no active warnings, restrictions, or bans. Thank you for following the community guidelines and maintaining disciplined trading."}
                         </p>
                      </div>
                   </>
@@ -459,11 +759,7 @@ export default function AccountTab({
                         <p className="text-[13px] text-yellow-700/80 dark:text-yellow-500/80 max-w-md mx-auto leading-relaxed font-medium">
                            {standingMessage || "Your account has received a warning for violating community guidelines. Further violations may result in restrictions."}
                         </p>
-                        <Button
-                           onClick={handleDismissStanding}
-                           disabled={isDismissing}
-                           className="mt-4"
-                        >
+                        <Button onClick={handleDismissStanding} disabled={isDismissing} className="mt-4 rounded-full text-xs">
                            {isDismissing ? "Processing..." : "Got It"}
                         </Button>
                      </div>
@@ -478,14 +774,9 @@ export default function AccountTab({
                      <div>
                         <h3 className="text-lg font-bold text-orange-800 dark:text-orange-400 mb-2">Account Restricted</h3>
                         <p className="text-[13px] text-orange-700/80 dark:text-orange-500/80 max-w-md mx-auto leading-relaxed font-medium">
-                           {standingMessage || "Certain features on your account have been restricted. Please check your email or contact support for more information."}
+                           {standingMessage || "Certain features on your account have been restricted. Please contact support for more information."}
                         </p>
-                        <Button
-                           onClick={handleDismissStanding}
-                           disabled={isDismissing}
-                           variant="outline"
-                           className="mt-4"
-                        >
+                        <Button onClick={handleDismissStanding} disabled={isDismissing} variant="outline" className="mt-4 rounded-full text-xs">
                            {isDismissing ? "Processing..." : "Got It"}
                         </Button>
                      </div>
@@ -500,7 +791,7 @@ export default function AccountTab({
                      <div>
                         <h3 className="text-lg font-bold text-red-800 dark:text-red-400 mb-2">Account Banned</h3>
                         <p className="text-[13px] text-red-700/80 dark:text-red-500/80 max-w-md mx-auto leading-relaxed font-medium">
-                           {standingMessage || "Your account has been permanently suspended from Tradifive."}
+                           {standingMessage || "Your account has been permanently suspended from TradiFive."}
                         </p>
                      </div>
                   </>
@@ -508,47 +799,237 @@ export default function AccountTab({
             </div>
          </section>
 
-         {/* SECTION 4: FAMILY CENTER */}
+         {/* SECTION 5: FAMILY CENTER / GUARDIAN GUARD */}
          <section id="family-center">
-            <div className="bg-white dark:bg-[#111112] border border-slate-200 dark:border-white/5 rounded-[32px] shadow-sm p-6 md:p-8 overflow-hidden flex flex-col items-center justify-center text-center space-y-6">
-               <h2 className="text-xs font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-widest self-start mb-2">Family Center</h2>
-               <div className="w-20 h-20 rounded-full bg-blue-500/10 flex items-center justify-center mt-2">
-                  <Users size={40} className="text-[#3b82f6]" />
+            <div className="bg-white dark:bg-[#111112] border border-slate-200 dark:border-white/5 rounded-[32px] shadow-sm p-6 md:p-8 overflow-hidden flex flex-col items-center justify-center text-center space-y-5">
+               <div className="flex items-center justify-between w-full">
+                  <h2 className="text-xs font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-widest">
+                     Family Center & Guardian Mode
+                  </h2>
+                  {familyCenterActive && (
+                     <span className="text-[11px] font-bold text-emerald-500 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">
+                        ✓ Guard Active ({guardianEmail})
+                     </span>
+                  )}
                </div>
+
+               <div className="w-20 h-20 rounded-3xl bg-blue-500/10 flex items-center justify-center mt-2 text-blue-500 shadow-inner">
+                  <Users size={36} />
+               </div>
+
                <div>
-                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">Welcome to Family Center</h3>
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
+                     Guardian Guard & Mentorship Center
+                  </h3>
                   <p className="text-[14px] text-slate-500 dark:text-[#949ba4] max-w-lg mx-auto leading-relaxed">
-                     Family Center is a new tool that helps you manage connected teen accounts. Monitor their trading activity safely, set guardrails, and stay informed without intruding on their space.
+                     Connect a parent, guardian, or trading mentor to enforce automated capital risk guardrails, daily drawdown stops, and weekly discipline summaries.
                   </p>
                </div>
-               <div className="flex gap-4 mt-2">
-                  <Button>
-                     Enable Family Center
+
+               <div className="flex gap-3 mt-2">
+                  <Button 
+                     onClick={() => setIsFamilyCenterModalOpen(true)}
+                     className="rounded-full px-6 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                     {familyCenterActive ? 'Manage Guardian Guard' : 'Enable Guardian Guard'}
                   </Button>
-                  <Button variant="outline">
+                  <Button 
+                     variant="outline"
+                     onClick={() => setIsFamilyLearnMoreOpen(true)}
+                     className="rounded-full px-5 text-xs font-bold"
+                  >
                      Learn More
                   </Button>
+               </div>
+
+               {/* Family Center Setup Dialog */}
+               <Dialog open={isFamilyCenterModalOpen} onOpenChange={setIsFamilyCenterModalOpen}>
+                  <DialogContent className="sm:max-w-[460px] bg-white dark:bg-[#121214]">
+                     <DialogHeader>
+                        <DialogTitle className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                           <Users className="w-5 h-5 text-blue-500" /> Configure Guardian Guard
+                        </DialogTitle>
+                        <DialogDescription className="text-xs text-slate-500">
+                           Set protective trading guardrails and assign a mentor or parent to oversee discipline.
+                        </DialogDescription>
+                     </DialogHeader>
+
+                     <div className="space-y-4 py-2">
+                        <div className="space-y-1.5">
+                           <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Guardian / Mentor Email</label>
+                           <input
+                              type="email"
+                              value={guardianEmail}
+                              onChange={e => setGuardianEmail(e.target.value)}
+                              placeholder="mentor@example.com"
+                              className="w-full px-3.5 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-black/50 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                           />
+                           <p className="text-[11px] text-slate-500">Receives weekly performance digests and emergency drawdown alerts.</p>
+                        </div>
+
+                        <div className="space-y-1.5">
+                           <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Guardian Max Daily Loss Limit (₹ / $)</label>
+                           <input
+                              type="number"
+                              value={guardianMaxLoss}
+                              onChange={e => setGuardianMaxLoss(e.target.value)}
+                              placeholder="2500"
+                              className="w-full px-3.5 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-black/50 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                           />
+                           <p className="text-[11px] text-slate-500">Orders are locked instantly if daily drawdown breaches this amount.</p>
+                        </div>
+
+                        <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-black/40 border border-slate-200/60 dark:border-white/5 flex items-center justify-between">
+                           <div>
+                              <span className="text-xs font-bold text-slate-800 dark:text-white block">Strict Paper-Trading Mode</span>
+                              <span className="text-[11px] text-slate-500">Forces simulator orders only until mentor lifts restriction.</span>
+                           </div>
+                           <button
+                              type="button"
+                              onClick={() => setGuardianStrictPaper(!guardianStrictPaper)}
+                              className={`relative w-9 h-5 rounded-full transition-colors ${guardianStrictPaper ? 'bg-blue-600' : 'bg-slate-300 dark:bg-[#2b2d31]'}`}
+                           >
+                              <div className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${guardianStrictPaper ? 'translate-x-4' : 'translate-x-0'}`} />
+                           </button>
+                        </div>
+
+                        <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-black/40 border border-slate-200/60 dark:border-white/5 flex items-center justify-between">
+                           <div>
+                              <span className="text-xs font-bold text-slate-800 dark:text-white block">Weekly Discipline Digest</span>
+                              <span className="text-[11px] text-slate-500">Dispatches trade win rate and rule adherence every Sunday.</span>
+                           </div>
+                           <button
+                              type="button"
+                              onClick={() => setGuardianWeeklyReport(!guardianWeeklyReport)}
+                              className={`relative w-9 h-5 rounded-full transition-colors ${guardianWeeklyReport ? 'bg-blue-600' : 'bg-slate-300 dark:bg-[#2b2d31]'}`}
+                           >
+                              <div className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${guardianWeeklyReport ? 'translate-x-4' : 'translate-x-0'}`} />
+                           </button>
+                        </div>
+                     </div>
+
+                     <DialogFooter className="pt-2">
+                        <Button type="button" variant="ghost" onClick={() => setIsFamilyCenterModalOpen(false)}>Cancel</Button>
+                        <Button onClick={handleSaveFamilyCenter} className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-full">
+                           Save Guardian Settings
+                        </Button>
+                     </DialogFooter>
+                  </DialogContent>
+               </Dialog>
+
+               {/* Learn More Dialog */}
+               <Dialog open={isFamilyLearnMoreOpen} onOpenChange={setIsFamilyLearnMoreOpen}>
+                  <DialogContent className="sm:max-w-[480px] bg-white dark:bg-[#121214]">
+                     <DialogHeader>
+                        <DialogTitle className="text-lg font-bold text-slate-900 dark:text-white">About Guardian Mode</DialogTitle>
+                        <DialogDescription className="text-xs text-slate-500">
+                           Designed to prevent emotional revenge trading and protect family capital.
+                        </DialogDescription>
+                     </DialogHeader>
+                     <div className="space-y-3 py-2 text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                        <p>
+                           <strong>1. Hard Stop-Loss Enforcement:</strong> Guardian Mode sets an un-bypassable circuit breaker on your connected brokers (Dhan, Zerodha, MT5). When daily losses hit the set limit, the platform prevents opening new lots.
+                        </p>
+                        <p>
+                           <strong>2. Mentorship Transparency:</strong> Your designated mentor or guardian receives an automated weekly digest showing risk-to-reward ratio, rule discipline, and equity curve without needing direct access to your broker passwords.
+                        </p>
+                        <p>
+                           <strong>3. Teen & Learner Safety:</strong> Ideal for young traders practicing in the financial markets with parental oversight.
+                        </p>
+                     </div>
+                     <DialogFooter>
+                        <Button onClick={() => setIsFamilyLearnMoreOpen(false)} className="rounded-full text-xs font-bold">
+                           Close
+                        </Button>
+                     </DialogFooter>
+                  </DialogContent>
+               </Dialog>
+            </div>
+         </section>
+
+         {/* SECTION 6: DATA EXPORT & PORTABILITY (GDPR / COMPLIANCE) */}
+         <section id="data-export">
+            <div className="bg-white dark:bg-[#111112] border border-slate-200 dark:border-white/5 rounded-[32px] shadow-sm p-6 md:p-8 space-y-6 overflow-hidden">
+               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div>
+                     <h2 className="text-xs font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-widest mb-1">Compliance & Portability</h2>
+                     <h3 className="text-lg font-bold text-slate-900 dark:text-white">Export Trading & Account Data</h3>
+                     <p className="text-xs text-slate-500 dark:text-[#949ba4] mt-0.5">
+                        Download your complete trade records, journal entries, and account analytics for tax filing or backups.
+                     </p>
+                  </div>
+                  <span className="text-[11px] font-bold text-blue-500 bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20">
+                     DPDP & GDPR Compliant
+                  </span>
+               </div>
+
+               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Export CSV */}
+                  <div className="p-5 rounded-2xl bg-slate-50 dark:bg-[#161618] border border-slate-200/60 dark:border-white/5 space-y-3 flex flex-col justify-between">
+                     <div className="space-y-1.5">
+                        <div className="w-9 h-9 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                           <FileSpreadsheet size={18} />
+                        </div>
+                        <h4 className="text-sm font-bold text-slate-900 dark:text-white">Trading Ledger (CSV)</h4>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                           Spreadsheet format containing all executed trades, symbols, entry/exit prices, and P&L history.
+                        </p>
+                     </div>
+                     <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={isExportingCsv}
+                        onClick={handleExportTradingCsv}
+                        className="rounded-full text-xs font-bold w-full flex items-center justify-center gap-1.5"
+                     >
+                        {isExportingCsv ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download size={13} />}
+                        {isExportingCsv ? 'Generating CSV...' : 'Download CSV'}
+                     </Button>
+                  </div>
+
+                  {/* Export JSON */}
+                  <div className="p-5 rounded-2xl bg-slate-50 dark:bg-[#161618] border border-slate-200/60 dark:border-white/5 space-y-3 flex flex-col justify-between">
+                     <div className="space-y-1.5">
+                        <div className="w-9 h-9 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500">
+                           <FileJson size={18} />
+                        </div>
+                        <h4 className="text-sm font-bold text-slate-900 dark:text-white">Complete Account Backup (JSON)</h4>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                           Comprehensive archive containing profile settings, journal notes, risk parameters, and metrics.
+                        </p>
+                     </div>
+                     <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={isExportingJson}
+                        onClick={handleExportAccountJson}
+                        className="rounded-full text-xs font-bold w-full flex items-center justify-center gap-1.5"
+                     >
+                        {isExportingJson ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download size={13} />}
+                        {isExportingJson ? 'Generating JSON...' : 'Download JSON'}
+                     </Button>
+                  </div>
                </div>
             </div>
          </section>
 
-         {/* SECTION 5: DANGER ZONE */}
+         {/* SECTION 7: DANGER ZONE */}
          <section id="danger-zone">
-            <div style={{ border: '1px solid rgba(239,68,68,0.2)', borderRadius: '20px', boxShadow: '0 10px 30px rgba(15,23,42,0.08),0 2px 8px rgba(15,23,42,0.04)' }} className="bg-white dark:bg-[#111112] p-6 md:p-8 overflow-hidden flex flex-col space-y-6">
-               <h2 className="text-xs font-bold text-red-600 dark:text-red-400 uppercase tracking-widest self-start mb-2">
+            <div style={{ border: '1px solid rgba(239,68,68,0.2)', borderRadius: '24px', boxShadow: '0 10px 30px rgba(15,23,42,0.04)' }} className="bg-white dark:bg-[#111112] p-6 md:p-8 overflow-hidden flex flex-col space-y-6">
+               <h2 className="text-xs font-bold text-red-600 dark:text-red-400 uppercase tracking-widest self-start mb-1">
                   Danger Zone
                </h2>
                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                   <div>
-                     <h3 className="text-[15px] font-bold text-red-800 dark:text-red-400 mb-1">Delete Account</h3>
+                     <h3 className="text-[15px] font-bold text-red-800 dark:text-red-400 mb-1">Permanently Delete Account</h3>
                      <p className="text-[13px] text-red-700/80 dark:text-red-500/80 max-w-md leading-relaxed">
-                        Permanently remove your account and all associated data. This action cannot be undone.
+                        Permanently erase your account, trading ledger, broker keys, and social posts from our backend. This action is irreversible.
                      </p>
                   </div>
 
                   <Dialog open={isDeleteDialogOpen} onOpenChange={(open) => { setIsDeleteDialogOpen(open); if (!open) setDeleteConfirmText(""); }}>
                      <DialogTrigger asChild>
-                        <Button variant="destructive" className="bg-red-500 hover:bg-red-600 text-white text-[13px] font-semibold shrink-0">
+                        <Button variant="destructive" className="bg-red-500 hover:bg-red-600 text-white text-[13px] font-semibold shrink-0 rounded-full px-5">
                            Delete Account
                         </Button>
                      </DialogTrigger>

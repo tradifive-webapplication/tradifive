@@ -10,6 +10,7 @@ import ProfileTab from '@/components/settings/ProfileTab';
 import HelpTab from '@/components/settings/HelpTab';
 import ReportTab from '@/components/settings/ReportTab';
 import CreatorTab from '@/components/settings/CreatorTab';
+import TradingPreferencesTab from '@/components/settings/TradingPreferencesTab';
 import { supabase } from '@/lib/supabase';
 import { useMarket } from '@/contexts/MarketContext';
 import { toast } from 'sonner';
@@ -27,8 +28,8 @@ import {
    FileText, ChevronDown, CheckCircle, RefreshCw, Eye, EyeOff,
    ArrowUpRight, ShieldCheck, Terminal, Volume2, Calendar, LockKeyhole, Sparkles,
    CircleUserRound, Languages, BellRing, MessageCircle, AlertCircle, Inbox, MoreVertical, ArrowRight, Plus, Minus, Download,
-   AlertTriangle, Palette, Mail, Link2, Info, Crown, CreditCard, MessageSquare, LogOut
-, ChevronLeft } from 'lucide-react';
+   AlertTriangle, Palette, Mail, Link2, Info, Crown, CreditCard, MessageSquare, LogOut,
+   ChevronLeft, Sliders, Copy } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { User, Category, Notification, Star, Swap, TicketStar, Wallet, Chat, InfoCircle, Danger, Logout, Edit, Search, ChevronRight } from 'react-iconly';
 import { useAICoachData } from '@/hooks/useAICoachData';
@@ -39,8 +40,9 @@ const TAB_TITLES: Record<string, string> = {
    profile: "Edit Profile & Privacy",
    security: "Account & Security",
    privacy: "Privacy & Community",
-   appearance: "Theme",
+   appearance: "Theme & Display",
    notifications: "Notifications",
+   trading_preferences: "Trading & Risk Config",
    ai: "AI Assistant",
    trading: "Broker & Integrations",
    subscription: "Subscription",
@@ -162,6 +164,7 @@ export default function Settings() {
       if (rawTab === 'plan') return 'subscription';
       if (rawTab === 'profiles') return 'profile';
       if (rawTab === 'File Setup') return 'trading';
+      if (rawTab === 'risk' || rawTab === 'preferences' || rawTab === 'trading-preferences') return 'trading_preferences';
       return rawTab;
    };
 
@@ -936,8 +939,11 @@ export default function Settings() {
                children: [
                   { id: "account-info", label: "Account Info" },
                   { id: "password-security", label: "Password & Security" },
+                  { id: "active-sessions", label: "Active Sessions" },
                   { id: "account-standing", label: "Account Standing" },
-                  { id: "family-center", label: "Family Center" }
+                  { id: "family-center", label: "Family Center" },
+                  { id: "data-export", label: "Export & Privacy" },
+                  { id: "danger-zone", label: "Danger Zone" }
                ]
             }
          ]
@@ -945,13 +951,14 @@ export default function Settings() {
       {
          title: "Personalization",
          items: [
-            { id: "appearance", label: "Theme", icon: Category },
+            { id: "appearance", label: "Theme & Display", icon: Category },
             { id: "notifications", label: "Notifications", icon: Notification }
          ]
       },
       {
-         title: "AI & Tools",
+         title: "AI & Trading Tools",
          items: [
+            { id: "trading_preferences", label: "Trading & Risk Config", icon: Sliders },
             { id: "ai", label: "AI Coach", icon: Sparkles },
             { id: "trading", label: "Broker & Integrations", icon: Swap }
          ]
@@ -1143,7 +1150,7 @@ export default function Settings() {
                                              : 'text-slate-600 dark:text-[#B5BAC1] hover:bg-[#e3e5e8]/60 dark:hover:bg-[#3F4147]/40 hover:text-slate-800 dark:hover:text-[#DBDEE1]'
                                           }`}
                                        >
-                                          {item.icon === Sparkles ? (
+                                          {item.icon === Sparkles || item.icon === Sliders ? (
                                              <item.icon size={20} className={item.id === 'logout' ? 'text-rose-500' : isActive ? 'text-indigo-650 dark:text-white' : ''} strokeWidth={isActive ? 2.5 : 1.5} />
                                           ) : (
                                              <item.icon 
@@ -1536,6 +1543,82 @@ export default function Settings() {
                                  </div>
                            </div>
 
+                        
+                           {/* Accent Color Palette */}
+                           <div className="bg-slate-50 dark:bg-[#151515] p-5 rounded-2xl border border-slate-200 dark:border-[#2a2a2a] shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 mt-4">
+                              <div className="flex gap-4">
+                                 <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0 text-blue-500">
+                                    <Sparkles size={18} />
+                                 </div>
+                                 <div className="space-y-1">
+                                    <h3 className="text-[16px] font-bold text-slate-900 dark:text-white mb-1">Interface Accent Tint</h3>
+                                    <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1] max-w-md">
+                                       Customize primary button glows, active tabs, and highlights across TradiFive.
+                                    </p>
+                                 </div>
+                              </div>
+                              <div className="flex items-center gap-2.5">
+                                 {[
+                                    { id: 'blue', color: 'bg-blue-500', name: 'Electric Blue' },
+                                    { id: 'emerald', color: 'bg-emerald-500', name: 'Emerald' },
+                                    { id: 'purple', color: 'bg-purple-500', name: 'Royal Violet' },
+                                    { id: 'amber', color: 'bg-amber-500', name: 'Cyber Amber' },
+                                    { id: 'rose', color: 'bg-rose-500', name: 'Rose Red' },
+                                 ].map((tint) => (
+                                    <button
+                                       key={tint.id}
+                                       type="button"
+                                       title={tint.name}
+                                       onClick={() => {
+                                          setAccentColor(tint.id);
+                                          localStorage.setItem('tradifive_accent_color', tint.id);
+                                          toast.success(tint.name + ' accent selected');
+                                       }}
+                                       className={'w-7 h-7 rounded-full ' + tint.color + ' flex items-center justify-center transition-all ' + (accentColor === tint.id ? 'ring-2 ring-offset-2 ring-blue-500 scale-110' : 'opacity-70 hover:opacity-100')}
+                                    >
+                                       {accentColor === tint.id && <Check size={14} className="text-white" strokeWidth={3} />}
+                                    </button>
+                                 ))}
+                              </div>
+                           </div>
+
+                           {/* Chart Candlestick Color Theme */}
+                           <div className="bg-slate-50 dark:bg-[#151515] p-5 rounded-2xl border border-slate-200 dark:border-[#2a2a2a] shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 mt-4">
+                              <div className="flex gap-4">
+                                 <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0 text-emerald-500">
+                                    <TrendingUp size={18} />
+                                 </div>
+                                 <div className="space-y-1">
+                                    <h3 className="text-[16px] font-bold text-slate-900 dark:text-white mb-1">Chart Candlestick Theme</h3>
+                                    <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1] max-w-md">
+                                       Choose color dynamics for bull/bear candlestick bars on the live terminal.
+                                    </p>
+                                 </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                 <button
+                                    type="button"
+                                    onClick={() => {
+                                       localStorage.setItem('tradifive_chart_theme', 'classic');
+                                       toast.success('Classic Green / Red chart theme applied');
+                                    }}
+                                    className="px-3.5 py-1.5 rounded-xl text-xs font-bold border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 transition-all"
+                                 >
+                                    Classic Green/Red
+                                 </button>
+                                 <button
+                                    type="button"
+                                    onClick={() => {
+                                       localStorage.setItem('tradifive_chart_theme', 'cyber');
+                                       toast.success('Cyber Cyan / Neon Pink chart theme applied');
+                                    }}
+                                    className="px-3.5 py-1.5 rounded-xl text-xs font-bold border border-cyan-500/30 bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 hover:bg-cyan-500/20 transition-all"
+                                 >
+                                    Cyber Cyan/Pink
+                                 </button>
+                              </div>
+                           </div>
+
                         </motion.div>
                      )}
 
@@ -1684,7 +1767,22 @@ export default function Settings() {
                            )}
 
                            {/* TAB 8: BROKER & INTEGRATIONS */}
-                           {activeTab === 'trading' && (
+                           
+                     {/* TAB: TRADING & RISK PREFERENCES */}
+                     {activeTab === 'trading_preferences' && (
+                        <motion.div
+                           key="trading_preferences"
+                           initial={{ opacity: 0, y: 10 }}
+                           animate={{ opacity: 1, y: 0 }}
+                           exit={{ opacity: 0, y: -10 }}
+                           transition={{ duration: 0.2 }}
+                           className="space-y-6 w-full max-w-[840px] mx-auto"
+                        >
+                           <TradingPreferencesTab />
+                        </motion.div>
+                     )}
+
+                     {activeTab === 'trading' && (
                               <motion.div
                                  key="trading"
                                  initial={{ opacity: 0, y: 10 }}
@@ -1937,6 +2035,73 @@ export default function Settings() {
                                        </div>
                                     )}
                                  </div>
+                              
+                                 {/* TradingView Webhook Integration Hub */}
+                                 <div className="bg-white dark:bg-[#111112] border border-slate-200 dark:border-white/5 rounded-[32px] shadow-sm w-full overflow-hidden p-6 md:p-8 space-y-5 mt-6">
+                                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 dark:border-white/5 pb-4">
+                                       <div className="flex items-center gap-3">
+                                          <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-500 font-extrabold text-sm">
+                                             TV
+                                          </div>
+                                          <div>
+                                             <h3 className="text-base md:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                                TradingView Webhook Integration
+                                                <span className="text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20 uppercase">Active</span>
+                                             </h3>
+                                             <p className="text-xs text-slate-500 dark:text-[#949ba4]">Dispatch automated orders and signals directly from TradingView pine-script alerts.</p>
+                                          </div>
+                                       </div>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                       <div className="space-y-1.5">
+                                          <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Your Personal Webhook Endpoint</label>
+                                          <div className="flex gap-2">
+                                             <input 
+                                                readOnly
+                                                type="text"
+                                                value={`https://tradifive.in/api/webhooks/v1/user-${globalUserId ? globalUserId.slice(0, 8) : 'account'}`}
+                                                className="w-full px-4 py-2.5 rounded-xl text-xs font-mono bg-slate-50 dark:bg-black/40 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 select-all"
+                                             />
+                                             <button
+                                                type="button"
+                                                onClick={() => {
+                                                   navigator.clipboard.writeText(`https://tradifive.in/api/webhooks/v1/user-${globalUserId ? globalUserId.slice(0, 8) : 'account'}`);
+                                                   toast.success('Webhook URL copied to clipboard!');
+                                                }}
+                                                className="shrink-0 px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 dark:bg-white/10 text-slate-800 dark:text-white hover:bg-slate-200 dark:hover:bg-white/20 transition-all flex items-center gap-1.5"
+                                             >
+                                                <Copy size={13} /> Copy
+                                             </button>
+                                          </div>
+                                          <p className="text-[11px] text-slate-500">Paste this into the 'Webhook URL' field when creating an alert in TradingView.</p>
+                                       </div>
+
+                                       <div className="space-y-1.5">
+                                          <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Alert Message Template (JSON)</label>
+                                          <pre className="p-4 rounded-2xl bg-slate-50 dark:bg-[#161618] border border-slate-200/60 dark:border-white/5 text-[11px] font-mono text-slate-700 dark:text-slate-300 overflow-x-auto leading-relaxed">
+{`{
+  "ticker": "{{ticker}}",
+  "action": "{{strategy.order.action}}",
+  "contracts": "{{strategy.order.contracts}}",
+  "price": "{{close}}",
+  "auth_key": "tradi_sec_${globalUserId ? globalUserId.slice(0, 12) : 'demo'}"
+}`}
+                                          </pre>
+                                          <button
+                                             type="button"
+                                             onClick={() => {
+                                                navigator.clipboard.writeText(`{\n  "ticker": "{{ticker}}",\n  "action": "{{strategy.order.action}}",\n  "contracts": "{{strategy.order.contracts}}",\n  "price": "{{close}}",\n  "auth_key": "tradi_sec_${globalUserId ? globalUserId.slice(0, 12) : 'demo'}"\n}`);
+                                                toast.success('Alert JSON template copied!');
+                                             }}
+                                             className="text-xs text-blue-500 hover:text-blue-600 font-semibold flex items-center gap-1"
+                                          >
+                                             <Copy size={12} /> Copy JSON Template
+                                          </button>
+                                       </div>
+                                    </div>
+                                 </div>
+
                               </motion.div>
                            )}
 
