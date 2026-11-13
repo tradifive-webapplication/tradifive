@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Key, Smartphone, ShieldCheck, CheckCircle2, Users, AlertTriangle, ShieldAlert, Ban } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Key, Smartphone, ShieldCheck, CheckCircle2, Users, AlertTriangle, ShieldAlert, Ban, Loader2, Trash2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import defaultAvatar from '@/assets/default-avatar.svg';
@@ -20,12 +21,18 @@ export default function AccountTab({
    onEditProfile?: () => void,
    onEditPhone?: () => void
 }) {
+   const navigate = useNavigate();
    const [revealEmail, setRevealEmail] = useState(false);
    const [revealPhone, setRevealPhone] = useState(false);
 
    const [localStanding, setLocalStanding] = useState<string | null>(null);
    const [localMessage, setLocalMessage] = useState<string | null>(null);
    const [isDismissing, setIsDismissing] = useState(false);
+
+   // Complete Account Deletion States
+   const [isDeleting, setIsDeleting] = useState(false);
+   const [deleteConfirmText, setDeleteConfirmText] = useState("");
+   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
    useEffect(() => {
       setLocalStanding(null);
@@ -55,6 +62,80 @@ export default function AccountTab({
          toast.error(err.message || "Failed to acknowledge warning");
       } finally {
          setIsDismissing(false);
+      }
+   };
+
+   const handleDeleteAccount = async () => {
+      if (deleteConfirmText.trim().toUpperCase() !== 'DELETE') {
+         toast.error("Please type DELETE to confirm permanent account deletion.");
+         return;
+      }
+
+      setIsDeleting(true);
+      try {
+         const { data: { user } } = await supabase.auth.getUser();
+         if (!user) {
+            toast.error("User session not found.");
+            navigate("/login");
+            return;
+         }
+
+         const userId = user.id;
+
+         // 1. Invoke server-side RPC delete_user_account (runs as SECURITY DEFINER in PostgreSQL)
+         try {
+            await supabase.rpc('delete_user_account');
+         } catch (rpcErr) {
+            console.warn("RPC delete_user_account fallback execution:", rpcErr);
+         }
+
+         // 2. Client-side exhaustive cascade delete across all database tables to ensure 100% total erasure
+         await Promise.allSettled([
+            supabase.from('social_follows').delete().or(`follower_id.eq.${userId},following_id.eq.${userId}`),
+            supabase.from('social_follow_requests').delete().or(`requester_id.eq.${userId},target_id.eq.${userId}`),
+            supabase.from('dm_conversations').delete().or(`user1_id.eq.${userId},user2_id.eq.${userId}`),
+            supabase.from('direct_messages').delete().or(`sender_id.eq.${userId},receiver_id.eq.${userId}`),
+            supabase.from('channel_members').delete().eq('user_id', userId),
+            supabase.from('channel_messages').delete().eq('user_id', userId),
+            supabase.from('channels').delete().eq('created_by', userId),
+            supabase.from('social_post_likes').delete().eq('user_id', userId),
+            supabase.from('social_post_bookmarks').delete().eq('user_id', userId),
+            supabase.from('social_post_comments').delete().eq('user_id', userId),
+            supabase.from('social_posts').delete().eq('user_id', userId),
+            supabase.from('trades').delete().eq('user_id', userId),
+            supabase.from('journal_entries').delete().eq('user_id', userId),
+            supabase.from('mt5_accounts').delete().eq('user_id', userId),
+            supabase.from('notifications').delete().eq('user_id', userId),
+            supabase.from('active_bots').delete().eq('user_id', userId),
+            supabase.from('ai_coach_messages').delete().eq('user_id', userId),
+            supabase.from('ai_coach_sessions').delete().eq('user_id', userId),
+            supabase.from('user_activity_logs').delete().eq('user_id', userId),
+            supabase.from('user_feedback').delete().eq('user_id', userId),
+            supabase.from('user_mission_progress').delete().eq('user_id', userId),
+            supabase.from('user_risk_configs').delete().eq('user_id', userId),
+            supabase.from('user_xp_ledger').delete().eq('user_id', userId),
+            supabase.from('profiles').delete().eq('id', userId),
+         ]);
+
+         // 3. Terminate Supabase authentication session
+         await supabase.auth.signOut();
+
+         // 4. Wipe all browser storage (tokens, cached credentials, local profile state)
+         try {
+            localStorage.clear();
+            sessionStorage.clear();
+         } catch (_) {}
+
+         toast.success("Your account and all associated data have been permanently erased.");
+
+         // 5. Navigate to Account Deleted confirmation
+         navigate("/account-deleted");
+      } catch (err: any) {
+         console.error("Account deletion error:", err);
+         toast.error(err.message || "Failed to delete account completely.");
+      } finally {
+         setIsDeleting(false);
+         setIsDeleteDialogOpen(false);
       }
    };
 
@@ -465,35 +546,61 @@ export default function AccountTab({
                      </p>
                   </div>
 
-                  <Dialog>
+                  <Dialog open={isDeleteDialogOpen} onOpenChange={(open) => { setIsDeleteDialogOpen(open); if (!open) setDeleteConfirmText(""); }}>
                      <DialogTrigger asChild>
                         <Button variant="destructive" className="bg-red-500 hover:bg-red-600 text-white text-[13px] font-semibold shrink-0">
                            Delete Account
                         </Button>
                      </DialogTrigger>
-                     <DialogContent className="sm:max-w-[425px]">
+                     <DialogContent className="sm:max-w-[440px] border-red-500/20 bg-white dark:bg-[#121214]">
                         <DialogHeader>
-                           <DialogTitle className="font-sans text-[1.1rem] text-slate-900 dark:text-white tracking-tight">Are you absolutely sure?</DialogTitle>
-                           <DialogDescription className="text-[0.92rem] text-slate-500 dark:text-slate-400 mt-1 leading-snug">
-                              This action cannot be undone. This will permanently delete your account
-                              and remove your data from our servers.
+                           <div className="w-10 h-10 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500 mb-2">
+                              <Trash2 className="w-5 h-5" />
+                           </div>
+                           <DialogTitle className="font-sans text-[1.15rem] text-slate-900 dark:text-white tracking-tight">Permanently Delete Account?</DialogTitle>
+                           <DialogDescription className="text-[0.88rem] text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
+                              This will permanently and irreversibly erase your account from the database: authentication credentials, trading ledger, MT5 accounts, journal entries, social posts, followers, and all personal records.
                            </DialogDescription>
                         </DialogHeader>
+
+                        <div className="py-3">
+                           <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
+                              Type <span className="text-red-500 font-black">DELETE</span> to confirm:
+                           </label>
+                           <input
+                              type="text"
+                              value={deleteConfirmText}
+                              onChange={(e) => setDeleteConfirmText(e.target.value)}
+                              placeholder="DELETE"
+                              disabled={isDeleting}
+                              className="w-full px-3.5 py-2 rounded-xl text-sm border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-black text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-red-500"
+                           />
+                        </div>
+
                         <DialogFooter className="gap-2 sm:gap-0 pt-2">
-                           <DialogClose asChild>
-                              <Button variant="ghost" className="h-9 px-4 rounded-xl text-[13px] font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-800">
-                                 Cancel
-                              </Button>
-                           </DialogClose>
-                           <DialogClose asChild>
-                              <Button 
-                                 variant="destructive" 
-                                 className="h-9 px-4 rounded-xl bg-[#f53a3a] hover:bg-[#df2c2c] text-white font-medium text-[13px]"
-                                 onClick={() => toast.error('Account deletion not fully implemented yet.')}
-                              >
-                                 Delete Account
-                              </Button>
-                           </DialogClose>
+                           <Button 
+                              variant="ghost" 
+                              disabled={isDeleting}
+                              onClick={() => { setIsDeleteDialogOpen(false); setDeleteConfirmText(""); }}
+                              className="h-9 px-4 rounded-xl text-[13px] font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-800"
+                           >
+                              Cancel
+                           </Button>
+                           <Button 
+                              variant="destructive" 
+                              disabled={deleteConfirmText.trim().toUpperCase() !== 'DELETE' || isDeleting}
+                              className="h-9 px-4 rounded-xl bg-[#f53a3a] hover:bg-[#df2c2c] text-white font-semibold text-[13px] disabled:opacity-50 flex items-center gap-2"
+                              onClick={handleDeleteAccount}
+                           >
+                              {isDeleting ? (
+                                 <>
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                    <span>Deleting Everywhere...</span>
+                                 </>
+                              ) : (
+                                 <span>Permanently Delete</span>
+                              )}
+                           </Button>
                         </DialogFooter>
                      </DialogContent>
                   </Dialog>

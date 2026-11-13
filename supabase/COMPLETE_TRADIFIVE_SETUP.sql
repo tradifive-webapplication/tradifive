@@ -846,3 +846,54 @@ VALUES
   ('TRADIFIVE_DEPT_2026', 'operations_executive', 'system'),
   ('TRADIFIVE_STAFF_2026', 'employee', 'system')
 ON CONFLICT (code) DO NOTHING;
+
+-- ══════════════════════════════════════════════════════════════════════════
+-- PERMANENT SELF-ACCOUNT DELETION (SECURITY DEFINER)
+-- Completely purges the user from auth.users, profiles, and all child tables
+-- ══════════════════════════════════════════════════════════════════════════
+CREATE OR REPLACE FUNCTION public.delete_user_account()
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, auth
+AS $$
+DECLARE
+  v_user_id UUID;
+BEGIN
+  v_user_id := auth.uid();
+  IF v_user_id IS NULL THEN
+    RAISE EXCEPTION 'Not authenticated';
+  END IF;
+
+  -- 1. Explicitly clean up any tables with loose or non-cascading relations
+  DELETE FROM public.social_follows WHERE follower_id = v_user_id OR following_id = v_user_id;
+  DELETE FROM public.social_follow_requests WHERE requester_id = v_user_id OR target_id = v_user_id;
+  DELETE FROM public.dm_conversations WHERE user1_id = v_user_id OR user2_id = v_user_id;
+  DELETE FROM public.direct_messages WHERE sender_id = v_user_id OR receiver_id = v_user_id;
+  DELETE FROM public.channel_members WHERE user_id = v_user_id;
+  DELETE FROM public.channel_messages WHERE user_id = v_user_id;
+  DELETE FROM public.channels WHERE created_by = v_user_id;
+  DELETE FROM public.social_post_likes WHERE user_id = v_user_id;
+  DELETE FROM public.social_post_bookmarks WHERE user_id = v_user_id;
+  DELETE FROM public.social_post_comments WHERE user_id = v_user_id;
+  DELETE FROM public.social_posts WHERE user_id = v_user_id;
+  DELETE FROM public.trades WHERE user_id = v_user_id;
+  DELETE FROM public.journal_entries WHERE user_id = v_user_id;
+  DELETE FROM public.mt5_accounts WHERE user_id = v_user_id;
+  DELETE FROM public.notifications WHERE user_id = v_user_id;
+  DELETE FROM public.user_activity_logs WHERE user_id = v_user_id;
+  DELETE FROM public.user_feedback WHERE user_id = v_user_id;
+  DELETE FROM public.user_mission_progress WHERE user_id = v_user_id;
+  DELETE FROM public.user_risk_configs WHERE user_id = v_user_id;
+  DELETE FROM public.user_xp_ledger WHERE user_id = v_user_id;
+  DELETE FROM public.active_bots WHERE user_id = v_user_id;
+  DELETE FROM public.ai_coach_messages WHERE user_id = v_user_id;
+  DELETE FROM public.ai_coach_sessions WHERE user_id = v_user_id;
+  DELETE FROM public.profiles WHERE id = v_user_id;
+
+  -- 2. Delete from auth.users (permanently destroys auth login, email, password & tokens)
+  DELETE FROM auth.users WHERE id = v_user_id;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.delete_user_account() TO authenticated;
