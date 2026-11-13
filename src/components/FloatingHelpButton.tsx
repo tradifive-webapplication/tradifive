@@ -510,7 +510,7 @@ export default function FloatingHelpButton() {
   return (
     <>
       {/* Bottom Floating Action Dock (Report, Suggest, Help - matches requested layout & Picture 3) */}
-      {/* ── 1. Bottom Footer Action Strip (Down below the white page, refined compact size) ── */}
+      {/* ── 1. Bottom Footer Action Strip (Down below the white page, refined compact size & uniform monochrome aesthetic) ── */}
       <div
         style={{
           position: "fixed",
@@ -519,7 +519,7 @@ export default function FloatingHelpButton() {
           zIndex: 9988,
           display: "flex",
           alignItems: "center",
-          gap: 13,
+          gap: 14,
           fontSize: 11,
           fontWeight: 500,
           letterSpacing: "-0.01em",
@@ -527,11 +527,11 @@ export default function FloatingHelpButton() {
           userSelect: "none",
         }}
       >
-        {/* Live Chat Help Link */}
+        {/* Support Link (Opens live chat support desk) */}
         <button
           type="button"
           onClick={() => setIsOpen((prev) => !prev)}
-          title="Open Live Chat Help"
+          title="Support Desk"
           style={{
             background: "transparent",
             border: "none",
@@ -539,7 +539,7 @@ export default function FloatingHelpButton() {
             alignItems: "center",
             gap: 4.5,
             cursor: "pointer",
-            color: isOpen ? (isDark ? "#60a5fa" : "#2563eb") : "inherit",
+            color: isOpen ? (isDark ? "#ffffff" : "#0f172a") : "inherit",
             fontSize: "inherit",
             fontWeight: "inherit",
             padding: 0,
@@ -549,24 +549,15 @@ export default function FloatingHelpButton() {
           onMouseLeave={(e) =>
             (e.currentTarget.style.color = isOpen
               ? isDark
-                ? "#60a5fa"
-                : "#2563eb"
+                ? "#ffffff"
+                : "#0f172a"
               : isDark
               ? "rgba(255, 255, 255, 0.45)"
               : "#64748b")
           }
         >
-          <MessageSquare size={12} className="text-blue-500" />
-          <span>Live Chat</span>
-          <span
-            style={{
-              width: 5,
-              height: 5,
-              borderRadius: "50%",
-              background: "#10b981",
-              boxShadow: "0 0 5px rgba(16, 185, 129, 0.8)",
-            }}
-          />
+          <MessageSquare size={12} strokeWidth={1.8} />
+          <span>Support</span>
           {unreadCount > 0 && (
             <span
               style={{
@@ -605,7 +596,7 @@ export default function FloatingHelpButton() {
           onMouseEnter={(e) => (e.currentTarget.style.color = isDark ? "#ffffff" : "#0f172a")}
           onMouseLeave={(e) => (e.currentTarget.style.color = isDark ? "rgba(255, 255, 255, 0.45)" : "#64748b")}
         >
-          <Lightbulb size={12} className="text-amber-500" />
+          <Lightbulb size={12} strokeWidth={1.8} />
           <span>Suggest</span>
         </button>
 
@@ -630,7 +621,7 @@ export default function FloatingHelpButton() {
           onMouseEnter={(e) => (e.currentTarget.style.color = isDark ? "#ffffff" : "#0f172a")}
           onMouseLeave={(e) => (e.currentTarget.style.color = isDark ? "rgba(255, 255, 255, 0.45)" : "#64748b")}
         >
-          <AlertCircle size={12} className="text-rose-500" />
+          <AlertCircle size={12} strokeWidth={1.8} />
           <span>Report</span>
         </button>
       </div>

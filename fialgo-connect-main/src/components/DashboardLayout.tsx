@@ -530,13 +530,12 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
           </div>
         )}
 
-        {/* Main Content Area - Full Screen for Big-Tech Enterprise Feel */}
-        <div className={`flex-1 ${isEffectiveFullScreen || (noScroll && hideBottomNav) ? 'p-0' : `px-0 md:px-5 ${impersonatingUser ? 'pt-0 md:pt-3' : 'pt-0 md:pt-5'} pb-20 md:pb-5`} ${noScroll || (comingSoonInfo.isSoon && !isPeeking) ? 'overflow-hidden h-full flex flex-col' : 'overflow-y-auto scrollbar-hide'}`}>
+        {/* Main Content Area - Fixed Backside Page (Card Never Scrolls, Only Inner Content Scrolls) */}
+        <div className={`flex-1 h-full min-h-0 flex flex-col overflow-hidden ${isEffectiveFullScreen || (noScroll && hideBottomNav) ? 'p-0' : `px-0 md:px-5 ${impersonatingUser ? 'pt-0 md:pt-3' : 'pt-0 md:pt-5'} pb-20 md:pb-5`}`}>
           <main
-            className={`relative ${noScroll || (comingSoonInfo.isSoon && !isPeeking) ? 'flex-1 h-full flex flex-col overflow-hidden' : 'min-h-full'
-              } ${isEffectiveFullScreen ? 'rounded-none border-0 shadow-none' : 'rounded-none md:rounded-[2.5rem] border-0 md:border md:border-slate-100 dark:md:border-white/5 shadow-none md:shadow-[0_8px_30_rgb(0,0,0,0.04)]'} bg-white dark:bg-[#121212] font-sans`}
+            className={`relative flex-1 h-full min-h-0 flex flex-col overflow-hidden ${isEffectiveFullScreen ? 'rounded-none border-0 shadow-none' : 'rounded-none md:rounded-[2.5rem] border-0 md:border md:border-slate-100 dark:md:border-white/5 shadow-none md:shadow-[0_8px_30_rgb(0,0,0,0.04)]'} bg-white dark:bg-[#121212] font-sans`}
           >
-            {/* Header (Moved Inside to Scroll) */}
+            {/* Fixed Header Inside Backside Page */}
             <header className={`h-[70px] flex items-center justify-between px-4 sm:px-8 lg:px-10 border-b border-slate-100 dark:border-white/5 shrink-0 transition-all duration-300 ${comingSoonInfo.isSoon && !isPeeking ? "filter blur-[1.5px] opacity-85 pointer-events-none select-none" : ""}`}>
               <div className="flex items-center gap-2 sm:gap-3">
                 <div className="md:hidden flex items-center pointer-events-auto">
@@ -700,13 +699,13 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
               )}
             </AnimatePresence>
 
-            {/* Internal Content Padding - stretch flex dynamically if noScroll is active */}
-            <div className={`${noPadding || noScroll ? "p-0" : isEffectiveFullScreen ? "p-0 sm:p-4 lg:p-6 pb-20" : "p-3 pb-24 md:p-10 md:pb-20"} ${noScroll ? "flex-1 min-h-0 flex flex-col overflow-hidden" : ""}`}>
+            {/* Internal Content Area - Scrollable Inside the Fixed Backside Page */}
+            <div className={`flex-1 min-h-0 ${noScroll ? "overflow-hidden flex flex-col" : "overflow-y-auto scrollbar-hide"} ${noPadding || noScroll ? "p-0" : isEffectiveFullScreen ? "p-0 sm:p-4 lg:p-6 pb-20" : "p-3 pb-24 md:p-10 md:pb-20"}`}>
               <motion.div
                 initial={{ opacity: location.pathname === '/settings' ? 1 : 0, y: location.pathname === '/settings' ? 0 : 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: location.pathname === '/settings' ? 0 : 0.4, ease: "easeOut" }}
-                className={`${noScroll || (comingSoonInfo.isSoon && !isPeeking) ? "flex-1 h-full flex flex-col min-h-0" : ""} transition-all duration-300 ${comingSoonInfo.isSoon && !isPeeking ? "filter blur-[2px] opacity-85 pointer-events-none select-none" : ""}`}
+                className={`${noScroll || (comingSoonInfo.isSoon && !isPeeking) ? "flex-1 h-full flex flex-col min-h-0" : "min-h-full flex flex-col"} transition-all duration-300 ${comingSoonInfo.isSoon && !isPeeking ? "filter blur-[2px] opacity-85 pointer-events-none select-none" : ""}`}
               >
                 {children}
               </motion.div>

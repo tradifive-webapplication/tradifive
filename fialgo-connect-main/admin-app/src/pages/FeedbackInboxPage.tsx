@@ -5,7 +5,7 @@ import { Star, Bug, MessageSquare, RefreshCcw, Trash2, CheckCircle2, AlertCircle
 export default function FeedbackInboxPage() {
   const [feedback, setFeedback] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<"all" | "bugs" | "ratings">("all");
+  const [filter, setFilter] = useState<"all" | "bugs" | "suggestions" | "ratings">("all");
 
   const fetchFeedback = async () => {
     setLoading(true);
@@ -30,7 +30,21 @@ export default function FeedbackInboxPage() {
     setLoading(false);
   };
 
-  useEffect(() => { fetchFeedback(); }, []);
+  useEffect(() => {
+    fetchFeedback();
+
+    // Realtime listener so reported bugs and suggestions appear instantly
+    const channel = supabase
+      .channel("admin_user_feedback")
+      .on("postgres_changes", { event: "*", schema: "public", table: "user_feedback" }, () => {
+        fetchFeedback();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   const deleteFeedback = async (id: string) => {
     await supabase.from("user_feedback").delete().eq("id", id);
@@ -38,16 +52,29 @@ export default function FeedbackInboxPage() {
   };
 
   const filtered = feedback.filter(f => {
-    if (filter === "bugs") return f.description && f.description.length > 0;
+    const cat = (f.category || "").toLowerCase();
+    const desc = (f.description || "").toLowerCase();
+    if (filter === "bugs") return cat.includes("bug") || desc.includes("[bug report]") || (f.description && f.rating === 0);
+    if (filter === "suggestions") return cat.includes("suggest") || cat.includes("idea") || desc.includes("[feature suggestion]") || desc.includes("idea:");
     if (filter === "ratings") return f.rating > 0;
     return true;
   });
 
-  const avgRating = feedback.length > 0
-    ? (feedback.reduce((sum, f) => sum + (f.rating || 0), 0) / feedback.filter(f => f.rating > 0).length).toFixed(1)
+  const avgRating = feedback.filter(f => f.rating > 0).length > 0
+    ? (feedback.filter(f => f.rating > 0).reduce((sum, f) => sum + (f.rating || 0), 0) / feedback.filter(f => f.rating > 0).length).toFixed(1)
     : "0.0";
 
-  const bugCount = feedback.filter(f => f.description && f.description.length > 0).length;
+  const bugCount = feedback.filter(f => {
+    const cat = (f.category || "").toLowerCase();
+    const desc = (f.description || "").toLowerCase();
+    return cat.includes("bug") || desc.includes("[bug report]");
+  }).length;
+
+  const suggestionCount = feedback.filter(f => {
+    const cat = (f.category || "").toLowerCase();
+    const desc = (f.description || "").toLowerCase();
+    return cat.includes("suggest") || cat.includes("idea") || desc.includes("[feature suggestion]");
+  }).length;
 
   return (
     <div className="space-y-6">
@@ -65,9 +92,9 @@ export default function FeedbackInboxPage() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4">
         {[
           { label: "Total Submissions", value: feedback.length },
-          { label: "Average Rating", value: `${avgRating} / 5` },
           { label: "Bug Reports", value: bugCount },
-          { label: "This Week", value: feedback.filter(f => new Date(f.created_at) > new Date(Date.now() - 7 * 86400000)).length },
+          { label: "Feature Ideas", value: suggestionCount },
+          { label: "Average Rating", value: `${avgRating} / 5` },
         ].map(s => (
           <div key={s.label} className="bg-[#1E1E1E] border border-white/5 rounded-xl p-3.5 sm:p-4">
             <p className="text-[9px] text-neutral-500 font-bold uppercase tracking-widest mb-1 truncate">{s.label}</p>
@@ -78,7 +105,7 @@ export default function FeedbackInboxPage() {
 
       {/* Filter Tabs */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1 max-w-full scrollbar-none">
-        {(["all", "ratings", "bugs"] as const).map(f => (
+        {(["all", "bugs", "suggestions", "ratings"] as const).map(f => (
           <button key={f} onClick={() => setFilter(f)}
             className={`px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-widest border transition-none shrink-0 ${filter === f ? "bg-white/10 border-white/10 text-white" : "bg-[#1E1E1E] border-white/5 text-neutral-500 hover:text-neutral-300"}`}>
             {f}
