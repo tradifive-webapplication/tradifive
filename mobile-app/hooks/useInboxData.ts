@@ -35,28 +35,47 @@ export function useInboxData(activeConvId: string | null = null) {
   const fetchConversations = useCallback(async () => {
     if (!userId) return;
     try {
-      const { data, error } = await supabase
+      // 1. Fetch conversations without relying on fragile PostgREST foreign key hints
+      const { data: convRows, error: convsError } = await supabase
         .from('dm_conversations')
-        .select(`
-          *,
-          user1:profiles!dm_conversations_user1_id_fkey(id, username, display_name, avatar_url, is_verified, trading_style),
-          user2:profiles!dm_conversations_user2_id_fkey(id, username, display_name, avatar_url, is_verified, trading_style),
-          last_message:direct_messages!dm_conversations_last_message_id_fkey(content, created_at, message_type)
-        `)
+        .select('*')
         .or(`user1_id.eq.${userId},user2_id.eq.${userId}`)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (convsError) throw convsError;
 
-      if (data && data.length > 0) {
-        const formatted = data.map((conv: any) => {
+      if (convRows && convRows.length > 0) {
+        // Collect partner user IDs and last message IDs
+        const partnerIds = Array.from(new Set(
+          convRows.map((c: any) => c.user1_id === userId ? c.user2_id : c.user1_id).filter(Boolean)
+        ));
+        const messageIds = Array.from(new Set(
+          convRows.map((c: any) => c.last_message_id).filter(Boolean)
+        ));
+
+        // Fetch partner profiles and last messages in parallel
+        const [profilesRes, messagesRes] = await Promise.all([
+          partnerIds.length > 0
+            ? supabase.from('profiles').select('id, username, display_name, avatar_url, is_verified, trading_style').in('id', partnerIds)
+            : Promise.resolve({ data: [] }),
+          messageIds.length > 0
+            ? supabase.from('direct_messages').select('id, content, created_at, message_type').in('id', messageIds)
+            : Promise.resolve({ data: [] })
+        ]);
+
+        const profilesMap = new Map(((profilesRes as any)?.data || []).map((p: any) => [p.id, p]));
+        const messagesMap = new Map(((messagesRes as any)?.data || []).map((m: any) => [m.id, m]));
+
+        const formatted = convRows.map((conv: any) => {
           const isUser1 = conv.user1_id === userId;
-          const partner = isUser1 ? conv.user2 : conv.user1;
-          const lm = conv.last_message;
+          const partnerId = isUser1 ? conv.user2_id : conv.user1_id;
+          const partner: any = profilesMap.get(partnerId);
+          const lm: any = messagesMap.get(conv.last_message_id);
 
           let displayTime = 'No messages';
-          if (lm?.created_at) {
-            const date = new Date(lm.created_at);
+          const timeSource = lm?.created_at || conv.last_message_at || conv.created_at;
+          if (timeSource) {
+            const date = new Date(timeSource);
             const now = new Date();
             if (date.toDateString() === now.toDateString()) {
               displayTime = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -73,12 +92,12 @@ export function useInboxData(activeConvId: string | null = null) {
 
           return {
             id: conv.id,
-            partnerId: partner?.id || '',
-            name: partner?.display_name || partner?.username || 'Unknown User',
+            partnerId: partnerId || '',
+            name: partner?.display_name || partner?.username || 'Trader',
             designation: partner?.trading_style || 'Member',
             department: 'Community',
             roleTag: partner?.trading_style?.toUpperCase() || 'TRADER',
-            unread: unreadCount || 0,
+            unread: Number(unreadCount) || 0,
             time: displayTime,
             content: previewContent,
             avatar: getAvatarUrl(partner?.avatar_url, undefined, partner?.username || partner?.display_name),
@@ -89,8 +108,7 @@ export function useInboxData(activeConvId: string | null = null) {
           };
         }) as Conversation[];
 
-        let finalConvs = formatted || [];
-        setConversations(finalConvs);
+        setConversations(formatted);
       } else {
         setConversations([]);
       }

@@ -55,35 +55,44 @@ export function useInboxData(userId: string | undefined, activeConvId: string | 
   const fetchConversations = useCallback(async () => {
     if (!userId) return;
     try {
-
-
-      const { data, error } = await supabase
+      const { data: convRows, error: convsError } = await supabase
         .from('dm_conversations')
-        .select(`
-          *,
-          user1:profiles!dm_conversations_user1_id_fkey(id, username, display_name, avatar_url, is_verified, trading_style, updated_at, email, win_rate, total_trades, preferred_market, risk_appetite, plan_type, role, location),
-          user2:profiles!dm_conversations_user2_id_fkey(id, username, display_name, avatar_url, is_verified, trading_style, updated_at, email, win_rate, total_trades, preferred_market, risk_appetite, plan_type, role, location),
-          last_message:direct_messages!dm_conversations_last_message_id_fkey(content, created_at, message_type)
-        `)
+        .select('*')
         .or(`user1_id.eq.${userId},user2_id.eq.${userId}`)
         .order('last_message_at', { ascending: false });
 
-      if (error) {
-        console.error('Conversations fetch error:', error);
+      if (convsError) {
+        console.error('Conversations fetch error:', convsError);
         return;
       }
 
-      if (data) {
-        const formatted: Conversation[] = data.map((row: any) => {
+      if (convRows && convRows.length > 0) {
+        // Collect partner user IDs and last message IDs
+        const partnerIds = Array.from(new Set(
+          convRows.map((c: any) => c.user1_id === userId ? c.user2_id : c.user1_id).filter(Boolean)
+        ));
+        const messageIds = Array.from(new Set(
+          convRows.map((c: any) => c.last_message_id).filter(Boolean)
+        ));
+
+        // Fetch partner profiles and last messages in parallel
+        const [profilesRes, messagesRes] = await Promise.all([
+          partnerIds.length > 0
+            ? supabase.from('profiles').select('id, username, display_name, avatar_url, is_verified, trading_style, updated_at, email, win_rate, total_trades, preferred_market, risk_appetite, plan_type, role, location').in('id', partnerIds)
+            : Promise.resolve({ data: [] }),
+          messageIds.length > 0
+            ? supabase.from('direct_messages').select('id, content, created_at, message_type').in('id', messageIds)
+            : Promise.resolve({ data: [] })
+        ]);
+
+        const profilesMap = new Map(((profilesRes as any)?.data || []).map((p: any) => [p.id, p]));
+        const messagesMap = new Map(((messagesRes as any)?.data || []).map((m: any) => [m.id, m]));
+
+        const formatted: Conversation[] = convRows.map((row: any) => {
           const isUser1 = String(row.user1_id).toLowerCase() === String(userId).toLowerCase();
-          let partnerObj = isUser1 ? row.user2 : row.user1;
-
-          // Handle potential array returns from PostgREST just in case
-          if (Array.isArray(partnerObj)) {
-            partnerObj = partnerObj.length > 0 ? partnerObj[0] : null;
-          }
-
-          const partnerId = partnerObj?.id || (isUser1 ? row.user2_id : row.user1_id) || '';
+          const partnerId = (isUser1 ? row.user2_id : row.user1_id) || '';
+          const partnerObj: any = profilesMap.get(partnerId);
+          const lm: any = messagesMap.get(row.last_message_id);
 
           const partnerUsername = partnerObj?.username || '';
           const realEmail = partnerObj?.email && !partnerObj.email.includes('fundedtraders.net')
@@ -107,10 +116,10 @@ export function useInboxData(userId: string | undefined, activeConvId: string | 
             department: preferredMarket,
             roleTag,
             unread: isUser1 ? (row.user1_unread_count ?? 0) : (row.user2_unread_count ?? 0),
-            time: row.last_message_at
-              ? new Date(row.last_message_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
+            time: (lm?.created_at || row.last_message_at)
+              ? new Date(lm?.created_at || row.last_message_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
               : '',
-            content: row.last_message?.content || 'No messages yet.',
+            content: lm?.content || 'No messages yet.',
             avatar: partnerObj?.avatar_url || "/default-avatar.svg",
             verified: partnerObj?.is_verified ?? false,
             status: onlineUsers.has(partnerId) ? 'Online' : 'Offline',
