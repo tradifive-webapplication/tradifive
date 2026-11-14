@@ -687,21 +687,27 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
               type="button"
               disabled={!isContinueEnabled() || isSaving}
               onClick={handleNext}
-              className={`h-11 px-8 rounded-full text-sm font-semibold tracking-normal transition-all duration-200 inline-flex items-center justify-center gap-2 border ${
-                isContinueEnabled()
-                  ? "bg-gradient-to-br from-[#1e293b] to-[#0f172a] hover:from-[#253347] hover:to-[#131c33] text-white border-[#3b82f6]/30 hover:border-[#3b82f6]/60 shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_4px_14px_rgba(0,0,0,0.4)] active:scale-[0.985] cursor-pointer"
-                  : "bg-[#121316] text-zinc-500 border-white/[0.04] cursor-not-allowed opacity-50"
+              className={`group h-11 px-7 rounded-full text-sm font-bold tracking-wide transition-all duration-200 inline-flex items-center justify-center gap-2 border-0 outline-none select-none ${
+                isContinueEnabled() && !isSaving
+                  ? "bg-gradient-to-br from-[#1e293b] to-[#0f172a] hover:from-[#253347] hover:to-[#131c33] text-[#60a5fa] hover:text-[#93c5fd] shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_2px_6px_rgba(0,0,0,0.3)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.985] cursor-pointer"
+                  : "bg-[#141a24] text-[#60a5fa]/40 shadow-none cursor-not-allowed opacity-50"
               }`}
             >
               {isSaving ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin text-white" />
+                  <Loader2 className="w-4 h-4 animate-spin text-[#60a5fa]" />
                   <span>Saving...</span>
                 </>
               ) : currentStep === 'ACCOUNT' ? (
-                <span>Enter Dashboard</span>
+                <>
+                  <span>Enter Dashboard</span>
+                  <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
+                </>
               ) : (
-                <span>Continue</span>
+                <>
+                  <span>Continue</span>
+                  <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
+                </>
               )}
             </button>
 
