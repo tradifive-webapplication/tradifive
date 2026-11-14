@@ -68,7 +68,11 @@ export class AuthService {
   static getRedirectUrl() {
     const AuthSession = require('expo-auth-session');
     const { Platform } = require('react-native');
-    const Constants = require('expo-constants').default;
+    let Constants: any = null;
+    try {
+      const ConstantsModule = require('expo-constants');
+      Constants = ConstantsModule?.default || ConstantsModule;
+    } catch (_) {}
 
     if (Platform.OS === 'web') {
       if (typeof window !== 'undefined') {
@@ -78,10 +82,13 @@ export class AuthService {
     }
 
     // Check if running inside Expo Go client vs Standalone / Development build
-    const isExpoGo = Constants?.appOwnership === 'expo' || Constants?.executionEnvironment === 'storeClient';
+    const isExpoGo =
+      Constants?.appOwnership === 'expo' ||
+      Constants?.executionEnvironment === 'storeClient' ||
+      Constants?.executionEnvironment === 'StoreClient';
 
     if (isExpoGo) {
-      // In Expo Go, custom native schemes (like mobileapp://) are not registered in AndroidManifest.
+      // In Expo Go, custom native schemes (like mobileapp://) are not registered in iOS/Android manifest.
       // Expo Go requires an exp:// redirect URI to route back into the active Expo Go session.
       const expoRedirectUrl = AuthSession.makeRedirectUri({
         path: 'auth-callback',
@@ -222,7 +229,10 @@ export class AuthService {
 
     // --- MOBILE FLOW (Expo Go + Standalone iOS/Android) ---
     const nativeCallbackUrl = this.getRedirectUrl();
-    console.log('[AuthService] Mobile App Native Callback URL:', nativeCallbackUrl);
+    console.log('════════════════════════════════════════════════════════════');
+    console.log('[AuthService] EXACT OAUTH REDIRECT URL SENT TO SUPABASE:');
+    console.log(nativeCallbackUrl);
+    console.log('════════════════════════════════════════════════════════════');
 
     // Direct Native Redirect:
     // Pass nativeCallbackUrl directly so Google OAuth redirects straight back into the mobile app
