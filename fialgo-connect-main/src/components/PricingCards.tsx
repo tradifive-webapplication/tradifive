@@ -229,7 +229,13 @@ export function PricingCards({ selectedPlan, onSelectPlan, onUpgradeClick, isSta
           <button
             onClick={() => !isCurrentPlan('starter') && handleUpgrade('starter')}
             disabled={isCurrentPlan('starter')}
-            className={`w-full flex items-center justify-center h-12 rounded-full font-bold text-[13px] transition-all active:scale-[0.985] mb-4 ${isCurrentPlan('starter') ? 'opacity-60 cursor-not-allowed saturate-50' : 'btn-glow-primary'}`}
+            className={`w-full flex items-center justify-center h-12 rounded-full font-bold text-[13px] tracking-wide transition-all duration-200 active:scale-[0.985] hover:brightness-110 mb-4 ${isCurrentPlan('starter') ? 'opacity-60 cursor-not-allowed saturate-50' : ''}`}
+            style={{
+              background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
+              color: '#f8fafc',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
+              boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 8px rgba(0, 0, 0, 0.4)',
+            }}
           >
             {isCurrentPlan('starter') ? 'Current Plan' : 'Get Standard'}
           </button>
@@ -267,7 +273,13 @@ export function PricingCards({ selectedPlan, onSelectPlan, onUpgradeClick, isSta
           <button
             onClick={() => !isCurrentPlan('pro') && handleUpgrade('pro')}
             disabled={isCurrentPlan('pro')}
-            className={`w-full flex items-center justify-center h-12 rounded-full font-bold text-[13px] transition-all active:scale-[0.985] mb-4 ${isCurrentPlan('pro') ? 'opacity-60 cursor-not-allowed saturate-50' : 'btn-glow-primary'}`}
+            className={`w-full flex items-center justify-center h-12 rounded-full font-bold text-[13px] tracking-wide transition-all duration-200 active:scale-[0.985] hover:brightness-110 mb-4 ${isCurrentPlan('pro') ? 'opacity-60 cursor-not-allowed saturate-50' : ''}`}
+            style={{
+              background: 'linear-gradient(135deg, #2a1804 0%, #170d02 100%)',
+              color: '#fbbf24',
+              border: '1px solid rgba(245, 158, 11, 0.45)',
+              boxShadow: 'inset 0 1px 0 rgba(245, 158, 11, 0.35), 0 4px 16px rgba(245, 158, 11, 0.25)',
+            }}
           >
             {isCurrentPlan('pro') ? 'Current Plan' : (!isStandalone && activePlan === 'elite') ? 'Downgrade to Pro' : 'Get Pro'}
           </button>
@@ -305,7 +317,13 @@ export function PricingCards({ selectedPlan, onSelectPlan, onUpgradeClick, isSta
             <button
               onClick={() => !isCurrentPlan('elite') && handleUpgrade('elite')}
               disabled={isCurrentPlan('elite')}
-              className={`w-full flex items-center justify-center h-12 rounded-full font-bold text-[13px] transition-all active:scale-[0.985] mb-4 ${isCurrentPlan('elite') ? 'opacity-60 cursor-not-allowed saturate-50' : 'btn-glow-primary'}`}
+              className={`w-full flex items-center justify-center h-12 rounded-full font-bold text-[13px] tracking-wide transition-all duration-200 active:scale-[0.985] hover:brightness-110 mb-4 ${isCurrentPlan('elite') ? 'opacity-60 cursor-not-allowed saturate-50' : ''}`}
+              style={{
+                background: 'linear-gradient(135deg, #200a38 0%, #10041d 100%)',
+                color: '#c084fc',
+                border: '1px solid rgba(168, 85, 247, 0.5)',
+                boxShadow: 'inset 0 1px 0 rgba(168, 85, 247, 0.35), 0 4px 16px rgba(168, 85, 247, 0.25)',
+              }}
             >
               {isCurrentPlan('elite') ? 'Current Plan' : 'Get Elite'}
             </button>
@@ -337,7 +355,13 @@ export function PricingCards({ selectedPlan, onSelectPlan, onUpgradeClick, isSta
           )}
           <button
             onClick={(e) => { e.stopPropagation(); toast.success("Redirecting to Contact form...", { icon: <CheckCircle className="text-emerald-500" /> }); }}
-            className="w-full flex items-center justify-center h-12 rounded-full font-bold text-[13px] transition-all active:scale-[0.985] mb-4 btn-glow-primary"
+            className="w-full flex items-center justify-center h-12 rounded-full font-bold text-[13px] tracking-wide transition-all duration-200 active:scale-[0.985] hover:brightness-110 mb-4"
+            style={{
+              background: 'linear-gradient(135deg, #062315 0%, #03130b 100%)',
+              color: '#34d399',
+              border: '1px solid rgba(16, 185, 129, 0.5)',
+              boxShadow: 'inset 0 1px 0 rgba(16, 185, 129, 0.35), 0 4px 16px rgba(16, 185, 129, 0.25)',
+            }}
           >
             Contact Us &rarr;
           </button>
