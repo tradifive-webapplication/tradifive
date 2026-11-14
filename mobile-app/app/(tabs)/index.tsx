@@ -1924,7 +1924,7 @@ export default function DashboardScreen() {
           {headerStyle === 'top_glow' && (
             <Image
               source={require('../../assets/images/top-glow.png')}
-              style={{ position: 'absolute', top: 0, left: 0, right: 0, width: '100%', height: 180, opacity: 0.9, zIndex: 0 }}
+              style={{ position: 'absolute', top: 0, left: 0, right: 0, width: '100%', height: insets.top + 180, opacity: 0.9, zIndex: 0 }}
               resizeMode="stretch"
             />
           )}

@@ -6,6 +6,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft } from 'lucide-react-native';
 import { Lock } from '../components/Iconly';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { StatusBar } from 'expo-status-bar';
 import { AuthService } from './services/auth.service';
 import { useStore } from './store';
 
@@ -89,14 +90,16 @@ export default function VerifyEmailScreen() {
 
   return (
     <View style={styles.container}>
+      <StatusBar style="light" backgroundColor="#000000" translucent />
       <KeyboardAwareScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={{ flexGrow: 1 }}
+        style={{ flex: 1, backgroundColor: '#000000' }}
+        contentContainerStyle={{ flexGrow: 1, backgroundColor: '#FFFFFF' }}
         bounces={false}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         enableOnAndroid={true}
         extraScrollHeight={20}
+        contentInsetAdjustmentBehavior="never"
       >
           {/* HEADER AREA */}
           <LinearGradient
@@ -227,139 +230,138 @@ const fontMed = Platform.OS === 'ios' ? 'System' : 'Inter_500Medium';
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#000000',
   },
   header: {
     height: height * 0.25,
-    borderBottomLeftRadius: 36,
-    borderBottomRightRadius: 36,
-    width: '100%',
+    backgroundColor: '#000000',
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
     position: 'relative',
     overflow: 'hidden',
+    zIndex: 10,
+    paddingTop: Platform.OS === 'android' ? 20 : 0,
   },
   bottomGlow: {
     position: 'absolute',
     bottom: 0,
-    width: width,
-    height: 200,
+    width: '100%',
+    height: 140,
+    opacity: 0.9,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
   },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    width: '100%',
+    paddingHorizontal: 24,
     position: 'relative',
+    width: '100%',
   },
   backButton: {
     position: 'absolute',
     left: 24,
-    top: 24,
-    zIndex: 10,
-    padding: 8,
+    zIndex: 30,
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'flex-start',
   },
   logoContainer: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 0,
+    gap: 8,
+    zIndex: 20,
   },
   logoSymbol: {
-    width: 44,
-    height: 44,
+    width: 32,
+    height: 32,
   },
   logoText: {
-    width: 155,
-    height: 34,
+    width: 140,
+    height: 32,
   },
   contentContainer: {
     flex: 1,
     backgroundColor: '#FFFFFF',
-    paddingHorizontal: 28,
-    paddingTop: 36,
+    paddingHorizontal: 32,
+    paddingTop: 32,
     paddingBottom: 40,
-    alignItems: 'center',
   },
   contentMaxWidth: {
     width: '100%',
-    maxWidth: 420,
+    maxWidth: 400,
+    alignSelf: 'center',
   },
   textContainer: {
-    marginBottom: 32,
+    marginBottom: 24,
   },
   title: {
     fontFamily: fontBold,
-    fontWeight: '800',
-    fontSize: 28,
-    lineHeight: 34,
+    fontSize: 24,
     color: '#0F172A',
-    letterSpacing: -0.5,
     marginBottom: 8,
   },
   subtitle: {
-    fontFamily: fontFamily,
-    fontWeight: '500',
+    fontFamily: fontMed,
     fontSize: 15,
-    lineHeight: 22,
     color: '#64748B',
+    lineHeight: 22,
   },
   formContainer: {
-    width: '100%',
-    marginTop: 8,
+    gap: 20,
   },
   inputWrapper: {
-    marginBottom: 24,
+    gap: 6,
   },
   inputLabel: {
-    fontFamily: fontSemi,
-    fontWeight: '600',
+    fontFamily: fontBold,
     fontSize: 14,
-    color: '#1E293B',
-    marginBottom: 8,
+    color: '#334155',
+    marginBottom: 2,
     marginLeft: 4,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#FFFFFF',
     borderWidth: 1.5,
     borderColor: '#E2E8F0',
-    borderRadius: 16,
-    height: 56,
+    borderRadius: 12,
     paddingHorizontal: 16,
+    height: 52,
   },
   inputFocused: {
     borderColor: '#0F172A',
     backgroundColor: '#FFFFFF',
   },
   inputIcon: {
-    marginRight: 10,
+    marginRight: 12,
   },
   input: {
     flex: 1,
-    height: '100%',
     fontFamily: fontMed,
-    fontSize: 16,
+    fontSize: 15,
     color: '#0F172A',
+    height: '100%',
   },
   loginButton: {
-    backgroundColor: '#ff4d4d',
-    borderRadius: 16,
-    height: 56,
-    justifyContent: 'center',
+    backgroundColor: '#000000',
+    height: 52,
+    borderRadius: 12,
     alignItems: 'center',
+    justifyContent: 'center',
     marginTop: 8,
-    shadowColor: '#ff4d4d',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.2,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
     shadowRadius: 8,
     elevation: 4,
   },
   loginButtonText: {
     fontFamily: fontBold,
-    fontWeight: '700',
     fontSize: 16,
     color: '#FFFFFF',
   },
@@ -367,12 +369,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 24,
-    paddingHorizontal: 4,
+    marginTop: 8,
   },
   linkText: {
     fontFamily: fontSemi,
-    fontWeight: '600',
     fontSize: 14,
     color: '#64748B',
   },

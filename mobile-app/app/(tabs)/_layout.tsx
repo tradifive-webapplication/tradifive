@@ -461,7 +461,7 @@ export default function TabLayout() {
             left: 0,
             right: 0,
             width: SCREEN_WIDTH,
-            height: insets.top + 100, // Slightly taller for better coverage
+            height: insets.top + 160,
             zIndex: 1, // Behind both drawer and content
             opacity: headerStyle === 'top_glow' ? 1 : 0,
           }}

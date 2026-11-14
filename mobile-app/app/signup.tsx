@@ -8,6 +8,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Message, Lock, Show, Hide } from '../components/Iconly';
 import * as WebBrowser from 'expo-web-browser';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { StatusBar } from 'expo-status-bar';
 
 const { width, height } = Dimensions.get('window');
 
@@ -129,14 +130,16 @@ export default function SignupScreen() {
 
   return (
     <View style={styles.container}>
+      <StatusBar style="light" backgroundColor="#000000" translucent />
       <KeyboardAwareScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={{ flexGrow: 1 }}
+        style={{ flex: 1, backgroundColor: '#000000' }}
+        contentContainerStyle={{ flexGrow: 1, backgroundColor: '#FFFFFF' }}
         bounces={false}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         enableOnAndroid={true}
         extraScrollHeight={20}
+        contentInsetAdjustmentBehavior="never"
       >
           {/* HEADER AREA */}
           <LinearGradient
@@ -372,7 +375,7 @@ const fontMed = Platform.OS === 'ios' ? 'System' : 'Inter_500Medium';
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#000000',
   },
   header: {
     height: height * 0.25,

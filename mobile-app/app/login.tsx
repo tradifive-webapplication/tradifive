@@ -11,6 +11,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Message, Lock, Show, Hide } from '../components/Iconly';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { AlertTriangle, CheckCircle, Mail } from 'lucide-react-native';
+import { StatusBar } from 'expo-status-bar';
 
 const { width, height } = Dimensions.get('window');
 
@@ -258,14 +259,16 @@ export default function LoginScreen() {
 
   return (
     <View style={styles.container}>
+      <StatusBar style="light" backgroundColor="#000000" translucent />
       <KeyboardAwareScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={{ flexGrow: 1 }}
+        style={{ flex: 1, backgroundColor: '#000000' }}
+        contentContainerStyle={{ flexGrow: 1, backgroundColor: '#FFFFFF' }}
         bounces={false}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         enableOnAndroid={true}
         extraScrollHeight={20}
+        contentInsetAdjustmentBehavior="never"
       >
         {/* HEADER */}
         <LinearGradient colors={['#000000', '#000000']} style={styles.header}>
@@ -396,7 +399,7 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFFFFF' },
+  container: { flex: 1, backgroundColor: '#000000' },
   header: {
     height: height * 0.26,
     borderBottomLeftRadius: 36,
