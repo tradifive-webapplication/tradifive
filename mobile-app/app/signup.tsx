@@ -102,9 +102,17 @@ export default function SignupScreen() {
         last_name: lastName.trim()
       });
 
-      // Ensure temp session is cleared so user signs in cleanly with credentials after verification
-      await AuthService.signOut();
+      // If Supabase doesn't require email confirmation, user is already logged in!
+      if (data?.session) {
+        await useStore.getState().init();
+        if (Platform.OS !== 'web') {
+          await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        }
+        router.replace('/(tabs)');
+        return;
+      }
 
+      // If Supabase requires email verification:
       if (Platform.OS !== 'web') {
         await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       }
