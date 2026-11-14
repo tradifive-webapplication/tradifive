@@ -323,7 +323,7 @@ export default function ProfileSetupScreen() {
         {currentStep === 'NAME' && (
           <View style={styles.stepContainer}>
             <Text style={styles.stepCategory}>STEP 1 OF 6 • IDENTITY</Text>
-            <h1 style={styles.stepTitle as any}>What should we call you?</h1>
+            <Text style={styles.stepTitle}>What should we call you?</Text>
             <Text style={styles.stepSubtitle}>
               Your display name across the TradiFive ecosystem — journal, AI coach, community, and leaderboards.
             </Text>
@@ -346,7 +346,7 @@ export default function ProfileSetupScreen() {
         {currentStep === 'HANDLE' && (
           <View style={styles.stepContainer}>
             <Text style={styles.stepCategory}>STEP 2 OF 6 • USERNAME</Text>
-            <h1 style={styles.stepTitle as any}>Claim your handle.</h1>
+            <Text style={styles.stepTitle}>Claim your handle.</Text>
             <Text style={styles.stepSubtitle}>
               This will be your unique trader identity across TradiFive.
             </Text>
@@ -391,7 +391,7 @@ export default function ProfileSetupScreen() {
         {currentStep === 'STYLE' && (
           <View style={styles.stepContainer}>
             <Text style={styles.stepCategory}>STEP 3 OF 6 • METHODOLOGY</Text>
-            <h1 style={styles.stepTitle as any}>How do you trade?</h1>
+            <Text style={styles.stepTitle}>How do you trade?</Text>
             <Text style={styles.stepSubtitle}>
               Select your primary trading methodology so we can tailor your algorithms and metrics.
             </Text>
@@ -433,7 +433,7 @@ export default function ProfileSetupScreen() {
         {currentStep === 'MARKET' && (
           <View style={styles.stepContainer}>
             <Text style={styles.stepCategory}>STEP 4 OF 6 • ASSET CLASS</Text>
-            <h1 style={styles.stepTitle as any}>What do you trade?</h1>
+            <Text style={styles.stepTitle}>What do you trade?</Text>
             <Text style={styles.stepSubtitle}>
               Select the primary financial asset class you specialize in.
             </Text>
@@ -475,7 +475,7 @@ export default function ProfileSetupScreen() {
         {currentStep === 'EDGE' && (
           <View style={styles.stepContainer}>
             <Text style={styles.stepCategory}>STEP 5 OF 6 • YOUR EDGE</Text>
-            <h1 style={styles.stepTitle as any}>What powers your edge?</h1>
+            <Text style={styles.stepTitle}>What powers your edge?</Text>
             <Text style={styles.stepSubtitle}>
               Select all strengths that define your trading strategy (choose multiple).
             </Text>
@@ -507,7 +507,7 @@ export default function ProfileSetupScreen() {
         {currentStep === 'HERE_TO' && (
           <View style={styles.stepContainer}>
             <Text style={styles.stepCategory}>STEP 6 OF 6 • OBJECTIVES</Text>
-            <h1 style={styles.stepTitle as any}>What brings you to TradiFive?</h1>
+            <Text style={styles.stepTitle}>What brings you to TradiFive?</Text>
             <Text style={styles.stepSubtitle}>
               Choose what features you want us to set up first on your dashboard.
             </Text>
@@ -545,7 +545,7 @@ export default function ProfileSetupScreen() {
         {currentStep === 'READY' && (
           <View style={styles.stepContainer}>
             <Text style={styles.stepCategory}>COMPLETED • PASSPORT READY</Text>
-            <h1 style={styles.stepTitle as any}>You're all set!</h1>
+            <Text style={styles.stepTitle}>You're all set!</Text>
             <Text style={styles.stepSubtitle}>
               Here is your official TradiFive Trading Passport. Welcome to the elite community.
             </Text>
