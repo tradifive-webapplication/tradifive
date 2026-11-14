@@ -21,6 +21,17 @@ export default function AuthCallback() {
     const returnTo = urlParams.get('return_to');
 
     // ─────────────────────────────────────────────────────────────
+    // 0. PASSWORD RECOVERY REDIRECT
+    //    If the callback contains type=recovery, user came from a reset password email.
+    //    Direct them straight to /reset-password with all auth tokens.
+    // ─────────────────────────────────────────────────────────────
+    const isRecovery = search.includes('type=recovery') || hash.includes('type=recovery');
+    if (isRecovery) {
+      navigate(`/reset-password${search}${hash}`, { replace: true });
+      return;
+    }
+
+    // ─────────────────────────────────────────────────────────────
     // 1. MOBILE NATIVE APP BRIDGE (Expo Go or Standalone APK)
     //    Triggered when mobile app sends source=mobileapp or return_to=exp://...
     // ─────────────────────────────────────────────────────────────

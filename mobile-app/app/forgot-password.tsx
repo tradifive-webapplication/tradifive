@@ -1,9 +1,9 @@
-import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, ActivityIndicator, Alert, Platform, SafeAreaView, Dimensions } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, ActivityIndicator, Alert, Platform, SafeAreaView, Dimensions, Linking } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowLeft } from 'lucide-react-native';
+import { ArrowLeft, Mail, CheckCircle2, KeyRound } from 'lucide-react-native';
 import { Message, Lock, Show, Hide } from '../components/Iconly';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { StatusBar } from 'expo-status-bar';
@@ -14,6 +14,7 @@ const { width, height } = Dimensions.get('window');
 export default function ForgotPasswordScreen() {
   const router = useRouter();
   const [step, setStep] = useState<'request' | 'verify'>('request');
+  const [showOtpEntry, setShowOtpEntry] = useState(false);
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -45,6 +46,21 @@ export default function ForgotPasswordScreen() {
     return true;
   };
 
+  const handleOpenEmailApp = async () => {
+    try {
+      if (Platform.OS === 'ios') {
+        const canOpen = await Linking.canOpenURL('message:');
+        if (canOpen) {
+          await Linking.openURL('message:');
+          return;
+        }
+      }
+      await Linking.openURL('mailto:');
+    } catch (e) {
+      Alert.alert('Open Email', 'Please check your email inbox to find the password reset message.');
+    }
+  };
+
   const handleSendInstructions = async () => {
     if (!validateEmail()) return;
     
@@ -64,9 +80,10 @@ export default function ForgotPasswordScreen() {
       
       setResendCooldown(60);
       setStep('verify');
+      setShowOtpEntry(false);
       Alert.alert(
-        "Reset Code & Link Sent", 
-        `We have sent a 6-digit code and a password reset link to ${email.trim()}.\n\nYou can enter the 6-digit code below to set a new password right away, or click the link in your email.`
+        "Reset Link Sent", 
+        `We've sent password reset instructions to ${email.trim()}.\n\nTap the "Reset Password" button in your email to set a new password.`
       );
     } catch (err: any) {
       setError(err.message || 'Something went wrong.');
@@ -254,6 +271,76 @@ export default function ForgotPasswordScreen() {
                   </View>
                 </View>
               </>
+            ) : !showOtpEntry ? (
+              <>
+                <View style={{ alignItems: 'center', marginBottom: 24 }}>
+                  <View style={{
+                    width: 72,
+                    height: 72,
+                    borderRadius: 36,
+                    backgroundColor: '#EFF6FF',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginBottom: 16,
+                    borderWidth: 1.5,
+                    borderColor: '#DBEAFE'
+                  }}>
+                    <Mail size={34} color="#3B82F6" />
+                  </View>
+                  <Text style={[styles.title, { textAlign: 'center' }]}>Check Your Email</Text>
+                  <Text style={[styles.subtitle, { textAlign: 'center' }]}>
+                    We've sent a password reset link to{'\n'}
+                    <Text style={{ color: '#0F172A', fontWeight: '700' }}>{email}</Text>.{'\n\n'}
+                    Tap the <Text style={{ color: '#0F172A', fontWeight: '700' }}>"Reset Password"</Text> button in that email to set a new password.
+                  </Text>
+                </View>
+
+                <View style={styles.formContainer}>
+                  {/* Primary Action: Open Email App */}
+                  <TouchableOpacity
+                    style={styles.loginButton}
+                    onPress={handleOpenEmailApp}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.loginButtonText}>Open Email App</Text>
+                  </TouchableOpacity>
+
+                  {/* Secondary Action: Back to Log In */}
+                  <TouchableOpacity
+                    style={[styles.outlineButton, { marginTop: 12 }]}
+                    onPress={() => router.replace('/login')}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.outlineButtonText}>Back to Log In</Text>
+                  </TouchableOpacity>
+
+                  {/* Switch to OTP Option */}
+                  <View style={{ marginTop: 28, alignItems: 'center', gap: 14 }}>
+                    <TouchableOpacity
+                      onPress={() => {
+                        setShowOtpEntry(true);
+                        setError('');
+                      }}
+                      activeOpacity={0.7}
+                      style={{ paddingVertical: 8, paddingHorizontal: 12 }}
+                    >
+                      <Text style={{ fontFamily: fontSemi, fontSize: 13, color: '#3B82F6', textAlign: 'center' }}>
+                        Have a 6-digit recovery code? Enter code instead &rarr;
+                      </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity onPress={handleResend} disabled={resending || resendCooldown > 0} activeOpacity={0.7}>
+                      {resending ? (
+                        <ActivityIndicator size="small" color="#64748B" />
+                      ) : (
+                        <Text style={{ fontFamily: fontSemi, fontSize: 14, color: resendCooldown > 0 ? '#94A3B8' : '#ff4d4d' }}>
+                          {resendCooldown > 0 ? `Resend email in ${resendCooldown}s` : "Didn't receive the email? Resend"}
+                        </Text>
+                      )}
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </>
             ) : (
               <>
                 <View style={styles.textContainer}>
@@ -341,8 +428,21 @@ export default function ForgotPasswordScreen() {
                     )}
                   </TouchableOpacity>
 
-                  {/* Resend & Web Link Options */}
+                  {/* Switch Back to Email Link Option */}
                   <View style={{ marginTop: 24, alignItems: 'center', gap: 12 }}>
+                    <TouchableOpacity
+                      onPress={() => {
+                        setShowOtpEntry(false);
+                        setError('');
+                      }}
+                      activeOpacity={0.7}
+                      style={{ paddingVertical: 6 }}
+                    >
+                      <Text style={{ fontFamily: fontSemi, fontSize: 13, color: '#3B82F6' }}>
+                        &larr; Switch back to Email Link instructions
+                      </Text>
+                    </TouchableOpacity>
+
                     <TouchableOpacity onPress={handleResend} disabled={resending || resendCooldown > 0} activeOpacity={0.7}>
                       {resending ? (
                         <ActivityIndicator size="small" color="#64748B" />
@@ -352,10 +452,6 @@ export default function ForgotPasswordScreen() {
                         </Text>
                       )}
                     </TouchableOpacity>
-
-                    <Text style={{ fontFamily: fontMed, fontSize: 13, color: '#94A3B8', textAlign: 'center', paddingHorizontal: 16 }}>
-                      Tip: You can also tap the link in your email to reset your password via your web browser.
-                    </Text>
 
                     <TouchableOpacity onPress={() => router.replace('/login')} activeOpacity={0.7} style={{ marginTop: 8 }}>
                       <Text style={{ fontFamily: fontSemi, fontSize: 14, color: '#64748B' }}>
@@ -541,5 +637,20 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     color: '#FFFFFF',
     letterSpacing: 0.5,
-  }
+  },
+  outlineButton: {
+    height: 52,
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  outlineButtonText: {
+    fontFamily: fontBold,
+    fontWeight: '700',
+    fontSize: 15,
+    color: '#334155',
+  },
 });

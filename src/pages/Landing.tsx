@@ -2296,12 +2296,19 @@ export default function TradiFive() {
   const [isMobile, setIsMobile] = useState(false);
 
 
-  // Centralized OAuth Redirect Intercept -> Always forward to /auth-callback
+  // Centralized OAuth & Auth Redirect Intercept -> Always forward to /auth-callback or /reset-password
   useEffect(() => {
     const hash = window.location.hash || '';
     const search = window.location.search || '';
+    const isRecovery = hash.includes('type=recovery') || search.includes('type=recovery');
     const hasAuthToken = hash.includes('access_token=') || search.includes('code=');
     const hasAuthError = hash.includes('error=') || search.includes('error=');
+
+    // If this is a password recovery link from Supabase email, route directly to Reset Password
+    if (isRecovery) {
+      navigate(`/reset-password${search}${hash}`, { replace: true });
+      return;
+    }
 
     if (hasAuthToken || hasAuthError) {
       navigate(`/auth-callback${search}${hash}`, { replace: true });
