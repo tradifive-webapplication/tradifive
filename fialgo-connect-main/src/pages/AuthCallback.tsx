@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase';
 
 export default function AuthCallback() {
   const navigate = useNavigate();
-  const [status, setStatus] = useState('Verifying secure session...');
+  const [status, setStatus] = useState('Verifying...');
   const [subText, setSubText] = useState('Please wait while we complete your authentication.');
   const [deepLinkTarget, setDeepLinkTarget] = useState('');
   const [buttonLabel, setButtonLabel] = useState('Open TradiFive App');
@@ -13,70 +13,62 @@ export default function AuthCallback() {
   const [isProcessingWeb, setIsProcessingWeb] = useState(false);
 
   useEffect(() => {
-    const isMobileDevice = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     const isAndroid = /Android/i.test(navigator.userAgent);
 
     const search = window.location.search || '';
     const hash = window.location.hash || '';
     const urlParams = new URLSearchParams(search);
     const returnTo = urlParams.get('return_to');
-    const isNativeSource = search.includes('source=mobileapp') || search.includes('mobileapp=true') || !!returnTo;
 
     // ─────────────────────────────────────────────────────────────
-    // 1. MOBILE NATIVE APP RETURN PATH (Expo Go or Standalone APK)
+    // 1. MOBILE NATIVE APP BRIDGE (Expo Go or Standalone APK)
+    //    Triggered when mobile app sends source=mobileapp or return_to=exp://...
     // ─────────────────────────────────────────────────────────────
-    if (isNativeSource || (isMobileDevice && returnTo)) {
+    const isNativeSource = search.includes('source=mobileapp') || search.includes('mobileapp=true') || !!returnTo;
+
+    if (isNativeSource) {
       const code = urlParams.get('code');
       const error = urlParams.get('error') || urlParams.get('error_description');
 
-      let targetUrl = returnTo || '';
-      if (!targetUrl) {
-        targetUrl = 'mobileapp://auth-callback';
-      }
-
-      // Append authentication parameters to the native target URL
+      // Build the native deep link URL with auth params appended
+      let targetUrl = returnTo || 'mobileapp://auth-callback';
       const delimiter = targetUrl.includes('?') ? '&' : '?';
       const params: string[] = [];
       if (code) params.push(`code=${encodeURIComponent(code)}`);
       if (error) params.push(`error=${encodeURIComponent(error)}`);
-
-      if (params.length > 0) {
-        targetUrl += delimiter + params.join('&');
-      }
-      if (hash) {
-        targetUrl += hash;
-      }
+      if (params.length > 0) targetUrl += delimiter + params.join('&');
+      if (hash) targetUrl += hash;
 
       const isExpo = targetUrl.startsWith('exp://');
       setIsExpoTarget(isExpo);
       setDeepLinkTarget(targetUrl);
       setButtonLabel(isExpo ? 'Open in Expo Go' : 'Open TradiFive App');
-      setStatus('Authentication Verified!');
-      setSubText(isExpo 
-        ? 'Redirecting to Expo Go. If the app does not open automatically, tap below:' 
-        : 'Redirecting to TradiFive App. If the app does not open automatically, tap below:');
+      setStatus('Sign in Successful!');
+      setSubText(isExpo
+        ? 'Returning to Expo Go. Tap the button below if it does not open automatically.'
+        : 'Returning to TradiFive. Tap the button below if it does not open automatically.');
       setShowWebFallback(true);
 
-      // Auto-trigger native redirect
+      // Immediately redirect to the native URL.
+      // On iOS, WebBrowser.openAuthSessionAsync intercepts this redirect and
+      // automatically closes the browser sheet, returning control to the app.
       try {
         if (isExpo) {
-          window.location.href = targetUrl;
+          window.location.replace(targetUrl);
         } else if (isAndroid) {
           const queryPart = targetUrl.split('?')[1] || '';
           const androidIntent = `intent://auth-callback?${queryPart}#Intent;scheme=mobileapp;package=com.tradifive;end`;
-          window.location.href = androidIntent;
-          setTimeout(() => {
-            window.location.href = targetUrl;
-          }, 450);
+          window.location.replace(androidIntent);
+          setTimeout(() => { window.location.replace(targetUrl); }, 400);
         } else {
-          window.location.href = targetUrl;
+          window.location.replace(targetUrl);
         }
       } catch (e) {
         console.warn('[AuthCallback Native Redirect Error]:', e);
       }
 
-      // CRITICAL: Return immediately! Do not execute handleWebAuth() here,
-      // as that would exchange and burn the single-use PKCE code meant for the mobile app.
+      // CRITICAL: Stop here — do NOT exchange the PKCE code on the web.
+      // The mobile app will exchange it natively after receiving the exp:// deep link.
       return;
     }
 

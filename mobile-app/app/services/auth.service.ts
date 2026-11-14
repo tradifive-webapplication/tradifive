@@ -228,19 +228,32 @@ export class AuthService {
     }
 
     // --- MOBILE FLOW (Expo Go + Standalone iOS/Android) ---
+    //
+    // CRITICAL: Supabase's GoTrue does NOT support wildcards for IP addresses or ports.
+    // So passing exp://192.168.x.x:8081 or mobileapp:// directly as redirectTo gets REJECTED
+    // by Supabase, which then falls back to the Site URL (tradifive.in).
+    //
+    // THE FIX: Always use the Web Bridge pattern:
+    //   redirectTo = https://www.tradifive.in/auth-callback?return_to=<native-url>
+    //
+    // tradifive.in/auth-callback IS in the Supabase allowlist, so it's ALWAYS accepted.
+    // AuthCallback.tsx on tradifive.in reads return_to and immediately deep-links back
+    // into Expo Go (exp://) or the standalone app (mobileapp://).
+    // WebBrowser.openAuthSessionAsync intercepts the native URL as it passes through,
+    // closes the browser, and returns the auth code to the mobile app automatically.
+
     const nativeCallbackUrl = this.getRedirectUrl();
+    const bridgeRedirectUrl = `https://www.tradifive.in/auth-callback?return_to=${encodeURIComponent(nativeCallbackUrl)}&source=mobileapp`;
+
     console.log('════════════════════════════════════════════════════════════');
-    console.log('[AuthService] EXACT OAUTH REDIRECT URL SENT TO SUPABASE:');
-    console.log(nativeCallbackUrl);
+    console.log('[AuthService] Native URL (for browser intercept):', nativeCallbackUrl);
+    console.log('[AuthService] Bridge URL (sent to Supabase):', bridgeRedirectUrl);
     console.log('════════════════════════════════════════════════════════════');
 
-    // Direct Native Redirect:
-    // Pass nativeCallbackUrl directly so Google OAuth redirects straight back into the mobile app
-    // (exp:// for Expo Go, mobileapp:// for standalone APK) without ever opening or loading any webpage!
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: nativeCallbackUrl,
+        redirectTo: bridgeRedirectUrl,
         skipBrowserRedirect: true,
         queryParams: { access_type: 'offline', prompt: 'consent' },
       },
@@ -251,9 +264,10 @@ export class AuthService {
 
     console.log('[AuthService] Opening Google auth URL in browser...');
 
-    // Open Google login in an in-app browser and wait for the native redirect.
-    // When Supabase redirects to nativeCallbackUrl, openAuthSessionAsync immediately
-    // captures the URL, automatically CLOSES the browser, and returns the auth code into the app!
+    // openAuthSessionAsync opens the Google login page and watches for ANY redirect
+    // that starts with nativeCallbackUrl. When tradifive.in/auth-callback redirects to
+    // exp:// or mobileapp://, the browser intercepts it, closes automatically, and
+    // returns the native deep link URL here for PKCE exchange.
     let result: WebBrowser.WebBrowserAuthSessionResult;
     try {
       const authPromise = WebBrowser.openAuthSessionAsync(data.url, nativeCallbackUrl);
