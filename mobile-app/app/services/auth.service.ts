@@ -224,17 +224,13 @@ export class AuthService {
     const nativeCallbackUrl = this.getRedirectUrl();
     console.log('[AuthService] Mobile App Native Callback URL:', nativeCallbackUrl);
 
-    // Universal Web Bridge URL:
-    // Supabase URL Configuration allows https://www.tradifive.in/auth-callback.
-    // By passing return_to=${encodeURIComponent(nativeCallbackUrl)}, Supabase NEVER blocks the redirect,
-    // and the web callback automatically forwards the auth code back into Expo Go (exp://) or Standalone (mobileapp://).
-    const bridgeRedirectUrl = `https://www.tradifive.in/auth-callback?return_to=${encodeURIComponent(nativeCallbackUrl)}&source=mobileapp`;
-    console.log('[AuthService] Supabase OAuth Bridge Redirect URL:', bridgeRedirectUrl);
-
+    // Direct Native Redirect:
+    // Pass nativeCallbackUrl directly so Google OAuth redirects straight back into the mobile app
+    // (exp:// for Expo Go, mobileapp:// for standalone APK) without ever opening or loading any webpage!
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: bridgeRedirectUrl,
+        redirectTo: nativeCallbackUrl,
         skipBrowserRedirect: true,
         queryParams: { access_type: 'offline', prompt: 'consent' },
       },
@@ -245,9 +241,9 @@ export class AuthService {
 
     console.log('[AuthService] Opening Google auth URL in browser...');
 
-    // Open Google login in an in-app browser and wait for the redirect.
-    // We pass nativeCallbackUrl as the return URL so that when the web bridge redirects to nativeCallbackUrl,
-    // openAuthSessionAsync immediately intercepts it and dismisses the browser.
+    // Open Google login in an in-app browser and wait for the native redirect.
+    // When Supabase redirects to nativeCallbackUrl, openAuthSessionAsync immediately
+    // captures the URL, automatically CLOSES the browser, and returns the auth code into the app!
     let result: WebBrowser.WebBrowserAuthSessionResult;
     try {
       const authPromise = WebBrowser.openAuthSessionAsync(data.url, nativeCallbackUrl);
