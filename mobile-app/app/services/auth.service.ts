@@ -221,13 +221,20 @@ export class AuthService {
     }
 
     // --- MOBILE FLOW (Expo Go + Standalone iOS/Android) ---
-    const appRedirectUrl = this.getRedirectUrl();
-    console.log('[AuthService] Mobile App Redirect URL:', appRedirectUrl);
+    const nativeCallbackUrl = this.getRedirectUrl();
+    console.log('[AuthService] Mobile App Native Callback URL:', nativeCallbackUrl);
+
+    // Universal Web Bridge URL:
+    // Supabase URL Configuration allows https://www.tradifive.in/auth-callback.
+    // By passing return_to=${encodeURIComponent(nativeCallbackUrl)}, Supabase NEVER blocks the redirect,
+    // and the web callback automatically forwards the auth code back into Expo Go (exp://) or Standalone (mobileapp://).
+    const bridgeRedirectUrl = `https://www.tradifive.in/auth-callback?return_to=${encodeURIComponent(nativeCallbackUrl)}&source=mobileapp`;
+    console.log('[AuthService] Supabase OAuth Bridge Redirect URL:', bridgeRedirectUrl);
 
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: appRedirectUrl,
+        redirectTo: bridgeRedirectUrl,
         skipBrowserRedirect: true,
         queryParams: { access_type: 'offline', prompt: 'consent' },
       },
@@ -239,11 +246,13 @@ export class AuthService {
     console.log('[AuthService] Opening Google auth URL in browser...');
 
     // Open Google login in an in-app browser and wait for the redirect.
+    // We pass nativeCallbackUrl as the return URL so that when the web bridge redirects to nativeCallbackUrl,
+    // openAuthSessionAsync immediately intercepts it and dismisses the browser.
     let result: WebBrowser.WebBrowserAuthSessionResult;
     try {
-      const authPromise = WebBrowser.openAuthSessionAsync(data.url, appRedirectUrl);
+      const authPromise = WebBrowser.openAuthSessionAsync(data.url, nativeCallbackUrl);
       const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('Google authentication timed out. Please try again.')), 60000)
+        setTimeout(() => reject(new Error('Google authentication timed out. Please try again.')), 75000)
       );
       result = await Promise.race([authPromise, timeoutPromise]);
     } catch (timeoutErr: any) {

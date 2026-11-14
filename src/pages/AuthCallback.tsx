@@ -4,46 +4,87 @@ import { supabase } from '@/lib/supabase';
 
 export default function AuthCallback() {
   const navigate = useNavigate();
-  const [status, setStatus] = useState('Authenticating and securing session...');
-  const [isMobile, setIsMobile] = useState(false);
+  const [status, setStatus] = useState('Verifying secure session...');
+  const [subText, setSubText] = useState('Please wait while we complete your authentication.');
   const [deepLinkTarget, setDeepLinkTarget] = useState('');
+  const [buttonLabel, setButtonLabel] = useState('Open TradiFive App');
+  const [isExpoTarget, setIsExpoTarget] = useState(false);
+  const [showWebFallback, setShowWebFallback] = useState(false);
+  const [isProcessingWeb, setIsProcessingWeb] = useState(false);
 
   useEffect(() => {
     const isMobileDevice = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     const isAndroid = /Android/i.test(navigator.userAgent);
-    setIsMobile(isMobileDevice);
 
     const search = window.location.search || '';
     const hash = window.location.hash || '';
-    const queryPart = search.startsWith('?') ? search.substring(1) : search;
-    const androidIntent = `intent://auth-callback?${queryPart}${hash}#Intent;scheme=mobileapp;package=com.tradifive;end`;
-    const customScheme = `mobileapp://auth-callback${search}${hash}`;
-    const deepLink = isAndroid ? androidIntent : customScheme;
-    setDeepLinkTarget(deepLink);
+    const urlParams = new URLSearchParams(search);
+    const returnTo = urlParams.get('return_to');
+    const isNativeSource = search.includes('source=mobileapp') || search.includes('mobileapp=true') || !!returnTo;
 
-    // Only redirect to native app if explicitly requested by the native mobile app
-    const isNativeAppSource = search.includes('source=mobileapp') || search.includes('mobileapp=true');
-    if (isMobileDevice && isNativeAppSource) {
-      setStatus('Redirecting back to TradiFive App...');
-      if (isAndroid) {
-        window.location.href = androidIntent;
-      } else {
-        window.location.replace(deepLink);
+    // ─────────────────────────────────────────────────────────────
+    // 1. MOBILE NATIVE APP RETURN PATH (Expo Go or Standalone APK)
+    // ─────────────────────────────────────────────────────────────
+    if (isNativeSource || (isMobileDevice && returnTo)) {
+      const code = urlParams.get('code');
+      const error = urlParams.get('error') || urlParams.get('error_description');
+
+      let targetUrl = returnTo || '';
+      if (!targetUrl) {
+        targetUrl = 'mobileapp://auth-callback';
       }
 
-      // Fallback timer to show button if auto-redirect was blocked
-      const fallbackTimer = setTimeout(() => {
-        setStatus('Tap below to return to the TradiFive app:');
-      }, 500);
+      // Append authentication parameters to the native target URL
+      const delimiter = targetUrl.includes('?') ? '&' : '?';
+      const params: string[] = [];
+      if (code) params.push(`code=${encodeURIComponent(code)}`);
+      if (error) params.push(`error=${encodeURIComponent(error)}`);
 
-      return () => clearTimeout(fallbackTimer);
+      if (params.length > 0) {
+        targetUrl += delimiter + params.join('&');
+      }
+      if (hash) {
+        targetUrl += hash;
+      }
+
+      const isExpo = targetUrl.startsWith('exp://');
+      setIsExpoTarget(isExpo);
+      setDeepLinkTarget(targetUrl);
+      setButtonLabel(isExpo ? 'Open in Expo Go' : 'Open TradiFive App');
+      setStatus('Authentication Verified!');
+      setSubText(isExpo 
+        ? 'Redirecting to Expo Go. If the app does not open automatically, tap below:' 
+        : 'Redirecting to TradiFive App. If the app does not open automatically, tap below:');
+      setShowWebFallback(true);
+
+      // Auto-trigger native redirect
+      try {
+        if (isExpo) {
+          window.location.href = targetUrl;
+        } else if (isAndroid) {
+          const queryPart = targetUrl.split('?')[1] || '';
+          const androidIntent = `intent://auth-callback?${queryPart}#Intent;scheme=mobileapp;package=com.tradifive;end`;
+          window.location.href = androidIntent;
+          setTimeout(() => {
+            window.location.href = targetUrl;
+          }, 450);
+        } else {
+          window.location.href = targetUrl;
+        }
+      } catch (e) {
+        console.warn('[AuthCallback Native Redirect Error]:', e);
+      }
+
+      // CRITICAL: Return immediately! Do not execute handleWebAuth() here,
+      // as that would exchange and burn the single-use PKCE code meant for the mobile app.
+      return;
     }
 
-    // Web flow (Desktop and Mobile Web):
-    // Handle PKCE code exchange or implicit session reliably
+    // ─────────────────────────────────────────────────────────────
+    // 2. STANDARD WEB FLOW (Desktop and Mobile Browser)
+    // ─────────────────────────────────────────────────────────────
     const handleWebAuth = async () => {
       try {
-        // Check for error in hash or query returned by OAuth provider
         if (search.includes('error=') || hash.includes('error=')) {
           const params = new URLSearchParams((search || hash).replace(/^#/, '?'));
           const errorDesc = params.get('error_description') || params.get('error');
@@ -52,10 +93,8 @@ export default function AuthCallback() {
           return;
         }
 
-        // 1. Check if session was already initialized by detectSessionInUrl
         let { data: { session } } = await supabase.auth.getSession();
 
-        // 2. If not immediately available, wait for onAuthStateChange or PKCE exchange (up to 4s)
         if (!session && (search.includes('code=') || hash.includes('access_token='))) {
           session = await new Promise((resolve) => {
             const { data: { subscription } } = supabase.auth.onAuthStateChange((event, s) => {
@@ -65,9 +104,7 @@ export default function AuthCallback() {
               }
             });
 
-            // Parallel PKCE manual fallback if needed
             if (search.includes('code=')) {
-              const urlParams = new URLSearchParams(search);
               const code = urlParams.get('code');
               if (code) {
                 supabase.auth.exchangeCodeForSession(code).then(({ data }) => {
@@ -90,7 +127,6 @@ export default function AuthCallback() {
           sessionStorage.setItem('fresh_login', 'true');
           sessionStorage.setItem('fialgo_loaded', 'true');
 
-          // Check if user has already chosen their username
           const { data: prof } = await supabase
             .from('profiles')
             .select('has_chosen_username')
@@ -115,6 +151,39 @@ export default function AuthCallback() {
     handleWebAuth();
   }, [navigate]);
 
+  const handleManualWebContinue = async () => {
+    setIsProcessingWeb(true);
+    setStatus('Logging into browser session...');
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get('code');
+      if (code) {
+        const { error } = await supabase.auth.exchangeCodeForSession(code);
+        if (error) console.warn('[Manual Web Exchange Warning]:', error.message);
+      }
+      navigate('/home', { replace: true });
+    } catch (e) {
+      navigate('/home', { replace: true });
+    }
+  };
+
+  const handleLaunchNative = () => {
+    if (!deepLinkTarget) return;
+    const isAndroid = /Android/i.test(navigator.userAgent);
+    if (isExpoTarget) {
+      window.location.href = deepLinkTarget;
+    } else if (isAndroid) {
+      const queryPart = deepLinkTarget.split('?')[1] || '';
+      const androidIntent = `intent://auth-callback?${queryPart}#Intent;scheme=mobileapp;package=com.tradifive;end`;
+      window.location.href = androidIntent;
+      setTimeout(() => {
+        window.location.href = deepLinkTarget;
+      }, 450);
+    } else {
+      window.location.href = deepLinkTarget;
+    }
+  };
+
   return (
     <div style={{
       minHeight: '100vh',
@@ -130,50 +199,67 @@ export default function AuthCallback() {
       textAlign: 'center'
     }}>
       <div style={{
-        width: 44,
-        height: 44,
-        border: '3px solid rgba(59, 130, 246, 0.18)',
+        width: 48,
+        height: 48,
+        border: '3px solid rgba(59, 130, 246, 0.2)',
         borderTopColor: '#3b82f6',
         borderRadius: '50%',
         animation: 'spin 0.8s linear infinite',
-        marginBottom: 16
+        marginBottom: 20
       }} />
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       
-      <p style={{ fontSize: 13, color: '#94a3b8', margin: 0, maxWidth: 360, lineHeight: 1.5, letterSpacing: '-0.01em' }}>
+      <h3 style={{ fontSize: 20, fontWeight: 700, margin: '0 0 8px 0', letterSpacing: '-0.02em', color: '#f8fafc' }}>
         {status}
+      </h3>
+      <p style={{ fontSize: 14, color: '#94a3b8', margin: '0 0 24px 0', maxWidth: 340, lineHeight: 1.5 }}>
+        {subText}
       </p>
 
-      {isMobile && deepLinkTarget ? (
-        <a
-          href={deepLinkTarget}
-          onClick={(e) => {
-            const isAndroid = /Android/i.test(navigator.userAgent);
-            if (isAndroid) {
+      {deepLinkTarget ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%', maxWidth: 280 }}>
+          <a
+            href={deepLinkTarget}
+            onClick={(e) => {
               e.preventDefault();
-              window.location.href = deepLinkTarget;
-              setTimeout(() => {
-                const search = window.location.search || '';
-                const hash = window.location.hash || '';
-                window.location.href = `mobileapp://auth-callback${search}${hash}`;
-              }, 500);
-            }
-          }}
-          style={{
-            marginTop: 24,
-            padding: '12px 28px',
-            backgroundColor: '#3b82f6',
-            color: '#ffffff',
-            borderRadius: 12,
-            fontWeight: 600,
-            fontSize: 15,
-            textDecoration: 'none',
-            boxShadow: '0 4px 14px rgba(59, 130, 246, 0.4)',
-            cursor: 'pointer'
-          }}
-        >
-          Open TradiFive App
-        </a>
+              handleLaunchNative();
+            }}
+            style={{
+              padding: '14px 24px',
+              backgroundColor: '#3b82f6',
+              color: '#ffffff',
+              borderRadius: 14,
+              fontWeight: 600,
+              fontSize: 15,
+              textDecoration: 'none',
+              boxShadow: '0 4px 14px rgba(59, 130, 246, 0.4)',
+              cursor: 'pointer',
+              display: 'inline-block'
+            }}
+          >
+            {buttonLabel}
+          </a>
+
+          {showWebFallback ? (
+            <button
+              type="button"
+              disabled={isProcessingWeb}
+              onClick={handleManualWebContinue}
+              style={{
+                padding: '12px 24px',
+                backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                color: '#cbd5e1',
+                borderRadius: 14,
+                fontWeight: 500,
+                fontSize: 14,
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                cursor: 'pointer'
+              }}
+            >
+              {isProcessingWeb ? 'Opening...' : 'Continue in Browser'}
+            </button>
+          ) : null}
+        </div>
       ) : null}
     </div>
   );

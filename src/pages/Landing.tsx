@@ -2296,17 +2296,7 @@ export default function TradiFive() {
   const [isMobile, setIsMobile] = useState(false);
 
 
-  // Mobile & OAuth Redirect Intercept
-  const [authRedirecting] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    const h = window.location.hash || '';
-    const s = window.location.search || '';
-    const isMobileDev = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-    return isMobileDev && (h.includes('access_token=') || s.includes('code=') || h.includes('error=') || s.includes('error='));
-  });
-
-  const [sessionExchanged, setSessionExchanged] = useState(false);
-
+  // Centralized OAuth Redirect Intercept -> Always forward to /auth-callback
   useEffect(() => {
     const hash = window.location.hash || '';
     const search = window.location.search || '';
@@ -2314,41 +2304,7 @@ export default function TradiFive() {
     const hasAuthError = hash.includes('error=') || search.includes('error=');
 
     if (hasAuthToken || hasAuthError) {
-      const isMobileDev = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-      const isAndroid = /Android/i.test(navigator.userAgent);
-      const queryPart = search.startsWith('?') ? search.substring(1) : search;
-      const androidIntent = `intent://auth-callback?${queryPart}${hash}#Intent;scheme=mobileapp;package=com.tradifive;end`;
-      const customScheme = `mobileapp://auth-callback${search}${hash}`;
-      const deepLink = isAndroid ? androidIntent : customScheme;
-
-      // Auto-trigger mobile app launch
-      if (isMobileDev) {
-        console.log('[Landing Auth Intercept] Triggering deepLink redirect to mobile app:', deepLink);
-        try {
-          window.location.href = deepLink;
-        } catch (e) {
-          console.warn('[Landing Auth Intercept] Auto-redirect failed:', e);
-        }
-      }
-
-      // Parallel session exchange on web so user is never locked out
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session) {
-          setSessionExchanged(true);
-          if (!isMobileDev) navigate('/home', { replace: true });
-        } else if (search.includes('code=')) {
-          const urlParams = new URLSearchParams(search);
-          const code = urlParams.get('code');
-          if (code) {
-            supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
-              if (!error) {
-                setSessionExchanged(true);
-                if (!isMobileDev) navigate('/home', { replace: true });
-              }
-            });
-          }
-        }
-      });
+      navigate(`/auth-callback${search}${hash}`, { replace: true });
     }
   }, [navigate]);
 
@@ -2395,98 +2351,7 @@ export default function TradiFive() {
   const handleSignUp = () => navigate("/login", { state: { mode: "signup" } });
   const handleStart = handleSignUp;
 
-  if (authRedirecting) {
-    const search = typeof window !== 'undefined' ? (window.location.search || '') : '';
-    const hash = typeof window !== 'undefined' ? (window.location.hash || '') : '';
-    const isAndroid = typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent);
-    const queryPart = search.startsWith('?') ? search.substring(1) : search;
-    const androidIntent = `intent://auth-callback?${queryPart}${hash}#Intent;scheme=mobileapp;package=com.tradifive;end`;
-    const customScheme = `mobileapp://auth-callback${search}${hash}`;
-    const primaryDeepLink = isAndroid ? androidIntent : customScheme;
 
-    const handleLaunchApp = () => {
-      if (isAndroid) {
-        window.location.href = androidIntent;
-        setTimeout(() => {
-          window.location.href = customScheme;
-        }, 500);
-      } else {
-        window.location.href = customScheme;
-      }
-    };
-
-    return (
-      <div style={{
-        minHeight: '100vh',
-        width: '100vw',
-        backgroundColor: '#0a0a0c',
-        color: '#ffffff',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontFamily: 'Inter, system-ui, sans-serif',
-        padding: '24px',
-        textAlign: 'center'
-      }}>
-        <div style={{
-          width: 48,
-          height: 48,
-          border: '3px solid rgba(59, 130, 246, 0.2)',
-          borderTopColor: '#3b82f6',
-          borderRadius: '50%',
-          animation: 'spin 0.8s linear infinite',
-          marginBottom: 20
-        }} />
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-        <h3 style={{ fontSize: 20, fontWeight: 700, margin: '0 0 8px 0', letterSpacing: '-0.02em' }}>Signing into TradiFive App...</h3>
-        <p style={{ fontSize: 14, color: '#94a3b8', margin: '0 0 24px 0', maxWidth: 320, lineHeight: 1.5 }}>
-          Your Google authentication was verified. Return to the mobile app or continue in browser.
-        </p>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%', maxWidth: 280 }}>
-          <a
-            href={primaryDeepLink}
-            onClick={(e) => {
-              e.preventDefault();
-              handleLaunchApp();
-            }}
-            style={{
-              padding: '14px 24px',
-              backgroundColor: '#3b82f6',
-              color: '#ffffff',
-              borderRadius: 14,
-              fontWeight: 600,
-              fontSize: 15,
-              textDecoration: 'none',
-              boxShadow: '0 4px 14px rgba(59, 130, 246, 0.4)',
-              cursor: 'pointer',
-              display: 'inline-block'
-            }}
-          >
-            Open TradiFive App
-          </a>
-
-          <button
-            type="button"
-            onClick={() => navigate('/home', { replace: true })}
-            style={{
-              padding: '12px 24px',
-              backgroundColor: 'rgba(255, 255, 255, 0.08)',
-              color: '#cbd5e1',
-              borderRadius: 14,
-              fontWeight: 500,
-              fontSize: 14,
-              border: '1px solid rgba(255, 255, 255, 0.12)',
-              cursor: 'pointer'
-            }}
-          >
-            Continue in Browser
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   // Mobile view is allowed to see the landing page, so we don't block.
 
