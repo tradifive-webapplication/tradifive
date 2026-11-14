@@ -132,12 +132,12 @@ export class AuthService {
   }
 
   static async resendOtp(email: string) {
-    const appRedirectUrl = this.getRedirectUrl();
+    const confirmRedirectUrl = 'https://www.tradifive.in/auth-callback';
     const { data, error } = await supabase.auth.resend({
       type: 'signup',
       email: email.trim(),
       options: {
-        emailRedirectTo: appRedirectUrl,
+        emailRedirectTo: confirmRedirectUrl,
       }
     });
     if (error) throw new Error(error.message);
@@ -145,19 +145,19 @@ export class AuthService {
   }
 
   static async signUpWithEmail(email: string, password: string, firstName: string, lastName: string) {
-    const appRedirectUrl = this.getRedirectUrl();
-    console.log('[AuthService] Sign up redirect URL:', appRedirectUrl);
+    const confirmRedirectUrl = 'https://www.tradifive.in/auth-callback';
+    console.log('[AuthService] Sign up confirmation email redirect URL:', confirmRedirectUrl);
 
     // 1. Core Supabase user registration
     const { data, error } = await supabase.auth.signUp({
-      email,
+      email: email.trim(),
       password,
       options: {
-        emailRedirectTo: appRedirectUrl,
+        emailRedirectTo: confirmRedirectUrl,
         data: {
-          first_name: firstName,
-          last_name: lastName,
-          username: email.split('@')[0], // Create a default username
+          first_name: firstName.trim(),
+          last_name: lastName.trim(),
+          username: email.trim().split('@')[0], // Create a default username
         }
       }
     });
@@ -168,13 +168,13 @@ export class AuthService {
     if (data.user) {
       const { error: profileError } = await supabase.from('profiles').upsert({
         id: data.user.id,
-        first_name: firstName,
-        last_name: lastName,
-        display_name: '',
+        first_name: firstName.trim(),
+        last_name: lastName.trim(),
+        display_name: `${firstName.trim()} ${lastName.trim()}`.trim(),
         bio: '',
-        username: email.split('@')[0],
-        email: email,
-        avatar_url: `https://api.dicebear.com/7.x/adventurer/png?seed=${firstName}`
+        username: email.trim().split('@')[0],
+        email: email.trim(),
+        avatar_url: `https://api.dicebear.com/7.x/adventurer/png?seed=${firstName.trim()}`
       });
       if (profileError) console.warn('[Profile Upsert Error]:', profileError.message);
     }
@@ -183,12 +183,36 @@ export class AuthService {
   }
 
   static async resetPasswordForEmail(email: string) {
-    const appRedirectUrl = this.getRedirectUrl();
+    const resetRedirectUrl = 'https://www.tradifive.in/reset-password';
+    console.log('[AuthService] Password reset redirect URL:', resetRedirectUrl);
     const { data, error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: appRedirectUrl,
+      redirectTo: resetRedirectUrl,
     });
     if (error) throw new Error(error.message);
     return data;
+  }
+
+  static async resetPasswordWithOtp(email: string, otp: string, newPassword: string) {
+    const cleanToken = otp.trim();
+    const cleanEmail = email.trim();
+    
+    // 1. Verify the recovery OTP with Supabase
+    const { data, error } = await supabase.auth.verifyOtp({
+      email: cleanEmail,
+      token: cleanToken,
+      type: 'recovery',
+    });
+    if (error) throw new Error(error.message);
+
+    // 2. Set the new password for the authenticated recovery session
+    const { error: updateError } = await supabase.auth.updateUser({
+      password: newPassword,
+    });
+    if (updateError) throw new Error(updateError.message);
+
+    // 3. Sign out the recovery session cleanly so user logs in fresh
+    await supabase.auth.signOut().catch(() => {});
+    return true;
   }
 
   static async checkEmailExists(email: string): Promise<boolean> {
