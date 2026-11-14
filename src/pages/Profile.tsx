@@ -539,7 +539,7 @@ export default function Profile() {
       if (!user) { setLoadingPosts(false); return; }
 
       const [postsRes, likesRes] = await Promise.all([
-        supabase.from('social_posts').select('*, profiles (id, first_name, last_name, avatar_url, username, display_name, bio, banner_url)')
+        supabase.from('social_posts').select('*')
           .eq('user_id', user.id).neq('post_type', 'story')
           .order('created_at', { ascending: false })
           .range(page * 15, (page + 1) * 15 - 1),
@@ -555,7 +555,10 @@ export default function Profile() {
         const deletedArr = JSON.parse(localStorage.getItem('tradifive_deleted_post_ids') || '[]');
         deletedPostIds = new Set(deletedArr.map(String));
       } catch (_) {}
-      const safeData = (postsRes.data || []).filter((p: any) => p && !deletedPostIds.has(String(p.id)));
+      const safeData = (postsRes.data || []).filter((p: any) => p && !deletedPostIds.has(String(p.id))).map((p: any) => ({
+        ...p,
+        profiles: p.profiles || profile || null
+      }));
       const newPosts = page === 0 ? safeData : [...prev, ...safeData];
            const dbIds = new Set(newPosts.map(f => String(f.id)));
            const filteredLocal = localPosts.filter(p => !deletedPostIds.has(String(p.id)) && !dbIds.has(String(p.id)));
@@ -666,15 +669,25 @@ export default function Profile() {
       if (!user) { setLoadingBookmarks(false); return; }
 
       const bookmarksRes = await supabase.from('social_post_bookmarks')
-        .select('post_id, social_posts(*, profiles(id, first_name, last_name, avatar_url, username, display_name, bio, banner_url))')
+        .select('post_id, social_posts(*)')
         .eq('user_id', user.id)
         .range(page * 15, (page + 1) * 15 - 1);
 
       if (bookmarksRes && !bookmarksRes.error && bookmarksRes.data) {
         const bookmarkMap = JSON.parse(localStorage.getItem("fialgo_local_bookmarks") || "{}");
-        bookmarksRes.data.forEach((b) => { bookmarkMap[b.post_id] = true; });
+        bookmarksRes.data.forEach((b: any) => { bookmarkMap[b.post_id] = true; });
         setBookmarkedPosts(bookmarkMap);
-        const parsedSavedPosts = bookmarksRes.data.map((b) => b.social_posts).filter((p) => p !== null);
+        const rawSaved = bookmarksRes.data.map((b: any) => b.social_posts).filter(Boolean);
+        const authorIds = Array.from(new Set(rawSaved.map((p: any) => p.user_id).filter(Boolean)));
+        let profMap: Record<string, any> = {};
+        if (authorIds.length > 0) {
+          const { data: profs } = await supabase.from('profiles').select('id, first_name, last_name, avatar_url, username, display_name, bio, banner_url').in('id', authorIds);
+          if (profs) profs.forEach((pr: any) => { profMap[pr.id] = pr; });
+        }
+        const parsedSavedPosts = rawSaved.map((p: any) => ({
+          ...p,
+          profiles: profMap[p.user_id] || null
+        }));
         setSavedPosts(prev => page === 0 ? parsedSavedPosts : [...prev, ...parsedSavedPosts]);
       }
     } catch (err) {
@@ -795,12 +808,20 @@ export default function Profile() {
         // Refresh saved posts list!
         const savedPostsRes = await supabase
           .from('social_post_bookmarks')
-          .select('post_id, social_posts(*, profiles(id, first_name, last_name, avatar_url, username, display_name, bio, banner_url))')
+          .select('post_id, social_posts(*)')
           .eq('user_id', user.id);
         if (savedPostsRes.data) {
-          const parsedSavedPosts = savedPostsRes.data
-            .map((b: any) => b.social_posts)
-            .filter((p: any) => p !== null);
+          const rawSaved = savedPostsRes.data.map((b: any) => b.social_posts).filter(Boolean);
+          const authorIds = Array.from(new Set(rawSaved.map((p: any) => p.user_id).filter(Boolean)));
+          let profMap: Record<string, any> = {};
+          if (authorIds.length > 0) {
+            const { data: profs } = await supabase.from('profiles').select('id, first_name, last_name, avatar_url, username, display_name, bio, banner_url').in('id', authorIds);
+            if (profs) profs.forEach((pr: any) => { profMap[pr.id] = pr; });
+          }
+          const parsedSavedPosts = rawSaved.map((p: any) => ({
+            ...p,
+            profiles: profMap[p.user_id] || null
+          }));
           setSavedPosts(parsedSavedPosts);
         }
       }

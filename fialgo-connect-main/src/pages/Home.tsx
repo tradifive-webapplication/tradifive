@@ -517,12 +517,25 @@ export default function Home() {
             try {
                 const { data, error } = await supabase
                     .from('social_post_bookmarks')
-                    .select('post_id, social_posts(*, profiles:profiles!social_posts_user_id_fkey(full_name, username, avatar_url))')
+                    .select('post_id, social_posts(*)')
                     .eq('user_id', user.id)
                     .order('created_at', { ascending: false });
 
                 if (!error && data && isMounted) {
-                    const parsed = data.map((b: any) => b.social_posts).filter((p: any) => p !== null);
+                    const rawPosts = data.map((b: any) => b.social_posts).filter(Boolean);
+                    const authorIds = Array.from(new Set(rawPosts.map((p: any) => p.user_id).filter(Boolean)));
+                    let profMap: Record<string, any> = {};
+                    if (authorIds.length > 0) {
+                        const { data: profs } = await supabase
+                            .from('profiles')
+                            .select('id, full_name, username, avatar_url')
+                            .in('id', authorIds);
+                        if (profs) profs.forEach((pr: any) => { profMap[pr.id] = pr; });
+                    }
+                    const parsed = rawPosts.map((p: any) => ({
+                        ...p,
+                        profiles: profMap[p.user_id] || null
+                    }));
                     setSavedPosts(parsed);
                 }
             } catch (err) {

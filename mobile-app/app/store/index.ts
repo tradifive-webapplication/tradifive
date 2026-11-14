@@ -677,48 +677,69 @@ export const useStore = create<AppState>((set, get) => ({
     set({ loading: true });
     const user = get().currentUser;
 
+    try {
+      // 1. Fetch posts directly without failing on missing foreign key join
+      const { data: rawPosts, error: postsError } = await supabase
+        .from('social_posts')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-    // Fetch posts
-    const { data: postsData, error: postsError } = await supabase
-      .from('social_posts')
-      .select(`
-        *,
-        profiles:user_id (id, first_name, last_name, avatar_url, username, display_name, bio, banner_url)
-      `)
-      .order('created_at', { ascending: false });
-
-    if (postsError) {
-      console.error('[Supabase API Error]: Failed to fetch posts', postsError.message);
-    }
-
-    // Fetch user's likes
-    let likedPostIds: string[] = [];
-    if (user && postsData && postsData.length > 0) {
-      const { data: likesData, error: likesError } = await supabase
-        .from('social_post_likes')
-        .select('post_id')
-        .eq('user_id', user.id);
-      
-      if (!likesError && likesData) {
-        likedPostIds = likesData.map((l: any) => l.post_id);
+      if (postsError) {
+        console.warn('[Supabase API Warning]: Failed to fetch posts', postsError.message);
+        set({ loading: false });
+        return;
       }
-    }
 
-    const postsWithLikes = (postsData || []).map((p: any) => ({
-      ...p,
-      is_liked: likedPostIds.includes(p.id)
-    }));
+      const postsList = rawPosts || [];
 
-    // Sort real posts by created_at descending
-    postsWithLikes.sort((a: any, b: any) => {
-      const timeA = new Date(a.created_at || 0).getTime();
-      const timeB = new Date(b.created_at || 0).getTime();
-      return timeB - timeA;
-    });
+      // 2. Batch fetch profiles for all author user_ids
+      const userIds = Array.from(new Set(postsList.map((p: any) => p.user_id).filter(Boolean)));
+      const profileMap = new Map<string, any>();
+      if (userIds.length > 0) {
+        const { data: profilesData } = await supabase
+          .from('profiles')
+          .select('id, first_name, last_name, avatar_url, username, display_name, bio, banner_url')
+          .in('id', userIds);
+        
+        if (profilesData) {
+          profilesData.forEach((prof: any) => profileMap.set(prof.id, prof));
+        }
+      }
 
-    if (!postsError && postsData) {
+      // 3. Attach profiles to each post
+      const postsWithProfiles = postsList.map((p: any) => ({
+        ...p,
+        profiles: profileMap.get(p.user_id) || null
+      }));
+
+      // 4. Fetch user's likes
+      let likedPostIds: string[] = [];
+      if (user && postsWithProfiles.length > 0) {
+        const { data: likesData, error: likesError } = await supabase
+          .from('social_post_likes')
+          .select('post_id')
+          .eq('user_id', user.id);
+        
+        if (!likesError && likesData) {
+          likedPostIds = likesData.map((l: any) => l.post_id);
+        }
+      }
+
+      const postsWithLikes = postsWithProfiles.map((p: any) => ({
+        ...p,
+        is_liked: likedPostIds.includes(p.id)
+      }));
+
+      // 5. Sort real posts by created_at descending
+      postsWithLikes.sort((a: any, b: any) => {
+        const timeA = new Date(a.created_at || 0).getTime();
+        const timeB = new Date(b.created_at || 0).getTime();
+        return timeB - timeA;
+      });
+
       set({ posts: postsWithLikes as unknown as Post[], loading: false });
-    } else {
+    } catch (err: any) {
+      console.warn('[Store fetchPosts Exception]:', err.message);
       set({ loading: false });
     }
   },
@@ -745,7 +766,7 @@ export const useStore = create<AppState>((set, get) => ({
       setTimeout(() => reject(new Error('Post creation timed out after 10 seconds. Please check your internet connection and try again.')), 10000);
     });
 
-    const insertPromise = supabase.from('social_posts').insert([newPost]).select('*, profiles(*)').single();
+    const insertPromise = supabase.from('social_posts').insert([newPost]).select('*').single();
     
     // Race the insert against the timeout
     const { data, error } = await Promise.race([
@@ -760,7 +781,18 @@ export const useStore = create<AppState>((set, get) => ({
     
     console.log('[Store createPost] SUCCESS! Post ID:', data?.id);
     if (data) {
-      set(state => ({ posts: [data as unknown as Post, ...state.posts] }));
+      const fullPost = {
+        ...data,
+        profiles: {
+          id: user.id,
+          first_name: user.user_metadata?.first_name || '',
+          last_name: user.user_metadata?.last_name || '',
+          display_name: user.user_metadata?.display_name || user.user_metadata?.full_name || 'Trader',
+          username: user.user_metadata?.username || user.email?.split('@')[0] || 'trader',
+          avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || null
+        }
+      };
+      set(state => ({ posts: [fullPost as unknown as Post, ...state.posts] }));
     }
   },
 

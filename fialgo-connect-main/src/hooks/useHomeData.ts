@@ -79,7 +79,7 @@ export function useHomeData(userId: string) {
   const fetchAll = async () => {
     try {
       const [
-        { data: feedData, error: feedErr },
+        { data: rawFeedData, error: feedErr },
         { data: watchData, error: watchErr },
         { data: calData, error: calErr },
         { data: followData, error: followErr, count: followCount },
@@ -87,7 +87,7 @@ export function useHomeData(userId: string) {
         { data: streakData, error: streakErr },
         { data: discData, error: discErr }
       ] = await Promise.all([
-        supabase.from('social_posts').select('*, profiles(full_name, username, avatar_url)').neq('post_type', 'story').order('created_at', { ascending: false }).limit(50),
+        supabase.from('social_posts').select('*').neq('post_type', 'story').order('created_at', { ascending: false }).limit(50),
         userId ? supabase.from('feed_watchlist').select('*').eq('user_id', userId).order('sort_order', { ascending: true }).limit(20) : Promise.resolve({ data: [] } as any),
         supabase.from('economic_calendar').select('*').ilike('impact', '%high%').order('event_time', { ascending: true }).limit(30),
         userId ? supabase.from('social_follows').select('follower_id, profiles!social_follows_follower_id_fkey(avatar_url)', { count: 'exact' }).eq('following_id', userId).limit(5) : Promise.resolve({ data: [], count: 0 } as any),
@@ -95,6 +95,26 @@ export function useHomeData(userId: string) {
         supabase.from('profiles').select('id, full_name, username, avatar_url, location, streak_days, win_rate, total_trades').order('streak_days', { ascending: false }).limit(3),
         supabase.from('profiles').select('id, full_name, username, avatar_url, location, streak_days, win_rate, total_trades').order('win_rate', { ascending: false }).limit(3)
       ]);
+
+      // Batch enrich posts with profiles to avoid missing foreign key relation errors
+      let feedData: any[] = [];
+      if (rawFeedData && rawFeedData.length > 0) {
+        const authorIds = Array.from(new Set(rawFeedData.map((f: any) => f.user_id).filter(Boolean)));
+        let profileLookup: Record<string, any> = {};
+        if (authorIds.length > 0) {
+          const { data: profs } = await supabase
+            .from('profiles')
+            .select('id, full_name, username, avatar_url')
+            .in('id', authorIds);
+          if (profs) {
+            profs.forEach((pr: any) => { profileLookup[pr.id] = pr; });
+          }
+        }
+        feedData = rawFeedData.map((f: any) => ({
+          ...f,
+          profiles: profileLookup[f.user_id] || null
+        }));
+      }
 
       let newFollowers = {
         count: followCount ?? 0,

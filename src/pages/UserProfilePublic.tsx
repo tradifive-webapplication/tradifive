@@ -224,21 +224,24 @@ export default function UserProfilePublic() {
         setPrivacySettings(finalPrivacy);
 
         // Fetch posts for this user
-        const { data: postsData, error: postsErr } = await supabase
+        const { data: rawPostsData, error: postsErr } = await supabase
           .from('social_posts')
-          .select(`*, profiles (*)`)
+          .select('*')
           .eq('user_id', profileData.id)
           .neq('post_type', 'story')
           .order('created_at', { ascending: false });
-        if (!postsErr && postsData) {
+        if (!postsErr && rawPostsData) {
           let deletedSet = new Set<string>();
           try {
             const delArr = JSON.parse(localStorage.getItem('tradifive_deleted_post_ids') || '[]');
             deletedSet = new Set(delArr.map(String));
           } catch (_) {}
-          const safePosts = postsData.filter((p: any) => p && !deletedSet.has(String(p.id)));
+          const safePosts = rawPostsData.filter((p: any) => p && !deletedSet.has(String(p.id))).map((p: any) => ({
+            ...p,
+            profiles: p.profiles || profileData
+          }));
           setPosts(safePosts);
-          setOwnPostsCount(postsData.length);
+          setOwnPostsCount(safePosts.length);
         } else {
           setPosts([]);
           setOwnPostsCount(0);
@@ -253,15 +256,25 @@ export default function UserProfilePublic() {
         setUserChannel(channelData);
 
         // Fetch bookmarks for this user
-        const { data: bookmarksData, error: bookmarksErr } = await supabase
+        const { data: rawBookmarksData, error: bookmarksErr } = await supabase
           .from('social_post_bookmarks')
-          .select('post_id, social_posts(*, profiles(id, first_name, last_name, avatar_url, username, display_name, bio, banner_url))')
+          .select('post_id, social_posts(*)')
           .eq('user_id', profileData.id);
-        if (!bookmarksErr && bookmarksData) {
+        if (!bookmarksErr && rawBookmarksData) {
           const bookmarkMap: Record<string, boolean> = JSON.parse(localStorage.getItem("fialgo_local_bookmarks") || "{}");
-          bookmarksData.forEach((b: any) => { bookmarkMap[b.post_id] = true; });
+          rawBookmarksData.forEach((b: any) => { bookmarkMap[b.post_id] = true; });
           setBookmarkedPosts(bookmarkMap);
-          const parsedSavedPosts = bookmarksData.map((b: any) => b.social_posts).filter((p: any) => p !== null);
+          const rawSaved = rawBookmarksData.map((b: any) => b.social_posts).filter(Boolean);
+          const authorIds = Array.from(new Set(rawSaved.map((p: any) => p.user_id).filter(Boolean)));
+          let profMap: Record<string, any> = {};
+          if (authorIds.length > 0) {
+            const { data: profs } = await supabase.from('profiles').select('id, first_name, last_name, avatar_url, username, display_name, bio, banner_url').in('id', authorIds);
+            if (profs) profs.forEach((pr: any) => { profMap[pr.id] = pr; });
+          }
+          const parsedSavedPosts = rawSaved.map((p: any) => ({
+            ...p,
+            profiles: profMap[p.user_id] || null
+          }));
           setSavedPosts(parsedSavedPosts);
         } else {
           const bookmarkMap: Record<string, boolean> = JSON.parse(localStorage.getItem("fialgo_local_bookmarks") || "{}");
@@ -651,12 +664,20 @@ export default function UserProfilePublic() {
       // Refresh saved posts list!
       const savedPostsRes = await supabase
         .from('social_post_bookmarks')
-        .select('post_id, social_posts(*, profiles(id, first_name, last_name, avatar_url, username, display_name, bio, banner_url))')
+        .select('post_id, social_posts(*)')
         .eq('user_id', currentUserId);
       if (savedPostsRes.data) {
-        const parsedSavedPosts = savedPostsRes.data
-          .map((b: any) => b.social_posts)
-          .filter((p: any) => p !== null);
+        const rawSaved = savedPostsRes.data.map((b: any) => b.social_posts).filter(Boolean);
+        const authorIds = Array.from(new Set(rawSaved.map((p: any) => p.user_id).filter(Boolean)));
+        let profMap: Record<string, any> = {};
+        if (authorIds.length > 0) {
+          const { data: profs } = await supabase.from('profiles').select('id, first_name, last_name, avatar_url, username, display_name, bio, banner_url').in('id', authorIds);
+          if (profs) profs.forEach((pr: any) => { profMap[pr.id] = pr; });
+        }
+        const parsedSavedPosts = rawSaved.map((p: any) => ({
+          ...p,
+          profiles: profMap[p.user_id] || null
+        }));
         setSavedPosts(parsedSavedPosts);
       }
     } catch (err) { console.error("Error toggling bookmark:", err); }

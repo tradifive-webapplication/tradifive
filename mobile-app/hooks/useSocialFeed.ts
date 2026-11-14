@@ -103,40 +103,46 @@ export function useSocialFeed() {
 
   const fetchFeeds = async () => {
     try {
-      const { data, error } = await supabase
+      setLoading(true);
+      const { data: rawPosts, error: postErr } = await supabase
         .from('social_posts')
-        .select('*, profiles:user_id(full_name, display_name, username, avatar_url)')
+        .select('*')
         .order('created_at', { ascending: false })
         .limit(50);
 
-      if (error) {
-        // Fallback without foreign key alias if user_id relationship is direct
-        const retry = await supabase
-          .from('social_posts')
-          .select('*, profiles(full_name, username, avatar_url)')
-          .order('created_at', { ascending: false })
-          .limit(50);
-
-        if (!retry.error && retry.data && retry.data.length > 0) {
-          let list = (retry.data as FeedPost[]).filter(p => p.post_type !== 'story');
-          setFeeds(list.length > 0 ? list : SEED_FEEDS);
-          return;
-        }
+      if (postErr) {
+        console.warn('[useSocialFeed] Failed to fetch posts:', postErr.message);
+        setFeeds(SEED_FEEDS);
+        return;
       }
 
-      let finalData = (data as FeedPost[]) || [];
-      finalData = finalData.filter(p => p.post_type !== 'story');
-      
-      if (finalData.length > 0) {
+      if (rawPosts && rawPosts.length > 0) {
+        const userIds = Array.from(new Set(rawPosts.map((p: any) => p.user_id).filter(Boolean)));
+        let profileMap: Record<string, any> = {};
+        if (userIds.length > 0) {
+          const { data: profiles } = await supabase
+            .from('profiles')
+            .select('id, full_name, display_name, username, avatar_url')
+            .in('id', userIds);
+          if (profiles) {
+            profiles.forEach((pr: any) => { profileMap[pr.id] = pr; });
+          }
+        }
+
+        const formattedPosts = rawPosts.map((p: any) => ({
+          ...p,
+          profiles: profileMap[p.user_id] || null
+        })).filter((p: any) => p.post_type !== 'story');
+
         // Merge with seed feeds to guarantee full, rich feeds
-        const existingIds = new Set(finalData.map(p => p.id));
-        const merged = [...finalData];
+        const existingIds = new Set(formattedPosts.map((p: any) => p.id));
+        const merged = [...formattedPosts];
         SEED_FEEDS.forEach(seed => {
           if (!existingIds.has(seed.id)) {
             merged.push(seed);
           }
         });
-        setFeeds(merged);
+        setFeeds(merged as FeedPost[]);
       } else {
         setFeeds(SEED_FEEDS);
       }
