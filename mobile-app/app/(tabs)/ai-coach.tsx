@@ -280,7 +280,6 @@ export default function AiCoachScreen() {
       />
     </View>
   );
-  );
 }
 
 const styles = StyleSheet.create({
