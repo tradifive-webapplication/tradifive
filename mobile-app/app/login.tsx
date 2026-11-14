@@ -223,8 +223,13 @@ export default function LoginScreen() {
     try {
       await AuthService.signInWithEmail(email.trim(), password);
       await useStore.getState().init();
+      const user = useStore.getState().currentUser;
       if (Platform.OS !== 'web') await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      router.replace('/(tabs)');
+      if (user && !user.has_chosen_username) {
+        router.replace('/profile-setup');
+      } else {
+        router.replace('/(tabs)');
+      }
     } catch (err: any) {
       const msg: string = err.message || 'An error occurred. Please try again.';
       const lower = msg.toLowerCase();

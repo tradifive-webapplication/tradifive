@@ -86,10 +86,16 @@ export default function AuthCallback() {
         setStatusText('Syncing settings...');
         await useStore.getState().init();
 
-        // Route to tabs
+        // Route to profile setup if new user, else tabs
         if (isMounted) {
-          console.log('[AuthCallback] Success! Routing to tabs...');
-          router.replace('/(tabs)');
+          const user = useStore.getState().currentUser;
+          if (user && !user.has_chosen_username) {
+            console.log('[AuthCallback] New user, routing to profile setup...');
+            router.replace('/profile-setup');
+          } else {
+            console.log('[AuthCallback] Success! Routing to tabs...');
+            router.replace('/(tabs)');
+          }
         }
       } catch (err: any) {
         console.error('[AuthCallback Error]:', err);

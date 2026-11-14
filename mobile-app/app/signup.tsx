@@ -108,7 +108,7 @@ export default function SignupScreen() {
         if (Platform.OS !== 'web') {
           await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         }
-        router.replace('/(tabs)');
+        router.replace('/profile-setup');
         return;
       }
 

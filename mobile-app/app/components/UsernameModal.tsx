@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'expo-router';
 import {
   View,
   Text,
@@ -36,6 +37,7 @@ const fontSemi = Platform.OS === 'ios' ? 'System' : 'Inter_600SemiBold';
 const fontMed = Platform.OS === 'ios' ? 'System' : 'Inter_500Medium';
 
 export default function UsernameModal() {
+  const router = useRouter();
   const insets = useSafeAreaInsets();
   const currentUser = useStore(state => state.currentUser);
   const hasRealSession = useStore(state => state.hasRealSession);
@@ -46,6 +48,12 @@ export default function UsernameModal() {
   const [testForceShow, setTestForceShow] = useState(false);
 
   const visible = (FORCE_SHOW_FOR_TESTING && testForceShow) || (!!currentUser && hasRealSession && !currentUser.has_chosen_username);
+
+  useEffect(() => {
+    if (visible && currentUser && !currentUser.has_chosen_username) {
+      router.replace('/profile-setup');
+    }
+  }, [visible, currentUser, router]);
 
   const [step, setStep] = useState(1);
   const [username, setUsername] = useState('');
