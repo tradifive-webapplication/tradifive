@@ -258,12 +258,14 @@ export class AuthService {
 
     if (result.type === 'cancel' || result.type === 'dismiss') {
       console.log('[AuthService] Browser was dismissed/cancelled. Verifying if session was captured via deep link...');
-      // Wait 800ms for any pending async deep-link handler or Supabase auth event to settle
-      await new Promise(r => setTimeout(r, 800));
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        console.log('[AuthService] Active session found despite browser dismissal! Login successful.');
-        return data;
+      // Poll for up to 3.5 seconds to allow background deep-link PKCE exchange to complete
+      for (let i = 0; i < 7; i++) {
+        await new Promise(r => setTimeout(r, 500));
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          console.log('[AuthService] Active session found after browser dismissal! Login successful.');
+          return data;
+        }
       }
       throw new Error('Google login was cancelled.');
     }

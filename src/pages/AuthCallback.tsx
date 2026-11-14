@@ -10,18 +10,26 @@ export default function AuthCallback() {
 
   useEffect(() => {
     const isMobileDevice = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    const isAndroid = /Android/i.test(navigator.userAgent);
     setIsMobile(isMobileDevice);
 
     const search = window.location.search || '';
     const hash = window.location.hash || '';
-    const deepLink = `mobileapp://auth-callback${search}${hash}`;
+    const queryPart = search.startsWith('?') ? search.substring(1) : search;
+    const androidIntent = `intent://auth-callback?${queryPart}${hash}#Intent;scheme=mobileapp;package=com.tradifive;end`;
+    const customScheme = `mobileapp://auth-callback${search}${hash}`;
+    const deepLink = isAndroid ? androidIntent : customScheme;
     setDeepLinkTarget(deepLink);
 
     // Only redirect to native app if explicitly requested by the native mobile app
     const isNativeAppSource = search.includes('source=mobileapp') || search.includes('mobileapp=true');
     if (isMobileDevice && isNativeAppSource) {
       setStatus('Redirecting back to TradiFive App...');
-      window.location.replace(deepLink);
+      if (isAndroid) {
+        window.location.href = androidIntent;
+      } else {
+        window.location.replace(deepLink);
+      }
 
       // Fallback timer to show button if auto-redirect was blocked
       const fallbackTimer = setTimeout(() => {
@@ -139,6 +147,18 @@ export default function AuthCallback() {
       {isMobile && deepLinkTarget ? (
         <a
           href={deepLinkTarget}
+          onClick={(e) => {
+            const isAndroid = /Android/i.test(navigator.userAgent);
+            if (isAndroid) {
+              e.preventDefault();
+              window.location.href = deepLinkTarget;
+              setTimeout(() => {
+                const search = window.location.search || '';
+                const hash = window.location.hash || '';
+                window.location.href = `mobileapp://auth-callback${search}${hash}`;
+              }, 500);
+            }
+          }}
           style={{
             marginTop: 24,
             padding: '12px 28px',
@@ -148,7 +168,8 @@ export default function AuthCallback() {
             fontWeight: 600,
             fontSize: 15,
             textDecoration: 'none',
-            boxShadow: '0 4px 14px rgba(59, 130, 246, 0.4)'
+            boxShadow: '0 4px 14px rgba(59, 130, 246, 0.4)',
+            cursor: 'pointer'
           }}
         >
           Open TradiFive App

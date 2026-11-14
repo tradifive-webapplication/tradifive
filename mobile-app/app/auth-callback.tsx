@@ -109,6 +109,11 @@ export default function AuthCallback() {
 
     init();
 
+    const subscription = Linking.addEventListener('url', ({ url }) => {
+      console.log('[AuthCallback] Linking url event listener received:', url);
+      handleAuth(url);
+    });
+
     const safetyTimer = setTimeout(() => {
       console.warn('[AuthCallback] Safety timeout reached, checking session or redirecting');
       if (isMounted) {
@@ -125,6 +130,7 @@ export default function AuthCallback() {
     return () => {
       isMounted = false;
       clearTimeout(safetyTimer);
+      subscription.remove();
     };
   }, [deepLinkUrl]);
 
