@@ -195,7 +195,6 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loginError, setLoginError] = useState('');
   const [focusedField, setFocusedField] = useState<string | null>(null);
@@ -248,23 +247,6 @@ export default function LoginScreen() {
       haptic(Haptics.ImpactFeedbackStyle.Heavy);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleGoogleLogin = async () => {
-    setLoginError('');
-    setGoogleLoading(true);
-    haptic();
-    try {
-      await AuthService.signInWithGoogle();
-      await useStore.getState().init();
-      if (Platform.OS !== 'web') await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      router.replace('/(tabs)');
-    } catch (err: any) {
-      if (err.message?.includes('cancelled') || err.message?.includes('canceled')) return;
-      setLoginError(err.message || 'Google sign-in failed. Please try again.');
-    } finally {
-      setGoogleLoading(false);
     }
   };
 
@@ -392,27 +374,8 @@ export default function LoginScreen() {
                   </View>
 
                   {/* Login Button */}
-                  <TouchableOpacity style={styles.loginButton} onPress={handleLogin} disabled={loading || googleLoading} activeOpacity={0.85}>
+                  <TouchableOpacity style={styles.loginButton} onPress={handleLogin} disabled={loading} activeOpacity={0.85}>
                     {loading ? <ActivityIndicator color="#FFFFFF" /> : <Text style={styles.loginButtonText}>Log In</Text>}
-                  </TouchableOpacity>
-
-                  {/* Divider */}
-                  <View style={styles.dividerContainer}>
-                    <View style={styles.dividerLine} />
-                    <Text style={styles.dividerText}>OR</Text>
-                    <View style={styles.dividerLine} />
-                  </View>
-
-                  {/* Google Sign In */}
-                  <TouchableOpacity style={styles.googleButton} onPress={handleGoogleLogin} disabled={loading || googleLoading} activeOpacity={0.85}>
-                    {googleLoading ? (
-                      <ActivityIndicator color="#0F172A" />
-                    ) : (
-                      <>
-                        <Image source={{ uri: 'https://www.google.com/favicon.ico' }} style={{ width: 20, height: 20, borderRadius: 4 }} />
-                        <Text style={styles.googleButtonText}>Continue with Google</Text>
-                      </>
-                    )}
                   </TouchableOpacity>
 
                   {/* Sign up link */}

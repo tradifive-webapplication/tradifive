@@ -127,30 +127,6 @@ export default function SignupScreen() {
     }
   };
 
-  const handleGoogleSignup = async () => {
-    setLoading(true);
-    try {
-      if (Platform.OS !== 'web') {
-        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-      }
-
-      await AuthService.signInWithGoogle();
-      await useStore.getState().init();
-
-      if (Platform.OS !== 'web') {
-        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      }
-      router.replace('/(tabs)');
-    } catch (err: any) {
-      if (err.message && err.message.includes('cancelled')) {
-        return;
-      }
-      Alert.alert('Google Sign Up Error', err.message || 'Failed to initialize Google Authorization.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <View style={styles.container}>
       <KeyboardAwareScrollView
@@ -377,37 +353,6 @@ export default function SignupScreen() {
                   <Text style={styles.signUpText}>Already have an account? </Text>
                   <TouchableOpacity onPress={() => router.push('/login')}>
                     <Text style={styles.signUpLink}>Sign in</Text>
-                  </TouchableOpacity>
-                </View>
-
-                {/* Divider */}
-                <View style={styles.dividerContainer}>
-                  <View style={styles.dividerLine} />
-                  <Text style={styles.dividerText}>OR CONTINUE WITH</Text>
-                  <View style={styles.dividerLine} />
-                </View>
-
-                {/* Social Login */}
-                <View style={styles.socialContainer}>
-                  <TouchableOpacity
-                    onPress={handleGoogleSignup}
-                    style={styles.socialButton}
-                    activeOpacity={0.8}
-                  >
-                    <Image source={require('../assets/images/google-icon.png')} style={{ width: 18, height: 18 }} />
-                    <Text style={styles.socialButtonText}>Google</Text>
-                  </TouchableOpacity>
-                  
-                  <TouchableOpacity
-                    onPress={() => {
-                      Platform.OS !== 'web' && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                      Alert.alert("Coming soon", "Apple login coming soon!");
-                    }}
-                    style={styles.socialButton}
-                    activeOpacity={0.8}
-                  >
-                    <Image source={require('../assets/images/apple-icon.png')} style={{ width: 18, height: 18 }} />
-                    <Text style={styles.socialButtonText}>Apple</Text>
                   </TouchableOpacity>
                 </View>
 
