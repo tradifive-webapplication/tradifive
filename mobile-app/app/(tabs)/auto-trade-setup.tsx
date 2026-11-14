@@ -166,6 +166,7 @@ export default function AutoTradeSetupScreen() {
   const { isDark, theme } = useAppTheme();
   const currentUser = useStore((state) => state.currentUser);
   const mt5Account = useStore((state) => state.mt5Account);
+  const trades = useStore((state) => state.trades);
 
   const [headerStyle, setHeaderStyle] = useState<HeaderStyle>(getHeaderStyle());
   const [refreshing, setRefreshing] = useState(false);
@@ -175,6 +176,49 @@ export default function AutoTradeSetupScreen() {
   const [isLicenseUnlocked, setIsLicenseUnlocked] = useState(false);
   const [copiedOrderKey, setCopiedOrderKey] = useState(false);
   const [downloadedManual, setDownloadedManual] = useState(false);
+
+  // Setup completion check (matches web user app behavior)
+  const hasActiveLicense = Boolean(
+    isLicenseUnlocked ||
+    mt5Account?.account_number ||
+    (currentUser as any)?.activation_key ||
+    (currentUser as any)?.subscription_status === 'active'
+  );
+
+  // Real Account & Performance Metrics (Zero Mock Data)
+  const balance = Number(mt5Account?.balance || 0);
+  const equity = Number(mt5Account?.equity || balance || 0);
+  const margin = Number(mt5Account?.margin || 0);
+  const marginLevel = margin > 0 ? Math.round((equity / margin) * 100) : 0;
+
+  const netProfit = useMemo(() => {
+    if (!trades || trades.length === 0) return 0;
+    return trades.reduce((sum, t) => sum + (Number(t.profit) || 0), 0);
+  }, [trades]);
+
+  const todayProfit = useMemo(() => {
+    if (!trades || trades.length === 0) return 0;
+    const todayStr = new Date().toISOString().slice(0, 10);
+    return trades
+      .filter((t) => (t.close_time || t.open_time || '').startsWith(todayStr))
+      .reduce((sum, t) => sum + (Number(t.profit) || 0), 0);
+  }, [trades]);
+
+  const allTimeRoiPct = useMemo(() => {
+    if (balance <= 0) return 0;
+    return Number(((netProfit / balance) * 100).toFixed(1));
+  }, [netProfit, balance]);
+
+  const dailyTarget = useMemo(() => {
+    if (balance <= 0) return 0;
+    return Number((balance * 0.015).toFixed(2));
+  }, [balance]);
+
+  const platformShareInr = useMemo(() => {
+    if (netProfit <= 0) return 0;
+    const profitUsd = netProfit / 100;
+    return Number(((profitUsd * 86) * 0.5).toFixed(2));
+  }, [netProfit]);
 
   // Wizard active step: 1 (Connect), 2 (Download), 3 (Payment), 4 (Activate)
   const [activeStep, setActiveStep] = useState<number>(1);
@@ -552,6 +596,14 @@ export default function AutoTradeSetupScreen() {
                 activeOpacity={0.8}
                 onPress={() => {
                   hSelect();
+                  if (!hasActiveLicense) {
+                    Alert.alert(
+                      'Complete Setup First',
+                      'Please complete the 4-step setup and activate your license key before accessing the Live Dashboard.',
+                      [{ text: 'Continue Setup', style: 'default' }]
+                    );
+                    return;
+                  }
                   setViewMode('dashboard');
                 }}
                 style={{
@@ -565,7 +617,11 @@ export default function AutoTradeSetupScreen() {
                   gap: 6,
                 }}
               >
-                <Activity size={13} color={viewMode === 'dashboard' ? (isDark ? '#0f172a' : '#ffffff') : (isDark ? '#94a3b8' : '#64748b')} />
+                {!hasActiveLicense ? (
+                  <Lock size={12} color={viewMode === 'dashboard' ? (isDark ? '#0f172a' : '#ffffff') : (isDark ? '#64748b' : '#94a3b8')} />
+                ) : (
+                  <Activity size={13} color={viewMode === 'dashboard' ? (isDark ? '#0f172a' : '#ffffff') : (isDark ? '#94a3b8' : '#64748b')} />
+                )}
                 <Text
                   style={{
                     fontSize: 12,
@@ -622,9 +678,9 @@ export default function AutoTradeSetupScreen() {
                 >
                   <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                      <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#10b981' }} />
+                      <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: mt5Account?.account_number ? '#10b981' : '#f59e0b' }} />
                       <Text style={{ fontSize: 13, fontFamily: 'Inter_700Bold', color: isDark ? '#ffffff' : '#0f172a' }}>
-                        FiAlgo MT5 #{accountNumber || 'Pending'}
+                        FiAlgo MT5 #{mt5Account?.account_number || accountNumber || 'Not Connected'}
                       </Text>
                       <View style={{ paddingHorizontal: 7, paddingVertical: 2, borderRadius: 6, backgroundColor: isDark ? 'rgba(245,158,11,0.15)' : '#fef3c7' }}>
                         <Text style={{ fontSize: 10.5, fontFamily: 'Inter_700Bold', color: '#d97706' }}>
@@ -659,13 +715,13 @@ export default function AutoTradeSetupScreen() {
 
                   <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderTopWidth: 1, borderTopColor: isDark ? '#1e2433' : '#f1f5f9', paddingTop: 8 }}>
                     <Text style={{ fontSize: 11, fontFamily: 'Inter_500Medium', color: '#94a3b8' }}>
-                      Server: <Text style={{ fontFamily: 'Inter_700Bold', color: isDark ? '#cbd5e1' : '#475569' }}>{server || 'Vantage-Live 2'}</Text>
+                      Server: <Text style={{ fontFamily: 'Inter_700Bold', color: isDark ? '#cbd5e1' : '#475569' }}>{mt5Account?.server || server || 'Not Connected'}</Text>
                     </Text>
                     <Text style={{ fontSize: 11, fontFamily: 'Inter_700Bold', color: '#d97706' }}>
                       XAUUSD (M1)
                     </Text>
-                    <Text style={{ fontSize: 11, fontFamily: 'Inter_700Bold', color: '#10b981' }}>
-                      1.8ms Latency
+                    <Text style={{ fontSize: 11, fontFamily: 'Inter_700Bold', color: mt5Account?.account_number ? '#10b981' : '#94a3b8' }}>
+                      {mt5Account?.account_number ? 'Live Connected' : 'Awaiting MT5'}
                     </Text>
                   </View>
                 </View>
@@ -689,15 +745,15 @@ export default function AutoTradeSetupScreen() {
                     </View>
                   </View>
                   <Text style={{ fontSize: 24, fontFamily: 'Inter_800ExtraBold', color: isDark ? '#ffffff' : '#0f172a', letterSpacing: -0.5 }}>
-                    USC 14,866.24
+                    {balance > 0 ? `USC ${balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 'USC 0.00'}
                   </Text>
                   <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: isDark ? '#1e2433' : '#f1f5f9' }}>
                     <Text style={{ fontSize: 11.5, fontFamily: 'Inter_500Medium', color: '#94a3b8' }}>
-                      Equity: <Text style={{ fontFamily: 'Inter_700Bold', color: isDark ? '#ffffff' : '#0f172a' }}>USC 14,866.24</Text>
+                      Equity: <Text style={{ fontFamily: 'Inter_700Bold', color: isDark ? '#ffffff' : '#0f172a' }}>{equity > 0 ? `USC ${equity.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 'USC 0.00'}</Text>
                     </Text>
                     <View style={{ paddingHorizontal: 7, paddingVertical: 2, borderRadius: 6, backgroundColor: isDark ? '#1e2433' : '#f1f5f9' }}>
                       <Text style={{ fontSize: 10, fontFamily: 'Inter_700Bold', color: '#64748b' }}>
-                        Lvl 0%
+                        Lvl {marginLevel > 0 ? `${marginLevel}%` : '0%'}
                       </Text>
                     </View>
                   </View>
@@ -718,11 +774,11 @@ export default function AutoTradeSetupScreen() {
                     <Text style={{ fontSize: 10, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.5 }}>
                       Net Profit
                     </Text>
-                    <Text style={{ fontSize: 18, fontFamily: 'Inter_800ExtraBold', color: '#10b981', marginVertical: 4 }}>
-                      +USC 4,866.24
+                    <Text style={{ fontSize: 18, fontFamily: 'Inter_800ExtraBold', color: netProfit >= 0 ? '#10b981' : '#ef4444', marginVertical: 4 }}>
+                      {netProfit >= 0 ? `+USC ${netProfit.toFixed(2)}` : `-USC ${Math.abs(netProfit).toFixed(2)}`}
                     </Text>
-                    <Text style={{ fontSize: 10.5, fontFamily: 'Inter_600SemiBold', color: '#10b981' }}>
-                      +32.7% All Time
+                    <Text style={{ fontSize: 10.5, fontFamily: 'Inter_600SemiBold', color: allTimeRoiPct >= 0 ? '#10b981' : '#ef4444' }}>
+                      {allTimeRoiPct >= 0 ? `+${allTimeRoiPct}% All Time` : `${allTimeRoiPct}% All Time`}
                     </Text>
                   </View>
 
@@ -739,11 +795,11 @@ export default function AutoTradeSetupScreen() {
                     <Text style={{ fontSize: 10, fontFamily: 'Inter_700Bold', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.5 }}>
                       Today's Profit
                     </Text>
-                    <Text style={{ fontSize: 18, fontFamily: 'Inter_800ExtraBold', color: '#10b981', marginVertical: 4 }}>
-                      +USC 412.50
+                    <Text style={{ fontSize: 18, fontFamily: 'Inter_800ExtraBold', color: todayProfit >= 0 ? '#10b981' : '#ef4444', marginVertical: 4 }}>
+                      {todayProfit >= 0 ? `+USC ${todayProfit.toFixed(2)}` : `-USC ${Math.abs(todayProfit).toFixed(2)}`}
                     </Text>
                     <Text style={{ fontSize: 10.5, fontFamily: 'Inter_600SemiBold', color: '#38bdf8' }}>
-                      Goal: USC 222.99 ✓
+                      Goal: USC {dailyTarget.toFixed(2)}
                     </Text>
                   </View>
                 </View>
@@ -764,7 +820,7 @@ export default function AutoTradeSetupScreen() {
                       Total Deposits
                     </Text>
                     <Text style={{ fontSize: 16, fontFamily: 'Inter_800ExtraBold', color: isDark ? '#ffffff' : '#0f172a', marginVertical: 4 }}>
-                      USC 14,866.24
+                      {balance > 0 ? `USC ${balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 'USC 0.00'}
                     </Text>
                     <Text style={{ fontSize: 10, fontFamily: 'Inter_500Medium', color: '#64748b' }}>
                       Funded Capital
@@ -819,7 +875,7 @@ export default function AutoTradeSetupScreen() {
                   </View>
 
                   <Text style={{ fontSize: 26, fontFamily: 'Inter_800ExtraBold', color: isDark ? '#ffffff' : '#0f172a', letterSpacing: -0.5 }}>
-                    ₹386.42
+                    ₹{platformShareInr > 0 ? platformShareInr.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}
                   </Text>
 
                   <Text style={{ fontSize: 11, fontFamily: 'Inter_500Medium', color: isDark ? '#94a3b8' : '#64748b', lineHeight: 15 }}>
@@ -1661,6 +1717,7 @@ export default function AutoTradeSetupScreen() {
                     activeOpacity={0.85}
                     onPress={() => {
                       hSuccess();
+                      setIsLicenseUnlocked(true);
                       setViewMode('dashboard');
                     }}
                     style={[styles.launchDashboardBtn, { backgroundColor: isDark ? '#38bdf8' : '#0f172a' }]}

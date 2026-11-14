@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 28,
-    paddingBottom: 40, // Optical center above bottom floating navigation bar
+    paddingBottom: 0,
     zIndex: 1000000,
   },
   badgePill: {
