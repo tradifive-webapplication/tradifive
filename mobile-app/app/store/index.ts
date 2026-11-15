@@ -87,6 +87,8 @@ export interface UserProfile {
   streak_days?: number;
   referral_code?: string;
   website?: string;
+  trading_style?: string;
+  preferred_market?: string;
 }
 
 interface Post {
@@ -115,7 +117,7 @@ interface AppState {
   loading: boolean;
   init: () => Promise<void>;
   updateUsernameState: (username: string) => void;
-  updateProfileState: (displayName: string, bio: string, bannerUrl?: string, avatarUrl?: string, tags?: string[], accountType?: string, isPrivate?: boolean, country?: string, state?: string, city?: string, username?: string, firstName?: string, lastName?: string, phone?: string, email?: string) => void;
+  updateProfileState: (displayName: string, bio: string, bannerUrl?: string, avatarUrl?: string, tags?: string[], accountType?: string, isPrivate?: boolean, country?: string, state?: string, city?: string, username?: string, firstName?: string, lastName?: string, phone?: string, email?: string, tradingStyle?: string, preferredMarket?: string) => void;
   setAccountType: (type: string) => void;
   updatePreferences: (prefs: Partial<UserPreferences>) => Promise<void>;
   fetchPosts: () => Promise<void>;
@@ -416,7 +418,7 @@ export const useStore = create<AppState>((set, get) => ({
     }
   },
 
-  updateProfileState: (displayName: string, bio: string, bannerUrl?: string, avatarUrl?: string, tags?: string[], accountType?: string, isPrivate?: boolean, country?: string, state?: string, city?: string, username?: string, firstName?: string, lastName?: string, phone?: string, email?: string) => {
+  updateProfileState: (displayName: string, bio: string, bannerUrl?: string, avatarUrl?: string, tags?: string[], accountType?: string, isPrivate?: boolean, country?: string, state?: string, city?: string, username?: string, firstName?: string, lastName?: string, phone?: string, email?: string, tradingStyle?: string, preferredMarket?: string) => {
     const user = get().currentUser;
     if (user) {
       const updatedUser = {
@@ -435,7 +437,9 @@ export const useStore = create<AppState>((set, get) => ({
         first_name: firstName !== undefined ? firstName : user.first_name,
         last_name: lastName !== undefined ? lastName : user.last_name,
         phone_number: phone !== undefined ? phone : user.phone_number,
-        email: email !== undefined ? email : user.email
+        email: email !== undefined ? email : user.email,
+        trading_style: tradingStyle !== undefined ? tradingStyle : user.trading_style,
+        preferred_market: preferredMarket !== undefined ? preferredMarket : user.preferred_market,
       };
       
       set({

@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useStore } from './store';
+import { supabase } from './utils/supabase';
 import { getAvatarUrl } from './utils/avatar';
 import { AuthService } from './services/auth.service';
 import * as ImagePicker from 'expo-image-picker';
@@ -68,7 +69,8 @@ import {
   TrendingDown,
   CheckCircle2,
   Shield,
-  Star
+  Star,
+  X,
 } from 'lucide-react-native';
 import { Heart, Chat, Send } from '../components/Iconly';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -76,7 +78,27 @@ import { useAppTheme } from '../hooks/useAppTheme';
 import { FollowListModal } from '../components/FollowListModal';
 
 const { width, height } = Dimensions.get('window');
-const h = () => { if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); };
+const h = (feedbackStyle = Haptics.ImpactFeedbackStyle.Light) => {
+  if (Platform.OS !== 'web') {
+    Haptics.impactAsync(feedbackStyle).catch(() => {});
+  }
+};
+
+const EDIT_TRADING_STYLES = [
+  'Day trading',
+  'Swing trading',
+  'Scalping',
+  'Position trading',
+  'Algo trading',
+];
+
+const EDIT_MARKETS = [
+  'Forex',
+  'Crypto',
+  'Indices',
+  'Commodities',
+  'Stocks',
+];
 
 const ProfilePostCard = ({
   post,
@@ -637,6 +659,126 @@ export default function ProfileScreen() {
   ).current;
 
   const updateProfileState = useStore(state => state.updateProfileState);
+
+  // Edit Profile Modal State & Handlers
+  const [isEditProfileVisible, setIsEditProfileVisible] = useState(false);
+  const [editDisplayName, setEditDisplayName] = useState('');
+  const [editBio, setEditBio] = useState('');
+  const [editTradingStyle, setEditTradingStyle] = useState('Day trading');
+  const [editPreferredMarket, setEditPreferredMarket] = useState('Forex');
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [saveProfileError, setSaveProfileError] = useState<string | null>(null);
+
+  const handleOpenEditProfile = () => {
+    h(Haptics.ImpactFeedbackStyle.Light);
+    setEditDisplayName(currentUser?.display_name || currentUser?.full_name || '');
+    setEditBio(currentUser?.bio || '');
+    setEditTradingStyle(currentUser?.trading_style || 'Day trading');
+    setEditPreferredMarket(currentUser?.preferred_market || 'Forex');
+    setSaveProfileError(null);
+    setIsEditProfileVisible(true);
+  };
+
+  const handleSaveProfile = async () => {
+    if (!editDisplayName.trim()) {
+      setSaveProfileError('Display name cannot be empty');
+      h(Haptics.ImpactFeedbackStyle.Heavy);
+      return;
+    }
+
+    setIsSavingProfile(true);
+    setSaveProfileError(null);
+    h(Haptics.ImpactFeedbackStyle.Medium);
+
+    const trimmedName = editDisplayName.trim();
+    const trimmedBio = editBio.trim();
+
+    try {
+      // 1. Update Supabase if user ID exists
+      if (currentUser?.id) {
+        const { error } = await supabase
+          .from('profiles')
+          .update({
+            display_name: trimmedName,
+            bio: trimmedBio,
+            trading_style: editTradingStyle,
+            preferred_market: editPreferredMarket,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', currentUser.id);
+
+        if (error) {
+          console.warn('[Supabase profile update warning]:', error.message);
+        }
+      }
+
+      // 2. Update local Zustand state
+      updateProfileState(
+        trimmedName,
+        trimmedBio,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        editTradingStyle,
+        editPreferredMarket
+      );
+
+      useStore.setState((state) => ({
+        currentUser: state.currentUser ? {
+          ...state.currentUser,
+          display_name: trimmedName,
+          full_name: trimmedName,
+          bio: trimmedBio,
+          trading_style: editTradingStyle,
+          preferred_market: editPreferredMarket,
+        } : null,
+      }));
+
+      h(Haptics.ImpactFeedbackStyle.Light);
+      setIsEditProfileVisible(false);
+    } catch (err: any) {
+      console.error('[Save Profile Error]:', err);
+      setSaveProfileError(err?.message || 'Failed to update profile. Please try again.');
+    } finally {
+      setIsSavingProfile(false);
+    }
+  };
+
+  const handleShareProfile = async () => {
+    h(Haptics.ImpactFeedbackStyle.Medium);
+    try {
+      const username = currentUser?.username || currentUser?.email?.split('@')[0] || `trader_${currentUser?.id?.slice(0, 5) || 'pro'}`;
+      const displayName = currentUser?.display_name || currentUser?.full_name || `@${username}`;
+      const profileUrl = `https://www.tradifive.in/u/${username}`;
+      
+      await Share.share(
+        Platform.OS === 'ios'
+          ? {
+              title: `${displayName} on TradiFive`,
+              url: profileUrl,
+              message: `Check out ${displayName}'s trading profile and track record on TradiFive:\n${profileUrl}`,
+            }
+          : {
+              title: `${displayName} on TradiFive`,
+              message: `Check out ${displayName}'s trading profile and track record on TradiFive:\n${profileUrl}`,
+            }
+      );
+    } catch (err: any) {
+      if (err?.message !== 'User did not share') {
+        console.warn('[Share Profile Error]:', err);
+      }
+    }
+  };
 
   const uriToBase64 = (uri: string): Promise<string> => {
     return new Promise(async (resolve, reject) => {
@@ -1420,26 +1562,20 @@ export default function ProfileScreen() {
                 {currentUser?.username || currentUser?.display_name || 'Profile'}
               </Text>
             </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 18 }}>
               <TouchableOpacity
-                onPress={() => {
-                  h();
-                }}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                onPress={handleShareProfile}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                activeOpacity={0.7}
               >
-                <RotateCw size={20} color="#fff" />
-              </TouchableOpacity>
-              <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                <Search size={20} color="#fff" />
-              </TouchableOpacity>
-              <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                <ShareIcon size={20} color="#fff" />
+                <ShareIcon size={21} color="#fff" />
               </TouchableOpacity>
               <TouchableOpacity 
-                onPress={() => { h(); router.push('/profile-information' as any); }} 
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                onPress={handleOpenEditProfile} 
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                activeOpacity={0.7}
               >
-                <Pencil size={20} color="#fff" />
+                <Pencil size={21} color="#fff" />
               </TouchableOpacity>
             </View>
           </View>
@@ -2356,6 +2492,197 @@ export default function ProfileScreen() {
               </TouchableOpacity>
             </View>
           </Animated.View>
+        </View>
+      </Modal>
+
+      {/* ── EDIT PROFILE MODAL ── */}
+      <Modal
+        visible={isEditProfileVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setIsEditProfileVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <TouchableWithoutFeedback onPress={() => setIsEditProfileVisible(false)}>
+            <View style={styles.modalBackdrop} />
+          </TouchableWithoutFeedback>
+
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            style={styles.modalKeyboardView}
+          >
+            <View style={styles.modalContent}>
+              {/* Header */}
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Edit Profile</Text>
+                <TouchableOpacity
+                  onPress={() => setIsEditProfileVisible(false)}
+                  style={styles.modalCloseButton}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                  <X size={20} color="#64748b" />
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.modalScrollContent}
+                keyboardShouldPersistTaps="handled"
+              >
+                {/* Avatar Preview */}
+                <View style={styles.modalAvatarContainer}>
+                  <Image
+                    source={{ uri: getAvatarUrl(currentUser?.avatar_url, currentUser?.email) }}
+                    style={styles.modalAvatar}
+                  />
+                  <Text style={[styles.modalAvatarSubtext, { color: '#64748b' }]}>
+                    @{currentUser?.username || 'trader'}
+                  </Text>
+                </View>
+
+                {saveProfileError && (
+                  <View style={{ backgroundColor: '#fef2f2', borderWidth: 1, borderColor: '#fecaca', padding: 12, borderRadius: 12, marginBottom: 16 }}>
+                    <Text style={{ color: '#dc2626', fontSize: 13, fontFamily: 'Inter_500Medium' }}>
+                      {saveProfileError}
+                    </Text>
+                  </View>
+                )}
+
+                {/* Form fields */}
+                <View style={styles.modalForm}>
+                  {/* Display Name */}
+                  <View style={styles.modalInputGroup}>
+                    <Text style={styles.modalInputLabel}>FULL NAME / DISPLAY NAME</Text>
+                    <View style={styles.modalInputContainer}>
+                      <TextInput
+                        style={[styles.modalInputText, { width: '100%' }]}
+                        placeholder="Your display name"
+                        placeholderTextColor="#94a3b8"
+                        value={editDisplayName}
+                        onChangeText={setEditDisplayName}
+                        autoCapitalize="words"
+                      />
+                    </View>
+                  </View>
+
+                  {/* Bio */}
+                  <View style={styles.modalInputGroup}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                      <Text style={styles.modalInputLabel}>BIO</Text>
+                      <Text style={{ fontSize: 11, color: '#94a3b8', fontFamily: 'Inter_400Regular' }}>
+                        {editBio.length}/160
+                      </Text>
+                    </View>
+                    <View style={[styles.modalInputContainer, { height: 96, paddingVertical: 12, alignItems: 'flex-start' }]}>
+                      <TextInput
+                        style={[styles.modalInputText, { height: 72, textAlignVertical: 'top', width: '100%' }]}
+                        placeholder="Tell the trading community about your edge..."
+                        placeholderTextColor="#94a3b8"
+                        value={editBio}
+                        onChangeText={(txt) => setEditBio(txt.slice(0, 160))}
+                        multiline
+                        maxLength={160}
+                      />
+                    </View>
+                  </View>
+
+                  {/* Trading Style Chips */}
+                  <View style={styles.modalInputGroup}>
+                    <Text style={styles.modalInputLabel}>TRADING METHODOLOGY</Text>
+                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 6 }}>
+                      {EDIT_TRADING_STYLES.map((st) => {
+                        const isSelected = editTradingStyle === st;
+                        return (
+                          <TouchableOpacity
+                            key={st}
+                            onPress={() => {
+                              h(Haptics.ImpactFeedbackStyle.Light);
+                              setEditTradingStyle(st);
+                            }}
+                            style={{
+                              paddingHorizontal: 14,
+                              paddingVertical: 8,
+                              borderRadius: 20,
+                              backgroundColor: isSelected ? '#fff1f1' : '#f8fafc',
+                              borderWidth: 1,
+                              borderColor: isSelected ? '#ff4d4d' : '#e2e8f0',
+                            }}
+                            activeOpacity={0.7}
+                          >
+                            <Text
+                              style={{
+                                fontSize: 13,
+                                color: isSelected ? '#ff4d4d' : '#475569',
+                                fontFamily: isSelected ? 'Inter_600SemiBold' : 'Inter_500Medium',
+                              }}
+                            >
+                              {st}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                  </View>
+
+                  {/* Preferred Market Chips */}
+                  <View style={styles.modalInputGroup}>
+                    <Text style={styles.modalInputLabel}>PRIMARY ASSET CLASS</Text>
+                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 6 }}>
+                      {EDIT_MARKETS.map((mk) => {
+                        const isSelected = editPreferredMarket === mk;
+                        return (
+                          <TouchableOpacity
+                            key={mk}
+                            onPress={() => {
+                              h(Haptics.ImpactFeedbackStyle.Light);
+                              setEditPreferredMarket(mk);
+                            }}
+                            style={{
+                              paddingHorizontal: 14,
+                              paddingVertical: 8,
+                              borderRadius: 20,
+                              backgroundColor: isSelected ? '#fff1f1' : '#f8fafc',
+                              borderWidth: 1,
+                              borderColor: isSelected ? '#ff4d4d' : '#e2e8f0',
+                            }}
+                            activeOpacity={0.7}
+                          >
+                            <Text
+                              style={{
+                                fontSize: 13,
+                                color: isSelected ? '#ff4d4d' : '#475569',
+                                fontFamily: isSelected ? 'Inter_600SemiBold' : 'Inter_500Medium',
+                              }}
+                            >
+                              {mk}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                  </View>
+                </View>
+
+                {/* Save Button */}
+                <TouchableOpacity
+                  onPress={handleSaveProfile}
+                  disabled={isSavingProfile}
+                  style={[
+                    styles.modalSaveButton,
+                    { backgroundColor: '#ff4d4d', borderRadius: 9999 },
+                    isSavingProfile && { opacity: 0.7 },
+                  ]}
+                  activeOpacity={0.8}
+                >
+                  {isSavingProfile ? (
+                    <ActivityIndicator size="small" color="#ffffff" />
+                  ) : (
+                    <Text style={styles.modalSaveButtonText}>Save Changes</Text>
+                  )}
+                </TouchableOpacity>
+              </ScrollView>
+            </View>
+          </KeyboardAvoidingView>
         </View>
       </Modal>
 
