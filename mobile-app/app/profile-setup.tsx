@@ -11,9 +11,11 @@ import {
   ScrollView,
   SafeAreaView,
   Image,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import {
   ArrowLeft,
@@ -85,6 +87,7 @@ const HERE_TO_OPTIONS = [
 
 export default function ProfileSetupScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const currentUser = useStore((state) => state.currentUser);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
 
@@ -104,6 +107,11 @@ export default function ProfileSetupScreen() {
 
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const currentStep = STEPS[currentStepIndex];
+
+  // Elevated bottom padding so Android system buttons (Back, Home, Menu) never cover the Continue button
+  const bottomNavPadding = Platform.OS === 'android'
+    ? Math.max(insets.bottom, 28) + 16
+    : Math.max(insets.bottom, 12) + 8;
 
   const triggerHaptic = (style = Haptics.ImpactFeedbackStyle.Light) => {
     if (Platform.OS !== 'web') Haptics.impactAsync(style).catch(() => {});
@@ -197,55 +205,90 @@ export default function ProfileSetupScreen() {
     setSaving(true);
     triggerHaptic(Haptics.ImpactFeedbackStyle.Medium);
 
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const targetUserId = currentUser?.id || session?.user?.id;
-      if (!targetUserId) throw new Error('No active user session');
+    // Timeout helper so slow network never hangs the screen or button indefinitely
+    const withTimeout = <T>(promise: Promise<T>, ms = 3000): Promise<T | null> =>
+      Promise.race([
+        promise,
+        new Promise<null>((resolve) => setTimeout(() => resolve(null), ms)),
+      ]);
 
-      const finalUsername = handle || `trader_${targetUserId.slice(0, 6)}`;
+    try {
+      const sessionRes = await withTimeout(supabase.auth.getSession(), 2000);
+      const session = sessionRes?.data?.session;
+      const targetUserId = currentUser?.id || session?.user?.id;
+
+      const finalUsername = handle || (targetUserId ? `trader_${targetUserId.slice(0, 6)}` : 'trader');
       const finalName = name.trim() || currentUser?.first_name || 'Trader';
 
-      // 1. Update Supabase profiles table
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({
-          full_name: finalName,
-          display_name: finalName,
-          username: finalUsername,
-          trading_style: style,
-          preferred_market: market,
-          has_chosen_username: true,
-        })
-        .eq('id', targetUserId);
+      // 1. Instantly update in-memory Zustand store so guards & modals know profile is complete
+      useStore.setState((prev) => ({
+        currentUser: prev.currentUser
+          ? {
+              ...prev.currentUser,
+              display_name: finalName,
+              full_name: finalName,
+              username: finalUsername,
+              trading_style: style,
+              preferred_market: market,
+              has_chosen_username: true,
+            }
+          : ({
+              id: targetUserId || 'local_user',
+              display_name: finalName,
+              full_name: finalName,
+              username: finalUsername,
+              trading_style: style,
+              preferred_market: market,
+              has_chosen_username: true,
+            } as any),
+        hasRealSession: true,
+      }));
 
-      if (profileError) {
-        console.warn('[ProfileSetup] Profile update note:', profileError.message);
+      // 2. Persist to Supabase in background with timeout safety
+      if (targetUserId) {
+        await Promise.allSettled([
+          withTimeout(
+            supabase
+              .from('profiles')
+              .update({
+                full_name: finalName,
+                display_name: finalName,
+                username: finalUsername,
+                trading_style: style,
+                preferred_market: market,
+                has_chosen_username: true,
+              })
+              .eq('id', targetUserId),
+            3000
+          ),
+          withTimeout(
+            supabase.auth.updateUser({
+              data: {
+                full_name: finalName,
+                display_name: finalName,
+                username: finalUsername,
+                trading_style: style,
+                preferred_market: market,
+                has_chosen_username: true,
+                onboarding_completed: true,
+              },
+            }),
+            3000
+          ),
+        ]);
       }
-
-      // 2. Update auth user metadata
-      await supabase.auth.updateUser({
-        data: {
-          full_name: finalName,
-          display_name: finalName,
-          username: finalUsername,
-          trading_style: style,
-          preferred_market: market,
-          has_chosen_username: true,
-          onboarding_completed: true,
-        },
-      }).catch(() => {});
-
-      // 3. Sync store
-      await useStore.getState().init();
 
       if (Platform.OS !== 'web') {
-        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        try {
+          await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        } catch (_) {}
       }
 
+      setSaving(false);
       router.replace('/(tabs)');
     } catch (err: any) {
       console.error('[ProfileSetup Error]:', err);
-      // Even if update failed, let user into the app
+      setSaving(false);
       router.replace('/(tabs)');
     } finally {
       setSaving(false);
@@ -278,7 +321,12 @@ export default function ProfileSetupScreen() {
       <StatusBar style="light" backgroundColor="#000000" translucent />
 
       {/* ── TOP DARK HEADER ── */}
-      <SafeAreaView style={styles.safeTop}>
+      <SafeAreaView
+        style={[
+          styles.safeTop,
+          { paddingTop: Platform.OS === 'android' ? Math.max(insets.top, 24) : 0 },
+        ]}
+      >
         <View style={styles.navBar}>
           {currentStepIndex > 0 ? (
             <TouchableOpacity onPress={handleBack} style={styles.iconBtn} activeOpacity={0.7}>
@@ -321,314 +369,317 @@ export default function ProfileSetupScreen() {
 
       {/* ── WHITE BOTTOM SHEET (CLEAN WHITE MODE) ── */}
       <View style={styles.whiteSheet}>
-        <ScrollView
-          style={styles.scroll}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
-          {/* ── STEP 1: NAME ── */}
-          {currentStep === 'NAME' && (
-            <View style={styles.stepContainer}>
-              <Text style={styles.stepCategory}>STEP 1 OF 6 • IDENTITY</Text>
-              <Text style={styles.stepTitle}>What should we call you?</Text>
-              <Text style={styles.stepSubtitle}>
-                Your display name across the TradiFive ecosystem — journal, AI coach, community, and leaderboards.
-              </Text>
+          <ScrollView
+            style={styles.scroll}
+            contentContainerStyle={[styles.scrollContent, { paddingBottom: 60 }]}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            {/* ── STEP 1: NAME ── */}
+            {currentStep === 'NAME' && (
+              <View style={styles.stepContainer}>
+                <Text style={styles.stepCategory}>STEP 1 OF 6 • IDENTITY</Text>
+                <Text style={styles.stepTitle}>What should we call you?</Text>
+                <Text style={styles.stepSubtitle}>
+                  Your display name across the TradiFive ecosystem — journal, AI coach, community, and leaderboards.
+                </Text>
 
-              <View
-                style={[
-                  styles.inputCard,
-                  focusedField === 'name' && styles.inputCardFocused,
-                ]}
-              >
-                <TextInput
-                  style={styles.textInput}
-                  placeholder="Your full name"
-                  placeholderTextColor="#94A3B8"
-                  value={name}
-                  onChangeText={setName}
-                  onFocus={() => {
-                    setFocusedField('name');
-                    triggerHaptic();
-                  }}
-                  onBlur={() => setFocusedField(null)}
-                  autoFocus
-                  autoCapitalize="words"
-                />
+                <View
+                  style={[
+                    styles.inputCard,
+                    focusedField === 'name' && styles.inputCardFocused,
+                  ]}
+                >
+                  <TextInput
+                    style={styles.textInput}
+                    placeholder="Your full name"
+                    placeholderTextColor="#94A3B8"
+                    value={name}
+                    onChangeText={setName}
+                    onFocus={() => {
+                      setFocusedField('name');
+                      triggerHaptic();
+                    }}
+                    onBlur={() => setFocusedField(null)}
+                    autoFocus
+                    autoCapitalize="words"
+                  />
+                </View>
+                <Text style={styles.inputHelper}>
+                  You can change this anytime from your profile settings.
+                </Text>
               </View>
-              <Text style={styles.inputHelper}>
-                You can change this anytime from your profile settings.
-              </Text>
-            </View>
-          )}
+            )}
 
-          {/* ── STEP 2: HANDLE ── */}
-          {currentStep === 'HANDLE' && (
-            <View style={styles.stepContainer}>
-              <Text style={styles.stepCategory}>STEP 2 OF 6 • USERNAME</Text>
-              <Text style={styles.stepTitle}>Claim your handle</Text>
-              <Text style={styles.stepSubtitle}>
-                This will be your unique trader identity across the TradiFive ecosystem.
-              </Text>
+            {/* ── STEP 2: HANDLE ── */}
+            {currentStep === 'HANDLE' && (
+              <View style={styles.stepContainer}>
+                <Text style={styles.stepCategory}>STEP 2 OF 6 • USERNAME</Text>
+                <Text style={styles.stepTitle}>Claim your handle</Text>
+                <Text style={styles.stepSubtitle}>
+                  This will be your unique trader identity across the TradiFive ecosystem.
+                </Text>
 
-              <View
-                style={[
-                  styles.inputCard,
-                  styles.handleInputRow,
-                  focusedField === 'handle' && styles.inputCardFocused,
-                ]}
-              >
-                <Text style={styles.atSymbol}>@</Text>
-                <TextInput
-                  style={styles.textInputHandle}
-                  placeholder="yourhandle"
-                  placeholderTextColor="#94A3B8"
-                  value={handle}
-                  onChangeText={handleHandleChange}
-                  onFocus={() => {
-                    setFocusedField('handle');
-                    triggerHaptic();
-                  }}
-                  onBlur={() => setFocusedField(null)}
-                  autoFocus
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                />
-                {isCheckingHandle && <ActivityIndicator size="small" color="#ff4d4d" />}
-                {!isCheckingHandle && handleAvailable === true && (
-                  <View style={styles.verifiedBadge}>
-                    <Check size={14} color="#16A34A" strokeWidth={3} />
-                  </View>
-                )}
-                {!isCheckingHandle && handleAvailable === false && (
-                  <View style={styles.errorBadge}>
-                    <X size={14} color="#EF4444" strokeWidth={3} />
-                  </View>
-                )}
+                <View
+                  style={[
+                    styles.inputCard,
+                    styles.handleInputRow,
+                    focusedField === 'handle' && styles.inputCardFocused,
+                  ]}
+                >
+                  <Text style={styles.atSymbol}>@</Text>
+                  <TextInput
+                    style={styles.textInputHandle}
+                    placeholder="yourhandle"
+                    placeholderTextColor="#94A3B8"
+                    value={handle}
+                    onChangeText={handleHandleChange}
+                    onFocus={() => {
+                      setFocusedField('handle');
+                      triggerHaptic();
+                    }}
+                    onBlur={() => setFocusedField(null)}
+                    autoFocus
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                  />
+                  {isCheckingHandle && <ActivityIndicator size="small" color="#ff4d4d" />}
+                  {!isCheckingHandle && handleAvailable === true && (
+                    <View style={styles.verifiedBadge}>
+                      <Check size={14} color="#16A34A" strokeWidth={3} />
+                    </View>
+                  )}
+                  {!isCheckingHandle && handleAvailable === false && (
+                    <View style={styles.errorBadge}>
+                      <X size={14} color="#EF4444" strokeWidth={3} />
+                    </View>
+                  )}
+                </View>
+
+                <View style={styles.handleFeedbackRow}>
+                  {handleAvailable === true && (
+                    <Text style={styles.handleSuccessText}>✓ @{handle} is available!</Text>
+                  )}
+                  {handleError && (
+                    <Text style={styles.handleErrorText}>⚠ {handleError}</Text>
+                  )}
+                </View>
               </View>
+            )}
 
-              <View style={styles.handleFeedbackRow}>
-                {handleAvailable === true && (
-                  <Text style={styles.handleSuccessText}>✓ @{handle} is available!</Text>
-                )}
-                {handleError && (
-                  <Text style={styles.handleErrorText}>⚠ {handleError}</Text>
-                )}
+            {/* ── STEP 3: STYLE ── */}
+            {currentStep === 'STYLE' && (
+              <View style={styles.stepContainer}>
+                <Text style={styles.stepCategory}>STEP 3 OF 6 • METHODOLOGY</Text>
+                <Text style={styles.stepTitle}>How do you trade?</Text>
+                <Text style={styles.stepSubtitle}>
+                  Select your primary trading methodology so we can calibrate your analytics and metrics.
+                </Text>
+
+                <View style={styles.optionsList}>
+                  {TRADING_STYLES.map((item) => {
+                    const Icon = item.icon;
+                    const isSelected = style === item.label;
+                    return (
+                      <TouchableOpacity
+                        key={item.label}
+                        style={[styles.optionCard, isSelected && styles.optionCardSelected]}
+                        onPress={() => {
+                          triggerHaptic();
+                          setStyle(item.label);
+                        }}
+                        activeOpacity={0.8}
+                      >
+                        <View style={[styles.optionIconBox, isSelected && styles.optionIconBoxSelected]}>
+                          <Icon size={20} color={isSelected ? '#ff4d4d' : '#64748B'} />
+                        </View>
+                        <View style={styles.optionTextCol}>
+                          <Text style={[styles.optionTitle, isSelected && styles.optionTitleSelected]}>
+                            {item.label}
+                          </Text>
+                          <Text style={styles.optionDesc}>{item.desc}</Text>
+                        </View>
+                        <View style={[styles.radioCircle, isSelected && styles.radioCircleSelected]}>
+                          {isSelected && <View style={styles.radioDot} />}
+                        </View>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
               </View>
-            </View>
-          )}
+            )}
 
-          {/* ── STEP 3: STYLE ── */}
-          {currentStep === 'STYLE' && (
-            <View style={styles.stepContainer}>
-              <Text style={styles.stepCategory}>STEP 3 OF 6 • METHODOLOGY</Text>
-              <Text style={styles.stepTitle}>How do you trade?</Text>
-              <Text style={styles.stepSubtitle}>
-                Select your primary trading methodology so we can calibrate your analytics and metrics.
-              </Text>
+            {/* ── STEP 4: MARKET ── */}
+            {currentStep === 'MARKET' && (
+              <View style={styles.stepContainer}>
+                <Text style={styles.stepCategory}>STEP 4 OF 6 • ASSET CLASS</Text>
+                <Text style={styles.stepTitle}>What do you trade?</Text>
+                <Text style={styles.stepSubtitle}>
+                  Select the primary financial asset class you focus on.
+                </Text>
 
-              <View style={styles.optionsList}>
-                {TRADING_STYLES.map((item) => {
-                  const Icon = item.icon;
-                  const isSelected = style === item.label;
-                  return (
-                    <TouchableOpacity
-                      key={item.label}
-                      style={[styles.optionCard, isSelected && styles.optionCardSelected]}
-                      onPress={() => {
-                        triggerHaptic();
-                        setStyle(item.label);
-                      }}
-                      activeOpacity={0.8}
-                    >
-                      <View style={[styles.optionIconBox, isSelected && styles.optionIconBoxSelected]}>
-                        <Icon size={20} color={isSelected ? '#ff4d4d' : '#64748B'} />
-                      </View>
-                      <View style={styles.optionTextCol}>
-                        <Text style={[styles.optionTitle, isSelected && styles.optionTitleSelected]}>
+                <View style={styles.optionsList}>
+                  {MARKETS.map((item) => {
+                    const Icon = item.icon;
+                    const isSelected = market === item.label;
+                    return (
+                      <TouchableOpacity
+                        key={item.label}
+                        style={[styles.optionCard, isSelected && styles.optionCardSelected]}
+                        onPress={() => {
+                          triggerHaptic();
+                          setMarket(item.label);
+                        }}
+                        activeOpacity={0.8}
+                      >
+                        <View style={[styles.optionIconBox, isSelected && styles.optionIconBoxSelected]}>
+                          <Icon size={20} color={isSelected ? '#ff4d4d' : '#64748B'} />
+                        </View>
+                        <View style={styles.optionTextCol}>
+                          <Text style={[styles.optionTitle, isSelected && styles.optionTitleSelected]}>
+                            {item.label}
+                          </Text>
+                          <Text style={styles.optionDesc}>{item.desc}</Text>
+                        </View>
+                        <View style={[styles.radioCircle, isSelected && styles.radioCircleSelected]}>
+                          {isSelected && <View style={styles.radioDot} />}
+                        </View>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+            )}
+
+            {/* ── STEP 5: EDGE ── */}
+            {currentStep === 'EDGE' && (
+              <View style={styles.stepContainer}>
+                <Text style={styles.stepCategory}>STEP 5 OF 6 • YOUR EDGE</Text>
+                <Text style={styles.stepTitle}>What powers your edge?</Text>
+                <Text style={styles.stepSubtitle}>
+                  Select all strengths that define your trading strategy (choose one or more).
+                </Text>
+
+                <View style={styles.multiGrid}>
+                  {EDGES.map((item) => {
+                    const Icon = item.icon;
+                    const isSelected = selectedEdges.includes(item.label);
+                    return (
+                      <TouchableOpacity
+                        key={item.label}
+                        style={[styles.multiPill, isSelected && styles.multiPillSelected]}
+                        onPress={() => toggleItem(item.label, selectedEdges, setSelectedEdges)}
+                        activeOpacity={0.8}
+                      >
+                        <Icon size={16} color={isSelected ? '#ff4d4d' : '#64748B'} />
+                        <Text style={[styles.multiPillText, isSelected && styles.multiPillTextSelected]}>
                           {item.label}
                         </Text>
-                        <Text style={styles.optionDesc}>{item.desc}</Text>
-                      </View>
-                      <View style={[styles.radioCircle, isSelected && styles.radioCircleSelected]}>
-                        {isSelected && <View style={styles.radioDot} />}
-                      </View>
-                    </TouchableOpacity>
-                  );
-                })}
+                        {isSelected && <Check size={14} color="#ff4d4d" strokeWidth={3} />}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
               </View>
-            </View>
-          )}
+            )}
 
-          {/* ── STEP 4: MARKET ── */}
-          {currentStep === 'MARKET' && (
-            <View style={styles.stepContainer}>
-              <Text style={styles.stepCategory}>STEP 4 OF 6 • ASSET CLASS</Text>
-              <Text style={styles.stepTitle}>What do you trade?</Text>
-              <Text style={styles.stepSubtitle}>
-                Select the primary financial asset class you focus on.
-              </Text>
+            {/* ── STEP 6: HERE TO ── */}
+            {currentStep === 'HERE_TO' && (
+              <View style={styles.stepContainer}>
+                <Text style={styles.stepCategory}>STEP 6 OF 6 • OBJECTIVES</Text>
+                <Text style={styles.stepTitle}>What brings you to TradiFive?</Text>
+                <Text style={styles.stepSubtitle}>
+                  Choose what features you want us to highlight first on your dashboard.
+                </Text>
 
-              <View style={styles.optionsList}>
-                {MARKETS.map((item) => {
-                  const Icon = item.icon;
-                  const isSelected = market === item.label;
-                  return (
-                    <TouchableOpacity
-                      key={item.label}
-                      style={[styles.optionCard, isSelected && styles.optionCardSelected]}
-                      onPress={() => {
-                        triggerHaptic();
-                        setMarket(item.label);
-                      }}
-                      activeOpacity={0.8}
-                    >
-                      <View style={[styles.optionIconBox, isSelected && styles.optionIconBoxSelected]}>
-                        <Icon size={20} color={isSelected ? '#ff4d4d' : '#64748B'} />
-                      </View>
-                      <View style={styles.optionTextCol}>
-                        <Text style={[styles.optionTitle, isSelected && styles.optionTitleSelected]}>
-                          {item.label}
-                        </Text>
-                        <Text style={styles.optionDesc}>{item.desc}</Text>
-                      </View>
-                      <View style={[styles.radioCircle, isSelected && styles.radioCircleSelected]}>
-                        {isSelected && <View style={styles.radioDot} />}
-                      </View>
-                    </TouchableOpacity>
-                  );
-                })}
+                <View style={styles.optionsList}>
+                  {HERE_TO_OPTIONS.map((item) => {
+                    const Icon = item.icon;
+                    const isSelected = selectedHereTo.includes(item.label);
+                    return (
+                      <TouchableOpacity
+                        key={item.label}
+                        style={[styles.optionCard, isSelected && styles.optionCardSelected]}
+                        onPress={() => toggleItem(item.label, selectedHereTo, setSelectedHereTo)}
+                        activeOpacity={0.8}
+                      >
+                        <View style={[styles.optionIconBox, isSelected && styles.optionIconBoxSelected]}>
+                          <Icon size={20} color={isSelected ? '#ff4d4d' : '#64748B'} />
+                        </View>
+                        <View style={styles.optionTextCol}>
+                          <Text style={[styles.optionTitle, isSelected && styles.optionTitleSelected]}>
+                            {item.label}
+                          </Text>
+                        </View>
+                        <View style={[styles.checkboxSquare, isSelected && styles.checkboxSquareSelected]}>
+                          {isSelected && <Check size={14} color="#FFFFFF" strokeWidth={3} />}
+                        </View>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
               </View>
-            </View>
-          )}
+            )}
 
-          {/* ── STEP 5: EDGE ── */}
-          {currentStep === 'EDGE' && (
-            <View style={styles.stepContainer}>
-              <Text style={styles.stepCategory}>STEP 5 OF 6 • YOUR EDGE</Text>
-              <Text style={styles.stepTitle}>What powers your edge?</Text>
-              <Text style={styles.stepSubtitle}>
-                Select all strengths that define your trading strategy (choose one or more).
-              </Text>
+            {/* ── STEP 7: READY / ALL SET ── */}
+            {currentStep === 'READY' && (
+              <View style={styles.stepContainer}>
+                <Text style={styles.stepCategory}>COMPLETED • PASSPORT READY</Text>
+                <Text style={styles.stepTitle}>You're all set!</Text>
+                <Text style={styles.stepSubtitle}>
+                  Here is your official TradiFive Trading Passport. Welcome to the elite community.
+                </Text>
 
-              <View style={styles.multiGrid}>
-                {EDGES.map((item) => {
-                  const Icon = item.icon;
-                  const isSelected = selectedEdges.includes(item.label);
-                  return (
-                    <TouchableOpacity
-                      key={item.label}
-                      style={[styles.multiPill, isSelected && styles.multiPillSelected]}
-                      onPress={() => toggleItem(item.label, selectedEdges, setSelectedEdges)}
-                      activeOpacity={0.8}
-                    >
-                      <Icon size={16} color={isSelected ? '#ff4d4d' : '#64748B'} />
-                      <Text style={[styles.multiPillText, isSelected && styles.multiPillTextSelected]}>
-                        {item.label}
+                {/* Trading Passport Card */}
+                <View style={styles.passportCard}>
+                  <View style={styles.passportHeader}>
+                    <View style={styles.passportAvatarCircle}>
+                      <Text style={styles.passportAvatarText}>
+                        {(name || 'T').charAt(0).toUpperCase()}
                       </Text>
-                      {isSelected && <Check size={14} color="#ff4d4d" strokeWidth={3} />}
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            </View>
-          )}
-
-          {/* ── STEP 6: HERE TO ── */}
-          {currentStep === 'HERE_TO' && (
-            <View style={styles.stepContainer}>
-              <Text style={styles.stepCategory}>STEP 6 OF 6 • OBJECTIVES</Text>
-              <Text style={styles.stepTitle}>What brings you to TradiFive?</Text>
-              <Text style={styles.stepSubtitle}>
-                Choose what features you want us to highlight first on your dashboard.
-              </Text>
-
-              <View style={styles.optionsList}>
-                {HERE_TO_OPTIONS.map((item) => {
-                  const Icon = item.icon;
-                  const isSelected = selectedHereTo.includes(item.label);
-                  return (
-                    <TouchableOpacity
-                      key={item.label}
-                      style={[styles.optionCard, isSelected && styles.optionCardSelected]}
-                      onPress={() => toggleItem(item.label, selectedHereTo, setSelectedHereTo)}
-                      activeOpacity={0.8}
-                    >
-                      <View style={[styles.optionIconBox, isSelected && styles.optionIconBoxSelected]}>
-                        <Icon size={20} color={isSelected ? '#ff4d4d' : '#64748B'} />
-                      </View>
-                      <View style={styles.optionTextCol}>
-                        <Text style={[styles.optionTitle, isSelected && styles.optionTitleSelected]}>
-                          {item.label}
-                        </Text>
-                      </View>
-                      <View style={[styles.checkboxSquare, isSelected && styles.checkboxSquareSelected]}>
-                        {isSelected && <Check size={14} color="#FFFFFF" strokeWidth={3} />}
-                      </View>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            </View>
-          )}
-
-          {/* ── STEP 7: READY / ALL SET ── */}
-          {currentStep === 'READY' && (
-            <View style={styles.stepContainer}>
-              <Text style={styles.stepCategory}>COMPLETED • PASSPORT READY</Text>
-              <Text style={styles.stepTitle}>You're all set!</Text>
-              <Text style={styles.stepSubtitle}>
-                Here is your official TradiFive Trading Passport. Welcome to the elite community.
-              </Text>
-
-              {/* Trading Passport Card */}
-              <View style={styles.passportCard}>
-                <View style={styles.passportHeader}>
-                  <View style={styles.passportAvatarCircle}>
-                    <Text style={styles.passportAvatarText}>
-                      {(name || 'T').charAt(0).toUpperCase()}
-                    </Text>
+                    </View>
+                    <View style={{ flex: 1, marginLeft: 14 }}>
+                      <Text style={styles.passportName}>{name || 'Trader'}</Text>
+                      <Text style={styles.passportHandle}>@{handle || 'trader'}</Text>
+                    </View>
+                    <View style={styles.passportVerifiedBadge}>
+                      <CheckCircle2 size={14} color="#ff4d4d" />
+                      <Text style={styles.passportVerifiedText}>VERIFIED</Text>
+                    </View>
                   </View>
-                  <View style={{ flex: 1, marginLeft: 14 }}>
-                    <Text style={styles.passportName}>{name || 'Trader'}</Text>
-                    <Text style={styles.passportHandle}>@{handle || 'trader'}</Text>
+
+                  <View style={styles.passportDivider} />
+
+                  <View style={styles.passportTagsRow}>
+                    <View style={styles.passportTag}>
+                      <Text style={styles.passportTagLabel}>STYLE</Text>
+                      <Text style={styles.passportTagVal}>{style}</Text>
+                    </View>
+                    <View style={styles.passportTag}>
+                      <Text style={styles.passportTagLabel}>MARKET</Text>
+                      <Text style={styles.passportTagVal}>{market}</Text>
+                    </View>
                   </View>
-                  <View style={styles.passportVerifiedBadge}>
-                    <CheckCircle2 size={14} color="#ff4d4d" />
-                    <Text style={styles.passportVerifiedText}>VERIFIED</Text>
-                  </View>
+
+                  {selectedEdges.length > 0 && (
+                    <View style={{ marginTop: 14 }}>
+                      <Text style={styles.passportTagLabel}>EDGES</Text>
+                      <Text style={[styles.passportTagVal, { fontSize: 13, marginTop: 2 }]} numberOfLines={1}>
+                        {selectedEdges.join(' • ')}
+                      </Text>
+                    </View>
+                  )}
                 </View>
-
-                <View style={styles.passportDivider} />
-
-                <View style={styles.passportTagsRow}>
-                  <View style={styles.passportTag}>
-                    <Text style={styles.passportTagLabel}>STYLE</Text>
-                    <Text style={styles.passportTagVal}>{style}</Text>
-                  </View>
-                  <View style={styles.passportTag}>
-                    <Text style={styles.passportTagLabel}>MARKET</Text>
-                    <Text style={styles.passportTagVal}>{market}</Text>
-                  </View>
-                </View>
-
-                {selectedEdges.length > 0 && (
-                  <View style={{ marginTop: 14 }}>
-                    <Text style={styles.passportTagLabel}>EDGES</Text>
-                    <Text style={[styles.passportTagVal, { fontSize: 13, marginTop: 2 }]} numberOfLines={1}>
-                      {selectedEdges.join(' • ')}
-                    </Text>
-                  </View>
-                )}
               </View>
-            </View>
-          )}
-        </ScrollView>
+            )}
+          </ScrollView>
 
-        {/* ── BOTTOM ACTION BAR (WHITE MODE) ── */}
-        <SafeAreaView style={styles.safeBottom}>
-          <View style={styles.bottomBar}>
+          {/* ── BOTTOM ACTION BAR (WHITE MODE, ELEVATED ABOVE ANDROID SYSTEM BUTTONS) ── */}
+          <View style={[styles.bottomBar, { paddingBottom: bottomNavPadding }]}>
             <TouchableOpacity
               style={[styles.continueBtn, !canContinue() && styles.continueBtnDisabled]}
               disabled={!canContinue() || saving}
@@ -647,7 +698,7 @@ export default function ProfileSetupScreen() {
               )}
             </TouchableOpacity>
           </View>
-        </SafeAreaView>
+        </KeyboardAvoidingView>
       </View>
     </View>
   );
@@ -660,7 +711,6 @@ const styles = StyleSheet.create({
   },
   safeTop: {
     backgroundColor: '#000000',
-    paddingTop: Platform.OS === 'android' ? 24 : 0,
   },
   navBar: {
     height: 54,
@@ -726,7 +776,6 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 28,
     paddingTop: 32,
-    paddingBottom: 24,
   },
   stepContainer: {
     width: '100%',
@@ -1039,12 +1088,9 @@ const styles = StyleSheet.create({
   },
 
   /* ── Bottom Bar ── */
-  safeBottom: {
-    backgroundColor: '#FFFFFF',
-  },
   bottomBar: {
     paddingHorizontal: 24,
-    paddingVertical: 14,
+    paddingTop: 14,
     borderTopWidth: 1,
     borderTopColor: '#F1F5F9',
     backgroundColor: '#FFFFFF',
