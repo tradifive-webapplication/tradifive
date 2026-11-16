@@ -77,6 +77,7 @@ export const applyThemeWithTransition = (newTheme: 'light' | 'dark', onComplete?
   setTimeout(() => {
     // Write new theme to localStorage
     localStorage.setItem('theme', newTheme);
+    localStorage.setItem('tradifive_user_theme', newTheme);
     
     // Toggle DOM class
     if (newTheme === 'dark') {

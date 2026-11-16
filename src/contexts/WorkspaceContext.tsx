@@ -39,51 +39,67 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     return "tradifive";
   });
 
-  // Sync active workspace whenever route changes
+  // Sync active workspace whenever route changes and maintain proper theme
   useEffect(() => {
-    if (
+    const isFiAlgo =
       location.pathname.startsWith("/fialgo") ||
       location.pathname.startsWith("/auto-trade") ||
       location.pathname.startsWith("/strategy-builder") ||
-      location.pathname.startsWith("/weekly-settlements")
-    ) {
+      location.pathname.startsWith("/weekly-settlements");
+
+    if (isFiAlgo) {
       setActiveWorkspace("fialgo");
+      // FiAlgo Workspace runs in Dark/Black Mode matching Admin App
+      document.documentElement.classList.add("dark");
       try {
         localStorage.setItem(WORKSPACE_STORAGE_KEY, "fialgo");
       } catch (e) {}
-    } else if (
-      location.pathname === "/home" ||
-      location.pathname.startsWith("/journal") ||
-      location.pathname.startsWith("/channel") ||
-      location.pathname.startsWith("/competitions") ||
-      location.pathname.startsWith("/creator") ||
-      location.pathname.startsWith("/ai-coach") ||
-      location.pathname.startsWith("/discover") ||
-      location.pathname.startsWith("/settings") ||
-      location.pathname.startsWith("/risk-guard")
-    ) {
+    } else {
       setActiveWorkspace("tradifive");
       try {
         localStorage.setItem(WORKSPACE_STORAGE_KEY, "tradifive");
+        // Restore TradiFive's user-chosen theme (if black, restore black; if white, restore white)
+        const savedTheme = localStorage.getItem("tradifive_user_theme") || localStorage.getItem("theme") || "light";
+        if (savedTheme === "dark") {
+          document.documentElement.classList.add("dark");
+          localStorage.setItem("theme", "dark");
+        } else {
+          document.documentElement.classList.remove("dark");
+          localStorage.setItem("theme", "light");
+        }
+        window.dispatchEvent(new Event("storage"));
       } catch (e) {}
     }
   }, [location.pathname]);
 
   const switchWorkspace = (workspace: WorkspaceType) => {
     if (workspace === "fialgo") {
-      // Enter Dark Mode like admin app
-      document.documentElement.classList.add("dark");
+      // Save current TradiFive theme before entering FiAlgo
       try {
-        localStorage.setItem("tradifive_theme", "dark");
-        localStorage.setItem("theme", "dark");
+        const currentTheme =
+          localStorage.getItem("tradifive_user_theme") ||
+          localStorage.getItem("theme") ||
+          (document.documentElement.classList.contains("dark") ? "dark" : "light");
+        localStorage.setItem("tradifive_user_theme", currentTheme);
         localStorage.setItem(WORKSPACE_STORAGE_KEY, "fialgo");
       } catch (e) {}
 
+      document.documentElement.classList.add("dark");
       setIsTransitioning(true);
     } else {
       setActiveWorkspace("tradifive");
       try {
         localStorage.setItem(WORKSPACE_STORAGE_KEY, "tradifive");
+        // Restore TradiFive's user-chosen theme (if black, restore black; if white, restore white)
+        const savedTheme = localStorage.getItem("tradifive_user_theme") || "light";
+        if (savedTheme === "dark") {
+          document.documentElement.classList.add("dark");
+          localStorage.setItem("theme", "dark");
+        } else {
+          document.documentElement.classList.remove("dark");
+          localStorage.setItem("theme", "light");
+        }
+        window.dispatchEvent(new Event("storage"));
       } catch (e) {}
       navigate("/home");
     }

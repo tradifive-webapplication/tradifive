@@ -137,37 +137,16 @@ export default function AdminSidebar({ mobileOpen = false, onClose }: AdminSideb
           />
         </div>
 
-        <div className="flex items-center gap-2">
-          {/* Tactical Workload Signal Nodes */}
-          <div className="relative group cursor-help z-[200]">
-            <div className="signal-container">
-              <div className={`signal-node yellow ${workload >= 1 ? "active" : ""}`} />
-              <div className={`signal-node amber ${workload >= 2 ? "active" : ""}`} />
-              <div className={`signal-node red ${workload >= 3 ? "active" : ""}`} />
-            </div>
-            
-            <div className="absolute top-full right-0 mt-2 w-48 p-3 bg-[#1A1A1A] border border-white/10 rounded-lg shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[210]">
-              <p className="text-[10px] font-bold text-white uppercase tracking-widest mb-1">{ROLE_LABELS[effectiveRole as AdminRole]} Status</p>
-              <p className="text-[11px] text-neutral-400 leading-relaxed mb-3">{workloadMessage}</p>
-              <div className="space-y-1.5 pt-2 border-t border-white/5">
-                 <div className="flex items-center gap-2 text-[9px] text-neutral-500 font-bold uppercase tracking-widest"><div className="w-1.5 h-1.5 rounded-full bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.5)]" /> Normal</div>
-                 <div className="flex items-center gap-2 text-[9px] text-neutral-500 font-bold uppercase tracking-widest"><div className="w-1.5 h-1.5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]" /> Pending</div>
-                 <div className="flex items-center gap-2 text-[9px] text-neutral-500 font-bold uppercase tracking-widest"><div className="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]" /> Critical</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Mobile Close Button */}
-          {isMobileView && (
-            <button
-              onClick={onClose}
-              className="p-1.5 text-neutral-400 hover:text-white rounded-lg bg-white/5 hover:bg-white/10 transition-colors ml-1"
-              aria-label="Close menu"
-            >
-              <X size={18} />
-            </button>
-          )}
-        </div>
+        {/* Mobile Close Button */}
+        {isMobileView && (
+          <button
+            onClick={onClose}
+            className="p-1.5 text-neutral-400 hover:text-white rounded-lg bg-white/5 hover:bg-white/10 transition-colors ml-1"
+            aria-label="Close menu"
+          >
+            <X size={18} />
+          </button>
+        )}
       </div>
 
       {/* Dept Head Locked Banner */}

@@ -11,6 +11,21 @@ export default function FiAlgoLayout({ children }: { children: React.ReactNode }
   // Enforce dark mode matching Admin App strictly in FiAlgo Workspace
   useEffect(() => {
     document.documentElement.classList.add("dark");
+
+    return () => {
+      // When leaving FiAlgo Workspace, restore the user's TradiFive theme preference
+      try {
+        const saved = localStorage.getItem("tradifive_user_theme") || "light";
+        if (saved === "dark") {
+          document.documentElement.classList.add("dark");
+          localStorage.setItem("theme", "dark");
+        } else {
+          document.documentElement.classList.remove("dark");
+          localStorage.setItem("theme", "light");
+        }
+        window.dispatchEvent(new Event("storage"));
+      } catch (e) {}
+    };
   }, []);
 
   // Close mobile drawer on route navigation

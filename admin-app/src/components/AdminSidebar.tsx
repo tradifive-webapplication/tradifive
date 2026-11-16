@@ -18,7 +18,8 @@ import {
   Landmark,
   MessageSquare,
   Target,
-  GraduationCap
+  GraduationCap,
+  X
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -28,7 +29,12 @@ const BADGE_COLORS: Record<string, string> = {
   "ACTION": "bg-amber-500/20 text-amber-400 border border-amber-500/30",
 };
 
-export default function AdminSidebar() {
+interface AdminSidebarProps {
+  mobileOpen?: boolean;
+  onClose?: () => void;
+}
+
+export default function AdminSidebar({ mobileOpen = false, onClose }: AdminSidebarProps) {
   const { adminUser, signOut, viewRole, setViewRole } = useAdminAuth();
   const [showRoleSwitcher, setShowRoleSwitcher] = useState(false);
   const effectiveRole = viewRole || adminUser?.role;
@@ -36,6 +42,14 @@ export default function AdminSidebar() {
 
   const [workload, setWorkload] = useState(1);
   const [workloadMessage, setWorkloadMessage] = useState("System Normal");
+
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Close role switcher when route changes
+  useEffect(() => {
+    setShowRoleSwitcher(false);
+  }, [location.pathname]);
 
   // Workload Pulse Engine - Department Specific
   useEffect(() => {
@@ -81,14 +95,12 @@ export default function AdminSidebar() {
     return () => clearInterval(interval);
   }, [effectiveRole]);
 
-  const location = useLocation();
-  const navigate = useNavigate();
-
   if (!adminUser || !effectiveRole) return null;
 
   const groupedNav = getGroupedNavForRole(effectiveRole);
 
   const handleLogout = async () => {
+    onClose?.();
     await signOut();
     navigate("/login");
   };
@@ -108,11 +120,10 @@ export default function AdminSidebar() {
     { id: "mentor_manager",       label: "Head of Mentors (Mentors)",  icon: GraduationCap },
   ];
 
-  return (
-    <aside className="w-[260px] h-screen bg-[#1E1E1E] border-r border-white/5 flex flex-col shrink-0 select-none p-4 relative z-[100]">
-
+  const renderSidebarInner = (isMobileView: boolean) => (
+    <div className="flex flex-col h-full overflow-hidden">
       {/* Brand & Workload Signals */}
-      <div className="flex items-center justify-between mb-8 px-2 relative">
+      <div className="flex items-center justify-between mb-6 px-2 relative shrink-0">
         <div className="flex items-center gap-2.5">
           <img
             src="/favicon.png"
@@ -126,29 +137,21 @@ export default function AdminSidebar() {
           />
         </div>
 
-        {/* Tactical Workload Signal Nodes */}
-        <div className="relative group cursor-help z-[200]">
-          <div className="signal-container">
-            <div className={`signal-node yellow ${workload >= 1 ? "active" : ""}`} />
-            <div className={`signal-node amber ${workload >= 2 ? "active" : ""}`} />
-            <div className={`signal-node red ${workload >= 3 ? "active" : ""}`} />
-          </div>
-          
-          <div className="absolute top-full right-0 mt-2 w-48 p-3 bg-[#1A1A1A] border border-white/10 rounded-lg shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[210]">
-            <p className="text-[10px] font-bold text-white uppercase tracking-widest mb-1">{ROLE_LABELS[effectiveRole as AdminRole]} Status</p>
-            <p className="text-[11px] text-neutral-400 leading-relaxed mb-3">{workloadMessage}</p>
-            <div className="space-y-1.5 pt-2 border-t border-white/5">
-               <div className="flex items-center gap-2 text-[9px] text-neutral-500 font-bold uppercase tracking-widest"><div className="w-1.5 h-1.5 rounded-full bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.5)]" /> Normal</div>
-               <div className="flex items-center gap-2 text-[9px] text-neutral-500 font-bold uppercase tracking-widest"><div className="w-1.5 h-1.5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]" /> Pending</div>
-               <div className="flex items-center gap-2 text-[9px] text-neutral-500 font-bold uppercase tracking-widest"><div className="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]" /> Critical</div>
-            </div>
-          </div>
-        </div>
+        {/* Mobile Close Button */}
+        {isMobileView && (
+          <button
+            onClick={onClose}
+            className="p-1.5 text-neutral-400 hover:text-white rounded-lg bg-white/5 hover:bg-white/10 transition-colors ml-1"
+            aria-label="Close menu"
+          >
+            <X size={18} />
+          </button>
+        )}
       </div>
 
       {/* Dept Head Locked Banner */}
       {isDeptHead && (
-        <div className="mb-4 px-2">
+        <div className="mb-4 px-2 shrink-0">
           <div className="flex items-center gap-2 px-3 py-2 bg-blue-500/10 border border-blue-500/20 rounded-lg">
             <ShieldCheck size={11} className="text-blue-400 shrink-0" />
             <div className="min-w-0">
@@ -171,10 +174,10 @@ export default function AdminSidebar() {
           if (!hasSubGroups) {
             return (
               <div key={section}>
-                <p className="text-[9px] text-neutral-600 font-bold uppercase tracking-[0.2em] px-3 mb-3">
+                <p className="text-[9px] text-neutral-600 font-bold uppercase tracking-[0.2em] px-3 mb-2">
                   {section}
                 </p>
-                <div className="space-y-1">
+                <div className="space-y-0.5">
                   {items.map((item: NavItem) => {
                     const isActive =
                       location.pathname === item.path ||
@@ -184,19 +187,22 @@ export default function AdminSidebar() {
                       <Link
                         key={item.id}
                         to={item.path}
-                        className={`w-full flex items-center gap-3 px-3 py-2 rounded text-[13px] font-medium transition-none group relative z-20 cursor-pointer pointer-events-auto
+                        onClick={() => {
+                          if (isMobileView) onClose?.();
+                        }}
+                        className={`w-full flex items-center gap-3 px-3 py-2 rounded text-[13px] font-medium transition-colors group relative z-20 cursor-pointer pointer-events-auto
                           ${isActive
-                            ? "sidebar-active-item shadow-[0_0_20px_rgba(59,130,246,0.05)]"
-                            : "text-neutral-500 hover:text-neutral-300"
+                            ? "sidebar-active-item shadow-[0_0_20px_rgba(59,130,246,0.05)] font-semibold"
+                            : "text-neutral-500 hover:text-neutral-200 hover:bg-white/[0.03]"
                           }`}
                       >
                         <item.icon
                           size={15}
-                          className={isActive ? "text-white" : "text-zinc-700 group-hover:text-zinc-500"}
+                          className={isActive ? "text-white" : "text-zinc-600 group-hover:text-zinc-400"}
                         />
-                        <span className="flex-1 text-left">{item.label}</span>
+                        <span className="flex-1 text-left truncate">{item.label}</span>
                         {item.badge && (
-                          <span className={`text-[7px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider ${BADGE_COLORS[item.badge] || "bg-white/5 text-neutral-600"}`}>
+                          <span className={`text-[7px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider shrink-0 ${BADGE_COLORS[item.badge] || "bg-white/5 text-neutral-600"}`}>
                             {item.badge}
                           </span>
                         )}
@@ -218,14 +224,14 @@ export default function AdminSidebar() {
 
           return (
             <div key={section}>
-              <p className="text-[9px] text-neutral-600 font-bold uppercase tracking-[0.2em] px-3 mb-3">
+              <p className="text-[9px] text-neutral-600 font-bold uppercase tracking-[0.2em] px-3 mb-2">
                 {section}
               </p>
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {Object.entries(subGroups).map(([groupLabel, groupItems]) => (
                   <div key={groupLabel}>
                     {/* Sub-group label */}
-                    <div className="flex items-center gap-2 px-3 mb-1.5">
+                    <div className="flex items-center gap-2 px-3 mb-1">
                       <div className="h-px flex-1 bg-white/[0.04]" />
                       <p className="text-[7.5px] text-neutral-700 font-bold uppercase tracking-[0.18em] shrink-0">
                         {groupLabel}
@@ -242,19 +248,22 @@ export default function AdminSidebar() {
                           <Link
                             key={item.id}
                             to={item.path}
-                            className={`w-full flex items-center gap-3 px-3 py-2 rounded text-[13px] font-medium transition-none group relative z-20 cursor-pointer pointer-events-auto
+                            onClick={() => {
+                              if (isMobileView) onClose?.();
+                            }}
+                            className={`w-full flex items-center gap-3 px-3 py-2 rounded text-[13px] font-medium transition-colors group relative z-20 cursor-pointer pointer-events-auto
                               ${isActive
-                                ? "sidebar-active-item shadow-[0_0_20px_rgba(59,130,246,0.05)]"
-                                : "text-neutral-500 hover:text-neutral-300"
+                                ? "sidebar-active-item shadow-[0_0_20px_rgba(59,130,246,0.05)] font-semibold"
+                                : "text-neutral-500 hover:text-neutral-200 hover:bg-white/[0.03]"
                               }`}
                           >
                             <item.icon
                               size={15}
-                              className={isActive ? "text-white" : "text-zinc-700 group-hover:text-zinc-500"}
+                              className={isActive ? "text-white" : "text-zinc-600 group-hover:text-zinc-400"}
                             />
-                            <span className="flex-1 text-left">{item.label}</span>
+                            <span className="flex-1 text-left truncate">{item.label}</span>
                             {item.badge && (
-                              <span className={`text-[7px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider ${BADGE_COLORS[item.badge] || "bg-white/5 text-neutral-600"}`}>
+                              <span className={`text-[7px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider shrink-0 ${BADGE_COLORS[item.badge] || "bg-white/5 text-neutral-600"}`}>
                                 {item.badge}
                               </span>
                             )}
@@ -271,14 +280,14 @@ export default function AdminSidebar() {
       </nav>
 
       {/* User Session Profile with Integrated Switcher */}
-      <div className="mt-4 border-t border-white/5 pt-4 px-2 relative">
+      <div className="mt-3 border-t border-white/5 pt-3 px-1 relative shrink-0">
         <AnimatePresence>
           {showRoleSwitcher && (isActualCEO || adminUser.role === "hr_manager") && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 10 }}
-              className="absolute bottom-[105%] left-0 right-0 mb-1 bg-[#121212] border border-white/10 rounded-xl p-2 shadow-2xl z-[110] overflow-hidden"
+              className="absolute bottom-[105%] left-0 right-0 mb-1 bg-[#121212] border border-white/10 rounded-xl p-2 shadow-2xl z-[110] max-h-60 overflow-y-auto"
             >
               <p className="text-[8px] font-bold text-neutral-600 uppercase tracking-widest px-2 mb-2">
                 Department Access
@@ -297,9 +306,10 @@ export default function AdminSidebar() {
                     onClick={() => {
                       setViewRole(opt.id);
                       setShowRoleSwitcher(false);
+                      if (isMobileView) onClose?.();
                       navigate("/");
                     }}
-                    className={`w-full flex items-center gap-2 px-2 py-2 rounded text-[10px] font-bold uppercase tracking-tight transition-none ${
+                    className={`w-full flex items-center gap-2 px-2 py-2 rounded text-[10px] font-bold uppercase tracking-tight transition-colors ${
                       effectiveRole === opt.id
                         ? "bg-white/10 text-white"
                         : "text-neutral-500 hover:text-white"
@@ -309,7 +319,7 @@ export default function AdminSidebar() {
                       size={12}
                       className={effectiveRole === opt.id ? "text-white" : "text-neutral-700"}
                     />
-                    {opt.label}
+                    <span className="truncate">{opt.label}</span>
                   </button>
                 ))}
               </div>
@@ -319,7 +329,7 @@ export default function AdminSidebar() {
 
         <div
           onClick={() => (isActualCEO || adminUser.role === "hr_manager") && setShowRoleSwitcher(!showRoleSwitcher)}
-          className={`flex items-center justify-between p-2 rounded cursor-pointer transition-none border ${
+          className={`flex items-center justify-between p-2 rounded cursor-pointer transition-colors border ${
             showRoleSwitcher
               ? "bg-white/10 border-white/20"
               : "bg-white/[0.02] border-white/5 hover:bg-white/[0.04]"
@@ -343,7 +353,7 @@ export default function AdminSidebar() {
               </p>
             </div>
           </div>
-          <div className={`flex flex-col ${showRoleSwitcher ? "text-white" : "text-neutral-700"}`}>
+          <div className={`flex flex-col shrink-0 ${showRoleSwitcher ? "text-white" : "text-neutral-700"}`}>
             <ChevronUp size={10} className="-mb-0.5" />
             <ChevronDown size={10} className="-mt-0.5" />
           </div>
@@ -351,12 +361,49 @@ export default function AdminSidebar() {
 
         <button
           onClick={handleLogout}
-          className="mt-3 w-full flex items-center gap-2 px-3 py-2 text-neutral-600 hover:text-white text-[10px] font-bold uppercase tracking-widest transition-none"
+          className="mt-2.5 w-full flex items-center gap-2 px-3 py-1.5 text-neutral-600 hover:text-white text-[10px] font-bold uppercase tracking-widest transition-colors rounded hover:bg-white/5"
         >
           <LogOut size={12} />
           Disconnect
         </button>
       </div>
-    </aside>
+    </div>
+  );
+
+  return (
+    <>
+      {/* Desktop Persistent Sidebar */}
+      <aside className="hidden lg:flex w-[260px] h-screen bg-[#1E1E1E] border-r border-white/5 flex-col shrink-0 select-none p-4 relative z-20">
+        {renderSidebarInner(false)}
+      </aside>
+
+      {/* Mobile Responsive Slide-Over Drawer */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <div className="fixed inset-0 z-[150] lg:hidden">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={onClose}
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            />
+
+            {/* Sliding Panel */}
+            <motion.aside
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ type: "spring", damping: 28, stiffness: 280 }}
+              className="absolute inset-y-0 left-0 w-[290px] max-w-[85vw] h-full bg-[#1E1E1E] border-r border-white/10 flex flex-col select-none p-4 shadow-2xl"
+            >
+              {renderSidebarInner(true)}
+            </motion.aside>
+          </div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }

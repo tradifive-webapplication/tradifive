@@ -42,27 +42,30 @@ export default function FiAlgoAdminTopbar({ onOpenMobileMenu }: FiAlgoAdminTopba
 
   const getPageTitle = () => {
     const p = location.pathname;
-    if (p === "/fialgo") return "Payments";
-    if (p.startsWith("/auto-trade/dashboard")) return "Auto Trade Terminal";
+    if (p === "/fialgo") return "Auto Trade Engine";
+    if (p.startsWith("/auto-trade/dashboard")) return "MT5 Execution Pulse";
     if (p.startsWith("/auto-trade/active-bots")) return "Active Bots";
     if (p.startsWith("/auto-trade/marketplace")) return "Algo Marketplace";
     if (p.startsWith("/strategy-builder")) return "Strategy Builder";
-    if (p.startsWith("/auto-trade/history")) return "Transaction Ledger";
-    if (p.startsWith("/weekly-settlements")) return "Payout Approvals";
-    if (p.startsWith("/auto-trade/license")) return "License Keys";
-    if (p.startsWith("/auto-trade/setup")) return "MT5 Monitor";
-    return "Overview";
+    if (p.startsWith("/auto-trade/history")) return "Order History";
+    if (p.startsWith("/weekly-settlements")) return "Weekly Settlements";
+    if (p.startsWith("/auto-trade/license")) return "EA License & Keys";
+    if (p.startsWith("/risk-guard")) return "Configure Risk & Lots";
+    if (p.startsWith("/broker-connect")) return "Broker Setup & MT5";
+    return "Auto Trade Engine";
   };
 
   const navItems = [
-    { label: "Executive Terminal", path: "/fialgo", category: "Overview" },
-    { label: "Auto Trade Engine", path: "/auto-trade/dashboard", category: "Terminal" },
+    { label: "Auto Trade Engine", path: "/fialgo", category: "Overview" },
+    { label: "MT5 Execution Pulse", path: "/auto-trade/dashboard", category: "Terminal" },
     { label: "Active Bots", path: "/auto-trade/active-bots", category: "Bots" },
     { label: "Algo Marketplace", path: "/auto-trade/marketplace", category: "Market" },
     { label: "Strategy Builder", path: "/strategy-builder", category: "Builder" },
-    { label: "Transaction Ledger", path: "/auto-trade/history", category: "Finance" },
-    { label: "Payout Approvals", path: "/weekly-settlements", category: "Finance" },
-    { label: "MT5 Monitor", path: "/auto-trade/setup", category: "Terminal" },
+    { label: "Order History", path: "/auto-trade/history", category: "Execution" },
+    { label: "Weekly Settlements", path: "/weekly-settlements", category: "Settlements" },
+    { label: "EA License & Keys", path: "/auto-trade/license", category: "License" },
+    { label: "Configure Risk & Lots", path: "/risk-guard", category: "Risk" },
+    { label: "Broker Setup & MT5", path: "/broker-connect", category: "MT5" },
   ];
 
   const filteredItems = topSearchQuery.trim()
@@ -103,7 +106,7 @@ export default function FiAlgoAdminTopbar({ onOpenMobileMenu }: FiAlgoAdminTopba
             onChange={(e) => setTopSearchQuery(e.target.value)}
             onFocus={() => setShowTopSearch(true)}
             onBlur={() => setTimeout(() => setShowTopSearch(false), 250)}
-            placeholder="Search pages, employees, clients..."
+            placeholder="Search algo bots, strategies, executions, routes..."
             className="w-full bg-[#18181A] hover:bg-[#1D1D20] focus:bg-[#202024] border border-white/10 focus:border-blue-500/50 rounded-lg flex items-center pl-10 pr-12 py-2 text-xs text-white outline-none transition-all placeholder:text-neutral-500 focus:shadow-[0_0_20px_rgba(59,130,246,0.15)]"
           />
           <div className="absolute right-2.5 flex items-center gap-1 pointer-events-none">
@@ -192,8 +195,8 @@ export default function FiAlgoAdminTopbar({ onOpenMobileMenu }: FiAlgoAdminTopba
         </div>
       </div>
 
-      {/* Right: Exact Admin App Buttons (LIVE APP, AGENT, CEO Badge, Bell) */}
-      <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+      {/* Right: Only Notification Bell */}
+      <div className="flex items-center gap-2 shrink-0">
         {/* Mobile Search Button */}
         <button
           onClick={() => setShowMobileSearch(true)}
@@ -203,46 +206,12 @@ export default function FiAlgoAdminTopbar({ onOpenMobileMenu }: FiAlgoAdminTopba
           <Search size={18} />
         </button>
 
-        {/* LIVE APP Button (Exact match from AdminLayout.tsx line 520) */}
-        <button
-          onClick={() => navigate("/auto-trade/dashboard")}
-          className="flex items-center gap-1.5 p-1.5 sm:px-3 sm:py-1.5 bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 hover:text-blue-300 rounded border border-blue-500/20 transition-all shadow-[0_0_15px_rgba(59,130,246,0.1)] cursor-pointer"
-          title="Open Live App Viewer"
-        >
-          <Monitor size={14} className="text-blue-500" />
-          <span className="text-[10px] font-bold uppercase tracking-widest hidden md:inline-block">
-            LIVE APP
-          </span>
-        </button>
-
-        {/* AGENT Button (Exact match from AdminLayout.tsx line 527) */}
-        <button
-          onClick={() => navigate("/strategy-builder")}
-          className="flex items-center gap-1.5 p-1.5 sm:px-3 sm:py-1.5 bg-transparent hover:bg-white/[0.05] rounded text-neutral-400 hover:text-white transition-colors border border-transparent hover:border-white/10 cursor-pointer"
-          title="Agent Command"
-        >
-          <BotMessageSquare size={14} className="text-[#a855f7]" />
-          <span className="text-[10px] font-bold uppercase tracking-widest hidden md:inline-block">
-            AGENT
-          </span>
-        </button>
-
-        <div className="w-px h-4 bg-white/10 mx-1 hidden sm:block" />
-
-        {/* Role Pill: CEO (Exact match from AdminLayout.tsx line 538) */}
-        <div className="hidden sm:flex items-center gap-2 px-2.5 py-1 bg-white/[0.03] border border-white/5 rounded">
-          <div className="w-1.5 h-1.5 rounded-full bg-neutral-600" />
-          <span className="text-[9px] font-bold uppercase tracking-widest text-neutral-500">
-            CEO
-          </span>
-        </div>
-
         {/* Notification Bell */}
         <button
-          className="p-1.5 text-neutral-400 hover:text-white rounded-lg hover:bg-white/5 transition-colors relative"
+          className="p-1.5 text-neutral-400 hover:text-white rounded-lg hover:bg-white/5 transition-colors relative cursor-pointer"
           aria-label="Notifications"
         >
-          <Bell size={16} />
+          <Bell size={17} />
         </button>
       </div>
 
@@ -257,7 +226,7 @@ export default function FiAlgoAdminTopbar({ onOpenMobileMenu }: FiAlgoAdminTopba
               type="text"
               value={topSearchQuery}
               onChange={(e) => setTopSearchQuery(e.target.value)}
-              placeholder="Search pages, employees, clients..."
+              placeholder="Search algo bots, strategies, executions, routes..."
               className="flex-1 bg-transparent text-sm text-white outline-none placeholder:text-neutral-500"
             />
             <button

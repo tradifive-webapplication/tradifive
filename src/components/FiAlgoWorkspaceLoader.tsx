@@ -18,12 +18,16 @@ export default function FiAlgoWorkspaceLoader({ onComplete }: FiAlgoWorkspaceLoa
   const [isExiting, setIsExiting] = useState(false);
 
   useEffect(() => {
-    // Ensure dark mode is active immediately
-    document.documentElement.classList.add("dark");
+    // Preserve current TradiFive theme preference before applying dark mode
     try {
-      localStorage.setItem("tradifive_theme", "dark");
-      localStorage.setItem("theme", "dark");
+      if (!localStorage.getItem("tradifive_user_theme")) {
+        const current = localStorage.getItem("theme") || (document.documentElement.classList.contains("dark") ? "dark" : "light");
+        localStorage.setItem("tradifive_user_theme", current);
+      }
     } catch (e) {}
+
+    // Ensure Dark Mode matching Admin App is active immediately in FiAlgo
+    document.documentElement.classList.add("dark");
 
     const startTime = Date.now();
     const duration = 1400; // 1.4s smooth progress
@@ -40,7 +44,7 @@ export default function FiAlgoWorkspaceLoader({ onComplete }: FiAlgoWorkspaceLoa
 
       if (pct >= 100) {
         clearInterval(interval);
-        // Begin exit transition (logo moves towards top-left like admin app)
+        // Begin exit transition (smooth transition to top-left like admin app)
         setTimeout(() => {
           setIsExiting(true);
           setTimeout(() => {
@@ -117,6 +121,14 @@ export default function FiAlgoWorkspaceLoader({ onComplete }: FiAlgoWorkspaceLoa
             </span>
             <span className="text-slate-400 font-semibold">{progress}%</span>
           </div>
+        </div>
+
+        {/* Subtle Tech Footer Pill */}
+        <div className="mt-8 flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/10 shadow-xs">
+          <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">
+            Institutional Low-Latency MT5 Bridge
+          </span>
         </div>
       </div>
     </div>

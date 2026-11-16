@@ -1018,3 +1018,97 @@ button:active:not(:disabled) {
 body.tf-sheet-open {
   overflow: hidden !important;
 }
+
+/* ══════ ADMIN APP EXACT THEME STYLES (MATCHING ADMIN APP CACHED & HIGH-END DESIGN) ══════ */
+.sidebar-active-item {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.03) 50%, rgba(168, 85, 247, 0.15) 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  box-shadow: none !important;
+  border-radius: 10px !important;
+  position: relative;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.sidebar-active-item::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 15%;
+  bottom: 15%;
+  width: 4px;
+  background: #a855f7;
+  box-shadow: -2px 0 12px 1px rgba(168, 85, 247, 0.5);
+  border-radius: 4px 0 0 4px;
+}
+
+.sidebar-active-item svg {
+  color: white !important;
+  transition: all 0.3s;
+}
+
+.sidebar-active-item span {
+  color: white !important;
+  font-weight: 600 !important;
+  transition: all 0.3s;
+}
+
+.signal-container {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 4px 10px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+  height: 24px;
+}
+
+.signal-node {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.03);
+  box-shadow: hsla(0, 0%, 100%, .05) 0 1px 1px, inset hsla(0, 0%, 0%, .5) 0 0 0 1px;
+  transition: all 0.4s cubic-bezier(.8, 0, 1, 1);
+  position: relative;
+}
+
+.signal-node.active {
+  box-shadow: 0 0 15px currentColor;
+}
+
+.signal-node.yellow.active {
+  background-image: radial-gradient(circle, #fef08a 0%, #facc15 15%, rgba(250, 204, 21, 0.3) 28%, transparent 70%);
+  color: rgba(250, 204, 21, 0.6);
+}
+
+.signal-node.amber.active {
+  background-image: radial-gradient(circle, #fbbf24 0%, #d97706 15%, rgba(217, 119, 6, 0.3) 28%, transparent 70%);
+  color: rgba(217, 119, 6, 0.6);
+}
+
+.signal-node.red.active {
+  background-image: radial-gradient(circle, #f87171 0%, #dc2626 15%, rgba(220, 38, 38, 0.3) 28%, transparent 70%);
+  color: rgba(220, 38, 38, 0.6);
+  animation: signal-pulse 1.5s infinite;
+}
+
+@keyframes signal-pulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.15); opacity: 0.7; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.admin-box {
+  background-color: #161618;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+}
+
+.admin-sub-box {
+  background-color: #1C1C20;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+}
+

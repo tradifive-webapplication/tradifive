@@ -18,12 +18,16 @@ export default function FiAlgoWorkspaceLoader({ onComplete }: FiAlgoWorkspaceLoa
   const [isExiting, setIsExiting] = useState(false);
 
   useEffect(() => {
-    // Ensure Dark Mode matching Admin App is active immediately
-    document.documentElement.classList.add("dark");
+    // Preserve current TradiFive theme preference before applying dark mode
     try {
-      localStorage.setItem("tradifive_theme", "dark");
-      localStorage.setItem("theme", "dark");
+      if (!localStorage.getItem("tradifive_user_theme")) {
+        const current = localStorage.getItem("theme") || (document.documentElement.classList.contains("dark") ? "dark" : "light");
+        localStorage.setItem("tradifive_user_theme", current);
+      }
     } catch (e) {}
+
+    // Ensure Dark Mode matching Admin App is active immediately in FiAlgo
+    document.documentElement.classList.add("dark");
 
     const startTime = Date.now();
     const duration = 1400; // 1.4s smooth progress
