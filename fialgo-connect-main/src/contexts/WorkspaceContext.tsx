@@ -39,7 +39,7 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     return "tradifive";
   });
 
-  // Sync active workspace whenever route changes
+  // Sync active workspace whenever route changes and maintain proper theme
   useEffect(() => {
     if (
       location.pathname.startsWith("/fialgo") ||
@@ -48,7 +48,11 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       location.pathname.startsWith("/weekly-settlements")
     ) {
       setActiveWorkspace("fialgo");
+      // FiAlgo Workspace runs strictly in clean White Mode (like admin app in white mode)
+      document.documentElement.classList.remove("dark");
       try {
+        localStorage.setItem("tradifive_theme", "light");
+        localStorage.setItem("theme", "light");
         localStorage.setItem(WORKSPACE_STORAGE_KEY, "fialgo");
       } catch (e) {}
     } else if (
@@ -71,11 +75,11 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const switchWorkspace = (workspace: WorkspaceType) => {
     if (workspace === "fialgo") {
-      // Enter Dark Mode like admin app
-      document.documentElement.classList.add("dark");
+      // Enter White Mode like admin app in white mode
+      document.documentElement.classList.remove("dark");
       try {
-        localStorage.setItem("tradifive_theme", "dark");
-        localStorage.setItem("theme", "dark");
+        localStorage.setItem("tradifive_theme", "light");
+        localStorage.setItem("theme", "light");
         localStorage.setItem(WORKSPACE_STORAGE_KEY, "fialgo");
       } catch (e) {}
 

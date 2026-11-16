@@ -18,11 +18,11 @@ export default function FiAlgoWorkspaceLoader({ onComplete }: FiAlgoWorkspaceLoa
   const [isExiting, setIsExiting] = useState(false);
 
   useEffect(() => {
-    // Ensure dark mode is active immediately
-    document.documentElement.classList.add("dark");
+    // Ensure White Mode is strictly active
+    document.documentElement.classList.remove("dark");
     try {
-      localStorage.setItem("tradifive_theme", "dark");
-      localStorage.setItem("theme", "dark");
+      localStorage.setItem("tradifive_theme", "light");
+      localStorage.setItem("theme", "light");
     } catch (e) {}
 
     const startTime = Date.now();
@@ -40,7 +40,7 @@ export default function FiAlgoWorkspaceLoader({ onComplete }: FiAlgoWorkspaceLoa
 
       if (pct >= 100) {
         clearInterval(interval);
-        // Begin exit transition (logo moves towards top-left like admin app)
+        // Begin exit transition (smooth transition to top-left like admin app)
         setTimeout(() => {
           setIsExiting(true);
           setTimeout(() => {
@@ -55,18 +55,18 @@ export default function FiAlgoWorkspaceLoader({ onComplete }: FiAlgoWorkspaceLoa
 
   return (
     <div
-      className={`fixed inset-0 z-[99999] bg-[#0A0A0C] flex flex-col items-center justify-center font-sans select-none overflow-hidden transition-opacity duration-300 ${
+      className={`fixed inset-0 z-[99999] bg-[#F8FAFC] flex flex-col items-center justify-center font-sans select-none overflow-hidden transition-opacity duration-300 ${
         isExiting ? "opacity-0 pointer-events-none" : "opacity-100"
       }`}
       style={{
-        background: "radial-gradient(circle at 50% 40%, rgba(147, 51, 234, 0.18) 0%, rgba(10, 10, 12, 0.98) 70%)",
+        background: "radial-gradient(circle at 50% 40%, rgba(168, 85, 247, 0.08) 0%, rgba(248, 250, 252, 0.98) 70%)",
       }}
     >
       {/* Ambient background grid */}
       <div 
-        className="absolute inset-0 opacity-[0.04] pointer-events-none"
+        className="absolute inset-0 opacity-[0.4] pointer-events-none"
         style={{
-          backgroundImage: "linear-gradient(to right, #ffffff 1px, transparent 1px), linear-gradient(to bottom, #ffffff 1px, transparent 1px)",
+          backgroundImage: "linear-gradient(to right, #E2E8F0 1px, transparent 1px), linear-gradient(to bottom, #E2E8F0 1px, transparent 1px)",
           backgroundSize: "36px 36px"
         }}
       />
@@ -79,44 +79,52 @@ export default function FiAlgoWorkspaceLoader({ onComplete }: FiAlgoWorkspaceLoa
       >
         {/* Glowing Logo Container */}
         <div className="relative mb-6 flex items-center justify-center">
-          <div className="absolute -inset-4 rounded-3xl bg-purple-600/25 blur-xl animate-pulse" />
-          <div className="relative w-20 h-20 rounded-2xl bg-white/[0.04] border border-white/10 flex items-center justify-center p-3.5 shadow-2xl backdrop-blur-md">
+          <div className="absolute -inset-4 rounded-3xl bg-purple-500/15 blur-xl animate-pulse" />
+          <div className="relative w-20 h-20 rounded-2xl bg-white border border-slate-200/90 flex items-center justify-center p-3.5 shadow-[0_10px_25px_-5px_rgba(168,85,247,0.15)]">
             <img
               src="/fialgo-logo.png"
               alt="FiAlgo"
-              className="w-full h-full object-contain drop-shadow-[0_0_16px_rgba(168,85,247,0.7)]"
+              className="w-full h-full object-contain drop-shadow-[0_2px_8px_rgba(168,85,247,0.3)]"
             />
           </div>
         </div>
 
         {/* Title */}
-        <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white mb-2 font-sans">
+        <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 mb-2 font-sans">
           Building your FiAlgo Workspace
         </h2>
 
         {/* Dynamic Phase Subtitle */}
-        <p className="text-[13px] font-medium text-slate-400 min-h-[22px] tracking-wide transition-all duration-200">
+        <p className="text-[13px] font-medium text-slate-500 min-h-[22px] tracking-wide transition-all duration-200">
           {statusText}
         </p>
 
         {/* Horizontal Progress Bar */}
         <div className="w-full max-w-xs sm:max-w-sm mt-6">
-          <div className="w-full h-2 rounded-full bg-white/[0.08] p-0.5 overflow-hidden border border-white/10 shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)]">
+          <div className="w-full h-2 rounded-full bg-slate-200/80 p-0.5 overflow-hidden border border-slate-300/60 shadow-inner">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-purple-600 via-indigo-500 to-cyan-400 transition-all duration-75 ease-out shadow-[0_0_14px_rgba(168,85,247,0.9)] relative"
+              className="h-full rounded-full bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 transition-all duration-75 ease-out shadow-[0_0_12px_rgba(168,85,247,0.5)] relative"
               style={{ width: `${progress}%` }}
             >
-              <div className="absolute right-0 top-0 bottom-0 w-2 bg-white/70 rounded-full blur-[1px]" />
+              <div className="absolute right-0 top-0 bottom-0 w-2 bg-white/80 rounded-full blur-[1px]" />
             </div>
           </div>
 
           {/* Progress Percent + Algo Tag */}
           <div className="flex items-center justify-between mt-2.5 px-0.5 text-[11px] font-mono">
-            <span className="text-purple-400/90 font-bold uppercase tracking-wider">
+            <span className="text-purple-600 font-bold uppercase tracking-wider">
               ALGO ENGINE v2.4
             </span>
-            <span className="text-slate-400 font-semibold">{progress}%</span>
+            <span className="text-slate-600 font-semibold">{progress}%</span>
           </div>
+        </div>
+
+        {/* Subtle Tech Footer Pill */}
+        <div className="mt-8 flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-slate-200/80 shadow-xs">
+          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">
+            Institutional Low-Latency MT5 Bridge
+          </span>
         </div>
       </div>
     </div>

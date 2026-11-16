@@ -15,6 +15,7 @@ import BottomNav from "./BottomNav";
 import NotificationHub from "./NotificationHub";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
+import FiAlgoLayout from "./FiAlgoLayout";
 
 interface Breadcrumb {
   label: string;
@@ -499,6 +500,11 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
     gradientClass = "from-[#e0f2fe] via-[#f0f9ff] to-[#f4faff]";
   } else if (bgFadeStyle === 'rose') {
     gradientClass = "from-[#ffe4e6] via-[#fff1f2] to-[#fff5f6]";
+  }
+
+  // When inside FiAlgo Workspace, render the exact Admin App architecture in White Mode
+  if (isFiAlgo) {
+    return <FiAlgoLayout>{children}</FiAlgoLayout>;
   }
 
   return (
