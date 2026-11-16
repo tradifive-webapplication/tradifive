@@ -1338,16 +1338,7 @@ MagicNumber=789104
                   <ArrowLeft size={13} />
                   <span>Back</span>
                 </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => navigate('/auto-trade')}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-neutral-400 hover:text-white transition-colors cursor-pointer"
-                >
-                  <ArrowLeft size={13} />
-                  <span>Back to Auto Trade</span>
-                </button>
-              )}
+              ) : <div />}
 
               <span className="text-[11.5px] font-medium text-neutral-500">
                 Step {activeStep} of 4

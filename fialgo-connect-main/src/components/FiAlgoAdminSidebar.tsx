@@ -4,7 +4,6 @@ import { supabase } from "@/lib/supabase";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
 import FiAlgoLogo from "./FiAlgoLogo";
 import {
-  LogOut,
   Bot,
   Activity,
   Cpu,
@@ -134,12 +133,6 @@ export default function FiAlgoAdminSidebar({ mobileOpen = false, onClose }: FiAl
     }
     loadUser();
   }, []);
-
-  const handleDisconnect = async () => {
-    onClose?.();
-    switchWorkspace("tradifive");
-    navigate("/journal");
-  };
 
   // Exactly ONE button under OVERVIEW: first works as Setup, then converts to Dashboard
   const navSections: NavSection[] = [
@@ -330,14 +323,6 @@ export default function FiAlgoAdminSidebar({ mobileOpen = false, onClose }: FiAl
             </button>
           </div>
         )}
-
-        <button
-          onClick={handleDisconnect}
-          className="mt-3 w-full flex items-center justify-center gap-2 py-2 text-neutral-500 hover:text-white text-[10px] font-bold uppercase tracking-[0.2em] transition-colors rounded hover:bg-white/5 cursor-pointer"
-        >
-          <LogOut size={12} />
-          DISCONNECT
-        </button>
       </div>
     </div>
   );
