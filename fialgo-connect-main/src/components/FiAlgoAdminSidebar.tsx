@@ -55,9 +55,36 @@ export default function FiAlgoAdminSidebar({ mobileOpen = false, onClose }: FiAl
   const [userProfile, setUserProfile] = useState<{
     fullName: string;
     email: string;
-  }>({
-    fullName: "nikil harake",
-    email: "nikilharake369@gmail.com",
+  }>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const cached = localStorage.getItem("fialgo_user_profile");
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (parsed && (parsed.email || parsed.fullName)) {
+            return parsed;
+          }
+        }
+        // Check Supabase session cache in localStorage for immediate synchronous email
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.includes("auth-token")) {
+            const authData = JSON.parse(localStorage.getItem(key) || "{}");
+            const u = authData?.user;
+            if (u?.email) {
+              return {
+                fullName: u.user_metadata?.full_name || u.email.split("@")[0] || "Trader",
+                email: u.email,
+              };
+            }
+          }
+        }
+      } catch (e) {}
+    }
+    return {
+      fullName: "",
+      email: "",
+    };
   });
 
   const [isLogoHovered, setIsLogoHovered] = useState(false);
@@ -82,10 +109,24 @@ export default function FiAlgoAdminSidebar({ mobileOpen = false, onClose }: FiAl
             .eq("id", user.id)
             .maybeSingle();
 
-          setUserProfile({
-            fullName: profile?.full_name || profile?.username || user.user_metadata?.full_name || "nikil harake",
-            email: user.email || profile?.email || "nikilharake369@gmail.com",
-          });
+          const resolvedFullName =
+            profile?.full_name ||
+            profile?.username ||
+            user.user_metadata?.full_name ||
+            user.email?.split("@")[0] ||
+            "Trader";
+
+          const resolvedEmail = user.email || profile?.email || "";
+
+          const profileObj = {
+            fullName: resolvedFullName,
+            email: resolvedEmail,
+          };
+
+          setUserProfile(profileObj);
+          try {
+            localStorage.setItem("fialgo_user_profile", JSON.stringify(profileObj));
+          } catch (e) {}
         }
       } catch (err) {
         console.error(err);
@@ -259,14 +300,14 @@ export default function FiAlgoAdminSidebar({ mobileOpen = false, onClose }: FiAl
         >
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-9 h-9 rounded-lg bg-[#0E0E10] border border-white/[0.08] text-xs font-bold text-white flex items-center justify-center shrink-0 uppercase shadow-inner">
-              {userProfile.fullName ? userProfile.fullName.trim().charAt(0).toUpperCase() : "N"}
+              {userProfile.fullName ? userProfile.fullName.trim().charAt(0).toUpperCase() : (userProfile.email ? userProfile.email.charAt(0).toUpperCase() : "U")}
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-xs font-bold text-white truncate leading-tight">
-                {userProfile.fullName}
+                {userProfile.fullName || (userProfile.email ? userProfile.email.split("@")[0] : "Trader")}
               </p>
               <p className="text-[10px] text-neutral-400 truncate mt-0.5 font-medium tracking-tight">
-                {userProfile.email}
+                {userProfile.email || "Syncing account..."}
               </p>
             </div>
           </div>
