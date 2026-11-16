@@ -981,17 +981,17 @@
   scrollbar-width: none !important;
 }
 
-/* Mobile clean edge - prevent native browser scrollbars from breaking card layouts */
-@media (max-width: 768px) {
-  ::-webkit-scrollbar {
-    display: none !important;
-    width: 0 !important;
-    height: 0 !important;
-  }
-  * {
-    -ms-overflow-style: none !important;
-    scrollbar-width: none !important;
-  }
+/* Universal clean scrollbar - hide native browser scrollbars completely while keeping full scroll functionality */
+::-webkit-scrollbar,
+*::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+html, body, * {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
 }
 
 @layer utilities {

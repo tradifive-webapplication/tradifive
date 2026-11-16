@@ -46,7 +46,7 @@ export default function FiAlgoLayout({ children }: { children: React.ReactNode }
         <FiAlgoAdminTopbar onOpenMobileMenu={() => setMobileMenuOpen(true)} />
 
         {/* Content Area - Full Matte Width & Proper Mobile Fit (Admin App #121212 background) */}
-        <main className="flex-1 overflow-y-auto overflow-x-hidden bg-[#121212] p-3.5 sm:p-5 md:p-6 pb-24 lg:pb-6">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide bg-[#121212] p-3.5 sm:p-5 md:p-6 pb-24 lg:pb-6">
           <div className="max-w-[1500px] mx-auto w-full min-w-0">
             {children}
           </div>

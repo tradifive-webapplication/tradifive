@@ -7,9 +7,7 @@
 @layer base {
   :root {
     --background: 222 47% 4%;
-    /* #0D0D0D */
     --sidebar: 0 0% 12%;
-    /* #1E1E1E */
     --foreground: 0 0% 98%;
     --radius: 0.5rem;
   }
@@ -21,11 +19,22 @@
     padding: 0;
     overflow: hidden;
   }
-}
 
-body {
-  @apply bg-[#121212] text-[#E5E5E5] antialiased overflow-hidden;
-  font-family: 'Inter', sans-serif;
+  body {
+    @apply bg-[#0F0F11] text-[#E5E5E5] antialiased overflow-hidden font-sans;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  /* Consistent sleek styling for select inputs across the entire admin app */
+  select {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239CA3AF' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.65rem center;
+    background-repeat: no-repeat;
+    background-size: 1.15em 1.15em;
+    padding-right: 2.2rem !important;
+    -webkit-appearance: none;
+    appearance: none;
+  }
 }
 
 /* Hide scrollbar but allow scrolling */
@@ -37,6 +46,26 @@ body {
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
+  }
+
+  /* Unified Admin Box System */
+  .admin-box {
+    background-color: #161618;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+  }
+
+  .admin-box-hover {
+    transition: border-color 0.2s ease, transform 0.2s ease;
+  }
+  .admin-box-hover:hover {
+    border-color: rgba(255, 255, 255, 0.18);
+  }
+
+  .admin-sub-box {
+    background-color: #1C1C20;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
   }
 }
 
@@ -266,17 +295,17 @@ body {
   background: rgba(255, 255, 255, 0.02);
 }
 
-::-webkit-scrollbar {
-  width: 4px;
+/* Universal clean scrollbar - hide native browser scrollbars completely */
+::-webkit-scrollbar,
+*::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #1E1E1E;
-  border-radius: 0;
+html, body, * {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
 }
 
 ::selection {

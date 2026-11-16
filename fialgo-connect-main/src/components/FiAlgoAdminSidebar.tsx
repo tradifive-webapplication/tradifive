@@ -4,7 +4,6 @@ import { supabase } from "@/lib/supabase";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
 import {
   LogOut,
-  LayoutDashboard,
   Bot,
   Activity,
   ShoppingBag,
@@ -19,11 +18,11 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 
 const BADGE_COLORS: Record<string, string> = {
-  "NEW": "bg-purple-500/20 text-purple-400 border border-purple-500/30",
-  "LIVE": "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30",
-  "RUNNING": "bg-blue-500/20 text-blue-400 border border-blue-500/30",
-  "PRO": "bg-amber-500/20 text-amber-400 border border-amber-500/30",
-  "SETUP": "bg-purple-500/20 text-purple-300 border border-purple-500/30",
+  "NEW": "bg-purple-500/15 text-purple-300 border border-purple-500/25",
+  "LIVE": "bg-emerald-500/15 text-emerald-400 border border-emerald-500/25",
+  "RUNNING": "bg-white/10 text-neutral-200 border border-white/15",
+  "PRO": "bg-amber-500/15 text-amber-400 border border-amber-500/25",
+  "SETUP": "bg-white/10 text-neutral-300 border border-white/15",
 };
 
 interface NavItem {
@@ -101,17 +100,17 @@ export default function FiAlgoAdminSidebar({ mobileOpen = false, onClose }: FiAl
     navigate("/journal");
   };
 
+  // Exactly ONE button under OVERVIEW: first works as Setup, then converts to Dashboard
   const navSections: NavSection[] = [
     {
       title: "OVERVIEW",
       items: [
-        { id: "engine-dashboard", label: "Auto Trade Engine", path: "/fialgo", icon: Bot, badge: "LIVE" },
         {
           id: "autotrade-main",
           label: isAutoTradeSetup ? "Auto Trade Dashboard" : "Auto Trade Setup",
-          path: isAutoTradeSetup ? "/auto-trade/dashboard" : "/auto-trade/setup",
-          icon: isAutoTradeSetup ? LayoutDashboard : Bot,
-          badge: isAutoTradeSetup ? undefined : "SETUP",
+          path: isAutoTradeSetup ? "/fialgo" : "/auto-trade/setup",
+          icon: Bot,
+          badge: isAutoTradeSetup ? "LIVE" : "SETUP",
         },
       ],
     },
@@ -140,7 +139,7 @@ export default function FiAlgoAdminSidebar({ mobileOpen = false, onClose }: FiAl
 
   const renderSidebarInner = (isMobileView: boolean) => (
     <div className="flex flex-col h-full overflow-hidden bg-[#1E1E1E] text-[#E5E5E5] font-sans">
-      {/* ── Top Header with Tradifive Favicon + Big FiAlgo Logo + Far-Right Dropdown Arrow ── */}
+      {/* ── Top Header with FiAlgo Logo (Clean, No Favicon, Far-Right Dropdown Arrow) ── */}
       <div className="mb-6 px-1 relative shrink-0">
         <div
           onClick={() => setShowWorkspaceMenu((prev) => !prev)}
@@ -174,22 +173,41 @@ export default function FiAlgoAdminSidebar({ mobileOpen = false, onClose }: FiAl
           </div>
         </div>
 
-        {/* Clean Dropdown for Workspace Switching */}
+        {/* ── Systemic Institutional Workspace Switcher Dropdown (No Blue Colors) ── */}
         {showWorkspaceMenu && (
-          <div className="absolute top-full left-1 right-1 mt-1 bg-[#1A1A1D] border border-white/10 rounded-lg shadow-2xl p-1 z-[250] space-y-1">
+          <div className="absolute top-full left-0 right-0 mt-2 bg-[#161618] border border-white/[0.08] rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.8)] p-2 z-[250] space-y-1.5 backdrop-blur-xl">
+            <div className="px-2.5 py-1 text-[9px] font-bold text-neutral-500 uppercase tracking-[0.2em]">
+              Switch Workspace
+            </div>
+
+            {/* TradiFive Workspace */}
             <button
+              type="button"
               onClick={() => {
                 setShowWorkspaceMenu(false);
                 switchWorkspace("tradifive");
                 navigate("/journal");
               }}
-              className="w-full flex items-center justify-between px-3 py-2 rounded text-left text-xs font-medium text-neutral-300 hover:text-white hover:bg-white/5 cursor-pointer"
+              className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-left text-xs font-medium text-neutral-400 hover:text-white hover:bg-white/[0.05] transition-all cursor-pointer group/item"
             >
-              <span>TradiFive Workspace</span>
+              <div className="flex items-center gap-2.5">
+                <div className="w-2 h-2 rounded-full bg-neutral-600 group-hover/item:bg-white transition-colors" />
+                <span className="font-sans">TradiFive Workspace</span>
+              </div>
+              <span className="text-[9px] text-neutral-600 group-hover/item:text-neutral-400 uppercase tracking-wider font-semibold">
+                Switch &rarr;
+              </span>
             </button>
-            <div className="px-3 py-1.5 rounded bg-white/5 text-left text-xs font-bold text-purple-400 flex items-center justify-between">
-              <span>FiAlgo Workspace</span>
-              <span className="text-[9px] bg-purple-500/20 text-purple-300 px-1.5 py-0.2 rounded">Active</span>
+
+            {/* FiAlgo Workspace (Active) */}
+            <div className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-left text-xs font-bold text-white bg-white/[0.05] border border-white/[0.08]">
+              <div className="flex items-center gap-2.5">
+                <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]" />
+                <span className="font-sans">FiAlgo Workspace</span>
+              </div>
+              <span className="text-[9px] font-bold text-neutral-300 uppercase tracking-widest px-2 py-0.5 rounded bg-white/10 border border-white/10">
+                ACTIVE
+              </span>
             </div>
           </div>
         )}
@@ -206,7 +224,11 @@ export default function FiAlgoAdminSidebar({ mobileOpen = false, onClose }: FiAl
               {section.items.map((item) => {
                 const isActive =
                   location.pathname === item.path ||
-                  (item.path !== "/fialgo" && location.pathname.startsWith(item.path));
+                  (item.path !== "/fialgo" && location.pathname.startsWith(item.path)) ||
+                  (item.id === "autotrade-main" &&
+                    (location.pathname === "/fialgo" ||
+                      location.pathname.startsWith("/auto-trade/dashboard") ||
+                      location.pathname.startsWith("/auto-trade/setup")));
 
                 return (
                   <Link
@@ -244,7 +266,7 @@ export default function FiAlgoAdminSidebar({ mobileOpen = false, onClose }: FiAl
         ))}
       </nav>
 
-      {/* ── Bottom Profile Area (Exact Admin App Box Style from Image 2) ── */}
+      {/* ── Bottom Profile Area (Exact Admin App Box Style) ── */}
       <div className="pt-2 border-t border-white/5 px-1 mt-auto shrink-0 relative">
         <div
           onClick={() => setShowProfileMenu((prev) => !prev)}
@@ -266,16 +288,16 @@ export default function FiAlgoAdminSidebar({ mobileOpen = false, onClose }: FiAl
           <ChevronsUpDown size={13} className="text-neutral-500 group-hover:text-neutral-300 shrink-0 ml-2" />
         </div>
 
-        {/* Profile Popover Menu */}
+        {/* Profile Popover Menu (Systemic, No Blue) */}
         {showProfileMenu && (
-          <div className="absolute bottom-full left-1 right-1 mb-2 bg-[#1A1A1D] border border-white/10 rounded-lg shadow-2xl p-1 z-[250] space-y-1">
+          <div className="absolute bottom-full left-0 right-0 mb-2 bg-[#161618] border border-white/[0.08] rounded-xl shadow-2xl p-1.5 z-[250] space-y-1 backdrop-blur-xl">
             <button
               onClick={() => {
                 setShowProfileMenu(false);
                 switchWorkspace("tradifive");
                 navigate("/journal");
               }}
-              className="w-full flex items-center justify-between px-3 py-2 rounded text-left text-xs font-bold text-white hover:bg-white/5 cursor-pointer"
+              className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-left text-xs font-semibold text-white hover:bg-white/[0.06] transition-colors cursor-pointer"
             >
               <span>Switch to TradiFive Workspace</span>
               <ExternalLink size={12} className="text-neutral-400" />
@@ -285,7 +307,7 @@ export default function FiAlgoAdminSidebar({ mobileOpen = false, onClose }: FiAl
                 setShowProfileMenu(false);
                 navigate("/settings");
               }}
-              className="w-full flex items-center justify-between px-3 py-2 rounded text-left text-xs text-neutral-300 hover:text-white hover:bg-white/5 cursor-pointer"
+              className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-left text-xs text-neutral-400 hover:text-white hover:bg-white/[0.06] transition-colors cursor-pointer"
             >
               <span>Settings</span>
             </button>
@@ -305,7 +327,7 @@ export default function FiAlgoAdminSidebar({ mobileOpen = false, onClose }: FiAl
 
   return (
     <>
-      {/* Desktop Persistent Sidebar (Admin App exact width 260px) */}
+      {/* Desktop Persistent Sidebar */}
       <aside className="hidden lg:flex w-[260px] h-screen bg-[#1E1E1E] border-r border-white/5 flex-col shrink-0 select-none p-4 relative z-20">
         {renderSidebarInner(false)}
       </aside>
