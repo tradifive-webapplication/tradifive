@@ -147,13 +147,8 @@ export default function FiAlgoAdminSidebar({ mobileOpen = false, onClose }: FiAl
           className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-white/[0.04] transition-all cursor-pointer group select-none"
           title="Switch Workspace"
         >
-          {/* Left: Tradifive Favicon + Big FiAlgo Logo */}
-          <div className="flex items-center gap-2.5 min-w-0">
-            <img
-              src="/favicon.png"
-              alt="Tradifive"
-              className="h-6 w-auto object-contain drop-shadow-md shrink-0"
-            />
+          {/* Left: FiAlgo Logo */}
+          <div className="flex items-center min-w-0">
             <img
               src="/fialgo-logo.png"
               alt="FiAlgo"
