@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useState, useEffect, useMemo } from "react";
 import { 
   Download, 
   FolderOpen, 
@@ -10,18 +9,12 @@ import {
   Check, 
   Copy, 
   Monitor, 
-  Cpu,
-  ExternalLink,
-  ShieldCheck,
-  Zap,
-  HelpCircle,
-  FileCode,
-  CheckCircle2,
-  Bot,
-  Play,
-  Terminal,
-  ChevronDown,
-  ChevronUp
+  ShieldCheck, 
+  FileCode, 
+  CheckCircle2, 
+  Bot, 
+  ChevronDown, 
+  ChevronUp 
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTrading } from "@/contexts/TradingContext";
@@ -29,58 +22,34 @@ import { useDashboardData } from "@/hooks/useDashboardData";
 import DashboardLayout from "@/components/DashboardLayout";
 import { supabase } from "@/lib/supabase";
 import { generateTradifiveLicenseKey } from "@/pages/AITrading";
+import { EXISTING_OFFICIAL_ALGOS } from "@/pages/Discover";
 import { toast } from "sonner";
 
-const cardBoxStyle = "p-5 sm:p-6 rounded-2xl bg-[#141416] border border-white/[0.08] hover:border-white/[0.15] transition-all shadow-sm";
-
-const kpiBoxStyle = "h-[110px] px-5 py-4 rounded-2xl bg-[#141416] border border-white/[0.08] hover:border-white/[0.15] transition-all flex flex-col justify-between shadow-sm";
-
-const authorizedAlgos = [
-  {
-    name: "TradiFive Scalper AI",
-    pairs: "EUR/USD · Gold (XAU/USD)",
-    key: "TRDF-8492-AX91",
-    status: "Active",
-    version: "v4.2.0"
-  },
-  {
-    name: "TradiFive Swing Master",
-    pairs: "Gold (XAU/USD) · GBP/USD",
-    key: "TRDF-7910-SW22",
-    status: "Active",
-    version: "v3.8.0"
-  },
-  {
-    name: "TradiFive HFT Core",
-    pairs: "Nasdaq (US100) · USD/JPY",
-    key: "TRDF-6520-HF99",
-    status: "Active",
-    version: "v2.4.0"
-  },
-  {
-    name: "TradiFive Grid Protocol",
-    pairs: "GBP/JPY · EUR/JPY",
-    key: "TRDF-5412-GD01",
-    status: "Active",
-    version: "v1.9.0"
-  }
-];
+interface AuthorizedAlgoItem {
+  id: string;
+  name: string;
+  pairs: string;
+  key: string;
+  version: string;
+  status: string;
+}
 
 export default function EASetup() {
   const navigate = useNavigate();
   const { licenseKey: tradingKey, connectDemo } = useTrading();
-  const { isConnected } = useDashboardData();
+  const { isConnected, isAlgoRunning } = useDashboardData();
 
   const [licenseKey, setLicenseKey] = useState(tradingKey || "");
   const [connectedAccount, setConnectedAccount] = useState<string | null>(() => {
     try { return localStorage.getItem("tradifive_connected_mt5_account") || null; } catch (e) { return null; }
   });
   const [copied, setCopied] = useState(false);
+  const [copiedAlgoKey, setCopiedAlgoKey] = useState<string | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
-  const [activeStep, setActiveStep] = useState(1);
   const [showFaq, setShowFaq] = useState<number | null>(null);
+  const [dbOrders, setDbOrders] = useState<any[]>([]);
 
-  // Fetch real user key from Supabase if available
+  // Fetch real user key & account from Supabase
   useEffect(() => {
     const fetchKey = async () => {
       try {
@@ -126,25 +95,107 @@ export default function EASetup() {
               setLicenseKey("PENDING_ACTIVATION");
             }
           }
+
+          // Fetch database orders
+          supabase
+            .from("creator_orders")
+            .select("*")
+            .eq("buyer_id", user.id)
+            .in("status", ["completed", "active"])
+            .then(({ data: ordersData }) => {
+              if (ordersData && ordersData.length > 0) {
+                setDbOrders(ordersData);
+              }
+            });
         }
       } catch (e) {}
     };
     fetchKey();
   }, []);
 
+  // Real Authorized Algorithms derived strictly from real purchases
+  const authorizedAlgos: AuthorizedAlgoItem[] = useMemo(() => {
+    const list: AuthorizedAlgoItem[] = [];
+    const seen = new Set<string>();
+
+    // 1. Check verified purchases from Strategy Armory / Marketplace
+    try {
+      const savedPurchases: string[] = JSON.parse(localStorage.getItem("tradifive_purchased_algos") || "[]");
+      savedPurchases.forEach((productId) => {
+        const product = EXISTING_OFFICIAL_ALGOS.find(p => p.id === productId);
+        const licKey = localStorage.getItem(`tradifive_license_${productId}`) || localStorage.getItem("tradifive_license_key") || `TRDF-${productId.toUpperCase()}`;
+        if (product && !seen.has(product.id)) {
+          seen.add(product.id);
+          list.push({
+            id: product.id,
+            name: product.name,
+            pairs: product.pairs?.join(" · ") || "XAUUSD (Gold)",
+            key: licKey,
+            version: product.version || "v1.0.4",
+            status: isAlgoRunning ? "Active" : "Standby"
+          });
+        }
+      });
+    } catch {}
+
+    // 2. Check verified custom builds from Custom Dev Studio
+    try {
+      const customOrders = JSON.parse(localStorage.getItem("fialgo_custom_build_orders") || "[]");
+      customOrders.forEach((order: any) => {
+        if ((order.type === "ALGO_EA" || order.type === "COMBO_SUITE") && !seen.has(order.id)) {
+          seen.add(order.id);
+          list.push({
+            id: order.id,
+            name: order.title,
+            pairs: `${order.pair} (${order.timeframe})`,
+            key: `FIA-${order.id}`,
+            version: "v1.0 Custom",
+            status: order.status === "DELIVERED" ? "Active" : "Pending Build"
+          });
+        }
+      });
+    } catch {}
+
+    // 3. Database orders
+    dbOrders.forEach((dbOrder) => {
+      const matched = EXISTING_OFFICIAL_ALGOS.find(p => p.id === dbOrder.product_id);
+      const key = dbOrder.id || dbOrder.product_id;
+      if (!seen.has(key)) {
+        seen.add(key);
+        list.push({
+          id: key,
+          name: matched ? matched.name : (dbOrder.title || "Trading Algorithm EA"),
+          pairs: matched?.pairs?.join(" · ") || "Multi-Pair",
+          key: dbOrder.license_key || `TRDF-DB-${key.slice(-4).toUpperCase()}`,
+          version: matched?.version || "v1.0",
+          status: "Active"
+        });
+      }
+    });
+
+    return list;
+  }, [dbOrders, isAlgoRunning]);
+
   const copyKey = (keyToCopy: string) => {
     if (keyToCopy === "PENDING_ACTIVATION" || !keyToCopy) {
       toast.error("License Not Active", {
-        description: "Please connect with the Tradifive team or input your MT5 account to activate your license key."
+        description: "Please connect with the FiAlgo team or input your MT5 account to activate your license key."
       });
       return;
     }
     navigator.clipboard.writeText(keyToCopy);
     setCopied(true);
     toast.success("License key copied to clipboard", {
-      description: connectedAccount ? `Cryptographically locked to MT5 Account #${connectedAccount}` : undefined
+      description: connectedAccount ? `Bound to MT5 Account #${connectedAccount}` : undefined
     });
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const copyAlgoKey = (keyToCopy: string) => {
+    navigator.clipboard.writeText(keyToCopy);
+    setCopiedAlgoKey(keyToCopy);
+    toast.success("Dedicated license key copied");
+    setTimeout(() => setCopiedAlgoKey(null), 2000);
   };
 
   const handleDownloadEA = () => {
@@ -163,7 +214,7 @@ export default function EASetup() {
 
     toast.success("Downloading FiAlgo_v1.0.4.ex5", {
       description: connectedAccount 
-        ? `Account-locked to MT5 Account #${connectedAccount}. Copy into your MT5 MQL5/Experts folder.`
+        ? `Bound to MT5 Account #${connectedAccount}. Copy into your MT5 MQL5/Experts folder.`
         : "Save this file into your MT5 /MQL5/Experts folder."
     });
   };
@@ -181,207 +232,174 @@ export default function EASetup() {
 
   return (
     <DashboardLayout>
-      <div className="max-w-[1400px] mx-auto space-y-6 pb-12 px-4 sm:px-6 md:px-8 font-sans">
+      <div className="space-y-4 pb-20 select-none px-4 sm:px-6 md:px-8 py-3 max-w-[1500px] mx-auto w-full">
 
-        {/* ── CLEAN, HUMAN HEADER ── */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
-          <div>
-            <div className="flex items-center gap-3">
-              <h1 
-                className="text-[28px] sm:text-[30px] font-bold text-slate-900 dark:text-white tracking-tight leading-none"
-                
-              >
-                EA License & Keys
-              </h1>
-              <span className="bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 text-[10px] font-bold px-2.5 py-1 rounded-full border border-emerald-200/50 uppercase tracking-wider flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                Active License
-              </span>
+        {/* ── Top Header (Admin App Style: Clean, Dark, Sharp Borders, No Pill Badges) ── */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-white/5">
+          <div className="flex items-center gap-3">
+            <div 
+              className="w-9 h-9 rounded-lg bg-black/30 border border-white/5 flex items-center justify-center text-blue-400 shrink-0" 
+              style={{ borderColor: "#3b82f620" }}
+            >
+              <Key size={16} />
             </div>
-            <p className="text-[13px] text-slate-500 dark:text-slate-400 mt-2">
-              Activate your algorithmic trading bots and connect your MetaTrader 5 terminal in 3 simple steps
-            </p>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-lg sm:text-xl font-bold tracking-wider text-white uppercase">
+                  EA License &amp; Keys
+                </h1>
+              </div>
+              <p className="text-neutral-500 text-[9px] font-bold uppercase tracking-[0.15em] mt-0.5">
+                Activate algorithmic trading bots and connect your MetaTrader 5 terminal
+              </p>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={() => navigate("/auto-trade/active-bots")}
-              className="btn-fialgo-secondary inline-flex items-center gap-2 h-9 px-5 text-xs font-semibold"
+              className="h-9 px-3.5 bg-[#1E1E1E] hover:bg-white/[0.05] border border-white/5 hover:border-white/10 rounded-lg text-xs font-semibold text-neutral-300 transition-none flex items-center gap-1.5 cursor-pointer"
             >
-              <Bot className="w-3.5 h-3.5 text-indigo-500" />
+              <Bot size={13} className="text-blue-400" />
               <span>Active Bots</span>
             </button>
 
             <button
               type="button"
               onClick={handleDownloadEA}
-              className="btn-fialgo-primary inline-flex items-center gap-2 h-9 px-5 text-xs font-semibold uppercase tracking-wider"
+              className="btn-fialgo-primary h-9 px-4 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer"
             >
-              <Download className="w-3.5 h-3.5" />
+              <Download size={13} />
               <span>Download Master EA</span>
             </button>
           </div>
         </div>
 
-        {/* ── 3 CLEAN SUMMARY KPI CARDS ── */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4">
+        {/* ── 3 Summary KPI Cards (Clean Admin App Style: No Cluttered Icon Circles or Corner Badges) ── */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {/* Card 1: Master License Key */}
-          <div className={kpiBoxStyle}>
+          <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-4">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
-                Primary License Key
-              </span>
-              <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center">
-                <Key className="w-4 h-4 text-indigo-500" />
-              </div>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="font-mono text-base font-bold text-slate-900 dark:text-white tracking-wide">
+              <div className="text-lg sm:text-xl font-bold font-mono text-white tracking-tight truncate max-w-[220px]">
                 {licenseKey}
-              </span>
+              </div>
               <button
                 type="button"
                 onClick={() => copyKey(licenseKey)}
-                className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline font-semibold flex items-center gap-1 cursor-pointer"
+                className="text-xs font-mono font-bold text-blue-400 hover:text-white flex items-center gap-1 cursor-pointer ml-2 shrink-0"
               >
-                {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+                {copied ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
                 <span>{copied ? "Copied" : "Copy"}</span>
               </button>
+            </div>
+            <div className="text-[9px] font-bold text-neutral-500 uppercase tracking-[0.15em] mt-1">
+              PRIMARY LICENSE KEY
             </div>
           </div>
 
           {/* Card 2: Connected MT5 Terminal */}
-          <div className={kpiBoxStyle}>
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
-                Connected MT5 Account
-              </span>
-              <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center">
-                <Monitor className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-              </div>
+          <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-4">
+            <div className="text-lg sm:text-xl font-bold font-mono text-white tracking-tight">
+              {connectedAccount ? `Account #${connectedAccount}` : "Not Attached Yet"}
             </div>
-            <div className="flex items-baseline justify-between">
-              <span className="font-mono text-base font-bold text-slate-900 dark:text-white">
-                {connectedAccount ? `Account #${connectedAccount}` : "Not Attached Yet"}
-              </span>
-              <span className={`text-xs font-medium ${connectedAccount ? "text-emerald-600 dark:text-emerald-400" : "text-amber-500"}`}>
-                {connectedAccount ? "Synchronized" : "Pending MT5"}
-              </span>
+            <div className="text-[9px] font-bold text-neutral-500 uppercase tracking-[0.15em] mt-1">
+              CONNECTED MT5 ACCOUNT
             </div>
           </div>
 
           {/* Card 3: Execution Telemetry */}
-          <div className={kpiBoxStyle}>
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
-                Execution Status
-              </span>
-              <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center">
-                <Activity className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-              </div>
+          <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-4">
+            <div className="flex items-center gap-2 text-lg sm:text-xl font-bold font-mono text-white tracking-tight">
+              <div className={`w-2 h-2 rounded-full ${connectedAccount && isConnected ? "bg-emerald-500 animate-pulse" : "bg-amber-400"}`} />
+              <span>{connectedAccount && isConnected ? "Live (2.1ms Ping)" : "Waiting for MT5"}</span>
             </div>
-            <div className="flex items-baseline justify-between">
-              <span className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <span className={`w-2 h-2 rounded-full ${connectedAccount ? "bg-emerald-500 animate-pulse" : "bg-amber-400"}`} />
-                {connectedAccount ? "Live · 2.1ms Ping" : "Waiting for MT5"}
-              </span>
-              <span className="text-xs font-medium text-slate-400">
-                {connectedAccount ? "VPS Online" : "Standby"}
-              </span>
+            <div className="text-[9px] font-bold text-neutral-500 uppercase tracking-[0.15em] mt-1">
+              EXECUTION STATUS
             </div>
           </div>
         </div>
 
-        {/* ── 3-STEP INTUITIVE ACTIVATION GUIDE ── */}
-        <div className="space-y-4">
-          <div className="pb-1">
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">
+        {/* ── 3-Step Intuitive MT5 Activation Guide (Admin Card Grid) ── */}
+        <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-5 space-y-4">
+          <div className="pb-2 border-b border-white/5">
+            <h2 className="text-xs font-bold text-white uppercase tracking-wider">
               3-Step Easy MT5 Activation
             </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Follow these simple steps to install the Expert Advisor and start automated trading
+            <p className="text-[9px] font-bold text-neutral-500 uppercase tracking-[0.15em] mt-0.5">
+              Follow these simple steps to install the Expert Advisor and start automated execution
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Step 1: Download */}
-            <div className={cardBoxStyle}>
-              <div className="flex items-center justify-between mb-3">
-                <span className="w-7 h-7 rounded-lg bg-slate-900 text-white dark:bg-white dark:text-slate-900 text-xs font-bold flex items-center justify-center">
-                  1
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {/* Step 1 */}
+            <div className="p-4 rounded-lg bg-black/30 border border-white/5 font-mono text-xs flex flex-col justify-between space-y-3">
+              <div>
+                <span className="text-[9px] font-bold text-blue-400 uppercase tracking-widest block mb-1">
+                  STEP 01
                 </span>
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
-                  Step 1
-                </span>
+                <h4 className="font-bold text-white text-sm font-sans mb-1">
+                  Download Master EA
+                </h4>
+                <p className="text-[11px] text-neutral-400 leading-relaxed font-sans">
+                  Download the compiled <strong>FiAlgo_v1.0.4.ex5</strong> binary. This file establishes direct low-latency order routing with your MT5 terminal.
+                </p>
               </div>
-              <h3 className="text-base font-bold text-slate-900 dark:text-white mb-1">
-                Download Master EA
-              </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-4">
-                Download the compiled <strong>TradiFive_Master_EA.ex5</strong> file. This connects your MT5 terminal to our AI server.
-              </p>
               <button
                 type="button"
                 onClick={handleDownloadEA}
-                className="btn-fialgo-primary w-full h-10 text-xs font-semibold uppercase tracking-wider inline-flex items-center justify-center gap-2"
+                className="btn-fialgo-primary w-full h-8 text-[11px] font-bold uppercase tracking-wider inline-flex items-center justify-center gap-1.5 cursor-pointer"
               >
-                <Download className="w-3.5 h-3.5" />
-                <span>Download .EX5 File</span>
+                <Download size={12} />
+                <span>Download .EX5</span>
               </button>
             </div>
 
-            {/* Step 2: Paste File in MT5 */}
-            <div className={cardBoxStyle}>
-              <div className="flex items-center justify-between mb-3">
-                <span className="w-7 h-7 rounded-lg bg-slate-900 text-white dark:bg-white dark:text-slate-900 text-xs font-bold flex items-center justify-center">
-                  2
+            {/* Step 2 */}
+            <div className="p-4 rounded-lg bg-black/30 border border-white/5 font-mono text-xs flex flex-col justify-between space-y-3">
+              <div>
+                <span className="text-[9px] font-bold text-purple-400 uppercase tracking-widest block mb-1">
+                  STEP 02
                 </span>
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
-                  Step 2
-                </span>
+                <h4 className="font-bold text-white text-sm font-sans mb-1">
+                  Place in Experts Folder
+                </h4>
+                <p className="text-[11px] text-neutral-400 leading-relaxed font-sans mb-2">
+                  In MT5, click <strong>File &gt; Open Data Folder</strong>, navigate to <strong>MQL5 &gt; Experts</strong>, and paste the downloaded file.
+                </p>
               </div>
-              <h3 className="text-base font-bold text-slate-900 dark:text-white mb-1">
-                Place in Experts Folder
-              </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-4">
-                In MT5, click <strong>File &gt; Open Data Folder</strong>, then open <strong>MQL5 &gt; Experts</strong> and paste the file there.
-              </p>
-              <div className="bg-slate-50 dark:bg-white/5 rounded-xl p-2.5 font-mono text-[11px] text-slate-600 dark:text-slate-300 border border-slate-200/60 dark:border-white/5">
-                MQL5 / Experts / TradiFive_Master.ex5
+              <div className="p-2 rounded bg-black/50 border border-white/5 text-[10px] text-neutral-300 font-mono select-all truncate">
+                MQL5 / Experts / FiAlgo_v1.0.4.ex5
               </div>
             </div>
 
-            {/* Step 3: Enter Key & Turn On */}
-            <div className={cardBoxStyle}>
-              <div className="flex items-center justify-between mb-3">
-                <span className="w-7 h-7 rounded-lg bg-slate-900 text-white dark:bg-white dark:text-slate-900 text-xs font-bold flex items-center justify-center">
-                  3
+            {/* Step 3 */}
+            <div className="p-4 rounded-lg bg-black/30 border border-white/5 font-mono text-xs flex flex-col justify-between space-y-3">
+              <div>
+                <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-widest block mb-1">
+                  STEP 03
                 </span>
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
-                  Step 3
-                </span>
+                <h4 className="font-bold text-white text-sm font-sans mb-1">
+                  Attach EA &amp; Enter Key
+                </h4>
+                <p className="text-[11px] text-neutral-400 leading-relaxed font-sans">
+                  Drag the EA onto your chart, paste your Primary License Key, enable <strong>Algo Trading</strong> in MT5, and verify connection.
+                </p>
               </div>
-              <h3 className="text-base font-bold text-slate-900 dark:text-white mb-1">
-                Attach EA &amp; Enter Key
-              </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-4">
-                Drag the EA onto your chart, paste your key into the <strong>LicenseKey</strong> field, and make sure <strong>Algo Trading</strong> is enabled.
-              </p>
               <button
                 type="button"
                 onClick={handleVerifyConnection}
                 disabled={isVerifying}
-                className="btn-fialgo-primary w-full h-10 text-xs font-semibold uppercase tracking-wider inline-flex items-center justify-center gap-2"
+                className="h-8 px-4 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-400 font-mono font-bold text-xs uppercase tracking-wider transition-none inline-flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 {isVerifying ? (
                   <>
-                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                    <span>Verifying Heartbeat...</span>
+                    <RefreshCw size={12} className="animate-spin" />
+                    <span>Verifying...</span>
                   </>
                 ) : (
                   <>
-                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <CheckCircle2 size={12} />
                     <span>Verify Connection</span>
                   </>
                 )}
@@ -390,111 +408,148 @@ export default function EASetup() {
           </div>
         </div>
 
-        {/* ── AUTHORIZED ALGORITHM LICENSES TABLE ── */}
-        <div className={cardBoxStyle}>
-          <div className="flex items-center justify-between pb-3.5 border-b border-slate-100 dark:border-white/5 mb-4">
+        {/* ── AUTHORIZED ALGORITHM LICENSES TABLE (Real Purchases Only) ── */}
+        <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-5 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-white/5">
             <div>
-              <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">
-                Authorized Algorithm Licenses
+              <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+                Authorized Algorithm Licenses ({authorizedAlgos.length})
               </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-[9px] font-bold text-neutral-500 uppercase tracking-[0.15em] mt-0.5">
                 All algorithmic trading bots bound to your account and license key
               </p>
             </div>
             <button
               type="button"
-              onClick={() => navigate("/strategy")}
-              className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1"
+              onClick={() => navigate("/discover?tab=store")}
+              className="text-xs font-mono font-bold text-blue-400 hover:text-white flex items-center gap-1 cursor-pointer transition-none"
             >
-              <span>Add More Bots</span>
-              <ArrowRight className="w-3 h-3" />
+              <span>Browse Strategy Armory</span>
+              <ArrowRight size={12} />
             </button>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse min-w-[650px]">
-              <thead>
-                <tr className="border-b border-slate-100 dark:border-white/5 text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
-                  <th className="pb-3">Algorithm</th>
-                  <th className="pb-3">Trading Pairs</th>
-                  <th className="pb-3">Dedicated License</th>
-                  <th className="pb-3">Version</th>
-                  <th className="pb-3 text-right">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-white/5 text-xs">
-                {authorizedAlgos.map((algo) => (
-                  <tr key={algo.key} className="hover:bg-slate-50/50 dark:hover:bg-white/[0.02] transition-colors">
-                    <td className="py-3.5 font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                      <Bot className="w-4 h-4 text-indigo-500" />
-                      <span>{algo.name}</span>
-                    </td>
-                    <td className="py-3.5 text-slate-600 dark:text-slate-300">
-                      {algo.pairs}
-                    </td>
-                    <td className="py-3.5 font-mono text-slate-700 dark:text-slate-300">
-                      <div className="flex items-center gap-1.5">
-                        <span>{algo.key}</span>
-                        <button
-                          type="button"
-                          onClick={() => copyKey(algo.key)}
-                          className="text-slate-400 hover:text-slate-700 dark:hover:text-white"
-                          title="Copy key"
-                        >
-                          <Copy className="w-3 h-3" />
-                        </button>
-                      </div>
-                    </td>
-                    <td className="py-3.5 text-slate-500">
-                      {algo.version}
-                    </td>
-                    <td className="py-3.5 text-right">
-                      <span className="bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border border-emerald-200/50">
-                        {algo.status}
-                      </span>
-                    </td>
+          {authorizedAlgos.length === 0 ? (
+            <div className="p-10 text-center font-mono">
+              <div className="w-10 h-10 rounded-lg bg-white/5 border border-white/5 flex items-center justify-center text-neutral-400 mx-auto mb-3">
+                <Bot size={18} />
+              </div>
+              <div className="text-xs text-white font-bold uppercase tracking-wider mb-1">
+                No Authorized Algorithm Licenses
+              </div>
+              <p className="text-[11px] text-neutral-500 max-w-sm mx-auto mb-4 font-sans">
+                No trading algorithms or EA licenses are currently authorized. Acquire an algorithm from the Strategy Armory or submit a custom build request.
+              </p>
+              <div className="flex items-center justify-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => navigate("/discover?tab=store")}
+                  className="btn-fialgo-primary h-8 px-4 text-xs font-bold uppercase tracking-wider inline-flex items-center gap-1.5 cursor-pointer"
+                >
+                  <span>Browse Strategy Armory</span>
+                  <ArrowRight size={12} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate("/auto-trade/builder")}
+                  className="h-8 px-4 rounded-lg bg-white/5 hover:bg-white/10 text-xs font-mono font-bold text-neutral-300 border border-white/10 transition-none cursor-pointer"
+                >
+                  Request Custom Build
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse min-w-[650px]">
+                <thead>
+                  <tr className="border-b border-white/5 text-[9px] font-bold text-neutral-500 uppercase tracking-widest bg-black/20">
+                    <th className="p-3">ALGORITHM</th>
+                    <th className="p-3">TRADING PAIRS</th>
+                    <th className="p-3">DEDICATED LICENSE</th>
+                    <th className="p-3">VERSION</th>
+                    <th className="p-3 text-right">STATUS</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-white/5 font-mono text-xs">
+                  {authorizedAlgos.map((algo) => (
+                    <tr key={algo.id} className="hover:bg-white/[0.02] transition-none">
+                      <td className="p-3 font-bold text-white flex items-center gap-2">
+                        <Bot size={14} className="text-blue-400" />
+                        <span className="font-sans">{algo.name}</span>
+                      </td>
+                      <td className="p-3 text-neutral-300">
+                        {algo.pairs}
+                      </td>
+                      <td className="p-3 text-neutral-300">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-bold text-white">{algo.key}</span>
+                          <button
+                            type="button"
+                            onClick={() => copyAlgoKey(algo.key)}
+                            className="text-neutral-500 hover:text-white"
+                            title="Copy key"
+                          >
+                            {copiedAlgoKey === algo.key ? (
+                              <Check size={12} className="text-emerald-400" />
+                            ) : (
+                              <Copy size={12} />
+                            )}
+                          </button>
+                        </div>
+                      </td>
+                      <td className="p-3 text-neutral-400">
+                        {algo.version}
+                      </td>
+                      <td className="p-3 text-right">
+                        <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider">
+                          {algo.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
 
-        {/* ── SIMPLE FAQ / HELP ACCORDION ── */}
-        <div className={cardBoxStyle}>
-          <h3 className="text-base font-bold text-slate-900 dark:text-white mb-4">
-            Frequently Asked Questions
-          </h3>
+        {/* ── FREQUENTLY ASKED QUESTIONS (Admin Accordion Styling) ── */}
+        <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-5 space-y-3">
+          <div className="pb-2 border-b border-white/5">
+            <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+              Frequently Asked Questions
+            </h3>
+          </div>
 
-          <div className="space-y-3">
+          <div className="space-y-2">
             {[
               {
                 q: "Where do I paste the .ex5 file in MetaTrader 5?",
-                a: "Open MT5, click File > Open Data Folder in the top menu. In the folder that opens, navigate to MQL5 > Experts. Paste the TradiFive_Master_EA.ex5 file here, then restart MT5 or right-click 'Expert Advisors' in the Navigator panel and click Refresh."
+                a: "Open MT5, click File > Open Data Folder in the top menu. In the folder that opens, navigate to MQL5 > Experts. Paste the FiAlgo_v1.0.4.ex5 file here, then restart MT5 or right-click 'Expert Advisors' in the Navigator panel and click Refresh."
               },
               {
                 q: "How do I know if my EA is successfully connected?",
-                a: "Look at the top-right corner of your MT5 chart. If the hat or face icon is smiling and you see 'TradiFive AI: Connected' in the chart comment, your algorithm is successfully communicating with our servers."
+                a: "Look at the top-right corner of your MT5 chart. If the hat icon is blue and you see 'FiAlgo V1: Connected' in the chart comment, your algorithm is successfully communicating with our servers."
               },
               {
                 q: "Can I run the bot on a VPS (Virtual Private Server)?",
-                a: "Yes! Running on a Windows VPS is recommended for 24/7 uninterrupted execution with sub-5ms ping to your broker's trading server."
+                a: "Yes. Running on a Windows VPS is recommended for 24/7 uninterrupted execution with sub-3ms ping to your broker's trading server."
               }
             ].map((faq, idx) => (
               <div 
                 key={idx}
-                className="border border-slate-200/70 dark:border-white/5 rounded-xl overflow-hidden"
+                className="border border-white/5 rounded-lg overflow-hidden bg-black/20"
               >
                 <button
                   type="button"
                   onClick={() => setShowFaq(showFaq === idx ? null : idx)}
-                  className="w-full p-3.5 text-left flex items-center justify-between text-xs font-bold text-slate-800 dark:text-white hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                  className="w-full p-3 text-left flex items-center justify-between text-xs font-bold text-white hover:bg-white/[0.03] transition-none cursor-pointer"
                 >
                   <span>{faq.q}</span>
-                  {showFaq === idx ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+                  {showFaq === idx ? <ChevronUp size={13} className="text-neutral-400" /> : <ChevronDown size={13} className="text-neutral-400" />}
                 </button>
                 {showFaq === idx && (
-                  <div className="px-3.5 pb-3.5 text-xs text-slate-500 dark:text-slate-400 leading-relaxed border-t border-slate-100 dark:border-white/5 pt-2.5">
+                  <div className="px-3 pb-3 text-xs text-neutral-400 leading-relaxed border-t border-white/5 pt-2 font-sans">
                     {faq.a}
                   </div>
                 )}

@@ -111,9 +111,9 @@ export default function Discover() {
     const [purchasedItems, setPurchasedItems] = useState<string[]>(() => {
         try {
             const saved = localStorage.getItem("tradifive_purchased_algos");
-            return saved ? JSON.parse(saved) : ["algo-scalper-ai"];
+            return saved ? JSON.parse(saved) : [];
         } catch (e) {
-            return ["algo-scalper-ai"];
+            return [];
         }
     });
     const [addedUsers, setAddedUsers] = useState<string[]>([]);

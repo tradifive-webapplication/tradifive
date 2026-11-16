@@ -35,35 +35,16 @@ export default function StrategyBuilderPage() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Deliverables list (clean, useful records)
-  const [deliverables, setDeliverables] = useState<CustomBuildDeliverable[]>([
-    {
-      id: "DEV-84921",
-      title: "Gold London Liquidity Breakout EA",
-      type: "ALGO_EA",
-      price: "₹40,000",
-      pair: "XAUUSD (Gold)",
-      timeframe: "M5 / M15",
-      status: "DELIVERED",
-      submittedDate: "Nov 10, 2026",
-      deliveredDate: "Nov 14, 2026",
-      ex5Filename: "Gold_Breakout_Pro_v1.ex5",
-      mq5Filename: "Gold_Breakout_Pro_v1.mq5"
-    },
-    {
-      id: "DEV-62019",
-      title: "Fair Value Gap & OrderBlock Scanner",
-      type: "INDICATOR",
-      price: "₹20,000",
-      pair: "Multi-Asset (Forex & Indices)",
-      timeframe: "M1 to H4",
-      status: "DELIVERED",
-      submittedDate: "Nov 02, 2026",
-      deliveredDate: "Nov 05, 2026",
-      ex5Filename: "FVG_OrderBlock_Scanner.ex5",
-      mq5Filename: "FVG_OrderBlock_Scanner.mq5"
+  // Deliverables list (loaded strictly from real user submissions)
+  const [deliverables, setDeliverables] = useState<CustomBuildDeliverable[]>(() => {
+    if (typeof window === "undefined") return [];
+    try {
+      const saved = localStorage.getItem("fialgo_custom_build_orders");
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
     }
-  ]);
+  });
 
   const pricingMap = {
     INDICATOR: {
@@ -164,12 +145,6 @@ export default function StrategyBuilderPage() {
                 <h1 className="text-lg sm:text-xl font-bold tracking-wider text-white uppercase">
                   Custom Indicator &amp; Algo Development Studio
                 </h1>
-                <div className="flex items-center gap-1.5 px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded">
-                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  <span className="text-[9px] font-bold text-emerald-500 uppercase tracking-widest">
-                    Service Desk
-                  </span>
-                </div>
               </div>
               <p className="text-neutral-500 text-[9px] font-bold uppercase tracking-[0.15em] mt-0.5">
                 Custom Indicator (₹20,000) &amp; Automated Algo EA (₹40,000)
@@ -220,12 +195,9 @@ export default function StrategyBuilderPage() {
           </button>
         </div>
 
-        {/* ── 4 Metric Cards Grid (Matching Admin App Style & Numbers) ── */}
+        {/* ── 4 Metric Cards Grid (Clean Admin App Style: No Cluttered Icon Circles or Corner Badges) ── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-4 relative">
-            <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 mb-2">
-              <Layers size={15} />
-            </div>
+          <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-4">
             <div className="text-2xl font-bold font-mono text-white tracking-tight">
               {deliverables.length}
             </div>
@@ -234,10 +206,7 @@ export default function StrategyBuilderPage() {
             </div>
           </div>
 
-          <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-4 relative">
-            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-2 font-mono font-bold text-sm">
-              ₹
-            </div>
+          <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-4">
             <div className="text-2xl font-bold font-mono text-white tracking-tight">
               ₹20,000
             </div>
@@ -246,10 +215,7 @@ export default function StrategyBuilderPage() {
             </div>
           </div>
 
-          <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-4 relative">
-            <div className="w-8 h-8 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 mb-2">
-              <Cpu size={15} />
-            </div>
+          <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-4">
             <div className="text-2xl font-bold font-mono text-white tracking-tight">
               ₹40,000
             </div>
@@ -258,13 +224,7 @@ export default function StrategyBuilderPage() {
             </div>
           </div>
 
-          <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-4 relative">
-            <div className="absolute top-4 right-4">
-              <span className="text-[10px] font-bold text-emerald-400">Guaranteed</span>
-            </div>
-            <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 mb-2">
-              <Zap size={15} />
-            </div>
+          <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-4">
             <div className="text-2xl font-bold font-mono text-white tracking-tight">
               2-5 Days
             </div>
@@ -272,18 +232,6 @@ export default function StrategyBuilderPage() {
               ENGINEERING SLA
             </div>
           </div>
-        </div>
-
-        {/* ── Status Strip (Matching Admin App Green Status Dot) ── */}
-        <div className="flex items-center gap-2 text-[11px] font-mono text-neutral-400 flex-wrap">
-          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-          <span className="text-emerald-400 font-bold">FiAlgo Engineering Desk: Active</span>
-          <span className="text-neutral-600">·</span>
-          <span>100% Hardware Bound (.EX5)</span>
-          <span className="text-neutral-600">·</span>
-          <span>Full Source Code Included (.MQ5)</span>
-          <span className="text-neutral-600">·</span>
-          <span>Direct Admin Dispatch</span>
         </div>
 
         {/* ── TAB 1: REQUEST CUSTOM DEVELOPMENT (Streamlined & Clean) ── */}
@@ -576,139 +524,164 @@ Example:
                 </div>
               </div>
 
-              {/* Table on sm+ screens */}
-              <div className="overflow-x-auto hidden sm:block">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="border-b border-white/5 text-[9px] font-bold text-neutral-500 uppercase tracking-widest bg-black/20">
-                      <th className="p-3.5">BUILD &amp; TITLE</th>
-                      <th className="p-3.5">TYPE</th>
-                      <th className="p-3.5">INSTRUMENT &amp; TF</th>
-                      <th className="p-3.5">FEE</th>
-                      <th className="p-3.5">STATUS</th>
-                      <th className="p-3.5">DELIVERED</th>
-                      <th className="p-3.5 text-right">ACTIONS</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-white/5 font-mono text-xs">
+              {/* Content when items exist vs empty state */}
+              {deliverables.length === 0 ? (
+                <div className="p-12 text-center font-mono">
+                  <div className="w-10 h-10 rounded-lg bg-white/5 border border-white/5 flex items-center justify-center text-neutral-400 mx-auto mb-3">
+                    <Layers size={18} />
+                  </div>
+                  <div className="text-xs text-white font-bold uppercase tracking-wider mb-1">
+                    No Custom Builds On Record
+                  </div>
+                  <p className="text-[11px] text-neutral-500 max-w-sm mx-auto mb-4">
+                    You have not submitted any custom indicators or MT5 algo EA requests yet.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setActiveMainTab("request")}
+                    className="btn-fialgo-primary h-8 px-4 text-xs font-bold uppercase tracking-wider inline-flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Plus size={12} />
+                    <span>Request Custom Build</span>
+                  </button>
+                </div>
+              ) : (
+                <>
+                  {/* Table on sm+ screens */}
+                  <div className="overflow-x-auto hidden sm:block">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="border-b border-white/5 text-[9px] font-bold text-neutral-500 uppercase tracking-widest bg-black/20">
+                          <th className="p-3.5">BUILD &amp; TITLE</th>
+                          <th className="p-3.5">TYPE</th>
+                          <th className="p-3.5">INSTRUMENT &amp; TF</th>
+                          <th className="p-3.5">FEE</th>
+                          <th className="p-3.5">STATUS</th>
+                          <th className="p-3.5">DELIVERED</th>
+                          <th className="p-3.5 text-right">ACTIONS</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-white/5 font-mono text-xs">
+                        {deliverables.map((item) => (
+                          <tr key={item.id} className="hover:bg-white/[0.02] transition-none">
+                            <td className="p-3.5">
+                              <div className="font-bold text-white font-sans text-xs">{item.title}</div>
+                              <div className="text-[10px] text-neutral-500 font-mono mt-0.5">{item.id}</div>
+                            </td>
+                            <td className="p-3.5">
+                              <span className={`text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider ${
+                                item.type === "INDICATOR"
+                                  ? "bg-blue-500/10 text-blue-400 border border-blue-500/20"
+                                  : item.type === "ALGO_EA"
+                                  ? "bg-purple-500/10 text-purple-400 border border-purple-500/20"
+                                  : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                              }`}>
+                                {item.type === "INDICATOR" ? "Indicator" : item.type === "ALGO_EA" ? "Algo Bot" : "Combo Suite"}
+                              </span>
+                            </td>
+                            <td className="p-3.5 text-neutral-300">
+                              {item.pair} · <span className="text-neutral-400">{item.timeframe}</span>
+                            </td>
+                            <td className="p-3.5 font-bold text-white">
+                              {item.price}
+                            </td>
+                            <td className="p-3.5">
+                              <span className={`text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider ${
+                                item.status === "DELIVERED"
+                                  ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                                  : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                              }`}>
+                                {item.status}
+                              </span>
+                            </td>
+                            <td className="p-3.5 text-neutral-400 text-[11px]">
+                              {item.deliveredDate || "In progress"}
+                            </td>
+                            <td className="p-3.5 text-right">
+                              <div className="inline-flex items-center gap-1.5 justify-end">
+                                {item.status === "DELIVERED" ? (
+                                  <>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleDownloadFile(item.ex5Filename || `${item.id}.ex5`)}
+                                      className="btn-fialgo-primary h-7 px-2.5 text-[10px] font-bold uppercase tracking-wider inline-flex items-center gap-1 cursor-pointer"
+                                    >
+                                      <Download size={11} />
+                                      <span>.EX5</span>
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleDownloadFile(item.mq5Filename || `${item.id}.mq5`)}
+                                      className="h-7 px-2 rounded bg-black/40 hover:bg-white/[0.08] border border-white/10 text-[10px] font-mono font-bold text-neutral-300 transition-none cursor-pointer flex items-center gap-1"
+                                    >
+                                      <FileCode size={11} />
+                                      <span>.MQ5</span>
+                                    </button>
+                                    {item.type !== "INDICATOR" && (
+                                      <button
+                                        type="button"
+                                        onClick={() => navigate("/auto-trade/active-bots")}
+                                        className="h-7 px-2.5 rounded bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-[10px] font-mono font-bold text-emerald-400 transition-none cursor-pointer flex items-center gap-1"
+                                      >
+                                        <Play size={9} className="fill-current" />
+                                        <span>Deploy</span>
+                                      </button>
+                                    )}
+                                  </>
+                                ) : (
+                                  <span className="text-[11px] text-amber-400">Engineering in progress...</span>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Mobile Card list */}
+                  <div className="divide-y divide-white/5 sm:hidden p-3 space-y-3">
                     {deliverables.map((item) => (
-                      <tr key={item.id} className="hover:bg-white/[0.02] transition-none">
-                        <td className="p-3.5">
-                          <div className="font-bold text-white font-sans text-xs">{item.title}</div>
-                          <div className="text-[10px] text-neutral-500 font-mono mt-0.5">{item.id}</div>
-                        </td>
-                        <td className="p-3.5">
-                          <span className={`text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider ${
-                            item.type === "INDICATOR"
-                              ? "bg-blue-500/10 text-blue-400 border border-blue-500/20"
-                              : item.type === "ALGO_EA"
-                              ? "bg-purple-500/10 text-purple-400 border border-purple-500/20"
-                              : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                          }`}>
-                            {item.type === "INDICATOR" ? "Indicator" : item.type === "ALGO_EA" ? "Algo Bot" : "Combo Suite"}
-                          </span>
-                        </td>
-                        <td className="p-3.5 text-neutral-300">
-                          {item.pair} · <span className="text-neutral-400">{item.timeframe}</span>
-                        </td>
-                        <td className="p-3.5 font-bold text-white">
-                          {item.price}
-                        </td>
-                        <td className="p-3.5">
-                          <span className={`text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider ${
-                            item.status === "DELIVERED"
-                              ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                              : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                      <div key={item.id} className="pt-3 first:pt-0 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div className="font-bold text-white text-xs">{item.title}</div>
+                          <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
+                            item.status === "DELIVERED" ? "bg-emerald-500/10 text-emerald-400" : "bg-amber-500/10 text-amber-400"
                           }`}>
                             {item.status}
                           </span>
-                        </td>
-                        <td className="p-3.5 text-neutral-400 text-[11px]">
-                          {item.deliveredDate || "In progress"}
-                        </td>
-                        <td className="p-3.5 text-right">
-                          <div className="inline-flex items-center gap-1.5 justify-end">
-                            {item.status === "DELIVERED" ? (
-                              <>
-                                <button
-                                  type="button"
-                                  onClick={() => handleDownloadFile(item.ex5Filename || `${item.id}.ex5`)}
-                                  className="btn-fialgo-primary h-7 px-2.5 text-[10px] font-bold uppercase tracking-wider inline-flex items-center gap-1 cursor-pointer"
-                                >
-                                  <Download size={11} />
-                                  <span>.EX5</span>
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => handleDownloadFile(item.mq5Filename || `${item.id}.mq5`)}
-                                  className="h-7 px-2 rounded bg-black/40 hover:bg-white/[0.08] border border-white/10 text-[10px] font-mono font-bold text-neutral-300 transition-none cursor-pointer flex items-center gap-1"
-                                >
-                                  <FileCode size={11} />
-                                  <span>.MQ5</span>
-                                </button>
-                                {item.type !== "INDICATOR" && (
-                                  <button
-                                    type="button"
-                                    onClick={() => navigate("/auto-trade/active-bots")}
-                                    className="h-7 px-2.5 rounded bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-[10px] font-mono font-bold text-emerald-400 transition-none cursor-pointer flex items-center gap-1"
-                                  >
-                                    <Play size={9} className="fill-current" />
-                                    <span>Deploy</span>
-                                  </button>
-                                )}
-                              </>
-                            ) : (
-                              <span className="text-[11px] text-amber-400">Engineering in progress...</span>
-                            )}
+                        </div>
+                        <div className="text-[10px] font-mono text-neutral-400 flex items-center gap-2">
+                          <span>{item.pair}</span>
+                          <span>·</span>
+                          <span>{item.timeframe}</span>
+                          <span>·</span>
+                          <span className="text-white font-bold">{item.price}</span>
+                        </div>
+                        {item.status === "DELIVERED" && (
+                          <div className="flex items-center gap-2 pt-1">
+                            <button
+                              type="button"
+                              onClick={() => handleDownloadFile(item.ex5Filename || `${item.id}.ex5`)}
+                              className="btn-fialgo-primary h-7 px-2.5 text-[10px] font-bold uppercase tracking-wider inline-flex items-center gap-1"
+                            >
+                              <Download size={11} />
+                              <span>.EX5</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDownloadFile(item.mq5Filename || `${item.id}.mq5`)}
+                              className="h-7 px-2 rounded bg-black/40 border border-white/10 text-[10px] font-mono font-bold text-neutral-300"
+                            >
+                              .MQ5
+                            </button>
                           </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Mobile Card list */}
-              <div className="divide-y divide-white/5 sm:hidden p-3 space-y-3">
-                {deliverables.map((item) => (
-                  <div key={item.id} className="pt-3 first:pt-0 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="font-bold text-white text-xs">{item.title}</div>
-                      <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
-                        item.status === "DELIVERED" ? "bg-emerald-500/10 text-emerald-400" : "bg-amber-500/10 text-amber-400"
-                      }`}>
-                        {item.status}
-                      </span>
-                    </div>
-                    <div className="text-[10px] font-mono text-neutral-400 flex items-center gap-2">
-                      <span>{item.pair}</span>
-                      <span>·</span>
-                      <span>{item.timeframe}</span>
-                      <span>·</span>
-                      <span className="text-white font-bold">{item.price}</span>
-                    </div>
-                    {item.status === "DELIVERED" && (
-                      <div className="flex items-center gap-2 pt-1">
-                        <button
-                          type="button"
-                          onClick={() => handleDownloadFile(item.ex5Filename || `${item.id}.ex5`)}
-                          className="btn-fialgo-primary h-7 px-2.5 text-[10px] font-bold uppercase tracking-wider inline-flex items-center gap-1"
-                        >
-                          <Download size={11} />
-                          <span>.EX5</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDownloadFile(item.mq5Filename || `${item.id}.mq5`)}
-                          className="h-7 px-2 rounded bg-black/40 border border-white/10 text-[10px] font-mono font-bold text-neutral-300"
-                        >
-                          .MQ5
-                        </button>
+                        )}
                       </div>
-                    )}
+                    ))}
                   </div>
-                ))}
-              </div>
+                </>
+              )}
             </div>
           </div>
         )}
