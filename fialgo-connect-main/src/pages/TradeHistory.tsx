@@ -13,11 +13,11 @@ import DashboardLayout from "@/components/DashboardLayout";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { toast } from "sonner";
 
-const kpiBoxStyle = "h-[120px] px-5 py-4 rounded-2xl bg-[#141416] border border-white/[0.08] hover:border-white/[0.15] transition-all flex flex-col justify-between shadow-sm";
+const kpiBoxStyle = "bg-[#1E1E1E] border border-white/5 rounded-lg p-4 relative flex flex-col justify-between";
 
-const cardBoxStyle = "p-5 sm:p-6 rounded-2xl bg-[#141416] border border-white/[0.08] hover:border-white/[0.15] transition-all";
+const cardBoxStyle = "bg-[#1E1E1E] border border-white/5 rounded-lg p-5 space-y-3.5 hover:border-white/10 transition-none";
 
-const innerTileStyle = "bg-[#18181B] border border-white/[0.06] rounded-xl p-3.5 flex flex-col justify-between";
+const innerTileStyle = "bg-black/30 border border-white/5 rounded-lg p-3 flex flex-col justify-between";
 
 // ── 1. Purchased Algorithms & Licenses ────────────────────────────────────────
 interface PurchasedAlgo {
@@ -306,12 +306,10 @@ export default function TradeHistory() {
   // Primary Module Tab: "purchases" | "trades" | "terminal"
   const [activeModule, setActiveModule] = useState<"purchases" | "trades" | "terminal">("purchases");
 
-  // Modal State for Terminal Logs
-  const [showTerminalModal, setShowTerminalModal] = useState(false);
-
   // Filters & Search
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPair, setSelectedPair] = useState("ALL");
+  const [selectedAlgo, setSelectedAlgo] = useState("ALL");
   const [tradeFilter, setTradeFilter] = useState<"all" | "wins" | "losses">("all");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
@@ -368,6 +366,7 @@ export default function TradeHistory() {
     if (tradeFilter === "wins" && order.status !== "win") return false;
     if (tradeFilter === "losses" && order.status !== "loss") return false;
     if (selectedPair !== "ALL" && !order.pair.toUpperCase().includes(selectedPair)) return false;
+    if (selectedAlgo !== "ALL" && order.strategy !== selectedAlgo) return false;
 
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
@@ -378,6 +377,16 @@ export default function TradeHistory() {
       );
     }
     return true;
+  });
+
+  const algoStats = mockPurchasedAlgos.map((algo) => {
+    const trades = mockOrders.filter(o => o.strategy.toLowerCase() === algo.name.toLowerCase());
+    const pnl = trades.reduce((sum, o) => sum + o.pnl, 0);
+    return {
+      name: algo.name,
+      tradesCount: trades.length,
+      pnl
+    };
   });
 
   const filteredTerminalLogs = initialTerminalLogs.filter((log) => {
@@ -429,431 +438,446 @@ export default function TradeHistory() {
 
   return (
     <DashboardLayout>
-      <div className="max-w-[1600px] mx-auto space-y-6 pb-12 px-4 sm:px-6 md:px-8 font-sans">
+      <div className="space-y-4 pb-20 select-none px-4 sm:px-6 md:px-8 py-3 max-w-[1500px] mx-auto w-full">
 
-        {/* ── TOP HEADER (Systemic Tradifive Style) ── */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-2">
-          <div>
-            <div className="flex items-center gap-3">
-              <h1
-                className="text-[28px] sm:text-[32px] font-bold text-slate-900 dark:text-white tracking-tight leading-none"
-                
-              >
-                Order History
-              </h1>
-              {isConnected ? (
-                <span className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1.5 border border-emerald-500/20 uppercase tracking-wider">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  Live MT5 Telemetry
-                </span>
-              ) : (
-                <span className="bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1.5 border border-amber-500/20 uppercase tracking-wider">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                  Sandbox Executions
-                </span>
-              )}
+        {/* ── Top Header (Admin App Style: Dark, Clean, Sharp Borders) ── */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-white/5">
+          <div className="flex items-center gap-3">
+            <div 
+              className="w-9 h-9 rounded-lg bg-black/30 border border-white/5 flex items-center justify-center text-blue-400 shrink-0" 
+              style={{ borderColor: "#3b82f620" }}
+            >
+              <FileText size={16} />
             </div>
-            <p className="text-[13px] text-slate-500 dark:text-slate-400 font-normal mt-2">
-              Comprehensive record of purchased algorithms, executed trade orders, and MT5 terminal execution logs
-            </p>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-lg sm:text-xl font-bold tracking-wider text-white uppercase">
+                  Order History &amp; Execution Audit
+                </h1>
+                <div className="flex items-center gap-1.5 px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded">
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="text-[9px] font-bold text-emerald-500 uppercase tracking-widest">
+                    {isConnected ? "Live Telemetry" : "Sandbox Executions"}
+                  </span>
+                </div>
+              </div>
+              <p className="text-neutral-500 text-[9px] font-bold uppercase tracking-[0.15em] mt-0.5">
+                Purchased Algorithms, MT5 Execution Orders &amp; Terminal Audit Ledger
+              </p>
+            </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            {/* Direct Open Terminal Button */}
-            <button
-              type="button"
-              onClick={() => setShowTerminalModal(true)}
-              className="btn-fialgo-primary inline-flex items-center gap-2 h-[38px] px-5 text-xs font-semibold uppercase tracking-wider"
-            >
-              <Terminal className="w-3.5 h-3.5" />
-              <span>Terminal Logs</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            </button>
-
+          <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={handleRefresh}
               disabled={isRefreshing}
-              className="btn-fialgo-secondary inline-flex items-center gap-2 h-[38px] px-4 text-xs font-semibold"
+              className="h-9 px-3.5 bg-[#1E1E1E] hover:bg-white/[0.05] border border-white/5 hover:border-white/10 rounded-lg text-xs font-semibold text-neutral-300 transition-none flex items-center gap-1.5 cursor-pointer"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin text-slate-900 dark:text-white" : "text-slate-400"}`} />
-              <span className="hidden sm:inline">Sync Data</span>
+              <RefreshCw size={13} className={isRefreshing ? "animate-spin text-white" : "text-neutral-400"} />
+              <span>Sync Data</span>
             </button>
 
             <button
               type="button"
               onClick={handleExportCSV}
-              className="btn-fialgo-secondary inline-flex items-center gap-2 h-[38px] px-4 text-xs font-semibold uppercase tracking-wider"
+              className="h-9 px-3.5 bg-[#1E1E1E] hover:bg-white/[0.05] border border-white/5 hover:border-white/10 rounded-lg text-xs font-semibold text-neutral-300 transition-none flex items-center gap-1.5 cursor-pointer"
             >
-              <Download className="w-3.5 h-3.5 text-indigo-500" />
+              <Download size={13} className="text-blue-400" />
               <span>Export CSV</span>
             </button>
           </div>
         </div>
 
-        {/* ── 4 KPI BOXES (Consistent with Journal & RiskGuard) ── */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
-          {/* 1. Purchased Algos & Licenses */}
-          <div className={kpiBoxStyle}>
-            <div className="flex items-center justify-between">
-              <p className="text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-wider">
-                Purchased Algos
-              </p>
-              <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center shrink-0">
-                <Bot className="w-4 h-4 text-indigo-500 dark:text-indigo-400" />
-              </div>
-            </div>
-            <div className="flex items-end justify-between">
-              <div className="flex items-baseline gap-1.5 leading-none">
-                <h3
-                  className="text-[26px] font-medium text-slate-900 dark:text-white tracking-tight leading-none"
-                  
-                >
-                  {totalPurchases}
-                </h3>
-                <span className="text-[12px] font-medium text-slate-400">
-                  ({activeLicenses} Active)
-                </span>
-              </div>
-              <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500">
-                Licenses
+        {/* ── 4 Metric Cards Grid (Matching Admin App Style, Fonts & Numbers) ── */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {/* Card 1: Purchased Algos */}
+          <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-4 relative">
+            <div className="absolute top-4 right-4">
+              <span className="text-[9px] font-mono font-bold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
+                {activeLicenses} Active
               </span>
+            </div>
+            <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 mb-2">
+              <Bot size={15} />
+            </div>
+            <div className="text-2xl font-bold font-mono text-white tracking-tight">
+              {totalPurchases}
+            </div>
+            <div className="text-[9px] font-bold text-neutral-500 uppercase tracking-[0.15em] mt-1">
+              PURCHASED ALGOS
             </div>
           </div>
 
-          {/* 2. Realized Net Profit */}
-          <div className={kpiBoxStyle}>
-            <div className="flex items-center justify-between">
-              <p className="text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-wider">
-                Realized Net P&L
-              </p>
-              <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center shrink-0">
-                <TrendingUp className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-              </div>
-            </div>
-            <div className="flex items-end justify-between">
-              <h3
-                className={`text-[26px] font-medium tracking-tight leading-none ${totalProfit >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-500"}`}
-                
-              >
-                {totalProfit >= 0 ? "+" : ""}${totalProfit.toFixed(2)}
-              </h3>
-              <span className="bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-200/50">
+          {/* Card 2: Realized Net P&L */}
+          <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-4 relative">
+            <div className="absolute top-4 right-4">
+              <span className="text-[9px] font-mono font-bold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
                 All Trades
               </span>
             </div>
+            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-2">
+              <TrendingUp size={15} />
+            </div>
+            <div className="text-2xl font-bold font-mono text-emerald-400 tracking-tight">
+              +${totalProfit.toFixed(2)}
+            </div>
+            <div className="text-[9px] font-bold text-neutral-500 uppercase tracking-[0.15em] mt-1">
+              REALIZED NET P&amp;L
+            </div>
           </div>
 
-          {/* 3. Trades Win Rate */}
-          <div className={kpiBoxStyle}>
-            <div className="flex items-center justify-between">
-              <p className="text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-wider">
-                Trade Win %
-              </p>
-              <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center shrink-0">
-                <Activity className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-              </div>
-            </div>
-            <div className="flex items-end justify-between">
-              <div className="flex items-baseline gap-1.5 leading-none">
-                <h3
-                  className="text-[26px] font-medium text-slate-900 dark:text-white tracking-tight leading-none"
-                  
-                >
-                  {winRate}%
-                </h3>
-                <span className="text-[12px] font-medium text-slate-400">
-                  ({winCount} / {mockOrders.length})
-                </span>
-              </div>
-              <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500">
-                Win Rate
+          {/* Card 3: Trade Win % */}
+          <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-4 relative">
+            <div className="absolute top-4 right-4">
+              <span className="text-[9px] font-mono font-bold text-neutral-400 bg-black/40 px-1.5 py-0.5 rounded">
+                {winCount}/{mockOrders.length} Wins
               </span>
             </div>
+            <div className="w-8 h-8 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 mb-2">
+              <Activity size={15} />
+            </div>
+            <div className="text-2xl font-bold font-mono text-white tracking-tight">
+              {winRate}%
+            </div>
+            <div className="text-[9px] font-bold text-neutral-500 uppercase tracking-[0.15em] mt-1">
+              TRADE WIN RATE
+            </div>
           </div>
 
-          {/* 4. MT5 Terminal Latency */}
-          <div className={kpiBoxStyle}>
-            <div className="flex items-center justify-between">
-              <p className="text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-wider">
-                VPS Gateway
-              </p>
-              <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center shrink-0">
-                <Zap className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-              </div>
-            </div>
-            <div className="flex items-end justify-between">
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#10B981] animate-pulse" />
-                <h3
-                  className="text-[22px] font-medium text-slate-900 dark:text-white tracking-tight leading-none"
-                  
-                >
-                  2.1ms Ping
-                </h3>
-              </div>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-200/50">
+          {/* Card 4: VPS Gateway Latency */}
+          <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-4 relative">
+            <div className="absolute top-4 right-4">
+              <span className="text-[9px] font-mono font-bold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
                 OPTIMAL
               </span>
+            </div>
+            <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 mb-2">
+              <Zap size={15} />
+            </div>
+            <div className="flex items-center gap-1.5 text-2xl font-bold font-mono text-white tracking-tight">
+              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>2.1ms</span>
+            </div>
+            <div className="text-[9px] font-bold text-neutral-500 uppercase tracking-[0.15em] mt-1">
+              VPS LATENCY
             </div>
           </div>
         </div>
 
-        {/* ── 3 CORE MODULE TABS: (Purchased Algos | Executed Trades | Execution Logs) ── */}
-        <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 pt-1">
-          {/* Main Module Switcher */}
-          <div className="bg-[#141416] p-1 rounded-full flex items-center gap-1 border border-white/[0.08] overflow-x-auto">
+        {/* ── Status Strip (Matching Admin App Green Status Dot) ── */}
+        <div className="flex items-center gap-2 text-[11px] font-mono text-neutral-400 flex-wrap">
+          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="text-emerald-400 font-bold">MT5 Terminal: Connected (0% Slippage)</span>
+          <span className="text-neutral-600">·</span>
+          <span>{totalPurchases} Licenses Provisioned ({activeLicenses} Active)</span>
+          <span className="text-neutral-600">·</span>
+          <span>{mockOrders.length} Executed Trades Audited</span>
+          <span className="text-neutral-600">·</span>
+          <span>Zero-Lag VPS Sync</span>
+        </div>
+
+        {/* ── Top Navigation Tabs & Search (Pill styling matching Admin App) ── */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
             <button
               type="button"
               onClick={() => { setActiveModule("purchases"); setSearchQuery(""); }}
-              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-2 shrink-0 ${activeModule === "purchases" ? "btn-fialgo-primary" : "text-neutral-400 hover:text-white px-4 py-2 rounded-full text-xs font-semibold shrink-0"
-                }`}
+              className={`whitespace-nowrap px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-none flex items-center gap-2 cursor-pointer ${
+                activeModule === "purchases"
+                  ? "bg-[#1E1E1E] text-white border border-white/10 shadow-xs"
+                  : "text-neutral-400 hover:text-white border border-transparent"
+              }`}
             >
-              <Package className="w-3.5 h-3.5 text-indigo-500" />
-              <span>Purchased Algos ({totalPurchases})</span>
+              <Bot size={13} className={activeModule === "purchases" ? "text-blue-400" : ""} />
+              <span>Purchased Algos</span>
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-black/40 text-neutral-400 font-mono font-bold">
+                {totalPurchases}
+              </span>
             </button>
 
             <button
               type="button"
               onClick={() => { setActiveModule("trades"); setSearchQuery(""); }}
-              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-2 shrink-0 ${activeModule === "trades" ? "btn-fialgo-primary" : "text-neutral-400 hover:text-white px-4 py-2 rounded-full text-xs font-semibold shrink-0"
-                }`}
+              className={`whitespace-nowrap px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-none flex items-center gap-2 cursor-pointer ${
+                activeModule === "trades"
+                  ? "bg-[#1E1E1E] text-white border border-white/10 shadow-xs"
+                  : "text-neutral-400 hover:text-white border border-transparent"
+              }`}
             >
-              <Activity className="w-3.5 h-3.5 text-emerald-500" />
-              <span>Executed Trades ({mockOrders.length})</span>
+              <Activity size={13} className={activeModule === "trades" ? "text-emerald-400" : ""} />
+              <span>Executed Trades</span>
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-black/40 text-emerald-400 font-mono font-bold">
+                {mockOrders.length}
+              </span>
             </button>
 
             <button
               type="button"
               onClick={() => { setActiveModule("terminal"); setSearchQuery(""); }}
-              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-2 shrink-0 ${activeModule === "terminal" ? "btn-fialgo-primary" : "text-neutral-400 hover:text-white px-4 py-2 rounded-full text-xs font-semibold shrink-0"
-                }`}
+              className={`whitespace-nowrap px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-none flex items-center gap-2 cursor-pointer ${
+                activeModule === "terminal"
+                  ? "bg-[#1E1E1E] text-white border border-white/10 shadow-xs"
+                  : "text-neutral-400 hover:text-white border border-transparent"
+              }`}
             >
-              <Terminal className="w-3.5 h-3.5 text-emerald-500" />
-              <span>MT5 Execution Logs ({initialTerminalLogs.length})</span>
+              <Terminal size={13} className={activeModule === "terminal" ? "text-purple-400" : ""} />
+              <span>MT5 Execution Logs</span>
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-black/40 text-purple-400 font-mono font-bold">
+                {initialTerminalLogs.length}
+              </span>
             </button>
           </div>
 
-          {/* Search Box */}
-          <div className="relative sm:w-72">
-            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          {/* Search Box matching Admin Input Style */}
+          <div className="relative min-w-[240px]">
+            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={`Search ${activeModule}...`}
-              className="w-full h-9 pl-9 pr-3 rounded-xl bg-white dark:bg-[#1E1E1E] border border-slate-200/80 dark:border-white/10 text-xs font-medium text-slate-800 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-indigo-500 shadow-xs"
+              className="w-full h-9 bg-black/30 border border-white/5 focus:border-white/20 rounded pl-8 pr-3 text-xs font-mono text-white focus:outline-none placeholder-neutral-500 transition-none"
             />
           </div>
         </div>
 
         {/* ══════════════════════════════════════════════════════════════════════
-            MODULE 1: PURCHASED ALGORITHMS & LICENSES
+            MODULE 1: PURCHASED ALGORITHMS & LICENSES (Clean Admin Grid)
         ══════════════════════════════════════════════════════════════════════ */}
         {activeModule === "purchases" && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between pb-1">
-              <div>
-                <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">
-                  My Purchased Trading Algorithms &amp; Licenses
-                </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Verified EA licenses provisioned to your MT5 terminal with live activation keys
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => navigate("/strategy")}
-                className="hidden sm:inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer"
-              >
-                <span>Browse Strategy Armory</span>
-                <ArrowRight className="w-3 h-3" />
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {filteredPurchases.map((algo) => (
-                <div key={algo.orderId} className={cardBoxStyle}>
-                  {/* Card Header */}
-                  <div className="flex items-start justify-between gap-3 mb-2">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1.5">
-                        <span className="text-[10px] font-extrabold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 px-2 py-0.5 rounded">
-                          {algo.category}
-                        </span>
-                        <span className="text-[10px] font-semibold text-slate-400">·</span>
-                        <span className="text-[10px] font-bold text-slate-500">
-                          Order #{algo.orderId}
-                        </span>
-                      </div>
-                      <h4
-                        className="text-[17px] font-bold text-slate-900 dark:text-white tracking-tight leading-snug"
-                        
-                      >
-                        {algo.name}
-                      </h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-1">
+            {filteredPurchases.map((algo) => (
+              <div key={algo.orderId} className={cardBoxStyle}>
+                {/* Card Header */}
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-[9px] font-bold uppercase tracking-widest text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">
+                        {algo.category}
+                      </span>
+                      <span className="text-[10px] font-mono text-neutral-500">
+                        #{algo.orderId}
+                      </span>
                     </div>
+                    <h4 className="text-sm font-bold text-white uppercase tracking-wider mt-1.5">
+                      {algo.name}
+                    </h4>
+                  </div>
 
-                    <span className="bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 text-[10px] font-bold px-2.5 py-1 rounded-full border border-emerald-200/50 uppercase tracking-wider shrink-0 flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                      ACTIVE
+                  <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[9px] font-mono font-bold px-2 py-0.5 rounded uppercase tracking-wider shrink-0 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    ACTIVE
+                  </span>
+                </div>
+
+                {/* 3 Spec Tiles (Clean, high-signal) */}
+                <div className="grid grid-cols-3 gap-2 p-3 bg-black/30 border border-white/5 rounded-lg font-mono text-xs">
+                  {/* License Key */}
+                  <div>
+                    <span className="text-[9px] font-bold text-neutral-500 uppercase tracking-widest block mb-0.5">
+                      License Key
+                    </span>
+                    <div className="flex items-center justify-between">
+                      <span className="font-mono text-xs font-bold text-white">
+                        {algo.licenseKey}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={(e) => handleCopy(e, algo.licenseKey, "License Key")}
+                        className="text-neutral-400 hover:text-white"
+                        title="Copy key"
+                      >
+                        {copiedKey === algo.licenseKey ? (
+                          <Check size={12} className="text-emerald-400" />
+                        ) : (
+                          <Copy size={12} />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Bound MT5 */}
+                  <div>
+                    <span className="text-[9px] font-bold text-neutral-500 uppercase tracking-widest block mb-0.5">
+                      Bound MT5
+                    </span>
+                    <span className="font-mono text-xs font-bold text-emerald-400">
+                      #{algo.mt5Account}
                     </span>
                   </div>
 
-                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-4">
-                    {algo.description}
-                  </p>
-
-                  {/* 3 Inner Tiles: License Key, MT5 Binding, Plan */}
-                  <div className="grid grid-cols-3 gap-2.5 mb-4">
-                    {/* License Key */}
-                    <div className={innerTileStyle}>
-                      <span className="text-[10px] font-extrabold uppercase text-slate-400">
-                        License Key
-                      </span>
-                      <div className="flex items-center justify-between mt-1">
-                        <span className="font-mono text-xs font-bold text-slate-800 dark:text-white">
-                          {algo.licenseKey}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={(e) => handleCopy(e, algo.licenseKey, "License Key")}
-                          className="text-slate-400 hover:text-slate-700 dark:hover:text-white"
-                          title="Copy key"
-                        >
-                          {copiedKey === algo.licenseKey ? (
-                            <Check className="w-3 h-3 text-emerald-500" />
-                          ) : (
-                            <Copy className="w-3 h-3" />
-                          )}
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* MT5 Account */}
-                    <div className={innerTileStyle}>
-                      <span className="text-[10px] font-extrabold uppercase text-slate-400">
-                        Bound MT5
-                      </span>
-                      <span className="font-mono text-xs font-bold text-slate-800 dark:text-white mt-1">
-                        #{algo.mt5Account}
-                      </span>
-                    </div>
-
-                    {/* Plan Tier */}
-                    <div className={innerTileStyle}>
-                      <span className="text-[10px] font-extrabold uppercase text-slate-400">
-                        Billing Tier
-                      </span>
-                      <span className="text-xs font-bold text-slate-800 dark:text-white mt-1 truncate">
-                        {algo.billingType}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Bottom Action Footer */}
-                  <div className="flex items-center justify-between pt-3.5 border-t border-slate-100 dark:border-white/5">
-                    <div className="text-[11px] text-slate-400">
-                      <span>Purchased: <strong className="text-slate-600 dark:text-slate-300 font-semibold">{algo.purchaseDate}</strong></span>
-                      <span className="mx-1.5">·</span>
-                      <span className="font-semibold text-slate-600 dark:text-slate-300">{algo.price}</span>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => handleDownloadEA(algo.name)}
-                        className="h-8 px-3 rounded-xl border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
-                      >
-                        <Download className="w-3 h-3" />
-                        <span>Download .EX5</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => navigate("/auto-trade/active-bots")}
-                        className="h-8 px-3 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-400 dark:hover:bg-indigo-500/20 text-xs font-bold transition-all cursor-pointer flex items-center gap-1"
-                      >
-                        <span>View Bot</span>
-                        <ArrowUpRight className="w-3 h-3" />
-                      </button>
-                    </div>
+                  {/* Supported Pairs */}
+                  <div>
+                    <span className="text-[9px] font-bold text-neutral-500 uppercase tracking-widest block mb-0.5">
+                      Pairs
+                    </span>
+                    <span className="text-xs font-mono font-bold text-neutral-300 truncate block">
+                      {algo.pairs.join(", ")}
+                    </span>
                   </div>
                 </div>
-              ))}
-            </div>
+
+                {/* Bottom Action Footer */}
+                <div className="flex items-center justify-between pt-3 border-t border-white/5">
+                  <div className="text-[11px] font-mono text-neutral-400">
+                    <span>Purchased: <strong className="text-neutral-300 font-bold">{algo.purchaseDate}</strong></span>
+                    <span className="mx-1.5">·</span>
+                    <span className="font-bold text-white">{algo.price}</span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleDownloadEA(algo.name)}
+                      className="btn-fialgo-primary h-7 px-2.5 text-[10px] font-bold uppercase tracking-wider inline-flex items-center gap-1 cursor-pointer"
+                    >
+                      <Download size={11} />
+                      <span>Download .EX5</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => navigate("/auto-trade/active-bots")}
+                      className="h-7 px-2.5 rounded bg-black/30 hover:bg-white/[0.08] border border-white/10 text-[10px] font-mono font-bold text-blue-400 transition-none cursor-pointer flex items-center gap-1"
+                    >
+                      <span>View Bot</span>
+                      <ArrowUpRight size={11} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         )}
 
         {/* ══════════════════════════════════════════════════════════════════════
-            MODULE 2: EXECUTED TRADE ORDERS
+            MODULE 2: EXECUTED TRADE ORDERS (Admin App Table Aesthetic)
         ══════════════════════════════════════════════════════════════════════ */}
         {activeModule === "trades" && (
-          <div className="space-y-4">
+          <div className="space-y-3">
+            {/* Top Filter Bar */}
             <div className="flex flex-wrap items-center justify-between gap-3 pb-1">
               <div className="flex items-center gap-1.5">
                 <button
                   type="button"
                   onClick={() => setTradeFilter("all")}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${tradeFilter === "all"
-                      ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900"
-                      : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
-                    }`}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-none cursor-pointer ${
+                    tradeFilter === "all"
+                      ? "bg-white/10 text-white border border-white/15"
+                      : "text-neutral-400 hover:text-white border border-transparent"
+                  }`}
                 >
                   All ({mockOrders.length})
                 </button>
                 <button
                   type="button"
                   onClick={() => setTradeFilter("wins")}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${tradeFilter === "wins"
-                      ? "bg-emerald-600 text-white"
-                      : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
-                    }`}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-none cursor-pointer ${
+                    tradeFilter === "wins"
+                      ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                      : "text-neutral-400 hover:text-white border border-transparent"
+                  }`}
                 >
                   Winning ({winCount})
                 </button>
                 <button
                   type="button"
                   onClick={() => setTradeFilter("losses")}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${tradeFilter === "losses"
-                      ? "bg-rose-600 text-white"
-                      : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
-                    }`}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-none cursor-pointer ${
+                    tradeFilter === "losses"
+                      ? "bg-rose-500/20 text-rose-400 border border-rose-500/30"
+                      : "text-neutral-400 hover:text-white border border-transparent"
+                  }`}
                 >
                   Losing ({mockOrders.length - winCount})
                 </button>
               </div>
 
-              <select
-                value={selectedPair}
-                onChange={(e) => setSelectedPair(e.target.value)}
-                className="h-8 px-2.5 rounded-lg bg-white dark:bg-[#1E1E1E] border border-slate-200/80 dark:border-white/10 text-xs font-bold text-slate-700 dark:text-white focus:outline-none cursor-pointer"
-              >
-                <option value="ALL">All Pairs</option>
-                <option value="EURUSD">EUR/USD</option>
-                <option value="XAUUSD">XAU/USD</option>
-                <option value="GBPUSD">GBP/USD</option>
-                <option value="USDJPY">USD/JPY</option>
-                <option value="US100">US100</option>
-              </select>
+              <div className="flex items-center gap-2">
+                {/* Algo Filter Dropdown */}
+                <select
+                  value={selectedAlgo}
+                  onChange={(e) => setSelectedAlgo(e.target.value)}
+                  className="h-8 px-2.5 rounded-lg bg-black/30 border border-white/5 text-xs font-mono font-bold text-neutral-200 focus:outline-none cursor-pointer"
+                >
+                  <option value="ALL">Algo: All Bots</option>
+                  {mockPurchasedAlgos.map(algo => (
+                    <option key={algo.name} value={algo.name}>
+                      {algo.name}
+                    </option>
+                  ))}
+                </select>
+
+                {/* Pair Filter Dropdown */}
+                <select
+                  value={selectedPair}
+                  onChange={(e) => setSelectedPair(e.target.value)}
+                  className="h-8 px-2.5 rounded-lg bg-black/30 border border-white/5 text-xs font-mono font-bold text-neutral-200 focus:outline-none cursor-pointer"
+                >
+                  <option value="ALL">Pair: All Assets</option>
+                  <option value="EURUSD">EUR/USD</option>
+                  <option value="XAUUSD">XAU/USD</option>
+                  <option value="GBPUSD">GBP/USD</option>
+                  <option value="USDJPY">USD/JPY</option>
+                  <option value="US100">US100</option>
+                </select>
+              </div>
             </div>
 
-            <div className="rounded-[22px] border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:shadow-none overflow-hidden">
+            {/* Algo Execution Summary Strip: Shows Which Algo & How Many Trades It Took */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 font-mono">
+              {algoStats.map(stat => (
+                <div 
+                  key={stat.name}
+                  onClick={() => setSelectedAlgo(selectedAlgo === stat.name ? "ALL" : stat.name)}
+                  className={`p-2.5 rounded-lg border cursor-pointer transition-none flex items-center justify-between ${
+                    selectedAlgo === stat.name 
+                      ? "bg-blue-600/15 border-blue-500/40 text-white shadow-xs" 
+                      : "bg-[#1E1E1E] border-white/5 text-neutral-400 hover:border-white/10"
+                  }`}
+                >
+                  <div className="truncate mr-2">
+                    <span className="font-bold block text-white truncate text-xs">{stat.name}</span>
+                    <span className="text-[10px] text-neutral-500">{stat.tradesCount} trades taken</span>
+                  </div>
+                  <span className={`text-xs font-bold ${stat.pnl >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                    {stat.pnl >= 0 ? "+" : ""}${stat.pnl.toFixed(2)}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            <div className="bg-[#1E1E1E] border border-white/5 rounded-lg overflow-hidden">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3.5 border-b border-white/5 bg-black/10">
+                <div className="flex items-center gap-2">
+                  <Activity size={14} className="text-emerald-400" />
+                  <span className="text-xs font-bold text-white uppercase tracking-wider">
+                    EXECUTED TRADE ORDERS ({filteredTrades.length})
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="text-[10px] font-mono text-neutral-400">
+                    Realtime MT5 execution telemetry &amp; slippage audit
+                  </span>
+                </div>
+              </div>
+
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse min-w-[850px]">
                   <thead>
-                    <tr className="border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02]">
-                      <th className="px-5 py-3.5 text-[11px] font-extrabold uppercase tracking-wider text-slate-400">Ticket ID</th>
-                      <th className="px-5 py-3.5 text-[11px] font-extrabold uppercase tracking-wider text-slate-400">Asset &amp; Order</th>
-                      <th className="px-5 py-3.5 text-[11px] font-extrabold uppercase tracking-wider text-slate-400">Strategy Engine</th>
-                      <th className="px-5 py-3.5 text-[11px] font-extrabold uppercase tracking-wider text-slate-400">Execution Price</th>
-                      <th className="px-5 py-3.5 text-[11px] font-extrabold uppercase tracking-wider text-slate-400">Timestamp</th>
-                      <th className="px-5 py-3.5 text-[11px] font-extrabold uppercase tracking-wider text-slate-400">Realized P&amp;L</th>
-                      <th className="px-5 py-3.5 text-[11px] font-extrabold uppercase tracking-wider text-slate-400 text-right">Details</th>
+                    <tr className="border-b border-white/5 text-[9px] font-bold text-neutral-500 uppercase tracking-widest bg-black/20">
+                      <th className="p-3.5">TICKET ID</th>
+                      <th className="p-3.5">ASSET &amp; ORDER</th>
+                      <th className="p-3.5">STRATEGY ENGINE</th>
+                      <th className="p-3.5">EXECUTION PRICE</th>
+                      <th className="p-3.5">TIMESTAMP</th>
+                      <th className="p-3.5">REALIZED P&amp;L</th>
+                      <th className="p-3.5 text-right">DETAILS</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+                  <tbody className="divide-y divide-white/5 font-mono text-xs">
                     {filteredTrades.map((order) => {
                       const isExpanded = expandedId === order.id;
                       const isWin = order.status === "win";
@@ -862,77 +886,65 @@ export default function TradeHistory() {
                         <Fragment key={order.id}>
                           <tr
                             onClick={() => setExpandedId(isExpanded ? null : order.id)}
-                            className={`hover:bg-slate-50/80 dark:hover:bg-white/[0.03] transition-colors cursor-pointer ${isExpanded ? "bg-slate-50/80 dark:bg-white/[0.03]" : ""
-                              }`}
+                            className={`hover:bg-white/[0.02] transition-none cursor-pointer ${
+                              isExpanded ? "bg-white/[0.03]" : ""
+                            }`}
                           >
-                            <td className="px-5 py-4">
-                              <span className="font-mono text-xs font-bold text-slate-700 dark:text-slate-200">
-                                #{order.id}
-                              </span>
+                            <td className="p-3.5 font-bold text-white">
+                              #{order.id}
                             </td>
 
-                            <td className="px-5 py-4">
+                            <td className="p-3.5">
                               <div className="flex items-center gap-2">
-                                <span className="text-xs font-bold text-slate-900 dark:text-white">
+                                <span className="font-bold text-white font-sans">
                                   {order.pair}
                                 </span>
-                                <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider ${order.type === "BUY"
-                                    ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-200/50"
-                                    : "bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400 border border-rose-200/50"
-                                  }`}>
+                                <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
+                                  order.type === "BUY"
+                                    ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                                    : "bg-rose-500/10 text-rose-400 border border-rose-500/20"
+                                }`}>
                                   {order.type} {order.lot}
                                 </span>
                               </div>
                             </td>
 
-                            <td className="px-5 py-4">
-                              <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300">
-                                <Bot className="w-3.5 h-3.5 text-indigo-500" />
+                            <td className="p-3.5 text-neutral-300">
+                              <span className="inline-flex items-center gap-1.5">
+                                <Bot size={13} className="text-blue-400" />
                                 <span>{order.strategy}</span>
                               </span>
                             </td>
 
-                            <td className="px-5 py-4">
-                              <div className="text-xs font-medium text-slate-600 dark:text-slate-300 font-mono">
-                                <span>{order.openPrice}</span>
-                                <span className="text-slate-400 mx-1">→</span>
-                                <span className="font-semibold text-slate-900 dark:text-white">{order.closePrice}</span>
+                            <td className="p-3.5 text-neutral-300">
+                              <span>{order.openPrice}</span>
+                              <span className="text-neutral-500 mx-1">→</span>
+                              <span className="font-bold text-white">{order.closePrice}</span>
+                            </td>
+
+                            <td className="p-3.5 text-neutral-400 text-[11px]">
+                              <div>{order.closeTime}</div>
+                              <div className="text-[10px] text-neutral-500 flex items-center gap-1 mt-0.5">
+                                <Clock size={10} />
+                                <span>{order.duration}</span>
                               </div>
                             </td>
 
-                            <td className="px-5 py-4">
-                              <div>
-                                <p className="text-xs font-medium text-slate-700 dark:text-slate-200">
-                                  {order.closeTime}
-                                </p>
-                                <p className="text-[10px] text-slate-400 flex items-center gap-1 mt-0.5">
-                                  <Clock className="w-3 h-3" />
-                                  {order.duration}
-                                </p>
+                            <td className="p-3.5">
+                              <div className={`font-bold ${isWin ? "text-emerald-400" : "text-rose-400"}`}>
+                                {order.pnl >= 0 ? "+" : ""}${order.pnl.toFixed(2)}
+                              </div>
+                              <div className={`text-[10px] ${isWin ? "text-emerald-500" : "text-rose-500"}`}>
+                                {order.returnPct}
                               </div>
                             </td>
 
-                            <td className="px-5 py-4">
-                              <div>
-                                <p
-                                  className={`text-sm font-bold tracking-tight leading-none ${isWin ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
-                                    }`}
-                                  
-                                >
-                                  {order.pnl >= 0 ? "+" : ""}${order.pnl.toFixed(2)}
-                                </p>
-                                <span className={`text-[10px] font-bold ${isWin ? "text-emerald-500" : "text-rose-500"}`}>
-                                  {order.returnPct}
-                                </span>
-                              </div>
-                            </td>
-
-                            <td className="px-5 py-4 text-right">
+                            <td className="p-3.5 text-right">
                               <button
                                 type="button"
-                                className="text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors"
+                                className="text-neutral-400 hover:text-white"
                               >
-                                {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                                {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                               </button>
                             </td>
                           </tr>
@@ -941,49 +953,44 @@ export default function TradeHistory() {
                           {isExpanded && (
                             <tr>
                               <td colSpan={7} className="p-0 border-t-0">
-                                <motion.div
-                                  initial={{ opacity: 0, height: 0 }}
-                                  animate={{ opacity: 1, height: "auto" }}
-                                  exit={{ opacity: 0, height: 0 }}
-                                  className="bg-slate-50/60 dark:bg-black/20 px-6 py-5 border-b border-slate-100 dark:border-white/5"
-                                >
-                                  <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-200/50 dark:border-white/5">
-                                    <h4 className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                                      <Sliders className="w-3.5 h-3.5 text-indigo-500" />
-                                      MT5 Execution Telemetry (Ticket #{order.id})
+                                <div className="bg-black/30 px-5 py-4 border-b border-white/5 space-y-3 font-mono text-xs">
+                                  <div className="flex items-center justify-between pb-2 border-b border-white/5">
+                                    <h4 className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 flex items-center gap-1.5">
+                                      <Sliders size={12} className="text-blue-400" />
+                                      <span>MT5 Execution Telemetry (Ticket #{order.id})</span>
                                     </h4>
-                                    <span className="text-xs font-mono text-slate-400">
+                                    <span className="text-[10px] text-neutral-500">
                                       Magic: {order.magic}
                                     </span>
                                   </div>
 
-                                  <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4">
+                                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
                                     <div>
-                                      <span className="text-[10px] font-extrabold uppercase text-slate-400 block mb-0.5">Stop Loss</span>
-                                      <span className="text-xs font-mono font-bold text-slate-800 dark:text-white">{order.sl}</span>
+                                      <span className="text-[9px] font-bold uppercase tracking-widest text-neutral-500 block mb-0.5">Stop Loss</span>
+                                      <span className="font-bold text-white">{order.sl}</span>
                                     </div>
                                     <div>
-                                      <span className="text-[10px] font-extrabold uppercase text-slate-400 block mb-0.5">Take Profit</span>
-                                      <span className="text-xs font-mono font-bold text-slate-800 dark:text-white">{order.tp}</span>
+                                      <span className="text-[9px] font-bold uppercase tracking-widest text-neutral-500 block mb-0.5">Take Profit</span>
+                                      <span className="font-bold text-white">{order.tp}</span>
                                     </div>
                                     <div>
-                                      <span className="text-[10px] font-extrabold uppercase text-slate-400 block mb-0.5">Commission</span>
-                                      <span className="text-xs font-mono font-bold text-slate-800 dark:text-white">${order.commission.toFixed(2)}</span>
+                                      <span className="text-[9px] font-bold uppercase tracking-widest text-neutral-500 block mb-0.5">Commission</span>
+                                      <span className="font-bold text-white">${order.commission.toFixed(2)}</span>
                                     </div>
                                     <div>
-                                      <span className="text-[10px] font-extrabold uppercase text-slate-400 block mb-0.5">Swap Fee</span>
-                                      <span className="text-xs font-mono font-bold text-slate-800 dark:text-white">${order.swap.toFixed(2)}</span>
+                                      <span className="text-[9px] font-bold uppercase tracking-widest text-neutral-500 block mb-0.5">Swap Fee</span>
+                                      <span className="font-bold text-white">${order.swap.toFixed(2)}</span>
                                     </div>
                                     <div>
-                                      <span className="text-[10px] font-extrabold uppercase text-slate-400 block mb-0.5">Execution Latency</span>
-                                      <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">1.8ms (VPS)</span>
+                                      <span className="text-[9px] font-bold uppercase tracking-widest text-neutral-500 block mb-0.5">Execution Latency</span>
+                                      <span className="font-bold text-emerald-400">1.8ms (VPS)</span>
                                     </div>
                                     <div>
-                                      <span className="text-[10px] font-extrabold uppercase text-slate-400 block mb-0.5">Fill Quality</span>
-                                      <span className="text-xs font-bold text-slate-800 dark:text-white">Zero Slippage</span>
+                                      <span className="text-[9px] font-bold uppercase tracking-widest text-neutral-500 block mb-0.5">Fill Quality</span>
+                                      <span className="font-bold text-white">Zero Slippage</span>
                                     </div>
                                   </div>
-                                </motion.div>
+                                </div>
                               </td>
                             </tr>
                           )}
@@ -1004,45 +1011,48 @@ export default function TradeHistory() {
           <div className="space-y-4">
             <div className={cardBoxStyle}>
               {/* Header Row */}
-              <div className="flex items-center justify-between pb-3.5 border-b border-slate-100 dark:border-white/5">
+              <div className="flex items-center justify-between pb-3.5 border-b border-white/5">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-[#22D99A]/10 text-[#22D99A]">
-                    <Terminal size={18} strokeWidth={2} />
+                  <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
+                    <Terminal size={15} />
                   </div>
                   <div>
-                    <h3 className="text-[15px] font-bold text-slate-900 dark:text-white">
+                    <h3 className="text-xs font-bold text-white uppercase tracking-wider">
                       MT5 Terminal &amp; Bot Execution Logs
                     </h3>
-                    <p className="text-[11.5px] text-slate-400 dark:text-slate-400">
+                    <p className="text-[9px] font-bold text-neutral-500 uppercase tracking-[0.15em] mt-0.5">
                       Live timeline of Bot activations, pauses, trades &amp; pings
                     </p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <span className="text-xs font-mono text-emerald-500 font-bold">LIVE TELEMETRY</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="text-[10px] font-mono text-emerald-400 font-bold uppercase tracking-wider">
+                    LIVE TELEMETRY
+                  </span>
                 </div>
               </div>
 
-              {/* Terminal Dark Console Box (Exact User Image Design) */}
-              <div className="bg-slate-950 dark:bg-black/90 rounded-[16px] border border-slate-800 dark:border-white/10 p-4 max-h-[380px] overflow-y-auto space-y-2.5 font-mono text-xs text-slate-200">
+              {/* Terminal Dark Console Box */}
+              <div className="bg-black/40 rounded-lg border border-white/5 p-4 max-h-[380px] overflow-y-auto space-y-2 font-mono text-xs">
                 {filteredTerminalLogs.map(log => (
                   <div key={log.id} className="flex items-start gap-2.5 py-1.5 border-b border-white/[0.04] last:border-0">
-                    <span className="text-slate-500 text-[11px] shrink-0 tabular-nums">
+                    <span className="text-neutral-500 text-[10px] shrink-0 tabular-nums">
                       [{log.time}]
                     </span>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded shrink-0 ${log.type === 'status_on'
-                        ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0 uppercase tracking-wider ${
+                      log.type === 'status_on'
+                        ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/25'
                         : log.type === 'status_off'
-                          ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                          : log.type === 'license'
-                            ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
-                            : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
-                      }`}>
+                        ? 'bg-amber-500/15 text-amber-400 border border-amber-500/25'
+                        : log.type === 'license'
+                        ? 'bg-purple-500/15 text-purple-400 border border-purple-500/25'
+                        : 'bg-blue-500/15 text-blue-400 border border-blue-500/25'
+                    }`}>
                       {log.event}
                     </span>
-                    <span className="text-slate-300 text-[11.5px] min-w-0 flex-1 leading-snug">
+                    <span className="text-neutral-300 text-xs min-w-0 flex-1 leading-snug">
                       {log.details}
                     </span>
                   </div>
@@ -1050,23 +1060,23 @@ export default function TradeHistory() {
               </div>
 
               {/* Terminal Footer */}
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 text-xs text-slate-400">
-                <span className="text-[11.5px] font-mono">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 text-xs text-neutral-400 border-t border-white/5 font-mono">
+                <span className="text-[11px]">
                   VPS Gateway: 185.220.101.44 · Latency: 2.1ms
                 </span>
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={handleDownloadTerminalLog}
-                    className="inline-flex items-center gap-1.5 h-[34px] px-3.5 rounded-[12px] border-2 border-white bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-[#2B2F35] text-slate-600 dark:text-slate-300 text-xs font-bold transition-all cursor-pointer"
+                    className="h-8 px-3 rounded-lg bg-black/30 hover:bg-white/[0.08] border border-white/10 text-xs font-mono font-bold text-neutral-300 transition-none cursor-pointer flex items-center gap-1.5"
                   >
-                    <Download size={13} />
-                    <span>Download</span>
+                    <Download size={12} />
+                    <span>Download Log</span>
                   </button>
                   <button
                     type="button"
                     onClick={handleRefresh}
-                    className="h-[34px] px-4 rounded-[12px] bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold text-xs hover:opacity-90 transition-opacity cursor-pointer flex items-center gap-1.5"
+                    className="btn-fialgo-primary h-8 px-3.5 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer"
                   >
                     <RefreshCw size={12} className={isRefreshing ? "animate-spin" : ""} />
                     <span>Refresh Stream</span>
@@ -1078,88 +1088,6 @@ export default function TradeHistory() {
         )}
 
       </div>
-
-      {/* ── MODAL: POPUP MT5 TERMINAL & BOT EXECUTION LOGS ── */}
-      <AnimatePresence>
-        {showTerminalModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="rounded-[22px] border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-2xl dark:bg-none dark:bg-[#191B1E] dark:border-[1px] dark:border-[#2B2F35] max-w-2xl w-full p-6 space-y-4 text-slate-900 dark:text-white"
-            >
-              <div className="flex items-center justify-between pb-3.5 border-b border-slate-100 dark:border-white/5">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-[#22D99A]/10 text-[#22D99A]">
-                    <Terminal size={18} strokeWidth={2} />
-                  </div>
-                  <div>
-                    <h3 className="text-[15px] font-bold text-slate-900 dark:text-white">
-                      MT5 Terminal &amp; Bot Execution Logs
-                    </h3>
-                    <p className="text-[11.5px] text-slate-400 dark:text-slate-400">
-                      Live timeline of Bot activations, pauses, trades &amp; pings
-                    </p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setShowTerminalModal(false)}
-                  className="text-slate-400 hover:text-slate-700 dark:hover:text-white p-1 rounded-lg transition-colors cursor-pointer"
-                >
-                  <X size={18} />
-                </button>
-              </div>
-
-              {/* Terminal View Container */}
-              <div className="bg-slate-950 dark:bg-black/90 rounded-[16px] border border-slate-800 dark:border-white/5 p-4 max-h-[340px] overflow-y-auto space-y-2 font-mono text-xs text-slate-200">
-                {initialTerminalLogs.map(log => (
-                  <div key={log.id} className="flex items-start gap-2.5 py-1 border-b border-white/[0.04] last:border-0">
-                    <span className="text-slate-500 text-[11px] shrink-0 tabular-nums">
-                      [{log.time}]
-                    </span>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded shrink-0 ${log.type === 'status_on'
-                        ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                        : log.type === 'status_off'
-                          ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                          : log.type === 'license'
-                            ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
-                            : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
-                      }`}>
-                      {log.event}
-                    </span>
-                    <span className="text-slate-300 text-[11.5px] min-w-0 flex-1 leading-snug">
-                      {log.details}
-                    </span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="flex items-center justify-between pt-2 text-xs text-slate-400">
-                <span className="text-[11.5px]">VPS Gateway: 185.220.101.44 · Latency: 2.1ms</span>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={handleDownloadTerminalLog}
-                    className="inline-flex items-center gap-1.5 h-[34px] px-3.5 rounded-[12px] border-2 border-white bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:bg-none dark:bg-[#191B1E] dark:border-[1px] dark:border-[#2B2F35] text-slate-600 dark:text-slate-300 text-xs font-bold transition-all cursor-pointer"
-                  >
-                    <Download size={13} />
-                    <span>Download</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowTerminalModal(false)}
-                    className="h-[34px] px-4 rounded-[12px] bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold text-xs hover:opacity-90 transition-opacity cursor-pointer"
-                  >
-                    Close
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </DashboardLayout>
   );
 }

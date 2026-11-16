@@ -46,7 +46,6 @@ export default function FiAlgoAdminTopbar({ onOpenMobileMenu }: FiAlgoAdminTopba
     if (p.startsWith("/auto-trade/dashboard")) return "MT5 Execution Pulse";
     if (p.startsWith("/auto-trade/active-bots")) return "Active Bots";
     if (p.startsWith("/strategy-builder")) return "Strategy Builder";
-    if (p.startsWith("/auto-trade/backtest")) return "Backtesting Engine";
     if (p.startsWith("/auto-trade/history")) return "Order History";
     if (p.startsWith("/weekly-settlements")) return "Weekly Settlements";
     if (p.startsWith("/auto-trade/license")) return "EA License & Keys";
@@ -60,7 +59,6 @@ export default function FiAlgoAdminTopbar({ onOpenMobileMenu }: FiAlgoAdminTopba
     { label: "MT5 Execution Pulse", path: "/auto-trade/dashboard", category: "Terminal" },
     { label: "Active Bots", path: "/auto-trade/active-bots", category: "Bots" },
     { label: "Strategy Builder", path: "/strategy-builder", category: "Builder" },
-    { label: "Backtesting Engine", path: "/auto-trade/backtest", category: "Simulator" },
     { label: "Order History", path: "/auto-trade/history", category: "Execution" },
     { label: "Weekly Settlements", path: "/weekly-settlements", category: "Settlements" },
     { label: "EA License & Keys", path: "/auto-trade/license", category: "License" },

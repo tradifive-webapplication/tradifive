@@ -4,7 +4,7 @@ import {
 
   Search, PanelLeftClose, PanelLeftOpen, Lock, ChevronDown, ChevronRight, ChevronLeft, Inbox, Moon, Sun, Palette, ChevronsUpDown, Clock, User, CreditCard, MessageSquare, UserCheck,
 
-  Plus, Users, LayoutGrid, Shield, Gift, Compass, BookText, Brain, ShieldCheck, Target, Award, Mail, Crown, PlusCircle, X, GraduationCap, ShoppingBag, Video, Hash, Globe, TrendingUp, Home as LucideHome, UserPlus, Share2, Server, Box, Rocket, Receipt, ReceiptText, Cpu, ArrowRight, LogOut, BarChart3
+  Plus, Users, LayoutGrid, Shield, Gift, Compass, BookText, Brain, ShieldCheck, Target, Award, Mail, Crown, PlusCircle, X, GraduationCap, ShoppingBag, Video, Hash, Globe, TrendingUp, Home as LucideHome, UserPlus, Share2, Server, Box, Rocket, Receipt, ReceiptText, Cpu, ArrowRight, LogOut
 
 } from "lucide-react";
 
@@ -253,7 +253,6 @@ const getAutoTradeMenu = () => {
     { path: "/auto-trade/active-bots", icon: WrappedIconly(Activity), label: "Active Bots", isLocked: true },
     { path: "/auto-trade/marketplace", icon: WrappedIconly(Bag), label: "Algo Marketplace" },
     { path: "/strategy-builder", icon: WrappedIconly(Setting), label: "Strategy Builder", isLocked: true },
-    { path: "/auto-trade/backtest", icon: wrapLucide(BarChart3), label: "Backtesting" },
     { path: "/auto-trade/history", icon: WrappedIconly(Document), label: "Order History", isLocked: true },
     { path: "/auto-trade/license", icon: WrappedIconly(ShieldDone), label: "License & Activation", isLocked: true },
   ];

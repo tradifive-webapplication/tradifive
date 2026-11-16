@@ -74,7 +74,6 @@ const AITrading = lazy(() => import("./pages/AITrading"));
 const AutoTradeDashboardPage = lazy(() => import('./pages/AutoTradeDashboardPage'));
 const MyRobots = lazy(() => import('./pages/MyRobots'));
 const StrategyBuilderPage = lazy(() => import('./pages/StrategyBuilderPage'));
-const BacktestPage = lazy(() => import('./pages/BacktestPage'));
 const TradeHistory = lazy(() => import('./pages/TradeHistory'));
 const MistakeTracking = lazy(() => import("./pages/MistakeTracking"));
 const EASetup = lazy(() => import('./pages/EASetup'));
@@ -238,7 +237,7 @@ const App = () => {
                   <Route path="/ai-coach/goals" element={<Navigate to="/ai-coach" replace />} />
                   <Route path="/fialgo" element={<FiAlgoWorkspace />} />
                   <Route path="/fialgo/autotrade" element={<FiAlgoWorkspace defaultTab="autotrade" />} />
-                  <Route path="/fialgo/backtesting" element={<FiAlgoWorkspace defaultTab="backtesting" />} />
+                  <Route path="/fialgo/backtesting" element={<Navigate to="/auto-trade/active-bots" replace />} />
                   <Route path="/fialgo/strategy" element={<FiAlgoWorkspace defaultTab="strategy" />} />
                   <Route path="/fialgo/bots" element={<FiAlgoWorkspace defaultTab="bots" />} />
                   <Route path="/fialgo/logs" element={<FiAlgoWorkspace defaultTab="logs" />} />
@@ -248,8 +247,8 @@ const App = () => {
                   <Route path="/auto-trade/builder" element={<StrategyBuilderPage />} />
                   <Route path="/strategy-builder" element={<StrategyBuilderPage />} />
                   <Route path="/strategy" element={<StrategyBuilderPage />} />
-                  <Route path="/auto-trade/backtest" element={<BacktestPage />} />
-                  <Route path="/backtest" element={<BacktestPage />} />
+                  <Route path="/auto-trade/backtest" element={<Navigate to="/auto-trade/active-bots" replace />} />
+                  <Route path="/backtest" element={<Navigate to="/auto-trade/active-bots" replace />} />
                   <Route path="/auto-trade/history" element={<TradeHistory />} />
                   <Route path="/history" element={<TradeHistory />} />
                   <Route path="/order-history" element={<TradeHistory />} />

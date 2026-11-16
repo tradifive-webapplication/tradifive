@@ -6,7 +6,6 @@ import {
   LogOut,
   Bot,
   Activity,
-  BarChart3,
   Cpu,
   FileText,
   Landmark,
@@ -24,7 +23,6 @@ const BADGE_COLORS: Record<string, string> = {
   "RUNNING": "bg-white/10 text-neutral-200 border border-white/15",
   "PRO": "bg-amber-500/15 text-amber-400 border border-amber-500/25",
   "SETUP": "bg-white/10 text-neutral-300 border border-white/15",
-  "SIM": "bg-blue-500/15 text-blue-400 border border-blue-500/25",
 };
 
 interface NavItem {
@@ -121,7 +119,6 @@ export default function FiAlgoAdminSidebar({ mobileOpen = false, onClose }: FiAl
       items: [
         { id: "active-bots", label: "Active Bots", path: "/auto-trade/active-bots", icon: Activity, badge: "RUNNING" },
         { id: "strategy-builder", label: "Strategy Builder", path: "/strategy-builder", icon: Cpu },
-        { id: "backtesting", label: "Backtesting", path: "/auto-trade/backtest", icon: BarChart3, badge: "SIM" },
       ],
     },
     {

@@ -3,7 +3,7 @@ import DashboardLayout from "@/components/DashboardLayout";
 import { useNavigate } from "react-router-dom";
 import { 
   Bot, Cpu, CheckCircle2, Download, RefreshCcw, 
-  FileCode, Activity, Play, Send, Layers, Plus
+  FileCode, Activity, Play, Send, Layers, Plus, Zap
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -188,34 +188,102 @@ export default function StrategyBuilderPage() {
           </div>
         </div>
 
-        {/* ── Top Navigation Tabs (Clean, removed redundant SLA sub-bar and side text) ── */}
-        <div className="flex items-center gap-2 border-b border-white/5 pb-2.5">
+        {/* ── Top Navigation Tabs (Pill styling matching Admin App) ── */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1">
           <button
+            type="button"
             onClick={() => setActiveMainTab("request")}
-            className={`whitespace-nowrap px-3.5 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-none flex items-center gap-2 cursor-pointer ${
+            className={`whitespace-nowrap px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-none flex items-center gap-2 cursor-pointer ${
               activeMainTab === "request"
-                ? "bg-white/10 text-white border border-white/15"
+                ? "bg-[#1E1E1E] text-white border border-white/10 shadow-xs"
                 : "text-neutral-400 hover:text-white border border-transparent"
             }`}
           >
-            <Plus size={13} />
+            <Plus size={13} className={activeMainTab === "request" ? "text-blue-400" : ""} />
             <span>Request Custom Build</span>
           </button>
 
           <button
+            type="button"
             onClick={() => setActiveMainTab("deliverables")}
-            className={`whitespace-nowrap px-3.5 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-none flex items-center gap-2 cursor-pointer ${
+            className={`whitespace-nowrap px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-none flex items-center gap-2 cursor-pointer ${
               activeMainTab === "deliverables"
-                ? "bg-white/10 text-white border border-white/15"
+                ? "bg-[#1E1E1E] text-white border border-white/10 shadow-xs"
                 : "text-neutral-400 hover:text-white border border-transparent"
             }`}
           >
-            <Layers size={13} className="text-emerald-400" />
+            <Layers size={13} className={activeMainTab === "deliverables" ? "text-emerald-400" : ""} />
             <span>My Builds &amp; Deliverables</span>
-            <span className="text-[10px] px-1.5 py-0.2 rounded bg-black/40 text-emerald-400 font-mono font-bold">
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-black/40 text-emerald-400 font-mono font-bold">
               {deliverables.length}
             </span>
           </button>
+        </div>
+
+        {/* ── 4 Metric Cards Grid (Matching Admin App Style & Numbers) ── */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-4 relative">
+            <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 mb-2">
+              <Layers size={15} />
+            </div>
+            <div className="text-2xl font-bold font-mono text-white tracking-tight">
+              {deliverables.length}
+            </div>
+            <div className="text-[9px] font-bold text-neutral-500 uppercase tracking-[0.15em] mt-1">
+              ACTIVE BUILDS
+            </div>
+          </div>
+
+          <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-4 relative">
+            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-2 font-mono font-bold text-sm">
+              ₹
+            </div>
+            <div className="text-2xl font-bold font-mono text-white tracking-tight">
+              ₹20,000
+            </div>
+            <div className="text-[9px] font-bold text-neutral-500 uppercase tracking-[0.15em] mt-1">
+              INDICATOR BASE FEE
+            </div>
+          </div>
+
+          <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-4 relative">
+            <div className="w-8 h-8 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 mb-2">
+              <Cpu size={15} />
+            </div>
+            <div className="text-2xl font-bold font-mono text-white tracking-tight">
+              ₹40,000
+            </div>
+            <div className="text-[9px] font-bold text-neutral-500 uppercase tracking-[0.15em] mt-1">
+              ALGO EA BASE FEE
+            </div>
+          </div>
+
+          <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-4 relative">
+            <div className="absolute top-4 right-4">
+              <span className="text-[10px] font-bold text-emerald-400">Guaranteed</span>
+            </div>
+            <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 mb-2">
+              <Zap size={15} />
+            </div>
+            <div className="text-2xl font-bold font-mono text-white tracking-tight">
+              2-5 Days
+            </div>
+            <div className="text-[9px] font-bold text-neutral-500 uppercase tracking-[0.15em] mt-1">
+              ENGINEERING SLA
+            </div>
+          </div>
+        </div>
+
+        {/* ── Status Strip (Matching Admin App Green Status Dot) ── */}
+        <div className="flex items-center gap-2 text-[11px] font-mono text-neutral-400 flex-wrap">
+          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="text-emerald-400 font-bold">FiAlgo Engineering Desk: Active</span>
+          <span className="text-neutral-600">·</span>
+          <span>100% Hardware Bound (.EX5)</span>
+          <span className="text-neutral-600">·</span>
+          <span>Full Source Code Included (.MQ5)</span>
+          <span className="text-neutral-600">·</span>
+          <span>Direct Admin Dispatch</span>
         </div>
 
         {/* ── TAB 1: REQUEST CUSTOM DEVELOPMENT (Streamlined & Clean) ── */}
@@ -478,117 +546,169 @@ Example:
           </form>
         )}
 
-        {/* ── TAB 2: MY CUSTOM BUILDS & DELIVERABLES (Clean & Useful) ── */}
+        {/* ── TAB 2: MY CUSTOM BUILDS & DELIVERABLES (Admin App Table Style) ── */}
         {activeMainTab === "deliverables" && (
           <div className="space-y-4 pt-1">
-            <div className="flex items-center justify-between pb-1">
-              <div>
-                <h3 className="text-xs font-bold text-white uppercase tracking-wider">
-                  My Custom Builds &amp; Deliverables
-                </h3>
-                <p className="text-neutral-500 text-[9px] font-bold uppercase tracking-[0.15em] mt-0.5">
-                  Download compiled MT5 .EX5 binaries and source code
-                </p>
+            <div className="bg-[#1E1E1E] border border-white/5 rounded-lg overflow-hidden">
+              {/* Header Bar matching Image 1 */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 border-b border-white/5 bg-black/10">
+                <div className="flex items-center gap-2">
+                  <Layers size={14} className="text-emerald-400" />
+                  <span className="text-xs font-bold text-white uppercase tracking-wider">
+                    CUSTOM BUILDS &amp; DELIVERABLES ({deliverables.length})
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="text-[10px] font-mono text-neutral-400">
+                      100% Compiled MT5 Binaries ready for deployment
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setActiveMainTab("request")}
+                    className="h-7 px-3 bg-blue-600 hover:bg-blue-500 text-white rounded text-[11px] font-bold uppercase tracking-wider flex items-center gap-1 cursor-pointer transition-none shrink-0"
+                  >
+                    <Plus size={11} />
+                    <span>New Build</span>
+                  </button>
+                </div>
               </div>
 
-              <button
-                onClick={() => setActiveMainTab("request")}
-                className="h-8 px-3.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer transition-none"
-              >
-                <Plus size={13} />
-                <span>Request New Build</span>
-              </button>
-            </div>
-
-            {/* List of Deliverables */}
-            <div className="space-y-3">
-              {deliverables.map((item) => (
-                <div
-                  key={item.id}
-                  className="bg-[#1E1E1E] border border-white/5 rounded-lg p-4 sm:p-5 hover:border-white/10 transition-none space-y-3"
-                >
-                  {/* Top Bar */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-white/5">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-black/30 border border-white/5 flex items-center justify-center text-blue-400">
-                        {item.type === "INDICATOR" ? <Activity size={16} /> : <Cpu size={16} />}
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h4 className="text-sm font-bold text-white uppercase tracking-wider">
-                            {item.title}
-                          </h4>
-                          <span className="text-[9px] font-mono font-bold text-neutral-400 bg-black/40 px-1.5 py-0.5 rounded">
-                            {item.id}
+              {/* Table on sm+ screens */}
+              <div className="overflow-x-auto hidden sm:block">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-white/5 text-[9px] font-bold text-neutral-500 uppercase tracking-widest bg-black/20">
+                      <th className="p-3.5">BUILD &amp; TITLE</th>
+                      <th className="p-3.5">TYPE</th>
+                      <th className="p-3.5">INSTRUMENT &amp; TF</th>
+                      <th className="p-3.5">FEE</th>
+                      <th className="p-3.5">STATUS</th>
+                      <th className="p-3.5">DELIVERED</th>
+                      <th className="p-3.5 text-right">ACTIONS</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5 font-mono text-xs">
+                    {deliverables.map((item) => (
+                      <tr key={item.id} className="hover:bg-white/[0.02] transition-none">
+                        <td className="p-3.5">
+                          <div className="font-bold text-white font-sans text-xs">{item.title}</div>
+                          <div className="text-[10px] text-neutral-500 font-mono mt-0.5">{item.id}</div>
+                        </td>
+                        <td className="p-3.5">
+                          <span className={`text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider ${
+                            item.type === "INDICATOR"
+                              ? "bg-blue-500/10 text-blue-400 border border-blue-500/20"
+                              : item.type === "ALGO_EA"
+                              ? "bg-purple-500/10 text-purple-400 border border-purple-500/20"
+                              : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                          }`}>
+                            {item.type === "INDICATOR" ? "Indicator" : item.type === "ALGO_EA" ? "Algo Bot" : "Combo Suite"}
                           </span>
-                        </div>
-                        <p className="text-[10px] text-neutral-400 font-mono mt-0.5">
-                          {item.type === "INDICATOR" ? "Custom Technical Indicator" : "Automated Execution Algo (EA)"} · {item.pair} · {item.timeframe}
-                        </p>
-                      </div>
-                    </div>
+                        </td>
+                        <td className="p-3.5 text-neutral-300">
+                          {item.pair} · <span className="text-neutral-400">{item.timeframe}</span>
+                        </td>
+                        <td className="p-3.5 font-bold text-white">
+                          {item.price}
+                        </td>
+                        <td className="p-3.5">
+                          <span className={`text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider ${
+                            item.status === "DELIVERED"
+                              ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                              : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                          }`}>
+                            {item.status}
+                          </span>
+                        </td>
+                        <td className="p-3.5 text-neutral-400 text-[11px]">
+                          {item.deliveredDate || "In progress"}
+                        </td>
+                        <td className="p-3.5 text-right">
+                          <div className="inline-flex items-center gap-1.5 justify-end">
+                            {item.status === "DELIVERED" ? (
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDownloadFile(item.ex5Filename || `${item.id}.ex5`)}
+                                  className="btn-fialgo-primary h-7 px-2.5 text-[10px] font-bold uppercase tracking-wider inline-flex items-center gap-1 cursor-pointer"
+                                >
+                                  <Download size={11} />
+                                  <span>.EX5</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDownloadFile(item.mq5Filename || `${item.id}.mq5`)}
+                                  className="h-7 px-2 rounded bg-black/40 hover:bg-white/[0.08] border border-white/10 text-[10px] font-mono font-bold text-neutral-300 transition-none cursor-pointer flex items-center gap-1"
+                                >
+                                  <FileCode size={11} />
+                                  <span>.MQ5</span>
+                                </button>
+                                {item.type !== "INDICATOR" && (
+                                  <button
+                                    type="button"
+                                    onClick={() => navigate("/auto-trade/active-bots")}
+                                    className="h-7 px-2.5 rounded bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-[10px] font-mono font-bold text-emerald-400 transition-none cursor-pointer flex items-center gap-1"
+                                  >
+                                    <Play size={9} className="fill-current" />
+                                    <span>Deploy</span>
+                                  </button>
+                                )}
+                              </>
+                            ) : (
+                              <span className="text-[11px] text-amber-400">Engineering in progress...</span>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
 
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-mono font-bold text-neutral-400">
-                        Fee: <span className="text-white font-bold">{item.price}</span>
-                      </span>
-                      <span className={`text-[9px] font-mono font-bold px-2 py-0.5 rounded uppercase tracking-wider ${
-                        item.status === "DELIVERED"
-                          ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                          : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+              {/* Mobile Card list */}
+              <div className="divide-y divide-white/5 sm:hidden p-3 space-y-3">
+                {deliverables.map((item) => (
+                  <div key={item.id} className="pt-3 first:pt-0 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="font-bold text-white text-xs">{item.title}</div>
+                      <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
+                        item.status === "DELIVERED" ? "bg-emerald-500/10 text-emerald-400" : "bg-amber-500/10 text-amber-400"
                       }`}>
-                        {item.status === "DELIVERED" ? "DELIVERED" : "IN DEVELOPMENT"}
+                        {item.status}
                       </span>
                     </div>
-                  </div>
-
-                  {/* Action Buttons Row */}
-                  <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
-                    <span className="text-[10px] font-mono text-neutral-500">
-                      Delivered: {item.deliveredDate || "In progress"}
-                    </span>
-
-                    <div className="flex items-center gap-2">
-                      {item.status === "DELIVERED" ? (
-                        <>
-                          <button
-                            type="button"
-                            onClick={() => handleDownloadFile(item.ex5Filename || `${item.id}.ex5`)}
-                            className="btn-fialgo-primary h-8 px-4 text-[11px] font-bold uppercase tracking-wider inline-flex items-center gap-1.5 cursor-pointer"
-                          >
-                            <Download size={13} />
-                            <span>Download .EX5</span>
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => handleDownloadFile(item.mq5Filename || `${item.id}.mq5`)}
-                            className="h-8 px-3 rounded-lg bg-black/30 hover:bg-white/[0.08] border border-white/10 text-xs font-mono font-bold text-neutral-300 transition-none cursor-pointer flex items-center gap-1"
-                          >
-                            <FileCode size={13} />
-                            <span>.MQ5</span>
-                          </button>
-
-                          {item.type !== "INDICATOR" && (
-                            <button
-                              type="button"
-                              onClick={() => navigate("/auto-trade/active-bots")}
-                              className="h-8 px-3 rounded-lg bg-black/30 hover:bg-white/[0.08] border border-white/10 text-xs font-mono font-bold text-emerald-400 transition-none cursor-pointer flex items-center gap-1"
-                            >
-                              <Play size={11} className="fill-current" />
-                              <span>Deploy Bot</span>
-                            </button>
-                          )}
-                        </>
-                      ) : (
-                        <span className="text-xs font-mono text-amber-400">
-                          Engineering in progress...
-                        </span>
-                      )}
+                    <div className="text-[10px] font-mono text-neutral-400 flex items-center gap-2">
+                      <span>{item.pair}</span>
+                      <span>·</span>
+                      <span>{item.timeframe}</span>
+                      <span>·</span>
+                      <span className="text-white font-bold">{item.price}</span>
                     </div>
+                    {item.status === "DELIVERED" && (
+                      <div className="flex items-center gap-2 pt-1">
+                        <button
+                          type="button"
+                          onClick={() => handleDownloadFile(item.ex5Filename || `${item.id}.ex5`)}
+                          className="btn-fialgo-primary h-7 px-2.5 text-[10px] font-bold uppercase tracking-wider inline-flex items-center gap-1"
+                        >
+                          <Download size={11} />
+                          <span>.EX5</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDownloadFile(item.mq5Filename || `${item.id}.mq5`)}
+                          className="h-7 px-2 rounded bg-black/40 border border-white/10 text-[10px] font-mono font-bold text-neutral-300"
+                        >
+                          .MQ5
+                        </button>
+                      </div>
+                    )}
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
         )}
