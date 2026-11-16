@@ -20,8 +20,8 @@ import SettlementPaymentModal from "@/components/settlements/SettlementPaymentMo
 import { downloadSettlementInvoicePdf } from "@/utils/settlementPdf";
 
 // Signature Tradifive box styling tokens matching AI Journal, RiskGuard, and AutoTrade
-const kpiBoxStyle = "rounded-[22px] border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] p-4 sm:p-5 shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:rounded-[20px] transition-all flex flex-col justify-between";
-const cardBoxStyle = "rounded-[24px] border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] p-5 sm:p-6 shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:rounded-[22px]";
+const kpiBoxStyle = "rounded-2xl p-4 sm:p-5 bg-[#141416] border border-white/[0.08] hover:border-white/[0.15] transition-all flex flex-col justify-between shadow-sm";
+const cardBoxStyle = "rounded-2xl p-5 sm:p-6 bg-[#141416] border border-white/[0.08] hover:border-white/[0.15] transition-all shadow-sm";
 
 export default function WeeklySettlements() {
   const [userId, setUserId] = useState<string>("");
@@ -154,14 +154,14 @@ export default function WeeklySettlements() {
             <button
               onClick={() => loadSettlementData(true)}
               disabled={isRefreshing}
-              className="w-[36px] h-[36px] rounded-[14px] border-2 border-white dark:border-white/5 bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:shadow-none flex items-center justify-center text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer disabled:opacity-50"
+              className="btn-fialgo-secondary w-[36px] h-[36px] rounded-full flex items-center justify-center cursor-pointer"
               title="Refresh Settlements"
             >
               <RefreshCw size={13} className={isRefreshing ? "animate-spin text-blue-600" : ""} />
             </button>
 
             {/* Account Binding Indicator */}
-            <div className="h-[36px] px-3.5 rounded-[14px] border-2 border-white dark:border-white/5 bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:shadow-none flex items-center gap-2 select-none text-xs">
+            <div className="btn-fialgo-secondary h-[36px] px-4 rounded-full flex items-center gap-2 select-none text-xs">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               <span className="font-bold text-slate-700 dark:text-slate-300">
                 MT5 #{accountNumber ? `••••${accountNumber.slice(-4)}` : "••••9980"}
@@ -299,7 +299,7 @@ export default function WeeklySettlements() {
                 <button
                   type="button"
                   onClick={() => downloadSettlementInvoicePdf(currentSettlement, userProfile)}
-                  className="h-9 px-3.5 rounded-xl border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 text-slate-700 dark:text-slate-300 text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-colors"
+                  className="btn-fialgo-secondary h-9 px-4 text-xs font-semibold inline-flex items-center gap-1.5"
                 >
                   <Download size={13} />
                   <span>Invoice</span>
@@ -308,7 +308,7 @@ export default function WeeklySettlements() {
                 <button
                   type="button"
                   onClick={() => handleOpenDetails(currentSettlement)}
-                  className="h-9 px-3.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 text-slate-800 dark:text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors"
+                  className="btn-fialgo-secondary h-9 px-4 text-xs font-semibold inline-flex items-center gap-1.5"
                 >
                   <span>View Details</span>
                   <ChevronRight size={14} />

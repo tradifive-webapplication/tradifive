@@ -19,6 +19,7 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const location = useLocation();
   const navigate = useNavigate();
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [transitionTarget, setTransitionTarget] = useState<WorkspaceType>("fialgo");
 
   // Initialize from URL or localStorage
   const [activeWorkspace, setActiveWorkspace] = useState<WorkspaceType>(() => {
@@ -73,6 +74,8 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   }, [location.pathname]);
 
   const switchWorkspace = (workspace: WorkspaceType) => {
+    setTransitionTarget(workspace);
+
     if (workspace === "fialgo") {
       // Save current TradiFive theme before entering FiAlgo
       try {
@@ -87,10 +90,28 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       document.documentElement.classList.add("dark");
       setIsTransitioning(true);
     } else {
-      setActiveWorkspace("tradifive");
+      // Switching to TradiFive with 3-second clean transition
       try {
         localStorage.setItem(WORKSPACE_STORAGE_KEY, "tradifive");
-        // Restore TradiFive's user-chosen theme (if black, restore black; if white, restore white)
+      } catch (e) {}
+      setIsTransitioning(true);
+    }
+  };
+
+  const handleTransitionComplete = () => {
+    setIsTransitioning(false);
+
+    if (transitionTarget === "fialgo") {
+      setActiveWorkspace("fialgo");
+      const isSetup = typeof window !== "undefined" && localStorage.getItem("tradifive_auto_trade_setup") === "true";
+      if (isSetup) {
+        navigate("/fialgo");
+      } else {
+        navigate("/auto-trade/setup");
+      }
+    } else {
+      setActiveWorkspace("tradifive");
+      try {
         const savedTheme = localStorage.getItem("tradifive_user_theme") || "light";
         if (savedTheme === "dark") {
           document.documentElement.classList.add("dark");
@@ -105,12 +126,6 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
 
-  const handleTransitionComplete = () => {
-    setIsTransitioning(false);
-    setActiveWorkspace("fialgo");
-    navigate("/fialgo");
-  };
-
   return (
     <WorkspaceContext.Provider
       value={{
@@ -120,10 +135,11 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         isTradiFive: activeWorkspace === "tradifive",
       }}
     >
-      {isTransitioning && (
-        <FiAlgoWorkspaceLoader onComplete={handleTransitionComplete} />
+      {isTransitioning ? (
+        <FiAlgoWorkspaceLoader targetWorkspace={transitionTarget} onComplete={handleTransitionComplete} />
+      ) : (
+        children
       )}
-      {children}
     </WorkspaceContext.Provider>
   );
 };

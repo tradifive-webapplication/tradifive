@@ -1148,10 +1148,10 @@ MagicNumber=789104
       <div className="w-full max-w-7xl mx-auto pb-12 font-sans">
         
         {/* ── 2-COLUMN WORKFLOW: VERTICAL STEPPER (LEFT) & ACTIVE STEP CONTENT (RIGHT) ── */}
-        <div className="flex flex-col md:flex-row items-stretch gap-6 lg:gap-10">
+        <div className="flex flex-col md:flex-row items-start gap-6 lg:gap-10 relative">
           
           {/* ── LEFT COLUMN: VERTICAL STEPPER SIDEBAR (MATCHED TO FIALGO WORKSPACE) ── */}
-          <aside className="w-full md:w-64 lg:w-72 shrink-0 flex flex-col justify-between py-2 border-b md:border-b-0 md:border-r border-white/5 md:pr-6 md:mr-1 min-h-[580px] lg:min-h-[660px]">
+          <aside className="w-full md:w-64 lg:w-72 shrink-0 py-2 border-b md:border-b-0 md:border-r border-white/5 md:pr-6 md:mr-1 md:sticky md:top-4 md:self-start">
             <div className="space-y-5">
               <div className="px-1 space-y-1">
                 <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500 block">
@@ -1174,7 +1174,7 @@ MagicNumber=789104
                 >
                   {/* Connecting Line to Step 2 */}
                   <div className={`absolute left-[13px] top-7 -bottom-7 sm:-bottom-8 w-[2px] transition-colors ${
-                    ibVerified ? "bg-emerald-500" : activeStep >= 2 ? "bg-purple-500/50" : "bg-white/10"
+                    ibVerified ? "bg-emerald-500" : activeStep >= 2 ? "bg-blue-500/50" : "bg-white/10"
                   }`} />
                   
                   {/* Circle Indicator (28px) */}
@@ -1182,7 +1182,7 @@ MagicNumber=789104
                     ibVerified
                       ? "bg-emerald-500 text-white shadow-[0_0_12px_rgba(16,185,129,0.4)]"
                       : activeStep === 1
-                        ? "bg-gradient-to-tr from-purple-600 to-indigo-600 text-white ring-4 ring-purple-500/20 shadow-[0_0_15px_rgba(168,85,247,0.4)] font-bold"
+                        ? "bg-gradient-to-tr from-blue-600 to-indigo-600 text-white ring-4 ring-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.4)] font-bold"
                         : "bg-[#18181A] text-neutral-500 border border-white/10"
                   }`}>
                     {ibVerified ? <Check size={13} strokeWidth={2.8} /> : "1"}
@@ -1214,14 +1214,14 @@ MagicNumber=789104
                 >
                   {/* Connecting Line to Step 3 */}
                   <div className={`absolute left-[13px] top-7 -bottom-7 sm:-bottom-8 w-[2px] transition-colors ${
-                    hasDownloaded ? "bg-emerald-500" : activeStep >= 3 ? "bg-purple-500/50" : "bg-white/10"
+                    hasDownloaded ? "bg-emerald-500" : activeStep >= 3 ? "bg-blue-500/50" : "bg-white/10"
                   }`} />
                   
                   <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 z-10 text-xs font-semibold transition-all ${
                     hasDownloaded
                       ? "bg-emerald-500 text-white shadow-[0_0_12px_rgba(16,185,129,0.4)]"
                       : activeStep === 2
-                        ? "bg-gradient-to-tr from-purple-600 to-indigo-600 text-white ring-4 ring-purple-500/20 shadow-[0_0_15px_rgba(168,85,247,0.4)] font-bold"
+                        ? "bg-gradient-to-tr from-blue-600 to-indigo-600 text-white ring-4 ring-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.4)] font-bold"
                         : "bg-[#18181A] text-neutral-500 border border-white/10"
                   }`}>
                     {hasDownloaded ? <Check size={13} strokeWidth={2.8} /> : "2"}
@@ -1252,14 +1252,14 @@ MagicNumber=789104
                 >
                   {/* Connecting Line to Step 4 */}
                   <div className={`absolute left-[13px] top-7 -bottom-7 sm:-bottom-8 w-[2px] transition-colors ${
-                    paymentStatus === "approved" ? "bg-emerald-500" : activeStep >= 4 ? "bg-purple-500/50" : "bg-white/10"
+                    paymentStatus === "approved" ? "bg-emerald-500" : activeStep >= 4 ? "bg-blue-500/50" : "bg-white/10"
                   }`} />
                   
                   <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 z-10 text-xs font-semibold transition-all ${
                     paymentStatus === "approved"
                       ? "bg-emerald-500 text-white shadow-[0_0_12px_rgba(16,185,129,0.4)]"
                       : activeStep === 3
-                        ? "bg-gradient-to-tr from-purple-600 to-indigo-600 text-white ring-4 ring-purple-500/20 shadow-[0_0_15px_rgba(168,85,247,0.4)] font-bold"
+                        ? "bg-gradient-to-tr from-blue-600 to-indigo-600 text-white ring-4 ring-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.4)] font-bold"
                         : "bg-[#18181A] text-neutral-500 border border-white/10"
                   }`}>
                     {paymentStatus === "approved" ? <Check size={13} strokeWidth={2.8} /> : "3"}
@@ -1296,7 +1296,7 @@ MagicNumber=789104
                     hasPaid && ibVerified
                       ? "bg-emerald-500 text-white shadow-[0_0_12px_rgba(16,185,129,0.4)]"
                       : activeStep === 4
-                        ? "bg-gradient-to-tr from-purple-600 to-indigo-600 text-white ring-4 ring-purple-500/20 shadow-[0_0_15px_rgba(168,85,247,0.4)] font-bold"
+                        ? "bg-gradient-to-tr from-blue-600 to-indigo-600 text-white ring-4 ring-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.4)] font-bold"
                         : "bg-[#18181A] text-neutral-500 border border-white/10"
                   }`}>
                     {(hasPaid && ibVerified) ? <Check size={13} strokeWidth={2.8} /> : "4"}
@@ -1322,30 +1322,13 @@ MagicNumber=789104
               </div>
             </div>
 
-            {/* Bottom Help */}
-            <div className="pt-4 mt-6 border-t border-white/5 flex items-center justify-between">
-              <a
-                href="https://wa.me/?text=Hello%20TradiFive%20Team!%20I%20need%20assistance%20setting%20up%20FiAlgo%20V1."
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1.5 text-xs font-semibold text-neutral-400 hover:text-white transition-colors"
-              >
-                <HelpCircle size={14} className="text-neutral-500 hover:text-white" />
-                <span>Help</span>
-              </a>
-
-              <div className="flex items-center gap-1.5 text-[11px] font-medium text-neutral-500">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                <span>Online Desk</span>
-              </div>
-            </div>
           </aside>
 
           {/* ── RIGHT COLUMN: ACTIVE STEP CONTENT ── */}
           <div className="flex-1 min-w-0 space-y-4">
             
-            {/* Top Back Navigation Bar (Matched to Reference Image) */}
-            <div className="flex items-center justify-between pb-2 border-b border-white/5">
+            {/* Top Back Navigation Bar (Matched to Reference Image - Sticky on Scroll) */}
+            <div className="sticky top-0 z-20 bg-[#121214]/90 backdrop-blur-md py-2 flex items-center justify-between border-b border-white/5">
               {activeStep > 1 ? (
                 <button
                   type="button"
@@ -1535,7 +1518,7 @@ MagicNumber=789104
                       </span>
                     </div>
                     <p className="text-[11.5px] text-neutral-400 leading-relaxed">
-                      Ping our desk on WhatsApp or Email with your MT5 ID to get approved within minutes:
+                      Ping our desk on Live Support or Email with your MT5 ID to get approved within minutes:
                     </p>
                     <div className="grid grid-cols-2 gap-2 pt-0.5">
                       <a
@@ -1546,8 +1529,8 @@ MagicNumber=789104
                         rel="noreferrer"
                         className="btn-fialgo-primary"
                       >
-                        <MessageCircle size={14} />
-                        <span>WhatsApp Desk</span>
+                        <Headset size={14} />
+                        <span>Live Support</span>
                       </a>
                       <a
                         href={`mailto:support@fialgo.trade?subject=Verify MT5 Account ${mt5Account}&body=Hello Support Team,%0D%0A%0D%0APlease verify my MT5 account %23${mt5Account} with minimum $500 balance under Partner IB 27863221.%0D%0A%0D%0AThank you!`}
@@ -2081,10 +2064,10 @@ MagicNumber=789104
                       href="https://wa.me/?text=Hello%20FiAlgo%20Team!%20I%20need%20assistance%20installing%20FiAlgo%20V1%20on%20my%20MT5."
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-400 hover:text-emerald-300 transition-colors"
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-400 hover:text-blue-300 transition-colors"
                     >
-                      <MessageCircle size={13} />
-                      <span>WhatsApp Setup Desk &rarr;</span>
+                      <Headset size={13} />
+                      <span>Live Support Setup Desk &rarr;</span>
                     </a>
                   </div>
                 </div>
@@ -2168,7 +2151,7 @@ MagicNumber=789104
                   <button
                     type="button"
                     onClick={handleResetPayment}
-                    className="font-bold text-white hover:underline cursor-pointer bg-white/10 px-3 py-1 rounded-lg border border-white/10"
+                    className="btn-fialgo-secondary text-xs !py-1 !px-3"
                   >
                     View PhonePe / UPI &amp; Bank Details
                   </button>
@@ -2178,7 +2161,7 @@ MagicNumber=789104
                   <button
                     type="button"
                     onClick={() => setActiveStep(2)}
-                    className="w-full sm:w-auto px-5 py-2.5 rounded-xl text-xs font-semibold bg-white/[0.05] hover:bg-white/[0.08] text-white border border-white/10 inline-flex items-center justify-center gap-1.5 cursor-pointer active:scale-[0.985] transition-all"
+                    className="btn-fialgo-secondary w-full sm:w-auto"
                   >
                     <ArrowLeft size={13} />
                     <span>Back to Step 2 (Download)</span>
@@ -2187,7 +2170,7 @@ MagicNumber=789104
                   <button
                     type="button"
                     onClick={() => setActiveStep(4)}
-                    className="w-full sm:w-auto px-7 py-3 rounded-xl text-xs sm:text-sm font-bold bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 text-white flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(168,85,247,0.35)] transition-all duration-150 cursor-pointer active:scale-[0.985] border-none"
+                    className="btn-fialgo-primary w-full sm:w-auto"
                   >
                     <span>Proceed to Step 4: Activate License Key</span>
                     <ArrowRight size={14} />
@@ -2246,7 +2229,7 @@ MagicNumber=789104
                   </div>
                 </div>
 
-                {/* Fast-Track WhatsApp Desk */}
+                {/* Fast-Track Live Support Desk */}
                 <div className="p-4 sm:p-5 rounded-xl bg-[#121214] border border-white/5 space-y-2.5 text-xs">
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-white">
@@ -2257,7 +2240,7 @@ MagicNumber=789104
                     </span>
                   </div>
                   <p className="text-[11.5px] text-neutral-400">
-                    Share your UTR number <strong className="text-white font-mono">{paymentUtr}</strong> on WhatsApp for instant 15-minute priority verification:
+                    Share your UTR number <strong className="text-white font-mono">{paymentUtr}</strong> on Live Support for instant 15-minute priority verification:
                   </p>
                   <div className="pt-1 flex flex-col sm:flex-row items-center gap-2">
                     <a
@@ -2266,16 +2249,16 @@ MagicNumber=789104
                       )}`}
                       target="_blank"
                       rel="noreferrer"
-                      className="w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white flex items-center justify-center gap-1.5 transition-all shadow-2xs"
+                      className="btn-fialgo-primary w-full sm:w-auto"
                     >
-                      <MessageCircle size={14} />
-                      <span>Fast-Track on WhatsApp Desk</span>
+                      <Headset size={14} />
+                      <span>Fast-Track Live Support Desk</span>
                     </a>
 
                     <button
                       type="button"
                       onClick={handleResetPayment}
-                      className="w-full sm:w-auto px-3.5 py-2 rounded-xl text-xs font-medium text-neutral-400 hover:text-white transition-colors cursor-pointer"
+                      className="btn-fialgo-secondary w-full sm:w-auto"
                     >
                       Edit UTR / Resubmit
                     </button>
@@ -2287,7 +2270,7 @@ MagicNumber=789104
                   <button
                     type="button"
                     onClick={() => setActiveStep(2)}
-                    className="w-full sm:w-auto px-5 py-2.5 rounded-xl text-xs font-semibold bg-white/[0.05] hover:bg-white/[0.08] text-white border border-white/10 inline-flex items-center justify-center gap-1.5 cursor-pointer active:scale-[0.985] transition-all"
+                    className="btn-fialgo-secondary w-full sm:w-auto"
                   >
                     <ArrowLeft size={13} />
                     <span>Back to Step 2 (Download)</span>
@@ -2296,7 +2279,7 @@ MagicNumber=789104
                   <button
                     type="button"
                     onClick={() => setActiveStep(4)}
-                    className="w-full sm:w-auto px-7 py-3 rounded-xl text-xs sm:text-sm font-bold bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 text-white flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(168,85,247,0.35)] transition-all duration-150 cursor-pointer active:scale-[0.985] border-none"
+                    className="btn-fialgo-primary w-full sm:w-auto"
                   >
                     <span>Check License Key Status in Step 4</span>
                     <ArrowRight size={14} />
@@ -2326,17 +2309,17 @@ MagicNumber=789104
                       }}
                       className={`p-4 sm:p-5 rounded-2xl border-2 transition-all cursor-pointer relative flex flex-col justify-between gap-3 shadow-xs ${
                         selectedTier === "three_years"
-                          ? "border-purple-500/60 bg-purple-500/[0.06] shadow-[0_0_25px_rgba(168,85,247,0.15)] ring-1 ring-purple-500/40"
-                          : "border-white/10 bg-[#161618] hover:border-purple-500/30 opacity-90"
+                          ? "border-blue-500/60 bg-blue-500/[0.06] shadow-[0_0_25px_rgba(59,130,246,0.15)] ring-1 ring-blue-500/40"
+                          : "border-white/10 bg-[#161618] hover:border-blue-500/30 opacity-90"
                       }`}
                     >
                       <div className="space-y-2">
                         <div className="flex items-center justify-between gap-2">
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wide bg-purple-500/15 text-purple-300 border border-purple-500/25">
-                            <Sparkles size={11} className="text-purple-400" />
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wide bg-blue-500/15 text-blue-300 border border-blue-500/25">
+                            <Sparkles size={11} className="text-blue-400" />
                             <span>3-Year Enterprise Pass</span>
                           </span>
-                          <span className="text-[10.5px] font-bold text-purple-300 font-mono">
+                          <span className="text-[10.5px] font-bold text-blue-300 font-mono">
                             0% Profit Share
                           </span>
                         </div>
@@ -2344,14 +2327,14 @@ MagicNumber=789104
                           FiAlgo V1 3-Year License
                         </h3>
                         <p className="text-xs text-neutral-300 leading-relaxed">
-                          Pay <strong className="text-purple-300 font-mono font-bold">₹1,00,000 one-time</strong> for a 3-year MT5 license. <strong>0% profit share</strong> — keep 100% of all profits. Renews after 3 years at 50% loyalty discount (₹49,999) or switch to profit share.
+                          Pay <strong className="text-blue-300 font-mono font-bold">₹1,00,000 one-time</strong> for a 3-year MT5 license. <strong>0% profit share</strong> — keep 100% of all profits. Renews after 3 years at 50% loyalty discount (₹49,999) or switch to profit share.
                         </p>
                       </div>
 
                       <div className="pt-2 border-t border-white/5 flex items-baseline justify-between">
                         <div>
                           <span className="text-[10px] uppercase font-bold text-neutral-500 block tracking-wider">3-Year Term Fee</span>
-                          <span className="text-2xl font-mono font-black text-purple-300">
+                          <span className="text-2xl font-mono font-black text-blue-300">
                             ₹1,00,000
                           </span>
                         </div>
@@ -2409,7 +2392,7 @@ MagicNumber=789104
                     <div className="p-4 sm:p-5 rounded-2xl border border-white/5 bg-[#161618] space-y-3">
                       <div className="flex items-center justify-between flex-wrap gap-2">
                         <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-lg bg-purple-500/15 text-purple-400 flex items-center justify-center">
+                          <div className="w-7 h-7 rounded-lg bg-blue-500/15 text-blue-400 flex items-center justify-center">
                             <Calendar size={14} />
                           </div>
                           <div>
@@ -2421,7 +2404,7 @@ MagicNumber=789104
                             </p>
                           </div>
                         </div>
-                        <span className="text-[10px] font-mono font-bold text-purple-300 bg-purple-500/15 px-2.5 py-1 rounded-full border border-purple-500/25">
+                        <span className="text-[10px] font-mono font-bold text-blue-300 bg-blue-500/15 px-2.5 py-1 rounded-full border border-blue-500/25">
                           Staggered Weekly Cohorts
                         </span>
                       </div>
@@ -2436,10 +2419,10 @@ MagicNumber=789104
                               try { localStorage.setItem("tradifive_settlement_day", day); } catch (e) {}
                               toast.success(`Weekly settlement day set to ${day}`);
                             }}
-                            className={`py-2 px-1 rounded-xl text-xs font-bold transition-all text-center cursor-pointer ${
+                            className={`py-2 px-1 text-xs font-bold transition-all text-center cursor-pointer ${
                               settlementDay === day
-                                ? "bg-purple-600 text-white shadow-[0_0_15px_rgba(168,85,247,0.4)] scale-[1.02]"
-                                : "bg-[#121214] border border-white/5 text-neutral-300 hover:bg-white/5 hover:text-white"
+                                ? "btn-fialgo-primary !py-2 !px-1"
+                                : "btn-fialgo-secondary !py-2 !px-1 text-neutral-400 hover:text-white"
                             }`}
                           >
                             <span className="block text-[10px] font-bold sm:hidden">{day.slice(0, 3)}</span>
@@ -2454,15 +2437,15 @@ MagicNumber=789104
                           <span>Your Assigned Cohort: <strong className="text-white">Every {settlementDay}</strong></span>
                         </div>
                         <span className="text-[10.5px] font-mono text-neutral-400">
-                          ID: <strong className="text-purple-300 font-bold">{tradifiveId}</strong>
+                          ID: <strong className="text-blue-300 font-bold">{tradifiveId}</strong>
                         </span>
                       </div>
                     </div>
                   ) : (
-                    <div className="p-4 sm:p-5 rounded-2xl border border-purple-500/20 bg-purple-500/[0.05] space-y-2.5">
+                    <div className="p-4 sm:p-5 rounded-2xl border border-blue-500/20 bg-blue-500/[0.05] space-y-2.5">
                       <div className="flex items-center justify-between flex-wrap gap-2">
                         <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-lg bg-purple-500/20 text-purple-300 flex items-center justify-center">
+                          <div className="w-7 h-7 rounded-lg bg-blue-500/20 text-blue-300 flex items-center justify-center">
                             <ShieldCheck size={16} />
                           </div>
                           <div>
@@ -2474,7 +2457,7 @@ MagicNumber=789104
                             </p>
                           </div>
                         </div>
-                        <span className="text-[10px] font-mono font-bold text-purple-300 bg-purple-500/15 px-2.5 py-1 rounded-full border border-purple-500/30">
+                        <span className="text-[10px] font-mono font-bold text-blue-300 bg-blue-500/15 px-2.5 py-1 rounded-full border border-blue-500/30">
                           Renew after 3 Yrs @ ₹49,999
                         </span>
                       </div>
@@ -2490,26 +2473,26 @@ MagicNumber=789104
                   <button
                     type="button"
                     onClick={() => setPaymentMethod("upi")}
-                    className={`py-2 px-3 rounded-full transition-all cursor-pointer text-center flex items-center justify-center gap-2 ${
+                    className={`transition-all cursor-pointer text-center flex items-center justify-center gap-2 ${
                       paymentMethod === "upi"
-                        ? "bg-[#171717] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] border border-white/15 font-bold"
-                        : "text-neutral-400 hover:text-white"
+                        ? "btn-fialgo-primary !py-2.5"
+                        : "btn-fialgo-secondary !py-2.5 text-neutral-400 hover:text-white"
                     }`}
                   >
-                    <QrCode size={14} className={paymentMethod === "upi" ? "text-purple-400" : ""} />
+                    <QrCode size={14} />
                     <span>PhonePe / UPI</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setPaymentMethod("bank")}
-                    className={`py-2 px-3 rounded-full transition-all cursor-pointer text-center flex items-center justify-center gap-2 ${
+                    className={`transition-all cursor-pointer text-center flex items-center justify-center gap-2 ${
                       paymentMethod === "bank"
-                        ? "bg-[#171717] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] border border-white/15 font-bold"
-                        : "text-neutral-400 hover:text-white"
+                        ? "btn-fialgo-primary !py-2.5"
+                        : "btn-fialgo-secondary !py-2.5 text-neutral-400 hover:text-white"
                     }`}
                   >
-                    <Landmark size={14} className={paymentMethod === "bank" ? "text-purple-400" : ""} />
+                    <Landmark size={14} />
                     <span>Bank Transfer (IMPS / NEFT)</span>
                   </button>
                 </div>
@@ -2553,7 +2536,7 @@ MagicNumber=789104
                           <button
                             type="button"
                             onClick={() => handleCopy("9731980756@axisbank", "UPI ID copied: 9731980756@axisbank")}
-                            className="px-4 py-1.5 rounded-full text-xs font-semibold bg-[#171717] hover:bg-[#1e1e1e] text-white/90 hover:text-white border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] cursor-pointer flex items-center gap-1.5 transition-all ml-3 shrink-0"
+                            className="btn-fialgo-secondary text-xs !py-1.5 !px-4 ml-3 shrink-0"
                           >
                             <Copy size={12} className="text-neutral-400" />
                             <span>Copy UPI</span>
@@ -2584,9 +2567,10 @@ MagicNumber=789104
                         <button
                           type="button"
                           onClick={() => handleCopy("Nikhil Ravindra Harake", "Account Name copied!")}
-                          className="text-neutral-400 hover:text-white p-1 cursor-pointer"
+                          className="btn-fialgo-secondary text-xs !py-1 !px-2.5 cursor-pointer"
                         >
-                          <Copy size={13} />
+                          <Copy size={12} />
+                          <span>Copy</span>
                         </button>
                       </div>
 
@@ -2605,23 +2589,25 @@ MagicNumber=789104
                         <button
                           type="button"
                           onClick={() => handleCopy("924010072811588", "Account Number copied!")}
-                          className="text-neutral-400 hover:text-white p-1 cursor-pointer"
+                          className="btn-fialgo-secondary text-xs !py-1 !px-2.5 cursor-pointer"
                         >
-                          <Copy size={13} />
+                          <Copy size={12} />
+                          <span>Copy</span>
                         </button>
                       </div>
 
                       <div className="p-3 rounded-xl bg-[#121214] border border-white/5 flex items-center justify-between">
                         <div>
                           <span className="text-[10px] text-neutral-500 uppercase font-semibold block">IFSC Code</span>
-                          <span className="font-mono font-bold text-purple-300 text-xs">UTIB0001690</span>
+                          <span className="font-mono font-bold text-blue-300 text-xs">UTIB0001690</span>
                         </div>
                         <button
                           type="button"
                           onClick={() => handleCopy("UTIB0001690", "IFSC Code copied!")}
-                          className="text-neutral-400 hover:text-white p-1 cursor-pointer"
+                          className="btn-fialgo-secondary text-xs !py-1 !px-2.5 cursor-pointer"
                         >
-                          <Copy size={13} />
+                          <Copy size={12} />
+                          <span>Copy</span>
                         </button>
                       </div>
                     </div>
@@ -2682,10 +2668,8 @@ MagicNumber=789104
                             onChange={handlePaymentProofUpload}
                             className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
                           />
-                          <span className={`px-4 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer whitespace-nowrap inline-flex items-center justify-center shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] ${
-                            paymentProofFile
-                              ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/25"
-                              : "bg-[#171717] hover:bg-[#1e1e1e] border-white/10 text-white/90"
+                          <span className={`btn-fialgo-secondary text-xs !py-1.5 !px-4 ${
+                            paymentProofFile ? "!border !border-emerald-500/30 !text-emerald-300" : ""
                           }`}>
                             {paymentProofFile ? "Change Proof" : "Browse Screenshot"}
                           </span>
@@ -2694,8 +2678,8 @@ MagicNumber=789104
                     </div>
 
                     {/* Notice: 2-Hour Delivery Callout */}
-                    <div className="p-3 rounded-xl bg-purple-500/[0.06] border border-purple-500/20 flex items-start gap-2.5 text-xs">
-                      <Clock size={15} className="text-purple-400 shrink-0 mt-0.5" />
+                    <div className="p-3 rounded-xl bg-blue-500/[0.06] border border-blue-500/20 flex items-start gap-2.5 text-xs">
+                      <Clock size={15} className="text-blue-400 shrink-0 mt-0.5" />
                       <div className="space-y-0.5">
                         <strong className="text-white font-bold text-xs block">
                           License Key Issued Within 2 Hours
@@ -2920,7 +2904,7 @@ MagicNumber=789104
                         </span>
                       </div>
                       <p className="text-xs text-neutral-400 mt-0.5">
-                        Send your UTR number to our finance desk on WhatsApp for priority approval within 15 minutes:
+                        Send your UTR number to our finance desk on Live Support for priority approval within 15 minutes:
                       </p>
                     </div>
                   </div>
@@ -2934,8 +2918,8 @@ MagicNumber=789104
                       rel="noreferrer"
                       className="btn-fialgo-primary flex-1"
                     >
-                      <MessageCircle size={14} />
-                      <span>WhatsApp Fast-Track Desk</span>
+                      <Headset size={14} />
+                      <span>Live Support Fast-Track</span>
                       <ArrowRight size={14} />
                     </a>
 
@@ -3040,7 +3024,7 @@ MagicNumber=789104
                         </span>
                       </div>
                       <p className="text-xs text-neutral-400 mt-0.5">
-                        Send your MT5 account number and deposit screenshot directly to our verification desk on WhatsApp or Email for priority review.
+                        Send your MT5 account number and deposit screenshot directly to our verification desk on Live Support or Email for priority review.
                       </p>
                     </div>
                   </div>
@@ -3054,8 +3038,8 @@ MagicNumber=789104
                       rel="noreferrer"
                       className="btn-fialgo-primary flex-1"
                     >
-                      <MessageCircle size={14} />
-                      <span>WhatsApp Fast-Track Desk</span>
+                      <Headset size={14} />
+                      <span>Live Support Fast-Track</span>
                       <ArrowRight size={14} />
                     </a>
 

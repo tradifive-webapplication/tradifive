@@ -1,134 +1,173 @@
 import React, { useState, useEffect } from "react";
 
 interface FiAlgoWorkspaceLoaderProps {
+  targetWorkspace?: "fialgo" | "tradifive";
   onComplete: () => void;
 }
 
-const PHASES = [
-  { at: 0, text: "Initializing Algo Execution Engine..." },
-  { at: 28, text: "Connecting MT5 Terminal Bridge..." },
-  { at: 58, text: "Configuring Institutional Risk Guard..." },
-  { at: 82, text: "Syncing Live Automated Strategies..." },
-  { at: 98, text: "Workspace Ready! Launching..." },
+interface StepConfig {
+  target: number;
+  duration: number;
+  pause: number;
+  text: string;
+}
+
+// 1 single line of 4-5 words, easy to understand
+const FIALGO_STEPS: StepConfig[] = [
+  { target: 28, duration: 1100, pause: 400, text: "Launching FiAlgo Workspace..." },
+  { target: 62, duration: 1300, pause: 500, text: "Loading algorithmic trading engine..." },
+  { target: 88, duration: 1000, pause: 400, text: "Preparing your live dashboard..." },
+  { target: 100, duration: 700, pause: 250, text: "FiAlgo ready, entering now..." },
 ];
 
-export default function FiAlgoWorkspaceLoader({ onComplete }: FiAlgoWorkspaceLoaderProps) {
+const TRADIFIVE_STEPS: StepConfig[] = [
+  { target: 35, duration: 750, pause: 250, text: "Switching to TradiFive Workspace..." },
+  { target: 72, duration: 850, pause: 300, text: "Loading your trading feed..." },
+  { target: 100, duration: 600, pause: 250, text: "TradiFive ready, opening now..." },
+];
+
+export default function FiAlgoWorkspaceLoader({
+  targetWorkspace = "fialgo",
+  onComplete,
+}: FiAlgoWorkspaceLoaderProps) {
+  const isFiAlgo = targetWorkspace === "fialgo";
+  const steps = isFiAlgo ? FIALGO_STEPS : TRADIFIVE_STEPS;
+
   const [progress, setProgress] = useState(0);
-  const [statusText, setStatusText] = useState("Initializing Algo Execution Engine...");
+  const [statusText, setStatusText] = useState(steps[0].text);
   const [isExiting, setIsExiting] = useState(false);
 
   useEffect(() => {
-    // Preserve current TradiFive theme preference before applying dark mode
-    try {
-      if (!localStorage.getItem("tradifive_user_theme")) {
-        const current = localStorage.getItem("theme") || (document.documentElement.classList.contains("dark") ? "dark" : "light");
-        localStorage.setItem("tradifive_user_theme", current);
+    if (isFiAlgo) {
+      // Preserve TradiFive theme before entering FiAlgo dark mode
+      try {
+        if (!localStorage.getItem("tradifive_user_theme")) {
+          const current =
+            localStorage.getItem("theme") ||
+            (document.documentElement.classList.contains("dark") ? "dark" : "light");
+          localStorage.setItem("tradifive_user_theme", current);
+        }
+      } catch (e) {}
+      document.documentElement.classList.add("dark");
+    }
+
+    let isMounted = true;
+    let currentPct = 0;
+
+    const runSequence = async () => {
+      for (let i = 0; i < steps.length; i++) {
+        if (!isMounted) return;
+        const step = steps[i];
+        setStatusText(step.text);
+
+        const startPct = currentPct;
+        const targetPct = step.target;
+        const stepDuration = step.duration;
+        const startTime = Date.now();
+
+        await new Promise<void>((resolve) => {
+          const interval = setInterval(() => {
+            if (!isMounted) {
+              clearInterval(interval);
+              resolve();
+              return;
+            }
+            const elapsed = Date.now() - startTime;
+            const factor = Math.min(elapsed / stepDuration, 1);
+            const eased = 1 - Math.pow(1 - factor, 3);
+            const nextVal = Math.min(
+              Math.round(startPct + (targetPct - startPct) * eased),
+              targetPct
+            );
+            currentPct = nextVal;
+            setProgress(nextVal);
+
+            if (factor >= 1) {
+              clearInterval(interval);
+              resolve();
+            }
+          }, 20);
+        });
+
+        if (step.pause > 0 && isMounted) {
+          await new Promise((r) => setTimeout(r, step.pause));
+        }
       }
-    } catch (e) {}
 
-    // Ensure Dark Mode matching Admin App is active immediately in FiAlgo
-    document.documentElement.classList.add("dark");
+      if (!isMounted) return;
+      setProgress(100);
 
-    const startTime = Date.now();
-    const duration = 1400; // 1.4s smooth progress
+      // Smooth exit
+      await new Promise((r) => setTimeout(r, 200));
+      if (!isMounted) return;
+      setIsExiting(true);
 
-    const interval = setInterval(() => {
-      const elapsed = Date.now() - startTime;
-      const pct = Math.min(Math.round((elapsed / duration) * 100), 100);
-      setProgress(pct);
+      await new Promise((r) => setTimeout(r, 350));
+      if (!isMounted) return;
+      onComplete();
+    };
 
-      const matchedPhase = [...PHASES].reverse().find((p) => pct >= p.at);
-      if (matchedPhase) {
-        setStatusText(matchedPhase.text);
-      }
+    runSequence();
 
-      if (pct >= 100) {
-        clearInterval(interval);
-        // Begin exit transition (smooth transition to top-left like admin app)
-        setTimeout(() => {
-          setIsExiting(true);
-          setTimeout(() => {
-            onComplete();
-          }, 380);
-        }, 160);
-      }
-    }, 25);
-
-    return () => clearInterval(interval);
-  }, [onComplete]);
+    return () => {
+      isMounted = false;
+    };
+  }, [isFiAlgo, steps, onComplete]);
 
   return (
     <div
-      className={`fixed inset-0 z-[99999] bg-[#0A0A0C] flex flex-col items-center justify-center font-sans select-none overflow-hidden transition-opacity duration-300 ${
+      className={`fixed inset-0 z-[999999] bg-[#08080A] flex flex-col items-center justify-center font-sans select-none overflow-hidden transition-opacity duration-300 ${
         isExiting ? "opacity-0 pointer-events-none" : "opacity-100"
       }`}
       style={{
-        background: "radial-gradient(circle at 50% 40%, rgba(147, 51, 234, 0.18) 0%, rgba(10, 10, 12, 0.98) 70%)",
+        backgroundColor: "#08080A",
       }}
     >
-      {/* Ambient background grid */}
-      <div 
-        className="absolute inset-0 opacity-[0.04] pointer-events-none"
+      {/* Subtle ambient lighting */}
+      <div
+        className="absolute inset-0 pointer-events-none"
         style={{
-          backgroundImage: "linear-gradient(to right, #ffffff 1px, transparent 1px), linear-gradient(to bottom, #ffffff 1px, transparent 1px)",
-          backgroundSize: "36px 36px"
+          background: "radial-gradient(circle at 50% 45%, rgba(255,255,255,0.03) 0%, transparent 60%)",
         }}
       />
 
-      {/* Main Content Container with graceful exit animation */}
+      {/* Main Container */}
       <div
-        className={`flex flex-col items-center justify-center px-6 text-center max-w-md w-full relative z-10 transition-all duration-500 ease-out ${
-          isExiting ? "-translate-y-8 scale-95 opacity-0" : "translate-y-0 scale-100 opacity-100"
+        className={`flex flex-col items-center justify-center px-6 text-center max-w-md w-full relative z-10 transition-all duration-300 ease-out ${
+          isExiting ? "-translate-y-3 scale-95 opacity-0" : "translate-y-0 scale-100 opacity-100"
         }`}
       >
-        {/* Glowing Logo Container */}
-        <div className="relative mb-6 flex items-center justify-center">
-          <div className="absolute -inset-4 rounded-3xl bg-purple-600/25 blur-xl animate-pulse" />
-          <div className="relative w-20 h-20 rounded-2xl bg-white/[0.04] border border-white/10 flex items-center justify-center p-3.5 shadow-2xl backdrop-blur-md">
+        {/* Center Logo */}
+        <div className="relative mb-5 flex items-center justify-center">
+          <div className="w-16 h-16 rounded-2xl bg-[#121214] border border-white/[0.08] flex items-center justify-center p-3 shadow-2xl">
             <img
-              src="/fialgo-logo.png"
-              alt="FiAlgo"
-              className="w-full h-full object-contain drop-shadow-[0_0_16px_rgba(168,85,247,0.7)]"
+              src={isFiAlgo ? "/fialgo-logo.png" : "/Logo_only.png"}
+              alt={isFiAlgo ? "FiAlgo" : "TradiFive"}
+              className="w-full h-full object-contain"
             />
           </div>
         </div>
 
-        {/* Title */}
-        <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white mb-2 font-sans">
-          Building your FiAlgo Workspace
-        </h2>
-
-        {/* Dynamic Phase Subtitle */}
-        <p className="text-[13px] font-medium text-slate-400 min-h-[22px] tracking-wide transition-all duration-200">
+        {/* ONLY 1 LINE OF TEXT (4-5 words max, clean and easy to understand in 5 sec) */}
+        <p className="text-[14px] sm:text-[15px] font-semibold text-white tracking-wide transition-all duration-200 min-h-[24px]">
           {statusText}
         </p>
 
-        {/* Horizontal Progress Bar */}
-        <div className="w-full max-w-xs sm:max-w-sm mt-6">
-          <div className="w-full h-2 rounded-full bg-white/[0.08] p-0.5 overflow-hidden border border-white/10 shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)]">
+        {/* Wide Horizontal White Loader */}
+        <div className="w-full max-w-xs sm:max-w-sm mt-5">
+          <div className="w-full h-2 rounded-full bg-white/[0.08] overflow-hidden relative">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-purple-600 via-indigo-500 to-cyan-400 transition-all duration-75 ease-out shadow-[0_0_14px_rgba(168,85,247,0.9)] relative"
+              className="h-full rounded-full bg-white shadow-[0_0_14px_rgba(255,255,255,0.95)] transition-all duration-75 ease-out relative"
               style={{ width: `${progress}%` }}
-            >
-              <div className="absolute right-0 top-0 bottom-0 w-2 bg-white/70 rounded-full blur-[1px]" />
-            </div>
+            />
           </div>
 
-          {/* Progress Percent + Algo Tag */}
-          <div className="flex items-center justify-between mt-2.5 px-0.5 text-[11px] font-mono">
-            <span className="text-purple-400/90 font-bold uppercase tracking-wider">
-              ALGO ENGINE v2.4
+          {/* Minimal Percentage */}
+          <div className="flex justify-end mt-2 px-0.5">
+            <span className="text-[11px] font-mono font-medium text-neutral-400">
+              {progress}%
             </span>
-            <span className="text-slate-400 font-semibold">{progress}%</span>
           </div>
-        </div>
-
-        {/* Subtle Tech Footer Pill */}
-        <div className="mt-8 flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/10 shadow-xs">
-          <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">
-            Institutional Low-Latency MT5 Bridge
-          </span>
         </div>
       </div>
     </div>

@@ -6,7 +6,6 @@ import {
   LogOut,
   Bot,
   Activity,
-  ShoppingBag,
   Cpu,
   FileText,
   Landmark,
@@ -119,7 +118,6 @@ export default function FiAlgoAdminSidebar({ mobileOpen = false, onClose }: FiAl
       title: "ALGORITHMS & BOTS",
       items: [
         { id: "active-bots", label: "Active Bots", path: "/auto-trade/active-bots", icon: Activity, badge: "RUNNING" },
-        { id: "algo-marketplace", label: "Algo Marketplace", path: "/auto-trade/marketplace", icon: ShoppingBag, badge: "NEW" },
         { id: "strategy-builder", label: "Strategy Builder", path: "/strategy-builder", icon: Cpu },
       ],
     },

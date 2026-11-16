@@ -13,11 +13,11 @@ import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useDashboardData } from "@/hooks/useDashboardData";
 
-const kpiBoxStyle = "h-[120px] px-5 py-4 rounded-[22px] border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] flex flex-col justify-between transition-all duration-300 dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:shadow-none hover:scale-[1.01] hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#D0D0D5] dark:hover:shadow-none";
+const kpiBoxStyle = "h-[120px] px-5 py-4 rounded-2xl bg-[#141416] border border-white/[0.08] hover:border-white/[0.15] transition-all flex flex-col justify-between shadow-sm";
 
-const cardBoxStyle = "p-5 sm:p-6 rounded-[22px] border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:shadow-none transition-all";
+const cardBoxStyle = "p-5 sm:p-6 rounded-2xl bg-[#141416] border border-white/[0.08] hover:border-white/[0.15] transition-all";
 
-const innerTileStyle = "bg-[#F8F9FC] dark:bg-white/5 border border-slate-200/60 dark:border-white/5 rounded-[16px] p-3.5 flex flex-col justify-between";
+const innerTileStyle = "bg-[#18181B] border border-white/[0.06] rounded-xl p-3.5 flex flex-col justify-between";
 
 // Mock backtest curve for compiled strategy
 const backtestCurve = [
@@ -265,7 +265,7 @@ void ExecuteOrder(ENUM_ORDER_TYPE orderType)
             <button
               type="button"
               onClick={() => navigate("/auto-trade/active-bots")}
-              className="inline-flex items-center gap-2 h-[38px] px-4 rounded-[14px] border-2 border-white bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/10 dark:shadow-none text-slate-700 dark:text-slate-200 hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#D0D0D5] text-xs font-bold uppercase tracking-wider transition-all cursor-pointer"
+              className="btn-fialgo-secondary inline-flex items-center gap-2 h-[38px] px-5 text-xs font-semibold uppercase tracking-wider"
             >
               <Bot className="w-3.5 h-3.5 text-indigo-500" />
               <span>Active Robots</span>
@@ -274,7 +274,7 @@ void ExecuteOrder(ENUM_ORDER_TYPE orderType)
             <button
               type="button"
               onClick={() => navigate("/auto-trade/dashboard")}
-              className="inline-flex items-center gap-2 h-[38px] px-4 rounded-[14px] border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:border-emerald-500/30 dark:text-emerald-400 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer shadow-sm"
+              className="btn-fialgo-primary inline-flex items-center gap-2 h-[38px] px-5 text-xs font-semibold uppercase tracking-wider"
             >
               <Terminal className="w-3.5 h-3.5" />
               <span>Live Terminal</span>
@@ -382,14 +382,14 @@ void ExecuteOrder(ENUM_ORDER_TYPE orderType)
 
         {/* ── TAB NAVIGATION BAR ── */}
         <div className="flex items-center justify-between pt-1">
-          <div className="bg-slate-100 dark:bg-[#191B1E] p-1 rounded-xl flex items-center gap-1 border border-slate-200/50 dark:border-white/5">
+          <div className="bg-[#141416] p-1 rounded-xl flex items-center gap-1 border border-white/[0.08]">
             <button
               type="button"
               onClick={() => setActiveTab("builder")}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                 activeTab === "builder"
-                  ? "bg-white dark:bg-[#282828] text-slate-900 dark:text-white shadow-sm"
-                  : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                  ? "bg-white/[0.08] text-white shadow-xs"
+                  : "text-neutral-400 hover:text-white"
               }`}
             >
               AI Studio & Compiler
@@ -397,10 +397,10 @@ void ExecuteOrder(ENUM_ORDER_TYPE orderType)
             <button
               type="button"
               onClick={() => setActiveTab("armory")}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                 activeTab === "armory"
-                  ? "bg-white dark:bg-[#282828] text-slate-900 dark:text-white shadow-sm"
-                  : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                  ? "bg-white/[0.08] text-white shadow-xs"
+                  : "text-neutral-400 hover:text-white"
               }`}
             >
               Strategy Armory (Pre-Built)
@@ -428,7 +428,7 @@ void ExecuteOrder(ENUM_ORDER_TYPE orderType)
                     key={p.id}
                     type="button"
                     onClick={() => handleApplyPreset(p)}
-                    className="p-3.5 rounded-[18px] border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:bg-none dark:bg-[#191B1E] dark:border-[1px] dark:border-[#2B2F35] dark:shadow-none text-left transition-all hover:scale-[1.01] hover:border-indigo-300 dark:hover:border-indigo-500/50 cursor-pointer group"
+                    className="p-3.5 rounded-2xl border border-white/[0.08] bg-[#18181B] hover:border-white/[0.15] text-left transition-all cursor-pointer group shadow-sm"
                   >
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-xs font-bold text-slate-800 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
@@ -468,9 +468,7 @@ void ExecuteOrder(ENUM_ORDER_TYPE orderType)
                         type="button"
                         onClick={() => setBuilderMode("ai")}
                         className={`px-2.5 py-1 rounded text-[11px] font-bold transition-all ${
-                          builderMode === "ai"
-                            ? "bg-white dark:bg-[#282828] text-indigo-600 dark:text-indigo-400 shadow-xs"
-                            : "text-slate-400 hover:text-slate-700 dark:hover:text-white"
+                          builderMode === "ai" ? "btn-fialgo-primary" : "text-neutral-400 hover:text-white px-3 py-1 rounded-full text-xs font-medium"
                         }`}
                       >
                         AI Prompt
@@ -479,9 +477,7 @@ void ExecuteOrder(ENUM_ORDER_TYPE orderType)
                         type="button"
                         onClick={() => setBuilderMode("visual")}
                         className={`px-2.5 py-1 rounded text-[11px] font-bold transition-all ${
-                          builderMode === "visual"
-                            ? "bg-white dark:bg-[#282828] text-indigo-600 dark:text-indigo-400 shadow-xs"
-                            : "text-slate-400 hover:text-slate-700 dark:hover:text-white"
+                          builderMode === "visual" ? "btn-fialgo-primary" : "text-neutral-400 hover:text-white px-3 py-1 rounded-full text-xs font-medium"
                         }`}
                       >
                         Visual Rules
@@ -599,7 +595,7 @@ void ExecuteOrder(ENUM_ORDER_TYPE orderType)
                       type="button"
                       onClick={handleBuild}
                       disabled={isCompiling}
-                      className="w-full sm:w-auto h-10 px-5 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98] text-white text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md shadow-indigo-500/20 disabled:opacity-50"
+                      className="btn-fialgo-primary w-full sm:w-auto h-10 px-6 text-xs font-bold uppercase tracking-wider inline-flex items-center justify-center gap-2 cursor-pointer shadow-md disabled:opacity-50"
                     >
                       {isCompiling ? (
                         <>

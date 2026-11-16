@@ -13,11 +13,11 @@ import DashboardLayout from "@/components/DashboardLayout";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { toast } from "sonner";
 
-const kpiBoxStyle = "h-[120px] px-5 py-4 rounded-[22px] border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] flex flex-col justify-between transition-all duration-300 dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:shadow-none hover:scale-[1.01] hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#D0D0D5] dark:hover:shadow-none";
+const kpiBoxStyle = "h-[120px] px-5 py-4 rounded-2xl bg-[#141416] border border-white/[0.08] hover:border-white/[0.15] transition-all flex flex-col justify-between shadow-sm";
 
-const cardBoxStyle = "p-5 sm:p-6 rounded-[22px] border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:shadow-none transition-all";
+const cardBoxStyle = "p-5 sm:p-6 rounded-2xl bg-[#141416] border border-white/[0.08] hover:border-white/[0.15] transition-all";
 
-const innerTileStyle = "bg-[#F8F9FC] dark:bg-white/5 border border-slate-200/60 dark:border-white/5 rounded-[16px] p-3.5 flex flex-col justify-between";
+const innerTileStyle = "bg-[#18181B] border border-white/[0.06] rounded-xl p-3.5 flex flex-col justify-between";
 
 // ── 1. Purchased Algorithms & Licenses ────────────────────────────────────────
 interface PurchasedAlgo {
@@ -439,7 +439,7 @@ export default function TradeHistory() {
                 className="text-[28px] sm:text-[32px] font-bold text-slate-900 dark:text-white tracking-tight leading-none"
                 
               >
-                Order & Activity Ledger
+                Order History
               </h1>
               {isConnected ? (
                 <span className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1.5 border border-emerald-500/20 uppercase tracking-wider">
@@ -463,7 +463,7 @@ export default function TradeHistory() {
             <button
               type="button"
               onClick={() => setShowTerminalModal(true)}
-              className="inline-flex items-center gap-2 h-[38px] px-3.5 rounded-[14px] border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-bold transition-all cursor-pointer shadow-sm"
+              className="btn-fialgo-primary inline-flex items-center gap-2 h-[38px] px-5 text-xs font-semibold uppercase tracking-wider"
             >
               <Terminal className="w-3.5 h-3.5" />
               <span>Terminal Logs</span>
@@ -474,7 +474,7 @@ export default function TradeHistory() {
               type="button"
               onClick={handleRefresh}
               disabled={isRefreshing}
-              className="inline-flex items-center gap-2 h-[38px] px-3.5 rounded-[14px] border-2 border-white bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/10 dark:shadow-none text-slate-700 dark:text-slate-200 hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#D0D0D5] text-xs font-bold transition-all cursor-pointer"
+              className="btn-fialgo-secondary inline-flex items-center gap-2 h-[38px] px-4 text-xs font-semibold"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin text-slate-900 dark:text-white" : "text-slate-400"}`} />
               <span className="hidden sm:inline">Sync Data</span>
@@ -483,7 +483,7 @@ export default function TradeHistory() {
             <button
               type="button"
               onClick={handleExportCSV}
-              className="inline-flex items-center gap-2 h-[38px] px-4 rounded-[14px] border-2 border-white bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/10 dark:shadow-none text-slate-700 dark:text-slate-200 hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#D0D0D5] text-xs font-bold uppercase tracking-wider transition-all cursor-pointer"
+              className="btn-fialgo-secondary inline-flex items-center gap-2 h-[38px] px-4 text-xs font-semibold uppercase tracking-wider"
             >
               <Download className="w-3.5 h-3.5 text-indigo-500" />
               <span>Export CSV</span>
@@ -602,13 +602,11 @@ export default function TradeHistory() {
         {/* ── 3 CORE MODULE TABS: (Purchased Algos | Executed Trades | Execution Logs) ── */}
         <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 pt-1">
           {/* Main Module Switcher */}
-          <div className="bg-slate-100 dark:bg-[#191B1E] p-1 rounded-xl flex items-center gap-1 border border-slate-200/50 dark:border-white/5 overflow-x-auto">
+          <div className="bg-[#141416] p-1 rounded-full flex items-center gap-1 border border-white/[0.08] overflow-x-auto">
             <button
               type="button"
               onClick={() => { setActiveModule("purchases"); setSearchQuery(""); }}
-              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-2 shrink-0 ${activeModule === "purchases"
-                  ? "bg-white dark:bg-[#282828] text-slate-900 dark:text-white shadow-sm"
-                  : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-2 shrink-0 ${activeModule === "purchases" ? "btn-fialgo-primary" : "text-neutral-400 hover:text-white px-4 py-2 rounded-full text-xs font-semibold shrink-0"
                 }`}
             >
               <Package className="w-3.5 h-3.5 text-indigo-500" />
@@ -618,9 +616,7 @@ export default function TradeHistory() {
             <button
               type="button"
               onClick={() => { setActiveModule("trades"); setSearchQuery(""); }}
-              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-2 shrink-0 ${activeModule === "trades"
-                  ? "bg-white dark:bg-[#282828] text-slate-900 dark:text-white shadow-sm"
-                  : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-2 shrink-0 ${activeModule === "trades" ? "btn-fialgo-primary" : "text-neutral-400 hover:text-white px-4 py-2 rounded-full text-xs font-semibold shrink-0"
                 }`}
             >
               <Activity className="w-3.5 h-3.5 text-emerald-500" />
@@ -630,9 +626,7 @@ export default function TradeHistory() {
             <button
               type="button"
               onClick={() => { setActiveModule("terminal"); setSearchQuery(""); }}
-              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-2 shrink-0 ${activeModule === "terminal"
-                  ? "bg-white dark:bg-[#282828] text-slate-900 dark:text-white shadow-sm"
-                  : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-2 shrink-0 ${activeModule === "terminal" ? "btn-fialgo-primary" : "text-neutral-400 hover:text-white px-4 py-2 rounded-full text-xs font-semibold shrink-0"
                 }`}
             >
               <Terminal className="w-3.5 h-3.5 text-emerald-500" />

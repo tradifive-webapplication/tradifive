@@ -1,14 +1,25 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import FiAlgoAdminDashboard from "@/components/FiAlgoAdminDashboard";
 import AutoTradeModernDashboard from "@/components/AutoTradeModernDashboard";
 import { ArrowLeft, Monitor } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface FiAlgoWorkspaceProps {
   defaultTab?: string;
 }
 
 export default function FiAlgoWorkspace({ defaultTab }: FiAlgoWorkspaceProps) {
+  const navigate = useNavigate();
+
+  // If user has not completed setup, immediately redirect to setup workflow
+  useEffect(() => {
+    const isSetup = typeof window !== "undefined" && localStorage.getItem("tradifive_auto_trade_setup") === "true";
+    if (!isSetup) {
+      navigate("/auto-trade/setup", { replace: true });
+    }
+  }, [navigate]);
+
   const [viewMode, setViewMode] = useState<"overview" | "terminal">(
     defaultTab === "autotrade" ? "terminal" : "overview"
   );

@@ -31,9 +31,9 @@ import { supabase } from "@/lib/supabase";
 import { generateTradifiveLicenseKey } from "@/pages/AITrading";
 import { toast } from "sonner";
 
-const cardBoxStyle = "p-5 sm:p-6 rounded-[22px] border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:shadow-none transition-all";
+const cardBoxStyle = "p-5 sm:p-6 rounded-2xl bg-[#141416] border border-white/[0.08] hover:border-white/[0.15] transition-all shadow-sm";
 
-const kpiBoxStyle = "h-[110px] px-5 py-4 rounded-[22px] border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] flex flex-col justify-between transition-all duration-300 dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:shadow-none hover:scale-[1.01] dark:hover:shadow-none";
+const kpiBoxStyle = "h-[110px] px-5 py-4 rounded-2xl bg-[#141416] border border-white/[0.08] hover:border-white/[0.15] transition-all flex flex-col justify-between shadow-sm";
 
 const authorizedAlgos = [
   {
@@ -191,7 +191,7 @@ export default function EASetup() {
                 className="text-[28px] sm:text-[30px] font-bold text-slate-900 dark:text-white tracking-tight leading-none"
                 
               >
-                License &amp; Activation
+                EA License & Keys
               </h1>
               <span className="bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 text-[10px] font-bold px-2.5 py-1 rounded-full border border-emerald-200/50 uppercase tracking-wider flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
@@ -207,7 +207,7 @@ export default function EASetup() {
             <button
               type="button"
               onClick={() => navigate("/auto-trade/active-bots")}
-              className="inline-flex items-center gap-2 h-9 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 dark:bg-[#1E1E1E] dark:border-white/10 dark:hover:bg-white/5 text-slate-700 dark:text-slate-200 text-xs font-semibold transition-all cursor-pointer shadow-xs"
+              className="btn-fialgo-secondary inline-flex items-center gap-2 h-9 px-5 text-xs font-semibold"
             >
               <Bot className="w-3.5 h-3.5 text-indigo-500" />
               <span>Active Bots</span>
@@ -216,7 +216,7 @@ export default function EASetup() {
             <button
               type="button"
               onClick={handleDownloadEA}
-              className="inline-flex items-center gap-2 h-9 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-all cursor-pointer shadow-sm shadow-indigo-500/20"
+              className="btn-fialgo-primary inline-flex items-center gap-2 h-9 px-5 text-xs font-semibold uppercase tracking-wider"
             >
               <Download className="w-3.5 h-3.5" />
               <span>Download Master EA</span>
@@ -324,7 +324,7 @@ export default function EASetup() {
               <button
                 type="button"
                 onClick={handleDownloadEA}
-                className="w-full h-9 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-400 dark:hover:bg-indigo-500/20 text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                className="btn-fialgo-primary w-full h-10 text-xs font-semibold uppercase tracking-wider inline-flex items-center justify-center gap-2"
               >
                 <Download className="w-3.5 h-3.5" />
                 <span>Download .EX5 File</span>
@@ -372,7 +372,7 @@ export default function EASetup() {
                 type="button"
                 onClick={handleVerifyConnection}
                 disabled={isVerifying}
-                className="w-full h-9 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-sm"
+                className="btn-fialgo-primary w-full h-10 text-xs font-semibold uppercase tracking-wider inline-flex items-center justify-center gap-2"
               >
                 {isVerifying ? (
                   <>
