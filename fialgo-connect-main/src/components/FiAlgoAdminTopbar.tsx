@@ -3,11 +3,12 @@ import {
   Search,
   Menu,
   X,
+  BotMessageSquare,
+  Monitor,
+  Bell,
   Bot,
   Activity,
   Cpu,
-  ChevronRight,
-  Zap,
 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -22,15 +23,9 @@ export default function FiAlgoAdminTopbar({ onOpenMobileMenu }: FiAlgoAdminTopba
   const [topSearchQuery, setTopSearchQuery] = useState("");
   const [showTopSearch, setShowTopSearch] = useState(false);
   const [showMobileSearch, setShowMobileSearch] = useState(false);
-  const [systemTime, setSystemTime] = useState(new Date());
 
   const inputRef = useRef<HTMLInputElement>(null);
   const mobileInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    const timer = setInterval(() => setSystemTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
 
   // Keyboard shortcut listener: press "/" to focus search
   useEffect(() => {
@@ -47,27 +42,27 @@ export default function FiAlgoAdminTopbar({ onOpenMobileMenu }: FiAlgoAdminTopba
 
   const getPageTitle = () => {
     const p = location.pathname;
-    if (p === "/fialgo") return "FiAlgo Engine Dashboard";
-    if (p.startsWith("/auto-trade/dashboard")) return "Auto Trade Engine Terminal";
-    if (p.startsWith("/auto-trade/active-bots")) return "Active Algo Bots";
+    if (p === "/fialgo") return "Payments";
+    if (p.startsWith("/auto-trade/dashboard")) return "Auto Trade Terminal";
+    if (p.startsWith("/auto-trade/active-bots")) return "Active Bots";
     if (p.startsWith("/auto-trade/marketplace")) return "Algo Marketplace";
     if (p.startsWith("/strategy-builder")) return "Strategy Builder";
-    if (p.startsWith("/auto-trade/history")) return "Execution & Order History";
-    if (p.startsWith("/weekly-settlements")) return "Weekly Profit Settlements";
-    if (p.startsWith("/auto-trade/license")) return "EA License & Key Activation";
-    if (p.startsWith("/auto-trade/setup")) return "MT5 Terminal Connection";
-    return "FiAlgo Workspace";
+    if (p.startsWith("/auto-trade/history")) return "Transaction Ledger";
+    if (p.startsWith("/weekly-settlements")) return "Payout Approvals";
+    if (p.startsWith("/auto-trade/license")) return "License Keys";
+    if (p.startsWith("/auto-trade/setup")) return "MT5 Monitor";
+    return "Overview";
   };
 
   const navItems = [
-    { label: "Dashboard", path: "/fialgo", category: "Engine" },
+    { label: "Executive Terminal", path: "/fialgo", category: "Overview" },
     { label: "Auto Trade Engine", path: "/auto-trade/dashboard", category: "Terminal" },
     { label: "Active Bots", path: "/auto-trade/active-bots", category: "Bots" },
     { label: "Algo Marketplace", path: "/auto-trade/marketplace", category: "Market" },
     { label: "Strategy Builder", path: "/strategy-builder", category: "Builder" },
-    { label: "Order History", path: "/auto-trade/history", category: "Execution" },
-    { label: "Weekly Settlements", path: "/weekly-settlements", category: "Finance" },
-    { label: "License & EA Keys", path: "/auto-trade/license", category: "Access" },
+    { label: "Transaction Ledger", path: "/auto-trade/history", category: "Finance" },
+    { label: "Payout Approvals", path: "/weekly-settlements", category: "Finance" },
+    { label: "MT5 Monitor", path: "/auto-trade/setup", category: "Terminal" },
   ];
 
   const filteredItems = topSearchQuery.trim()
@@ -79,7 +74,7 @@ export default function FiAlgoAdminTopbar({ onOpenMobileMenu }: FiAlgoAdminTopba
 
   return (
     <header className="h-14 flex items-center justify-between px-4 sm:px-6 md:px-8 bg-[#121214]/95 backdrop-blur-md border-b border-white/[0.08] relative z-30 select-none shrink-0 font-sans">
-      {/* Left: Hamburger (Mobile) + Breadcrumb */}
+      {/* Left: Mobile Hamburger + Clean Page Title (Exact Match to Admin App Image 1) */}
       <div className="flex items-center gap-2.5 sm:gap-3 shrink-0 min-w-0">
         <button
           onClick={onOpenMobileMenu}
@@ -89,23 +84,17 @@ export default function FiAlgoAdminTopbar({ onOpenMobileMenu }: FiAlgoAdminTopba
           <Menu size={19} />
         </button>
 
-        <div className="flex items-center gap-2 min-w-0">
-          <span className="text-[10px] font-bold text-purple-400 bg-purple-500/10 border border-purple-500/20 px-2 py-0.5 rounded uppercase tracking-wider hidden sm:inline-block">
-            FiAlgo
-          </span>
-          <ChevronRight size={13} className="text-neutral-600 hidden sm:inline-block" />
-          <h2 className="text-xs sm:text-sm font-semibold text-white tracking-wide truncate max-w-[170px] sm:max-w-xs">
-            {getPageTitle()}
-          </h2>
-        </div>
+        <h2 className="text-xs sm:text-sm font-semibold text-white tracking-wide truncate max-w-[160px] sm:max-w-xs">
+          {getPageTitle()}
+        </h2>
       </div>
 
-      {/* Desktop Global Search Bar (Modeled exactly on AdminLayout.tsx) */}
+      {/* Desktop Global Search Bar (Exact Match to Admin App Image 1) */}
       <div className="flex-1 max-w-xl px-4 sm:px-8 hidden md:block relative">
         <div className="relative group flex items-center">
           <Search
             size={14}
-            className="absolute left-3.5 text-neutral-500 group-focus-within:text-purple-400 transition-colors pointer-events-none"
+            className="absolute left-3.5 text-neutral-500 group-focus-within:text-blue-400 transition-colors pointer-events-none"
           />
           <input
             ref={inputRef}
@@ -114,8 +103,8 @@ export default function FiAlgoAdminTopbar({ onOpenMobileMenu }: FiAlgoAdminTopba
             onChange={(e) => setTopSearchQuery(e.target.value)}
             onFocus={() => setShowTopSearch(true)}
             onBlur={() => setTimeout(() => setShowTopSearch(false), 250)}
-            placeholder="Search algo bots, strategies, executions, routes..."
-            className="w-full bg-[#18181A] hover:bg-[#1D1D20] focus:bg-[#202024] border border-white/10 focus:border-purple-500/50 rounded-lg flex items-center pl-10 pr-12 py-2 text-xs text-white outline-none transition-all placeholder:text-neutral-500 focus:shadow-[0_0_20px_rgba(168,85,247,0.15)]"
+            placeholder="Search pages, employees, clients..."
+            className="w-full bg-[#18181A] hover:bg-[#1D1D20] focus:bg-[#202024] border border-white/10 focus:border-blue-500/50 rounded-lg flex items-center pl-10 pr-12 py-2 text-xs text-white outline-none transition-all placeholder:text-neutral-500 focus:shadow-[0_0_20px_rgba(59,130,246,0.15)]"
           />
           <div className="absolute right-2.5 flex items-center gap-1 pointer-events-none">
             <kbd className="text-[10px] font-medium text-neutral-400 bg-white/5 px-1.5 py-0.5 rounded border border-white/10 font-mono">
@@ -123,11 +112,11 @@ export default function FiAlgoAdminTopbar({ onOpenMobileMenu }: FiAlgoAdminTopba
             </kbd>
           </div>
 
-          {/* Quick Search Helper (Empty query) */}
+          {/* Quick Search Dropdown */}
           {showTopSearch && !topSearchQuery.trim() && (
-            <div className="absolute top-[125%] left-0 w-full bg-[#18181B]/95 backdrop-blur-md border border-neutral-800 rounded-xl shadow-2xl p-3 z-[200] space-y-2.5">
-              <div className="px-1 text-[9px] text-neutral-500 font-bold uppercase tracking-widest border-b border-white/5 pb-1.5">
-                Quick Navigation & Commands
+            <div className="absolute top-[125%] left-0 w-full bg-[#18181B]/95 backdrop-blur-md border border-neutral-800 rounded-xl shadow-2xl p-3 z-[200] space-y-3">
+              <div className="px-2 py-0.5 text-[9px] text-neutral-500 font-bold uppercase tracking-widest border-b border-white/5 pb-2">
+                Search Commands & Filters
               </div>
               <div className="grid grid-cols-3 gap-2">
                 <button
@@ -135,12 +124,12 @@ export default function FiAlgoAdminTopbar({ onOpenMobileMenu }: FiAlgoAdminTopba
                     navigate("/fialgo");
                     setShowTopSearch(false);
                   }}
-                  className="flex items-center gap-2 p-2 rounded-lg bg-white/[0.02] hover:bg-white/[0.06] border border-white/5 hover:border-white/10 text-left transition-all"
+                  className="flex items-center gap-2 px-3 py-2.5 bg-white/[0.01] hover:bg-white/[0.04] border border-white/5 hover:border-white/10 rounded-lg text-left transition-all"
                 >
-                  <Bot size={14} className="text-purple-400 shrink-0" />
-                  <div>
-                    <p className="text-[11px] font-bold text-neutral-200">Dashboard</p>
-                    <p className="text-[8.5px] text-neutral-500">Overview</p>
+                  <Bot size={13} className="text-zinc-400" />
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-bold text-neutral-300">Pages</span>
+                    <span className="text-[8px] text-neutral-500">Go to route</span>
                   </div>
                 </button>
                 <button
@@ -148,12 +137,12 @@ export default function FiAlgoAdminTopbar({ onOpenMobileMenu }: FiAlgoAdminTopba
                     navigate("/auto-trade/active-bots");
                     setShowTopSearch(false);
                   }}
-                  className="flex items-center gap-2 p-2 rounded-lg bg-white/[0.02] hover:bg-white/[0.06] border border-white/5 hover:border-white/10 text-left transition-all"
+                  className="flex items-center gap-2 px-3 py-2.5 bg-white/[0.01] hover:bg-white/[0.04] border border-white/5 hover:border-white/10 rounded-lg text-left transition-all"
                 >
-                  <Activity size={14} className="text-emerald-400 shrink-0" />
-                  <div>
-                    <p className="text-[11px] font-bold text-neutral-200">Active Bots</p>
-                    <p className="text-[8.5px] text-neutral-500">4 Running</p>
+                  <Activity size={13} className="text-emerald-400" />
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-bold text-neutral-300">Active Bots</span>
+                    <span className="text-[8px] text-neutral-500">Live fleet</span>
                   </div>
                 </button>
                 <button
@@ -161,12 +150,12 @@ export default function FiAlgoAdminTopbar({ onOpenMobileMenu }: FiAlgoAdminTopba
                     navigate("/strategy-builder");
                     setShowTopSearch(false);
                   }}
-                  className="flex items-center gap-2 p-2 rounded-lg bg-white/[0.02] hover:bg-white/[0.06] border border-white/5 hover:border-white/10 text-left transition-all"
+                  className="flex items-center gap-2 px-3 py-2.5 bg-white/[0.01] hover:bg-white/[0.04] border border-white/5 hover:border-white/10 rounded-lg text-left transition-all"
                 >
-                  <Cpu size={14} className="text-blue-400 shrink-0" />
-                  <div>
-                    <p className="text-[11px] font-bold text-neutral-200">Strategy</p>
-                    <p className="text-[8.5px] text-neutral-500">Builder</p>
+                  <Cpu size={13} className="text-purple-400" />
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-bold text-neutral-300">Strategy</span>
+                    <span className="text-[8px] text-neutral-500">Builder</span>
                   </div>
                 </button>
               </div>
@@ -195,7 +184,7 @@ export default function FiAlgoAdminTopbar({ onOpenMobileMenu }: FiAlgoAdminTopba
                 ))
               ) : (
                 <div className="p-3 text-center text-xs text-neutral-500">
-                  No matching algo routes or features found.
+                  No matching routes found.
                 </div>
               )}
             </div>
@@ -203,8 +192,8 @@ export default function FiAlgoAdminTopbar({ onOpenMobileMenu }: FiAlgoAdminTopba
         </div>
       </div>
 
-      {/* Right: Live Status Badge + Live Time + Actions */}
-      <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+      {/* Right: Exact Admin App Buttons (LIVE APP, AGENT, CEO Badge, Bell) */}
+      <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
         {/* Mobile Search Button */}
         <button
           onClick={() => setShowMobileSearch(true)}
@@ -214,28 +203,46 @@ export default function FiAlgoAdminTopbar({ onOpenMobileMenu }: FiAlgoAdminTopba
           <Search size={18} />
         </button>
 
-        {/* Live Engine Status Badge (Admin App exact styling) */}
-        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-lg shadow-[0_0_15px_rgba(16,185,129,0.1)]">
-          <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.6)]" />
-          <span className="text-[9.5px] font-bold text-emerald-400 uppercase tracking-wider">
-            MT5 Connected
+        {/* LIVE APP Button (Exact match from AdminLayout.tsx line 520) */}
+        <button
+          onClick={() => navigate("/auto-trade/dashboard")}
+          className="flex items-center gap-1.5 p-1.5 sm:px-3 sm:py-1.5 bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 hover:text-blue-300 rounded border border-blue-500/20 transition-all shadow-[0_0_15px_rgba(59,130,246,0.1)] cursor-pointer"
+          title="Open Live App Viewer"
+        >
+          <Monitor size={14} className="text-blue-500" />
+          <span className="text-[10px] font-bold uppercase tracking-widest hidden md:inline-block">
+            LIVE APP
           </span>
-        </div>
+        </button>
 
-        {/* Live System Time */}
-        <div className="hidden xl:flex items-center px-2.5 py-1 bg-white/[0.03] border border-white/5 rounded-lg">
-          <span className="text-[11px] font-mono text-neutral-400">
-            {systemTime.toLocaleTimeString()}
-          </span>
-        </div>
-
-        {/* Quick Action Button: Launch Bot */}
+        {/* AGENT Button (Exact match from AdminLayout.tsx line 527) */}
         <button
           onClick={() => navigate("/strategy-builder")}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-xs font-semibold shadow-[0_0_15px_rgba(168,85,247,0.25)] transition-all active:scale-95 cursor-pointer"
+          className="flex items-center gap-1.5 p-1.5 sm:px-3 sm:py-1.5 bg-transparent hover:bg-white/[0.05] rounded text-neutral-400 hover:text-white transition-colors border border-transparent hover:border-white/10 cursor-pointer"
+          title="Agent Command"
         >
-          <Zap size={13} />
-          <span className="hidden sm:inline">Launch Bot</span>
+          <BotMessageSquare size={14} className="text-[#a855f7]" />
+          <span className="text-[10px] font-bold uppercase tracking-widest hidden md:inline-block">
+            AGENT
+          </span>
+        </button>
+
+        <div className="w-px h-4 bg-white/10 mx-1 hidden sm:block" />
+
+        {/* Role Pill: CEO (Exact match from AdminLayout.tsx line 538) */}
+        <div className="hidden sm:flex items-center gap-2 px-2.5 py-1 bg-white/[0.03] border border-white/5 rounded">
+          <div className="w-1.5 h-1.5 rounded-full bg-neutral-600" />
+          <span className="text-[9px] font-bold uppercase tracking-widest text-neutral-500">
+            CEO
+          </span>
+        </div>
+
+        {/* Notification Bell */}
+        <button
+          className="p-1.5 text-neutral-400 hover:text-white rounded-lg hover:bg-white/5 transition-colors relative"
+          aria-label="Notifications"
+        >
+          <Bell size={16} />
         </button>
       </div>
 
@@ -250,7 +257,7 @@ export default function FiAlgoAdminTopbar({ onOpenMobileMenu }: FiAlgoAdminTopba
               type="text"
               value={topSearchQuery}
               onChange={(e) => setTopSearchQuery(e.target.value)}
-              placeholder="Search algo bots, strategies..."
+              placeholder="Search pages, employees, clients..."
               className="flex-1 bg-transparent text-sm text-white outline-none placeholder:text-neutral-500"
             />
             <button
