@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
-import { ChevronsUpDown, Check, Cpu } from "lucide-react";
+import { ChevronsUpDown, Check } from "lucide-react";
 
 interface WorkspaceSwitcherProps {
   isMobile?: boolean;
@@ -32,7 +32,7 @@ export default function WorkspaceSwitcher({ isMobile = false, className = "" }: 
   const handleMouseLeave = () => {
     hoverTimeoutRef.current = setTimeout(() => {
       setIsOpen(false);
-    }, 250);
+    }, 300);
   };
 
   const handleSelect = (ws: "tradifive" | "fialgo") => {
@@ -45,112 +45,77 @@ export default function WorkspaceSwitcher({ isMobile = false, className = "" }: 
       ref={containerRef}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      className={`relative select-none ${className}`}
+      className={`relative select-none w-full ${className}`}
     >
-      {/* ── Borderless Workspace Switcher (Seamless with Sidebar) ── */}
+      {/* ── Borderless Workspace Switcher (Logo on Left + Dropdown Arrow on Far Right like Bottom Profile) ── */}
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
-        className="flex items-center justify-between gap-3 p-1.5 px-2 rounded-xl hover:bg-slate-100/70 dark:hover:bg-white/[0.05] transition-all duration-200 cursor-pointer text-left group"
+        className="w-full flex items-center justify-between p-1.5 px-2 rounded-xl hover:bg-slate-100/70 dark:hover:bg-white/[0.05] transition-all duration-200 cursor-pointer text-left group"
         title="Switch Workspace (TradiFive / FiAlgo)"
       >
-        <div className="flex flex-col items-start min-w-0">
-          {/* Logo container (Prominent, crisp size) */}
-          <div className="flex items-center h-[26px] sm:h-[28px] overflow-hidden">
-            {isFiAlgo ? (
-              <img
-                src="/fialgo-logo.png"
-                alt="FiAlgo Workspace"
-                className="h-[25px] sm:h-[28px] w-auto object-contain transition-transform duration-200 group-hover:scale-[1.02]"
-              />
-            ) : (
-              <>
-                <img
-                  src="/Tradifive_logo1.png"
-                  alt="TradiFive Workspace"
-                  className="h-[25px] sm:h-[28px] w-auto object-contain dark:hidden transition-transform duration-200 group-hover:scale-[1.02]"
-                />
-                <img
-                  src="/Dark mode logo with white.png"
-                  alt="TradiFive Workspace"
-                  className="h-[25px] sm:h-[28px] w-auto object-contain hidden dark:block transition-transform duration-200 group-hover:scale-[1.02]"
-                />
-              </>
-            )}
-          </div>
-
-          {/* Label below: Workspace + Live Status Dot */}
-          <div className="flex items-center gap-1.5 mt-0.5 leading-none">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors">
-              Workspace
-            </span>
-            <span
-              className={`w-1.5 h-1.5 rounded-full ${
-                isFiAlgo
-                  ? "bg-purple-500 shadow-[0_0_6px_rgba(168,85,247,0.6)]"
-                  : "bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.6)]"
-              } animate-pulse`}
+        {/* Logo container (Prominent, crisp size, no workspace text below) */}
+        <div className="flex items-center h-[28px] sm:h-[30px] overflow-hidden">
+          {isFiAlgo ? (
+            <img
+              src="/fialgo-logo.png"
+              alt="FiAlgo Workspace"
+              className="h-[26px] sm:h-[29px] w-auto object-contain transition-transform duration-200 group-hover:scale-[1.02]"
             />
-          </div>
+          ) : (
+            <>
+              <img
+                src="/Tradifive_logo1.png"
+                alt="TradiFive Workspace"
+                className="h-[26px] sm:h-[29px] w-auto object-contain dark:hidden transition-transform duration-200 group-hover:scale-[1.02]"
+              />
+              <img
+                src="/Dark mode logo with white.png"
+                alt="TradiFive Workspace"
+                className="h-[26px] sm:h-[29px] w-auto object-contain hidden dark:block transition-transform duration-200 group-hover:scale-[1.02]"
+              />
+            </>
+          )}
         </div>
 
-        {/* Up/Down Arrow Side (Clean & naked on side, matching reference image) */}
+        {/* Up/Down Arrow Side (Positioned on the far right like the profile card at the bottom) */}
         <ChevronsUpDown
           size={16}
           strokeWidth={2.2}
-          className="text-slate-400 dark:text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-colors shrink-0 ml-1.5"
+          className="text-slate-400 dark:text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-colors shrink-0 mr-1"
         />
       </button>
 
-      {/* ── Dropdown Menu ── */}
+      {/* ── Dropdown Menu (Simple: TradiFive Workspace & FiAlgo Workspace, No Distractions) ── */}
       {isOpen && (
         <div
-          className={`absolute top-full left-0 mt-2 w-[270px] rounded-2xl bg-white dark:bg-[#1A1A1E] border border-slate-200/90 dark:border-white/10 shadow-[0_16px_40px_rgba(0,0,0,0.16)] dark:shadow-[0_16px_40px_rgba(0,0,0,0.45)] p-2 z-[200] animate-in fade-in zoom-in-95 duration-150`}
+          className={`absolute top-full left-0 mt-2 w-full min-w-[220px] rounded-2xl bg-white dark:bg-[#1A1A1E] border border-slate-200/90 dark:border-white/10 shadow-[0_16px_36px_rgba(0,0,0,0.12)] dark:shadow-[0_16px_36px_rgba(0,0,0,0.45)] p-1.5 z-[200] animate-in fade-in zoom-in-95 duration-150 space-y-1`}
         >
-          {/* Header */}
-          <div className="flex items-center justify-between px-2.5 py-1.5 mb-1 border-b border-slate-100 dark:border-white/5">
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-400">
-              Switch Workspace
-            </span>
-            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-white/10">
-              2 Connected
-            </span>
-          </div>
-
           {/* Option 1: TradiFive Workspace */}
           <button
             type="button"
             onClick={() => handleSelect("tradifive")}
-            className={`w-full flex items-center justify-between gap-2.5 p-2.5 rounded-xl transition-all cursor-pointer text-left ${
+            className={`w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl transition-all cursor-pointer text-left ${
               isTradiFive
-                ? "bg-blue-50/80 dark:bg-blue-500/10 border border-blue-200/80 dark:border-blue-500/20"
-                : "hover:bg-slate-50 dark:hover:bg-white/5 border border-transparent"
+                ? "bg-slate-100/90 dark:bg-white/10 text-slate-900 dark:text-white"
+                : "hover:bg-slate-50 dark:hover:bg-white/5 text-slate-700 dark:text-slate-300"
             }`}
           >
             <div className="flex items-center gap-2.5 min-w-0">
-              {/* Logo icon box */}
-              <div className="w-8 h-8 rounded-lg bg-white dark:bg-white/10 border border-slate-200/80 dark:border-white/10 flex items-center justify-center shrink-0 shadow-xs p-1">
+              <div className="w-7 h-7 rounded-lg bg-white dark:bg-white/10 border border-slate-200/80 dark:border-white/10 flex items-center justify-center shrink-0 p-1 shadow-xs">
                 <img
                   src="/tf-logo.png"
                   alt="TradiFive"
                   className="w-full h-full object-contain"
                 />
               </div>
-
-              <div className="flex flex-col min-w-0">
-                <span className="text-[12.5px] font-bold text-slate-800 dark:text-slate-100 truncate">
-                  TradiFive Workspace
-                </span>
-                <span className="text-[10.5px] font-medium text-slate-500 dark:text-slate-400 truncate">
-                  Feed, Journal, AI Coach & Community
-                </span>
-              </div>
+              <span className="text-[13px] font-semibold truncate">
+                TradiFive Workspace
+              </span>
             </div>
 
             {isTradiFive && (
-              <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center shrink-0 shadow-xs">
-                <Check size={12} className="text-white" strokeWidth={3} />
-              </div>
+              <Check size={16} className="text-blue-500 shrink-0" strokeWidth={2.5} />
             )}
           </button>
 
@@ -158,56 +123,29 @@ export default function WorkspaceSwitcher({ isMobile = false, className = "" }: 
           <button
             type="button"
             onClick={() => handleSelect("fialgo")}
-            className={`w-full flex items-center justify-between gap-2.5 p-2.5 rounded-xl transition-all cursor-pointer text-left mt-1 ${
+            className={`w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl transition-all cursor-pointer text-left ${
               isFiAlgo
-                ? "bg-purple-50/80 dark:bg-purple-500/10 border border-purple-200/80 dark:border-purple-500/20"
-                : "hover:bg-slate-50 dark:hover:bg-white/5 border border-transparent"
+                ? "bg-slate-100/90 dark:bg-white/10 text-slate-900 dark:text-white"
+                : "hover:bg-slate-50 dark:hover:bg-white/5 text-slate-700 dark:text-slate-300"
             }`}
           >
             <div className="flex items-center gap-2.5 min-w-0">
-              {/* Logo icon box */}
-              <div className="w-8 h-8 rounded-lg bg-white dark:bg-white/10 border border-slate-200/80 dark:border-white/10 flex items-center justify-center shrink-0 shadow-xs p-1 overflow-hidden">
+              <div className="w-7 h-7 rounded-lg bg-white dark:bg-white/10 border border-slate-200/80 dark:border-white/10 flex items-center justify-center shrink-0 p-1 shadow-xs overflow-hidden">
                 <img
                   src="/fialgo-logo.png"
                   alt="FiAlgo"
                   className="w-full h-full object-contain"
                 />
               </div>
-
-              <div className="flex flex-col min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[12.5px] font-bold text-slate-800 dark:text-slate-100 truncate">
-                    FiAlgo Workspace
-                  </span>
-                  <span className="px-1.5 py-0.5 rounded text-[8.5px] font-black uppercase tracking-wider bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/20">
-                    ALGO
-                  </span>
-                </div>
-                <span className="text-[10.5px] font-medium text-slate-500 dark:text-slate-400 truncate">
-                  Auto Trade, Backtesting & Bots
-                </span>
-              </div>
+              <span className="text-[13px] font-semibold truncate">
+                FiAlgo Workspace
+              </span>
             </div>
 
-            {isFiAlgo ? (
-              <div className="w-5 h-5 rounded-full bg-purple-600 flex items-center justify-center shrink-0 shadow-xs">
-                <Check size={12} className="text-white" strokeWidth={3} />
-              </div>
-            ) : (
-              <span className="text-[9.5px] font-bold text-purple-600 dark:text-purple-400">
-                Open →
-              </span>
+            {isFiAlgo && (
+              <Check size={16} className="text-purple-500 shrink-0" strokeWidth={2.5} />
             )}
           </button>
-
-          {/* Quick Footer */}
-          <div className="mt-2 pt-1.5 px-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[10px] text-slate-400 dark:text-slate-500">
-            <span className="flex items-center gap-1">
-              <Cpu size={10} className="text-purple-500" />
-              Institutional Algo Engine
-            </span>
-            <span className="font-semibold text-slate-500 dark:text-slate-400">v2.4</span>
-          </div>
         </div>
       )}
     </div>

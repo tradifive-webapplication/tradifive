@@ -21,7 +21,12 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   // Initialize from URL or localStorage
   const [activeWorkspace, setActiveWorkspace] = useState<WorkspaceType>(() => {
     if (typeof window !== "undefined") {
-      if (window.location.pathname.startsWith("/fialgo")) {
+      if (
+        window.location.pathname.startsWith("/fialgo") ||
+        window.location.pathname.startsWith("/auto-trade") ||
+        window.location.pathname.startsWith("/strategy-builder") ||
+        window.location.pathname.startsWith("/weekly-settlements")
+      ) {
         return "fialgo";
       }
       const saved = localStorage.getItem(WORKSPACE_STORAGE_KEY) as WorkspaceType;
@@ -34,7 +39,12 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   // Sync active workspace whenever route changes
   useEffect(() => {
-    if (location.pathname.startsWith("/fialgo")) {
+    if (
+      location.pathname.startsWith("/fialgo") ||
+      location.pathname.startsWith("/auto-trade") ||
+      location.pathname.startsWith("/strategy-builder") ||
+      location.pathname.startsWith("/weekly-settlements")
+    ) {
       setActiveWorkspace("fialgo");
       try {
         localStorage.setItem(WORKSPACE_STORAGE_KEY, "fialgo");
@@ -47,7 +57,8 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       location.pathname.startsWith("/creator") ||
       location.pathname.startsWith("/ai-coach") ||
       location.pathname.startsWith("/discover") ||
-      location.pathname.startsWith("/settings")
+      location.pathname.startsWith("/settings") ||
+      location.pathname.startsWith("/risk-guard")
     ) {
       setActiveWorkspace("tradifive");
       try {

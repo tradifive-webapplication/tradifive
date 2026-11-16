@@ -22,6 +22,7 @@ import logoOnly from "@/assets/logo-only.png";
 
 import defaultAvatar from "@/assets/default-avatar.svg";
 import WorkspaceSwitcher from "./WorkspaceSwitcher";
+import { useWorkspace } from "@/contexts/WorkspaceContext";
 
 import React, { useState, useEffect, useRef } from "react";
 
@@ -246,29 +247,15 @@ const discoverMenu = [
 
 
 const getAutoTradeMenu = () => {
-
-  const isSetup = typeof window !== 'undefined' && localStorage.getItem("tradifive_auto_trade_setup") === "true";
-
   return [
-
-    { path: "/fialgo", icon: wrapLucide(Cpu), label: "FiAlgo Workspace", badge: "WORKSPACE" },
-
-    { path: isSetup ? "/auto-trade/dashboard" : "/auto-trade/setup", icon: WrappedIconly(Category), label: "Dashboard" },
-
+    { path: "/fialgo", icon: WrappedIconly(Category), label: "Dashboard" },
     { path: "/weekly-settlements", icon: wrapLucide(ReceiptText), label: "Weekly Profit Settlement" },
-
     { path: "/auto-trade/active-bots", icon: WrappedIconly(Activity), label: "Active Bots", isLocked: true },
-
     { path: "/auto-trade/marketplace", icon: WrappedIconly(Bag), label: "Algo Marketplace" },
-
     { path: "/strategy-builder", icon: WrappedIconly(Setting), label: "Strategy Builder", isLocked: true },
-
     { path: "/auto-trade/history", icon: WrappedIconly(Document), label: "Order History", isLocked: true },
-
     { path: "/auto-trade/license", icon: WrappedIconly(ShieldDone), label: "License & Activation", isLocked: true },
-
   ];
-
 };
 
 
@@ -389,32 +376,29 @@ const creatorHubMenu = [
 
 
 
-const getPillars = (isCreator: boolean) => {
+const getPillars = (isCreator: boolean, isFiAlgo: boolean = false) => {
+  if (isFiAlgo) {
+    return [
+      { id: "autoTrade", icon: WrappedIconly(Activity), tooltip: "Auto Trade Dashboard", defaultPath: "/fialgo", isLive: true },
+      { id: "strategyBuilder", icon: WrappedIconly(Setting), tooltip: "Strategy Builder", defaultPath: "/strategy-builder", isLive: true },
+      { id: "activeBots", icon: WrappedIconly(Activity), tooltip: "Active Bots", defaultPath: "/auto-trade/active-bots", isLive: true },
+      { id: "marketplace", icon: WrappedIconly(Bag), tooltip: "Algo Marketplace", defaultPath: "/auto-trade/marketplace", isLive: true },
+      { id: "history", icon: WrappedIconly(Document), tooltip: "Order History", defaultPath: "/auto-trade/history", isLive: true },
+      { id: "license", icon: WrappedIconly(ShieldDone), tooltip: "License & Activation", defaultPath: "/auto-trade/license", isLive: true },
+    ];
+  }
 
-  const isAutoTradeSetup = typeof window !== 'undefined' && localStorage.getItem("tradifive_auto_trade_setup") === "true";
-
+  // TradiFive Workspace Pillars (Auto Trade completely removed)
   return [
-
     { id: "home", icon: WrappedIconly(Home), tooltip: "Home Feed (Live)", defaultPath: "/home", isLive: true },
-
-    { id: "autoTrade", icon: WrappedIconly(Activity), tooltip: "Auto Trade (Live)", defaultPath: isAutoTradeSetup ? "/auto-trade/dashboard" : "/auto-trade/setup", isLive: true },
-
     { id: "dashboard", icon: WrappedIconly(Category), tooltip: "Dashboard (Soon)", defaultPath: "/dashboard", isLocked: true },
-
     { id: "community", icon: WrappedIconly(Chat), tooltip: "Channels (Soon)", defaultPath: "/channel", isLocked: true },
-
     { id: "journal", icon: WrappedIconly(Document), tooltip: "Smart Journal (Soon)", defaultPath: "/journal", isLocked: true },
-
     { id: "riskGuard", icon: WrappedIconly(ShieldDone), tooltip: "Risk Guard (Soon)", defaultPath: "/risk-guard", isLocked: true },
-
     { id: "aiCoach", icon: WrappedSparkles, tooltip: "AI Coach (Soon)", defaultPath: "/ai-coach", isLocked: true },
-
     { id: "discover", icon: WrappedIconly(Discovery), tooltip: "Discover", defaultPath: "/discover", isLive: true },
-
     ...(isCreator ? [{ id: "creatorHub", icon: WrappedIconly(Star), tooltip: "Creator Hub (Soon)", defaultPath: "/creator/analytics", isLocked: true }] : []),
-
   ];
-
 };
 
 
@@ -568,6 +552,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
   const navigate = useNavigate();
 
   const { activeMarket, setActiveMarket } = useMarket();
+  const { isFiAlgo, isTradiFive } = useWorkspace();
 
 
 
@@ -1319,26 +1304,20 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
 
 
-  const mobilePillars = [
-
-    { id: "home", label: "Home Feed", icon: WrappedIconly(Home), isLive: true },
-
+  const mobilePillars = isFiAlgo ? [
     { id: "autoTrade", label: "Auto Trade", icon: WrappedIconly(Activity), isLive: true },
-
+    { id: "strategyBuilder", label: "Strategy", icon: WrappedIconly(Setting), isLive: true },
+    { id: "activeBots", label: "Bots", icon: WrappedIconly(Activity), isLive: true },
+    { id: "history", label: "History", icon: WrappedIconly(Document), isLive: true },
+  ] : [
+    { id: "home", label: "Home Feed", icon: WrappedIconly(Home), isLive: true },
     { id: "dashboard", label: "Dashboard (Soon)", icon: WrappedIconly(Category), isLocked: true },
-
     { id: "community", label: "Channels (Soon)", icon: WrappedIconly(Chat), isLocked: true },
-
     { id: "journal", label: "Journal (Soon)", icon: WrappedIconly(Document), isLocked: true },
-
     { id: "riskGuard", label: "Risk Guard (Soon)", icon: WrappedIconly(ShieldDone), isLocked: true },
-
     { id: "aiCoach", label: "AI Coach (Soon)", icon: WrappedIconly(Chat), isLocked: true },
-
     { id: "discover", label: "Discover", icon: WrappedIconly(Discovery), isLive: true },
-
     ...(isCreator ? [{ id: "creatorHub", label: "Creator Hub", icon: WrappedIconly(Star), isLocked: true }] : [])
-
   ];
 
 
@@ -1587,11 +1566,8 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
     return (
 
-      <Tooltip delayDuration={0} key={item.label}>
-
-        <TooltipTrigger asChild>
-
       <button
+        key={item.label}
 
         id={`tour-nav-${item.label.toLowerCase().replace(/[\s\/]+/g, '-')}`}
 
@@ -1745,12 +1721,6 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
       </button>
 
-        </TooltipTrigger>
-
-        {isCollapsed && <TooltipContent side="right" sideOffset={14} className="bg-white dark:bg-[#2B2B2F] text-slate-700 dark:text-white border border-slate-200 dark:border-white/10 text-[11px] font-bold px-3 py-1.5 rounded-lg shadow-xl">{item.label}</TooltipContent>}
-
-      </Tooltip>
-
     );
 
   };
@@ -1823,7 +1793,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
                 {/* Pillars */}
 
-                {getPillars(isCreator).map((pillar) => {
+                {getPillars(isCreator, isFiAlgo).map((pillar) => {
 
                   const isActive = activePillar === pillar.id;
 
@@ -1969,7 +1939,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
         {/* SECONDARY SIDEBAR */}
 
-        <div className={`flex flex-col h-full bg-transparent border-transparent transition-all duration-[400ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] ${isMobile ? 'w-full' : isCollapsed ? 'w-0 overflow-hidden opacity-0' : 'w-[274px] opacity-100'} shrink-0 relative`}>
+        <div className={`flex flex-col h-full bg-transparent border-transparent transition-all duration-[400ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] ${isMobile ? 'w-full' : isCollapsed ? 'w-0 overflow-hidden opacity-0 pointer-events-none' : 'w-[274px] opacity-100'} shrink-0 relative`}>
 
           <div className={`flex flex-col h-full shrink-0 transition-transform duration-[400ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] ${isMobile ? 'w-full' : 'w-[274px]'} ${isCollapsed && !isMobile ? '-translate-x-12' : 'translate-x-0'}`}>
 
@@ -1997,7 +1967,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
                 )}
 
-                <WorkspaceSwitcher isMobile={isMobile} />
+                <WorkspaceSwitcher isMobile={isMobile} className="w-full" />
 
               </div>
 
@@ -2403,7 +2373,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
                     <h3 className="text-slate-400 dark:text-neutral-400 text-[10px] font-extrabold uppercase tracking-[0.15em] px-6 font-sans whitespace-nowrap">
 
-                      {getPillars(isCreator).find(p => p.id === activePillar)?.tooltip || "Menu"}
+                      {getPillars(isCreator, isFiAlgo).find(p => p.id === activePillar)?.tooltip || "Menu"}
 
                     </h3>
 
