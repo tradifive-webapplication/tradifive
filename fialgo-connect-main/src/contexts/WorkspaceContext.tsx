@@ -48,11 +48,11 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       location.pathname.startsWith("/weekly-settlements")
     ) {
       setActiveWorkspace("fialgo");
-      // FiAlgo Workspace runs strictly in clean White Mode (like admin app in white mode)
-      document.documentElement.classList.remove("dark");
+      // FiAlgo Workspace runs in Dark/Black Mode matching Admin App
+      document.documentElement.classList.add("dark");
       try {
-        localStorage.setItem("tradifive_theme", "light");
-        localStorage.setItem("theme", "light");
+        localStorage.setItem("tradifive_theme", "dark");
+        localStorage.setItem("theme", "dark");
         localStorage.setItem(WORKSPACE_STORAGE_KEY, "fialgo");
       } catch (e) {}
     } else if (
@@ -75,11 +75,11 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const switchWorkspace = (workspace: WorkspaceType) => {
     if (workspace === "fialgo") {
-      // Enter White Mode like admin app in white mode
-      document.documentElement.classList.remove("dark");
+      // Enter Dark / Black Mode like admin app
+      document.documentElement.classList.add("dark");
       try {
-        localStorage.setItem("tradifive_theme", "light");
-        localStorage.setItem("theme", "light");
+        localStorage.setItem("tradifive_theme", "dark");
+        localStorage.setItem("theme", "dark");
         localStorage.setItem(WORKSPACE_STORAGE_KEY, "fialgo");
       } catch (e) {}
 
