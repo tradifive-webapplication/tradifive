@@ -33,50 +33,8 @@ interface DashboardLayoutProps {
   fullScreen?: boolean;
 }
 
-function getComingSoonInfo(pathname: string): { isSoon: boolean; title: string } {
-  const p = pathname.toLowerCase();
-  if (p === '/dashboard' || p.startsWith('/dashboard/') || p.startsWith('/portfolio')) {
-    return { isSoon: true, title: "Trading Dashboard" };
-  }
-  if (p.startsWith('/journal') || p === '/mistakes' || p === '/mistake-tracking' || p === '/charts' || p === '/chart' || p === '/analytics') {
-    return { isSoon: true, title: "Smart Trade Journal" };
-  }
-  if (p.startsWith('/risk-guard')) {
-    return { isSoon: true, title: "Risk Guard Protection" };
-  }
-  if (p.startsWith('/ai-coach')) {
-    return { isSoon: true, title: "AI Coach & Copilot" };
-  }
-  if (p.startsWith('/channel')) {
-    return { isSoon: true, title: "Trading Channels" };
-  }
-  if (p.startsWith('/rewards')) {
-    return { isSoon: true, title: "Rewards Hub" };
-  }
-  if (p.startsWith('/competitions')) {
-    return { isSoon: true, title: "Trading Competitions" };
-  }
-  if (p.startsWith('/creator')) {
-    return { isSoon: true, title: "Creator Studio & Mentors" };
-  }
-  if (p.startsWith('/upgrade') || p.startsWith('/subscription') || p.startsWith('/pricing') || p.startsWith('/billing')) {
-    return { isSoon: true, title: "Subscription Plans" };
-  }
-  if (p.startsWith('/auto-trade/active-bots')) {
-    return { isSoon: true, title: "Active Trading Bots" };
-  }
-  if (p.startsWith('/strategy-builder') || p.startsWith('/auto-trade/builder')) {
-    return { isSoon: true, title: "Strategy Builder" };
-  }
-  if (p.startsWith('/auto-trade/history') || p === '/order-history') {
-    return { isSoon: true, title: "Order History" };
-  }
-  if (p.startsWith('/auto-trade/license') || p === '/license') {
-    return { isSoon: true, title: "License & Activation" };
-  }
-  if (p.startsWith('/learning') || p.startsWith('/courses')) {
-    return { isSoon: true, title: "TradiFive Academy & Courses" };
-  }
+function getComingSoonInfo(_pathname: string): { isSoon: boolean; title: string } {
+  // Coming Soon veil disabled across TradiFive workspace - all features live & accessible
   return { isSoon: false, title: "" };
 }
 
@@ -622,19 +580,16 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
                 {headerActions}
                 <NotificationHub />
                 
-                {/* AI Coach Top-Right Button (Visibly Blurred & Coming Soon) */}
-                <div className="relative inline-flex items-center select-none" title="AI Coach (Coming Soon)">
-                  <div
-                    aria-hidden="true"
-                    className="flex items-center justify-center gap-2 px-3 sm:px-4 h-9 sm:h-10 rounded-full bg-white/70 dark:bg-[#1E1E1E]/70 border border-slate-200/80 dark:border-white/10 text-slate-400 dark:text-slate-500 font-bold text-[13px] shadow-2xs filter blur-[3.5px] opacity-40 select-none pointer-events-none cursor-not-allowed"
-                  >
-                    <Sparkles size={15} strokeWidth={2.5} className="text-slate-400" />
-                    <span>AI Coach</span>
-                  </div>
-                  <span className="absolute -top-1.5 -right-1 px-1.5 py-0.5 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[8.5px] font-black uppercase tracking-wider shadow-xs pointer-events-none flex items-center gap-0.5">
-                    Soon
-                  </span>
-                </div>
+                {/* AI Coach Top-Right Button */}
+                <button
+                  type="button"
+                  onClick={() => setIsAIOpen(true)}
+                  title="Open AI Coach"
+                  className="flex items-center justify-center gap-2 px-3 sm:px-4 h-9 sm:h-10 rounded-full bg-white dark:bg-[#1E1E1E] hover:bg-slate-50 dark:hover:bg-white/[0.08] border border-slate-200/80 dark:border-white/10 text-slate-800 dark:text-white font-bold text-[13px] shadow-xs cursor-pointer transition-colors"
+                >
+                  <Sparkles size={15} strokeWidth={2.5} className="text-purple-500" />
+                  <span>AI Coach</span>
+                </button>
               </div>
             </header>
 

@@ -388,16 +388,16 @@ const getPillars = (isCreator: boolean, isFiAlgo: boolean = false) => {
     ];
   }
 
-  // TradiFive Workspace Pillars (Auto Trade completely removed)
+  // TradiFive Workspace Pillars
   return [
-    { id: "home", icon: WrappedIconly(Home), tooltip: "Home Feed (Live)", defaultPath: "/home", isLive: true },
-    { id: "dashboard", icon: WrappedIconly(Category), tooltip: "Dashboard (Soon)", defaultPath: "/dashboard", isLocked: true },
-    { id: "community", icon: WrappedIconly(Chat), tooltip: "Channels (Soon)", defaultPath: "/channel", isLocked: true },
-    { id: "journal", icon: WrappedIconly(Document), tooltip: "Smart Journal (Soon)", defaultPath: "/journal", isLocked: true },
-    { id: "riskGuard", icon: WrappedIconly(ShieldDone), tooltip: "Risk Guard (Soon)", defaultPath: "/risk-guard", isLocked: true },
-    { id: "aiCoach", icon: WrappedSparkles, tooltip: "AI Coach (Soon)", defaultPath: "/ai-coach", isLocked: true },
-    { id: "discover", icon: WrappedIconly(Discovery), tooltip: "Discover", defaultPath: "/discover", isLive: true },
-    ...(isCreator ? [{ id: "creatorHub", icon: WrappedIconly(Star), tooltip: "Creator Hub (Soon)", defaultPath: "/creator/analytics", isLocked: true }] : []),
+    { id: "home", icon: WrappedIconly(Home), tooltip: "Home Feed", defaultPath: "/home", isLive: true },
+    { id: "dashboard", icon: WrappedIconly(Category), tooltip: "Trading Dashboard", defaultPath: "/dashboard", isLive: true },
+    { id: "community", icon: WrappedIconly(Chat), tooltip: "Channels & Community", defaultPath: "/channel", isLive: true },
+    { id: "journal", icon: WrappedIconly(Document), tooltip: "Smart Trade Journal", defaultPath: "/journal", isLive: true },
+    { id: "riskGuard", icon: WrappedIconly(ShieldDone), tooltip: "Risk Guard Protection", defaultPath: "/risk-guard", isLive: true },
+    { id: "aiCoach", icon: WrappedSparkles, tooltip: "AI Coach & Copilot", defaultPath: "/ai-coach", isLive: true },
+    { id: "discover", icon: WrappedIconly(Discovery), tooltip: "Discover Hub", defaultPath: "/discover", isLive: true },
+    ...(isCreator ? [{ id: "creatorHub", icon: WrappedIconly(Star), tooltip: "Creator Hub", defaultPath: "/creator/analytics", isLive: true }] : []),
   ];
 };
 
@@ -1311,13 +1311,13 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
     { id: "history", label: "History", icon: WrappedIconly(Document), isLive: true },
   ] : [
     { id: "home", label: "Home Feed", icon: WrappedIconly(Home), isLive: true },
-    { id: "dashboard", label: "Dashboard (Soon)", icon: WrappedIconly(Category), isLocked: true },
-    { id: "community", label: "Channels (Soon)", icon: WrappedIconly(Chat), isLocked: true },
-    { id: "journal", label: "Journal (Soon)", icon: WrappedIconly(Document), isLocked: true },
-    { id: "riskGuard", label: "Risk Guard (Soon)", icon: WrappedIconly(ShieldDone), isLocked: true },
-    { id: "aiCoach", label: "AI Coach (Soon)", icon: WrappedIconly(Chat), isLocked: true },
+    { id: "dashboard", label: "Dashboard", icon: WrappedIconly(Category), isLive: true },
+    { id: "community", label: "Channels", icon: WrappedIconly(Chat), isLive: true },
+    { id: "journal", label: "Journal", icon: WrappedIconly(Document), isLive: true },
+    { id: "riskGuard", label: "Risk Guard", icon: WrappedIconly(ShieldDone), isLive: true },
+    { id: "aiCoach", label: "AI Coach", icon: WrappedIconly(Chat), isLive: true },
     { id: "discover", label: "Discover", icon: WrappedIconly(Discovery), isLive: true },
-    ...(isCreator ? [{ id: "creatorHub", label: "Creator Hub", icon: WrappedIconly(Star), isLocked: true }] : [])
+    ...(isCreator ? [{ id: "creatorHub", label: "Creator Hub", icon: WrappedIconly(Star), isLive: true }] : [])
   ];
 
 
@@ -1342,13 +1342,13 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
         return [
 
-          { path: "/dashboard", icon: WrappedIconly(Category), label: "Dashboard", isLocked: true },
+          { path: "/dashboard", icon: WrappedIconly(Category), label: "Dashboard" },
 
-          { path: "/dashboard?tab=portfolio", icon: WrappedIconly(Wallet), label: "Portfolio & Holdings", isLocked: true },
+          { path: "/dashboard?tab=portfolio", icon: WrappedIconly(Wallet), label: "Portfolio & Holdings" },
 
-          { path: "/broker-connect", icon: WrappedIconly(Activity), label: "Connected Brokers", isLocked: true },
+          { path: "/broker-connect", icon: WrappedIconly(Activity), label: "Connected Brokers" },
 
-          { path: "/dashboard?tab=reports", icon: WrappedIconly(Document), label: "Reports & Statements", isLocked: true },
+          { path: "/dashboard?tab=reports", icon: WrappedIconly(Document), label: "Reports & Statements" },
 
         ];
 
@@ -1356,11 +1356,11 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
         return [
 
-          { path: "/journal", icon: WrappedIconly(Document), label: "Daily Journal", isLocked: true },
+          { path: "/journal", icon: WrappedIconly(Document), label: "Daily Journal" },
 
-          { path: "/journal/history", icon: WrappedIconly(TimeCircle), label: "Trade History", isLocked: true },
+          { path: "/journal/history", icon: WrappedIconly(TimeCircle), label: "Trade History" },
 
-          { path: "/journal/mistakes", icon: WrappedIconly(ShieldDone), label: "Mistake Tracking", isLocked: true },
+          { path: "/journal/mistakes", icon: WrappedIconly(ShieldDone), label: "Mistake Tracking" },
 
         ];
 
@@ -1368,13 +1368,13 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
         return [
 
-          { path: "/risk-guard", icon: WrappedIconly(ShieldDone), label: "Risk Dashboard", isLocked: true },
+          { path: "/risk-guard", icon: WrappedIconly(ShieldDone), label: "Risk Dashboard" },
 
-          { path: "/risk-guard/limits", icon: WrappedIconly(ShieldFail), label: "Drawdown Limits", isLocked: true },
+          { path: "/risk-guard/limits", icon: WrappedIconly(ShieldFail), label: "Drawdown Limits" },
 
-          { path: "/risk-guard/exposure", icon: WrappedIconly(Graph), label: "Position Exposure", isLocked: true },
+          { path: "/risk-guard/exposure", icon: WrappedIconly(Graph), label: "Position Exposure" },
 
-          { path: "/risk-guard/kill-switch", icon: WrappedIconly(Danger), label: "Kill Switch", isDanger: true, isLocked: true },
+          { path: "/risk-guard/kill-switch", icon: WrappedIconly(Danger), label: "Kill Switch", isDanger: true },
 
         ];
 
@@ -1390,9 +1390,9 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
           { path: "/discover?tab=People", icon: WrappedIconly(TwoUsers), label: "Top Traders" },
 
-          { path: "/competitions/dashboard", icon: WrappedIconly(Scan), label: "Contests", isLocked: true },
+          { path: "/competitions/dashboard", icon: WrappedIconly(Scan), label: "Contests" },
 
-          { path: "/learning", icon: wrapLucide(GraduationCap), label: "Courses", isLocked: true },
+          { path: "/learning", icon: wrapLucide(GraduationCap), label: "Courses" },
 
         ];
 
@@ -1400,15 +1400,15 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
         return [
 
-          { path: "/ai-coach", icon: WrappedIconly(Chat), label: "AI Coach Insights", isLocked: true },
+          { path: "/ai-coach", icon: WrappedIconly(Chat), label: "AI Coach Insights" },
 
-          { path: "/ai-coach/chat", icon: WrappedIconly(Message), label: "Coach Chat", isLocked: true },
+          { path: "/ai-coach/chat", icon: WrappedIconly(Message), label: "Coach Chat" },
 
-          { path: "/ai-coach/feedback", icon: WrappedIconly(Notification), label: "Trade Feedback", isLocked: true },
+          { path: "/ai-coach/feedback", icon: WrappedIconly(Notification), label: "Trade Feedback" },
 
-          { path: "/ai-coach/goals", icon: WrappedIconly(TicketStar), label: "Trading Goals", isLocked: true },
+          { path: "/ai-coach/goals", icon: WrappedIconly(TicketStar), label: "Trading Goals" },
 
-          { path: "/analytics", icon: WrappedIconly(Graph), label: "Performance Analytics", isLocked: true },
+          { path: "/analytics", icon: WrappedIconly(Graph), label: "Performance Analytics" },
 
         ];
 
@@ -1426,7 +1426,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
 
 
-          { path: "/auto-trade/active-bots", icon: WrappedIconly(Activity), label: "Active Bots", isLocked: true },
+          { path: "/auto-trade/active-bots", icon: WrappedIconly(Activity), label: "Active Bots" },
 
 
 
@@ -1434,15 +1434,15 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
 
 
-          { path: "/strategy-builder", icon: WrappedIconly(Setting), label: "Strategy Builder", isLocked: true },
+          { path: "/strategy-builder", icon: WrappedIconly(Setting), label: "Strategy Builder" },
 
 
 
-          { path: "/auto-trade/history", icon: WrappedIconly(Document), label: "Order History", isLocked: true },
+          { path: "/auto-trade/history", icon: WrappedIconly(Document), label: "Order History" },
 
 
 
-          { path: "/auto-trade/license", icon: WrappedIconly(ShieldDone), label: "License & Activation", isLocked: true },
+          { path: "/auto-trade/license", icon: WrappedIconly(ShieldDone), label: "License & Activation" },
 
 
 
@@ -1464,7 +1464,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
         return [
 
-          { path: "/channel", icon: WrappedIconly(Chat), label: "Channels & Chat", isLocked: true },
+          { path: "/channel", icon: WrappedIconly(Chat), label: "Channels & Chat" },
 
           { path: "/inbox", icon: WrappedIconly(Message), label: "Direct Messages", badge: (unreadDMs > 0 ? String(unreadDMs) : undefined) },
 
@@ -1510,7 +1510,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
     { path: "/referrals", icon: WrappedIconly(AddUser), label: "Refer & Earn" },
 
-    { path: "/rewards", icon: WrappedIconly(TicketStar), label: "Rewards Hub (Soon)", isLocked: true },
+    { path: "/rewards", icon: WrappedIconly(TicketStar), label: "Rewards Hub" },
 
     { path: "/settings", icon: WrappedIconly(Setting), label: "Settings" },
 
@@ -1899,7 +1899,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
                     </TooltipTrigger>
 
-                    <TooltipContent side="right" sideOffset={20} className="bg-[#2B2B2F] border border-white/10 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg shadow-xl">Rewards Hub (Soon)</TooltipContent>
+                    <TooltipContent side="right" sideOffset={20} className="bg-[#2B2B2F] border border-white/10 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg shadow-xl">Rewards Hub</TooltipContent>
 
                  </Tooltip>
 
