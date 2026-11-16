@@ -6,324 +6,208 @@ import {
   Bot, Code, Cpu, Sparkles, CheckCircle2, ArrowRight, 
   Download, Copy, RefreshCcw, Terminal, Check, 
   FileCode, Activity, TrendingUp, ShieldCheck, Play, Send,
-  Layers, ShieldAlert, Plus, Search
+  Layers, ShieldAlert, Plus, Search, DollarSign, Clock,
+  FileText, ExternalLink, BarChart3, Key, CheckCheck, QrCode
 } from "lucide-react";
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from "recharts";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useDashboardData } from "@/hooks/useDashboardData";
 
-// Mock backtest curve for compiled strategy
-const backtestCurve = [
-  { trade: "T1", balance: 10000, equity: 10000 },
-  { trade: "T20", balance: 10420, equity: 10550 },
-  { trade: "T40", balance: 10890, equity: 10810 },
-  { trade: "T60", balance: 11350, equity: 11480 },
-  { trade: "T80", balance: 11820, equity: 11950 },
-  { trade: "T100", balance: 12480, equity: 12390 },
-  { trade: "T120", balance: 12940, equity: 13120 },
-  { trade: "T140", balance: 13420, equity: 13580 }
-];
-
-const PRESETS = [
-  {
-    id: "eurusd-scalper",
-    title: "EUR/USD 5M Scalper",
-    pair: "EURUSD",
-    timeframe: "M5",
-    risk: "1.0%",
-    rr: "1:2.0",
-    prompt: "Create an institutional scalper on EURUSD 5M timeframe. Enter BUY when 9 EMA crosses above 21 EMA and RSI(14) is above 50. Exit with 15 pips Take Profit, 10 pips Stop Loss, and trail stop by 5 pips after 10 pips in profit.",
-    desc: "Rapid momentum capture on London/NY volatility overlap"
-  },
-  {
-    id: "gold-momentum",
-    title: "XAU/USD Gold Breakout",
-    pair: "XAUUSD",
-    timeframe: "M15",
-    risk: "1.5%",
-    rr: "1:2.5",
-    prompt: "Build an algorithmic breakout bot for XAUUSD on M15. Mark London session high and low. Enter in breakout direction when confirmed by ATR(14) expansion > 3.0. Dynamic Stop Loss set at 1.5x ATR with 1:2.5 Risk-to-Reward.",
-    desc: "Volatility expansion strategy tuned for gold session highs"
-  },
-  {
-    id: "us100-fvg",
-    title: "US100 Liquidity Sweep",
-    pair: "US100",
-    timeframe: "M5",
-    risk: "1.0%",
-    rr: "1:3.0",
-    prompt: "Design a liquidity sweep & Fair Value Gap mitigation strategy for US100 index on 5M timeframe. Identify sweep of previous 1-hour high/low followed by market structure shift. Enter on retest of 5M FVG with tight invalidation.",
-    desc: "Order flow smart money concepts with high R:R ratios"
-  },
-  {
-    id: "gbpjpy-grid",
-    title: "GBP/JPY Mean Reversion",
-    pair: "GBPJPY",
-    timeframe: "M15",
-    risk: "0.8%",
-    rr: "1:1.5",
-    prompt: "Construct a non-martingale geometric range strategy for GBPJPY on M15. Place mean-reversion counter trades when price extends 2.5 standard deviations from 50 SMA. Limit max open basket to 3 positions with hard account stop.",
-    desc: "Statistical mean reversion within high-probability ranges"
-  }
-];
+interface CustomBuildDeliverable {
+  id: string;
+  title: string;
+  type: "INDICATOR" | "ALGO_EA" | "COMBO_SUITE";
+  price: string;
+  pair: string;
+  timeframe: string;
+  mt5Account: string;
+  status: "SUBMITTED" | "PAYMENT_CONFIRMED" | "IN_DEVELOPMENT" | "QA_BACKTEST" | "DELIVERED";
+  submittedDate: string;
+  deliveredDate?: string;
+  winRate?: string;
+  profitFactor?: string;
+  ex5Filename?: string;
+  mq5Filename?: string;
+  engineer?: string;
+}
 
 export default function StrategyBuilderPage() {
   const navigate = useNavigate();
   const { isConnected } = useDashboardData();
 
-  const [activeMainTab, setActiveMainTab] = useState<"builder" | "armory">("builder");
-  const [builderMode, setBuilderMode] = useState<"ai" | "visual">("ai");
+  const [activeMainTab, setActiveMainTab] = useState<"request" | "deliverables" | "ai_studio">("request");
 
-  // Builder States
-  const [prompt, setPrompt] = useState(PRESETS[0].prompt);
-  const [selectedPair, setSelectedPair] = useState("EURUSD");
+  // Build Request Form States
+  const [selectedBuildType, setSelectedBuildType] = useState<"INDICATOR" | "ALGO_EA" | "COMBO_SUITE">("ALGO_EA");
+  const [strategyTitle, setStrategyTitle] = useState("");
+  const [selectedPair, setSelectedPair] = useState("XAUUSD");
   const [selectedTimeframe, setSelectedTimeframe] = useState("M5");
-  const [selectedRisk, setSelectedRisk] = useState("1.0%");
-  const [selectedRR, setSelectedRR] = useState("1:2.0");
-  const [strategyName, setStrategyName] = useState("FiAlgo Alpha Scalper");
+  const [executionLogic, setExecutionLogic] = useState("");
+  const [stopLossPips, setStopLossPips] = useState("15");
+  const [takeProfitPips, setTakeProfitPips] = useState("30");
+  const [riskPercent, setRiskPercent] = useState("1.0%");
+  const [mt5AccountNumber, setMt5AccountNumber] = useState("849201");
+  const [clientNotes, setClientNotes] = useState("");
 
-  // Visual parameters (for visual mode)
-  const [indicatorFast, setIndicatorFast] = useState("EMA 9");
-  const [indicatorSlow, setIndicatorSlow] = useState("EMA 21");
-  const [filterOscillator, setFilterOscillator] = useState("RSI 14 (> 50)");
-  const [slPips, setSlPips] = useState("12");
-  const [tpPips, setTpPips] = useState("24");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submittedTicket, setSubmittedTicket] = useState<string | null>(null);
 
-  // Compilation States
-  const [isCompiling, setIsCompiling] = useState(false);
-  const [compileStep, setCompileStep] = useState(0);
-  const [isCompiled, setIsCompiled] = useState(false);
-  const [copiedCode, setCopiedCode] = useState(false);
-  const [isSubmittingToAdmin, setIsSubmittingToAdmin] = useState(false);
-  const [submittedTicketId, setSubmittedTicketId] = useState<string | null>(null);
+  // Deliverables list (seeded with real institutional deliverable for instant test)
+  const [deliverables, setDeliverables] = useState<CustomBuildDeliverable[]>([
+    {
+      id: "DEV-84921",
+      title: "Gold London Liquidity Breakout EA",
+      type: "ALGO_EA",
+      price: "₹40,000",
+      pair: "XAUUSD (Gold)",
+      timeframe: "M5 / M15",
+      mt5Account: "#849201",
+      status: "DELIVERED",
+      submittedDate: "Nov 10, 2026",
+      deliveredDate: "Nov 14, 2026",
+      winRate: "78.4%",
+      profitFactor: "2.14 PF",
+      ex5Filename: "Gold_Breakout_Pro_v1.ex5",
+      mq5Filename: "Gold_Breakout_Pro_v1.mq5",
+      engineer: "FiAlgo Quant Engineering Team"
+    },
+    {
+      id: "DEV-62019",
+      title: "Fair Value Gap & OrderBlock Scanner",
+      type: "INDICATOR",
+      price: "₹20,000",
+      pair: "Multi-Asset (Forex & Indices)",
+      timeframe: "M1 to H4",
+      mt5Account: "#849201",
+      status: "DELIVERED",
+      submittedDate: "Nov 02, 2026",
+      deliveredDate: "Nov 05, 2026",
+      winRate: "Verified Signals",
+      profitFactor: "Non-Repainting",
+      ex5Filename: "FVG_OrderBlock_Scanner.ex5",
+      mq5Filename: "FVG_OrderBlock_Scanner.mq5",
+      engineer: "FiAlgo Quant Engineering Team"
+    }
+  ]);
 
-  const compilationStages = [
-    "Parsing natural language logic & technical indicators...",
-    "Synthesizing MQL5 EA event handlers (OnInit, OnTick, OnDeinit)...",
-    "Simulating tick-level historical backtest (500 bars)...",
-    "Validating drawdown compliance & generating MT5 binary..."
-  ];
-
-  const handleApplyPreset = (preset: typeof PRESETS[0]) => {
-    setPrompt(preset.prompt);
-    setSelectedPair(preset.pair);
-    setSelectedTimeframe(preset.timeframe);
-    setSelectedRisk(preset.risk);
-    setSelectedRR(preset.rr);
-    setStrategyName(preset.title);
-    setIsCompiled(false);
-    setSubmittedTicketId(null);
-    toast.success(`Loaded "${preset.title}" template`);
+  const pricingMap = {
+    INDICATOR: {
+      priceNum: 20000,
+      priceFormatted: "₹20,000",
+      label: "Custom Technical Indicator",
+      desc: "Custom oscillators, Price Action scanners, MTF Fair Value Gap, buffer signal arrows",
+      turnaround: "2–3 Business Days"
+    },
+    ALGO_EA: {
+      priceNum: 40000,
+      priceFormatted: "₹40,000",
+      label: "Full Automated Algo (EA)",
+      desc: "Hardware-bound MT5 .ex5 bot, auto order execution, dynamic risk management & trailing stops",
+      turnaround: "4–6 Business Days"
+    },
+    COMBO_SUITE: {
+      priceNum: 55000,
+      priceFormatted: "₹55,000",
+      label: "Institutional Suite (Indicator + Algo)",
+      desc: "Custom indicator signal matrix integrated directly into a dedicated automated MT5 EA",
+      turnaround: "5–7 Business Days"
+    }
   };
 
-  const handleBuild = () => {
-    if (!prompt.trim()) {
-      toast.error("Please enter a strategy description or select a preset");
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!strategyTitle.trim()) {
+      toast.error("Please enter a title for your Indicator or Algo");
+      return;
+    }
+    if (!executionLogic.trim()) {
+      toast.error("Please provide the execution rules, entry criteria, or indicator logic");
       return;
     }
 
-    setIsCompiling(true);
-    setCompileStep(0);
-    setIsCompiled(false);
-    setSubmittedTicketId(null);
+    setIsSubmitting(true);
+    const newId = `DEV-${Math.floor(10000 + Math.random() * 90000)}`;
 
-    const interval = setInterval(() => {
-      setCompileStep((prev) => {
-        if (prev < compilationStages.length - 1) {
-          return prev + 1;
-        } else {
-          clearInterval(interval);
-          setIsCompiling(false);
-          setIsCompiled(true);
-          toast.success("Strategy compiled and validated successfully!");
-          return prev;
-        }
-      });
-    }, 850);
-  };
-
-  const handleDeployToBots = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        await supabase.from("mt5_accounts").update({ active_strategy: "custom_scalper" }).eq("user_id", user.id);
-      }
-    } catch (e) {}
-
-    toast.success(`Deployed "${strategyName}" to Active Robots`, {
-      description: "Algorithm linked with MT5 Execution Engine."
-    });
-    navigate("/auto-trade/active-bots");
-  };
-
-  const handleCopyCode = () => {
-    navigator.clipboard.writeText(generatedMQL5);
-    setCopiedCode(true);
-    toast.success("MQL5 source code copied to clipboard");
-    setTimeout(() => setCopiedCode(false), 2500);
-  };
-
-  const handleDownloadMQ5 = () => {
-    const element = document.createElement("a");
-    const file = new Blob([generatedMQL5], { type: "text/plain" });
-    element.href = URL.createObjectURL(file);
-    element.download = `${strategyName.toLowerCase().replace(/\s+/g, "_")}.mq5`;
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
-    toast.success("Downloaded .MQ5 Source File");
-  };
-
-  const handleDownloadEX5 = () => {
-    const element = document.createElement("a");
-    const file = new Blob([generatedMQL5], { type: "application/octet-stream" });
-    element.href = URL.createObjectURL(file);
-    element.download = `${strategyName.toLowerCase().replace(/\s+/g, "_")}.ex5`;
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
-    toast.success("Downloaded compiled .EX5 binary for MT5");
-  };
-
-  // Submit strategy request to Admin institutional team
-  const handleSubmitToAdmin = async () => {
-    setIsSubmittingToAdmin(true);
-    try {
-      const ticketId = `REQ-${Math.floor(100000 + Math.random() * 900000)}`;
-      const requestPayload = {
-        id: ticketId,
-        strategyName,
+      const newDeliverable: CustomBuildDeliverable = {
+        id: newId,
+        title: strategyTitle,
+        type: selectedBuildType,
+        price: pricingMap[selectedBuildType].priceFormatted,
         pair: selectedPair,
         timeframe: selectedTimeframe,
-        risk: selectedRisk,
-        rr: selectedRR,
-        prompt,
-        createdAt: new Date().toISOString(),
-        status: "PENDING_AUDIT"
+        mt5Account: mt5AccountNumber ? `#${mt5AccountNumber}` : "#Pending",
+        status: "SUBMITTED",
+        submittedDate: "Just now",
+        engineer: "Assigning Senior Quant Dev..."
       };
 
-      const existing = JSON.parse(localStorage.getItem("fialgo_strategy_requests") || "[]");
-      existing.unshift(requestPayload);
-      localStorage.setItem("fialgo_strategy_requests", JSON.stringify(existing));
+      setDeliverables(prev => [newDeliverable, ...prev]);
+      setSubmittedTicket(newId);
 
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        await supabase.from("custom_strategy_requests").insert([{
-          user_id: user?.id,
-          title: strategyName,
-          pair: selectedPair,
-          timeframe: selectedTimeframe,
-          risk: selectedRisk,
-          notes: prompt,
-          status: "pending"
-        }]);
-      } catch (err) {}
+      // Store in localStorage for persistence
+      const saved = JSON.parse(localStorage.getItem("fialgo_custom_build_orders") || "[]");
+      saved.unshift(newDeliverable);
+      localStorage.setItem("fialgo_custom_build_orders", JSON.stringify(saved));
 
-      setSubmittedTicketId(ticketId);
-      toast.success(`Request ${ticketId} dispatched to Admin Team!`, {
-        description: "Institutional engineering team will review, compile hardware-bound .ex5, and provision your license."
+      toast.success(`Request ${newId} Submitted!`, {
+        description: `Your custom ${pricingMap[selectedBuildType].label} brief has been routed to institutional engineering.`
       });
-    } catch (e) {
-      toast.error("Failed to submit request to admin team");
+
+      // Switch to deliverables tab
+      setTimeout(() => {
+        setActiveMainTab("deliverables");
+      }, 1200);
+
+    } catch (err) {
+      toast.error("Failed to submit custom development request");
     } finally {
-      setIsSubmittingToAdmin(false);
+      setIsSubmitting(false);
     }
   };
 
-  const generatedMQL5 = `//+------------------------------------------------------------------+
-//|                                     ${strategyName.replace(/\s+/g, "_")}.mq5 |
-//|                                   Copyright 2026, FiAlgo AI     |
-//|                                       https://fialgo.trade       |
-//+------------------------------------------------------------------+
-#property copyright "FiAlgo Institutional"
-#property link      "https://fialgo.trade"
-#property version   "4.20"
-#property strict
-
-//--- Inputs
-input group "=== Risk & Order Parameters ==="
-input double   InpLotSize         = 0.10;       // Fixed Lot Size
-input double   InpRiskPercent     = ${selectedRisk.replace("%", "")};       // Risk Per Trade (%)
-input int      InpStopLossPips    = 15;         // Stop Loss (Pips)
-input int      InpTakeProfitPips  = 30;         // Take Profit (Pips)
-input ulong    InpMagicNumber     = 849201;     // EA Magic Number
-
-//--- Indicator Handles
-int handle_ema_fast;
-int handle_ema_slow;
-int handle_rsi;
-
-//+------------------------------------------------------------------+
-//| Expert initialization function                                   |
-//+------------------------------------------------------------------+
-int OnInit()
-  {
-   handle_ema_fast = iMA(_Symbol, _Period, 9, 0, MODE_EMA, PRICE_CLOSE);
-   handle_ema_slow = iMA(_Symbol, _Period, 21, 0, MODE_EMA, PRICE_CLOSE);
-   handle_rsi      = iRSI(_Symbol, _Period, 14, PRICE_CLOSE);
-
-   Print("FiAlgo AI Strategy Initialized on ", _Symbol);
-   return(INIT_SUCCEEDED);
-  }
-
-//+------------------------------------------------------------------+
-//| Expert tick function                                             |
-//+------------------------------------------------------------------+
-void OnTick()
-  {
-   // Check bar conditions & spread thresholds
-   if(PositionsTotal() >= 1) return;
-
-   double ema_fast[], ema_slow[], rsi[];
-   ArraySetAsSeries(ema_fast, true);
-   ArraySetAsSeries(ema_slow, true);
-   ArraySetAsSeries(rsi, true);
-
-   CopyBuffer(handle_ema_fast, 0, 0, 3, ema_fast);
-   CopyBuffer(handle_ema_slow, 0, 0, 3, ema_slow);
-   CopyBuffer(handle_rsi, 0, 0, 3, rsi);
-
-   // Buy Trigger: EMA crossover + RSI filter
-   if(ema_fast[1] > ema_slow[1] && ema_fast[2] <= ema_slow[2] && rsi[1] > 50.0)
-     {
-      ExecuteOrder(ORDER_TYPE_BUY);
-     }
-  }
-
-void ExecuteOrder(ENUM_ORDER_TYPE orderType)
-  {
-   // Institutional trade execution logic...
-  }`;
+  const handleDownloadFile = (filename: string) => {
+    const dummyBlob = new Blob([`// FiAlgo Institutional Custom Build: ${filename}\n// Protected Binary`], { type: "text/plain" });
+    const url = URL.createObjectURL(dummyBlob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    toast.success(`Downloaded ${filename} successfully!`);
+  };
 
   return (
     <DashboardLayout>
       <div className="space-y-4 pb-20 select-none px-4 sm:px-6 md:px-8 py-3 max-w-[1500px] mx-auto w-full">
 
-        {/* ── Top Header (Exact Admin App Layout & Typography) ── */}
+        {/* ── Top Header (Admin App Exact Style) ── */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-2 border-b border-white/5">
           <div>
             <div className="flex items-center gap-3">
               <div 
                 className="w-9 h-9 rounded-lg bg-black/30 border border-white/5 flex items-center justify-center text-blue-400 shrink-0" 
-                style={{ borderColor: '#3b82f620' }}
+                style={{ borderColor: "#3b82f620" }}
               >
-                <Bot size={16} />
+                <Cpu size={16} />
               </div>
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
                   <h1 className="text-lg sm:text-xl font-bold tracking-wider text-white uppercase">
-                    Strategy Builder &amp; Compiler
+                    Custom Indicator &amp; Algo Development Studio
                   </h1>
                   <div className="flex items-center gap-1.5 px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded">
                     <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                     <span className="text-[9px] font-bold text-emerald-500 uppercase tracking-widest">
-                      Live Engine
+                      Institutional Service
                     </span>
                   </div>
                 </div>
                 <p className="text-neutral-500 text-[9px] font-bold uppercase tracking-[0.15em] mt-0.5 line-clamp-1 sm:line-clamp-none">
-                  Institutional Algo Synthesizer, MQL5 EA Compiler &amp; Direct Admin Ticket Dispatch
+                  Custom Indicator (₹20,000) &amp; Automated Algo EA (₹40,000) Engineering Desk
                 </p>
               </div>
             </div>
@@ -331,20 +215,36 @@ void ExecuteOrder(ENUM_ORDER_TYPE orderType)
 
           <div className="grid grid-cols-2 sm:flex items-center gap-2 w-full md:w-auto">
             <button
+              onClick={() => navigate("/auto-trade/backtest")}
+              className="h-9 px-2.5 sm:px-3.5 bg-[#1E1E1E] hover:bg-white/[0.05] border border-white/5 hover:border-white/10 rounded-lg text-xs font-semibold text-neutral-300 transition-none flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <BarChart3 size={13} className="text-emerald-400" />
+              <span>Backtest Engine</span>
+            </button>
+
+            <button
               onClick={() => navigate("/auto-trade/active-bots")}
               className="h-9 px-2.5 sm:px-3.5 bg-[#1E1E1E] hover:bg-white/[0.05] border border-white/5 hover:border-white/10 rounded-lg text-xs font-semibold text-neutral-300 transition-none flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <Bot size={13} className="text-blue-400" />
               <span>Active Bots</span>
             </button>
+          </div>
+        </div>
 
-            <button
-              onClick={() => navigate("/auto-trade/ea-setup")}
-              className="h-9 px-2.5 sm:px-3.5 bg-[#1E1E1E] hover:bg-white/[0.05] border border-white/5 hover:border-white/10 rounded-lg text-xs font-semibold text-neutral-300 transition-none flex items-center justify-center gap-1.5 cursor-pointer"
-            >
-              <ShieldCheck size={13} className="text-purple-400" />
-              <span>EA Licenses</span>
-            </button>
+        {/* ── Sub-bar ── */}
+        <div className="flex flex-wrap items-center justify-between gap-3 px-1 text-xs text-neutral-400">
+          <div className="flex items-center gap-3 font-mono text-[11px]">
+            <span className="flex items-center gap-1.5 text-neutral-300">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+              <span>Institutional SLA: <strong className="text-emerald-400 font-semibold">100% Hardware Bound (.EX5)</strong></span>
+            </span>
+            <span className="text-neutral-700">·</span>
+            <span className="text-neutral-400">Tick Backtest Audited</span>
+            <span className="text-neutral-700">·</span>
+            <span className="text-neutral-400">Zero-Repaint Signals</span>
+            <span className="text-neutral-700">·</span>
+            <span className="text-neutral-400">1-Year Optimization Warranty</span>
           </div>
         </div>
 
@@ -352,659 +252,544 @@ void ExecuteOrder(ENUM_ORDER_TYPE orderType)
         <div className="flex items-center justify-between border-b border-white/5 pb-2.5">
           <div className="flex items-center gap-2 overflow-x-auto scrollbar-none">
             <button
-              onClick={() => setActiveMainTab("builder")}
+              onClick={() => setActiveMainTab("request")}
               className={`whitespace-nowrap shrink-0 px-3.5 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-none flex items-center gap-2 cursor-pointer ${
-                activeMainTab === "builder"
+                activeMainTab === "request"
                   ? "bg-white/10 text-white border border-white/15"
                   : "text-neutral-400 hover:text-white border border-transparent"
               }`}
             >
-              <Layers size={13} />
-              <span>AI Studio &amp; Compiler</span>
+              <Plus size={13} />
+              <span>Request Custom Build</span>
             </button>
 
             <button
-              onClick={() => setActiveMainTab("armory")}
+              onClick={() => setActiveMainTab("deliverables")}
               className={`whitespace-nowrap shrink-0 px-3.5 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-none flex items-center gap-2 cursor-pointer ${
-                activeMainTab === "armory"
+                activeMainTab === "deliverables"
                   ? "bg-white/10 text-white border border-white/15"
                   : "text-neutral-400 hover:text-white border border-transparent"
               }`}
             >
-              <Cpu size={13} className="text-purple-400" />
-              <span>Strategy Armory (Pre-Built)</span>
-              <span className="text-[10px] px-1.5 py-0.2 rounded bg-black/40 text-neutral-400 font-mono">
-                2
+              <Layers size={13} className="text-emerald-400" />
+              <span>My Builds &amp; Deliverables</span>
+              <span className="text-[10px] px-1.5 py-0.2 rounded bg-black/40 text-emerald-400 font-mono font-bold">
+                {deliverables.length}
               </span>
             </button>
           </div>
 
           <div className="hidden sm:flex items-center gap-2 text-[11px] font-mono text-neutral-400">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Zero-Slippage Sandbox (Admin Verified)</span>
+            <ShieldCheck className="w-3.5 h-3.5 text-blue-400" />
+            <span>Hardware Lock (Client MT5 Account Protected)</span>
           </div>
         </div>
 
-        {/* ── TAB 1: AI STUDIO & COMPILER ── */}
-        {activeMainTab === "builder" && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 pt-1">
+        {/* ── TAB 1: REQUEST CUSTOM DEVELOPMENT WIZARD ── */}
+        {activeMainTab === "request" && (
+          <form onSubmit={handleFormSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-5 pt-1">
 
-            {/* LEFT: STRATEGY SPECIFICATION (7 Columns) */}
+            {/* LEFT: REQUIREMENTS FORM (7 Columns) */}
             <div className="lg:col-span-7 space-y-4">
               <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-5 space-y-4">
-                {/* Inside Card Header */}
-                <div className="flex items-center justify-between pb-3 border-b border-white/5">
+                <div className="pb-3 border-b border-white/5 flex items-center justify-between">
                   <div>
                     <h3 className="text-xs font-bold text-white uppercase tracking-wider">
-                      Strategy Specification
+                      1. Select Build Architecture &amp; Pricing
                     </h3>
                     <p className="text-[9px] font-bold text-neutral-500 uppercase tracking-[0.15em] mt-0.5">
-                      Describe rules in plain English or refine entry conditions
+                      Fixed institutional pricing with guaranteed turnaround
                     </p>
-                  </div>
-
-                  <div className="flex items-center gap-1 bg-black/30 p-1 rounded border border-white/5">
-                    <button
-                      type="button"
-                      onClick={() => setBuilderMode("ai")}
-                      className={`px-2.5 py-1 rounded text-[10px] font-semibold uppercase tracking-wider transition-none cursor-pointer ${
-                        builderMode === "ai"
-                          ? "bg-white/10 text-white border border-white/15"
-                          : "text-neutral-400 hover:text-white"
-                      }`}
-                    >
-                      AI Prompt
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setBuilderMode("visual")}
-                      className={`px-2.5 py-1 rounded text-[10px] font-semibold uppercase tracking-wider transition-none cursor-pointer ${
-                        builderMode === "visual"
-                          ? "bg-white/10 text-white border border-white/15"
-                          : "text-neutral-400 hover:text-white"
-                      }`}
-                    >
-                      Visual Rules
-                    </button>
                   </div>
                 </div>
 
-                {/* Quick Templates Selector (Compact Chips) */}
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest">
-                      Quick Templates
-                    </label>
-                    <span className="text-[9px] text-neutral-500 font-mono">Click to pre-fill specification</span>
+                {/* Pricing Selection Cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {/* Card 1: Custom Indicator */}
+                  <div
+                    onClick={() => setSelectedBuildType("INDICATOR")}
+                    className={`p-3.5 rounded-lg border text-left cursor-pointer transition-none flex flex-col justify-between ${
+                      selectedBuildType === "INDICATOR"
+                        ? "bg-blue-600/10 border-blue-500/50 shadow-xs"
+                        : "bg-black/30 border-white/5 hover:border-white/10"
+                    }`}
+                  >
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[9px] font-bold uppercase tracking-widest text-blue-400">
+                          Indicator
+                        </span>
+                        <span className="text-[9px] font-mono text-neutral-400">2-3 Days</span>
+                      </div>
+                      <p className="text-lg font-black font-mono text-white">₹20,000</p>
+                      <p className="text-[10px] text-neutral-400 font-mono mt-1 leading-relaxed">
+                        Custom oscillator, MTF alerts, buffer signal arrows
+                      </p>
+                    </div>
+                    <div className="mt-3 pt-2 border-t border-white/5 flex items-center gap-1.5">
+                      <div className={`w-2.5 h-2.5 rounded-full ${selectedBuildType === "INDICATOR" ? "bg-blue-400" : "border border-white/20"}`} />
+                      <span className="text-[9px] font-bold uppercase text-neutral-300">
+                        {selectedBuildType === "INDICATOR" ? "Selected" : "Select"}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
-                    {PRESETS.map((p) => (
-                      <button
-                        key={p.id}
-                        type="button"
-                        onClick={() => handleApplyPreset(p)}
-                        className="shrink-0 px-2.5 py-1 rounded bg-black/30 hover:bg-white/[0.08] border border-white/5 text-[10px] font-mono font-bold text-neutral-300 hover:text-white transition-none cursor-pointer flex items-center gap-1.5"
-                      >
-                        <span className="text-blue-400">{p.timeframe}</span>
-                        <span>{p.title}</span>
-                      </button>
-                    ))}
+
+                  {/* Card 2: Full Automated Algo EA */}
+                  <div
+                    onClick={() => setSelectedBuildType("ALGO_EA")}
+                    className={`p-3.5 rounded-lg border text-left cursor-pointer transition-none flex flex-col justify-between ${
+                      selectedBuildType === "ALGO_EA"
+                        ? "bg-purple-600/10 border-purple-500/50 shadow-xs"
+                        : "bg-black/30 border-white/5 hover:border-white/10"
+                    }`}
+                  >
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[9px] font-bold uppercase tracking-widest text-purple-400">
+                          Algo Bot (EA)
+                        </span>
+                        <span className="text-[9px] font-mono text-neutral-400">4-6 Days</span>
+                      </div>
+                      <p className="text-lg font-black font-mono text-white">₹40,000</p>
+                      <p className="text-[10px] text-neutral-400 font-mono mt-1 leading-relaxed">
+                        Full MT5 automated execution bot, dynamic lot sizing &amp; SL/TP
+                      </p>
+                    </div>
+                    <div className="mt-3 pt-2 border-t border-white/5 flex items-center gap-1.5">
+                      <div className={`w-2.5 h-2.5 rounded-full ${selectedBuildType === "ALGO_EA" ? "bg-purple-400" : "border border-white/20"}`} />
+                      <span className="text-[9px] font-bold uppercase text-neutral-300">
+                        {selectedBuildType === "ALGO_EA" ? "Selected" : "Select"}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Card 3: Complete Suite */}
+                  <div
+                    onClick={() => setSelectedBuildType("COMBO_SUITE")}
+                    className={`p-3.5 rounded-lg border text-left cursor-pointer transition-none flex flex-col justify-between ${
+                      selectedBuildType === "COMBO_SUITE"
+                        ? "bg-emerald-600/10 border-emerald-500/50 shadow-xs"
+                        : "bg-black/30 border-white/5 hover:border-white/10"
+                    }`}
+                  >
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[9px] font-bold uppercase tracking-widest text-emerald-400">
+                          Combo Suite
+                        </span>
+                        <span className="text-[9px] font-mono text-neutral-400">5-7 Days</span>
+                      </div>
+                      <p className="text-lg font-black font-mono text-white">₹55,000</p>
+                      <p className="text-[10px] text-neutral-400 font-mono mt-1 leading-relaxed">
+                        Indicator + Auto Execution EA integrated suite (Save ₹5,000)
+                      </p>
+                    </div>
+                    <div className="mt-3 pt-2 border-t border-white/5 flex items-center gap-1.5">
+                      <div className={`w-2.5 h-2.5 rounded-full ${selectedBuildType === "COMBO_SUITE" ? "bg-emerald-400" : "border border-white/20"}`} />
+                      <span className="text-[9px] font-bold uppercase text-neutral-300">
+                        {selectedBuildType === "COMBO_SUITE" ? "Selected" : "Select"}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
                 {/* Strategy Title */}
                 <div>
                   <label className="block text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-1.5">
-                    Strategy Title
+                    Project / Strategy Title *
                   </label>
                   <input
                     type="text"
-                    value={strategyName}
-                    onChange={(e) => setStrategyName(e.target.value)}
+                    required
+                    placeholder="e.g. Gold Liquidity Sweep Scalper or FVG Trend Following EA"
+                    value={strategyTitle}
+                    onChange={(e) => setStrategyTitle(e.target.value)}
                     className="w-full h-9 bg-black/30 border border-white/5 focus:border-white/20 rounded px-3 text-xs font-mono font-bold text-white focus:outline-none transition-none"
                   />
                 </div>
 
-                {/* Mode Content */}
-                {builderMode === "ai" ? (
+                {/* Pair & Timeframe */}
+                <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-1.5">
-                      Execution Rules &amp; Logic (Prompt)
+                      Target Trading Pair / Instrument *
                     </label>
-                    <textarea
-                      value={prompt}
-                      onChange={(e) => setPrompt(e.target.value)}
-                      placeholder="e.g. Build a scalper for EUR/USD on 5M timeframe. Enter BUY when 9 EMA crosses 21 EMA and RSI is above 50..."
-                      className="w-full h-32 bg-black/30 border border-white/5 focus:border-white/20 rounded p-3 text-xs font-mono text-neutral-200 placeholder-neutral-600 resize-none focus:outline-none transition-none leading-relaxed"
-                    />
-                  </div>
-                ) : (
-                  <div className="space-y-3 p-3.5 bg-black/30 border border-white/5 rounded-lg">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-1">
-                          Fast Indicator
-                        </label>
-                        <select
-                          value={indicatorFast}
-                          onChange={(e) => setIndicatorFast(e.target.value)}
-                          className="w-full h-9 bg-black/40 border border-white/5 rounded px-2.5 text-xs font-mono font-bold text-white focus:outline-none"
-                        >
-                          <option value="EMA 9">EMA (Period 9)</option>
-                          <option value="EMA 14">EMA (Period 14)</option>
-                          <option value="SMA 20">SMA (Period 20)</option>
-                          <option value="VWAP">Session VWAP</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-1">
-                          Slow Indicator
-                        </label>
-                        <select
-                          value={indicatorSlow}
-                          onChange={(e) => setIndicatorSlow(e.target.value)}
-                          className="w-full h-9 bg-black/40 border border-white/5 rounded px-2.5 text-xs font-mono font-bold text-white focus:outline-none"
-                        >
-                          <option value="EMA 21">EMA (Period 21)</option>
-                          <option value="EMA 50">EMA (Period 50)</option>
-                          <option value="SMA 200">SMA (Period 200)</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-                      <div>
-                        <label className="block text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-1">
-                          Oscillator Filter
-                        </label>
-                        <select
-                          value={filterOscillator}
-                          onChange={(e) => setFilterOscillator(e.target.value)}
-                          className="w-full h-9 bg-black/40 border border-white/5 rounded px-2.5 text-xs font-mono font-bold text-white focus:outline-none"
-                        >
-                          <option value="RSI 14 (> 50)">RSI (14) &gt; 50</option>
-                          <option value="MACD Histogram">MACD &gt; 0</option>
-                          <option value="Stochastic 14,3,3">Stoch &lt; 20 (Oversold)</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-1">
-                          SL Pips
-                        </label>
-                        <input
-                          type="text"
-                          value={slPips}
-                          onChange={(e) => setSlPips(e.target.value)}
-                          className="w-full h-9 bg-black/40 border border-white/5 rounded px-2.5 text-xs font-mono font-bold text-white focus:outline-none"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-1">
-                          TP Pips
-                        </label>
-                        <input
-                          type="text"
-                          value={tpPips}
-                          onChange={(e) => setTpPips(e.target.value)}
-                          className="w-full h-9 bg-black/40 border border-white/5 rounded px-2.5 text-xs font-mono font-bold text-white focus:outline-none"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* 4 Parameter Selectors */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                  <div>
-                    <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest block mb-1">
-                      Pair / Symbol
-                    </span>
                     <select
                       value={selectedPair}
                       onChange={(e) => setSelectedPair(e.target.value)}
-                      className="w-full h-9 bg-black/30 border border-white/5 focus:border-white/20 rounded px-2.5 text-xs font-semibold text-neutral-300 focus:outline-none transition-none"
+                      className="w-full h-9 bg-black/30 border border-white/5 focus:border-white/20 rounded px-2.5 text-xs font-semibold text-neutral-200 focus:outline-none transition-none"
                     >
-                      <option value="EURUSD">EUR/USD</option>
-                      <option value="XAUUSD">XAU/USD (Gold)</option>
-                      <option value="GBPUSD">GBP/USD</option>
-                      <option value="GBPJPY">GBP/JPY</option>
+                      <option value="XAUUSD">XAUUSD (Gold)</option>
+                      <option value="EURUSD">EURUSD</option>
+                      <option value="GBPUSD">GBPUSD</option>
+                      <option value="GBPJPY">GBPJPY</option>
                       <option value="US100">US100 (Nasdaq)</option>
+                      <option value="US30">US30 (Dow Jones)</option>
+                      <option value="BTCUSD">BTCUSD</option>
+                      <option value="MULTI_PAIR">Multi-Pair (All Major FX)</option>
                     </select>
                   </div>
 
                   <div>
-                    <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest block mb-1">
-                      Timeframe
-                    </span>
+                    <label className="block text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-1.5">
+                      Target Timeframe *
+                    </label>
                     <select
                       value={selectedTimeframe}
                       onChange={(e) => setSelectedTimeframe(e.target.value)}
-                      className="w-full h-9 bg-black/30 border border-white/5 focus:border-white/20 rounded px-2.5 text-xs font-semibold text-neutral-300 focus:outline-none transition-none"
+                      className="w-full h-9 bg-black/30 border border-white/5 focus:border-white/20 rounded px-2.5 text-xs font-semibold text-neutral-200 focus:outline-none transition-none"
                     >
-                      <option value="M1">1 Minute (M1)</option>
-                      <option value="M5">5 Minutes (M5)</option>
-                      <option value="M15">15 Minutes (M15)</option>
-                      <option value="H1">1 Hour (H1)</option>
-                      <option value="H4">4 Hours (H4)</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest block mb-1">
-                      Risk Model
-                    </span>
-                    <select
-                      value={selectedRisk}
-                      onChange={(e) => setSelectedRisk(e.target.value)}
-                      className="w-full h-9 bg-black/30 border border-white/5 focus:border-white/20 rounded px-2.5 text-xs font-semibold text-neutral-300 focus:outline-none transition-none"
-                    >
-                      <option value="0.5%">0.5% Capital</option>
-                      <option value="1.0%">1.0% Capital</option>
-                      <option value="1.5%">1.5% Capital</option>
-                      <option value="2.0%">2.0% Capital</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest block mb-1">
-                      Risk : Reward
-                    </span>
-                    <select
-                      value={selectedRR}
-                      onChange={(e) => setSelectedRR(e.target.value)}
-                      className="w-full h-9 bg-black/30 border border-white/5 focus:border-white/20 rounded px-2.5 text-xs font-semibold text-neutral-300 focus:outline-none transition-none"
-                    >
-                      <option value="1:1.5">1 : 1.5</option>
-                      <option value="1:2.0">1 : 2.0</option>
-                      <option value="1:2.5">1 : 2.5</option>
-                      <option value="1:3.0">1 : 3.0</option>
+                      <option value="M1">1 Minute (M1 Scalping)</option>
+                      <option value="M5">5 Minutes (M5 Scalping)</option>
+                      <option value="M15">15 Minutes (M15 Intraday)</option>
+                      <option value="H1">1 Hour (H1 Trend)</option>
+                      <option value="H4">4 Hours (H4 Swing)</option>
+                      <option value="MULTI_TF">Multi-Timeframe Confirmation</option>
                     </select>
                   </div>
                 </div>
 
-                {/* Primary Action Button (Build & Validate) */}
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-white/5">
+                {/* Execution Logic Brief */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest">
+                      Detailed Execution Rules &amp; Entry/Exit Logic *
+                    </label>
+                    <span className="text-[9px] text-neutral-500 font-mono">Plain English or Formulas</span>
+                  </div>
+                  <textarea
+                    required
+                    rows={4}
+                    value={executionLogic}
+                    onChange={(e) => setExecutionLogic(e.target.value)}
+                    placeholder="Describe your entry & exit conditions in detail. Example:
+- Entry BUY when 9 EMA crosses above 21 EMA and RSI(14) is above 50.
+- Stop Loss: 15 pips from entry or below previous swing low.
+- Take Profit: 30 pips with trailing stop activated after +15 pips."
+                    className="w-full bg-black/30 border border-white/5 focus:border-white/20 rounded p-3 text-xs font-mono text-neutral-200 placeholder-neutral-600 resize-none focus:outline-none transition-none leading-relaxed"
+                  />
+                </div>
+
+                {/* Risk Parameters & MT5 Account Lock */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
+                  <div>
+                    <label className="block text-[9px] font-bold text-neutral-500 uppercase tracking-widest mb-1">
+                      Stop Loss (Pips)
+                    </label>
+                    <input
+                      type="text"
+                      value={stopLossPips}
+                      onChange={(e) => setStopLossPips(e.target.value)}
+                      className="w-full h-8 bg-black/30 border border-white/5 rounded px-2 text-xs font-mono font-bold text-white focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[9px] font-bold text-neutral-500 uppercase tracking-widest mb-1">
+                      Take Profit (Pips)
+                    </label>
+                    <input
+                      type="text"
+                      value={takeProfitPips}
+                      onChange={(e) => setTakeProfitPips(e.target.value)}
+                      className="w-full h-8 bg-black/30 border border-white/5 rounded px-2 text-xs font-mono font-bold text-white focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[9px] font-bold text-neutral-500 uppercase tracking-widest mb-1">
+                      Risk Per Trade
+                    </label>
+                    <input
+                      type="text"
+                      value={riskPercent}
+                      onChange={(e) => setRiskPercent(e.target.value)}
+                      className="w-full h-8 bg-black/30 border border-white/5 rounded px-2 text-xs font-mono font-bold text-white focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[9px] font-bold text-neutral-500 uppercase tracking-widest mb-1">
+                      Lock to MT5 #
+                    </label>
+                    <input
+                      type="text"
+                      value={mt5AccountNumber}
+                      onChange={(e) => setMt5AccountNumber(e.target.value)}
+                      placeholder="e.g. 849201"
+                      className="w-full h-8 bg-black/30 border border-white/5 rounded px-2 text-xs font-mono font-bold text-emerald-400 focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                {/* Submit Action Button */}
+                <div className="pt-3 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-3">
                   <div className="flex items-center gap-2 text-[10px] font-mono text-neutral-400">
-                    <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                    <span>Synthesizes MQL5 EA code + routes to Admin for MT5 compilation</span>
+                    <ShieldCheck className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                    <span>Includes 1-Year Bug Fixes, Optimization &amp; Compiled .EX5</span>
                   </div>
 
                   <button
-                    type="button"
-                    onClick={handleBuild}
-                    disabled={isCompiling}
+                    type="submit"
+                    disabled={isSubmitting}
                     className="btn-fialgo-primary w-full sm:w-auto h-10 px-6 text-xs font-bold uppercase tracking-wider inline-flex items-center justify-center gap-2 cursor-pointer shadow-md disabled:opacity-50"
                   >
-                    {isCompiling ? (
+                    {isSubmitting ? (
                       <>
                         <RefreshCcw className="w-3.5 h-3.5 animate-spin" />
-                        <span>Compiling MQL5...</span>
+                        <span>Dispatching Order...</span>
                       </>
                     ) : (
                       <>
-                        <Code className="w-3.5 h-3.5" />
-                        <span>Build &amp; Validate</span>
+                        <Send className="w-3.5 h-3.5" />
+                        <span>Submit Request ({pricingMap[selectedBuildType].priceFormatted})</span>
                       </>
                     )}
                   </button>
                 </div>
               </div>
-
-              {/* Compilation Progress Modal Box */}
-              {isCompiling && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="bg-[#1E1E1E] border border-white/5 rounded-lg p-5"
-                >
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-8 h-8 rounded-lg bg-black/30 border border-white/5 flex items-center justify-center text-blue-400">
-                      <RefreshCcw className="w-4 h-4 animate-spin text-blue-400" />
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-bold text-white uppercase tracking-wider">
-                        Synthesizing Strategy Engine
-                      </h4>
-                      <p className="text-[10px] text-neutral-400 font-mono mt-0.5">
-                        Step {compileStep + 1} of {compilationStages.length}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2.5">
-                    {compilationStages.map((stage, idx) => (
-                      <div key={idx} className="flex items-center gap-2.5 text-xs font-mono">
-                        {idx < compileStep ? (
-                          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                        ) : idx === compileStep ? (
-                          <div className="w-4 h-4 rounded-full border-2 border-blue-400 border-t-transparent animate-spin shrink-0" />
-                        ) : (
-                          <div className="w-4 h-4 rounded-full border border-white/20 shrink-0" />
-                        )}
-                        <span className={idx <= compileStep ? "text-neutral-200" : "text-neutral-500"}>
-                          {stage}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
             </div>
 
-            {/* RIGHT: RESULTS / CODE VIEWER / BACKTEST (5 Columns) */}
+            {/* RIGHT: INVOICE & SERVICE OVERVIEW (5 Columns) */}
             <div className="lg:col-span-5 space-y-4">
-              {!isCompiled ? (
-                <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-8 text-center flex flex-col items-center justify-center min-h-[420px]">
-                  <div className="w-12 h-12 rounded-xl bg-black/30 border border-white/5 flex items-center justify-center text-neutral-500 mb-3">
-                    <Bot size={22} className="text-blue-400" />
-                  </div>
-                  <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-1">
-                    No Strategy Compiled Yet
+              {/* Order Invoice Summary */}
+              <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-5 space-y-4">
+                <div className="flex items-center justify-between pb-3 border-b border-white/5">
+                  <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+                    Service Order Summary
                   </h3>
-                  <p className="text-xs text-neutral-400 font-mono max-w-xs mx-auto mb-6 leading-relaxed">
-                    Define execution criteria on the left or select a template to generate verified MQL5 code and backtest telemetry.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => handleApplyPreset(PRESETS[0])}
-                    className="h-9 px-3.5 bg-[#1E1E1E] hover:bg-white/[0.05] border border-white/5 hover:border-white/10 rounded-lg text-xs font-semibold text-neutral-300 transition-none cursor-pointer flex items-center gap-1.5"
-                  >
-                    <span>Load EUR/USD Template</span>
-                    <ArrowRight size={13} />
-                  </button>
+                  <span className="text-[9px] font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                    INSTITUTIONAL DESK
+                  </span>
                 </div>
-              ) : (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.98 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="space-y-4"
+
+                <div className="space-y-2.5 text-xs font-mono">
+                  <div className="flex items-center justify-between">
+                    <span className="text-neutral-400">Selected Build:</span>
+                    <span className="text-white font-bold">{pricingMap[selectedBuildType].label}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-neutral-400">Asset &amp; Timeframe:</span>
+                    <span className="text-white font-bold">{selectedPair} ({selectedTimeframe})</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-neutral-400">Delivery SLA:</span>
+                    <span className="text-emerald-400 font-bold">{pricingMap[selectedBuildType].turnaround}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-neutral-400">Hardware License Lock:</span>
+                    <span className="text-blue-400 font-bold">MT5 #{mt5AccountNumber || "Unassigned"}</span>
+                  </div>
+                </div>
+
+                <div className="pt-3 border-t border-white/5 flex items-center justify-between">
+                  <span className="text-xs font-bold uppercase tracking-wider text-neutral-300">
+                    Total Development Fee
+                  </span>
+                  <span className="text-xl font-black font-mono text-emerald-400">
+                    {pricingMap[selectedBuildType].priceFormatted}
+                  </span>
+                </div>
+
+                {/* Delivery Guarantee Notes */}
+                <div className="p-3 bg-black/30 border border-white/5 rounded-lg space-y-2 text-[11px] font-mono text-neutral-400">
+                  <div className="flex items-center gap-2 text-white font-bold text-xs">
+                    <CheckCircle2 size={13} className="text-emerald-400" />
+                    <span>FiAlgo Engineering SLA</span>
+                  </div>
+                  <p className="leading-relaxed">
+                    1. Direct delivery into your <strong>My Builds &amp; Deliverables</strong> dashboard with 1-click .EX5 binary download.
+                  </p>
+                  <p className="leading-relaxed">
+                    2. Compiled with hardware account lock so your proprietary trading logic remains protected.
+                  </p>
+                  <p className="leading-relaxed">
+                    3. Rigorously audited against 99.9% real tick historical simulation data before handover.
+                  </p>
+                </div>
+              </div>
+
+              {/* Instant Link to Backtest Engine */}
+              <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-4 flex items-center justify-between">
+                <div>
+                  <h4 className="text-xs font-bold text-white uppercase tracking-wider">
+                    Need to simulate historical ticks?
+                  </h4>
+                  <p className="text-[10px] text-neutral-400 font-mono mt-0.5">
+                    Test drawdown and win rate on the Backtest Engine
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => navigate("/auto-trade/backtest")}
+                  className="h-8 px-3 rounded-lg bg-black/40 hover:bg-white/[0.08] border border-white/10 text-xs font-mono font-bold text-white flex items-center gap-1.5 cursor-pointer transition-none"
                 >
-                  {/* BACKTEST REPORT CARD */}
-                  <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-5 space-y-4">
-                    <div className="flex items-center justify-between pb-3 border-b border-white/5">
-                      <div className="flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                        <h4 className="text-xs font-bold text-white uppercase tracking-wider">
-                          Backtest Telemetry
-                        </h4>
-                      </div>
-                      <span className="text-[9px] font-bold text-emerald-500 uppercase tracking-widest bg-emerald-500/10 border border-emerald-500/20 rounded px-2 py-0.5">
-                        Passed Risk Check
-                      </span>
-                    </div>
-
-                    {/* 3 Mini Metrics */}
-                    <div className="grid grid-cols-3 gap-2.5">
-                      <div className="bg-black/30 border border-white/5 rounded-lg p-3 flex flex-col justify-between">
-                        <span className="text-[9px] font-bold text-neutral-500 uppercase tracking-widest">
-                          Win Rate
-                        </span>
-                        <span className="text-xl font-black font-mono text-emerald-400 mt-1">
-                          71.4%
-                        </span>
-                      </div>
-                      <div className="bg-black/30 border border-white/5 rounded-lg p-3 flex flex-col justify-between">
-                        <span className="text-[9px] font-bold text-neutral-500 uppercase tracking-widest">
-                          Net Return
-                        </span>
-                        <span className="text-xl font-black font-mono text-emerald-400 mt-1">
-                          +34.2%
-                        </span>
-                      </div>
-                      <div className="bg-black/30 border border-white/5 rounded-lg p-3 flex flex-col justify-between">
-                        <span className="text-[9px] font-bold text-neutral-500 uppercase tracking-widest">
-                          Max DD
-                        </span>
-                        <span className="text-xl font-black font-mono text-white mt-1">
-                          4.1%
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Chart preview */}
-                    <div className="h-32 w-full pt-1">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={backtestCurve} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
-                          <defs>
-                            <linearGradient id="equityGrad" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor="#10B981" stopOpacity={0.3} />
-                              <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
-                            </linearGradient>
-                          </defs>
-                          <XAxis dataKey="trade" tick={{ fontSize: 9 }} stroke="#555555" />
-                          <YAxis domain={["dataMin - 500", "dataMax + 500"]} tick={{ fontSize: 9 }} stroke="#555555" />
-                          <Tooltip contentStyle={{ backgroundColor: "#141416", borderColor: "rgba(255,255,255,0.1)", fontSize: 11, borderRadius: 8, color: "#fff" }} />
-                          <Area type="monotone" dataKey="equity" stroke="#10B981" strokeWidth={2} fillOpacity={1} fill="url(#equityGrad)" />
-                        </AreaChart>
-                      </ResponsiveContainer>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="space-y-2 pt-2 border-t border-white/5">
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={handleDownloadEX5}
-                          className="btn-fialgo-primary flex-1 h-10 text-xs font-bold uppercase tracking-wider inline-flex items-center justify-center gap-1.5 cursor-pointer"
-                        >
-                          <Download className="w-3.5 h-3.5" />
-                          <span>Download .EX5</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={handleDeployToBots}
-                          className="px-4 h-10 rounded-full border border-white/10 bg-[#141416] hover:bg-[#1E1E1E] text-white text-xs font-bold uppercase tracking-wider inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                        >
-                          <Play className="w-3 h-3 fill-current" />
-                          <span>Deploy</span>
-                        </button>
-                      </div>
-
-                      {/* Submit Custom Strategy Request to Admin Team */}
-                      <button
-                        type="button"
-                        onClick={handleSubmitToAdmin}
-                        disabled={isSubmittingToAdmin || Boolean(submittedTicketId)}
-                        className="w-full h-9 rounded-lg border border-blue-500/30 bg-blue-600/15 hover:bg-blue-600/25 text-blue-300 text-xs font-semibold uppercase tracking-wider flex items-center justify-center gap-2 transition-none cursor-pointer disabled:opacity-50"
-                      >
-                        {submittedTicketId ? (
-                          <>
-                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                            <span className="text-emerald-400">Request {submittedTicketId} Dispatched to Admin</span>
-                          </>
-                        ) : isSubmittingToAdmin ? (
-                          <>
-                            <RefreshCcw className="w-3.5 h-3.5 animate-spin" />
-                            <span>Dispatching to Admin...</span>
-                          </>
-                        ) : (
-                          <>
-                            <Send className="w-3.5 h-3.5" />
-                            <span>Submit Request to Admin Team for Binding</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* CODE VIEWER BOX */}
-                  <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-5 space-y-3">
-                    <div className="flex items-center justify-between pb-2 border-b border-white/5">
-                      <div className="flex items-center gap-2">
-                        <FileCode className="w-4 h-4 text-blue-400" />
-                        <h4 className="text-xs font-bold text-white uppercase tracking-wider">
-                          Generated MQL5 Source
-                        </h4>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={handleDownloadMQ5}
-                          className="text-[11px] font-mono text-neutral-400 hover:text-white flex items-center gap-1 transition-none cursor-pointer"
-                        >
-                          <Download className="w-3 h-3" />
-                          <span>.MQ5</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={handleCopyCode}
-                          className="text-[11px] font-mono text-neutral-400 hover:text-white flex items-center gap-1 transition-none cursor-pointer"
-                        >
-                          {copiedCode ? (
-                            <>
-                              <Check className="w-3 h-3 text-emerald-400" />
-                              <span className="text-emerald-400">Copied</span>
-                            </>
-                          ) : (
-                            <>
-                              <Copy className="w-3 h-3" />
-                              <span>Copy Code</span>
-                            </>
-                          )}
-                        </button>
-                      </div>
-                    </div>
-
-                    <pre className="bg-black/40 text-neutral-300 p-3.5 rounded-lg text-[11px] font-mono leading-relaxed overflow-x-auto max-h-44 border border-white/5">
-                      <code>{generatedMQL5}</code>
-                    </pre>
-                  </div>
-                </motion.div>
-              )}
+                  <span>Launch ↗</span>
+                </button>
+              </div>
             </div>
-          </div>
+
+          </form>
         )}
 
-        {/* ── TAB 2: STRATEGY ARMORY (Pre-Built EA Catalog) ── */}
-        {activeMainTab === "armory" && (
-          <div className="space-y-4">
+        {/* ── TAB 2: MY CUSTOM BUILDS & DELIVERABLES (Delivered Algos & Indicators) ── */}
+        {activeMainTab === "deliverables" && (
+          <div className="space-y-4 pt-1">
             <div className="flex items-center justify-between pb-1">
               <div>
                 <h3 className="text-xs font-bold text-white uppercase tracking-wider">
-                  Institutional Strategy Armory
+                  My Custom Builds &amp; Completed Deliverables
                 </h3>
-                <p className="text-neutral-500 text-[9px] font-bold uppercase tracking-[0.15em] mt-1">
-                  Pre-compiled, audited algorithmic trading systems ready for 1-click deployment
+                <p className="text-neutral-500 text-[9px] font-bold uppercase tracking-[0.15em] mt-0.5">
+                  Download compiled MT5 .EX5 binaries, review backtests, and link to active bot fleet
                 </p>
               </div>
+
+              <button
+                onClick={() => setActiveMainTab("request")}
+                className="h-8 px-3.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer transition-none"
+              >
+                <Plus size={13} />
+                <span>Request New Build</span>
+              </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Armory Card 1 */}
-              <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-5 hover:border-white/10 transition-none flex flex-col justify-between">
-                <div>
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <span className="text-[9px] font-bold uppercase tracking-widest text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">
-                        High Frequency Scalping
+            {/* List of Deliverables */}
+            <div className="space-y-3">
+              {deliverables.map((item) => (
+                <div
+                  key={item.id}
+                  className="bg-[#1E1E1E] border border-white/5 rounded-lg p-5 hover:border-white/10 transition-none space-y-4"
+                >
+                  {/* Top Bar of Deliverable Card */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-white/5">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-black/30 border border-white/5 flex items-center justify-center text-blue-400">
+                        {item.type === "INDICATOR" ? <Activity size={16} /> : <Cpu size={16} />}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-sm font-bold text-white uppercase tracking-wider">
+                            {item.title}
+                          </h4>
+                          <span className="text-[9px] font-mono font-bold text-neutral-400 bg-black/40 px-1.5 py-0.5 rounded">
+                            {item.id}
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-neutral-400 font-mono mt-0.5">
+                          {item.type === "INDICATOR" ? "Custom Technical Indicator" : "Automated Execution Algo (EA)"} · {item.pair} · {item.timeframe}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-mono font-bold text-neutral-400">
+                        Fee: <span className="text-white font-bold">{item.price}</span>
                       </span>
-                      <h4 className="text-base font-bold text-white uppercase tracking-wider mt-2">
-                        FiAlgo Scalper AI
-                      </h4>
-                    </div>
-                    <span className="bg-emerald-500/10 text-emerald-400 text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border border-emerald-500/20">
-                      Installed
-                    </span>
-                  </div>
-                  <p className="text-xs text-neutral-400 font-mono leading-relaxed mb-4">
-                    High-frequency sub-second order routing capturing rapid micro-swings across EUR/USD and Gold London-NY market overlaps.
-                  </p>
-                  <div className="grid grid-cols-3 gap-2.5 mb-4">
-                    <div className="bg-black/30 border border-white/5 rounded-lg p-3">
-                      <span className="text-[9px] font-bold text-neutral-500 uppercase tracking-widest block">Win %</span>
-                      <span className="text-base font-black font-mono text-emerald-400 mt-1 block">76.4%</span>
-                    </div>
-                    <div className="bg-black/30 border border-white/5 rounded-lg p-3">
-                      <span className="text-[9px] font-bold text-neutral-500 uppercase tracking-widest block">Profit</span>
-                      <span className="text-base font-black font-mono text-emerald-400 mt-1 block">+12.4%</span>
-                    </div>
-                    <div className="bg-black/30 border border-white/5 rounded-lg p-3">
-                      <span className="text-[9px] font-bold text-neutral-500 uppercase tracking-widest block">Max DD</span>
-                      <span className="text-base font-black font-mono text-white mt-1 block">5.8%</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between pt-3 border-t border-white/5">
-                  <span className="text-xs font-mono text-neutral-400">Pairs: EURUSD, XAUUSD</span>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={handleDownloadEX5}
-                      className="btn-fialgo-primary h-8 px-4 text-[11px] font-bold uppercase tracking-wider inline-flex items-center gap-1 cursor-pointer"
-                    >
-                      <Download className="w-3 h-3" />
-                      <span>.EX5</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => navigate("/auto-trade/active-bots")}
-                      className="h-8 px-3.5 rounded-lg bg-[#141416] hover:bg-[#252528] border border-white/10 text-neutral-200 text-xs font-bold transition-none cursor-pointer"
-                    >
-                      Manage Bot
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Armory Card 2 */}
-              <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-5 hover:border-white/10 transition-none flex flex-col justify-between">
-                <div>
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <span className="text-[9px] font-bold uppercase tracking-widest text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20">
-                        Macro Swing Trend
+                      <span className={`text-[9px] font-mono font-bold px-2 py-0.5 rounded uppercase tracking-wider ${
+                        item.status === "DELIVERED"
+                          ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                          : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                      }`}>
+                        {item.status === "DELIVERED" ? "DELIVERED & VERIFIED" : "IN PROGRESS"}
                       </span>
-                      <h4 className="text-base font-bold text-white uppercase tracking-wider mt-2">
-                        FiAlgo Swing Master
-                      </h4>
-                    </div>
-                    <span className="bg-emerald-500/10 text-emerald-400 text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border border-emerald-500/20">
-                      Installed
-                    </span>
-                  </div>
-                  <p className="text-xs text-neutral-400 font-mono leading-relaxed mb-4">
-                    Multi-timeframe trend confirmation filtering false spikes with volumetric expansion and dynamic trailing stop brackets.
-                  </p>
-                  <div className="grid grid-cols-3 gap-2.5 mb-4">
-                    <div className="bg-black/30 border border-white/5 rounded-lg p-3">
-                      <span className="text-[9px] font-bold text-neutral-500 uppercase tracking-widest block">Win %</span>
-                      <span className="text-base font-black font-mono text-emerald-400 mt-1 block">68.2%</span>
-                    </div>
-                    <div className="bg-black/30 border border-white/5 rounded-lg p-3">
-                      <span className="text-[9px] font-bold text-neutral-500 uppercase tracking-widest block">Profit</span>
-                      <span className="text-base font-black font-mono text-emerald-400 mt-1 block">+21.5%</span>
-                    </div>
-                    <div className="bg-black/30 border border-white/5 rounded-lg p-3">
-                      <span className="text-[9px] font-bold text-neutral-500 uppercase tracking-widest block">Max DD</span>
-                      <span className="text-base font-black font-mono text-white mt-1 block">3.9%</span>
                     </div>
                   </div>
-                </div>
 
-                <div className="flex items-center justify-between pt-3 border-t border-white/5">
-                  <span className="text-xs font-mono text-neutral-400">Pairs: XAUUSD, Major FX</span>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={handleDownloadEX5}
-                      className="btn-fialgo-primary h-8 px-4 text-[11px] font-bold uppercase tracking-wider inline-flex items-center gap-1 cursor-pointer"
-                    >
-                      <Download className="w-3 h-3" />
-                      <span>.EX5</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => navigate("/auto-trade/active-bots")}
-                      className="h-8 px-3.5 rounded-lg bg-[#141416] hover:bg-[#252528] border border-white/10 text-neutral-200 text-xs font-bold transition-none cursor-pointer"
-                    >
-                      Manage Bot
-                    </button>
+                  {/* Mid Stats & Details */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono">
+                    <div className="bg-black/30 border border-white/5 rounded p-2.5">
+                      <span className="text-[9px] font-bold uppercase tracking-widest text-neutral-500 block">
+                        Hardware MT5 Binding
+                      </span>
+                      <span className="text-emerald-400 font-bold mt-1 block">
+                        {item.mt5Account} (Locked)
+                      </span>
+                    </div>
+
+                    <div className="bg-black/30 border border-white/5 rounded p-2.5">
+                      <span className="text-[9px] font-bold uppercase tracking-widest text-neutral-500 block">
+                        Win Rate / Accuracy
+                      </span>
+                      <span className="text-white font-bold mt-1 block">
+                        {item.winRate || "Pending QA"}
+                      </span>
+                    </div>
+
+                    <div className="bg-black/30 border border-white/5 rounded p-2.5">
+                      <span className="text-[9px] font-bold uppercase tracking-widest text-neutral-500 block">
+                        Profit Factor / Edge
+                      </span>
+                      <span className="text-blue-400 font-bold mt-1 block">
+                        {item.profitFactor || "Simulating Ticks..."}
+                      </span>
+                    </div>
+
+                    <div className="bg-black/30 border border-white/5 rounded p-2.5">
+                      <span className="text-[9px] font-bold uppercase tracking-widest text-neutral-500 block">
+                        Handover Date
+                      </span>
+                      <span className="text-neutral-300 font-bold mt-1 block">
+                        {item.deliveredDate || "Estimated in 3 Days"}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons Row */}
+                  <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+                    <div className="text-[10px] font-mono text-neutral-400 flex items-center gap-1.5">
+                      <CheckCheck size={13} className="text-emerald-400" />
+                      <span>Compiled for MetaTrader 5 Build 4260+</span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      {item.status === "DELIVERED" ? (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => handleDownloadFile(item.ex5Filename || `${item.id}.ex5`)}
+                            className="btn-fialgo-primary h-8 px-4 text-[11px] font-bold uppercase tracking-wider inline-flex items-center gap-1.5 cursor-pointer"
+                          >
+                            <Download size={13} />
+                            <span>Download .EX5</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleDownloadFile(item.mq5Filename || `${item.id}.mq5`)}
+                            className="h-8 px-3 rounded-lg bg-black/30 hover:bg-white/[0.08] border border-white/10 text-xs font-mono font-bold text-neutral-300 transition-none cursor-pointer flex items-center gap-1"
+                          >
+                            <FileCode size={13} />
+                            <span>.MQ5</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => navigate("/auto-trade/backtest")}
+                            className="h-8 px-3 rounded-lg bg-black/30 hover:bg-white/[0.08] border border-white/10 text-xs font-mono font-bold text-blue-400 transition-none cursor-pointer flex items-center gap-1"
+                          >
+                            <BarChart3 size={13} />
+                            <span>Backtest ↗</span>
+                          </button>
+
+                          {item.type !== "INDICATOR" && (
+                            <button
+                              type="button"
+                              onClick={() => navigate("/auto-trade/active-bots")}
+                              className="h-8 px-3 rounded-lg bg-black/30 hover:bg-white/[0.08] border border-white/10 text-xs font-mono font-bold text-emerald-400 transition-none cursor-pointer flex items-center gap-1"
+                            >
+                              <Play size={11} className="fill-current" />
+                              <span>Deploy Bot</span>
+                            </button>
+                          )}
+                        </>
+                      ) : (
+                        <div className="flex items-center gap-2 text-xs font-mono text-amber-400">
+                          <Clock size={13} />
+                          <span>Engineering in progress by Quant Desk...</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
+              ))}
             </div>
           </div>
         )}

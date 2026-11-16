@@ -74,6 +74,7 @@ const AITrading = lazy(() => import("./pages/AITrading"));
 const AutoTradeDashboardPage = lazy(() => import('./pages/AutoTradeDashboardPage'));
 const MyRobots = lazy(() => import('./pages/MyRobots'));
 const StrategyBuilderPage = lazy(() => import('./pages/StrategyBuilderPage'));
+const BacktestPage = lazy(() => import('./pages/BacktestPage'));
 const TradeHistory = lazy(() => import('./pages/TradeHistory'));
 const MistakeTracking = lazy(() => import("./pages/MistakeTracking"));
 const EASetup = lazy(() => import('./pages/EASetup'));
@@ -247,6 +248,8 @@ const App = () => {
                   <Route path="/auto-trade/builder" element={<StrategyBuilderPage />} />
                   <Route path="/strategy-builder" element={<StrategyBuilderPage />} />
                   <Route path="/strategy" element={<StrategyBuilderPage />} />
+                  <Route path="/auto-trade/backtest" element={<BacktestPage />} />
+                  <Route path="/backtest" element={<BacktestPage />} />
                   <Route path="/auto-trade/history" element={<TradeHistory />} />
                   <Route path="/history" element={<TradeHistory />} />
                   <Route path="/order-history" element={<TradeHistory />} />
