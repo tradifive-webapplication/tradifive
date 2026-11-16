@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
+import FiAlgoLogo from "./FiAlgoLogo";
 import {
   LogOut,
   Bot,
@@ -12,7 +13,6 @@ import {
   Key,
   ChevronsUpDown,
   ExternalLink,
-  Check,
   X
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -60,7 +60,7 @@ export default function FiAlgoAdminSidebar({ mobileOpen = false, onClose }: FiAl
     email: "nikilharake369@gmail.com",
   });
 
-  const [showWorkspaceMenu, setShowWorkspaceMenu] = useState(false);
+  const [isLogoHovered, setIsLogoHovered] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   useEffect(() => {
@@ -138,85 +138,64 @@ export default function FiAlgoAdminSidebar({ mobileOpen = false, onClose }: FiAl
 
   const renderSidebarInner = (isMobileView: boolean) => (
     <div className="flex flex-col h-full overflow-hidden bg-[#1E1E1E] text-[#E5E5E5] font-sans">
-      {/* ── Top Header with FiAlgo Logo (Clean, No Favicon, Far-Right Dropdown Arrow) ── */}
+      {/* ── Top Header with Workspace Switcher Logo (Hover smoothly shifts logo UP and target logo UP from DOWN, click switches workspace) ── */}
       <div className="mb-6 px-1 relative shrink-0">
-        <div
-          onClick={() => setShowWorkspaceMenu((prev) => !prev)}
-          className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-white/[0.04] transition-all cursor-pointer group select-none"
-          title="Switch Workspace"
-        >
-          {/* Left: FiAlgo Logo */}
-          <div className="flex items-center min-w-0">
-            <img
-              src="/fialgo-logo.png"
-              alt="FiAlgo"
-              className="h-8 sm:h-[34px] w-auto object-contain"
-            />
-          </div>
-
-          {/* Right: Dropdown Arrow */}
-          <div className="flex items-center gap-1 shrink-0">
-            <ChevronsUpDown size={13} className="text-neutral-500 group-hover:text-neutral-300" />
-            {isMobileView && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onClose?.();
-                }}
-                className="p-1 text-neutral-400 hover:text-white rounded-lg bg-white/5 hover:bg-white/10 ml-2 cursor-pointer"
-                aria-label="Close menu"
+        <div className="flex items-center justify-between">
+          <button
+            type="button"
+            onClick={() => {
+              onClose?.();
+              switchWorkspace("tradifive");
+            }}
+            onMouseEnter={() => setIsLogoHovered(true)}
+            onMouseLeave={() => setIsLogoHovered(false)}
+            title="Switch to TradiFive Workspace"
+            className="flex-1 flex items-center justify-between p-2 rounded-xl hover:bg-white/[0.04] active:bg-white/[0.08] transition-colors cursor-pointer group select-none text-left"
+          >
+            {/* Logo container with vertical shift animation on hover */}
+            <div className="relative h-[32px] sm:h-[36px] flex-1 overflow-hidden select-none flex items-center">
+              {/* Front Side: Active FiAlgo Logo (Moves UP and fades out on hover) */}
+              <div
+                className={`absolute inset-0 flex items-center transition-all duration-300 ease-out transform ${
+                  isLogoHovered ? "opacity-0 -translate-y-3 pointer-events-none" : "opacity-100 translate-y-0"
+                }`}
               >
-                <X size={16} />
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* ── Systemic Institutional Workspace Switcher Dropdown (Matched to Reference Pic in Dark Mode) ── */}
-        {showWorkspaceMenu && (
-          <div className="absolute top-full left-0 right-0 mt-2 bg-[#161618] border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.8)] p-1.5 z-[250] space-y-1 backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150">
-            {/* TradiFive Workspace */}
-            <button
-              type="button"
-              onClick={() => {
-                setShowWorkspaceMenu(false);
-                switchWorkspace("tradifive");
-                navigate("/journal");
-              }}
-              className="w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl transition-all cursor-pointer text-left hover:bg-white/[0.06] text-neutral-300 hover:text-white"
-            >
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-8 h-8 rounded-full bg-white dark:bg-white/10 border border-slate-200/80 dark:border-white/10 flex items-center justify-center shrink-0 p-1.5 shadow-sm">
-                  <img
-                    src="/tf-logo.png"
-                    alt="TradiFive"
-                    className="w-full h-full object-contain"
-                  />
-                </div>
-                <span className="text-[13px] font-semibold truncate">
-                  TradiFive Workspace
-                </span>
+                <FiAlgoLogo variant="dark" />
               </div>
-            </button>
 
-            {/* FiAlgo Workspace (Active) */}
-            <div className="w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl text-left bg-white/10 text-white border border-white/5">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-8 h-8 rounded-full bg-white dark:bg-white/10 border border-slate-200/80 dark:border-white/10 flex items-center justify-center shrink-0 p-1.5 shadow-sm overflow-hidden">
-                  <img
-                    src="/fialgo-logo.png"
-                    alt="FiAlgo"
-                    className="w-full h-full object-contain"
-                  />
-                </div>
-                <span className="text-[13px] font-semibold truncate">
-                  FiAlgo Workspace
-                </span>
+              {/* Back Side: TradiFive Logo (Comes from DOWN and fades in on hover) */}
+              <div
+                className={`absolute inset-0 flex items-center transition-all duration-300 ease-out transform ${
+                  isLogoHovered ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3 pointer-events-none"
+                }`}
+              >
+                <img
+                  src="/Dark mode logo with white.png"
+                  alt="Switch to TradiFive"
+                  className="h-[28px] sm:h-[32px] w-auto object-contain"
+                />
               </div>
-              <Check size={16} className="text-blue-500 shrink-0" strokeWidth={2.5} />
             </div>
-          </div>
-        )}
+
+            {/* Arrow on the side so users instantly know it is a switcher button */}
+            <ChevronsUpDown
+              size={14}
+              strokeWidth={2.2}
+              className="text-neutral-500 group-hover:text-neutral-200 transition-colors shrink-0 ml-2"
+            />
+          </button>
+
+          {/* Mobile Close Button */}
+          {isMobileView && (
+            <button
+              onClick={onClose}
+              className="p-1.5 text-neutral-400 hover:text-white rounded-lg bg-white/5 hover:bg-white/10 ml-2 cursor-pointer shrink-0"
+              aria-label="Close menu"
+            >
+              <X size={16} />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* ── Auto Trade Navigation Sections ── */}

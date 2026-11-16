@@ -1,153 +1,96 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState } from "react";
+import { ChevronsUpDown } from "lucide-react";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
-import { ChevronsUpDown, Check } from "lucide-react";
+import FiAlgoLogo from "./FiAlgoLogo";
 
 interface WorkspaceSwitcherProps {
   isMobile?: boolean;
   className?: string;
+  onCloseMobile?: () => void;
 }
 
-export default function WorkspaceSwitcher({ isMobile = false, className = "" }: WorkspaceSwitcherProps) {
-  const { activeWorkspace, switchWorkspace, isFiAlgo, isTradiFive } = useWorkspace();
-  const [isOpen, setIsOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+export default function WorkspaceSwitcher({
+  isMobile = false,
+  className = "",
+  onCloseMobile,
+}: WorkspaceSwitcherProps) {
+  const { switchWorkspace, isFiAlgo } = useWorkspace();
+  const [isHovered, setIsHovered] = useState(false);
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const handleMouseEnter = () => {
-    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
-    setIsOpen(true);
-  };
-
-  const handleMouseLeave = () => {
-    hoverTimeoutRef.current = setTimeout(() => {
-      setIsOpen(false);
-    }, 300);
-  };
-
-  const handleSelect = (ws: "tradifive" | "fialgo") => {
-    switchWorkspace(ws);
-    setIsOpen(false);
+  const handleSwitch = () => {
+    onCloseMobile?.();
+    switchWorkspace(isFiAlgo ? "tradifive" : "fialgo");
   };
 
   return (
-    <div
-      ref={containerRef}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      className={`relative select-none w-full ${className}`}
-    >
-      {/* ── Borderless Workspace Switcher (Logo on Left + Dropdown Arrow on Far Right like Bottom Profile) ── */}
+    <div className={`relative select-none ${className}`}>
+      {/* ── Workspace Switcher Button with side arrow (Hover slides logo UP and target logo UP from DOWN, click switches workspace) ── */}
       <button
         type="button"
-        onClick={() => setIsOpen((prev) => !prev)}
-        className="w-full flex items-center justify-between p-1.5 px-2 rounded-xl hover:bg-slate-100/70 dark:hover:bg-white/[0.05] transition-all duration-200 cursor-pointer text-left group"
-        title="Switch Workspace (TradiFive / FiAlgo)"
+        onClick={handleSwitch}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        title={isFiAlgo ? "Switch to TradiFive Workspace" : "Switch to FiAlgo Workspace"}
+        className="w-full flex items-center justify-between p-1.5 px-2 rounded-xl hover:bg-slate-100/70 dark:hover:bg-white/[0.05] active:bg-slate-200/50 dark:active:bg-white/[0.08] transition-colors duration-200 cursor-pointer text-left select-none group"
       >
-        {/* Logo container (Prominent, crisp size, no workspace text below) */}
-        <div className="flex items-center h-[28px] sm:h-[30px] overflow-hidden">
-          {isFiAlgo ? (
-            <img
-              src="/fialgo-logo.png"
-              alt="FiAlgo Workspace"
-              className="h-[26px] sm:h-[29px] w-auto object-contain transition-transform duration-200 group-hover:scale-[1.02]"
-            />
-          ) : (
-            <>
-              <img
-                src="/Tradifive_logo1.png"
-                alt="TradiFive Workspace"
-                className="h-[26px] sm:h-[29px] w-auto object-contain dark:hidden transition-transform duration-200 group-hover:scale-[1.02]"
-              />
-              <img
-                src="/Dark mode logo with white.png"
-                alt="TradiFive Workspace"
-                className="h-[26px] sm:h-[29px] w-auto object-contain hidden dark:block transition-transform duration-200 group-hover:scale-[1.02]"
-              />
-            </>
-          )}
+        {/* Animated Logo Container */}
+        <div className="relative h-[32px] sm:h-[36px] flex-1 overflow-hidden select-none flex items-center">
+          {/* Active Workspace Logo (Moves UP and fades out on hover) */}
+          <div
+            className={`absolute inset-0 flex items-center transition-all duration-300 ease-out transform ${
+              isHovered ? "opacity-0 -translate-y-3 pointer-events-none" : "opacity-100 translate-y-0"
+            }`}
+          >
+            {isFiAlgo ? (
+              <FiAlgoLogo variant="auto" />
+            ) : (
+              <>
+                <img
+                  src="/Tradifive_logo1.png"
+                  alt="TradiFive Workspace"
+                  className="h-[28px] sm:h-[32px] w-auto object-contain dark:hidden"
+                />
+                <img
+                  src="/Dark mode logo with white.png"
+                  alt="TradiFive Workspace"
+                  className="h-[28px] sm:h-[32px] w-auto object-contain hidden dark:block"
+                />
+              </>
+            )}
+          </div>
+
+          {/* Target Workspace Logo (Comes from DOWN and fades in on hover) */}
+          <div
+            className={`absolute inset-0 flex items-center transition-all duration-300 ease-out transform ${
+              isHovered ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3 pointer-events-none"
+            }`}
+          >
+            {isFiAlgo ? (
+              <>
+                <img
+                  src="/Tradifive_logo1.png"
+                  alt="Switch to TradiFive"
+                  className="h-[28px] sm:h-[32px] w-auto object-contain dark:hidden"
+                />
+                <img
+                  src="/Dark mode logo with white.png"
+                  alt="Switch to TradiFive"
+                  className="h-[28px] sm:h-[32px] w-auto object-contain hidden dark:block"
+                />
+              </>
+            ) : (
+              <FiAlgoLogo variant="auto" />
+            )}
+          </div>
         </div>
 
-        {/* Up/Down Arrow Side (Positioned on the far right like the profile card at the bottom) */}
+        {/* Arrow on the side so users instantly know it is a switcher button */}
         <ChevronsUpDown
-          size={16}
+          size={15}
           strokeWidth={2.2}
-          className="text-slate-400 dark:text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-colors shrink-0 mr-1"
+          className="text-slate-400 dark:text-neutral-500 group-hover:text-slate-700 dark:group-hover:text-neutral-200 transition-colors shrink-0 ml-2"
         />
       </button>
-
-      {/* ── Dropdown Menu (Simple: TradiFive Workspace & FiAlgo Workspace, No Distractions) ── */}
-      {isOpen && (
-        <div
-          className={`absolute top-full left-0 mt-2 w-full min-w-[220px] rounded-2xl bg-white dark:bg-[#1A1A1E] border border-slate-200/90 dark:border-white/10 shadow-[0_16px_36px_rgba(0,0,0,0.12)] dark:shadow-[0_16px_36px_rgba(0,0,0,0.45)] p-1.5 z-[200] animate-in fade-in zoom-in-95 duration-150 space-y-1`}
-        >
-          {/* Option 1: TradiFive Workspace */}
-          <button
-            type="button"
-            onClick={() => handleSelect("tradifive")}
-            className={`w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl transition-all cursor-pointer text-left ${
-              isTradiFive
-                ? "bg-slate-100/90 dark:bg-white/10 text-slate-900 dark:text-white"
-                : "hover:bg-slate-50 dark:hover:bg-white/5 text-slate-700 dark:text-slate-300"
-            }`}
-          >
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-8 h-8 rounded-full bg-white border border-slate-200/80 dark:border-white/10 flex items-center justify-center shrink-0 p-1.5 shadow-xs">
-                <img
-                  src="/tf-logo.png"
-                  alt="TradiFive"
-                  className="w-full h-full object-contain"
-                />
-              </div>
-              <span className="text-[13px] font-semibold truncate">
-                TradiFive Workspace
-              </span>
-            </div>
-
-            {isTradiFive && (
-              <Check size={16} className="text-blue-500 shrink-0" strokeWidth={2.5} />
-            )}
-          </button>
-
-          {/* Option 2: FiAlgo Workspace */}
-          <button
-            type="button"
-            onClick={() => handleSelect("fialgo")}
-            className={`w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl transition-all cursor-pointer text-left ${
-              isFiAlgo
-                ? "bg-slate-100/90 dark:bg-white/10 text-slate-900 dark:text-white"
-                : "hover:bg-slate-50 dark:hover:bg-white/5 text-slate-700 dark:text-slate-300"
-            }`}
-          >
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-7 h-7 rounded-lg bg-white dark:bg-white/10 border border-slate-200/80 dark:border-white/10 flex items-center justify-center shrink-0 p-1 shadow-xs overflow-hidden">
-                <img
-                  src="/fialgo-logo.png"
-                  alt="FiAlgo"
-                  className="w-full h-full object-contain"
-                />
-              </div>
-              <span className="text-[13px] font-semibold truncate">
-                FiAlgo Workspace
-              </span>
-            </div>
-
-            {isFiAlgo && (
-              <Check size={16} className="text-purple-500 shrink-0" strokeWidth={2.5} />
-            )}
-          </button>
-        </div>
-      )}
     </div>
   );
 }
