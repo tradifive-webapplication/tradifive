@@ -123,9 +123,11 @@ const AdminWaitlist = lazy(() => import("./pages/admin/AdminWaitlist"));
 const AdminSettlements = lazy(() => import("./pages/admin/AdminSettlements"));
 const WeeklySettlements = lazy(() => import("./pages/WeeklySettlements"));
 const BrokerAuth = lazy(() => import("./pages/BrokerAuth"));
+const FiAlgoWorkspace = lazy(() => import("./pages/FiAlgoWorkspace"));
 
 import { MarketProvider } from "@/contexts/MarketContext";
 import { PresenceProvider } from "@/contexts/PresenceContext";
+import { WorkspaceProvider } from "@/contexts/WorkspaceContext";
 import { initGlobalHaptics } from "@/utils/haptics";
 
 const queryClient = new QueryClient();
@@ -163,6 +165,7 @@ const App = () => {
         <TradingProvider>
           <PresenceProvider>
           <AppRouter>
+            <WorkspaceProvider>
             <CustomCursor />
             <Suspense fallback={<div style={{ minHeight: '100vh', width: '100%', background: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div style={{ width: 40, height: 40, border: '3px solid rgba(99,102,241,0.3)', borderTopColor: '#6366f1', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} /><style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style></div>}>
               <Routes>
@@ -232,6 +235,12 @@ const App = () => {
                   <Route path="/ai-coach/chat" element={<Navigate to="/ai-coach" replace />} />
                   <Route path="/ai-coach/feedback" element={<Navigate to="/ai-coach" replace />} />
                   <Route path="/ai-coach/goals" element={<Navigate to="/ai-coach" replace />} />
+                  <Route path="/fialgo" element={<FiAlgoWorkspace />} />
+                  <Route path="/fialgo/autotrade" element={<FiAlgoWorkspace defaultTab="autotrade" />} />
+                  <Route path="/fialgo/backtesting" element={<FiAlgoWorkspace defaultTab="backtesting" />} />
+                  <Route path="/fialgo/strategy" element={<FiAlgoWorkspace defaultTab="strategy" />} />
+                  <Route path="/fialgo/bots" element={<FiAlgoWorkspace defaultTab="bots" />} />
+                  <Route path="/fialgo/logs" element={<FiAlgoWorkspace defaultTab="logs" />} />
                   <Route path="/auto-trade/setup" element={<AITrading />} />
                   <Route path="/auto-trade/dashboard" element={<AutoTradeDashboardPage />} />
                   <Route path="/auto-trade/active-bots" element={<MyRobots />} />
@@ -295,6 +304,7 @@ const App = () => {
               </Routes>
             </Suspense>
             <FloatingHelpButton />
+            </WorkspaceProvider>
           </AppRouter>
           </PresenceProvider>
         </TradingProvider>

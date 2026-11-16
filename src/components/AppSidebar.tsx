@@ -4,7 +4,7 @@ import {
 
   Search, PanelLeftClose, PanelLeftOpen, Lock, ChevronDown, ChevronRight, ChevronLeft, Inbox, Moon, Sun, Palette, ChevronsUpDown, Clock, User, CreditCard, MessageSquare, UserCheck,
 
-  Plus, Users, LayoutGrid, Shield, Gift, Compass, BookText, Brain, ShieldCheck, Target, Award, Mail, Crown, PlusCircle, X, GraduationCap, ShoppingBag, Video, Hash, Globe, TrendingUp, Home as LucideHome, UserPlus, Share2, Server, Box, Rocket, Receipt, ReceiptText
+  Plus, Users, LayoutGrid, Shield, Gift, Compass, BookText, Brain, ShieldCheck, Target, Award, Mail, Crown, PlusCircle, X, GraduationCap, ShoppingBag, Video, Hash, Globe, TrendingUp, Home as LucideHome, UserPlus, Share2, Server, Box, Rocket, Receipt, ReceiptText, Cpu
 
 } from "lucide-react";
 
@@ -21,6 +21,7 @@ import fialgoLogo from "@/assets/tradifive-logo.png";
 import logoOnly from "@/assets/logo-only.png";
 
 import defaultAvatar from "@/assets/default-avatar.svg";
+import WorkspaceSwitcher from "./WorkspaceSwitcher";
 
 import React, { useState, useEffect, useRef } from "react";
 
@@ -249,6 +250,8 @@ const getAutoTradeMenu = () => {
   const isSetup = typeof window !== 'undefined' && localStorage.getItem("tradifive_auto_trade_setup") === "true";
 
   return [
+
+    { path: "/fialgo", icon: wrapLucide(Cpu), label: "FiAlgo Workspace", badge: "WORKSPACE" },
 
     { path: isSetup ? "/auto-trade/dashboard" : "/auto-trade/setup", icon: WrappedIconly(Category), label: "Dashboard" },
 
@@ -582,7 +585,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
     if (path.startsWith("/ai-coach")) return "aiCoach";
 
-    if (path.startsWith("/auto-trade") || path.startsWith("/strategy-builder") || path.startsWith("/weekly-settlements") || path.startsWith("/settlements")) return "autoTrade";
+    if (path.startsWith("/fialgo") || path.startsWith("/auto-trade") || path.startsWith("/strategy-builder") || path.startsWith("/weekly-settlements") || path.startsWith("/settlements")) return "autoTrade";
 
     if (path.startsWith("/discover") || path.startsWith("/marketplace")) return "discover";
 
@@ -1984,35 +1987,17 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
             {/* Image Logo & Markets Dropdown Aligned with Primary Sidebar Favicon */}
 
-            <div className={`overflow-hidden transition-all duration-300 flex items-center justify-between h-[54px] ${isMobile ? 'mt-0.5 pl-1 pr-12' : 'mt-[48px] pr-2'} ${isCollapsed ? "max-w-0 opacity-0" : "max-w-full opacity-100"}`}>
+            <div className={`transition-all duration-300 flex items-center justify-between h-[54px] ${isMobile ? 'mt-0.5 pl-1 pr-12' : 'mt-[48px] pr-2'} ${isCollapsed ? "max-w-0 opacity-0 overflow-hidden" : "max-w-full opacity-100"}`}>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 min-w-0">
 
                 {isMobile && (
 
-                  <img src="/tf-logo.png" alt="Logo" className="w-[30px] h-[30px] sm:w-[34px] sm:h-[34px] object-contain shrink-0" />
+                  <img src="/tf-logo.png" alt="Logo" className="w-[28px] h-[28px] object-contain shrink-0" />
 
                 )}
 
-                <img 
-
-                  src="/Tradifive_logo1.png" 
-
-                  alt="TradiFive" 
-
-                  className="h-[26px] sm:h-[28px] w-auto object-contain dark:hidden" 
-
-                />
-
-                <img 
-
-                  src="/Dark mode logo with white.png" 
-
-                  alt="TradiFive" 
-
-                  className="h-[26px] sm:h-[28px] w-auto object-contain hidden dark:block" 
-
-                />
+                <WorkspaceSwitcher isMobile={isMobile} />
 
               </div>
 
