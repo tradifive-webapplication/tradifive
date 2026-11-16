@@ -100,25 +100,26 @@ export default function EmployeeSidebar() {
 
       {/* User Session Profile */}
       <div className="mt-4 border-t border-white/5 pt-4 px-2">
-        <div className="flex items-center gap-3 min-w-0 p-2 bg-white/[0.02] border border-white/5 rounded">
-          <div className="w-8 h-8 rounded flex items-center justify-center text-xs font-bold text-white uppercase overflow-hidden shrink-0 shadow-lg bg-zinc-900">
-            {adminUser?.full_name?.charAt(0).toUpperCase()}
+        <div className="flex items-center justify-between gap-2 min-w-0 p-2 bg-white/[0.02] border border-white/5 rounded">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-8 h-8 rounded flex items-center justify-center text-xs font-bold text-white uppercase overflow-hidden shrink-0 shadow-lg bg-zinc-900">
+              {adminUser?.full_name?.charAt(0).toUpperCase()}
+            </div>
+            <div className="min-w-0">
+              <p className="text-[11px] font-bold text-white truncate">{adminUser?.full_name || "Employee"}</p>
+              <p className="text-[9px] text-neutral-600 truncate uppercase tracking-tighter">
+                {adminUser?.role?.replace("_", " ") || "Staff Access"}
+              </p>
+            </div>
           </div>
-          <div className="min-w-0">
-            <p className="text-[11px] font-bold text-white truncate">{adminUser?.full_name || "Employee"}</p>
-            <p className="text-[9px] text-neutral-600 truncate uppercase tracking-tighter">
-              {adminUser?.role?.replace("_", " ") || "Staff Access"}
-            </p>
-          </div>
+          <button
+            onClick={handleLogout}
+            title="Sign Out"
+            className="p-1.5 text-neutral-600 hover:text-red-400 hover:bg-white/5 rounded transition-colors"
+          >
+            <LogOut size={13} />
+          </button>
         </div>
-
-        <button
-          onClick={handleLogout}
-          className="mt-3 w-full flex items-center gap-2 px-3 py-2 text-neutral-600 hover:text-white text-[10px] font-bold uppercase tracking-widest transition-none"
-        >
-          <LogOut size={12} />
-          Disconnect
-        </button>
       </div>
     </aside>
   );

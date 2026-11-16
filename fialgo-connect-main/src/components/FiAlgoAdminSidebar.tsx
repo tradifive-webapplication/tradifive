@@ -12,6 +12,7 @@ import {
   Key,
   ChevronsUpDown,
   ExternalLink,
+  LogOut,
   X
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -320,6 +321,18 @@ export default function FiAlgoAdminSidebar({ mobileOpen = false, onClose }: FiAl
             >
               <span>Switch to TradiFive Workspace</span>
               <ExternalLink size={12} className="text-neutral-400" />
+            </button>
+            <div className="my-1 border-t border-white/5" />
+            <button
+              onClick={async () => {
+                setShowProfileMenu(false);
+                await supabase.auth.signOut();
+                navigate("/login");
+              }}
+              className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-left text-xs font-semibold text-neutral-400 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
+            >
+              <span>Sign Out</span>
+              <LogOut size={12} />
             </button>
           </div>
         )}

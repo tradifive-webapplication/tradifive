@@ -282,53 +282,65 @@ export default function AdminSidebar({ mobileOpen = false, onClose }: AdminSideb
       {/* User Session Profile with Integrated Switcher */}
       <div className="mt-3 border-t border-white/5 pt-3 px-1 relative shrink-0">
         <AnimatePresence>
-          {showRoleSwitcher && (isActualCEO || adminUser.role === "hr_manager") && (
+          {showRoleSwitcher && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 10 }}
               className="absolute bottom-[105%] left-0 right-0 mb-1 bg-[#121212] border border-white/10 rounded-xl p-2 shadow-2xl z-[110] max-h-60 overflow-y-auto"
             >
-              <p className="text-[8px] font-bold text-neutral-600 uppercase tracking-widest px-2 mb-2">
-                Department Access
-              </p>
-              <div className="space-y-1">
-                {viewOptions
-                  .filter(opt => isActualCEO || opt.id !== "ceo")
-                  .sort((a, b) => {
-                    if (a.id === adminUser.role) return -1;
-                    if (b.id === adminUser.role) return 1;
-                    return 0;
-                  })
-                  .map((opt) => (
-                  <button
-                    key={opt.id}
-                    onClick={() => {
-                      setViewRole(opt.id);
-                      setShowRoleSwitcher(false);
-                      if (isMobileView) onClose?.();
-                      navigate("/");
-                    }}
-                    className={`w-full flex items-center gap-2 px-2 py-2 rounded text-[10px] font-bold uppercase tracking-tight transition-colors ${
-                      effectiveRole === opt.id
-                        ? "bg-white/10 text-white"
-                        : "text-neutral-500 hover:text-white"
-                    }`}
-                  >
-                    <opt.icon
-                      size={12}
-                      className={effectiveRole === opt.id ? "text-white" : "text-neutral-700"}
-                    />
-                    <span className="truncate">{opt.label}</span>
-                  </button>
-                ))}
-              </div>
+              {(isActualCEO || adminUser.role === "hr_manager") && (
+                <>
+                  <p className="text-[8px] font-bold text-neutral-600 uppercase tracking-widest px-2 mb-2">
+                    Department Access
+                  </p>
+                  <div className="space-y-1 mb-2">
+                    {viewOptions
+                      .filter(opt => isActualCEO || opt.id !== "ceo")
+                      .sort((a, b) => {
+                        if (a.id === adminUser.role) return -1;
+                        if (b.id === adminUser.role) return 1;
+                        return 0;
+                      })
+                      .map((opt) => (
+                      <button
+                        key={opt.id}
+                        onClick={() => {
+                          setViewRole(opt.id);
+                          setShowRoleSwitcher(false);
+                          if (isMobileView) onClose?.();
+                          navigate("/");
+                        }}
+                        className={`w-full flex items-center gap-2 px-2 py-2 rounded text-[10px] font-bold uppercase tracking-tight transition-colors ${
+                          effectiveRole === opt.id
+                            ? "bg-white/10 text-white"
+                            : "text-neutral-500 hover:text-white"
+                        }`}
+                      >
+                        <opt.icon
+                          size={12}
+                          className={effectiveRole === opt.id ? "text-white" : "text-neutral-700"}
+                        />
+                        <span className="truncate">{opt.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                  <div className="my-1.5 border-t border-white/5" />
+                </>
+              )}
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center gap-2 px-2.5 py-2 rounded text-[10px] font-bold text-neutral-400 hover:text-red-400 hover:bg-red-500/10 transition-colors uppercase tracking-tight cursor-pointer"
+              >
+                <LogOut size={12} />
+                <span>Sign Out</span>
+              </button>
             </motion.div>
           )}
         </AnimatePresence>
 
         <div
-          onClick={() => (isActualCEO || adminUser.role === "hr_manager") && setShowRoleSwitcher(!showRoleSwitcher)}
+          onClick={() => setShowRoleSwitcher(!showRoleSwitcher)}
           className={`flex items-center justify-between p-2 rounded cursor-pointer transition-colors border ${
             showRoleSwitcher
               ? "bg-white/10 border-white/20"
@@ -358,14 +370,6 @@ export default function AdminSidebar({ mobileOpen = false, onClose }: AdminSideb
             <ChevronDown size={10} className="-mt-0.5" />
           </div>
         </div>
-
-        <button
-          onClick={handleLogout}
-          className="mt-2.5 w-full flex items-center gap-2 px-3 py-1.5 text-neutral-600 hover:text-white text-[10px] font-bold uppercase tracking-widest transition-colors rounded hover:bg-white/5"
-        >
-          <LogOut size={12} />
-          Disconnect
-        </button>
       </div>
     </div>
   );
