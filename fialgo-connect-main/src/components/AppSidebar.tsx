@@ -4,7 +4,7 @@ import {
 
   Search, PanelLeftClose, PanelLeftOpen, Lock, ChevronDown, ChevronRight, ChevronLeft, Inbox, Moon, Sun, Palette, ChevronsUpDown, Clock, User, CreditCard, MessageSquare, UserCheck,
 
-  Plus, Users, LayoutGrid, Shield, Gift, Compass, BookText, Brain, ShieldCheck, Target, Award, Mail, Crown, PlusCircle, X, GraduationCap, ShoppingBag, Video, Hash, Globe, TrendingUp, Home as LucideHome, UserPlus, Share2, Server, Box, Rocket, Receipt, ReceiptText, Cpu
+  Plus, Users, LayoutGrid, Shield, Gift, Compass, BookText, Brain, ShieldCheck, Target, Award, Mail, Crown, PlusCircle, X, GraduationCap, ShoppingBag, Video, Hash, Globe, TrendingUp, Home as LucideHome, UserPlus, Share2, Server, Box, Rocket, Receipt, ReceiptText, Cpu, ArrowRight, LogOut
 
 } from "lucide-react";
 
@@ -552,7 +552,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
   const navigate = useNavigate();
 
   const { activeMarket, setActiveMarket } = useMarket();
-  const { isFiAlgo, isTradiFive } = useWorkspace();
+  const { isFiAlgo, isTradiFive, switchWorkspace } = useWorkspace();
 
 
 
@@ -1751,7 +1751,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
           : `fixed left-0 top-0 z-40 flex h-screen flex-row bg-transparent dark:bg-transparent ${isMounted ? "transition-[width] duration-300" : ""
 
-          } ${isCollapsed ? "w-[90px]" : "w-[90px] xl:w-[340px]"}`
+          } ${isCollapsed ? "w-[90px]" : isFiAlgo ? "w-[260px] xl:w-[274px]" : "w-[90px] xl:w-[340px]"}`
 
           }`}
 
@@ -1759,7 +1759,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
       >
 
-        {!isMobile && (
+        {!isMobile && !isFiAlgo && (
 
           <div className="w-[74px] h-[calc(100vh-24px)] flex flex-col items-center justify-between py-2 m-3 mr-0 shrink-0 z-50 relative gap-2">
 
@@ -1939,9 +1939,9 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
         {/* SECONDARY SIDEBAR */}
 
-        <div className={`flex flex-col h-full bg-transparent border-transparent transition-all duration-[400ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] ${isMobile ? 'w-full' : isCollapsed ? 'w-0 overflow-hidden opacity-0 pointer-events-none' : 'w-[274px] opacity-100'} shrink-0 relative`}>
+        <div className={`flex flex-col h-full bg-transparent border-transparent transition-all duration-[400ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] ${isMobile ? 'w-full' : isCollapsed ? 'w-0 overflow-hidden opacity-0 pointer-events-none' : isFiAlgo ? 'w-[260px] xl:w-[274px] opacity-100' : 'w-[274px] opacity-100'} shrink-0 relative`}>
 
-          <div className={`flex flex-col h-full shrink-0 transition-transform duration-[400ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] ${isMobile ? 'w-full' : 'w-[274px]'} ${isCollapsed && !isMobile ? '-translate-x-12' : 'translate-x-0'}`}>
+          <div className={`flex flex-col h-full shrink-0 transition-transform duration-[400ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] ${isMobile ? 'w-full' : isFiAlgo ? 'w-[260px] xl:w-[274px]' : 'w-[274px]'} ${isCollapsed && !isMobile ? '-translate-x-12' : 'translate-x-0'}`}>
 
 
 
@@ -1957,7 +1957,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
             {/* Logo & Workspace Switcher */}
 
-            <div className={`transition-all duration-300 flex items-center justify-between h-[54px] ${isMobile ? 'mt-0.5 pl-1 pr-12' : 'mt-[48px] pr-2'} ${isCollapsed ? "max-w-0 opacity-0 overflow-hidden" : "max-w-full opacity-100"}`}>
+            <div className={`transition-all duration-300 flex items-center justify-between h-[54px] ${isMobile ? 'mt-0.5 pl-1 pr-12' : isFiAlgo ? 'mt-3.5 px-0.5' : 'mt-[48px] pr-2'} ${isCollapsed ? "max-w-0 opacity-0 overflow-hidden" : "max-w-full opacity-100"}`}>
 
               <div className="flex items-center gap-2 min-w-0 flex-1">
 
@@ -2373,7 +2373,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
                     <h3 className="text-slate-400 dark:text-neutral-400 text-[10px] font-extrabold uppercase tracking-[0.15em] px-6 font-sans whitespace-nowrap">
 
-                      {getPillars(isCreator, isFiAlgo).find(p => p.id === activePillar)?.tooltip || "Menu"}
+                      {isFiAlgo ? "FIALGO ALGO ENGINE" : (getPillars(isCreator, isFiAlgo).find(p => p.id === activePillar)?.tooltip || "Menu")}
 
                     </h3>
 
@@ -2382,7 +2382,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
                   <div className="flex flex-col gap-1">
 
                     {
-
+                      isFiAlgo ? getAutoTradeMenu().filter(m => m.label.toLowerCase().includes(navSearchQuery.toLowerCase())).map(renderMenuItem) :
                       activePillar === "home" ? homeMenu.filter(m => m.label.toLowerCase().includes(navSearchQuery.toLowerCase())).map(renderMenuItem) :
 
                         activePillar === "dashboard" ? dashboardMenu.filter(m => m.label.toLowerCase().includes(navSearchQuery.toLowerCase())).map(renderMenuItem) :
@@ -2991,21 +2991,29 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
                         <div className="relative h-[16px] w-full overflow-hidden mt-0.5 select-none">
 
-                          <span className={`absolute inset-0 text-[12px] text-slate-450 dark:text-slate-400 font-semibold truncate transition-all duration-300 ease-out transform font-sans ${isHoveredProfile ? "opacity-0 -translate-y-2.5 pointer-events-none" : "opacity-100 translate-y-0"
+                          {isFiAlgo ? (
+                            <span className="text-[12px] text-purple-600 dark:text-purple-400 font-bold truncate block font-sans">
+                              {mt5Acc ? `MT5 #${mt5Acc} · Live` : "FiAlgo Engine Active"}
+                            </span>
+                          ) : (
+                            <>
+                              <span className={`absolute inset-0 text-[12px] text-slate-450 dark:text-slate-400 font-semibold truncate transition-all duration-300 ease-out transform font-sans ${isHoveredProfile ? "opacity-0 -translate-y-2.5 pointer-events-none" : "opacity-100 translate-y-0"
 
-                            }`}>
+                                }`}>
 
-                            {userStatus}
+                                {userStatus}
 
-                          </span>
+                              </span>
 
-                          <span className={`absolute inset-0 text-[12px] text-slate-450 dark:text-slate-400 font-semibold truncate transition-all duration-300 ease-out transform font-sans ${isHoveredProfile ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2.5 pointer-events-none"
+                              <span className={`absolute inset-0 text-[12px] text-slate-450 dark:text-slate-400 font-semibold truncate transition-all duration-300 ease-out transform font-sans ${isHoveredProfile ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2.5 pointer-events-none"
 
-                            }`}>
+                                }`}>
 
-                            @{username || "alextrades"}
+                                @{username || "alextrades"}
 
-                          </span>
+                              </span>
+                            </>
+                          )}
 
                         </div>
 
@@ -3027,7 +3035,98 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
               <DropdownMenuContent align="start" side="top" sideOffset={12} className="w-[325px] rounded-[18px] p-0 bg-white dark:bg-[#1E1E1E] border border-slate-200/80 dark:border-white/5 shadow-[0_12px_40px_rgba(0,0,0,0.06),0_1px_4px_rgba(0,0,0,0.02)] overflow-visible font-sans relative">
 
-                {/* Cover Banner (Discord style with smooth bottom fade) */}
+                {isFiAlgo ? (
+                  <div className="p-3 select-none font-sans space-y-2">
+                    {/* MT5 Account & Algo Status Header */}
+                    <div className="p-2.5 rounded-xl bg-purple-500/10 dark:bg-purple-500/15 border border-purple-500/20 flex items-center justify-between">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-8 h-8 rounded-lg bg-purple-600/20 border border-purple-500/30 flex items-center justify-center shrink-0">
+                          <Cpu size={16} className="text-purple-400" />
+                        </div>
+                        <div className="flex flex-col min-w-0">
+                          <span className="text-[13px] font-bold text-slate-900 dark:text-white truncate">
+                            {mt5Acc ? `MT5 #${mt5Acc}` : "FiAlgo V1 Engine"}
+                          </span>
+                          <span className="text-[10px] font-medium text-emerald-500 flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                            Bridge Socket Active
+                          </span>
+                        </div>
+                      </div>
+                      <span className="px-1.5 py-0.5 rounded text-[8.5px] font-black uppercase tracking-wider bg-purple-500/20 text-purple-400 border border-purple-500/30">
+                        LIVE
+                      </span>
+                    </div>
+
+                    {/* AutoTrade Menu Items */}
+                    <div className="space-y-0.5 pt-1">
+                      <button
+                        onClick={() => { navigate("/auto-trade/license"); }}
+                        className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer text-left text-slate-700 dark:text-slate-200"
+                      >
+                        <ShieldCheck size={16} className="text-slate-400 shrink-0" />
+                        <span className="text-[13px] font-semibold flex-1 truncate">EA License & Activation</span>
+                      </button>
+
+                      <button
+                        onClick={() => { navigate("/auto-trade/active-bots"); }}
+                        className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer text-left text-slate-700 dark:text-slate-200"
+                      >
+                        <Activity size={16} className="text-slate-400 shrink-0" />
+                        <span className="text-[13px] font-semibold flex-1 truncate">Active Execution Bots</span>
+                      </button>
+
+                      <button
+                        onClick={() => { navigate("/strategy-builder"); }}
+                        className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer text-left text-slate-700 dark:text-slate-200"
+                      >
+                        <Setting size={16} className="text-slate-400 shrink-0" />
+                        <span className="text-[13px] font-semibold flex-1 truncate">Strategy Builder</span>
+                      </button>
+
+                      <button
+                        onClick={() => { navigate("/weekly-settlements"); }}
+                        className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer text-left text-slate-700 dark:text-slate-200"
+                      >
+                        <ReceiptText size={16} className="text-slate-400 shrink-0" />
+                        <span className="text-[13px] font-semibold flex-1 truncate">Weekly Profit Settlement</span>
+                      </button>
+
+                      <button
+                        onClick={() => { navigate("/auto-trade/history"); }}
+                        className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer text-left text-slate-700 dark:text-slate-200"
+                      >
+                        <Document size={16} className="text-slate-400 shrink-0" />
+                        <span className="text-[13px] font-semibold flex-1 truncate">Order Audit History</span>
+                      </button>
+
+                      <div className="my-1.5 border-t border-slate-100 dark:border-white/10" />
+
+                      {/* Switch to TradiFive Workspace */}
+                      <button
+                        onClick={() => { switchWorkspace("tradifive"); }}
+                        className="w-full flex items-center justify-between gap-2.5 px-2.5 py-2 rounded-xl hover:bg-blue-50/80 dark:hover:bg-blue-500/10 text-blue-600 dark:text-blue-400 transition-colors cursor-pointer text-left"
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <img src="/tf-logo.png" alt="TradiFive" className="w-4 h-4 object-contain shrink-0" />
+                          <span className="text-[13px] font-bold truncate">Switch to TradiFive Workspace</span>
+                        </div>
+                        <ArrowRight size={14} className="shrink-0" />
+                      </button>
+
+                      {/* Sign Out */}
+                      <button
+                        onClick={handleLogoutClick}
+                        className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-500/10 text-rose-600 dark:text-rose-400 transition-colors cursor-pointer text-left"
+                      >
+                        <LogOut size={16} className="shrink-0" />
+                        <span className="text-[13px] font-semibold truncate">Sign Out</span>
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    {/* Cover Banner (Discord style with smooth bottom fade) */}
 
                 {bannerUrl ? (
 
@@ -3573,6 +3672,9 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
                   </DropdownMenuItem>
 
                 </div>
+
+                  </>
+                )}
 
               </DropdownMenuContent>
 

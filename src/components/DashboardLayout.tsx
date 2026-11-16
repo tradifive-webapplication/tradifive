@@ -14,6 +14,7 @@ import { supabase } from "@/lib/supabase";
 import BottomNav from "./BottomNav";
 import NotificationHub from "./NotificationHub";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useWorkspace } from "@/contexts/WorkspaceContext";
 
 interface Breadcrumb {
   label: string;
@@ -396,6 +397,7 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
 
   // Effective Full Screen: True if toggled, passed via prop, or on AutoTrade setup route
   const isEffectiveFullScreen = isFullScreen || fullScreen;
+  const { isFiAlgo } = useWorkspace();
 
   const [bgFadeStyle, setBgFadeStyle] = useState(() => {
     try {
@@ -513,7 +515,7 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
         </div>
       )}
 
-      <div className={`flex-1 flex flex-col h-screen overflow-hidden ${isMounted ? 'transition-[margin-left] duration-300' : ''} ml-0 ${isCollapsed ? 'md:ml-[90px]' : 'md:ml-[90px] xl:ml-[340px]'}`}>
+      <div className={`flex-1 flex flex-col h-screen overflow-hidden ${isMounted ? 'transition-[margin-left] duration-300' : ''} ml-0 ${isCollapsed ? 'md:ml-[90px]' : isFiAlgo ? 'md:ml-[260px] xl:ml-[274px]' : 'md:ml-[90px] xl:ml-[340px]'}`}>
 
         {impersonatingUser && (
           <div className="bg-rose-500 text-white px-4 py-2 flex items-center justify-center gap-3 shrink-0 shadow-lg z-50">

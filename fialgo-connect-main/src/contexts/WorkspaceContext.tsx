@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import FiAlgoWorkspaceLoader from "@/components/FiAlgoWorkspaceLoader";
 
 export type WorkspaceType = "tradifive" | "fialgo";
 
@@ -17,6 +18,7 @@ const WORKSPACE_STORAGE_KEY = "tradifive_active_workspace";
 export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   // Initialize from URL or localStorage
   const [activeWorkspace, setActiveWorkspace] = useState<WorkspaceType>(() => {
@@ -68,16 +70,29 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   }, [location.pathname]);
 
   const switchWorkspace = (workspace: WorkspaceType) => {
-    setActiveWorkspace(workspace);
-    try {
-      localStorage.setItem(WORKSPACE_STORAGE_KEY, workspace);
-    } catch (e) {}
-
     if (workspace === "fialgo") {
-      navigate("/fialgo");
+      // Enter Dark Mode like admin app
+      document.documentElement.classList.add("dark");
+      try {
+        localStorage.setItem("tradifive_theme", "dark");
+        localStorage.setItem("theme", "dark");
+        localStorage.setItem(WORKSPACE_STORAGE_KEY, "fialgo");
+      } catch (e) {}
+
+      setIsTransitioning(true);
     } else {
+      setActiveWorkspace("tradifive");
+      try {
+        localStorage.setItem(WORKSPACE_STORAGE_KEY, "tradifive");
+      } catch (e) {}
       navigate("/home");
     }
+  };
+
+  const handleTransitionComplete = () => {
+    setIsTransitioning(false);
+    setActiveWorkspace("fialgo");
+    navigate("/fialgo");
   };
 
   return (
@@ -89,6 +104,9 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         isTradiFive: activeWorkspace === "tradifive",
       }}
     >
+      {isTransitioning && (
+        <FiAlgoWorkspaceLoader onComplete={handleTransitionComplete} />
+      )}
       {children}
     </WorkspaceContext.Provider>
   );
