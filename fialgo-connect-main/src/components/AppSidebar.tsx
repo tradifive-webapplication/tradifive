@@ -1985,80 +1985,21 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
             
 
-            {/* Image Logo & Markets Dropdown Aligned with Primary Sidebar Favicon */}
+            {/* Logo & Workspace Switcher */}
 
             <div className={`transition-all duration-300 flex items-center justify-between h-[54px] ${isMobile ? 'mt-0.5 pl-1 pr-12' : 'mt-[48px] pr-2'} ${isCollapsed ? "max-w-0 opacity-0 overflow-hidden" : "max-w-full opacity-100"}`}>
 
-              <div className="flex items-center gap-2 min-w-0">
+              <div className="flex items-center gap-2 min-w-0 flex-1">
 
                 {isMobile && (
 
-                  <img src="/tf-logo.png" alt="Logo" className="w-[28px] h-[28px] object-contain shrink-0" />
+                  <img src="/tf-logo.png" alt="Logo" className="w-[30px] h-[30px] object-contain shrink-0" />
 
                 )}
 
                 <WorkspaceSwitcher isMobile={isMobile} />
 
               </div>
-
-              
-
-              <DropdownMenu>
-
-                <DropdownMenuTrigger asChild>
-
-                  <button className="flex items-center justify-center w-8 h-8 rounded-full bg-white dark:bg-white/5 border border-slate-200/80 dark:border-white/10 text-slate-700 dark:text-slate-300 shadow-xs hover:border-blue-500/40 transition-all active:scale-95 cursor-pointer select-none" title={activeMarket === 'forex' ? "Global Market" : "Indian Market"}>
-
-                    {activeMarket === 'forex' ? (
-
-                      <Globe size={16} className="text-blue-500" strokeWidth={2.2} />
-
-                    ) : (
-
-                      <TrendingUp size={16} className="text-emerald-500" strokeWidth={2.2} />
-
-                    )}
-
-                  </button>
-
-                </DropdownMenuTrigger>
-
-                <DropdownMenuContent align="end" side="bottom" sideOffset={8} className="w-[195px] rounded-xl bg-white dark:bg-[#1E1E1E] border border-slate-200/80 dark:border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-1.5 z-[100]">
-
-                  <DropdownMenuItem onClick={() => setActiveMarket('forex')} className={`flex items-center justify-between gap-2.5 px-3 py-2.5 rounded-lg cursor-pointer transition-all ${activeMarket === 'forex' ? 'bg-blue-50/50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 font-medium'}`}>
-
-                    <div className="flex items-center gap-2.5">
-                      <Globe size={16} strokeWidth={activeMarket === 'forex' ? 2.5 : 2} />
-                      <span className="text-[13px]">Global Market</span>
-                    </div>
-
-                    {activeMarket === 'forex' && <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />}
-
-                  </DropdownMenuItem>
-
-                  <DropdownMenuItem 
-                    onClick={() => {
-                      toast.info("Indian Market (NSE / BSE) is coming soon!", {
-                        description: "Automated trading is currently live on Global Forex & Gold."
-                      });
-                    }} 
-                    className="flex items-center justify-between gap-2.5 px-3 py-2.5 rounded-lg cursor-pointer transition-all mt-0.5 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5 select-none"
-                  >
-
-                    <div className="flex items-center gap-2.5">
-                      <TrendingUp size={16} strokeWidth={2} className="text-slate-400" />
-                      <span className="text-[13px] font-medium text-slate-700 dark:text-slate-300">Indian Market</span>
-                    </div>
-
-                    <span className="text-[9.5px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 border border-slate-200/90 dark:border-white/10 shrink-0 leading-none">
-                      Soon
-                    </span>
-
-                  </DropdownMenuItem>
-
-                </DropdownMenuContent>
-
-              </DropdownMenu>
 
             </div>
 
