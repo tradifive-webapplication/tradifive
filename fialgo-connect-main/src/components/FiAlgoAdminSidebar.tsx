@@ -13,6 +13,7 @@ import {
   Key,
   ChevronsUpDown,
   ExternalLink,
+  Check,
   X
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -173,13 +174,9 @@ export default function FiAlgoAdminSidebar({ mobileOpen = false, onClose }: FiAl
           </div>
         </div>
 
-        {/* ── Systemic Institutional Workspace Switcher Dropdown (No Blue Colors) ── */}
+        {/* ── Systemic Institutional Workspace Switcher Dropdown (Matched to Reference Pic in Dark Mode) ── */}
         {showWorkspaceMenu && (
-          <div className="absolute top-full left-0 right-0 mt-2 bg-[#161618] border border-white/[0.08] rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.8)] p-2 z-[250] space-y-1.5 backdrop-blur-xl">
-            <div className="px-2.5 py-1 text-[9px] font-bold text-neutral-500 uppercase tracking-[0.2em]">
-              Switch Workspace
-            </div>
-
+          <div className="absolute top-full left-0 right-0 mt-2 bg-[#161618] border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.8)] p-1.5 z-[250] space-y-1 backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150">
             {/* TradiFive Workspace */}
             <button
               type="button"
@@ -188,26 +185,37 @@ export default function FiAlgoAdminSidebar({ mobileOpen = false, onClose }: FiAl
                 switchWorkspace("tradifive");
                 navigate("/journal");
               }}
-              className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-left text-xs font-medium text-neutral-400 hover:text-white hover:bg-white/[0.05] transition-all cursor-pointer group/item"
+              className="w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl transition-all cursor-pointer text-left hover:bg-white/[0.06] text-neutral-300 hover:text-white"
             >
-              <div className="flex items-center gap-2.5">
-                <div className="w-2 h-2 rounded-full bg-neutral-600 group-hover/item:bg-white transition-colors" />
-                <span className="font-sans">TradiFive Workspace</span>
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-full bg-white dark:bg-white/10 border border-slate-200/80 dark:border-white/10 flex items-center justify-center shrink-0 p-1.5 shadow-sm">
+                  <img
+                    src="/tf-logo.png"
+                    alt="TradiFive"
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+                <span className="text-[13px] font-semibold truncate">
+                  TradiFive Workspace
+                </span>
               </div>
-              <span className="text-[9px] text-neutral-600 group-hover/item:text-neutral-400 uppercase tracking-wider font-semibold">
-                Switch &rarr;
-              </span>
             </button>
 
             {/* FiAlgo Workspace (Active) */}
-            <div className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-left text-xs font-bold text-white bg-white/[0.05] border border-white/[0.08]">
-              <div className="flex items-center gap-2.5">
-                <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]" />
-                <span className="font-sans">FiAlgo Workspace</span>
+            <div className="w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl text-left bg-white/10 text-white border border-white/5">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-full bg-white dark:bg-white/10 border border-slate-200/80 dark:border-white/10 flex items-center justify-center shrink-0 p-1.5 shadow-sm overflow-hidden">
+                  <img
+                    src="/fialgo-logo.png"
+                    alt="FiAlgo"
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+                <span className="text-[13px] font-semibold truncate">
+                  FiAlgo Workspace
+                </span>
               </div>
-              <span className="text-[9px] font-bold text-neutral-300 uppercase tracking-widest px-2 py-0.5 rounded bg-white/10 border border-white/10">
-                ACTIVE
-              </span>
+              <Check size={16} className="text-blue-500 shrink-0" strokeWidth={2.5} />
             </div>
           </div>
         )}
@@ -301,15 +309,6 @@ export default function FiAlgoAdminSidebar({ mobileOpen = false, onClose }: FiAl
             >
               <span>Switch to TradiFive Workspace</span>
               <ExternalLink size={12} className="text-neutral-400" />
-            </button>
-            <button
-              onClick={() => {
-                setShowProfileMenu(false);
-                navigate("/settings");
-              }}
-              className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-left text-xs text-neutral-400 hover:text-white hover:bg-white/[0.06] transition-colors cursor-pointer"
-            >
-              <span>Settings</span>
             </button>
           </div>
         )}

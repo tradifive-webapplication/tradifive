@@ -515,33 +515,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <Search size={16} />
               </button>
 
-              <button
-                onClick={() => window.open('/live-view', '_blank')}
-                className="flex items-center gap-1.5 p-1.5 sm:px-3 sm:py-1.5 bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 hover:text-blue-300 rounded border border-blue-500/20 transition-all shadow-[0_0_15px_rgba(59,130,246,0.1)]"
-                title="Open Live App Viewer"
-              >
-                <Monitor size={14} className="text-blue-500" />
-                <span className="text-[10px] font-bold uppercase tracking-widest hidden md:inline-block">Live App</span>
-              </button>
-
-              <Link
-                to="/agent"
-                className="flex items-center gap-1.5 p-1.5 sm:px-3 sm:py-1.5 bg-transparent hover:bg-white/[0.05] rounded text-neutral-400 hover:text-white transition-colors border border-transparent hover:border-white/10"
-                title="Agent Command"
-              >
-                <BotMessageSquare size={14} className="text-[#a855f7]" />
-                <span className="text-[10px] font-bold uppercase tracking-widest hidden md:inline-block">Agent</span>
-              </Link>
-
-              <div className="w-px h-4 bg-white/10 mx-1 hidden sm:block" />
-
-              <div className={`hidden sm:flex items-center gap-2 px-2.5 py-1 bg-white/[0.03] border border-white/5 rounded ${adminUser.role === 'ceo' && viewRole !== 'ceo' ? 'border-neutral-700 shadow-[0_0_10px_rgba(255,255,255,0.02)]' : ''}`}>
-                <div className={`w-1.5 h-1.5 rounded-full ${viewRole !== adminUser.role ? 'bg-white' : 'bg-neutral-600'}`} />
-                <span className="text-[9px] font-bold uppercase tracking-widest text-neutral-500">
-                  {ROLE_LABELS[activeRole]}
-                </span>
-              </div>
-
               <NotificationCenter />
             </div>
           </header>
