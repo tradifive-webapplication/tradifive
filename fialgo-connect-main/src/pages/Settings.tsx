@@ -519,6 +519,11 @@ export default function Settings() {
                if (data.account_type) {
                   setPrivacySettings(prev => ({ ...prev, account_type: data.account_type }));
                }
+               let savedLocalSocial: Record<string, string> = {};
+               try {
+                  const s = localStorage.getItem(`tradifive_social_links_${user.id}`);
+                  if (s) savedLocalSocial = JSON.parse(s);
+               } catch (_) {}
                setProfile({
                   firstName: data.first_name || '',
                   lastName: data.last_name || '',
@@ -530,10 +535,12 @@ export default function Settings() {
                   bannerUrl: data.banner_url || '',
                   bio: data.bio || '',
                   tags: data.trading_style ? data.trading_style.split(',') : [],
-                  website: data.website || '',
-                  twitter: data.twitter_url || '',
-                  instagram: data.instagram_url || '',
-                  youtube: data.youtube_url || '',
+                  website: data.website || savedLocalSocial.website || '',
+                  twitter: data.twitter_url || savedLocalSocial.twitter || '',
+                  instagram: data.instagram_id || data.instagram_url || savedLocalSocial.instagram || '',
+                  youtube: data.youtube_url || savedLocalSocial.youtube || '',
+                  discord: data.discord_url || data.discord || savedLocalSocial.discord || '',
+                  tradingview: data.tradingview_url || data.tradingview || savedLocalSocial.tradingview || '',
                   address: data.address || '',
                   city: data.city || '',
                   state: data.state || '',
@@ -725,6 +732,18 @@ export default function Settings() {
          localStorage.setItem("tradifive_cached_account_type", privacySettings.account_type || 'personal');
          window.dispatchEvent(new Event("storage"));
          
+         // Save social links locally so Profile & Public Profile display them immediately
+         const socialLinksPayload = {
+            website: profile.website || '',
+            instagram: profile.instagram || '',
+            youtube: profile.youtube || '',
+            discord: (profile as any).discord || '',
+            tradingview: (profile as any).tradingview || '',
+            twitter: profile.twitter || '',
+         };
+         localStorage.setItem(`tradifive_social_links_${user.id}`, JSON.stringify(socialLinksPayload));
+         localStorage.setItem(`tradifive_social_links_user_${effectiveUsername.toLowerCase()}`, JSON.stringify(socialLinksPayload));
+
          const updatedCache = {
             id: user.id,
             first_name: profile.firstName,
@@ -734,6 +753,12 @@ export default function Settings() {
             avatar_url: profile.avatarUrl,
             banner_url: profile.bannerUrl,
             bio: profile.bio,
+            website: profile.website || '',
+            instagram_id: profile.instagram || '',
+            youtube_url: profile.youtube || '',
+            discord: (profile as any).discord || '',
+            tradingview: (profile as any).tradingview || '',
+            twitter_url: profile.twitter || '',
             location: profile.city,
             country: profile.country,
             country_emoji: profile.countryEmoji

@@ -45,6 +45,7 @@ import { calculateTradingMetrics } from "@/utils/tradeMetrics";
 import { FollowListModal } from "@/components/FollowListModal";
 import { validateUsername } from "@/utils/usernameValidation";
 import ShareProfileModal from "@/components/ShareProfileModal";
+import { ProfileSocialIcons, DefaultCoverWaves } from "@/components/ProfileSocialIcons";
 
 // Placeholder display names to filter out from suggestions
 const WrappedTrophy = (props: any) => {
@@ -996,7 +997,7 @@ export default function Profile() {
               <div className="bg-white dark:bg-[#1A1A1E] rounded-[28px] overflow-hidden figma-card-shadow relative">
 
                 {/* Cover Banner */}
-                <div className="h-44 sm:h-56 w-full relative bg-slate-900 overflow-hidden">
+                <div className="h-44 sm:h-56 w-full relative bg-slate-200 dark:bg-[#1A1A1E] overflow-hidden">
                   {/* Top-Left Back Button Overlay (Matching Reference Pic) */}
                   <button
                     type="button"
@@ -1008,23 +1009,26 @@ export default function Profile() {
                     <ChevronLeft size={20} strokeWidth={2.4} />
                   </button>
 
-                  {/* Top-Right 3-Dot More Button Overlay (Matching Reference Pic) */}
-                  <button
-                    type="button"
-                    onClick={() => setIsShareModalOpen(true)}
-                    className="absolute top-3.5 right-3.5 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-black/55 hover:bg-black/75 backdrop-blur-md text-white flex items-center justify-center shadow-md active:scale-95 transition-all cursor-pointer"
-                    title="More options"
-                    aria-label="More options"
-                  >
-                    <MoreHorizontal size={20} strokeWidth={2.4} />
-                  </button>
+                  {/* Top-Right Social Link Circles + 3-Dot More Button Overlay (Matching Reference Pic 2) */}
+                  <div className="absolute top-3.5 right-3.5 z-20 flex items-center gap-2">
+                    <ProfileSocialIcons profile={profile} />
+                    <button
+                      type="button"
+                      onClick={() => setIsShareModalOpen(true)}
+                      className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-black/55 hover:bg-black/75 backdrop-blur-md text-white flex items-center justify-center shadow-md active:scale-95 transition-all cursor-pointer"
+                      title="More options"
+                      aria-label="More options"
+                    >
+                      <MoreHorizontal size={20} strokeWidth={2.4} />
+                    </button>
+                  </div>
 
                   {loadingProfile ? (
                     <div className="w-full h-full animate-pulse bg-slate-350 dark:bg-[#1E1E1E]" />
                   ) : (
                     <div className="w-full h-full relative">
                       {(!profile?.banner_url) ? (
-                        <div className="w-full h-full bg-gradient-to-r from-slate-800 to-slate-900 relative" />
+                        <DefaultCoverWaves />
                       ) : (
                         <img
                           src={profile.banner_url}
@@ -1033,6 +1037,8 @@ export default function Profile() {
                           onError={(e) => { (e.target as HTMLImageElement).src = "/default-cover.png"; }}
                         />
                       )}
+                      {/* Smooth Bottom Shade Fade into Card Background (Matching Reference Pic 2) */}
+                      <div className="absolute inset-x-0 bottom-0 h-20 sm:h-24 bg-gradient-to-t from-white via-white/70 to-transparent dark:from-[#1A1A1E] dark:via-[#1A1A1E]/70 dark:to-transparent pointer-events-none z-10" />
                     </div>
                   )}
                 </div>
@@ -1042,7 +1048,7 @@ export default function Profile() {
 
                   {/* Top Row: Overlapping Avatar on Left, Solid Pill Buttons on Right */}
                   <div className="flex items-end justify-between gap-2 sm:gap-4">
-                    <div className="relative -mt-11 sm:-mt-16 shrink-0">
+                    <div className="relative -mt-11 sm:-mt-16 shrink-0 z-20">
                       <div className="w-20 h-20 sm:w-28 sm:h-28 rounded-full border-[3.5px] sm:border-4 border-white dark:border-[#1A1A1E] overflow-hidden bg-white dark:bg-[#1E1E1E] relative shadow-lg">
                         {loadingProfile ? (
                           <div className="w-full h-full animate-pulse bg-slate-200 dark:bg-slate-700" />
