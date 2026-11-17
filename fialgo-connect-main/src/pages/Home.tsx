@@ -10,6 +10,7 @@ import { useHomeData, FeedPost } from "@/hooks/useHomeData";
 import { useMarket } from "@/contexts/MarketContext";
 import CreatePostModal from "@/components/CreatePostModal";
 import FeedCard from "@/components/FeedCard";
+import { triggerHaptic } from "@/utils/haptics";
 import { Star as IconlyStar, Discovery as IconlyDiscovery, Wallet as IconlyWallet, Activity as IconlyActivity, Graph as IconlyGraph, AddUser as IconlyAddUser, ShieldDone as IconlyShieldDone, Calendar as IconlyCalendar } from "react-iconly";
 import EconomicCalendarWidget from "@/components/EconomicCalendarWidget";
 import NewsWidget from "@/components/NewsWidget";
@@ -1860,15 +1861,22 @@ export default function Home() {
                 )}
             </AnimatePresence>
 
-            {/* Mobile Floating Action Button: Create Post (Only on Home on mobile) */}
+            {/* Mobile Floating Action Button: Create Post (Black Tactile Style from Reference Image) */}
             <button
                 type="button"
-                onClick={() => setIsCreatePostModalOpen(true)}
-                className="sm:hidden fixed right-4 bottom-[calc(max(0.75rem,env(safe-area-inset-bottom))+4.75rem)] z-40 w-12 h-12 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-xl shadow-blue-500/25 flex items-center justify-center active:scale-90 transition-transform cursor-pointer border border-white/20"
+                onClick={() => {
+                    triggerHaptic("medium");
+                    setIsCreatePostModalOpen(true);
+                }}
+                style={{
+                    background: "linear-gradient(180deg, #38383A 0%, #1E1E20 50%, #080808 100%)",
+                    boxShadow: "0 6px 16px -2px rgba(0, 0, 0, 0.45), 0 2px 6px -1px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(0, 0, 0, 0.85), inset 0 1px 0.5px 0 rgba(255, 255, 255, 0.28)",
+                }}
+                className="sm:hidden fixed right-4 bottom-[calc(max(0.75rem,env(safe-area-inset-bottom))+4.75rem)] z-40 w-[52px] h-[52px] rounded-full text-white flex items-center justify-center active:scale-95 active:brightness-90 hover:scale-105 transition-all duration-150 cursor-pointer touch-manipulation select-none"
                 title="Create New Post"
                 aria-label="Create New Post"
             >
-                <Plus size={22} strokeWidth={2.5} />
+                <Plus size={24} strokeWidth={2.8} className="text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.4)]" />
             </button>
 
         </DashboardLayout>
