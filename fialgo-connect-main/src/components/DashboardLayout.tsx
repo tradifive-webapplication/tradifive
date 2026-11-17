@@ -759,7 +759,7 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
             <button
               type="button"
               onClick={() => setIsAIOpen(true)}
-              className="sm:hidden fixed right-4 bottom-[calc(max(0.75rem,env(safe-area-inset-bottom))+4.25rem)] z-40 w-12 h-12 rounded-full bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 text-white shadow-xl shadow-purple-500/30 flex items-center justify-center active:scale-90 transition-transform cursor-pointer border border-white/20"
+              className="sm:hidden fixed right-4 bottom-[calc(max(0.75rem,env(safe-area-inset-bottom))+4.75rem)] z-40 w-12 h-12 rounded-full bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 text-white shadow-xl shadow-purple-500/30 flex items-center justify-center active:scale-90 transition-transform cursor-pointer border border-white/20"
               title="Open AI Coach"
               aria-label="Open AI Coach"
             >

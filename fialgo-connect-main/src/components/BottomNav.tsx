@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { triggerHaptic } from "@/utils/haptics";
@@ -8,6 +8,40 @@ import {
   Cpu, ReceiptText, Trophy, ShoppingBag, Gift, Layers, FileText, Settings, 
   HelpCircle
 } from "lucide-react";
+
+const renderDynamicIcon = (iconName: string, active: boolean) => {
+  const props = { size: 20, strokeWidth: active ? 2.2 : 1.8 };
+  switch (iconName) {
+    case "Activity":
+      return <Activity {...props} />;
+    case "LayoutGrid":
+      return <LayoutGrid {...props} />;
+    case "Building2":
+      return <Building2 {...props} />;
+    case "Cpu":
+      return <Cpu {...props} />;
+    case "ReceiptText":
+      return <ReceiptText {...props} />;
+    case "Trophy":
+      return <Trophy {...props} />;
+    case "ShoppingBag":
+      return <ShoppingBag {...props} />;
+    case "Gift":
+      return <Gift {...props} />;
+    case "Layers":
+      return <Layers {...props} />;
+    case "FileText":
+      return <FileText {...props} />;
+    case "Settings":
+      return <Settings {...props} />;
+    case "HelpCircle":
+      return <HelpCircle {...props} />;
+    case "User":
+      return <User {...props} />;
+    default:
+      return <Activity {...props} />;
+  }
+};
 
 export default function BottomNav() {
   const location = useLocation();
@@ -22,13 +56,93 @@ export default function BottomNav() {
     ? "/auto-trade/dashboard"
     : "/auto-trade/setup";
 
+  const DEFAULT_DYNAMIC_TAB = {
+    id: "autotrade",
+    label: "AutoTrade",
+    path: autoTradePath,
+    iconName: "Activity",
+  };
+
+  // Tab 4 defaults to AutoTrade, and dynamically switches to whichever item the user chooses in the menu
+  const [dynamicTab, setDynamicTab] = useState<{
+    id: string;
+    label: string;
+    path: string;
+    iconName: string;
+  }>(() => {
+    try {
+      const saved = localStorage.getItem("tradifive_dynamic_bottom_tab");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed?.id && parsed?.label && parsed?.path && parsed?.iconName) {
+          return parsed;
+        }
+      }
+    } catch (e) {}
+    return DEFAULT_DYNAMIC_TAB;
+  });
+
+  // Watch route changes: If user lands on a menu page, dynamically switch Tab 4 to match it
+  useEffect(() => {
+    const p = location.pathname;
+    // Dedicated tabs: Home (tab 1), Journal (tab 2), RiskGuard (tab 3)
+    if (p === "/" || p.startsWith("/home") || p.startsWith("/journal") || p.startsWith("/risk-guard")) {
+      return;
+    }
+
+    let nextTab: typeof DEFAULT_DYNAMIC_TAB | null = null;
+    if (p.startsWith("/auto-trade")) {
+      nextTab = { id: "autotrade", label: "AutoTrade", path: autoTradePath, iconName: "Activity" };
+    } else if (p.startsWith("/dashboard")) {
+      nextTab = { id: "dashboard", label: "Dashboard", path: "/dashboard", iconName: "LayoutGrid" };
+    } else if (p.startsWith("/strategy-builder")) {
+      nextTab = { id: "strategy", label: "Strategy", path: "/strategy-builder", iconName: "Cpu" };
+    } else if (p.startsWith("/weekly-settlements") || p.startsWith("/settlements")) {
+      nextTab = { id: "settlements", label: "Settlements", path: "/weekly-settlements", iconName: "ReceiptText" };
+    } else if (p.startsWith("/competitions")) {
+      nextTab = { id: "competitions", label: "Contests", path: "/competitions", iconName: "Trophy" };
+    } else if (p.startsWith("/store")) {
+      nextTab = { id: "store", label: "Store", path: "/store", iconName: "ShoppingBag" };
+    } else if (p.startsWith("/referrals") || p.startsWith("/rewards")) {
+      nextTab = { id: "referrals", label: "Rewards", path: "/referrals", iconName: "Gift" };
+    } else if (p.startsWith("/settings")) {
+      nextTab = { id: "settings", label: "Settings", path: "/settings", iconName: "Settings" };
+    } else if (p.startsWith("/support")) {
+      nextTab = { id: "support", label: "Support", path: "/support", iconName: "HelpCircle" };
+    } else if (p.startsWith("/profile")) {
+      nextTab = { id: "profile", label: "Profile", path: "/profile", iconName: "User" };
+    } else if (p.startsWith("/broker-connect")) {
+      nextTab = { id: "brokers", label: "Brokers", path: "/broker-connect", iconName: "Building2" };
+    }
+
+    if (nextTab && nextTab.id !== dynamicTab.id) {
+      setDynamicTab(nextTab);
+      try {
+        localStorage.setItem("tradifive_dynamic_bottom_tab", JSON.stringify(nextTab));
+      } catch (e) {}
+    }
+  }, [location.pathname, autoTradePath, dynamicTab.id]);
+
   const tabs = [
+    {
+      id: "home",
+      label: "Home",
+      path: "/home",
+      isActive: (p: string) => (p === "/" || p.startsWith("/home")) && !isMoreOpen,
+      renderIcon: (active: boolean) => (
+        <Home
+          size={20}
+          strokeWidth={active ? 2.2 : 1.8}
+        />
+      ),
+    },
     {
       id: "dashboard",
       label: "Dashboard",
       path: "/dashboard",
       isActive: (p: string) =>
-        (p === "/dashboard" ||
+        (p.startsWith("/dashboard") ||
+        p.startsWith("/portfolio") ||
         p.startsWith("/broker-connect")) && !isMoreOpen,
       renderIcon: (active: boolean) => (
         <LayoutGrid
@@ -50,37 +164,20 @@ export default function BottomNav() {
       ),
     },
     {
-      id: "analytics",
-      label: "Analytics",
-      path: "/dashboard/portfolio",
-      isActive: (p: string) =>
-        (p.startsWith("/dashboard/portfolio") ||
-        p.startsWith("/dashboard/reports") ||
-        p.startsWith("/portfolio") ||
-        p.startsWith("/reports")) && !isMoreOpen,
+      id: "riskguard",
+      label: "RiskGuard",
+      path: "/risk-guard",
+      isActive: (p: string) => p.startsWith("/risk-guard") && !isMoreOpen,
       renderIcon: (active: boolean) => (
-        <BarChart3
+        <ShieldCheck
           size={20}
           strokeWidth={active ? 2.2 : 1.8}
         />
       ),
     },
     {
-      id: "community",
-      label: "Community",
-      path: "/home",
-      isActive: (p: string) =>
-        (p === "/" || p.startsWith("/home") || p.startsWith("/discover")) && !isMoreOpen,
-      renderIcon: (active: boolean) => (
-        <Users
-          size={20}
-          strokeWidth={active ? 2.2 : 1.8}
-        />
-      ),
-    },
-    {
-      id: "more",
-      label: "More",
+      id: "menu",
+      label: "Menu",
       path: "#more",
       isMore: true,
       isActive: () => isMoreOpen,
@@ -121,6 +218,22 @@ export default function BottomNav() {
     handleAskAI(q);
   };
 
+  // Dynamic menu item selection: sets the 4th tab to this item and navigates to it
+  const handleSelectMenuItem = (item: {
+    id: string;
+    label: string;
+    path: string;
+    iconName: string;
+  }) => {
+    triggerHaptic("selection");
+    setDynamicTab(item);
+    try {
+      localStorage.setItem("tradifive_dynamic_bottom_tab", JSON.stringify(item));
+    } catch (e) {}
+    setIsMoreOpen(false);
+    navigate(item.path);
+  };
+
   const handleNavigate = (path: string) => {
     triggerHaptic("selection");
     setIsMoreOpen(false);
@@ -132,7 +245,7 @@ export default function BottomNav() {
       {/* ── Modern Floating Pill Bottom Navigation Dock (Matching Reference Image) ── */}
       <nav
         aria-label="Mobile Navigation"
-        className="fixed bottom-[max(0.75rem,env(safe-area-inset-bottom))] inset-x-3.5 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 sm:w-full sm:max-w-md z-50 md:hidden bg-[#F2F4F7]/95 dark:bg-[#131417]/95 backdrop-blur-2xl border border-slate-200/80 dark:border-white/10 rounded-full shadow-[0_8px_30px_rgba(0,0,0,0.08),0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.5)] p-1 select-none"
+        className="fixed bottom-[max(0.75rem,env(safe-area-inset-bottom))] inset-x-4 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 sm:w-full sm:max-w-md z-50 md:hidden bg-white dark:bg-[#121215] border border-slate-200/90 dark:border-white/10 rounded-full shadow-[0_6px_25px_rgba(0,0,0,0.08),0_1px_4px_rgba(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.6)] p-1.5 select-none"
       >
         <div className="flex items-center justify-between gap-1 w-full">
           {tabs.map((tab) => {
@@ -142,13 +255,13 @@ export default function BottomNav() {
                 key={tab.id}
                 type="button"
                 onClick={() => handleTabClick(tab)}
-                className="relative flex-1 flex flex-col items-center justify-center py-1.5 px-1 rounded-full cursor-pointer select-none active:scale-95 transition-transform"
+                className="relative flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-full min-h-[48px] cursor-pointer select-none active:scale-95 transition-transform"
               >
-                {/* Active White Stadium Pill (Encloses both icon and label) */}
+                {/* Active Stadium Pill (Encloses both icon and label, adjusted height) */}
                 {active && (
                   <motion.div
                     layoutId="mobile-nav-active-pill"
-                    className="absolute inset-0 rounded-full bg-white dark:bg-[#202024] border border-slate-200/90 dark:border-white/12 shadow-[0_1px_4px_rgba(0,0,0,0.07)] dark:shadow-none"
+                    className="absolute inset-0 rounded-full bg-slate-100/95 dark:bg-[#202024] border border-slate-200/90 dark:border-white/15 shadow-[0_1px_3px_rgba(0,0,0,0.06)] dark:shadow-none"
                     transition={{ type: "spring", stiffness: 480, damping: 36 }}
                   />
                 )}
@@ -269,7 +382,7 @@ export default function BottomNav() {
                   {/* AutoTrade (Algo & Robots) */}
                   <button
                     type="button"
-                    onClick={() => handleNavigate(autoTradePath)}
+                    onClick={() => handleSelectMenuItem({ id: "autotrade", label: "AutoTrade", path: autoTradePath, iconName: "Activity" })}
                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-colors cursor-pointer text-left"
                   >
                     <div className="flex items-center gap-3">
@@ -306,7 +419,7 @@ export default function BottomNav() {
 
                   <button
                     type="button"
-                    onClick={() => handleNavigate("/broker-connect")}
+                    onClick={() => handleSelectMenuItem({ id: "brokers", label: "Brokers", path: "/broker-connect", iconName: "Building2" })}
                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-colors cursor-pointer text-left"
                   >
                     <div className="flex items-center gap-3">
@@ -323,7 +436,7 @@ export default function BottomNav() {
 
                   <button
                     type="button"
-                    onClick={() => handleNavigate("/journal")}
+                    onClick={() => { setIsMoreOpen(false); navigate("/journal"); }}
                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-colors cursor-pointer text-left"
                   >
                     <div className="flex items-center gap-3">
@@ -340,7 +453,7 @@ export default function BottomNav() {
 
                   <button
                     type="button"
-                    onClick={() => handleNavigate("/strategy-builder")}
+                    onClick={() => handleSelectMenuItem({ id: "strategy", label: "Strategy", path: "/strategy-builder", iconName: "Cpu" })}
                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-colors cursor-pointer text-left"
                   >
                     <div className="flex items-center gap-3">
@@ -357,7 +470,7 @@ export default function BottomNav() {
 
                   <button
                     type="button"
-                    onClick={() => handleNavigate("/risk-guard")}
+                    onClick={() => { setIsMoreOpen(false); navigate("/risk-guard"); }}
                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-colors cursor-pointer text-left"
                   >
                     <div className="flex items-center gap-3">
@@ -374,7 +487,7 @@ export default function BottomNav() {
 
                   <button
                     type="button"
-                    onClick={() => handleNavigate("/weekly-settlements")}
+                    onClick={() => handleSelectMenuItem({ id: "settlements", label: "Settlements", path: "/weekly-settlements", iconName: "ReceiptText" })}
                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-colors cursor-pointer text-left"
                   >
                     <div className="flex items-center gap-3">
@@ -391,7 +504,7 @@ export default function BottomNav() {
 
                   <button
                     type="button"
-                    onClick={() => handleNavigate("/competitions")}
+                    onClick={() => handleSelectMenuItem({ id: "competitions", label: "Contests", path: "/competitions", iconName: "Trophy" })}
                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-colors cursor-pointer text-left"
                   >
                     <div className="flex items-center gap-3">
@@ -408,7 +521,7 @@ export default function BottomNav() {
 
                   <button
                     type="button"
-                    onClick={() => handleNavigate("/store")}
+                    onClick={() => handleSelectMenuItem({ id: "store", label: "Store", path: "/store", iconName: "ShoppingBag" })}
                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-colors cursor-pointer text-left"
                   >
                     <div className="flex items-center gap-3">
@@ -425,7 +538,7 @@ export default function BottomNav() {
 
                   <button
                     type="button"
-                    onClick={() => handleNavigate("/referrals")}
+                    onClick={() => handleSelectMenuItem({ id: "referrals", label: "Rewards", path: "/referrals", iconName: "Gift" })}
                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-colors cursor-pointer text-left"
                   >
                     <div className="flex items-center gap-3">
@@ -449,7 +562,7 @@ export default function BottomNav() {
                 <div className="bg-white dark:bg-[#1A1A1E] rounded-2xl border border-slate-200/70 dark:border-white/10 shadow-xs divide-y divide-slate-100 dark:divide-white/5 overflow-hidden">
                   <button
                     type="button"
-                    onClick={() => handleNavigate("/dashboard")}
+                    onClick={() => handleSelectMenuItem({ id: "dashboard", label: "Dashboard", path: "/dashboard", iconName: "LayoutGrid" })}
                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-colors cursor-pointer text-left"
                   >
                     <div className="flex items-center gap-3">
@@ -466,7 +579,7 @@ export default function BottomNav() {
 
                   <button
                     type="button"
-                    onClick={() => handleNavigate("/auto-trade/history")}
+                    onClick={() => handleSelectMenuItem({ id: "history", label: "Plan", path: "/auto-trade/history", iconName: "FileText" })}
                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-colors cursor-pointer text-left"
                   >
                     <div className="flex items-center gap-3">
@@ -483,7 +596,7 @@ export default function BottomNav() {
 
                   <button
                     type="button"
-                    onClick={() => handleNavigate("/settings")}
+                    onClick={() => handleSelectMenuItem({ id: "settings", label: "Settings", path: "/settings", iconName: "Settings" })}
                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-colors cursor-pointer text-left"
                   >
                     <div className="flex items-center gap-3">
@@ -499,7 +612,7 @@ export default function BottomNav() {
 
                   <button
                     type="button"
-                    onClick={() => handleNavigate("/profile")}
+                    onClick={() => handleSelectMenuItem({ id: "profile", label: "Profile", path: "/profile", iconName: "User" })}
                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-colors cursor-pointer text-left"
                   >
                     <div className="flex items-center gap-3">
@@ -516,7 +629,7 @@ export default function BottomNav() {
 
                   <button
                     type="button"
-                    onClick={() => handleNavigate("/support")}
+                    onClick={() => handleSelectMenuItem({ id: "support", label: "Support", path: "/support", iconName: "HelpCircle" })}
                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-colors cursor-pointer text-left"
                   >
                     <div className="flex items-center gap-3">
