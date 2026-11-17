@@ -10,6 +10,7 @@ import { MaintenanceGuard } from "@/components/MaintenanceGuard";
 import { ProtectedLayout } from "./components/ProtectedLayout";
 import { CustomCursor } from "./components/CustomCursor";
 import { NetworkNotifier } from "@/components/NetworkNotifier";
+import { AppUpdateBanner } from "@/components/AppUpdateBanner";
 import { AdminRoute } from "./components/AdminRoute";
 import FloatingHelpButton from "./components/FloatingHelpButton";
 
@@ -161,6 +162,7 @@ const App = () => {
       <Toaster />
       <Sonner />
       <NetworkNotifier />
+      <AppUpdateBanner />
       <MarketProvider>
         <TradingProvider>
           <PresenceProvider>

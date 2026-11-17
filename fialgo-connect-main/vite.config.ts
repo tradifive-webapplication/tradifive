@@ -6,8 +6,14 @@ import electron from "vite-plugin-electron";
 import renderer from "vite-plugin-electron-renderer";
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => ({
+export default defineConfig(({ mode }) => {
+  const buildVersion = Date.now().toString();
+
+  return {
   base: process.env.ELECTRON === "true" ? "./" : "/",
+  define: {
+    __APP_BUILD_VERSION__: JSON.stringify(buildVersion),
+  },
   server: {
     host: true,
     allowedHosts: true,
@@ -27,6 +33,16 @@ export default defineConfig(({ mode }) => ({
   optimizeDeps: { force: true },
   plugins: [
     react(), 
+    {
+      name: "tradifive-version-json",
+      generateBundle() {
+        this.emitFile({
+          type: "asset",
+          fileName: "version.json",
+          source: JSON.stringify({ version: buildVersion }),
+        });
+      },
+    },
     mode === "development" && componentTagger(),
     process.env.ELECTRON === "true" && electron([
       {
@@ -47,4 +63,5 @@ export default defineConfig(({ mode }) => ({
     sourcemap: false, // Explicitly disable sourcemaps for security
     emptyOutDir: process.env.ELECTRON !== "true",
   },
-}));
+};
+});

@@ -1038,12 +1038,12 @@ export default function Profile() {
                 </div>
 
                 {/* Profile Details Area */}
-                <div className="px-5 sm:px-8 pb-6 relative pt-3">
+                <div className="px-4 sm:px-8 pb-5 sm:pb-6 relative pt-2.5 sm:pt-3">
 
                   {/* Top Row: Overlapping Avatar on Left, Solid Pill Buttons on Right */}
-                  <div className="flex items-end justify-between gap-4">
-                    <div className="relative -mt-14 sm:-mt-16 shrink-0">
-                      <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 border-white dark:border-[#1A1A1E] overflow-hidden bg-white dark:bg-[#1E1E1E] relative shadow-lg">
+                  <div className="flex items-end justify-between gap-2 sm:gap-4">
+                    <div className="relative -mt-11 sm:-mt-16 shrink-0">
+                      <div className="w-20 h-20 sm:w-28 sm:h-28 rounded-full border-[3.5px] sm:border-4 border-white dark:border-[#1A1A1E] overflow-hidden bg-white dark:bg-[#1E1E1E] relative shadow-lg">
                         {loadingProfile ? (
                           <div className="w-full h-full animate-pulse bg-slate-200 dark:bg-slate-700" />
                         ) : (
@@ -1058,11 +1058,11 @@ export default function Profile() {
                     </div>
 
                     {/* Action Buttons (Consistent Black Tactile Pill Style — Share is in top-right 3-dot menu) */}
-                    <div className="flex items-center gap-2 sm:gap-2.5 pb-1 flex-wrap justify-end">
+                    <div className="flex items-center gap-1.5 sm:gap-2.5 pb-0.5 sm:pb-1 flex-nowrap justify-end shrink-0">
                       <button
                         type="button"
                         onClick={openEditModal}
-                        className="flex items-center justify-center gap-1.5 px-5 py-2 rounded-full text-[13.5px] font-bold whitespace-nowrap tactile-black-pill cursor-pointer select-none"
+                        className="flex items-center justify-center gap-1.5 px-4 sm:px-5 py-1.5 sm:py-2 rounded-full text-[12.5px] sm:text-[13.5px] font-bold whitespace-nowrap tactile-black-pill cursor-pointer select-none"
                       >
                         <IconlyEdit set="curved" primaryColor="currentColor" size={14} stroke="bold" strokeWidth={2} /> Edit Profile
                       </button>
@@ -1131,14 +1131,14 @@ export default function Profile() {
                 </div>
               </div>
 
-              {/* --- QUICK STATS: COMPACT 1-LINE ROW (All visible stats fit in 1 Line) --- */}
+              {/* --- QUICK STATS: COMPACT 1-LINE ROW (All visible stats fit cleanly in 1 Line even on iPhone 16) --- */}
               {(() => {
                 const visibleCards = [
-                  { title: "Trades", value: totalTradesCount.toLocaleString(), isHidden: privacySettings.show_trades === false, icon: <IconlyGraph set="curved" primaryColor="currentColor" size={14} stroke="bold" strokeWidth={2} className="text-blue-500" />, color: "bg-blue-500/10 text-blue-600" },
-                  { title: "Win Rate", value: winRateVal, isHidden: privacySettings.show_winrate === false, icon: <IconlyShieldDone set="curved" primaryColor="currentColor" size={14} stroke="bold" strokeWidth={2} className="text-emerald-500" />, color: "bg-emerald-500/10 text-emerald-600" },
-                  { title: "ROI (All Time)", value: roiVal, isHidden: privacySettings.show_roi === false, icon: <IconlyActivity set="curved" primaryColor="currentColor" size={14} stroke="bold" strokeWidth={2} className="text-emerald-500" />, color: "bg-emerald-500/10 text-emerald-600", highlighted: true },
-                  { title: "Avg RR", value: avgRRVal, isHidden: privacySettings.show_avg_rr === false, icon: <WrappedTarget set="curved" primaryColor="currentColor" size={14} stroke="bold" strokeWidth={2} className="text-purple-500" />, color: "bg-purple-500/10 text-purple-600" },
-                  { title: "Streak", value: streakVal, isHidden: privacySettings.show_streak === false, icon: <WrappedFlame set="curved" primaryColor="currentColor" size={14} stroke="bold" strokeWidth={2} className="text-orange-500" />, color: "bg-orange-500/10 text-orange-600" }
+                  { title: "Trades", shortTitle: "Trades", value: totalTradesCount.toLocaleString(), isHidden: privacySettings.show_trades === false, icon: <IconlyGraph set="curved" primaryColor="currentColor" size={12} stroke="bold" strokeWidth={2} className="text-blue-500" />, color: "bg-blue-500/10 text-blue-600" },
+                  { title: "Win Rate", shortTitle: "Win Rate", value: winRateVal, isHidden: privacySettings.show_winrate === false, icon: <IconlyShieldDone set="curved" primaryColor="currentColor" size={12} stroke="bold" strokeWidth={2} className="text-emerald-500" />, color: "bg-emerald-500/10 text-emerald-600" },
+                  { title: "ROI (All Time)", shortTitle: "ROI", value: roiVal, isHidden: privacySettings.show_roi === false, icon: <IconlyActivity set="curved" primaryColor="currentColor" size={12} stroke="bold" strokeWidth={2} className="text-emerald-500" />, color: "bg-emerald-500/10 text-emerald-600", highlighted: true },
+                  { title: "Avg RR", shortTitle: "Avg RR", value: avgRRVal, isHidden: privacySettings.show_avg_rr === false, icon: <WrappedTarget set="curved" primaryColor="currentColor" size={12} stroke="bold" strokeWidth={2} className="text-purple-500" />, color: "bg-purple-500/10 text-purple-600" },
+                  { title: "Streak", shortTitle: "Streak", value: streakVal, isHidden: privacySettings.show_streak === false, icon: <WrappedFlame set="curved" primaryColor="currentColor" size={12} stroke="bold" strokeWidth={2} className="text-orange-500" />, color: "bg-orange-500/10 text-orange-600" }
                 ].filter(c => !c.isHidden);
 
                 if (visibleCards.length === 0) return null;
@@ -1149,14 +1149,17 @@ export default function Profile() {
                     style={{ gridTemplateColumns: `repeat(${visibleCards.length}, minmax(0, 1fr))` }}
                   >
                     {visibleCards.map((card, idx) => (
-                      <div key={idx} className="py-2.5 px-2 sm:py-3 sm:px-3.5 rounded-[14px] sm:rounded-2xl bg-white dark:bg-[#1E1E1E] figma-card-shadow hover:-translate-y-0.5 transition-all flex flex-col justify-between min-w-0">
-                        <div className="flex items-center justify-between gap-1 mb-1 sm:mb-1.5">
-                          <span className="text-[8px] sm:text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider truncate">{card.title}</span>
-                          <div className={`p-1 sm:p-1.5 rounded-md sm:rounded-lg ${card.color} shrink-0`}>
+                      <div key={idx} className="py-2 px-1.5 sm:py-3 sm:px-3.5 rounded-[14px] sm:rounded-2xl bg-white dark:bg-[#1E1E1E] figma-card-shadow hover:-translate-y-0.5 transition-all flex flex-col justify-between min-w-0">
+                        <div className="flex flex-col-reverse min-[440px]:flex-row min-[440px]:items-center justify-between gap-1 mb-1 sm:mb-1.5">
+                          <span className="text-[8px] sm:text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-tight sm:tracking-wider truncate">
+                            <span className="sm:hidden">{card.shortTitle}</span>
+                            <span className="hidden sm:inline">{card.title}</span>
+                          </span>
+                          <div className={`w-5 h-5 sm:w-auto sm:h-auto p-1 sm:p-1.5 rounded-md sm:rounded-lg ${card.color} shrink-0 flex items-center justify-center`}>
                             {card.icon}
                           </div>
                         </div>
-                        <p className={`text-[13px] sm:text-[17px] md:text-[19px] font-extrabold leading-tight font-sans tracking-tight truncate ${card.highlighted ? 'text-emerald-500' : 'text-slate-900 dark:text-white'}`}>
+                        <p className={`text-[12.5px] sm:text-[17px] md:text-[19px] font-extrabold leading-tight font-sans tracking-tight truncate ${card.highlighted ? 'text-emerald-500' : 'text-slate-900 dark:text-white'}`}>
                           {card.value}
                         </p>
                       </div>

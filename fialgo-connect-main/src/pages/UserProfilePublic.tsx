@@ -949,12 +949,12 @@ export default function UserProfilePublic() {
               </div>
 
               {/* Profile Details Area */}
-              <div className="px-5 sm:px-8 pb-6 relative pt-3">
-                {/* Top Row: Avatar on left overlapping banner, Action buttons on right (Image 1) */}
-                <div className="flex items-end justify-between gap-4">
+              <div className="px-4 sm:px-8 pb-5 sm:pb-6 relative pt-2.5 sm:pt-3">
+                {/* Top Row: Avatar on left overlapping banner, Action buttons on right (Always 1 line even on iPhone 16) */}
+                <div className="flex items-end justify-between gap-2 sm:gap-4">
                   {/* Left: Avatar container overlapping cover */}
-                  <div className="relative -mt-14 sm:-mt-16 shrink-0">
-                    <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 border-white dark:border-[#1A1A1E] overflow-hidden bg-white dark:bg-[#1E1E1E] relative shadow-lg">
+                  <div className="relative -mt-11 sm:-mt-16 shrink-0">
+                    <div className="w-20 h-20 sm:w-28 sm:h-28 rounded-full border-[3.5px] sm:border-4 border-white dark:border-[#1A1A1E] overflow-hidden bg-white dark:bg-[#1E1E1E] relative shadow-lg">
                       {loading ? (
                         <div className="w-full h-full animate-pulse bg-slate-200 dark:bg-slate-700" />
                       ) : (
@@ -968,33 +968,33 @@ export default function UserProfilePublic() {
                     </div>
                   </div>
 
-                  {/* Right: Action Buttons (Consistent Black Tactile Pill Style) */}
-                  <div className="flex items-center gap-2 sm:gap-2.5 pb-1 flex-wrap justify-end">
+                  {/* Right: Action Buttons (Consistent Black Tactile Pill Style — always side-by-side on 1 line) */}
+                  <div className="flex items-center gap-1.5 sm:gap-2.5 pb-0.5 sm:pb-1 flex-nowrap justify-end shrink-0">
                     {/* Follow button */}
                     <button
                       type="button"
                       onClick={() => profile?.id && toggleFollowUser(profile.id, profile.display_name)}
-                      className={`flex items-center justify-center gap-1.5 px-6 py-2 rounded-full text-[13.5px] font-bold whitespace-nowrap cursor-pointer select-none ${
+                      className={`flex items-center justify-center gap-1 sm:gap-1.5 px-4 sm:px-6 py-1.5 sm:py-2 rounded-full text-[12.5px] sm:text-[13.5px] font-bold whitespace-nowrap cursor-pointer select-none ${
                         followedUsers[profile?.id]
                           ? "tactile-white-pill"
                           : "tactile-black-pill"
                       }`}
                     >
-                      {followedUsers[profile?.id] ? <><UserCheck size={14} strokeWidth={2.4} /> Following</> : (hasRequested ? <><Clock size={14} strokeWidth={2.4} /> Requested</> : "Follow")}
+                      {followedUsers[profile?.id] ? <><UserCheck size={13} strokeWidth={2.4} /> Following</> : (hasRequested ? <><Clock size={13} strokeWidth={2.4} /> Requested</> : "Follow")}
                     </button>
 
                     {/* Message button */}
                     <button
                       type="button"
                       onClick={handleStartConversation}
-                      className="flex items-center justify-center gap-1.5 px-5 py-2 rounded-full tactile-black-pill text-[13.5px] font-bold whitespace-nowrap cursor-pointer select-none"
+                      className="flex items-center justify-center gap-1 sm:gap-1.5 px-3.5 sm:px-5 py-1.5 sm:py-2 rounded-full tactile-black-pill text-[12.5px] sm:text-[13.5px] font-bold whitespace-nowrap cursor-pointer select-none"
                     >
-                      <MessageSquare size={14} strokeWidth={2.4} /> Message
+                      <MessageSquare size={13} strokeWidth={2.4} /> Message
                     </button>
 
                     {/* Channel button (conditional) */}
                     {userChannel && (
-                      <Link to={`/channel/${userChannel.id}`} className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-full tactile-white-pill text-[13px] font-bold whitespace-nowrap select-none">
+                      <Link to={`/channel/${userChannel.id}`} className="hidden sm:flex items-center justify-center gap-1.5 px-4 py-2 rounded-full tactile-white-pill text-[13px] font-bold whitespace-nowrap select-none">
                         <Radio size={14} /> Channel
                       </Link>
                     )}
@@ -1047,14 +1047,14 @@ export default function UserProfilePublic() {
             </div>
 
             <div className="space-y-5">
-              {/* --- QUICK STATS: COMPACT 1-LINE ROW (All 5 fit in 1 Line as requested in Image 2) --- */}
+              {/* --- QUICK STATS: COMPACT 1-LINE ROW (All 5 fit cleanly in 1 Line even on iPhone 16) --- */}
               {(() => {
                 const visibleCards = [
-                  { title: "Trades", value: safeTradesCount.toLocaleString(), isHidden: (!privacySettings.show_trades || isLocked), icon: <BarChart2 size={13} className="text-blue-500" />, color: "bg-blue-500/10 text-blue-600" },
-                  { title: "Win Rate", value: safeWinRate, isHidden: (!privacySettings.show_winrate || isLocked), icon: <CheckCircle2 size={13} className="text-emerald-500" />, color: "bg-emerald-500/10 text-emerald-600" },
-                  { title: "ROI (All Time)", value: safeRoi, isHidden: (!privacySettings.show_roi || isLocked), icon: <TrendingUp size={13} className="text-emerald-500" />, color: "bg-emerald-500/10 text-emerald-600", highlighted: true },
-                  { title: "Avg RR", value: safeAvgRR, isHidden: (!privacySettings.show_avg_rr || isLocked), icon: <Target size={13} className="text-purple-500" />, color: "bg-purple-500/10 text-purple-600" },
-                  { title: "Streak", value: safeStreak, isHidden: (!privacySettings.show_streak || isLocked), icon: <Flame size={13} className="text-orange-500" />, color: "bg-orange-500/10 text-orange-600" }
+                  { title: "Trades", shortTitle: "Trades", value: safeTradesCount.toLocaleString(), isHidden: (!privacySettings.show_trades || isLocked), icon: <BarChart2 size={12} className="text-blue-500" />, color: "bg-blue-500/10 text-blue-600" },
+                  { title: "Win Rate", shortTitle: "Win Rate", value: safeWinRate, isHidden: (!privacySettings.show_winrate || isLocked), icon: <CheckCircle2 size={12} className="text-emerald-500" />, color: "bg-emerald-500/10 text-emerald-600" },
+                  { title: "ROI (All Time)", shortTitle: "ROI", value: safeRoi, isHidden: (!privacySettings.show_roi || isLocked), icon: <TrendingUp size={12} className="text-emerald-500" />, color: "bg-emerald-500/10 text-emerald-600", highlighted: true },
+                  { title: "Avg RR", shortTitle: "Avg RR", value: safeAvgRR, isHidden: (!privacySettings.show_avg_rr || isLocked), icon: <Target size={12} className="text-purple-500" />, color: "bg-purple-500/10 text-purple-600" },
+                  { title: "Streak", shortTitle: "Streak", value: safeStreak, isHidden: (!privacySettings.show_streak || isLocked), icon: <Flame size={12} className="text-orange-500" />, color: "bg-orange-500/10 text-orange-600" }
                 ].filter(card => !card.isHidden);
 
                 if (visibleCards.length === 0) return null;
@@ -1067,17 +1067,18 @@ export default function UserProfilePublic() {
                     {visibleCards.map((card, idx) => (
                       <div
                         key={idx}
-                        className="py-2.5 px-2 sm:py-3 sm:px-3.5 rounded-[14px] sm:rounded-2xl bg-white dark:bg-[#1E1E1E] figma-card-shadow flex flex-col justify-between min-w-0 transition-all hover:-translate-y-0.5"
+                        className="py-2 px-1.5 sm:py-3 sm:px-3.5 rounded-[14px] sm:rounded-2xl bg-white dark:bg-[#1E1E1E] figma-card-shadow flex flex-col justify-between min-w-0 transition-all hover:-translate-y-0.5"
                       >
-                        <div className="flex items-center justify-between gap-1 mb-1 sm:mb-1.5">
-                          <span className="text-[8px] sm:text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider truncate">
-                            {card.title}
+                        <div className="flex flex-col-reverse min-[440px]:flex-row min-[440px]:items-center justify-between gap-1 mb-1 sm:mb-1.5">
+                          <span className="text-[8px] sm:text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-tight sm:tracking-wider truncate">
+                            <span className="sm:hidden">{card.shortTitle}</span>
+                            <span className="hidden sm:inline">{card.title}</span>
                           </span>
-                          <div className={`p-1 sm:p-1.5 rounded-md sm:rounded-lg ${card.color} shrink-0`}>
+                          <div className={`w-5 h-5 sm:w-auto sm:h-auto p-1 sm:p-1.5 rounded-md sm:rounded-lg ${card.color} shrink-0 flex items-center justify-center`}>
                             {card.icon}
                           </div>
                         </div>
-                        <p className={`text-[13px] sm:text-[17px] md:text-[19px] font-extrabold leading-tight font-sans tracking-tight truncate ${card.highlighted ? 'text-emerald-500' : 'text-slate-900 dark:text-white'}`}>
+                        <p className={`text-[12.5px] sm:text-[17px] md:text-[19px] font-extrabold leading-tight font-sans tracking-tight truncate ${card.highlighted ? 'text-emerald-500' : 'text-slate-900 dark:text-white'}`}>
                           {card.value}
                         </p>
                       </div>
