@@ -1522,27 +1522,21 @@ export default function AutoTradeManagerPage() {
       {/* ── TAB 1: ACCOUNTS REGISTRY ── */}
       {activeMainTab === "accounts" && (
         <div className="space-y-6">
-          {/* ── Metric KPI Cards (Exact 4 Cards from Image 1) ── */}
+          {/* ── Metric KPI Cards ── */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Box 1: Active Traders */}
             <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-5 hover:border-white/10 transition-none group cursor-pointer">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-9 h-9 rounded-lg bg-black/30 border border-white/5 flex items-center justify-center group-hover:bg-white/[0.05] transition-none" style={{ borderColor: '#6366f120' }}>
-                  <Users size={16} style={{ color: '#6366f1' }} />
-                </div>
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-2xl font-black text-white">{stats.totalUsers}</p>
               </div>
-              <p className="text-2xl font-black text-white mb-1">{stats.totalUsers}</p>
               <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Active Traders</p>
             </div>
 
             {/* Box 2: Daily Revenue */}
             <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-5 hover:border-white/10 transition-none group cursor-pointer">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-9 h-9 rounded-lg bg-black/30 border border-white/5 flex items-center justify-center group-hover:bg-white/[0.05] transition-none" style={{ borderColor: '#10b98120' }}>
-                  <DollarSign size={16} style={{ color: '#10b981' }} />
-                </div>
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-2xl font-black text-white">₹{stats.totalRevenue.toLocaleString()}</p>
               </div>
-              <p className="text-2xl font-black text-white mb-1">${stats.totalRevenue.toLocaleString()}</p>
               <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Daily Revenue</p>
             </div>
 
@@ -1551,31 +1545,25 @@ export default function AutoTradeManagerPage() {
               onClick={() => setActiveMainTab("proofs")}
               className="bg-[#1E1E1E] border border-white/5 rounded-lg p-5 hover:border-white/10 transition-none group cursor-pointer"
             >
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-9 h-9 rounded-lg bg-black/30 border border-white/5 flex items-center justify-center group-hover:bg-white/[0.05] transition-none" style={{ borderColor: '#ef444420' }}>
-                  <ShieldAlert size={16} style={{ color: '#ef4444' }} />
-                </div>
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-2xl font-black text-white">{pendingProofsCount}</p>
                 {pendingProofsCount > 0 && (
                   <span className="text-[10px] font-bold text-amber-500">
                     {pendingProofsCount} Pending
                   </span>
                 )}
               </div>
-              <p className="text-2xl font-black text-white mb-1">{pendingProofsCount}</p>
               <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Open Tickets</p>
             </div>
 
             {/* Box 4: Platform Latency */}
             <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-5 hover:border-white/10 transition-none group cursor-pointer">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-9 h-9 rounded-lg bg-black/30 border border-white/5 flex items-center justify-center group-hover:bg-white/[0.05] transition-none" style={{ borderColor: '#f59e0b20' }}>
-                  <Zap size={16} style={{ color: '#f59e0b' }} />
-                </div>
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-2xl font-black text-white">Realtime</p>
                 <div className="text-[10px] font-bold text-neutral-500">
                   Stable
                 </div>
               </div>
-              <p className="text-2xl font-black text-white mb-1">Realtime</p>
               <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Platform Latency</p>
             </div>
           </div>
@@ -2047,47 +2035,35 @@ export default function AutoTradeManagerPage() {
           {/* Proofs KPI Overview Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4">
             <div className="bg-[#1E1E1E] border border-white/5 rounded-xl p-3.5 sm:p-5 hover:border-white/10 transition-none group cursor-pointer">
-              <div className="flex items-center justify-between mb-2.5 sm:mb-4">
-                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-black/30 border border-white/5 flex items-center justify-center group-hover:bg-white/[0.05] transition-none" style={{ borderColor: '#6366f120' }}>
-                  <Inbox size={15} style={{ color: '#6366f1' }} />
-                </div>
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-xl sm:text-2xl font-black text-white">{proofStats.total}</p>
               </div>
-              <p className="text-xl sm:text-2xl font-black text-white mb-0.5 sm:mb-1">{proofStats.total}</p>
               <p className="text-[9px] sm:text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Total Proof Requests</p>
             </div>
 
             <div className="bg-[#1E1E1E] border border-white/5 rounded-xl p-3.5 sm:p-5 hover:border-white/10 transition-none group cursor-pointer">
-              <div className="flex items-center justify-between mb-2.5 sm:mb-4">
-                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-black/30 border border-white/5 flex items-center justify-center group-hover:bg-white/[0.05] transition-none" style={{ borderColor: '#f59e0b20' }}>
-                  <Clock size={15} style={{ color: '#f59e0b' }} />
-                </div>
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-xl sm:text-2xl font-black text-white">{proofStats.pending}</p>
                 {proofStats.pending > 0 && (
                   <span className="text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
                     Action Needed
                   </span>
                 )}
               </div>
-              <p className="text-xl sm:text-2xl font-black text-white mb-0.5 sm:mb-1">{proofStats.pending}</p>
               <p className="text-[9px] sm:text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Pending Review</p>
             </div>
 
             <div className="bg-[#1E1E1E] border border-white/5 rounded-xl p-3.5 sm:p-5 hover:border-white/10 transition-none group cursor-pointer">
-              <div className="flex items-center justify-between mb-2.5 sm:mb-4">
-                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-black/30 border border-white/5 flex items-center justify-center group-hover:bg-white/[0.05] transition-none" style={{ borderColor: '#10b98120' }}>
-                  <ShieldCheck size={15} style={{ color: '#10b981' }} />
-                </div>
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-xl sm:text-2xl font-black text-white">{proofStats.approved}</p>
               </div>
-              <p className="text-xl sm:text-2xl font-black text-white mb-0.5 sm:mb-1">{proofStats.approved}</p>
               <p className="text-[9px] sm:text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Approved Tradifive</p>
             </div>
 
             <div className="bg-[#1E1E1E] border border-white/5 rounded-xl p-3.5 sm:p-5 hover:border-white/10 transition-none group cursor-pointer">
-              <div className="flex items-center justify-between mb-2.5 sm:mb-4">
-                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-black/30 border border-white/5 flex items-center justify-center group-hover:bg-white/[0.05] transition-none" style={{ borderColor: '#ef444420' }}>
-                  <XCircle size={15} style={{ color: '#ef4444' }} />
-                </div>
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-xl sm:text-2xl font-black text-white">{proofStats.rejected}</p>
               </div>
-              <p className="text-xl sm:text-2xl font-black text-white mb-0.5 sm:mb-1">{proofStats.rejected}</p>
               <p className="text-[9px] sm:text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Rejected Proofs</p>
             </div>
           </div>
@@ -2541,47 +2517,35 @@ export default function AutoTradeManagerPage() {
           {/* Payment KPI Overview Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4">
             <div className="bg-[#1E1E1E] border border-white/5 rounded-xl p-3.5 sm:p-5 hover:border-white/10 transition-none group cursor-pointer">
-              <div className="flex items-center justify-between mb-2.5 sm:mb-4">
-                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-black/30 border border-white/5 flex items-center justify-center group-hover:bg-white/[0.05] transition-none" style={{ borderColor: '#6366f120' }}>
-                  <CreditCard size={15} style={{ color: '#6366f1' }} />
-                </div>
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-xl sm:text-2xl font-black text-white">{paymentStats.total}</p>
               </div>
-              <p className="text-xl sm:text-2xl font-black text-white mb-0.5 sm:mb-1">{paymentStats.total}</p>
               <p className="text-[9px] sm:text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Total Payments</p>
             </div>
 
             <div className="bg-[#1E1E1E] border border-white/5 rounded-xl p-3.5 sm:p-5 hover:border-white/10 transition-none group cursor-pointer">
-              <div className="flex items-center justify-between mb-2.5 sm:mb-4">
-                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-black/30 border border-white/5 flex items-center justify-center group-hover:bg-white/[0.05] transition-none" style={{ borderColor: '#f59e0b20' }}>
-                  <Clock size={15} style={{ color: '#f59e0b' }} />
-                </div>
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-xl sm:text-2xl font-black text-white">{paymentStats.pending}</p>
                 {paymentStats.pending > 0 && (
                   <span className="text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
                     Action Needed
                   </span>
                 )}
               </div>
-              <p className="text-xl sm:text-2xl font-black text-white mb-0.5 sm:mb-1">{paymentStats.pending}</p>
               <p className="text-[9px] sm:text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Pending Review</p>
             </div>
 
             <div className="bg-[#1E1E1E] border border-white/5 rounded-xl p-3.5 sm:p-5 hover:border-white/10 transition-none group cursor-pointer">
-              <div className="flex items-center justify-between mb-2.5 sm:mb-4">
-                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-black/30 border border-white/5 flex items-center justify-center group-hover:bg-white/[0.05] transition-none" style={{ borderColor: '#10b98120' }}>
-                  <ShieldCheck size={15} style={{ color: '#10b981' }} />
-                </div>
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-xl sm:text-2xl font-black text-white">{paymentStats.approved}</p>
               </div>
-              <p className="text-xl sm:text-2xl font-black text-white mb-0.5 sm:mb-1">{paymentStats.approved}</p>
               <p className="text-[9px] sm:text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Verified Licenses</p>
             </div>
 
             <div className="bg-[#1E1E1E] border border-white/5 rounded-xl p-3.5 sm:p-5 hover:border-white/10 transition-none group cursor-pointer">
-              <div className="flex items-center justify-between mb-2.5 sm:mb-4">
-                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-black/30 border border-white/5 flex items-center justify-center group-hover:bg-white/[0.05] transition-none" style={{ borderColor: '#10b98120' }}>
-                  <DollarSign size={15} style={{ color: '#10b981' }} />
-                </div>
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-xl sm:text-2xl font-black text-emerald-400 font-mono">₹{paymentStats.revenueInr.toLocaleString()}</p>
               </div>
-              <p className="text-xl sm:text-2xl font-black text-emerald-400 font-mono mb-0.5 sm:mb-1">₹{paymentStats.revenueInr.toLocaleString()}</p>
               <p className="text-[9px] sm:text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Verified Revenue</p>
             </div>
           </div>
@@ -3124,58 +3088,49 @@ export default function AutoTradeManagerPage() {
           {/* Top KPI Cards for Daily 50% Profit Share */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4">
             <div className="bg-[#1E1E1E] border border-white/5 rounded-xl p-3.5 sm:p-5 hover:border-white/10 transition-none group cursor-pointer">
-              <div className="flex items-center justify-between mb-2.5 sm:mb-4">
-                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-black/30 border border-white/5 flex items-center justify-center group-hover:bg-white/[0.05] transition-none" style={{ borderColor: '#3b82f620' }}>
-                  <Users size={15} style={{ color: '#3b82f6' }} />
-                </div>
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-xl sm:text-2xl font-black text-white">{profitStats.totalClients}</p>
               </div>
-              <p className="text-xl sm:text-2xl font-black text-white mb-0.5 sm:mb-1">{profitStats.totalClients}</p>
               <p className="text-[9px] sm:text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Performance Clients</p>
             </div>
 
             <div className="bg-[#1E1E1E] border border-white/5 rounded-xl p-3.5 sm:p-5 hover:border-white/10 transition-none group cursor-pointer">
-              <div className="flex items-center justify-between mb-2.5 sm:mb-4">
-                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-black/30 border border-white/5 flex items-center justify-center group-hover:bg-white/[0.05] transition-none" style={{ borderColor: '#10b98120' }}>
-                  <DollarSign size={15} style={{ color: '#10b981' }} />
-                </div>
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-xl sm:text-2xl font-black text-emerald-400 font-mono">
+                  +₹{Math.round(profitStats.totalTodayProfitUsd * 84).toLocaleString()}
+                </p>
+                <span className="text-[10px] font-mono text-neutral-500">
+                  (${profitStats.totalTodayProfitUsd.toFixed(2)})
+                </span>
               </div>
-              <p className="text-xl sm:text-2xl font-black text-emerald-400 font-mono mb-0.5 sm:mb-1">
-                ${profitStats.totalTodayProfitUsd.toFixed(2)}
-              </p>
               <p className="text-[9px] sm:text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Today's Client Profits</p>
             </div>
 
             <div className="bg-[#1E1E1E] border border-white/5 rounded-xl p-3.5 sm:p-5 hover:border-white/10 transition-none group cursor-pointer">
-              <div className="flex items-center justify-between mb-2.5 sm:mb-4">
-                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-black/30 border border-white/5 flex items-center justify-center group-hover:bg-white/[0.05] transition-none" style={{ borderColor: '#6366f120' }}>
-                  <CreditCard size={15} style={{ color: '#6366f1' }} />
-                </div>
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-xl sm:text-2xl font-black text-indigo-400 font-mono">
+                  ₹{profitStats.totalShareDueInr.toLocaleString()}
+                </p>
                 {profitStats.totalShareDueInr > 0 && (
                   <span className="text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">
                     50% Cut
                   </span>
                 )}
               </div>
-              <p className="text-xl sm:text-2xl font-black text-indigo-400 font-mono mb-0.5 sm:mb-1">
-                ₹{profitStats.totalShareDueInr.toLocaleString()}
-              </p>
               <p className="text-[9px] sm:text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Today's 50% Due to Tradifive</p>
             </div>
 
             <div className="bg-[#1E1E1E] border border-white/5 rounded-xl p-3.5 sm:p-5 hover:border-white/10 transition-none group cursor-pointer">
-              <div className="flex items-center justify-between mb-2.5 sm:mb-4">
-                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-black/30 border border-white/5 flex items-center justify-center group-hover:bg-white/[0.05] transition-none" style={{ borderColor: '#ef444420' }}>
-                  <AlertTriangle size={15} style={{ color: '#ef4444' }} />
-                </div>
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-xl sm:text-2xl font-black text-white">
+                  {overdueProfitCount} <span className="text-xs font-normal text-neutral-400">({pendingProfitCount} pending)</span>
+                </p>
                 {overdueProfitCount > 0 && (
                   <span className="text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20">
                     Action Needed
                   </span>
                 )}
               </div>
-              <p className="text-xl sm:text-2xl font-black text-white mb-0.5 sm:mb-1">
-                {overdueProfitCount} <span className="text-xs font-normal text-neutral-400">({pendingProfitCount} pending)</span>
-              </p>
               <p className="text-[9px] sm:text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Unpaid / Suspended Keys</p>
             </div>
           </div>
@@ -3880,7 +3835,7 @@ export default function AutoTradeManagerPage() {
                         <div>
                           <span className="text-[10px] text-neutral-500 uppercase">Amount Paid</span>
                           <div className="font-mono font-bold text-emerald-400 text-sm mt-0.5">
-                            ${selectedRecord.price_paid.toFixed(2)} USD
+                            ₹{Number(selectedRecord.price_paid || 0).toLocaleString()}
                           </div>
                         </div>
 

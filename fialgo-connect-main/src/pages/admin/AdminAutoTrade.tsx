@@ -1375,7 +1375,7 @@ If you have any questions or wish to remit USDT/INR, reply directly to this chat
           <div>
             <p className="text-2xl sm:text-3xl font-black text-blue-400 tracking-tight mb-1">{stats.activeLicenses}</p>
             <p className="text-[10px] sm:text-[11px] font-bold text-neutral-400 uppercase tracking-widest">ACTIVE BOT LICENSES</p>
-            <p className="text-[11px] text-neutral-500 mt-1">Total Rev: ${stats.totalRevenue}</p>
+            <p className="text-[11px] text-neutral-500 mt-1">Total Rev: ₹{stats.totalRevenue.toLocaleString()}</p>
           </div>
         </div>
       </div>
