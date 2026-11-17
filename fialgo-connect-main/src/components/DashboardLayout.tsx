@@ -356,6 +356,7 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
 
   // Effective Full Screen: True if toggled, passed via prop, or on AutoTrade setup route
   const isEffectiveFullScreen = isFullScreen || fullScreen;
+  const isHomePage = location.pathname === "/" || location.pathname.startsWith("/home");
   const { isFiAlgo } = useWorkspace();
 
   const [bgFadeStyle, setBgFadeStyle] = useState(() => {
@@ -684,17 +685,18 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
       {/* Mobile Bottom Navigation Bar */}
       {!hideBottomNav && (
         <>
-          {/* Mobile Floating AI Coach Button (Only on Mobile) */}
-          <button
-            type="button"
-            onClick={() => setIsAIOpen(true)}
-            className="sm:hidden fixed left-4 bottom-20 z-40 flex items-center gap-2 px-3.5 py-2.5 rounded-full bg-slate-900/95 dark:bg-[#1A1A1E]/95 backdrop-blur-md text-white font-bold text-xs shadow-2xl shadow-purple-500/20 border border-slate-700/60 dark:border-white/15 active:scale-95 transition-transform cursor-pointer"
-            title="Open AI Coach"
-            aria-label="Open AI Coach"
-          >
-            <Sparkles size={15} strokeWidth={2.5} className="text-purple-400 animate-pulse" />
-            <span>AI Coach</span>
-          </button>
+          {/* Mobile Floating AI Coach Button (Only on Mobile, NOT on Home page, Icon only) */}
+          {!isHomePage && (
+            <button
+              type="button"
+              onClick={() => setIsAIOpen(true)}
+              className="sm:hidden fixed right-4 bottom-[calc(max(0.75rem,env(safe-area-inset-bottom))+4.25rem)] z-40 w-12 h-12 rounded-full bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 text-white shadow-xl shadow-purple-500/30 flex items-center justify-center active:scale-90 transition-transform cursor-pointer border border-white/20"
+              title="Open AI Coach"
+              aria-label="Open AI Coach"
+            >
+              <Sparkles size={20} strokeWidth={2.5} className="text-white" />
+            </button>
+          )}
 
           <BottomNav />
         </>

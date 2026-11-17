@@ -1864,7 +1864,7 @@ export default function Home() {
             <button
                 type="button"
                 onClick={() => setIsCreatePostModalOpen(true)}
-                className="sm:hidden fixed right-4 bottom-20 z-40 w-12 h-12 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-xl shadow-blue-500/25 flex items-center justify-center active:scale-90 transition-transform cursor-pointer border border-white/20"
+                className="sm:hidden fixed right-4 bottom-[calc(max(0.75rem,env(safe-area-inset-bottom))+4.25rem)] z-40 w-12 h-12 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-xl shadow-blue-500/25 flex items-center justify-center active:scale-90 transition-transform cursor-pointer border border-white/20"
                 title="Create New Post"
                 aria-label="Create New Post"
             >

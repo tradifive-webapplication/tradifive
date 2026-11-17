@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Home, Category, Activity, User } from "react-iconly";
 import { triggerHaptic } from "@/utils/haptics";
 import { 
+  Home, Activity, LayoutGrid, User, MoreHorizontal,
   Sparkles, ArrowUp, X, ChevronRight, BookOpen, Building2, ShieldCheck, 
   Cpu, ReceiptText, Trophy, ShoppingBag, Gift, Layers, FileText, Settings, 
-  HelpCircle, Menu
+  HelpCircle
 } from "lucide-react";
 
 export default function BottomNav() {
@@ -30,9 +30,8 @@ export default function BottomNav() {
       isActive: (p: string) => (p === "/" || p.startsWith("/home")) && !isMoreOpen,
       renderIcon: (active: boolean) => (
         <Home
-          set={active ? "bold" : "curved"}
-          primaryColor={active ? "#2563EB" : "currentColor"}
-          size={22}
+          size={20}
+          strokeWidth={active ? 2.2 : 1.8}
         />
       ),
     },
@@ -48,9 +47,8 @@ export default function BottomNav() {
         p.startsWith("/settlements")) && !isMoreOpen,
       renderIcon: (active: boolean) => (
         <Activity
-          set={active ? "bold" : "curved"}
-          primaryColor={active ? "#2563EB" : "currentColor"}
-          size={22}
+          size={20}
+          strokeWidth={active ? 2.2 : 1.8}
         />
       ),
     },
@@ -63,10 +61,9 @@ export default function BottomNav() {
         p.startsWith("/portfolio") ||
         p.startsWith("/broker-connect")) && !isMoreOpen,
       renderIcon: (active: boolean) => (
-        <Category
-          set={active ? "bold" : "curved"}
-          primaryColor={active ? "#2563EB" : "currentColor"}
-          size={22}
+        <LayoutGrid
+          size={20}
+          strokeWidth={active ? 2.2 : 1.8}
         />
       ),
     },
@@ -78,9 +75,8 @@ export default function BottomNav() {
         (p.startsWith("/profile") || p.startsWith("/settings")) && !isMoreOpen,
       renderIcon: (active: boolean) => (
         <User
-          set={active ? "bold" : "curved"}
-          primaryColor={active ? "#2563EB" : "currentColor"}
-          size={22}
+          size={20}
+          strokeWidth={active ? 2.2 : 1.8}
         />
       ),
     },
@@ -91,10 +87,9 @@ export default function BottomNav() {
       isMore: true,
       isActive: () => isMoreOpen,
       renderIcon: (active: boolean) => (
-        <Menu
-          size={21}
-          strokeWidth={active ? 2.5 : 2}
-          className={active ? "text-blue-600 dark:text-blue-400" : "currentColor"}
+        <MoreHorizontal
+          size={20}
+          strokeWidth={active ? 2.4 : 1.8}
         />
       ),
     },
@@ -136,49 +131,51 @@ export default function BottomNav() {
 
   return (
     <>
+      {/* ── Modern Floating Pill Bottom Navigation Dock (Matching Reference Image) ── */}
       <nav
         aria-label="Mobile Navigation"
-        className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white/92 dark:bg-[#111114]/92 backdrop-blur-2xl border-t border-slate-200/70 dark:border-white/[0.08] pb-[max(env(safe-area-inset-bottom),0.55rem)] pt-2 shadow-[0_-8px_30px_rgba(0,0,0,0.06)] dark:shadow-[0_-8px_30px_rgba(0,0,0,0.5)] select-none"
+        className="fixed bottom-[max(0.75rem,env(safe-area-inset-bottom))] inset-x-3.5 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 sm:w-full sm:max-w-md z-50 md:hidden bg-[#F2F4F7]/95 dark:bg-[#131417]/95 backdrop-blur-2xl border border-slate-200/80 dark:border-white/10 rounded-full shadow-[0_8px_30px_rgba(0,0,0,0.08),0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.5)] p-1 select-none"
       >
-        <div className="flex items-center justify-around px-2 max-w-md mx-auto">
+        <div className="flex items-center justify-between gap-1 w-full">
           {tabs.map((tab) => {
             const active = tab.isActive(location.pathname);
             return (
               <button
                 key={tab.id}
+                type="button"
                 onClick={() => handleTabClick(tab)}
-                className="relative flex flex-col items-center justify-center flex-1 py-1 transition-all active:scale-95 group cursor-pointer"
+                className="relative flex-1 flex flex-col items-center justify-center py-1.5 px-1 rounded-full cursor-pointer select-none active:scale-95 transition-transform"
               >
-                <div className="relative flex items-center justify-center">
-                  {active && (
-                    <motion.div
-                      layoutId="bottom-nav-active-pill"
-                      className="absolute inset-0 -mx-2.5 -my-1 rounded-full bg-blue-500/10 dark:bg-blue-400/15"
-                      transition={{ type: "spring", stiffness: 450, damping: 30 }}
-                    />
-                  )}
+                {/* Active White Stadium Pill (Encloses both icon and label) */}
+                {active && (
                   <motion.div
-                    animate={{ scale: active ? 1.08 : 1, y: active ? -1 : 0 }}
-                    transition={{ type: "spring", stiffness: 450, damping: 25 }}
-                    className={`relative z-10 flex items-center justify-center h-6 transition-colors ${
-                      active
-                        ? "text-blue-600 dark:text-blue-400"
-                        : "text-slate-400 hover:text-slate-600 dark:text-zinc-500 dark:hover:text-zinc-300"
-                    }`}
-                  >
-                    {tab.renderIcon(active)}
-                  </motion.div>
-                </div>
+                    layoutId="mobile-nav-active-pill"
+                    className="absolute inset-0 rounded-full bg-white dark:bg-[#202024] border border-slate-200/90 dark:border-white/12 shadow-[0_1px_4px_rgba(0,0,0,0.07)] dark:shadow-none"
+                    transition={{ type: "spring", stiffness: 480, damping: 36 }}
+                  />
+                )}
 
-                <span
-                  className={`text-[10px] tracking-tight mt-1 transition-all font-sans ${
+                <div
+                  className={`relative z-10 flex flex-col items-center justify-center transition-colors duration-150 ${
                     active
-                      ? "font-bold text-blue-600 dark:text-blue-400"
-                      : "font-semibold text-slate-500 dark:text-zinc-400"
+                      ? "text-slate-900 dark:text-white"
+                      : "text-slate-500 hover:text-slate-700 dark:text-zinc-400 dark:hover:text-zinc-200"
                   }`}
                 >
-                  {tab.label}
-                </span>
+                  <div className="flex items-center justify-center h-5">
+                    {tab.renderIcon(active)}
+                  </div>
+
+                  <span
+                    className={`text-[10px] sm:text-[10.5px] mt-0.5 tracking-tight leading-none font-sans ${
+                      active
+                        ? "font-semibold text-slate-900 dark:text-white"
+                        : "font-normal text-slate-500 dark:text-zinc-400"
+                    }`}
+                  >
+                    {tab.label}
+                  </span>
+                </div>
               </button>
             );
           })}
