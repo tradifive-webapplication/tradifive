@@ -402,6 +402,44 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
   };
 
   const [impersonatingUser, setImpersonatingUser] = useState<string | null>(null);
+  const [mobileUsername, setMobileUsername] = useState(() => 
+    localStorage.getItem("tradifive_cached_username") || "trader"
+  );
+  const [mobileAvatarUrl, setMobileAvatarUrl] = useState(() => 
+    localStorage.getItem("tradifive_cached_avatar_url") || ""
+  );
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchMobileProfile = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user || !isMounted) return;
+        const defaultUsername = user.email?.split('@')[0]?.toLowerCase().replace(/[^a-z0-9]/g, '') || "trader";
+        
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('username, display_name, avatar_url')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        if (profile && isMounted) {
+          const resolvedUsername = profile.username || defaultUsername;
+          const resolvedAvatar = profile.avatar_url || "";
+          setMobileUsername(resolvedUsername);
+          setMobileAvatarUrl(resolvedAvatar);
+          localStorage.setItem("tradifive_cached_username", resolvedUsername);
+          if (resolvedAvatar) localStorage.setItem("tradifive_cached_avatar_url", resolvedAvatar);
+        } else if (isMounted) {
+          setMobileUsername(defaultUsername);
+        }
+      } catch (err) {
+        // silent fallback to cached state
+      }
+    };
+    fetchMobileProfile();
+    return () => { isMounted = false; };
+  }, []);
 
   useEffect(() => {
     const impersonated = localStorage.getItem("fialgo_impersonating_user");
@@ -568,6 +606,37 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
               <div className="flex items-center gap-2 sm:gap-3">
                 {headerActions}
                 <NotificationHub />
+
+                {/* Mobile Top-Right Profile with Username & Avatar */}
+                <button
+                  type="button"
+                  onClick={() => navigate('/profile')}
+                  className="sm:hidden flex items-center gap-1.5 pl-2.5 pr-1 py-1 rounded-full bg-slate-100/90 dark:bg-white/[0.08] hover:bg-slate-200/90 dark:hover:bg-white/[0.12] border border-slate-200/70 dark:border-white/10 active:scale-95 transition-all cursor-pointer"
+                  title="Profile"
+                  aria-label="Profile"
+                >
+                  <span className="text-[11.5px] font-bold text-slate-800 dark:text-white max-w-[80px] truncate leading-none">
+                    {mobileUsername}
+                  </span>
+                  <div className="w-6 h-6 rounded-full overflow-hidden bg-slate-200 dark:bg-white/10 shrink-0 border border-white dark:border-white/20">
+                    {mobileAvatarUrl ? (
+                      <img
+                        src={mobileAvatarUrl}
+                        alt={mobileUsername}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = "/default-avatar.svg";
+                        }}
+                      />
+                    ) : (
+                      <img
+                        src="/default-avatar.svg"
+                        alt={mobileUsername}
+                        className="w-full h-full object-cover"
+                      />
+                    )}
+                  </div>
+                </button>
                 
                 {/* AI Coach Top-Right Button (hidden on mobile, floats at bottom) */}
                 <button

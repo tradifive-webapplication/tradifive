@@ -3,8 +3,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { triggerHaptic } from "@/utils/haptics";
 import { 
-  Home, Activity, LayoutGrid, User, MoreHorizontal,
-  Sparkles, ArrowUp, X, ChevronRight, BookOpen, Building2, ShieldCheck, 
+  Home, Activity, LayoutGrid, User, MoreHorizontal, BookOpen, BarChart3, Users,
+  Sparkles, ArrowUp, X, ChevronRight, Building2, ShieldCheck, 
   Cpu, ReceiptText, Trophy, ShoppingBag, Gift, Layers, FileText, Settings, 
   HelpCircle
 } from "lucide-react";
@@ -24,41 +24,11 @@ export default function BottomNav() {
 
   const tabs = [
     {
-      id: "home",
-      label: "Home",
-      path: "/home",
-      isActive: (p: string) => (p === "/" || p.startsWith("/home")) && !isMoreOpen,
-      renderIcon: (active: boolean) => (
-        <Home
-          size={20}
-          strokeWidth={active ? 2.2 : 1.8}
-        />
-      ),
-    },
-    {
-      id: "autotrade",
-      label: "AutoTrade",
-      path: autoTradePath,
-      isActive: (p: string) =>
-        (p.startsWith("/auto-trade") ||
-        p.startsWith("/strategy") ||
-        p.startsWith("/my-robots") ||
-        p.startsWith("/weekly-settlements") ||
-        p.startsWith("/settlements")) && !isMoreOpen,
-      renderIcon: (active: boolean) => (
-        <Activity
-          size={20}
-          strokeWidth={active ? 2.2 : 1.8}
-        />
-      ),
-    },
-    {
       id: "dashboard",
       label: "Dashboard",
       path: "/dashboard",
       isActive: (p: string) =>
-        (p.startsWith("/dashboard") ||
-        p.startsWith("/portfolio") ||
+        (p === "/dashboard" ||
         p.startsWith("/broker-connect")) && !isMoreOpen,
       renderIcon: (active: boolean) => (
         <LayoutGrid
@@ -68,13 +38,41 @@ export default function BottomNav() {
       ),
     },
     {
-      id: "profile",
-      label: "Profile",
-      path: "/profile",
-      isActive: (p: string) =>
-        (p.startsWith("/profile") || p.startsWith("/settings")) && !isMoreOpen,
+      id: "journal",
+      label: "Journal",
+      path: "/journal",
+      isActive: (p: string) => p.startsWith("/journal") && !isMoreOpen,
       renderIcon: (active: boolean) => (
-        <User
+        <BookOpen
+          size={20}
+          strokeWidth={active ? 2.2 : 1.8}
+        />
+      ),
+    },
+    {
+      id: "analytics",
+      label: "Analytics",
+      path: "/dashboard/portfolio",
+      isActive: (p: string) =>
+        (p.startsWith("/dashboard/portfolio") ||
+        p.startsWith("/dashboard/reports") ||
+        p.startsWith("/portfolio") ||
+        p.startsWith("/reports")) && !isMoreOpen,
+      renderIcon: (active: boolean) => (
+        <BarChart3
+          size={20}
+          strokeWidth={active ? 2.2 : 1.8}
+        />
+      ),
+    },
+    {
+      id: "community",
+      label: "Community",
+      path: "/home",
+      isActive: (p: string) =>
+        (p === "/" || p.startsWith("/home") || p.startsWith("/discover")) && !isMoreOpen,
+      renderIcon: (active: boolean) => (
+        <Users
           size={20}
           strokeWidth={active ? 2.2 : 1.8}
         />
@@ -268,6 +266,27 @@ export default function BottomNav() {
 
                 {/* 2. Core Trading List (Group 1) */}
                 <div className="bg-white dark:bg-[#1A1A1E] rounded-2xl border border-slate-200/70 dark:border-white/10 shadow-xs divide-y divide-slate-100 dark:divide-white/5 overflow-hidden">
+                  {/* AutoTrade (Algo & Robots) */}
+                  <button
+                    type="button"
+                    onClick={() => handleNavigate(autoTradePath)}
+                    className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-colors cursor-pointer text-left"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center shrink-0">
+                        <Activity size={16} />
+                      </div>
+                      <div>
+                        <span className="text-xs font-bold text-slate-900 dark:text-white block">AutoTrade</span>
+                        <span className="text-[10px] text-slate-400 dark:text-neutral-400">Automated trading & bots</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 text-slate-400 dark:text-neutral-500 text-xs font-medium">
+                      <span>Launch</span>
+                      <ChevronRight size={14} />
+                    </div>
+                  </button>
+
                   <button
                     type="button"
                     onClick={() => handleAskAI("")}
@@ -474,6 +493,23 @@ export default function BottomNav() {
                       <span className="text-xs font-bold text-slate-900 dark:text-white">Settings</span>
                     </div>
                     <div className="flex items-center gap-1 text-slate-400 dark:text-neutral-500 text-xs font-medium">
+                      <ChevronRight size={14} />
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleNavigate("/profile")}
+                    className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-colors cursor-pointer text-left"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-neutral-300 flex items-center justify-center shrink-0">
+                        <User size={16} />
+                      </div>
+                      <span className="text-xs font-bold text-slate-900 dark:text-white">Profile</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-slate-400 dark:text-neutral-500 text-xs font-medium">
+                      <span>View</span>
                       <ChevronRight size={14} />
                     </div>
                   </button>
