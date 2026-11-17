@@ -1118,6 +1118,87 @@ html, body, * {
     0 12px 24px -6px rgba(0, 0, 0, 0.5);
 }
 
+/* ══════ CONSISTENT TACTILE PILL BUTTONS (Black & White Bevelled Style) ══════ */
+.tactile-black-pill {
+  background: linear-gradient(180deg, #38383A 0%, #1E1E20 50%, #080808 100%);
+  color: #FFFFFF;
+  box-shadow:
+    0 4px 12px -2px rgba(0, 0, 0, 0.42),
+    0 2px 5px -1px rgba(0, 0, 0, 0.30),
+    0 0 0 1px rgba(0, 0, 0, 0.85),
+    inset 0 1px 0.5px 0 rgba(255, 255, 255, 0.28);
+  transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease;
+}
+
+.tactile-black-pill:hover {
+  filter: brightness(1.07);
+  box-shadow:
+    0 6px 14px -2px rgba(0, 0, 0, 0.46),
+    0 2px 6px -1px rgba(0, 0, 0, 0.34),
+    0 0 0 1px rgba(0, 0, 0, 0.90),
+    inset 0 1px 0.5px 0 rgba(255, 255, 255, 0.32);
+}
+
+.tactile-black-pill:active {
+  transform: scale(0.965);
+  filter: brightness(0.92);
+  box-shadow:
+    0 2px 6px -1px rgba(0, 0, 0, 0.40),
+    0 0 0 1px rgba(0, 0, 0, 0.90),
+    inset 0 2px 4px 0 rgba(0, 0, 0, 0.35);
+}
+
+.dark .tactile-black-pill {
+  background: linear-gradient(180deg, #3A3A3D 0%, #242427 50%, #121214 100%);
+  color: #FFFFFF;
+  box-shadow:
+    0 4px 12px -2px rgba(0, 0, 0, 0.60),
+    0 0 0 1px rgba(255, 255, 255, 0.14),
+    inset 0 1px 0.5px 0 rgba(255, 255, 255, 0.22);
+}
+
+.tactile-white-pill {
+  background: #FFFFFF;
+  color: #111827;
+  box-shadow:
+    0 2px 4px 0 rgba(0, 0, 0, 0.08),
+    0 0 0 1px rgba(0, 0, 0, 0.12),
+    inset 0 -1.5px 2px 0 rgba(0, 0, 0, 0.07),
+    inset 0 1px 0 0 #FFFFFF;
+  transition: transform 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.tactile-white-pill:hover {
+  background: #F8F9FA;
+  box-shadow:
+    0 3.5px 7px 0 rgba(0, 0, 0, 0.10),
+    0 0 0 1px rgba(0, 0, 0, 0.14),
+    inset 0 -1.5px 2px 0 rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 0 #FFFFFF;
+}
+
+.tactile-white-pill:active {
+  transform: scale(0.965);
+  background: #F1F3F5;
+  box-shadow:
+    0 1px 2px 0 rgba(0, 0, 0, 0.10),
+    0 0 0 1px rgba(0, 0, 0, 0.18),
+    inset 0 2px 4px 0 rgba(0, 0, 0, 0.10);
+}
+
+.dark .tactile-white-pill {
+  background: #242428;
+  color: #F8FAFC;
+  box-shadow:
+    0 2px 6px 0 rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(255, 255, 255, 0.10),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.10);
+}
+
+.dark .tactile-white-pill:hover {
+  background: #2C2C31;
+}
+
 
 
 /* ══════ GLOBAL BUTTON UNIFIED CLICK FEEL ══════ */

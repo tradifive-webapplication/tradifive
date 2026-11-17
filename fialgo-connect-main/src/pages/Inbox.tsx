@@ -503,67 +503,18 @@ function InboxSkeleton() {
     return matchName || matchDesignation || matchContent;
   });
 
-  const headerActions = (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <button 
-          className="flex items-center justify-center w-10 h-10 rounded-full border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#1E1E1E] text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white shadow-sm hover:bg-slate-50 dark:hover:bg-[#252525] transition-all duration-150 active:scale-[0.985] cursor-pointer outline-none"
-          title="Inbox Actions"
-        >
-          <Menu size={18} />
-        </button>
-      </DropdownMenuTrigger>
-      
-      <DropdownMenuContent align="end" className="w-60 mt-2 rounded-2xl bg-white dark:bg-[#121212] border border-slate-150 dark:border-white/5 p-1.5 shadow-xl z-[100] outline-none">
-        <DropdownMenuLabel className="px-3 py-2 text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider">
-          Inbox Settings
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator className="my-1 border-slate-100 dark:border-white/5" />
-        
-        <DropdownMenuItem 
-          onClick={() => toast.success("All messages marked as read")}
-          className="flex items-center gap-3 text-[13.5px] font-medium text-slate-700 dark:text-slate-350 hover:bg-slate-100/80 dark:hover:bg-slate-800/40 px-3 py-2.5 rounded-xl transition-all cursor-pointer outline-none"
-        >
-          <CheckCheck size={16} className="text-slate-400" />
-          <span>Mark all as read</span>
-        </DropdownMenuItem>
-
-        <DropdownMenuItem 
-          onClick={() => toast.info("Viewing archived conversations...")}
-          className="flex items-center gap-3 text-[13.5px] font-medium text-slate-700 dark:text-slate-350 hover:bg-slate-100/80 dark:hover:bg-slate-800/40 px-3 py-2.5 rounded-xl transition-all cursor-pointer outline-none"
-        >
-          <Folder size={16} className="text-slate-400" />
-          <span>Archived Conversations</span>
-        </DropdownMenuItem>
-
-        <DropdownMenuItem 
-          onClick={() => toast.success("Inbox notifications muted")}
-          className="flex items-center gap-3 text-[13.5px] font-medium text-slate-700 dark:text-slate-350 hover:bg-slate-100/80 dark:hover:bg-slate-800/40 px-3 py-2.5 rounded-xl transition-all cursor-pointer outline-none"
-        >
-          <VolumeX size={16} className="text-slate-400" />
-          <span>Mute all notifications</span>
-        </DropdownMenuItem>
-
-        <DropdownMenuSeparator className="my-1 border-slate-100 dark:border-white/5" />
-
-        <DropdownMenuItem 
-          onClick={() => toast.info("Opening chat preferences...")}
-          className="flex items-center gap-3 text-[13.5px] font-medium text-slate-700 dark:text-slate-350 hover:bg-slate-100/80 dark:hover:bg-slate-800/40 px-3 py-2.5 rounded-xl transition-all cursor-pointer outline-none"
-        >
-          <SettingsIcon size={16} className="text-slate-400" />
-          <span>Chat Preferences</span>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
+  const handleOpenPartnerProfile = () => {
+    if (!activeConv) return;
+    triggerHaptic("light");
+    const targetSlug = activeConv.username || activeConv.partnerId || activeConv.name.replace(/\s+/g, "").toLowerCase();
+    navigate(`/user/${targetSlug}`);
+  };
 
   return (
     <DashboardLayout
       noPadding={true}
       noScroll={true}
-      headerActions={headerActions}
-      hideBottomNav={isMobile && mobileView === "chat"}
-      onBack={isMobile && mobileView === "chat" ? () => setMobileView("list") : undefined}
+      hideBottomNav={false}
     >
       <div className="font-sans relative flex w-full bg-white dark:bg-[#121212] text-slate-800 dark:text-slate-100 rounded-b-none md:rounded-b-[2.4rem] overflow-hidden flex-1 min-h-0 select-none transition-colors duration-200">
         
@@ -855,9 +806,9 @@ function InboxSkeleton() {
                     <ChevronLeft size={22} strokeWidth={2.5} />
                   </button>
 
-                  {/* Contact Avatar (tap to view details) */}
+                  {/* Contact Avatar (tap to open their profile) */}
                   <div 
-                    onClick={() => { setShowDetails(!showDetails); triggerHaptic("light"); }}
+                    onClick={handleOpenPartnerProfile}
                     className="relative shrink-0 cursor-pointer"
                   >
                     <img 
@@ -880,10 +831,10 @@ function InboxSkeleton() {
                     )}
                   </div>
 
-                  {/* Contact Name & Status (tap to view details) */}
+                  {/* Contact Name & Status (tap to open their profile) */}
                   <div 
                     className="cursor-pointer min-w-0 flex-1" 
-                    onClick={() => { setShowDetails(!showDetails); triggerHaptic("light"); }}
+                    onClick={handleOpenPartnerProfile}
                   >
                     <div className="flex items-center gap-1.5 min-w-0">
                       <h2 className="text-[13.5px] sm:text-[14px] font-bold text-slate-900 dark:text-white flex items-center gap-1 leading-none truncate">
@@ -909,16 +860,16 @@ function InboxSkeleton() {
                 {/* Header Actions */}
                 <div className="flex items-center gap-1 sm:gap-2 shrink-0">
                   <button 
-                    onClick={() => { setShowDetails(!showDetails); triggerHaptic("light"); }}
-                    className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center transition-all text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 active:scale-95 ${showDetails ? 'bg-slate-100 dark:bg-slate-800 text-blue-500 dark:text-blue-400' : ''}`}
-                    title="Conversation Details"
+                    onClick={handleOpenPartnerProfile}
+                    className="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center transition-all text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 active:scale-95 cursor-pointer"
+                    title="View Profile"
                   >
                     <IconlyUser set="curved" primaryColor="currentColor" size={17} stroke="bold" strokeWidth={2} />
                   </button>
                   
                   <button 
                     onClick={handleToggleMute}
-                    className="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center transition-all text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 active:scale-95"
+                    className="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center transition-all text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 active:scale-95 cursor-pointer"
                     title={isMuted ? "Unmute" : "Mute"}
                   >
                     {isMuted ? <IconlyVolumeOff set="curved" primaryColor="currentColor" size={17} stroke="bold" strokeWidth={2} /> : <IconlyVolumeUp set="curved" primaryColor="currentColor" size={17} stroke="bold" strokeWidth={2} />}
@@ -926,30 +877,10 @@ function InboxSkeleton() {
 
                   <button 
                     onClick={() => toast.info("Search in conversation coming soon")} 
-                    className="hidden sm:flex w-9 h-9 rounded-full items-center justify-center transition-all text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 active:scale-95"
+                    className="hidden sm:flex w-9 h-9 rounded-full items-center justify-center transition-all text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 active:scale-95 cursor-pointer"
                   >
                     <Search size={18} strokeWidth={2} />
                   </button>
-
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button className="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center transition-all text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 active:scale-95 outline-none">
-                        <MoreVertical size={17} />
-                      </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48 rounded-xl bg-white dark:bg-[#121212] border border-slate-150 dark:border-white/5 p-1 shadow-xl z-[100] outline-none">
-                      <DropdownMenuItem onClick={() => { setShowDetails(true); triggerHaptic("light"); }} className="flex items-center gap-2 text-xs font-semibold py-2 px-3 rounded-lg cursor-pointer">
-                        <User size={15} /> View Business Card
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={handleToggleMute} className="flex items-center gap-2 text-xs font-semibold py-2 px-3 rounded-lg cursor-pointer">
-                        {isMuted ? <Volume2 size={15} /> : <VolumeX size={15} />}
-                        {isMuted ? "Unmute Notifications" : "Mute Notifications"}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => toast.info(`Exporting thread for ${activeConv.name}...`)} className="flex items-center gap-2 text-xs font-semibold py-2 px-3 rounded-lg cursor-pointer">
-                        <Bookmark size={15} /> Export Audit Log
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
                 </div>
               </div>
 
@@ -1080,7 +1011,7 @@ function InboxSkeleton() {
               </div>
 
               {/* --- RIGHT CHAT FOOTER PANEL --- */}
-              <div className="p-2.5 sm:p-4 px-3 sm:px-6 border-t border-slate-150 dark:border-white/5 bg-white dark:bg-[#121212] flex items-center justify-between z-10 shadow-xs shrink-0 w-full pb-[max(env(safe-area-inset-bottom),0.75rem)] md:pb-4">
+              <div className="p-2.5 sm:p-4 px-3 sm:px-6 border-t border-slate-150 dark:border-white/5 bg-white dark:bg-[#121212] flex items-center justify-between z-10 shadow-xs shrink-0 w-full pb-[calc(max(0.75rem,env(safe-area-inset-bottom))+4.75rem)] md:pb-4">
                 <form onSubmit={handleSendMessage} className="w-full flex items-center gap-2 sm:gap-3">
                   <button 
                     type="button" 

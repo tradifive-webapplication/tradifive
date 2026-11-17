@@ -770,10 +770,6 @@ export default function ProfileTab({
                      <ProfileToggle checked={cardToggles.tradingPerformance} onChange={v => updateCardToggle('tradingPerformance', v)} />
                   </div>
                   <div className="flex items-center justify-between py-2.5 px-3.5">
-                     <span className="text-[13px] font-semibold text-slate-800 dark:text-white">TradiFive AI Analysis</span>
-                     <ProfileToggle checked={cardToggles.aiAnalysis} onChange={v => updateCardToggle('aiAnalysis', v)} />
-                  </div>
-                  <div className="flex items-center justify-between py-2.5 px-3.5">
                      <span className="text-[13px] font-semibold text-slate-800 dark:text-white">Followers & Following</span>
                      <ProfileToggle checked={cardToggles.followers} onChange={v => updateCardToggle('followers', v)} />
                   </div>
