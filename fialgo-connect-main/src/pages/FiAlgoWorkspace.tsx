@@ -2,8 +2,9 @@ import React, { useState, useEffect } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import FiAlgoAdminDashboard from "@/components/FiAlgoAdminDashboard";
 import AutoTradeModernDashboard from "@/components/AutoTradeModernDashboard";
-import { ArrowLeft, Monitor } from "lucide-react";
+import { ArrowLeft, Monitor, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { checkUserAutoTradeAccess } from "@/utils/autoTradeAccess";
 
 interface FiAlgoWorkspaceProps {
   defaultTab?: string;
@@ -11,23 +12,56 @@ interface FiAlgoWorkspaceProps {
 
 export default function FiAlgoWorkspace({ defaultTab }: FiAlgoWorkspaceProps) {
   const navigate = useNavigate();
+  const [isVerifying, setIsVerifying] = useState(true);
+  const [hasAccess, setHasAccess] = useState(false);
+  const [activeMt5Account, setActiveMt5Account] = useState<string>("");
 
-  // If user has not completed setup, immediately redirect to setup workflow
   useEffect(() => {
-    const isSetup = typeof window !== "undefined" && localStorage.getItem("tradifive_auto_trade_setup") === "true";
-    if (!isSetup) {
-      navigate("/auto-trade/setup", { replace: true });
+    let isMounted = true;
+
+    async function verifyAccess() {
+      setIsVerifying(true);
+      const access = await checkUserAutoTradeAccess();
+
+      if (!isMounted) return;
+
+      if (!access.hasAccess) {
+        // User has not completed setup / not yet approved by Admin -> redirect to setup wizard
+        navigate("/auto-trade/setup", { replace: true });
+      } else {
+        setHasAccess(true);
+        setActiveMt5Account(access.mt5Account || localStorage.getItem("tradifive_connected_mt5_account") || "Connected");
+        setIsVerifying(false);
+      }
     }
+
+    verifyAccess();
+
+    return () => {
+      isMounted = false;
+    };
   }, [navigate]);
 
   const [viewMode, setViewMode] = useState<"overview" | "terminal">(
     defaultTab === "autotrade" ? "terminal" : "overview"
   );
 
-  const mt5Account =
-    typeof window !== "undefined"
-      ? localStorage.getItem("tradifive_connected_mt5_account") || "8841092"
-      : "8841092";
+  if (isVerifying) {
+    return (
+      <DashboardLayout>
+        <div className="min-h-[60vh] flex flex-col items-center justify-center gap-3">
+          <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
+          <p className="text-xs font-mono text-neutral-400 uppercase tracking-wider">
+            Checking FiAlgo Account Setup...
+          </p>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (!hasAccess) {
+    return null;
+  }
 
   if (viewMode === "terminal") {
     return (
@@ -53,7 +87,7 @@ export default function FiAlgoWorkspace({ defaultTab }: FiAlgoWorkspaceProps) {
           <AutoTradeModernDashboard
             onBack={() => setViewMode("overview")}
             algo={{ name: "FiAlgo V1 (Gold Specialist)", risk: "Low Risk · Dynamic Basket", deposit: 0 }}
-            mt5Account={mt5Account}
+            mt5Account={activeMt5Account}
           />
         </div>
       </DashboardLayout>

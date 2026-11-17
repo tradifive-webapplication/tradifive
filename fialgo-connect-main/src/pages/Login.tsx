@@ -27,6 +27,7 @@ import { toast } from "sonner";
 import { recordUserActivity } from "@/lib/activity";
 import { loginLimiter, otpLimiter } from "@/lib/rateLimiter";
 import { sanitizeEmail, sanitizeName, sanitizeReferralCode, validatePassword } from "@/lib/sanitize";
+import { checkUserAutoTradeAccess } from "@/utils/autoTradeAccess";
 
 export default function Login() {
   const location = useLocation();
@@ -167,6 +168,14 @@ export default function Login() {
       localStorage.removeItem("tradifive_cached_avatar_url");
       localStorage.removeItem("tradifive_cached_mt5_acc");
 
+      // Clear any previous auto-trade setup & payment state so new user starts clean
+      localStorage.removeItem("tradifive_auto_trade_setup");
+      localStorage.removeItem("tradifive_connected_mt5_account");
+      localStorage.removeItem("tradifive_ib_proof_request");
+      localStorage.removeItem("tradifive_payment_request");
+      localStorage.removeItem("tradifive_payment_status");
+      localStorage.removeItem("fialgo_user_profile");
+
       // Clear any stale mock profile overrides from localStorage
       const keysToRemove: string[] = [];
       for (let i = 0; i < localStorage.length; i++) {
@@ -178,6 +187,11 @@ export default function Login() {
       keysToRemove.forEach(key => localStorage.removeItem(key));
     } catch (e) {
       console.warn("localStorage not accessible during login cleanup");
+    }
+
+    // Verify whether this specific user already has an approved AutoTrade setup in database
+    if (user?.id) {
+      checkUserAutoTradeAccess(user.id).catch(() => {});
     }
 
     // Set marker for fresh login so the listener knows to redirect

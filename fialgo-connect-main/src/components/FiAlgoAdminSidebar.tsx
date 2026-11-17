@@ -3,6 +3,7 @@ import { useLocation, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
 import FiAlgoLogo from "./FiAlgoLogo";
+import { checkUserAutoTradeAccess } from "@/utils/autoTradeAccess";
 import {
   Bot,
   Activity,
@@ -95,7 +96,11 @@ export default function FiAlgoAdminSidebar({ mobileOpen = false, onClose }: FiAl
       setIsAutoTradeSetup(localStorage.getItem("tradifive_auto_trade_setup") === "true");
     };
     window.addEventListener("storage", handleStorage);
-    return () => window.removeEventListener("storage", handleStorage);
+    window.addEventListener("tradifive_auto_trade_setup_done", handleStorage);
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+      window.removeEventListener("tradifive_auto_trade_setup_done", handleStorage);
+    };
   }, []);
 
   useEffect(() => {
@@ -103,6 +108,10 @@ export default function FiAlgoAdminSidebar({ mobileOpen = false, onClose }: FiAl
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
+          // Verify actual setup & admin approval status in Supabase
+          const access = await checkUserAutoTradeAccess(user.id);
+          setIsAutoTradeSetup(access.hasAccess);
+
           const { data: profile } = await supabase
             .from("profiles")
             .select("full_name, email, username")
