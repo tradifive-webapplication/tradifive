@@ -29,7 +29,8 @@ import {
    ArrowUpRight, ShieldCheck, Terminal, Volume2, Calendar, LockKeyhole, Sparkles,
    CircleUserRound, Languages, BellRing, MessageCircle, AlertCircle, Inbox, MoreVertical, ArrowRight, Plus, Minus, Download,
    AlertTriangle, Palette, Mail, Link2, Info, Crown, CreditCard, MessageSquare, LogOut,
-   ChevronLeft, Sliders, Copy } from 'lucide-react';
+   ChevronLeft, Sliders, Copy, Pencil } from 'lucide-react';
+import { triggerHaptic } from '@/utils/haptics';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { User, Category, Notification, Star, Swap, TicketStar, Wallet, Chat, InfoCircle, Danger, Logout, Edit, Search, ChevronRight, Activity, ShieldDone, Document, Setting } from 'react-iconly';
 import { useAICoachData } from '@/hooks/useAICoachData';
@@ -1113,13 +1114,18 @@ export default function Settings() {
                          <button
                             type="button"
                             onClick={() => {
+                               triggerHaptic("selection");
                                setActiveTab("profile");
                                setMobileShowDetails(true);
                             }}
-                            className="px-3.5 py-1.5 rounded-xl border border-slate-200 dark:border-white/15 bg-white dark:bg-white/5 hover:bg-slate-50 dark:hover:bg-white/10 text-slate-800 dark:text-white text-xs font-semibold flex items-center gap-1.5 shadow-xs active:scale-95 transition-all shrink-0 cursor-pointer"
+                            style={{
+                               background: "linear-gradient(180deg, #FFFFFF 0%, #F0F2F5 100%)",
+                            }}
+                            className="h-9 px-4 rounded-full text-slate-900 dark:text-white border border-black/[0.08] dark:border-[#4B4951] shadow-[0_2px_4px_rgba(0,0,0,0.10),0_4px_12px_rgba(0,0,0,0.05),inset_0_1px_0_rgba(255,255,255,1)] dark:shadow-[0_2px_4px_rgba(0,0,0,0.4),0_0_0_1px_#0D0D0D] dark:bg-gradient-to-b dark:from-[#201E25] dark:to-[#323137] hover:brightness-[0.98] active:brightness-[0.95] active:translate-y-[1px] active:scale-[0.97] active:shadow-[0_1px_2px_rgba(0,0,0,0.08),inset_0_1px_2px_rgba(0,0,0,0.04)] inline-flex items-center justify-center gap-1.5 transition-all duration-150 ease-out shrink-0 cursor-pointer select-none"
+                            title="Edit profile"
                          >
-                            <Edit set="curved" stroke="bold" size={13} className="text-slate-600 dark:text-neutral-300" />
-                            <span>Edit</span>
+                            <Pencil size={14} strokeWidth={2.4} className="text-slate-900 dark:text-white shrink-0" />
+                            <span className="text-[13.5px] font-bold text-slate-900 dark:text-white leading-none tracking-tight">Edit</span>
                          </button>
                       </div>
                    </div>
