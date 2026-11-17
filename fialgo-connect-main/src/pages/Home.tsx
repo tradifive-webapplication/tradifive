@@ -555,7 +555,7 @@ export default function Home() {
     const [likedPosts, setLikedPosts] = useState<Record<string, boolean>>({});
     const [likesOffsets, setLikesOffsets] = useState<Record<string, number>>({});
     const [feedSort, setFeedSort] = useState<'popular' | 'latest'>('latest');
-    const [feedMarketFilter, setFeedMarketFilter] = useState<'for_you' | 'forex' | 'indian' | 'psychology'>('for_you');
+    const [feedMarketFilter, setFeedMarketFilter] = useState<'for_you' | 'following' | 'forex' | 'indian' | 'psychology'>('for_you');
 
     const handleDeletePost = useCallback(async (postId: string) => {
         const postIdStr = String(postId);
@@ -764,8 +764,12 @@ export default function Home() {
                 </div>
             );
         }
-        return [...feeds].filter(feed => {
+        const filteredFeeds = [...feeds].filter(feed => {
             if (feedMarketFilter === 'for_you') return true;
+            if (feedMarketFilter === 'following') {
+                const authorId = typeof feed.user_id === 'object' ? feed.user_id?.id : (feed.user_id || feed.profiles?.id);
+                return Boolean(authorId && followedUsers[authorId]);
+            }
 
             // If the post has an explicit market set, use it
             if (feed.market) {
@@ -783,7 +787,37 @@ export default function Home() {
             if (feedMarketFilter === 'psychology') return contentLower.includes('mindset') || contentLower.includes('psychology') || contentLower.includes('discipline') || contentLower.includes('emotion');
 
             return false;
-        }).sort((a, b) => {
+        });
+
+        if (filteredFeeds.length === 0) {
+            if (feedMarketFilter === 'following') {
+                return (
+                    <div className="p-8 sm:p-10 rounded-[24px] bg-white dark:bg-[#1E1E1E] figma-card-shadow text-center flex flex-col items-center justify-center gap-3">
+                        <p className="text-[15px] font-bold text-slate-900 dark:text-white">No posts from people you follow yet</p>
+                        <p className="text-[12.5px] font-medium text-slate-500 dark:text-neutral-400 max-w-xs">
+                            Follow traders you want to track and their latest posts and setups will appear here.
+                        </p>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                triggerHaptic("selection");
+                                setFeedMarketFilter('for_you');
+                            }}
+                            className="mt-1 px-5 py-2 rounded-full tactile-black-pill text-[13px] font-bold cursor-pointer select-none"
+                        >
+                            Explore For You
+                        </button>
+                    </div>
+                );
+            }
+            return (
+                <div className="p-8 rounded-[22px] text-center border-2 border-dashed border-slate-200 dark:border-white/5 text-slate-400 dark:text-slate-400 font-bold text-[14px]">
+                    No posts in this feed yet.
+                </div>
+            );
+        }
+
+        return filteredFeeds.sort((a, b) => {
             if (feedSort === 'popular') {
                 const likesA = a.like_count || a.likes_count || 0;
                 const likesB = b.like_count || b.likes_count || 0;
@@ -1369,32 +1403,31 @@ export default function Home() {
                                 {/* Feeds Section */}
                                 {currentTab === 'feed' && (
                                 <div className="space-y-4 sm:space-y-5">
-                                    <div className="flex flex-col gap-3">
-                                        <div className="flex items-center justify-between gap-2 sm:gap-4 mb-1">
-                                            <h2 className="text-[22px] sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight shrink-0">Feeds</h2>
-
-                                            <div className="hidden md:flex items-center overflow-x-auto no-scrollbar py-0.5">
-                                                <div className="flex items-center bg-slate-100/90 dark:bg-[#1A1A1C] p-1 rounded-full shrink-0">
-                                                    {[
-                                                        { id: 'for_you', label: 'For You' },
-                                                        { id: 'forex', label: 'Global' },
-                                                        { id: 'indian', label: 'Indian' },
-                                                        { id: 'psychology', label: 'Psychology' }
-                                                    ].map(tab => (
-                                                        <button
-                                                            key={tab.id}
-                                                            onClick={() => setFeedMarketFilter(tab.id as any)}
-                                                            className={`px-3 sm:px-4 py-1 sm:py-1.5 text-[12px] sm:text-[13px] rounded-full transition-all duration-200 ease-out whitespace-nowrap font-medium ${feedMarketFilter === tab.id
-                                                                ? "bg-white dark:bg-[#2C2C2E] text-slate-900 dark:text-white shadow-[0_1px_3px_rgba(0,0,0,0.1)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.3)]"
-                                                                : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
-                                                                }`}
-                                                        >
-                                                            {tab.label}
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        </div>
+                                    {/* Systemic Full-Width "For You" & "Following" Tabs Bar */}
+                                    <div className="flex items-center w-full border-b border-slate-200 dark:border-white/10 sticky top-0 z-20 bg-[#F8FAFC]/95 dark:bg-[#000000]/95 backdrop-blur-md -mx-1 px-1 sm:mx-0 sm:px-0">
+                                        {[
+                                            { id: 'for_you', label: 'For You' },
+                                            { id: 'following', label: 'Following' }
+                                        ].map(tab => (
+                                            <button
+                                                key={tab.id}
+                                                type="button"
+                                                onClick={() => {
+                                                    triggerHaptic("selection");
+                                                    setFeedMarketFilter(tab.id as 'for_you' | 'following');
+                                                }}
+                                                className={`flex-1 flex items-center justify-center pb-3.5 pt-2 text-[15.5px] sm:text-[16px] tracking-tight cursor-pointer transition-all relative select-none ${
+                                                    feedMarketFilter === tab.id
+                                                        ? "font-bold text-slate-900 dark:text-white"
+                                                        : "font-semibold text-slate-500 hover:text-slate-800 dark:text-neutral-400 dark:hover:text-white"
+                                                }`}
+                                            >
+                                                {tab.label}
+                                                {feedMarketFilter === tab.id && (
+                                                    <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-16 sm:w-20 h-[3.5px] bg-gradient-to-r from-blue-600 to-blue-500 rounded-full" />
+                                                )}
+                                            </button>
+                                        ))}
                                     </div>
 
                                     {/* Feed List */}
