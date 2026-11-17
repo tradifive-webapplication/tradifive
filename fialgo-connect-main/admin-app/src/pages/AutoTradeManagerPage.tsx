@@ -565,7 +565,10 @@ export default function AutoTradeManagerPage() {
     } catch (e) { }
 
     // Find and update matching AutoTradeRecord
-    const existingRec = records.find(r => r.mt5_account_number === proof.mt5_account_number || r.user_email === proof.user_email);
+    const cleanProofAcc = String(proof.mt5_account_number || "").replace(/\D/g, "");
+    const existingRec = records.find(r => (cleanProofAcc && (r.mt5_account_number === cleanProofAcc || r.bound_account === cleanProofAcc)) || r.user_email === proof.user_email);
+    const guaranteedKey = generateTradifiveLicenseKey(cleanProofAcc || existingRec?.mt5_account_number);
+
     if (existingRec) {
       const updatedRec: AutoTradeRecord = {
         ...existingRec,
@@ -573,11 +576,12 @@ export default function AutoTradeManagerPage() {
         ib_status: "verified",
         ib_code: "TRDF940182",
         last_ib_check_at: new Date().toISOString(),
+        license_key: guaranteedKey,
+        license_status: "active",
         admin_notes: `IB Transfer photo proof approved. Account is under Tradifive IB TRDF940182.`
       };
       await persistUpdate(updatedRec);
     } else {
-      const hex = Math.random().toString(36).substring(2, 6).toUpperCase();
       const newRec: AutoTradeRecord = {
         id: `rec-${proof.id}`,
         user_id: proof.user_id,
@@ -585,7 +589,7 @@ export default function AutoTradeManagerPage() {
         user_email: proof.user_email,
         user_phone: proof.user_phone,
         created_at: proof.submitted_at,
-        mt5_account_number: proof.mt5_account_number,
+        mt5_account_number: cleanProofAcc || proof.mt5_account_number,
         broker_name: proof.broker_name,
         broker_server: `${proof.broker_name}-Real`,
         balance: 2000,
@@ -609,11 +613,11 @@ export default function AutoTradeManagerPage() {
         purchase_date: "—",
         binary_downloaded: false,
         backtest_downloaded: false,
-        license_key: `FIALGO-${hex}-9401-XAU1`,
-        license_status: "unissued",
+        license_key: guaranteedKey,
+        license_status: "active",
         license_expiry: "N/A",
         allowed_accounts: 1,
-        bound_account: proof.mt5_account_number,
+        bound_account: cleanProofAcc || proof.mt5_account_number,
         admin_notes: "IB Transfer photo proof approved. Account verified under Tradifive."
       };
       await persistUpdate(newRec);
@@ -4228,7 +4232,7 @@ export default function AutoTradeManagerPage() {
                       purchase_date: new Date().toISOString(),
                       binary_downloaded: true,
                       backtest_downloaded: true,
-                      license_key: `FIALGO-${hex}-9401-XAU1`,
+                      license_key: generateTradifiveLicenseKey(newRecordForm.mt5_account_number),
                       license_status: "active",
                       license_expiry: isPerf ? "Active (Daily 50%)" : "Lifetime",
                       allowed_accounts: 1,

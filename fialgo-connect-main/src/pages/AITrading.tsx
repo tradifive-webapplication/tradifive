@@ -934,6 +934,13 @@ export default function AITrading() {
             algo_status: true
           });
         }
+
+        // Also update user's profile with their generated activation key
+        try {
+          await supabase.from("profiles").update({
+            activation_key: generatedLicKey
+          }).eq("id", userId);
+        } catch (_) {}
       }
     } catch (err) {
       console.warn("Submission error:", err);
@@ -950,6 +957,10 @@ export default function AITrading() {
     setIsEditingAccount(true);
     setIbVerified(false);
     setTransferRequestStatus("none");
+    if (!mt5Account) {
+      const savedAcc = localStorage.getItem("tradifive_connected_mt5_account");
+      if (savedAcc) setMt5Account(savedAcc);
+    }
     toast.info("You can now edit your MT5 account number and resubmit.");
   };
 
@@ -1771,7 +1782,7 @@ MagicNumber=789104
                       </label>
                       <input
                         type="text"
-                        placeholder="e.g. 8492015"
+                        placeholder="Enter your 7 or 8-digit MT5 Login ID"
                         value={mt5Account}
                         onChange={(e) => {
                           const val = e.target.value;
