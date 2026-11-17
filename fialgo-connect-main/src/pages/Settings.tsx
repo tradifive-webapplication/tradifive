@@ -1119,12 +1119,13 @@ export default function Settings() {
                                setMobileShowDetails(true);
                             }}
                             style={{
-                               background: "linear-gradient(180deg, #FFFFFF 0%, #F5F6F8 100%)",
+                               background: "rgba(227, 227, 227, 0.8)",
+                               boxShadow: "0 2px 4px 0 rgba(0, 0, 0, 0.10), 0 0 0 1px rgba(0, 0, 0, 0.16), inset 0 1px 0 0 #FDFDFD",
                             }}
-                            className="h-9 px-4 rounded-2xl text-slate-800 dark:text-white border border-black/[0.08] dark:border-[#4B4951] shadow-[0_3px_8px_rgba(0,0,0,0.08),0_1px_3px_rgba(0,0,0,0.04),inset_0_1px_0_rgba(255,255,255,1),inset_0_-1.5px_2px_rgba(0,0,0,0.05)] dark:shadow-[0_3px_8px_rgba(0,0,0,0.4),0_0_0_1px_#0D0D0D,inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-1px_2px_rgba(0,0,0,0.3)] dark:bg-gradient-to-b dark:from-[#201E25] dark:to-[#323137] hover:brightness-[0.99] active:brightness-[0.96] active:translate-y-[1px] active:scale-[0.97] active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.12),0_1px_2px_rgba(0,0,0,0.04)] inline-flex items-center justify-center gap-1.5 transition-all duration-150 ease-out shrink-0 cursor-pointer select-none font-semibold text-[13px]"
+                            className="h-9 px-4 rounded-[11px] text-slate-900 dark:text-white dark:bg-gradient-to-b dark:from-[#201E25] dark:to-[#323137] dark:shadow-[0_2px_4px_rgba(0,0,0,0.5),0_0_0_1px_#0D0D0D,inset_0_1px_0_rgba(255,255,255,0.12)] hover:brightness-[0.98] active:brightness-[0.95] active:translate-y-[0.5px] active:scale-[0.98] active:shadow-[0_1px_2px_rgba(0,0,0,0.10),0_0_0_1px_rgba(0,0,0,0.20),inset_0_2px_4px_rgba(0,0,0,0.12)] inline-flex items-center justify-center gap-1.5 transition-all duration-150 ease-out shrink-0 cursor-pointer select-none font-bold text-[13px]"
                             title="Edit profile"
                          >
-                            <Pencil size={14} strokeWidth={2.4} className="text-slate-900 dark:text-white shrink-0" />
+                            <Pencil size={13.5} strokeWidth={2.4} className="text-slate-900 dark:text-white shrink-0" />
                             <span className="text-[13.5px] font-bold text-slate-900 dark:text-white leading-none tracking-tight">Edit</span>
                          </button>
                       </div>
