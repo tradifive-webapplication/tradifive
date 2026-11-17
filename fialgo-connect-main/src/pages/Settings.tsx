@@ -31,7 +31,7 @@ import {
    AlertTriangle, Palette, Mail, Link2, Info, Crown, CreditCard, MessageSquare, LogOut,
    ChevronLeft, Sliders, Copy } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { User, Category, Notification, Star, Swap, TicketStar, Wallet, Chat, InfoCircle, Danger, Logout, Edit, Search, ChevronRight } from 'react-iconly';
+import { User, Category, Notification, Star, Swap, TicketStar, Wallet, Chat, InfoCircle, Danger, Logout, Edit, Search, ChevronRight, Activity, ShieldDone, Document, Setting } from 'react-iconly';
 import { useAICoachData } from '@/hooks/useAICoachData';
 
 const TAB_TITLES: Record<string, string> = {
@@ -1060,15 +1060,364 @@ export default function Settings() {
          {/* Centered Settings Dialog Modal Box */}
          <div className="relative w-full h-full sm:h-[88vh] sm:max-h-[880px] max-w-[1440px] rounded-none sm:rounded-[16px] bg-white dark:bg-[#121212] text-slate-800 dark:text-[#dbdee1] flex overflow-hidden shadow-2xl border-0 sm:border sm:border-slate-200/60 dark:sm:border-white/5 z-10 pb-16 md:pb-0">
             
-            {/* LEFT SIDEBAR PANEL inside Modal */}
-            <div className={`${mobileShowDetails ? 'hidden md:flex' : 'flex'} w-full md:w-64 bg-[#f2f3f5] dark:bg-[#1E1E1E] flex-col h-full min-h-0 border-r border-slate-200/60 dark:border-white/5 shrink-0`}>
-               {/* Mobile Header for Settings Sidebar */}
-               <div className="flex md:hidden items-center justify-between px-4 py-3 border-b border-slate-200/60 dark:border-white/5 bg-white dark:bg-[#1A1A1C] shrink-0">
-                  <span className="text-[14px] font-extrabold uppercase tracking-wider text-slate-800 dark:text-white">Settings</span>
-                  <button onClick={handleCloseSettings} className="flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 dark:bg-white/10 text-slate-500 hover:text-slate-700 dark:hover:text-white">
-                     <X size={16} />
-                  </button>
-               </div>
+             {/* ── MOBILE SETTINGS NAVIGATION (Matching Reference Picture 2) ── */}
+             <div className={`${mobileShowDetails ? 'hidden' : 'flex md:hidden'} w-full bg-[#F4F5F7] dark:bg-[#121215] flex-col h-full min-h-0 overflow-y-auto amazing-scrollbar select-none`}>
+                {/* Mobile Header */}
+                <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200/60 dark:border-white/5 bg-white dark:bg-[#1A1A1E] shrink-0 sticky top-0 z-20">
+                   <h1 className="text-[17px] font-bold text-slate-900 dark:text-white">Settings</h1>
+                   <button 
+                      onClick={handleCloseSettings} 
+                      className="w-7 h-7 rounded-full bg-slate-100 dark:bg-white/10 flex items-center justify-center text-slate-500 hover:text-slate-800 dark:text-neutral-400 dark:hover:text-white active:scale-90 transition-transform cursor-pointer"
+                      aria-label="Close settings"
+                   >
+                      <X size={15} />
+                   </button>
+                </div>
+
+                <div className="p-4 space-y-4 pb-28">
+                   {/* 1. Hero Profile Card with cover banner, overlapping avatar, Name, Username and Edit button */}
+                   <div className="bg-white dark:bg-[#1A1A1E] rounded-3xl overflow-hidden border border-slate-200/80 dark:border-white/10 shadow-xs relative">
+                      {/* Banner Image with smooth bottom fade */}
+                      <div className="relative h-36 w-full overflow-hidden bg-slate-100 dark:bg-neutral-800">
+                         <img
+                            src={profile.bannerUrl || profile.avatarUrl || "/nikil_avatar.jpg"}
+                            alt="Cover"
+                            className="w-full h-full object-cover object-center"
+                            onError={(e) => { (e.target as HTMLImageElement).src = "/default-cover.png"; }}
+                         />
+                         <div className="absolute inset-0 bg-gradient-to-t from-white via-white/40 to-transparent dark:from-[#1A1A1E] dark:via-[#1A1A1E]/40" />
+                      </div>
+
+                      {/* Overlapping Avatar */}
+                      <div className="relative -mt-9 ml-4 flex items-end justify-between pr-4">
+                         <div className="w-16 h-16 rounded-full border-2 border-white dark:border-[#1A1A1E] shadow-md overflow-hidden bg-white dark:bg-neutral-800 shrink-0">
+                            <img
+                               src={profile.avatarUrl || "/nikil_avatar.jpg"}
+                               alt={displayName}
+                               className="w-full h-full object-cover"
+                               onError={(e) => { (e.target as HTMLImageElement).src = defaultAvatar; }}
+                            />
+                         </div>
+                      </div>
+
+                      {/* Name, Username & Edit button row */}
+                      <div className="px-4 pt-2.5 pb-4 flex items-center justify-between">
+                         <div className="min-w-0 pr-3">
+                            <h2 className="text-[16px] font-bold text-slate-900 dark:text-white truncate leading-tight">
+                               {displayName}
+                            </h2>
+                            <p className="text-[12px] text-slate-400 dark:text-neutral-500 font-normal mt-0.5 truncate">
+                               @{profile.username || "nikhilharake"}
+                            </p>
+                         </div>
+                         <button
+                            type="button"
+                            onClick={() => {
+                               setActiveTab("profile");
+                               setMobileShowDetails(true);
+                            }}
+                            className="px-3.5 py-1.5 rounded-xl border border-slate-200 dark:border-white/15 bg-white dark:bg-white/5 hover:bg-slate-50 dark:hover:bg-white/10 text-slate-800 dark:text-white text-xs font-semibold flex items-center gap-1.5 shadow-xs active:scale-95 transition-all shrink-0 cursor-pointer"
+                         >
+                            <Edit set="curved" stroke="bold" size={13} className="text-slate-600 dark:text-neutral-300" />
+                            <span>Edit</span>
+                         </button>
+                      </div>
+                   </div>
+
+                   {/* 2. Search Settings Box */}
+                   <div className="relative">
+                      <Search set="curved" stroke="bold" className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-neutral-500" size={15} />
+                      <input
+                         type="text"
+                         placeholder="Search settings"
+                         value={searchQuery}
+                         onChange={(e) => setSearchQuery(e.target.value)}
+                         className="w-full bg-[#EAECEF] dark:bg-[#1E1E22] rounded-xl pl-9 pr-8 py-2.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-neutral-500 border border-transparent focus:outline-none focus:border-blue-500 transition-colors"
+                      />
+                      {searchQuery && (
+                         <button
+                            onClick={() => setSearchQuery('')}
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[11px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                         >
+                            Clear
+                         </button>
+                      )}
+                   </div>
+
+                   {/* 3. Grouped Settings Lists (Matching Reference Picture 2) */}
+                   <div className="space-y-4 pt-1">
+                      {/* Section: ACCOUNT */}
+                      {(!searchQuery || "account profile activity trophies security notifications delete history privacy".includes(searchQuery.toLowerCase())) && (
+                         <div>
+                            <h3 className="text-[11px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider mb-2 px-1">
+                               ACCOUNT
+                            </h3>
+                            <div className="bg-white dark:bg-[#1A1A1E] rounded-2xl border border-slate-200/80 dark:border-white/10 shadow-xs divide-y divide-slate-100 dark:divide-white/5 overflow-hidden">
+                               {(!searchQuery || "profile".includes(searchQuery.toLowerCase())) && (
+                                  <button
+                                     type="button"
+                                     onClick={() => { setActiveTab('profile'); setMobileShowDetails(true); }}
+                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
+                                  >
+                                     <div className="flex items-center gap-3">
+                                        <div className="text-slate-700 dark:text-neutral-300">
+                                           <User set="curved" stroke="bold" primaryColor="currentColor" size={17} />
+                                        </div>
+                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Profile</span>
+                                     </div>
+                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
+                                  </button>
+                               )}
+
+                               {(!searchQuery || "activity".includes(searchQuery.toLowerCase())) && (
+                                  <button
+                                     type="button"
+                                     onClick={() => { setActiveTab('account'); setActiveSubTab('active-sessions'); setMobileShowDetails(true); }}
+                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
+                                  >
+                                     <div className="flex items-center gap-3">
+                                        <div className="text-slate-700 dark:text-neutral-300">
+                                           <Activity set="curved" stroke="bold" primaryColor="currentColor" size={17} />
+                                        </div>
+                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Activity</span>
+                                     </div>
+                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
+                                  </button>
+                               )}
+
+                               {(!searchQuery || "trophies badges standing".includes(searchQuery.toLowerCase())) && (
+                                  <button
+                                     type="button"
+                                     onClick={() => { setActiveTab('account'); setActiveSubTab('account-standing'); setMobileShowDetails(true); }}
+                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
+                                  >
+                                     <div className="flex items-center gap-3">
+                                        <div className="text-slate-700 dark:text-neutral-300">
+                                           <Star set="curved" stroke="bold" primaryColor="currentColor" size={17} />
+                                        </div>
+                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Trophies & Standing</span>
+                                     </div>
+                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
+                                  </button>
+                               )}
+
+                               {(!searchQuery || "security password green check".includes(searchQuery.toLowerCase())) && (
+                                  <button
+                                     type="button"
+                                     onClick={() => { setActiveTab('account'); setActiveSubTab('password-security'); setMobileShowDetails(true); }}
+                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
+                                  >
+                                     <div className="flex items-center gap-3">
+                                        <div className="text-slate-700 dark:text-neutral-300">
+                                           <ShieldDone set="curved" stroke="bold" primaryColor="currentColor" size={17} />
+                                        </div>
+                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Security & Password</span>
+                                     </div>
+                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
+                                  </button>
+                               )}
+
+                               {(!searchQuery || "notifications alerts".includes(searchQuery.toLowerCase())) && (
+                                  <button
+                                     type="button"
+                                     onClick={() => { setActiveTab('notifications'); setMobileShowDetails(true); }}
+                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
+                                  >
+                                     <div className="flex items-center gap-3">
+                                        <div className="text-slate-700 dark:text-neutral-300">
+                                           <Notification set="curved" stroke="bold" primaryColor="currentColor" size={17} />
+                                        </div>
+                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Notifications</span>
+                                     </div>
+                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
+                                  </button>
+                               )}
+
+                               {(!searchQuery || "delete history privacy data".includes(searchQuery.toLowerCase())) && (
+                                  <button
+                                     type="button"
+                                     onClick={() => { setActiveTab('account'); setActiveSubTab('data-export'); setMobileShowDetails(true); }}
+                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
+                                  >
+                                     <div className="flex items-center gap-3">
+                                        <div className="text-slate-700 dark:text-neutral-300">
+                                           <Document set="curved" stroke="bold" primaryColor="currentColor" size={17} />
+                                        </div>
+                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Data & Privacy</span>
+                                     </div>
+                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
+                                  </button>
+                               )}
+                            </div>
+                         </div>
+                      )}
+
+                      {/* Section: TRADING */}
+                      {(!searchQuery || "trading break-even risk accounts circuit breaker symbol pricing".includes(searchQuery.toLowerCase())) && (
+                         <div>
+                            <h3 className="text-[11px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider mb-2 px-1">
+                               TRADING
+                            </h3>
+                            <div className="bg-white dark:bg-[#1A1A1E] rounded-2xl border border-slate-200/80 dark:border-white/10 shadow-xs divide-y divide-slate-100 dark:divide-white/5 overflow-hidden">
+                               {(!searchQuery || "break-even range risk".includes(searchQuery.toLowerCase())) && (
+                                  <button
+                                     type="button"
+                                     onClick={() => { setActiveTab('trading_preferences'); setMobileShowDetails(true); }}
+                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
+                                  >
+                                     <div className="flex items-center gap-3">
+                                        <div className="text-slate-700 dark:text-neutral-300">
+                                           <Setting set="curved" stroke="bold" primaryColor="currentColor" size={17} />
+                                        </div>
+                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Break-even Range & Risk</span>
+                                     </div>
+                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
+                                  </button>
+                               )}
+
+                               {(!searchQuery || "accounts brokers".includes(searchQuery.toLowerCase())) && (
+                                  <button
+                                     type="button"
+                                     onClick={() => { setActiveTab('trading'); setMobileShowDetails(true); }}
+                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
+                                  >
+                                     <div className="flex items-center gap-3">
+                                        <div className="text-slate-700 dark:text-neutral-300">
+                                           <Wallet set="curved" stroke="bold" primaryColor="currentColor" size={17} />
+                                        </div>
+                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Accounts & Brokers</span>
+                                     </div>
+                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
+                                  </button>
+                               )}
+
+                               {(!searchQuery || "risk circuit breaker".includes(searchQuery.toLowerCase())) && (
+                                  <button
+                                     type="button"
+                                     onClick={() => { setActiveTab('trading_preferences'); setMobileShowDetails(true); }}
+                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
+                                  >
+                                     <div className="flex items-center gap-3">
+                                        <div className="text-slate-700 dark:text-neutral-300">
+                                           <ShieldDone set="curved" stroke="bold" primaryColor="currentColor" size={17} />
+                                        </div>
+                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Risk Circuit Breaker</span>
+                                     </div>
+                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
+                                  </button>
+                               )}
+
+                               {(!searchQuery || "symbol pricing market".includes(searchQuery.toLowerCase())) && (
+                                  <button
+                                     type="button"
+                                     onClick={() => { setActiveTab('trading_preferences'); setMobileShowDetails(true); }}
+                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
+                                  >
+                                     <div className="flex items-center gap-3">
+                                        <div className="text-slate-700 dark:text-neutral-300">
+                                           <Swap set="curved" stroke="bold" primaryColor="currentColor" size={17} />
+                                        </div>
+                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Symbol Pricing</span>
+                                     </div>
+                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
+                                  </button>
+                               )}
+                            </div>
+                         </div>
+                      )}
+
+                      {/* Section: PREFERENCES & SUPPORT */}
+                      {(!searchQuery || "subscription theme appearance help report logout".includes(searchQuery.toLowerCase())) && (
+                         <div>
+                            <h3 className="text-[11px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider mb-2 px-1">
+                               PREFERENCES & SUPPORT
+                            </h3>
+                            <div className="bg-white dark:bg-[#1A1A1E] rounded-2xl border border-slate-200/80 dark:border-white/10 shadow-xs divide-y divide-slate-100 dark:divide-white/5 overflow-hidden">
+                               {(!searchQuery || "subscription plan billing".includes(searchQuery.toLowerCase())) && (
+                                  <button
+                                     type="button"
+                                     onClick={() => { setActiveTab('subscription'); setMobileShowDetails(true); }}
+                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
+                                  >
+                                     <div className="flex items-center gap-3">
+                                        <div className="text-slate-700 dark:text-neutral-300">
+                                           <TicketStar set="curved" stroke="bold" primaryColor="currentColor" size={17} />
+                                        </div>
+                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Subscription & Plan</span>
+                                     </div>
+                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
+                                  </button>
+                               )}
+
+                               {(!searchQuery || "theme appearance display".includes(searchQuery.toLowerCase())) && (
+                                  <button
+                                     type="button"
+                                     onClick={() => { setActiveTab('appearance'); setMobileShowDetails(true); }}
+                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
+                                  >
+                                     <div className="flex items-center gap-3">
+                                        <div className="text-slate-700 dark:text-neutral-300">
+                                           <Category set="curved" stroke="bold" primaryColor="currentColor" size={17} />
+                                        </div>
+                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Theme & Display</span>
+                                     </div>
+                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
+                                  </button>
+                               )}
+
+                               {(!searchQuery || "help center desk support".includes(searchQuery.toLowerCase())) && (
+                                  <button
+                                     type="button"
+                                     onClick={() => { setActiveTab('help'); setMobileShowDetails(true); }}
+                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
+                                  >
+                                     <div className="flex items-center gap-3">
+                                        <div className="text-slate-700 dark:text-neutral-300">
+                                           <InfoCircle set="curved" stroke="bold" primaryColor="currentColor" size={17} />
+                                        </div>
+                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Help Center</span>
+                                     </div>
+                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
+                                  </button>
+                               )}
+
+                               {(!searchQuery || "report problem issue".includes(searchQuery.toLowerCase())) && (
+                                  <button
+                                     type="button"
+                                     onClick={() => { setActiveTab('report'); setMobileShowDetails(true); }}
+                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
+                                  >
+                                     <div className="flex items-center gap-3">
+                                        <div className="text-slate-700 dark:text-neutral-300">
+                                           <Danger set="curved" stroke="bold" primaryColor="currentColor" size={17} />
+                                        </div>
+                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Report a Problem</span>
+                                     </div>
+                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
+                                  </button>
+                               )}
+
+                               <button
+                                  type="button"
+                                  onClick={() => setShowLogoutConfirm(true)}
+                                  className="w-full flex items-center justify-between p-3.5 hover:bg-rose-50/50 dark:hover:bg-rose-500/10 active:bg-rose-100/50 transition-colors cursor-pointer text-left"
+                               >
+                                  <div className="flex items-center gap-3">
+                                     <div className="text-rose-500">
+                                        <Logout set="curved" stroke="bold" primaryColor="currentColor" size={17} />
+                                     </div>
+                                     <span className="text-[13.5px] font-semibold text-rose-500">Log Out</span>
+                                  </div>
+                               </button>
+                            </div>
+                         </div>
+                      )}
+                   </div>
+                </div>
+             </div>
+
+             {/* ── DESKTOP SIDEBAR PANEL (Preserved completely for Web User App) ── */}
+             <div className="hidden md:flex w-64 bg-[#f2f3f5] dark:bg-[#1E1E1E] flex-col h-full min-h-0 border-r border-slate-200/60 dark:border-white/5 shrink-0">
 
                <div className="py-6 px-4 flex flex-col gap-4 flex-1 min-h-0 overflow-y-auto scrollbar-hide">
                             {/* Mini Profile Display */}

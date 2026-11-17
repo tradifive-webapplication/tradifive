@@ -3,11 +3,11 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { triggerHaptic } from "@/utils/haptics";
 import { 
-  Home, Activity, LayoutGrid, MoreHorizontal, BookOpen,
-  Sparkles, ArrowUp, X, ChevronRight, ShieldCheck, 
-  Cpu, Gift, Settings, HelpCircle, Compass, Calendar, Bookmark,
-  MessageSquare, Mail
-} from "lucide-react";
+  Home, Category, Document, ShieldDone, Activity, Setting, 
+  Discovery, TimeCircle, Bookmark, Chat, Message, TicketStar, 
+  ChevronRight 
+} from "react-iconly";
+import { Sparkles, ArrowUp, X, MoreHorizontal, HelpCircle } from "lucide-react";
 
 export default function BottomNav() {
   const location = useLocation();
@@ -30,8 +30,10 @@ export default function BottomNav() {
       isActive: (p: string) => (p === "/" || p.startsWith("/home")) && !isMoreOpen,
       renderIcon: (active: boolean) => (
         <Home
+          set="curved"
+          stroke={active ? "bold" : "regular"}
+          primaryColor="currentColor"
           size={20}
-          strokeWidth={active ? 2.2 : 1.8}
         />
       ),
     },
@@ -44,9 +46,11 @@ export default function BottomNav() {
         p.startsWith("/portfolio") ||
         p.startsWith("/broker-connect")) && !isMoreOpen,
       renderIcon: (active: boolean) => (
-        <LayoutGrid
+        <Category
+          set="curved"
+          stroke={active ? "bold" : "regular"}
+          primaryColor="currentColor"
           size={20}
-          strokeWidth={active ? 2.2 : 1.8}
         />
       ),
     },
@@ -56,9 +60,11 @@ export default function BottomNav() {
       path: "/journal",
       isActive: (p: string) => p.startsWith("/journal") && !isMoreOpen,
       renderIcon: (active: boolean) => (
-        <BookOpen
+        <Document
+          set="curved"
+          stroke={active ? "bold" : "regular"}
+          primaryColor="currentColor"
           size={20}
-          strokeWidth={active ? 2.2 : 1.8}
         />
       ),
     },
@@ -68,9 +74,11 @@ export default function BottomNav() {
       path: "/risk-guard",
       isActive: (p: string) => p.startsWith("/risk-guard") && !isMoreOpen,
       renderIcon: (active: boolean) => (
-        <ShieldCheck
+        <ShieldDone
+          set="curved"
+          stroke={active ? "bold" : "regular"}
+          primaryColor="currentColor"
           size={20}
-          strokeWidth={active ? 2.2 : 1.8}
         />
       ),
     },
@@ -296,7 +304,7 @@ export default function BottomNav() {
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.08] text-slate-700 dark:text-neutral-300 flex items-center justify-center shrink-0">
-                        <Activity size={18} />
+                        <Activity set="curved" stroke="bold" primaryColor="currentColor" size={18} />
                       </div>
                       <span className="text-[13.5px] font-semibold text-slate-900 dark:text-white">
                         AutoTrade
@@ -304,7 +312,7 @@ export default function BottomNav() {
                     </div>
                     <div className="flex items-center gap-1.5 text-slate-400 dark:text-neutral-500 text-[12.5px] font-normal">
                       <span>Algo & bots</span>
-                      <ChevronRight size={14} className="text-slate-300 dark:text-neutral-600" />
+                      <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
                     </div>
                   </button>
 
@@ -316,7 +324,7 @@ export default function BottomNav() {
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.08] text-slate-700 dark:text-neutral-300 flex items-center justify-center shrink-0">
-                        <Cpu size={18} />
+                        <Setting set="curved" stroke="bold" primaryColor="currentColor" size={18} />
                       </div>
                       <span className="text-[13.5px] font-semibold text-slate-900 dark:text-white">
                         Strategy Builder
@@ -324,7 +332,7 @@ export default function BottomNav() {
                     </div>
                     <div className="flex items-center gap-1.5 text-slate-400 dark:text-neutral-500 text-[12.5px] font-normal">
                       <span>Add a setup</span>
-                      <ChevronRight size={14} className="text-slate-300 dark:text-neutral-600" />
+                      <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
                     </div>
                   </button>
 
@@ -336,7 +344,7 @@ export default function BottomNav() {
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.08] text-slate-700 dark:text-neutral-300 flex items-center justify-center shrink-0">
-                        <Compass size={18} />
+                        <Discovery set="curved" stroke="bold" primaryColor="currentColor" size={18} />
                       </div>
                       <span className="text-[13.5px] font-semibold text-slate-900 dark:text-white">
                         Discover
@@ -344,7 +352,7 @@ export default function BottomNav() {
                     </div>
                     <div className="flex items-center gap-1.5 text-slate-400 dark:text-neutral-500 text-[12.5px] font-normal">
                       <span>Top strategies</span>
-                      <ChevronRight size={14} className="text-slate-300 dark:text-neutral-600" />
+                      <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
                     </div>
                   </button>
 
@@ -356,7 +364,7 @@ export default function BottomNav() {
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.08] text-slate-700 dark:text-neutral-300 flex items-center justify-center shrink-0">
-                        <Calendar size={18} />
+                        <TimeCircle set="curved" stroke="bold" primaryColor="currentColor" size={18} />
                       </div>
                       <span className="text-[13.5px] font-semibold text-slate-900 dark:text-white">
                         Economic Calendar
@@ -364,7 +372,7 @@ export default function BottomNav() {
                     </div>
                     <div className="flex items-center gap-1.5 text-slate-400 dark:text-neutral-500 text-[12.5px] font-normal">
                       <span>Market events</span>
-                      <ChevronRight size={14} className="text-slate-300 dark:text-neutral-600" />
+                      <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
                     </div>
                   </button>
 
@@ -376,7 +384,7 @@ export default function BottomNav() {
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.08] text-slate-700 dark:text-neutral-300 flex items-center justify-center shrink-0">
-                        <Bookmark size={18} />
+                        <Bookmark set="curved" stroke="bold" primaryColor="currentColor" size={18} />
                       </div>
                       <span className="text-[13.5px] font-semibold text-slate-900 dark:text-white">
                         Saved Posts
@@ -384,7 +392,7 @@ export default function BottomNav() {
                     </div>
                     <div className="flex items-center gap-1.5 text-slate-400 dark:text-neutral-500 text-[12.5px] font-normal">
                       <span>Pinned feeds</span>
-                      <ChevronRight size={14} className="text-slate-300 dark:text-neutral-600" />
+                      <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
                     </div>
                   </button>
 
@@ -396,7 +404,7 @@ export default function BottomNav() {
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.08] text-slate-700 dark:text-neutral-300 flex items-center justify-center shrink-0">
-                        <MessageSquare size={18} />
+                        <Chat set="curved" stroke="bold" primaryColor="currentColor" size={18} />
                       </div>
                       <span className="text-[13.5px] font-semibold text-slate-900 dark:text-white">
                         Channels
@@ -404,7 +412,7 @@ export default function BottomNav() {
                     </div>
                     <div className="flex items-center gap-1.5 text-slate-400 dark:text-neutral-500 text-[12.5px] font-normal">
                       <span>Chat rooms</span>
-                      <ChevronRight size={14} className="text-slate-300 dark:text-neutral-600" />
+                      <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
                     </div>
                   </button>
 
@@ -416,7 +424,7 @@ export default function BottomNav() {
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.08] text-slate-700 dark:text-neutral-300 flex items-center justify-center shrink-0">
-                        <Mail size={18} />
+                        <Message set="curved" stroke="bold" primaryColor="currentColor" size={18} />
                       </div>
                       <span className="text-[13.5px] font-semibold text-slate-900 dark:text-white">
                         Inbox
@@ -424,7 +432,7 @@ export default function BottomNav() {
                     </div>
                     <div className="flex items-center gap-1.5 text-slate-400 dark:text-neutral-500 text-[12.5px] font-normal">
                       <span>Direct messages</span>
-                      <ChevronRight size={14} className="text-slate-300 dark:text-neutral-600" />
+                      <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
                     </div>
                   </button>
 
@@ -436,7 +444,7 @@ export default function BottomNav() {
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.08] text-slate-700 dark:text-neutral-300 flex items-center justify-center shrink-0">
-                        <Gift size={18} />
+                        <TicketStar set="curved" stroke="bold" primaryColor="currentColor" size={18} />
                       </div>
                       <span className="text-[13.5px] font-semibold text-slate-900 dark:text-white">
                         Refer & Earn
@@ -444,7 +452,7 @@ export default function BottomNav() {
                     </div>
                     <div className="flex items-center gap-1.5 text-slate-400 dark:text-neutral-500 text-[12.5px] font-normal">
                       <span>Rewards</span>
-                      <ChevronRight size={14} className="text-slate-300 dark:text-neutral-600" />
+                      <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
                     </div>
                   </button>
                 </div>
@@ -463,7 +471,7 @@ export default function BottomNav() {
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.08] text-slate-700 dark:text-neutral-300 flex items-center justify-center shrink-0">
-                        <Settings size={18} />
+                        <Setting set="curved" stroke="bold" primaryColor="currentColor" size={18} />
                       </div>
                       <span className="text-[13.5px] font-semibold text-slate-900 dark:text-white">
                         Settings
@@ -471,7 +479,7 @@ export default function BottomNav() {
                     </div>
                     <div className="flex items-center gap-1.5 text-slate-400 dark:text-neutral-500 text-[12.5px] font-normal">
                       <span>Preferences</span>
-                      <ChevronRight size={14} className="text-slate-300 dark:text-neutral-600" />
+                      <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
                     </div>
                   </button>
 
@@ -491,7 +499,7 @@ export default function BottomNav() {
                     </div>
                     <div className="flex items-center gap-1.5 text-slate-400 dark:text-neutral-500 text-[12.5px] font-normal">
                       <span>24/7 Desk</span>
-                      <ChevronRight size={14} className="text-slate-300 dark:text-neutral-600" />
+                      <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
                     </div>
                   </button>
                 </div>
