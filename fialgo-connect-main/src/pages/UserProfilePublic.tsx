@@ -1086,29 +1086,29 @@ export default function UserProfilePublic() {
                 );
               })()}
 
-              {/* --- TRADING PERFORMANCE CARD (Visible if enabled in Settings) --- */}
+              {/* --- TRADING PERFORMANCE CARD (Compact; visible if enabled in Settings) --- */}
               {!isLocked && privacySettings.show_performance !== false && (
-                <div className="bg-white dark:bg-[#1E1E1E] p-5 sm:p-6 rounded-[24px] figma-card-shadow relative overflow-hidden">
-                  <div className="flex flex-col gap-5">
+                <div className="bg-white dark:bg-[#1E1E1E] p-3.5 sm:p-4 rounded-[18px] sm:rounded-[20px] figma-card-shadow relative overflow-hidden">
+                  <div className="flex flex-col gap-3">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-[13px] font-bold text-slate-900 dark:text-white uppercase tracking-wider">Trading Performance</h3>
+                      <h3 className="text-[11px] sm:text-[12px] font-bold text-slate-900 dark:text-white uppercase tracking-wider">Trading Performance</h3>
 
-                      <span className="text-[11px] font-bold text-slate-700 dark:text-slate-200 bg-[#F4F5F7] dark:bg-[#2A2A2A] px-3.5 py-1.5 rounded-full border border-slate-200/60 dark:border-white/10 shadow-xs cursor-pointer flex items-center gap-1.5 select-none active:scale-95 transition-all">
-                        All Time <ArrowRight size={10} className="rotate-90 text-slate-500" />
+                      <span className="text-[10px] font-bold text-slate-700 dark:text-slate-200 bg-[#F4F5F7] dark:bg-[#2A2A2A] px-2.5 py-1 rounded-full border border-slate-200/60 dark:border-white/10 shadow-xs cursor-pointer flex items-center gap-1 select-none active:scale-95 transition-all">
+                        All Time <ArrowRight size={9} className="rotate-90 text-slate-500" />
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-12 gap-5 items-center">
+                    <div className="grid grid-cols-12 gap-3 items-center">
 
-                      {/* Left part: Total PnL Label & glowing Line Chart */}
-                      <div className="sm:col-span-6 flex flex-col">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider leading-none">Total PnL</span>
-                        <span className={`text-2xl sm:text-3xl font-extrabold tracking-tight leading-none mt-2 font-sans ${safeAdvMetrics.totalPnlPercent.startsWith('-') ? 'text-rose-500' : 'text-emerald-500'}`}>
+                      {/* Left part: Total PnL Label & compact Line Chart */}
+                      <div className="col-span-5 flex flex-col">
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider leading-none">Total PnL</span>
+                        <span className={`text-lg sm:text-xl font-extrabold tracking-tight leading-none mt-1.5 font-sans ${safeAdvMetrics.totalPnlPercent.startsWith('-') ? 'text-rose-500' : 'text-emerald-500'}`}>
                           {safeAdvMetrics.totalPnlPercent}
                         </span>
 
-                        <div className="h-24 w-full mt-4 relative">
-                          <svg className={`w-full h-full filter ${safeAdvMetrics.totalPnlPercent.startsWith('-') ? 'drop-shadow-[0_4px_8px_rgba(244,63,94,0.2)]' : 'drop-shadow-[0_4px_8px_rgba(59,130,246,0.2)]'}`} viewBox="0 0 100 40" preserveAspectRatio="none">
+                        <div className="h-12 sm:h-14 w-full mt-2 relative">
+                          <svg className={`w-full h-full filter ${safeAdvMetrics.totalPnlPercent.startsWith('-') ? 'drop-shadow-[0_3px_6px_rgba(244,63,94,0.2)]' : 'drop-shadow-[0_3px_6px_rgba(59,130,246,0.2)]'}`} viewBox="0 0 100 40" preserveAspectRatio="none">
                             <defs>
                               <linearGradient id="pnlGrad" x1="0" y1="0" x2="0" y2="1">
                                 <stop offset="0%" stopColor={safeAdvMetrics.totalPnlPercent.startsWith('-') ? "#f43f5e" : "#3b82f6"} stopOpacity="0.4" />
@@ -1126,31 +1126,31 @@ export default function UserProfilePublic() {
                               d={`${safeAdvMetrics.chartPath} L100,40 L0,40 Z`}
                               fill="url(#pnlGrad)"
                             />
-                            <circle cx="100" cy={safeAdvMetrics.chartPath.split(',').pop() || 3} r="3.5" fill={safeAdvMetrics.totalPnlPercent.startsWith('-') ? "#f43f5e" : "#3b82f6"} className="animate-ping" />
+                            <circle cx="100" cy={safeAdvMetrics.chartPath.split(',').pop() || 3} r="3" fill={safeAdvMetrics.totalPnlPercent.startsWith('-') ? "#f43f5e" : "#3b82f6"} className="animate-ping" />
                             <circle cx="100" cy={safeAdvMetrics.chartPath.split(',').pop() || 3} r="2" fill={safeAdvMetrics.totalPnlPercent.startsWith('-') ? "#f43f5e" : "#3b82f6"} />
                           </svg>
                         </div>
                       </div>
 
-                      {/* Right part: stats list */}
-                      <div className="sm:col-span-6 space-y-3 sm:pl-6 sm:border-l border-slate-200/80 dark:border-white/5">
+                      {/* Right part: compact stats list */}
+                      <div className="col-span-7 space-y-1.5 pl-3 sm:pl-4 border-l border-slate-200/80 dark:border-white/5">
                         {[
-                          { label: "Profit Factor", value: safeAdvMetrics.profitFactor, color: "text-blue-500", icon: <BarChart2 size={13} className="text-blue-500" /> },
-                          { label: "Expectancy", value: safeAdvMetrics.expectancy, color: safeAdvMetrics.expectancy.startsWith('-') ? "text-rose-500" : "text-emerald-500", icon: <TrendingUp size={13} className={safeAdvMetrics.expectancy.startsWith('-') ? "text-rose-500" : "text-emerald-500"} /> },
-                          { label: "Max Drawdown", value: safeAdvMetrics.maxDrawdown, color: "text-rose-500", highlighted: true, icon: <Scale size={13} className="text-rose-500" /> },
-                          { label: "Consistency Score", value: `${safeAdvMetrics.consistencyScore}%`, color: "text-blue-500", icon: <CheckCircle2 size={13} className="text-blue-500" />, showInfo: true }
+                          { label: "Profit Factor", value: safeAdvMetrics.profitFactor, color: "text-blue-500", icon: <BarChart2 size={11} className="text-blue-500" /> },
+                          { label: "Expectancy", value: safeAdvMetrics.expectancy, color: safeAdvMetrics.expectancy.startsWith('-') ? "text-rose-500" : "text-emerald-500", icon: <TrendingUp size={11} className={safeAdvMetrics.expectancy.startsWith('-') ? "text-rose-500" : "text-emerald-500"} /> },
+                          { label: "Max Drawdown", value: safeAdvMetrics.maxDrawdown, color: "text-rose-500", highlighted: true, icon: <Scale size={11} className="text-rose-500" /> },
+                          { label: "Consistency", value: `${safeAdvMetrics.consistencyScore}%`, color: "text-blue-500", icon: <CheckCircle2 size={11} className="text-blue-500" />, showInfo: true }
                         ].map((stat, i) => (
-                          <div key={i} className="flex justify-between items-center text-xs sm:text-[13px]">
-                            <span className="font-bold text-slate-500 dark:text-[#999] flex items-center gap-2">
-                              <div className="p-1.5 rounded-lg bg-slate-100 dark:bg-white/5 shrink-0">
+                          <div key={i} className="flex justify-between items-center text-[10.5px] sm:text-[11.5px] gap-1">
+                            <span className="font-bold text-slate-500 dark:text-[#999] flex items-center gap-1.5 min-w-0">
+                              <div className="p-1 rounded-md bg-slate-100 dark:bg-white/5 shrink-0">
                                 {stat.icon}
                               </div>
-                              <span className="flex items-center gap-1 font-semibold">
+                              <span className="flex items-center gap-1 font-semibold truncate">
                                 {stat.label}
-                                {stat.showInfo && <Info size={11} className="text-slate-400 hover:text-slate-600 cursor-pointer" />}
+                                {stat.showInfo && <Info size={10} className="text-slate-400 hover:text-slate-600 cursor-pointer shrink-0" />}
                               </span>
                             </span>
-                            <span className={`font-bold tracking-tight font-sans ${stat.highlighted ? 'text-rose-500' : 'text-slate-900 dark:text-[#EEE]'}`}>{stat.value}</span>
+                            <span className={`font-bold tracking-tight font-sans shrink-0 ${stat.highlighted ? 'text-rose-500' : 'text-slate-900 dark:text-[#EEE]'}`}>{stat.value}</span>
                           </div>
                         ))}
                       </div>
@@ -1160,46 +1160,46 @@ export default function UserProfilePublic() {
                 </div>
               )}
 
-              {/* --- TRADING STREAK & CALENDAR ROW (Proper layout above tabs; controlled by Settings) --- */}
+              {/* --- TRADING STREAK & CALENDAR ROW (Compact; controlled by Settings) --- */}
               {!isLocked && (privacySettings.show_streak !== false || privacySettings.show_calendar !== false) && (
-                <div className={`grid grid-cols-1 ${(privacySettings.show_streak !== false && privacySettings.show_calendar !== false) ? 'md:grid-cols-2' : ''} gap-5 w-full`}>
+                <div className={`grid grid-cols-1 ${(privacySettings.show_streak !== false && privacySettings.show_calendar !== false) ? 'sm:grid-cols-2' : ''} gap-3 w-full`}>
 
                   {/* Trading Streak Card */}
                   {privacySettings.show_streak !== false && (
-                    <div className="p-5 sm:p-6 rounded-[24px] bg-white dark:bg-[#1E1E1E] figma-card-shadow flex flex-col justify-between gap-4">
-                      <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/5">
-                        <h3 className="text-[13px] font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
-                          <span className="p-1.5 rounded-lg bg-orange-500/10 text-orange-500">
-                            <Flame size={15} className="fill-orange-500/15" />
+                    <div className="p-3.5 sm:p-4 rounded-[18px] sm:rounded-[20px] bg-white dark:bg-[#1E1E1E] figma-card-shadow flex flex-col justify-between gap-2.5">
+                      <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-white/5">
+                        <h3 className="text-[11px] sm:text-[12px] font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
+                          <span className="p-1 rounded-md bg-orange-500/10 text-orange-500">
+                            <Flame size={12} className="fill-orange-500/15" />
                           </span>
                           <span>Trading Streak</span>
                         </h3>
-                        <span className="text-[15px] font-extrabold text-orange-500 leading-none">{safeStreak}</span>
+                        <span className="text-[12.5px] font-extrabold text-orange-500 leading-none">{safeStreak}</span>
                       </div>
 
-                      <div className="flex justify-between items-center text-xs font-semibold text-slate-500 dark:text-neutral-400">
+                      <div className="flex justify-between items-center text-[11px] font-semibold text-slate-500 dark:text-neutral-400">
                         <span>Current Streak</span>
                         <span>Best: <strong className="text-slate-900 dark:text-white font-extrabold">{Math.max(bestStreak, profile?.best_streak || 0)} Day{Math.max(bestStreak, profile?.best_streak || 0) !== 1 ? 's' : ''}</strong></span>
                       </div>
 
                       {/* Last 15 Days Dot Indicators */}
-                      <div className="flex items-center justify-between gap-1.5 py-2">
+                      <div className="flex items-center justify-between gap-1 py-0.5">
                         {(streakDots.length > 0 ? streakDots : Array.from({ length: 15 }, () => ({ date: '', status: 'gray' as const }))).map((dot, idx) => (
                           <span
                             key={idx}
                             title={dot.date ? `${dot.date} — ${dot.status === 'green' ? 'Profitable' : dot.status === 'red' ? 'Loss' : 'No Trade'}` : 'No Trade'}
-                            className={`w-3 h-3 rounded-full block transition-transform hover:scale-125 ${
+                            className={`w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full block transition-transform hover:scale-125 ${
                               dot.status === 'green'
-                                ? 'bg-[#10b981] shadow-[0_0_6px_rgba(16,185,129,0.4)]'
+                                ? 'bg-[#10b981] shadow-[0_0_5px_rgba(16,185,129,0.4)]'
                                 : dot.status === 'red'
-                                  ? 'bg-[#ef4444] shadow-[0_0_6px_rgba(239,68,68,0.35)]'
+                                  ? 'bg-[#ef4444] shadow-[0_0_5px_rgba(239,68,68,0.35)]'
                                   : 'bg-slate-200 dark:bg-white/10'
                             }`}
                           />
                         ))}
                       </div>
 
-                      <div className="flex justify-between text-[10px] text-slate-400 dark:text-neutral-500 font-bold uppercase tracking-wider leading-none pt-1">
+                      <div className="flex justify-between text-[9px] text-slate-400 dark:text-neutral-500 font-bold uppercase tracking-wider leading-none">
                         <span>
                           {streakDots.length > 0 && streakDots[0].date
                             ? (() => {
@@ -1215,46 +1215,46 @@ export default function UserProfilePublic() {
 
                   {/* Performance Calendar Card */}
                   {privacySettings.show_calendar !== false && (
-                    <div className="p-5 sm:p-6 rounded-[24px] bg-white dark:bg-[#1E1E1E] figma-card-shadow flex flex-col justify-between gap-4">
-                      <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/5">
-                        <h3 className="text-[13px] font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
-                          <span className="p-1.5 rounded-lg bg-blue-500/10 text-blue-500">
-                            <Calendar size={15} />
+                    <div className="p-3.5 sm:p-4 rounded-[18px] sm:rounded-[20px] bg-white dark:bg-[#1E1E1E] figma-card-shadow flex flex-col justify-between gap-2.5">
+                      <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-white/5">
+                        <h3 className="text-[11px] sm:text-[12px] font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
+                          <span className="p-1 rounded-md bg-blue-500/10 text-blue-500">
+                            <Calendar size={12} />
                           </span>
                           <span>Calendar</span>
                         </h3>
 
                         {/* Interactive Month Navigation */}
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-0.5">
                           <button
                             type="button"
                             onClick={() => setCalendarMonth(prev => { const d = new Date(prev); d.setMonth(d.getMonth() - 1); return d; })}
-                            className="p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 transition-colors text-slate-500 hover:text-slate-800 dark:hover:text-white"
+                            className="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 transition-colors text-slate-500 hover:text-slate-800 dark:hover:text-white"
                             aria-label="Previous month"
                           >
-                            <ChevronDown size={13} className="rotate-90" />
+                            <ChevronDown size={12} className="rotate-90" />
                           </button>
-                          <span className="px-3 py-1 rounded-full bg-[#F4F5F7] dark:bg-[#2A2A2A] text-slate-700 dark:text-slate-200 text-[11px] font-extrabold uppercase tracking-wider border border-slate-200/60 dark:border-white/10 select-none min-w-[92px] text-center">
+                          <span className="px-2.5 py-0.5 rounded-full bg-[#F4F5F7] dark:bg-[#2A2A2A] text-slate-700 dark:text-slate-200 text-[10px] font-extrabold uppercase tracking-wider border border-slate-200/60 dark:border-white/10 select-none min-w-[78px] text-center">
                             {calendarMonth.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
                           </span>
                           <button
                             type="button"
                             onClick={() => setCalendarMonth(prev => { const d = new Date(prev); d.setMonth(d.getMonth() + 1); return d; })}
-                            className="p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 transition-colors text-slate-500 hover:text-slate-800 dark:hover:text-white"
+                            className="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 transition-colors text-slate-500 hover:text-slate-800 dark:hover:text-white"
                             aria-label="Next month"
                           >
-                            <ChevronDown size={13} className="-rotate-90" />
+                            <ChevronDown size={12} className="-rotate-90" />
                           </button>
                         </div>
                       </div>
 
                       {/* Dynamic Real-Data Heatmap Grid */}
-                      <div className="space-y-1.5">
-                        <div className="grid grid-cols-7 gap-1.5 text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                      <div className="space-y-1">
+                        <div className="grid grid-cols-7 gap-1 text-center text-[9px] font-bold text-slate-400 uppercase tracking-widest">
                           {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(d => <span key={d}>{d.substring(0, 1)}</span>)}
                         </div>
 
-                        <div className="grid grid-cols-7 gap-1.5">
+                        <div className="grid grid-cols-7 gap-1">
                           {(() => {
                             const year = calendarMonth.getFullYear();
                             const month = calendarMonth.getMonth();
@@ -1264,7 +1264,7 @@ export default function UserProfilePublic() {
                             const cells: React.ReactNode[] = [];
 
                             for (let i = 0; i < startOffset; i++) {
-                              cells.push(<span key={`empty-${i}`} className="h-6" />);
+                              cells.push(<span key={`empty-${i}`} className="h-[20px] sm:h-[22px]" />);
                             }
 
                             const todayDate = new Date();
@@ -1275,7 +1275,7 @@ export default function UserProfilePublic() {
                               const status = calendarDayMap[key];
                               const isToday = key === todayStr;
 
-                              let cellClass = "h-6 w-full rounded-[6px] flex items-center justify-center text-[10px] font-bold transition-all ";
+                              let cellClass = "h-[20px] sm:h-[22px] w-full rounded-[5px] flex items-center justify-center text-[9px] font-bold transition-all ";
                               if (status === 'green') {
                                 cellClass += "bg-[#10b981]/20 text-emerald-700 dark:bg-[#10b981]/30 dark:text-emerald-300 border border-[#10b981]/30";
                               } else if (status === 'red') {
@@ -1284,7 +1284,7 @@ export default function UserProfilePublic() {
                                 cellClass += "bg-slate-100/90 dark:bg-white/[0.04] text-slate-400 dark:text-neutral-500 border border-slate-200/40 dark:border-white/5";
                               }
                               if (isToday) {
-                                cellClass += " ring-2 ring-slate-900 dark:ring-white ring-offset-1 dark:ring-offset-[#1E1E1E]";
+                                cellClass += " ring-1.5 ring-slate-900 dark:ring-white ring-offset-1 dark:ring-offset-[#1E1E1E]";
                               }
 
                               cells.push(
@@ -1304,15 +1304,15 @@ export default function UserProfilePublic() {
                       </div>
 
                       {/* Legend */}
-                      <div className="flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider pt-2.5 border-t border-slate-100 dark:border-white/5">
-                        <span className="flex items-center gap-1.5">
-                          <span className="w-2.5 h-2.5 rounded-[3px] bg-[#10b981]" /> Profitable
+                      <div className="flex items-center justify-between text-[9px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider pt-2 border-t border-slate-100 dark:border-white/5">
+                        <span className="flex items-center gap-1">
+                          <span className="w-2 h-2 rounded-[2px] bg-[#10b981]" /> Profitable
                         </span>
-                        <span className="flex items-center gap-1.5">
-                          <span className="w-2.5 h-2.5 rounded-[3px] bg-[#ef4444]" /> Loss
+                        <span className="flex items-center gap-1">
+                          <span className="w-2 h-2 rounded-[2px] bg-[#ef4444]" /> Loss
                         </span>
-                        <span className="flex items-center gap-1.5">
-                          <span className="w-2.5 h-2.5 rounded-[3px] bg-slate-200 dark:bg-white/10" /> No Trade
+                        <span className="flex items-center gap-1">
+                          <span className="w-2 h-2 rounded-[2px] bg-slate-200 dark:bg-white/10" /> No Trade
                         </span>
                       </div>
                     </div>
