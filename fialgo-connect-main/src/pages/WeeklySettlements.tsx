@@ -1,12 +1,15 @@
 ﻿import React, { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import DashboardLayout from "@/components/DashboardLayout";
 import { 
   Receipt, Wallet, ArrowUpRight, TrendingUp, TrendingDown, Clock, 
   CheckCircle2, AlertCircle, RefreshCw, Filter, ShieldCheck, Download, 
-  ChevronRight, Calendar, ArrowRight, Info, Coins, ShieldAlert
+  ChevronRight, Calendar, ArrowRight, Info, Coins, ShieldAlert,
+  Lock, Sparkles, Zap, Activity
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { getSystemSetting } from "@/lib/systemSettings";
 import { 
   Settlement, 
   CustomerSettlementSummary, 
@@ -20,9 +23,25 @@ import SettlementPaymentModal from "@/components/settlements/SettlementPaymentMo
 import { downloadSettlementInvoicePdf } from "@/utils/settlementPdf";
 
 export default function WeeklySettlements() {
+  const navigate = useNavigate();
   const [userId, setUserId] = useState<string>("");
   const [userProfile, setUserProfile] = useState<any>(null);
   const [accountNumber, setAccountNumber] = useState<string>("");
+  const [isLifetimePlan, setIsLifetimePlan] = useState<boolean>(() => {
+    try {
+      if (typeof window !== "undefined") {
+        if (localStorage.getItem("tradifive_is_lifetime_plan") === "true") return true;
+        const tier = localStorage.getItem("tradifive_payment_tier") || localStorage.getItem("tradifive_selected_tier");
+        if (tier === "three_years" || tier === "lifetime") return true;
+        const req = localStorage.getItem("tradifive_payment_request");
+        if (req) {
+          const p = JSON.parse(req);
+          if (p.plan_tier === "three_years" || p.amount === "100000" || Number(p.amount) === 100000) return true;
+        }
+      }
+    } catch (e) {}
+    return false;
+  });
   const [settlements, setSettlements] = useState<Settlement[]>([]);
   const [summary, setSummary] = useState<CustomerSettlementSummary>({
     totalTradingProfit: 0,
@@ -67,6 +86,44 @@ export default function WeeklySettlements() {
 
       const connectedAcc = localStorage.getItem("tradifive_connected_mt5_account") || "";
       setAccountNumber(connectedAcc);
+
+      // Verify lifetime exemption status
+      let isLt = false;
+      if (localStorage.getItem("tradifive_is_lifetime_plan") === "true") {
+        isLt = true;
+      } else {
+        try {
+          const payments = await getSystemSetting<any[]>("license_payment_requests");
+          if (Array.isArray(payments)) {
+            const hasLt = payments.some((p: any) => 
+              (p.user_id === currentUid || (connectedAcc && p.mt5_account_number === connectedAcc)) &&
+              (p.plan_tier === "three_years" || p.amount === "100000" || Number(p.amount) === 100000 || (p.plan_name && p.plan_name.includes("3-Year")))
+            );
+            if (hasLt) isLt = true;
+          }
+          if (!isLt) {
+            const adminRecords = await getSystemSetting<any[]>("auto_trade_admin_records");
+            if (Array.isArray(adminRecords)) {
+              const rec = adminRecords.find((r: any) => 
+                r.user_id === currentUid || (connectedAcc && (r.mt5_account_number === connectedAcc || r.bound_account === connectedAcc))
+              );
+              if (rec && (rec.tier?.includes("three_years") || rec.tier?.includes("100000") || rec.tier?.includes("Lifetime") || rec.plan_tier === "three_years")) {
+                isLt = true;
+              }
+            }
+          }
+        } catch (err) {
+          console.warn("Error checking lifetime plan:", err);
+        }
+      }
+
+      if (isLt) {
+        setIsLifetimePlan(true);
+        try {
+          localStorage.setItem("tradifive_is_lifetime_plan", "true");
+          window.dispatchEvent(new Event("tradifive_tier_update"));
+        } catch (e) {}
+      }
 
       const result = await getCustomerSettlements(currentUid, connectedAcc);
       setSettlements(result.settlements);
@@ -121,6 +178,169 @@ export default function WeeklySettlements() {
   const handlePaymentSuccess = () => {
     loadSettlementData();
   };
+
+  if (isLifetimePlan) {
+    return (
+      <DashboardLayout>
+        <div className="space-y-6 pb-20 select-none px-4 sm:px-6 md:px-8 py-4 max-w-[1400px] mx-auto w-full">
+          {/* Top Bar */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/5">
+            <div className="flex items-center gap-3">
+              <div 
+                className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0 shadow-sm"
+              >
+                <Lock size={18} />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h1 className="text-lg sm:text-xl font-bold tracking-wider text-white uppercase">
+                    Weekly Profit Settlement
+                  </h1>
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
+                    <ShieldCheck size={11} className="text-emerald-400" />
+                    Locked · 0% Profit Share
+                  </span>
+                </div>
+                <p className="text-neutral-500 text-[10px] font-bold uppercase tracking-[0.15em] mt-0.5">
+                  Institutional Lifetime Exemption · Zero Platform Deductions
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <div className="h-9 px-3.5 bg-[#1E1E1E] border border-white/5 rounded-lg flex items-center gap-2 text-xs font-mono font-bold text-neutral-300">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span>MT5 #{accountNumber ? accountNumber : "36946803"}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  loadSettlementData(true);
+                  toast.success("Telemetry and institutional standing verified.");
+                }}
+                disabled={isRefreshing}
+                className="h-9 px-3.5 bg-[#1E1E1E] hover:bg-white/[0.05] border border-white/5 hover:border-white/10 rounded-lg text-xs font-semibold text-neutral-300 flex items-center gap-1.5 cursor-pointer"
+              >
+                <RefreshCw size={13} className={isRefreshing ? "animate-spin text-white" : "text-neutral-400"} />
+                <span>Sync</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Institutional Exemption Hero Card */}
+          <div className="relative overflow-hidden rounded-2xl border border-emerald-500/20 bg-gradient-to-br from-emerald-950/20 via-[#141416] to-[#0D0D0E] p-6 sm:p-8 shadow-2xl">
+            {/* Ambient Glow */}
+            <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
+
+            <div className="relative z-10 space-y-6">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0 shadow-inner">
+                    <ShieldCheck size={26} />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-mono font-extrabold uppercase tracking-widest text-emerald-400">
+                        ₹1,00,000 Institutional Lifetime Plan
+                      </span>
+                      <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                        100% Profits Yours
+                      </span>
+                    </div>
+                    <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mt-1">
+                      Weekly Settlements Locked & Exempt
+                    </h2>
+                  </div>
+                </div>
+
+                <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-300 text-xs font-mono font-bold self-start md:self-auto">
+                  <Lock size={14} className="text-emerald-400 shrink-0" />
+                  <span>Platform Profit Share: 0.00%</span>
+                </div>
+              </div>
+
+              <p className="text-sm sm:text-base text-neutral-300 leading-relaxed max-w-4xl">
+                Your MT5 trading account is active under the <strong className="text-white font-semibold">Tradifive ₹1,00,000 Lifetime Plan</strong>. Because your license was acquired with full upfront enterprise clearance, you retain <strong className="text-emerald-400 font-semibold">100% of all algorithmic trading profits</strong>. You are completely exempt from weekly 50/50 profit clearance invoices, profit splits, and settlement remittances.
+              </p>
+
+              {/* 3 Pillar Summary Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+                <div className="bg-[#1A1A1D]/80 border border-white/5 rounded-xl p-4 space-y-2">
+                  <div className="flex items-center justify-between text-neutral-400">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider">Trading Profit Split</span>
+                    <Sparkles size={14} className="text-emerald-400" />
+                  </div>
+                  <div className="text-2xl font-mono font-black text-emerald-400">
+                    100% Client
+                  </div>
+                  <p className="text-xs text-neutral-400 leading-normal">
+                    0% platform cut. All gains remain directly inside your broker wallet.
+                  </p>
+                </div>
+
+                <div className="bg-[#1A1A1D]/80 border border-white/5 rounded-xl p-4 space-y-2">
+                  <div className="flex items-center justify-between text-neutral-400">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider">Settlement Dues</span>
+                    <CheckCircle2 size={14} className="text-emerald-400" />
+                  </div>
+                  <div className="text-2xl font-mono font-black text-white">
+                    ₹0.00 / Zero
+                  </div>
+                  <p className="text-xs text-neutral-400 leading-normal">
+                    Account is in permanent good standing. No invoices will be generated.
+                  </p>
+                </div>
+
+                <div className="bg-[#1A1A1D]/80 border border-white/5 rounded-xl p-4 space-y-2">
+                  <div className="flex items-center justify-between text-neutral-400">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider">Broker Integration</span>
+                    <Zap size={14} className="text-blue-400" />
+                  </div>
+                  <div className="text-2xl font-mono font-black text-blue-400">
+                    Direct MT5
+                  </div>
+                  <p className="text-xs text-neutral-400 leading-normal">
+                    Live balance & equity stream directly to your FiAlgo modern dashboard.
+                  </p>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-white/5">
+                <button
+                  type="button"
+                  onClick={() => navigate("/auto-trade/dashboard")}
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-lg shadow-blue-500/20 transition-all cursor-pointer"
+                >
+                  <Activity size={14} />
+                  <span>Open FiAlgo Modern Dashboard</span>
+                  <ArrowRight size={14} />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => navigate("/auto-trade/history")}
+                  className="px-4 py-2.5 rounded-xl bg-[#1E1E22] hover:bg-white/[0.06] border border-white/10 text-neutral-200 font-semibold text-xs uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer"
+                >
+                  <Receipt size={14} className="text-neutral-400" />
+                  <span>Audit MT5 Order History</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => navigate("/auto-trade/license")}
+                  className="px-4 py-2.5 rounded-xl bg-[#1E1E22] hover:bg-white/[0.06] border border-white/10 text-neutral-200 font-semibold text-xs uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer"
+                >
+                  <ShieldCheck size={14} className="text-neutral-400" />
+                  <span>License & Hardware Binding</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>

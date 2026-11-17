@@ -246,10 +246,10 @@ const discoverMenu = [
 
 
 
-const getAutoTradeMenu = () => {
+const getAutoTradeMenu = (isLifetimePlan = false) => {
   return [
     { path: "/fialgo", icon: WrappedIconly(Category), label: "Dashboard" },
-    { path: "/weekly-settlements", icon: wrapLucide(ReceiptText), label: "Weekly Profit Settlement" },
+    { path: "/weekly-settlements", icon: wrapLucide(ReceiptText), label: "Weekly Profit Settlement", isLocked: isLifetimePlan, lockedBadge: isLifetimePlan ? "0% Share" : undefined },
     { path: "/auto-trade/active-bots", icon: WrappedIconly(Activity), label: "Active Bots", isLocked: true },
     { path: "/auto-trade/marketplace", icon: WrappedIconly(Bag), label: "Algo Marketplace" },
     { path: "/strategy-builder", icon: WrappedIconly(Setting), label: "Strategy Builder", isLocked: true },
@@ -1302,6 +1302,36 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
   const isAutoTradeSetup = typeof window !== 'undefined' && localStorage.getItem("tradifive_auto_trade_setup") === "true";
 
+  const [isLifetimePlan, setIsLifetimePlan] = useState<boolean>(() => {
+    try {
+      if (typeof window !== "undefined") {
+        if (localStorage.getItem("tradifive_is_lifetime_plan") === "true") return true;
+        const tier = localStorage.getItem("tradifive_payment_tier") || localStorage.getItem("tradifive_selected_tier");
+        if (tier === "three_years" || tier === "lifetime") return true;
+        const req = localStorage.getItem("tradifive_payment_request");
+        if (req) {
+          const p = JSON.parse(req);
+          if (p.plan_tier === "three_years" || p.amount === "100000" || Number(p.amount) === 100000) return true;
+        }
+      }
+    } catch (e) {}
+    return false;
+  });
+
+  useEffect(() => {
+    const handleTierUpdate = () => {
+      const isLt = localStorage.getItem("tradifive_is_lifetime_plan") === "true" ||
+                   localStorage.getItem("tradifive_payment_tier") === "three_years";
+      setIsLifetimePlan(isLt);
+    };
+    window.addEventListener("tradifive_tier_update", handleTierUpdate);
+    window.addEventListener("storage", handleTierUpdate);
+    return () => {
+      window.removeEventListener("tradifive_tier_update", handleTierUpdate);
+      window.removeEventListener("storage", handleTierUpdate);
+    };
+  }, []);
+
 
 
   const mobilePillars = isFiAlgo ? [
@@ -1413,51 +1443,32 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
         ];
 
       case "autoTrade":
-
-
-
         return [
-
-
-
           { path: isAutoTradeSetup ? "/auto-trade/dashboard" : "/auto-trade/setup", icon: WrappedIconly(Category), label: "Dashboard" },
-
-          { path: "/weekly-settlements", icon: wrapLucide(ReceiptText), label: "Weekly Profit Settlement" },
-
-
-
+          { 
+            path: "/weekly-settlements", 
+            icon: wrapLucide(ReceiptText), 
+            label: "Weekly Profit Settlement", 
+            isLocked: isLifetimePlan, 
+            lockedBadge: isLifetimePlan ? "0% Share" : undefined 
+          },
           { path: "/auto-trade/active-bots", icon: WrappedIconly(Activity), label: "Active Bots" },
-
-
-
           { path: "/auto-trade/marketplace", icon: WrappedIconly(Bag), label: "Algo Marketplace" },
-
-
-
           { path: "/strategy-builder", icon: WrappedIconly(Setting), label: "Strategy Builder" },
-
-
-
           { path: "/auto-trade/history", icon: WrappedIconly(Document), label: "Order History" },
-
-
-
           { path: "/auto-trade/license", icon: WrappedIconly(ShieldDone), label: "License & Activation" },
-
-
-
         ];
 
-
-
       case "settlements":
-
         return [
-
-          { path: "/weekly-settlements", icon: wrapLucide(ReceiptText), label: "My Settlements" },
-
+          { 
+            path: "/weekly-settlements", 
+            icon: wrapLucide(ReceiptText), 
+            label: "My Settlements", 
+            isLocked: isLifetimePlan, 
+            lockedBadge: isLifetimePlan ? "0% Share" : undefined 
+          },
           { path: isAutoTradeSetup ? "/auto-trade/dashboard" : "/auto-trade/setup", icon: WrappedIconly(Category), label: "Auto Trade Dashboard" },
-
         ];
 
       case "community":
@@ -1572,6 +1583,16 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
         id={`tour-nav-${item.label.toLowerCase().replace(/[\s\/]+/g, '-')}`}
 
         onClick={(e) => {
+          if (item.isLocked) {
+            if (item.path === "/weekly-settlements") {
+              toast.info("Weekly Settlements are locked for ₹1,00,000 Lifetime Plan members.", {
+                description: "You have 0% profit share—100% of all profits remain directly in your broker account!"
+              });
+            } else {
+              toast.info(`${item.label} will be available soon!`);
+            }
+            return;
+          }
 
           if (item.isAction && item.action) {
 
@@ -1671,13 +1692,17 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
           <div className={`flex items-center gap-1 overflow-hidden transition-all duration-300 ${isCollapsed ? "max-w-0 opacity-0" : "ml-2"}`}>
 
-            <div className="flex items-center gap-1 bg-gradient-to-r from-indigo-500/10 to-blue-500/10 border border-indigo-500/20 px-2 py-[3px] rounded-full shrink-0 shadow-sm">
-
-              <Lock size={10} className="text-indigo-500 shrink-0" />
-
-              <span className="text-[8.5px] font-black uppercase tracking-[0.15em] text-indigo-600 dark:text-indigo-400 leading-none">Soon</span>
-
-            </div>
+            {item.lockedBadge ? (
+              <div className="flex items-center gap-1 bg-emerald-500/10 border border-emerald-500/30 px-2 py-[3px] rounded-full shrink-0 shadow-sm">
+                <Lock size={10} className="text-emerald-500 shrink-0" />
+                <span className="text-[8.5px] font-black uppercase tracking-[0.1em] text-emerald-600 dark:text-emerald-400 leading-none">{item.lockedBadge}</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1 bg-gradient-to-r from-indigo-500/10 to-blue-500/10 border border-indigo-500/20 px-2 py-[3px] rounded-full shrink-0 shadow-sm">
+                <Lock size={10} className="text-indigo-500 shrink-0" />
+                <span className="text-[8.5px] font-black uppercase tracking-[0.15em] text-indigo-600 dark:text-indigo-400 leading-none">Soon</span>
+              </div>
+            )}
 
           </div>
 
@@ -2382,7 +2407,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
                   <div className="flex flex-col gap-1">
 
                     {
-                      isFiAlgo ? getAutoTradeMenu().filter(m => m.label.toLowerCase().includes(navSearchQuery.toLowerCase())).map(renderMenuItem) :
+                      isFiAlgo ? getAutoTradeMenu(isLifetimePlan).filter(m => m.label.toLowerCase().includes(navSearchQuery.toLowerCase())).map(renderMenuItem) :
                       activePillar === "home" ? homeMenu.filter(m => m.label.toLowerCase().includes(navSearchQuery.toLowerCase())).map(renderMenuItem) :
 
                         activePillar === "dashboard" ? dashboardMenu.filter(m => m.label.toLowerCase().includes(navSearchQuery.toLowerCase())).map(renderMenuItem) :
@@ -2393,7 +2418,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
                               activePillar === "aiCoach" ? aiCoachMenu.filter(m => m.label.toLowerCase().includes(navSearchQuery.toLowerCase())).map(renderMenuItem) :
 
-                                activePillar === "autoTrade" ? getAutoTradeMenu().filter(m => m.label.toLowerCase().includes(navSearchQuery.toLowerCase())).map(renderMenuItem) :
+                                activePillar === "autoTrade" ? getAutoTradeMenu(isLifetimePlan).filter(m => m.label.toLowerCase().includes(navSearchQuery.toLowerCase())).map(renderMenuItem) :
 
                                   activePillar === "discover" ? discoverMenu.filter(m => m.label.toLowerCase().includes(navSearchQuery.toLowerCase())).map(renderMenuItem) :
 
@@ -3085,11 +3110,30 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
                       </button>
 
                       <button
-                        onClick={() => { navigate("/weekly-settlements"); }}
-                        className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer text-left text-slate-700 dark:text-slate-200"
+                        onClick={() => {
+                          if (isLifetimePlan) {
+                            toast.info("Weekly Settlements are locked for ₹1,00,000 Lifetime Plan members.", {
+                              description: "You have 0% profit share—100% of all profits remain directly in your broker account!"
+                            });
+                            return;
+                          }
+                          navigate("/weekly-settlements");
+                        }}
+                        className={`w-full flex items-center justify-between gap-2.5 px-2.5 py-2 rounded-xl transition-colors text-left ${
+                          isLifetimePlan 
+                            ? "opacity-60 cursor-not-allowed text-slate-400 dark:text-neutral-500" 
+                            : "hover:bg-slate-100 dark:hover:bg-white/5 cursor-pointer text-slate-700 dark:text-slate-200"
+                        }`}
                       >
-                        <ReceiptText size={16} className="text-slate-400 shrink-0" />
-                        <span className="text-[13px] font-semibold flex-1 truncate">Weekly Profit Settlement</span>
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <ReceiptText size={16} className="text-slate-400 shrink-0" />
+                          <span className="text-[13px] font-semibold flex-1 truncate">Weekly Profit Settlement</span>
+                        </div>
+                        {isLifetimePlan && (
+                          <span className="flex items-center gap-1 text-[9px] font-black uppercase text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded-full border border-emerald-500/30">
+                            <Lock size={9} /> 0% Share
+                          </span>
+                        )}
                       </button>
 
                       <button

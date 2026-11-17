@@ -423,22 +423,17 @@ export default function AdminAutoTrade() {
           const hasPurchased = override.has_purchased !== undefined 
             ? override.has_purchased 
             : (userPayment?.status === "approved" || Boolean(p.activation_key || mt5?.activation_key || override.license_key));
-          const effectiveAccount = String(override.mt5_account_number || mt5?.account_number || userProof?.mt5_account_number || userPayment?.mt5_account_number || "").replace(/\D/g, "");
+          const effectiveAccount = String(mt5?.account_number || userProof?.mt5_account_number || override.mt5_account_number || userPayment?.mt5_account_number || "").replace(/\D/g, "");
 
           // Check if live telemetry matches this account
           const isTelMatch = liveTelemetry?.account_number && String(liveTelemetry.account_number).replace(/\D/g, "") === effectiveAccount;
 
-          // Always generate or use true cryptographic license key
-          let key = override.license_key;
-          if (!key || !key.startsWith("TF-")) {
-            if (p.activation_key && p.activation_key.startsWith("TF-")) {
-              key = p.activation_key;
-            } else if (effectiveAccount) {
-              key = generateTradifiveLicenseKey(effectiveAccount);
-            } else {
-              key = "UNISSUED";
-            }
-          }
+          // Always generate or use true cryptographic license key strictly bound to effectiveAccount
+          let key = effectiveAccount
+            ? generateTradifiveLicenseKey(effectiveAccount)
+            : (override.license_key && override.license_key.startsWith("TF-") 
+                ? override.license_key 
+                : (p.activation_key && p.activation_key.startsWith("TF-") ? p.activation_key : "UNISSUED"));
 
           // Balance and Equity from real telemetry if available, else override, else mt5 table
           const realBal = isTelMatch && liveTelemetry.balance !== undefined

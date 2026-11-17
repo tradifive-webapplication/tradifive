@@ -25,6 +25,7 @@ import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { supabase } from "@/lib/supabase";
+import { getSystemSetting, setSystemSetting } from "@/lib/systemSettings";
 
 
 
@@ -225,55 +226,86 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
 
 
           const { data: acc } = await supabase
-
             .from("mt5_accounts")
-
-            .select("account_number, activation_key")
-
+            .select("*")
             .eq("user_id", session.user.id)
-
             .order("created_at", { ascending: false })
-
             .limit(1)
-
             .maybeSingle();
 
           if (acc?.account_number) {
-
             const accClean = String(acc.account_number).replace(/\D/g, "");
-
             setDisplayAccount(accClean);
-
             try { localStorage.setItem("tradifive_connected_mt5_account", accClean); } catch (e) {}
-
           }
 
           if (acc?.activation_key && !profile?.activation_key) {
-
             setActiveLicenseKey(acc.activation_key);
-
             try { localStorage.setItem("tradifive_license_key", acc.activation_key); } catch (e) {}
-
           }
 
+          if (acc) {
+            if (acc.balance !== null && acc.balance !== undefined && Number(acc.balance) > 0) {
+              setAccountBalance(Number(acc.balance));
+              try { localStorage.setItem("tradifive_account_balance", String(acc.balance)); } catch (e) {}
+            }
+            if (acc.equity !== null && acc.equity !== undefined && Number(acc.equity) > 0) {
+              setTotalEquity(Number(acc.equity));
+              try { localStorage.setItem("tradifive_total_equity", String(acc.equity)); } catch (e) {}
+            }
+            if (acc.broker_name) setBrokerName(acc.broker_name);
+            if (acc.broker_server) setBrokerServer(acc.broker_server);
+            if (acc.is_connected !== undefined) setIsMt5Connected(Boolean(acc.is_connected));
+            if (acc.algo_status !== undefined) setIsEngineRunning(Boolean(acc.algo_status));
+          }
 
-
-          // Check admin records for user settlement cohort day
+          // Check admin records for user plan tier and settlement cohort day
           try {
-            const { data: adminSettings } = await supabase
-              .from('system_settings')
-              .select('value')
-              .eq('id', 'auto_trade_admin_records')
-              .maybeSingle();
+            const adminRecords = await getSystemSetting<any>("auto_trade_admin_records");
 
-            if (adminSettings?.value && typeof adminSettings.value === 'object') {
-              const recordsList = Object.values(adminSettings.value) as any[];
+            if (adminRecords && typeof adminRecords === 'object') {
+              const recordsList = Object.values(adminRecords) as any[];
               const myRecord = recordsList.find(
                 r => (r.user_id === session.user.id || (session.user.email && r.user_email === session.user.email))
               );
-              if (myRecord?.settlement_day) {
-                setSettlementDay(myRecord.settlement_day);
-                try { localStorage.setItem("tradifive_settlement_day", myRecord.settlement_day); } catch (e) {}
+              if (myRecord) {
+                if (myRecord.settlement_day) {
+                  setSettlementDay(myRecord.settlement_day);
+                  try { localStorage.setItem("tradifive_settlement_day", myRecord.settlement_day); } catch (e) {}
+                }
+                const isLt = myRecord.purchase_tier === "Lifetime License" ||
+                             myRecord.purchase_tier === "3-Year Enterprise Pass" ||
+                             myRecord.plan_tier === "three_years" ||
+                             Number(myRecord.price_paid) === 100000 ||
+                             Number(myRecord.price_paid) === 99999 ||
+                             Number(myRecord.amount) === 100000;
+                if (isLt) {
+                  setIsLifetimePlan(true);
+                  try {
+                    localStorage.setItem("tradifive_is_lifetime_plan", "true");
+                    window.dispatchEvent(new Event("tradifive_tier_update"));
+                  } catch (_) {}
+                }
+              }
+            }
+          } catch (e) {}
+
+          // Also check license_payment_requests for 1,00,000 tier
+          try {
+            const payments = await getSystemSetting<any[]>("license_payment_requests");
+            if (Array.isArray(payments)) {
+              const myPayment = payments.find(p => (p.user_id === session.user.id || (session.user.email && p.user_email === session.user.email)));
+              if (myPayment) {
+                const isLt = myPayment.plan_tier === "three_years" ||
+                             myPayment.amount === "100000" ||
+                             Number(myPayment.amount) === 100000;
+                if (isLt) {
+                  setIsLifetimePlan(true);
+                  try {
+                    localStorage.setItem("tradifive_is_lifetime_plan", "true");
+                    window.dispatchEvent(new Event("tradifive_tier_update"));
+                  } catch (_) {}
+                }
               }
             }
           } catch (e) {}
@@ -713,8 +745,25 @@ export default function AutoTradeModernDashboard({ onBack, algo, mt5Account }: P
 
 
   // ── Single Official Plan: Weekly 50/50% Profit Share (₹9,999 Setup Fee) ──
-  const clientSplitPercent = 50;
-  const adminSplitPercent = 50;
+  // ── Plan & Profit Share Detection: ₹1,00,000 Lifetime (0% Share) vs Weekly 50/50% Split ──
+  const [isLifetimePlan, setIsLifetimePlan] = useState<boolean>(() => {
+    try {
+      if (typeof window !== "undefined") {
+        if (localStorage.getItem("tradifive_is_lifetime_plan") === "true") return true;
+        const tier = localStorage.getItem("tradifive_payment_tier") || localStorage.getItem("tradifive_selected_tier");
+        if (tier === "three_years" || tier === "lifetime") return true;
+        const req = localStorage.getItem("tradifive_payment_request");
+        if (req) {
+          const p = JSON.parse(req);
+          if (p.plan_tier === "three_years" || p.amount === "100000" || Number(p.amount) === 100000) return true;
+        }
+      }
+    } catch (e) {}
+    return false;
+  });
+
+  const clientSplitPercent = isLifetimePlan ? 100 : 50;
+  const adminSplitPercent = isLifetimePlan ? 0 : 50;
 
   const clientShareToday = useMemo(() => {
     return Math.max(0, todayProfit * (clientSplitPercent / 100));
@@ -1553,22 +1602,11 @@ Kindly review and process our weekly 50/50 profit clearance.`;
         status: "pending"
       };
 
-      const { data: cur } = await supabase
-        .from('system_settings')
-        .select('value')
-        .eq('id', 'auto_trade_withdrawal_requests')
-        .maybeSingle();
-
-      const list: any[] = Array.isArray(cur?.value) ? cur.value : [];
+      const cur = await getSystemSetting<any[]>("auto_trade_withdrawal_requests");
+      const list: any[] = Array.isArray(cur) ? cur : [];
       list.unshift(newReq);
 
-      await supabase
-        .from('system_settings')
-        .upsert({
-          id: 'auto_trade_withdrawal_requests',
-          value: list.slice(0, 100),
-          updated_at: new Date().toISOString()
-        });
+      await setSystemSetting("auto_trade_withdrawal_requests", list.slice(0, 100));
 
       setWithdrawalSubmitted(true);
       toast.success("Weekly settlement request submitted to Admin Desk! Finance team notified.");
@@ -1596,77 +1634,87 @@ Kindly review and process our weekly 50/50 profit clearance.`;
 
 
     try {
-
-      const anon = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ5bHd5eGh1cHdwd3NkYnZ1b2VqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0MzI1NTcsImV4cCI6MjA5MjAwODU1N30.xuRj9PZgZys2b64pNnjhXOVyDjtGVFlBno2o9hiisHA';
+      const anon = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_8x-bgvCQJNkpA5z-PohZFg_WvRMAz7A';
 
       let telemetryData: any = null;
 
       let liveCache: any = null;
 
-
-
-            // Fetch Admin Broadcast Message
+      // 0. Fetch real-time account data from public.mt5_accounts table
+      let mt5DbAcc: any = null;
       try {
-        const { data: broadcastData } = await supabase
-          .from('system_settings')
-          .select('value')
-          .eq('id', 'auto_trade_admin_broadcast')
-          .maybeSingle();
-        if (broadcastData?.value && typeof broadcastData.value === 'object') {
-          setAdminBroadcast(broadcastData.value);
+        const { data: { session } } = await supabase.auth.getSession();
+        const targetAcc = String(displayAccount || cleanAccount || "").replace(/\D/g, "");
+        if (session?.user?.id || targetAcc) {
+          const { data: mAcc } = await supabase
+            .from("mt5_accounts")
+            .select("*")
+            .or(`user_id.eq.${session?.user?.id || "00000000-0000-0000-0000-000000000000"}${targetAcc ? `,account_number.eq.${targetAcc}` : ""}`)
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          if (mAcc) {
+            mt5DbAcc = mAcc;
+            if (mAcc.account_number) {
+              const accStr = String(mAcc.account_number).replace(/\D/g, "");
+              setDisplayAccount(accStr);
+              try { localStorage.setItem("tradifive_connected_mt5_account", accStr); } catch (_) {}
+            }
+          }
         }
       } catch (e) {}
 
-      // Fetch dynamic settlement day from admin records
+      // Fetch Admin Broadcast Message
       try {
-        const { data: adminSettings } = await supabase
-          .from('system_settings')
-          .select('value')
-          .eq('id', 'auto_trade_admin_records')
-          .maybeSingle();
-        if (adminSettings?.value && typeof adminSettings.value === 'object') {
-          const recordsList = Object.values(adminSettings.value) as any[];
+        const broadcastData = await getSystemSetting<any>("auto_trade_admin_broadcast");
+        if (broadcastData && typeof broadcastData === 'object') {
+          setAdminBroadcast(broadcastData);
+        }
+      } catch (e) {}
+
+      // Fetch dynamic settlement day & plan tier from admin records
+      try {
+        const adminSettings = await getSystemSetting<any>("auto_trade_admin_records");
+        if (adminSettings && typeof adminSettings === 'object') {
+          const recordsList = Object.values(adminSettings) as any[];
           const targetAcc = String(displayAccount || cleanAccount || "").replace(/\D/g, "");
           const myRecord = recordsList.find(
             r => (targetAcc && r.mt5_account_number && String(r.mt5_account_number).replace(/\D/g, '') === targetAcc) || (r.bound_account && String(r.bound_account).replace(/\D/g, '') === targetAcc)
           );
-          if (myRecord?.settlement_day) {
-            setSettlementDay(myRecord.settlement_day);
-            try { localStorage.setItem("tradifive_settlement_day", myRecord.settlement_day); } catch (e) {}
+          if (myRecord) {
+            if (myRecord.settlement_day) {
+              setSettlementDay(myRecord.settlement_day);
+              try { localStorage.setItem("tradifive_settlement_day", myRecord.settlement_day); } catch (e) {}
+            }
+            const isLt = myRecord.purchase_tier === "Lifetime License" ||
+                         myRecord.purchase_tier === "3-Year Enterprise Pass" ||
+                         myRecord.plan_tier === "three_years" ||
+                         Number(myRecord.price_paid) === 100000 ||
+                         Number(myRecord.price_paid) === 99999 ||
+                         Number(myRecord.amount) === 100000;
+            if (isLt) {
+              setIsLifetimePlan(true);
+              try {
+                localStorage.setItem("tradifive_is_lifetime_plan", "true");
+                window.dispatchEvent(new Event("tradifive_tier_update"));
+              } catch (_) {}
+            }
           }
         }
       } catch (e) {}
 
       // 1. Fetch direct live telemetry cache from system_settings (instantaneous & accurate)
-
       try {
-
-        const { data: cacheData } = await supabase
-
-          .from('system_settings')
-
-          .select('value')
-
-          .eq('id', 'mt5_telemetry_live')
-
-          .maybeSingle();
-
-        if (cacheData?.value && typeof cacheData.value === 'object') {
-
-          const cacheAcc = String(cacheData.value.account_number || '').replace(/\D/g, '');
-
+        const cacheData = await getSystemSetting<any>("mt5_telemetry_live");
+        if (cacheData && typeof cacheData === 'object') {
+          const cacheAcc = String(cacheData.account_number || '').replace(/\D/g, '');
           const currentAcc = String(displayAccount || cleanAccount || '').replace(/\D/g, '');
-
           // Multi-tenant check: only accept liveCache if account matches
-
           if (cacheAcc && currentAcc && cacheAcc === currentAcc) {
-
-            liveCache = cacheData.value;
-
+            liveCache = cacheData;
           }
-
         }
-
       } catch (e) {}
 
 
@@ -1711,14 +1759,11 @@ Kindly review and process our weekly 50/50 profit clearance.`;
 
 
 
-      // Merge data sources (prioritize user telemetry, augment with live cache if same account)
-
+      // Merge data sources (prioritize MT5 DB account & telemetry, augment with live cache if same account)
       const acc = {
-
+        ...(mt5DbAcc || {}),
         ...(telemetryData?.account || {}),
-
         ...(liveCache || {})
-
       };
 
 
@@ -2302,35 +2347,50 @@ Kindly review and process our weekly 50/50 profit clearance.`;
             </button>
           </div>
 
-          {/* Single Official Plan Badge: ₹9,999 Setup Fee + Weekly 50/50% Split */}
-          <div className="h-[36px] px-3 shrink-0 rounded-[14px] border-2 border-white dark:border-white/5 bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:shadow-none flex items-center gap-2 select-none">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-            <span className="text-[11px] font-bold text-slate-800 dark:text-slate-200">
-              Weekly 50/50% Profit Share
-            </span>
-            <span className="text-[10px] font-mono font-extrabold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-500/20 px-2.5 py-0.5 rounded-full border border-blue-200/60 dark:border-blue-400/30">
-              Every {settlementDay}
-            </span>
-            <span className="text-[10px] font-mono font-bold text-slate-500 dark:text-slate-400 hidden sm:inline">
-              ID: {tradifiveId}
-            </span>
-          </div>
+          {/* Plan Badge: Adapts to ₹1,00,000 Lifetime Plan vs Weekly 50/50% Split */}
+          {isLifetimePlan ? (
+            <div className="h-[36px] px-3 shrink-0 rounded-[14px] border-2 border-white dark:border-white/5 bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:shadow-none flex items-center gap-2 select-none">
+              <ShieldCheck size={14} className="text-emerald-500 shrink-0" />
+              <span className="text-[11px] font-bold text-slate-800 dark:text-slate-200">
+                ₹1,00,000 Lifetime Plan · 0% Profit Share
+              </span>
+              <span className="text-[10px] font-mono font-extrabold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-500/20 px-2.5 py-0.5 rounded-full border border-emerald-200/60 dark:border-emerald-400/30">
+                100% Profits Kept
+              </span>
+              <span className="text-[10px] font-mono font-bold text-slate-500 dark:text-slate-400 hidden sm:inline">
+                ID: {tradifiveId}
+              </span>
+            </div>
+          ) : (
+            <div className="h-[36px] px-3 shrink-0 rounded-[14px] border-2 border-white dark:border-white/5 bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:shadow-none flex items-center gap-2 select-none">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+              <span className="text-[11px] font-bold text-slate-800 dark:text-slate-200">
+                Weekly 50/50% Profit Share
+              </span>
+              <span className="text-[10px] font-mono font-extrabold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-500/20 px-2.5 py-0.5 rounded-full border border-blue-200/60 dark:border-blue-400/30">
+                Every {settlementDay}
+              </span>
+              <span className="text-[10px] font-mono font-bold text-slate-500 dark:text-slate-400 hidden sm:inline">
+                ID: {tradifiveId}
+              </span>
+            </div>
+          )}
 
           {/* Quick Action / Status Box */}
           <div className="flex items-center gap-2 shrink-0">
-            <button
-              type="button"
-              onClick={() => setShowWithdrawalModal(true)}
-              className="h-[36px] px-4 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_3px_8px_rgba(37,99,235,0.35)] text-xs font-bold tracking-tight cursor-pointer transition-all duration-150 active:scale-[0.985] flex items-center justify-center gap-1.5 whitespace-nowrap border-none"
-            >
-              <ArrowUpRight size={13} className="text-white shrink-0" />
-              <span>Weekly Withdrawal</span>
-              {isTargetHit && (
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse ml-0.5 shrink-0" />
-              )}
-            </button>
-
-            
+            {!isLifetimePlan && (
+              <button
+                type="button"
+                onClick={() => setShowWithdrawalModal(true)}
+                className="h-[36px] px-4 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_3px_8px_rgba(37,99,235,0.35)] text-xs font-bold tracking-tight cursor-pointer transition-all duration-150 active:scale-[0.985] flex items-center justify-center gap-1.5 whitespace-nowrap border-none"
+              >
+                <ArrowUpRight size={13} className="text-white shrink-0" />
+                <span>Weekly Withdrawal</span>
+                {isTargetHit && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse ml-0.5 shrink-0" />
+                )}
+              </button>
+            )}
           </div>
 
         </div>
@@ -2364,7 +2424,15 @@ Kindly review and process our weekly 50/50 profit clearance.`;
                 </span>
               </div>
               <p className="text-[12px] text-slate-700 dark:text-slate-200 mt-1 leading-snug">
-                FiAlgo locked in <b className="text-emerald-700 dark:text-emerald-400 font-bold">+{formatMoney(todayProfit)}</b> profit today! In accordance with the Weekly 50/50% Profit Share agreement, your 50% share is <b className="text-slate-900 dark:text-white font-bold">+{formatMoney(clientShareToday)}</b>. Settlement is scheduled for <b className="text-blue-600 dark:text-blue-400 font-bold">Every {settlementDay}</b>.
+                {isLifetimePlan ? (
+                  <>
+                    FiAlgo locked in <b className="text-emerald-700 dark:text-emerald-400 font-bold">+{formatMoney(todayProfit)}</b> profit today! Under your <strong>₹1,00,000 Lifetime Enterprise License (0% profit share)</strong>, 100% of these gains remain directly in your MT5 broker account with zero platform commission.
+                  </>
+                ) : (
+                  <>
+                    FiAlgo locked in <b className="text-emerald-700 dark:text-emerald-400 font-bold">+{formatMoney(todayProfit)}</b> profit today! In accordance with the Weekly 50/50% Profit Share agreement, your 50% share is <b className="text-slate-900 dark:text-white font-bold">+{formatMoney(clientShareToday)}</b>. Settlement is scheduled for <b className="text-blue-600 dark:text-blue-400 font-bold">Every {settlementDay}</b>.
+                  </>
+                )}
               </p>
             </div>
           </div>
@@ -2782,15 +2850,28 @@ Kindly review and process our weekly 50/50 profit clearance.`;
               </span>
             </div>
             <p className="text-[12.5px] font-medium text-slate-800 dark:text-slate-200 mt-0.5 leading-snug">
-              {adminBroadcast?.message || `FiAlgo V1 execution engine is streaming live on MT5 #${displayAccount || cleanAccount || "—"}. Weekly 50/50% profit share settlements and withdrawals occur every ${settlementDay}. Please maintain recommended equity buffer.`}
+              {adminBroadcast?.message || (
+                isLifetimePlan
+                  ? `FiAlgo V1 execution engine is streaming live on MT5 #${displayAccount || cleanAccount || "—"}. Operating under institutional 0% profit share license.`
+                  : `FiAlgo V1 execution engine is streaming live on MT5 #${displayAccount || cleanAccount || "—"}. Weekly 50/50% profit share settlements and withdrawals occur every ${settlementDay}. Please maintain recommended equity buffer.`
+              )}
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
           <div className="px-3 py-1.5 rounded-full bg-white dark:bg-[#1E2330] border border-blue-200 dark:border-white/10 text-blue-700 dark:text-blue-300 text-[11px] font-bold flex items-center gap-1.5">
-            <Calendar size={12} className="text-blue-500" />
-            <span>Settlement: Every {settlementDay}</span>
+            {isLifetimePlan ? (
+              <>
+                <ShieldCheck size={12} className="text-emerald-500" />
+                <span>0% Profit Share (Exempt)</span>
+              </>
+            ) : (
+              <>
+                <Calendar size={12} className="text-blue-500" />
+                <span>Settlement: Every {settlementDay}</span>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -2993,100 +3074,191 @@ Kindly review and process our weekly 50/50 profit clearance.`;
 
 
 
-        {/* RIGHT COLUMN: WEEKLY 50/50% PROFIT SPLIT & SETTLEMENTS */}
-        <div className={`xl:col-span-4 ${cardBoxStyle} flex flex-col justify-between min-h-[460px]`}>
-          <div>
-            <div className="flex items-center justify-between mb-2 min-h-[26px]">
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-lg bg-blue-600/10 text-blue-600 flex items-center justify-center font-bold text-xs">
-                  50
+        {/* RIGHT COLUMN: INSTITUTIONAL 0% PROFIT SHARE OR 50/50 SETTLEMENTS */}
+        {isLifetimePlan ? (
+          <div className={`xl:col-span-4 ${cardBoxStyle} flex flex-col justify-between min-h-[460px]`}>
+            <div>
+              <div className="flex items-center justify-between mb-2 min-h-[26px]">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-lg bg-emerald-600/10 text-emerald-600 flex items-center justify-center font-bold text-xs">
+                    <ShieldCheck size={14} />
+                  </div>
+                  <h2 className="text-[15px] font-bold text-slate-900 dark:text-white tracking-tight leading-none">
+                    Institutional 0% Profit Share
+                  </h2>
                 </div>
-                <h2 className="text-[15px] font-bold text-slate-900 dark:text-white tracking-tight leading-none" >
-                  Weekly Profit Split (50 / 50)
-                </h2>
-              </div>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-200/50 dark:border-blue-400/30">
-                Cohort: Every {settlementDay}
-              </span>
-            </div>
-
-            <p className="text-[11.5px] font-normal text-slate-400 mb-4 leading-relaxed">
-              Trading profits generated by FiAlgo V1 are split 50/50 between client and platform. Weekly settlement and profit withdrawals are processed every {settlementDay}.
-            </p>
-
-            <div className="space-y-3">
-              {/* Client Share Card */}
-              <div className="p-3.5 rounded-[18px] border-2 border-white bg-gradient-to-b from-[#ECFDF5] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.08),0_0_0_2px_#A7F3D0] dark:bg-none dark:bg-[#132A20] dark:border-[1px] dark:border-emerald-500/30">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-[11px] font-extrabold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider flex items-center gap-1.5">
-                    <CheckCircle2 size={13} className="text-emerald-600 dark:text-emerald-400" /> Client Share (50%)
-                  </span>
-                  <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">Retained in MT5</span>
-                </div>
-                <h3 className="text-[22px] font-medium text-slate-900 dark:text-white tracking-tight leading-none my-1" >
-                  +{formatMoney(clientShareToday)}
-                </h3>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-                  Credited directly to your MT5 account equity. Available for weekly withdrawal.
-                </p>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-200/50 dark:border-emerald-400/30">
+                  100% Client Retained
+                </span>
               </div>
 
-              {/* Platform Share Card */}
-              <div className="p-3.5 rounded-[18px] border-2 border-white bg-gradient-to-b from-[#EFF6FF] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.08),0_0_0_2px_#BFDBFE] dark:bg-none dark:bg-[#1A2332] dark:border-[1px] dark:border-blue-500/30">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-[11px] font-extrabold text-blue-900 dark:text-blue-300 uppercase tracking-wider flex items-center gap-1.5">
-                    <QrCode size={13} className="text-blue-600 dark:text-blue-400" /> Platform Share (50%)
-                  </span>
-                  <span className="text-[10px] font-bold text-slate-400">Weekly Settlement</span>
-                </div>
-                <div className="flex items-baseline gap-2 my-1">
-                  <h3 className="text-[22px] font-bold text-slate-900 dark:text-white tracking-tight leading-none" >
-                    ₹{adminShareTodayInr.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              <p className="text-[11.5px] font-normal text-slate-400 mb-4 leading-relaxed">
+                You own the ₹1,00,000 FiAlgo V1 Enterprise License. All trading gains generated by the algorithm remain 100% in your MT5 broker account with zero platform commission or weekly deductions.
+              </p>
+
+              <div className="space-y-3">
+                {/* Client Share Card */}
+                <div className="p-3.5 rounded-[18px] border-2 border-white bg-gradient-to-b from-[#ECFDF5] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.08),0_0_0_2px_#A7F3D0] dark:bg-none dark:bg-[#132A20] dark:border-[1px] dark:border-emerald-500/30">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[11px] font-extrabold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider flex items-center gap-1.5">
+                      <CheckCircle2 size={13} className="text-emerald-600 dark:text-emerald-400" /> Client Share (100%)
+                    </span>
+                    <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">Direct Broker Growth</span>
+                  </div>
+                  <h3 className="text-[22px] font-medium text-slate-900 dark:text-white tracking-tight leading-none my-1">
+                    +{formatMoney(todayProfit)}
                   </h3>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                    100% of trading returns stay in your account equity. No weekly deductions.
+                  </p>
                 </div>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-                  Settled weekly on your designated cohort day (Every {settlementDay}).
-                </p>
-              </div>
 
-              {/* Cohort Schedule Card */}
-              <div className="p-3.5 rounded-[18px] border-2 border-white bg-gradient-to-b from-[#F8FAFC] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.08),0_0_0_2px_#E2E8F0] dark:bg-none dark:bg-[#1A1F2C] dark:border-[1px] dark:border-white/10">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                    <Calendar size={13} className="text-blue-500" /> Weekly Settlement Schedule
-                  </span>
-                  <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400">Every {settlementDay}</span>
+                {/* Platform Share Card */}
+                <div className="p-3.5 rounded-[18px] border-2 border-white bg-gradient-to-b from-[#F8FAFC] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.08),0_0_0_2px_#E2E8F0] dark:bg-none dark:bg-white/5 dark:border-[1px] dark:border-white/10">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                      <Lock size={13} className="text-slate-500" /> Platform Fee (0%)
+                    </span>
+                    <span className="text-[10px] font-bold text-emerald-500">Exempt</span>
+                  </div>
+                  <div className="flex items-baseline gap-2 my-1">
+                    <h3 className="text-[22px] font-bold text-slate-900 dark:text-white tracking-tight leading-none">
+                      ₹0.00 / $0.00
+                    </h3>
+                  </div>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                    Lifetime pass active. Zero weekly profit cuts, fees, or settlement invoices.
+                  </p>
                 </div>
-                <p className="text-[12px] font-bold text-slate-800 dark:text-slate-200 mt-1">
-                  Your Account Cohort: <span className="text-blue-600 dark:text-blue-400">Every {settlementDay}</span>
-                </p>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">
-                  Managed systematically by Tradifive Finance Desk.
-                </p>
+
+                {/* Exemption Notice */}
+                <div className="p-3.5 rounded-[18px] border-2 border-white bg-gradient-to-b from-[#F8FAFC] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.08),0_0_0_2px_#E2E8F0] dark:bg-none dark:bg-[#1A1F2C] dark:border-[1px] dark:border-white/10">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                      <ShieldCheck size={13} className="text-emerald-500" /> Weekly Settlement Status
+                    </span>
+                    <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">Locked / Not Needed</span>
+                  </div>
+                  <p className="text-[12px] font-bold text-slate-800 dark:text-slate-200 mt-1">
+                    Settlements are locked because you have 0% profit share.
+                  </p>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">
+                    100% of profits compound directly in MetaTrader 5.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom Info Footer */}
+            <div className="mt-5 pt-4 border-t border-slate-100 dark:border-white/5">
+              <div className="p-3 rounded-xl bg-emerald-50/50 dark:bg-emerald-500/10 border border-emerald-200/60 dark:border-emerald-500/20 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck size={16} className="text-emerald-600 dark:text-emerald-400" />
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                    Lifetime License Active
+                  </span>
+                </div>
+                <span className="text-[10px] font-mono font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/20 px-2 py-0.5 rounded-full">
+                  0% Commission
+                </span>
               </div>
             </div>
           </div>
+        ) : (
+          <div className={`xl:col-span-4 ${cardBoxStyle} flex flex-col justify-between min-h-[460px]`}>
+            <div>
+              <div className="flex items-center justify-between mb-2 min-h-[26px]">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-lg bg-blue-600/10 text-blue-600 flex items-center justify-center font-bold text-xs">
+                    50
+                  </div>
+                  <h2 className="text-[15px] font-bold text-slate-900 dark:text-white tracking-tight leading-none" >
+                    Weekly Profit Split (50 / 50)
+                  </h2>
+                </div>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-200/50 dark:border-blue-400/30">
+                  Cohort: Every {settlementDay}
+                </span>
+              </div>
 
-          {/* Unified Footer */}
-          <div className="mt-5 pt-4 border-t border-slate-100 dark:border-white/5 space-y-2">
-            <button
-              type="button"
-              onClick={() => setShowWithdrawalModal(true)}
-              className="w-full h-[38px] px-5 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white text-xs font-bold transition-all duration-150 active:scale-[0.985] shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_3px_8px_rgba(37,99,235,0.35)] flex items-center justify-center gap-2 cursor-pointer border-none"
-            >
-              <ArrowUpRight size={14} />
-              <span>Request Weekly Withdrawal / Settle</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowSettlementModal(true)}
-              className="w-full h-[38px] px-5 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-[#1E2330] dark:hover:bg-[#252C3D] text-slate-800 dark:text-white text-xs font-semibold border border-slate-200/80 dark:border-white/15 shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_2px_5px_rgba(0,0,0,0.2)] transition-all duration-150 active:scale-[0.985] flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <QrCode size={13} className="text-blue-500 dark:text-blue-400" />
-              <span>Remit Platform Share (Crypto / UPI)</span>
-            </button>
+              <p className="text-[11.5px] font-normal text-slate-400 mb-4 leading-relaxed">
+                Trading profits generated by FiAlgo V1 are split 50/50 between client and platform. Weekly settlement and profit withdrawals are processed every {settlementDay}.
+              </p>
+
+              <div className="space-y-3">
+                {/* Client Share Card */}
+                <div className="p-3.5 rounded-[18px] border-2 border-white bg-gradient-to-b from-[#ECFDF5] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.08),0_0_0_2px_#A7F3D0] dark:bg-none dark:bg-[#132A20] dark:border-[1px] dark:border-emerald-500/30">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[11px] font-extrabold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider flex items-center gap-1.5">
+                      <CheckCircle2 size={13} className="text-emerald-600 dark:text-emerald-400" /> Client Share (50%)
+                    </span>
+                    <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">Retained in MT5</span>
+                  </div>
+                  <h3 className="text-[22px] font-medium text-slate-900 dark:text-white tracking-tight leading-none my-1" >
+                    +{formatMoney(clientShareToday)}
+                  </h3>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                    Credited directly to your MT5 account equity. Available for weekly withdrawal.
+                  </p>
+                </div>
+
+                {/* Platform Share Card */}
+                <div className="p-3.5 rounded-[18px] border-2 border-white bg-gradient-to-b from-[#EFF6FF] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.08),0_0_0_2px_#BFDBFE] dark:bg-none dark:bg-[#1A2332] dark:border-[1px] dark:border-blue-500/30">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[11px] font-extrabold text-blue-900 dark:text-blue-300 uppercase tracking-wider flex items-center gap-1.5">
+                      <QrCode size={13} className="text-blue-600 dark:text-blue-400" /> Platform Share (50%)
+                    </span>
+                    <span className="text-[10px] font-bold text-slate-400">Weekly Settlement</span>
+                  </div>
+                  <div className="flex items-baseline gap-2 my-1">
+                    <h3 className="text-[22px] font-bold text-slate-900 dark:text-white tracking-tight leading-none" >
+                      ₹{adminShareTodayInr.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </h3>
+                  </div>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                    Settled weekly on your designated cohort day (Every {settlementDay}).
+                  </p>
+                </div>
+
+                {/* Cohort Schedule Card */}
+                <div className="p-3.5 rounded-[18px] border-2 border-white bg-gradient-to-b from-[#F8FAFC] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.08),0_0_0_2px_#E2E8F0] dark:bg-none dark:bg-[#1A1F2C] dark:border-[1px] dark:border-white/10">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                      <Calendar size={13} className="text-blue-500" /> Weekly Settlement Schedule
+                    </span>
+                    <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400">Every {settlementDay}</span>
+                  </div>
+                  <p className="text-[12px] font-bold text-slate-800 dark:text-slate-200 mt-1">
+                    Your Account Cohort: <span className="text-blue-600 dark:text-blue-400">Every {settlementDay}</span>
+                  </p>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">
+                    Managed systematically by Tradifive Finance Desk.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Unified Footer */}
+            <div className="mt-5 pt-4 border-t border-slate-100 dark:border-white/5 space-y-2">
+              <button
+                type="button"
+                onClick={() => setShowWithdrawalModal(true)}
+                className="w-full h-[38px] px-5 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white text-xs font-bold transition-all duration-150 active:scale-[0.985] shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_3px_8px_rgba(37,99,235,0.35)] flex items-center justify-center gap-2 cursor-pointer border-none"
+              >
+                <ArrowUpRight size={14} />
+                <span>Request Weekly Withdrawal / Settle</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowSettlementModal(true)}
+                className="w-full h-[38px] px-5 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-[#1E2330] dark:hover:bg-[#252C3D] text-slate-800 dark:text-white text-xs font-semibold border border-slate-200/80 dark:border-white/15 shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_2px_5px_rgba(0,0,0,0.2)] transition-all duration-150 active:scale-[0.985] flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <QrCode size={13} className="text-blue-500 dark:text-blue-400" />
+                <span>Remit Platform Share (Crypto / UPI)</span>
+              </button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* ── FiAlgo V1 Live Operating Agreement & Performance Settlement ── */}
@@ -3099,17 +3271,19 @@ Kindly review and process our weekly 50/50 profit clearance.`;
                 FiAlgo V1 Operating Agreement & Performance Settlement
               </h2>
               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-200/50">
-                Weekly 50/50 Plan
+                {isLifetimePlan ? "₹1,00,000 Lifetime License" : "Weekly 50/50 Plan"}
               </span>
             </div>
             <p className="text-[11.5px] font-normal text-slate-400 mt-1">
-              Official trading terminal license bound to MetaTrader 5 with ₹9,999 setup and weekly 50/50% net profit share model.
+              {isLifetimePlan 
+                ? "Official institutional lifetime license bound to MetaTrader 5 with 0% profit share model."
+                : "Official trading terminal license bound to MetaTrader 5 with ₹9,999 setup and weekly 50/50% net profit share model."}
             </p>
           </div>
 
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-bold self-start sm:self-auto">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>50/50 License Active</span>
+            <span>{isLifetimePlan ? "Lifetime License Active (0% Share)" : "50/50 License Active"}</span>
           </div>
         </div>
 
@@ -3117,25 +3291,25 @@ Kindly review and process our weekly 50/50 profit clearance.`;
           <div className="p-4 rounded-[18px] bg-slate-50 dark:bg-white/5 border border-slate-200/70 dark:border-white/5">
             <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Plan & Setup</span>
             <p className="text-[14px] font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-              <Coins size={14} className="text-blue-500" /> ₹9,999 Setup Fee
+              <Coins size={14} className="text-blue-500" /> {isLifetimePlan ? "₹1,00,000 Lifetime Plan" : "₹9,999 Setup Fee"}
             </p>
-            <p className="text-[11px] text-slate-400 mt-1 font-medium">Single official standard plan</p>
+            <p className="text-[11px] text-slate-400 mt-1 font-medium">{isLifetimePlan ? "Enterprise Pass Paid in Full" : "Single official standard plan"}</p>
           </div>
 
           <div className="p-4 rounded-[18px] bg-slate-50 dark:bg-white/5 border border-slate-200/70 dark:border-white/5">
             <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Profit Share Model</span>
             <p className="text-[14px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
-              <CheckCircle2 size={14} className="text-emerald-500" /> Weekly 50/50% Split
+              <CheckCircle2 size={14} className="text-emerald-500" /> {isLifetimePlan ? "0% Profit Share (100% Yours)" : "Weekly 50/50% Split"}
             </p>
-            <p className="text-[11px] text-slate-400 mt-1 font-medium">No net profit = No platform fee</p>
+            <p className="text-[11px] text-slate-400 mt-1 font-medium">{isLifetimePlan ? "All trading gains belong to you" : "No net profit = No platform fee"}</p>
           </div>
 
           <div className="p-4 rounded-[18px] bg-slate-50 dark:bg-white/5 border border-slate-200/70 dark:border-white/5">
             <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Settlement Cohort</span>
             <p className="text-[14px] font-bold text-blue-600 dark:text-blue-400 flex items-center gap-1.5">
-              <Calendar size={14} className="text-blue-500" /> Every {settlementDay}
+              <Calendar size={14} className="text-blue-500" /> {isLifetimePlan ? "Exempt (No Settlements)" : `Every ${settlementDay}`}
             </p>
-            <p className="text-[11px] text-slate-400 mt-1 font-medium">Admin synchronized cycle</p>
+            <p className="text-[11px] text-slate-400 mt-1 font-medium">{isLifetimePlan ? "Direct MT5 auto-compounding" : "Admin synchronized cycle"}</p>
           </div>
 
           <div className="p-4 rounded-[18px] bg-slate-50 dark:bg-white/5 border border-slate-200/70 dark:border-white/5">

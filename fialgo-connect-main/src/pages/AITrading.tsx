@@ -242,6 +242,10 @@ export default function AITrading() {
         if (acc?.account_number) {
           const accStr = String(acc.account_number).replace(/\D/g, "");
           setMt5Account(accStr);
+          try {
+            localStorage.setItem("tradifive_connected_mt5_account", accStr);
+            localStorage.setItem("tradifive_license_key", generateTradifiveLicenseKey(accStr));
+          } catch (_) {}
           if (acc.broker_name) {
             const found = BROKERS.find(b => b.name.toLowerCase().includes(acc.broker_name!.toLowerCase()));
             if (found) setSelectedBroker(found.id);
@@ -258,6 +262,10 @@ export default function AITrading() {
             if (matchedRec?.bound_account || matchedRec?.mt5_account_number) {
               const num = String(matchedRec.bound_account || matchedRec.mt5_account_number).replace(/\D/g, "");
               setMt5Account(num);
+              try {
+                localStorage.setItem("tradifive_connected_mt5_account", num);
+                localStorage.setItem("tradifive_license_key", generateTradifiveLicenseKey(num));
+              } catch (_) {}
               if (matchedRec.broker_name) {
                 const found = BROKERS.find(b => b.name.toLowerCase().includes(matchedRec.broker_name.toLowerCase()));
                 if (found) setSelectedBroker(found.id);
@@ -322,6 +330,7 @@ export default function AITrading() {
             const cleanAcc = String(activeAcc.account_number).replace(/\D/g, "");
             setMt5Account(cleanAcc);
             localStorage.setItem("tradifive_connected_mt5_account", cleanAcc);
+            localStorage.setItem("tradifive_license_key", generateTradifiveLicenseKey(cleanAcc));
             const savedReq = localStorage.getItem("tradifive_ib_proof_request");
             const parsedReq = savedReq ? JSON.parse(savedReq) : {};
             parsedReq.status = "approved";
@@ -348,6 +357,7 @@ export default function AITrading() {
             const accNum = String(matchedAdmin.bound_account || matchedAdmin.mt5_account_number || mt5Account).replace(/\D/g, "");
             if (accNum && !mt5Account) setMt5Account(accNum);
             localStorage.setItem("tradifive_connected_mt5_account", accNum);
+            localStorage.setItem("tradifive_license_key", generateTradifiveLicenseKey(accNum));
             const savedReq = localStorage.getItem("tradifive_ib_proof_request");
             const parsedReq = savedReq ? JSON.parse(savedReq) : {};
             parsedReq.status = "approved";
@@ -719,6 +729,13 @@ export default function AITrading() {
 
     localStorage.setItem("tradifive_payment_status", "pending");
     localStorage.setItem("tradifive_payment_request", JSON.stringify(newPaymentRequest));
+    if (selectedTier === "three_years") {
+      localStorage.setItem("tradifive_is_lifetime_plan", "true");
+    } else {
+      localStorage.removeItem("tradifive_is_lifetime_plan");
+    }
+    localStorage.setItem("tradifive_payment_tier", selectedTier);
+    try { window.dispatchEvent(new Event("tradifive_tier_update")); } catch (e) {}
     setPaymentStatus("pending");
 
     try {
@@ -2312,7 +2329,11 @@ MagicNumber=789104
                     <div
                       onClick={() => {
                         setSelectedTier("three_years");
-                        try { localStorage.setItem("tradifive_selected_tier", "three_years"); } catch (e) {}
+                        try { 
+                          localStorage.setItem("tradifive_selected_tier", "three_years");
+                          localStorage.setItem("tradifive_is_lifetime_plan", "true");
+                          window.dispatchEvent(new Event("tradifive_tier_update"));
+                        } catch (e) {}
                       }}
                       className={`p-4 sm:p-5 rounded-2xl border-2 transition-all cursor-pointer relative flex flex-col justify-between gap-3 shadow-xs ${
                         selectedTier === "three_years"
@@ -2355,7 +2376,11 @@ MagicNumber=789104
                     <div
                       onClick={() => {
                         setSelectedTier("profit_share");
-                        try { localStorage.setItem("tradifive_selected_tier", "profit_share"); } catch (e) {}
+                        try { 
+                          localStorage.setItem("tradifive_selected_tier", "profit_share");
+                          localStorage.removeItem("tradifive_is_lifetime_plan");
+                          window.dispatchEvent(new Event("tradifive_tier_update"));
+                        } catch (e) {}
                       }}
                       className={`p-4 sm:p-5 rounded-2xl border-2 transition-all cursor-pointer relative flex flex-col justify-between gap-3 shadow-xs ${
                         selectedTier === "profit_share"
