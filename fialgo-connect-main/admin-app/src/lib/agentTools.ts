@@ -1,4 +1,5 @@
 import { supabase } from "./supabase";
+import { setSystemSetting } from "./systemSettings";
 import { createNotification } from "./notifications";
 
 // ─── TOOL DEFINITIONS for Kimi function calling ───────────────────────────────
@@ -454,7 +455,7 @@ Supabase: Connected | Auth: Active | Realtime: Active`;
       }
 
       case "set_maintenance_mode": {
-        await supabase.from("system_settings").upsert({ id: "maintenance_mode", value: { enabled: args.enabled }, updated_at: new Date().toISOString() }, { onConflict: "id" });
+        await setSystemSetting("maintenance_mode", { enabled: args.enabled });
         if (args.enabled) {
           const { data: users } = await supabase.from("profiles").select("id");
           if (users) {

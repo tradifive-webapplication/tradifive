@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/lib/supabase";
+import { getSystemSetting, setSystemSetting } from "@/lib/systemSettings";
 import {
   Bot,
   Search,
@@ -250,28 +251,19 @@ export default function AdminAutoTrade() {
     }
     setIsRefreshing(true);
     try {
-      const { data: settingsData } = await supabase
-        .from("system_settings")
-        .select("*")
-        .eq("id", "auto_trade_admin_records")
-        .maybeSingle();
+      const settingsVal = await getSystemSetting<any>("auto_trade_admin_records");
+      const settingsData = { value: settingsVal };
 
       const savedOverrides: Record<string, Partial<AutoTradeRecord>> = settingsData?.value || {};
 
       // 1.2 Fetch live telemetry from system_settings
-      const { data: telemetryData } = await supabase
-        .from("system_settings")
-        .select("value")
-        .eq("id", "mt5_telemetry_live")
-        .maybeSingle();
+      const telemetryVal = await getSystemSetting<any>("mt5_telemetry_live");
+      const telemetryData = { value: telemetryVal };
       const liveTelemetry = telemetryData?.value || {};
 
       // 1.5 Fetch proof requests
-      const { data: proofData } = await supabase
-        .from("system_settings")
-        .select("*")
-        .eq("id", "ib_transfer_requests")
-        .maybeSingle();
+      const proofVal = await getSystemSetting<any[]>("ib_transfer_requests");
+      const proofData = { value: proofVal };
 
       let proofs: IbTransferProofRequest[] = Array.isArray(proofData?.value) ? proofData.value : [];
 
@@ -300,11 +292,8 @@ export default function AdminAutoTrade() {
 
       // 1.9 Fetch Admin Broadcast Message
       try {
-        const { data: bData } = await supabase
-          .from("system_settings")
-          .select("value")
-          .eq("id", "auto_trade_admin_broadcast")
-          .maybeSingle();
+        const bVal = await getSystemSetting<any>("auto_trade_admin_broadcast");
+        const bData = { value: bVal };
         if (bData?.value && typeof bData.value === "object") {
           setCurrentBroadcast(bData.value);
           setAdminBroadcastMessage(bData.value.message || "");
@@ -314,21 +303,15 @@ export default function AdminAutoTrade() {
 
       // 1.10 Fetch Weekly 50/50% Withdrawal Requests
       try {
-        const { data: wdrData } = await supabase
-          .from("system_settings")
-          .select("value")
-          .eq("id", "auto_trade_withdrawal_requests")
-          .maybeSingle();
+        const wdrVal = await getSystemSetting<any[]>("auto_trade_withdrawal_requests");
+        const wdrData = { value: wdrVal };
         const wdrs: any[] = Array.isArray(wdrData?.value) ? wdrData.value : [];
         setWithdrawalRequests(wdrs);
       } catch (e) {}
 
       // 1.8 Fetch License Payment Requests (₹9,999 UPI / Bank)
-      const { data: licensePayData } = await supabase
-        .from("system_settings")
-        .select("*")
-        .eq("id", "license_payment_requests")
-        .maybeSingle();
+      const licensePayVal = await getSystemSetting<any[]>("license_payment_requests");
+      const licensePayData = { value: licensePayVal };
 
       let payments: LicensePaymentRequest[] = Array.isArray(licensePayData?.value) ? licensePayData.value : [];
 
@@ -566,11 +549,7 @@ export default function AdminAutoTrade() {
     const updatedList = proofRequests.map(p => (p.id === proof.id ? updatedProof : p));
     setProofRequests(updatedList);
 
-    await supabase.from("system_settings").upsert({
-      id: "ib_transfer_requests",
-      value: updatedList,
-      updated_at: new Date().toISOString()
-    });
+    await setSystemSetting("ib_transfer_requests", updatedList);
 
     try {
       const localReq = localStorage.getItem("tradifive_ib_proof_request");
@@ -620,11 +599,7 @@ export default function AdminAutoTrade() {
     const updatedList = proofRequests.map(p => (p.id === proof.id ? updatedProof : p));
     setProofRequests(updatedList);
 
-    await supabase.from("system_settings").upsert({
-      id: "ib_transfer_requests",
-      value: updatedList,
-      updated_at: new Date().toISOString()
-    });
+    await setSystemSetting("ib_transfer_requests", updatedList);
 
     try {
       const localReq = localStorage.getItem("tradifive_ib_proof_request");
@@ -697,11 +672,7 @@ export default function AdminAutoTrade() {
     const updatedList = licensePayments.map(p => (p.id === payment.id ? updatedPayment : p));
     setLicensePayments(updatedList);
 
-    await supabase.from("system_settings").upsert({
-      id: "license_payment_requests",
-      value: updatedList,
-      updated_at: new Date().toISOString()
-    });
+    await setSystemSetting("license_payment_requests", updatedList);
 
     try {
       const localReq = localStorage.getItem("tradifive_payment_request");
@@ -773,11 +744,7 @@ export default function AdminAutoTrade() {
         sender: "TradiFive Operations Desk",
         updated_at: new Date().toISOString()
       };
-      await supabase.from("system_settings").upsert({
-        id: "auto_trade_admin_broadcast",
-        value: payload,
-        updated_at: new Date().toISOString()
-      });
+      await setSystemSetting("auto_trade_admin_broadcast", payload);
       setCurrentBroadcast(payload);
       toast.success("Broadcast message published live to all user dashboards!");
     } catch (e: any) {
@@ -820,11 +787,7 @@ Thank you for trading with TradiFive & FiAlgo V1!`;
     const updated = withdrawalRequests.map(w => w.id === wdrId ? { ...w, status: "cleared", cleared_at: new Date().toISOString() } : w);
     setWithdrawalRequests(updated);
     try {
-      await supabase.from("system_settings").upsert({
-        id: "auto_trade_withdrawal_requests",
-        value: updated,
-        updated_at: new Date().toISOString()
-      });
+      await setSystemSetting("auto_trade_withdrawal_requests", updated);
       toast.success("Withdrawal request marked as cleared!");
     } catch (e: any) {
       toast.error("Failed to update status: " + e.message);
@@ -843,11 +806,7 @@ Thank you for trading with TradiFive & FiAlgo V1!`;
     const updatedList = licensePayments.map(p => (p.id === payment.id ? updatedPayment : p));
     setLicensePayments(updatedList);
 
-    await supabase.from("system_settings").upsert({
-      id: "license_payment_requests",
-      value: updatedList,
-      updated_at: new Date().toISOString()
-    });
+    await setSystemSetting("license_payment_requests", updatedList);
 
     try {
       const localReq = localStorage.getItem("tradifive_payment_request");
@@ -879,28 +838,23 @@ Thank you for trading with TradiFive & FiAlgo V1!`;
 
   const persistUpdate = async (updatedRecord: AutoTradeRecord) => {
     try {
-      const { data: current } = await supabase
-        .from("system_settings")
-        .select("*")
-        .eq("id", "auto_trade_admin_records")
-        .maybeSingle();
-
-      const existingMap = current?.value || {};
+      const currentVal = await getSystemSetting<any>("auto_trade_admin_records");
+      const existingMap = currentVal || {};
       existingMap[updatedRecord.id] = updatedRecord;
 
-      await supabase
-        .from("system_settings")
-        .upsert({
-          id: "auto_trade_admin_records",
-          value: existingMap,
-          updated_at: new Date().toISOString()
-        });
+      await setSystemSetting("auto_trade_admin_records", existingMap);
 
       // Auto-sync with public.mt5_accounts and public.profiles
       try {
         const cleanAcc = String(updatedRecord.bound_account || updatedRecord.mt5_account_number || "").replace(/\D/g, "");
         if (cleanAcc && updatedRecord.user_id && !updatedRecord.user_id.startsWith("usr-")) {
-          await supabase.from("mt5_accounts").upsert({
+          const { data: existingMt5 } = await supabase
+            .from("mt5_accounts")
+            .select("id")
+            .or(`user_id.eq.${updatedRecord.user_id},account_number.eq.${cleanAcc}`)
+            .maybeSingle();
+
+          const mt5Payload = {
             user_id: updatedRecord.user_id,
             account_number: cleanAcc,
             broker_name: updatedRecord.broker_name || "Vantage Markets",
@@ -912,7 +866,13 @@ Thank you for trading with TradiFive & FiAlgo V1!`;
             equity: Number(updatedRecord.equity || 2000),
             currency: updatedRecord.currency || "USD",
             activation_key: updatedRecord.license_key || undefined
-          }, { onConflict: "account_number" });
+          };
+
+          if (existingMt5?.id) {
+            await supabase.from("mt5_accounts").update(mt5Payload).eq("id", existingMt5.id);
+          } else {
+            await supabase.from("mt5_accounts").insert(mt5Payload);
+          }
 
           if (updatedRecord.license_key) {
             await supabase
@@ -928,11 +888,8 @@ Thank you for trading with TradiFive & FiAlgo V1!`;
       // If verified, auto-approve matching ib_transfer_requests
       if (updatedRecord.is_under_tradifive === true || updatedRecord.ib_status === "verified") {
         try {
-          const { data: proofData } = await supabase
-            .from("system_settings")
-            .select("*")
-            .eq("id", "ib_transfer_requests")
-            .maybeSingle();
+          const proofVal = await getSystemSetting<any[]>("ib_transfer_requests");
+      const proofData = { value: proofVal };
           if (proofData?.value && Array.isArray(proofData.value)) {
             let changed = false;
             const updatedProofs = proofData.value.map((p: any) => {
@@ -952,11 +909,7 @@ Thank you for trading with TradiFive & FiAlgo V1!`;
               return p;
             });
             if (changed) {
-              await supabase.from("system_settings").upsert({
-                id: "ib_transfer_requests",
-                value: updatedProofs,
-                updated_at: new Date().toISOString()
-              });
+              await setSystemSetting("ib_transfer_requests", updatedProofs);
             }
           }
         } catch (proofErr) {

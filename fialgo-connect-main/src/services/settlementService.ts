@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import { getSystemSetting, setSystemSetting } from "@/lib/systemSettings";
 import { 
   Settlement, 
   SettlementItem, 
@@ -393,11 +394,8 @@ export async function getCustomerSettlements(
 
   // 3. Merge persisted payment status from system_settings or localStorage
   try {
-    const { data: savedRecord } = await supabase
-      .from("system_settings")
-      .select("value")
-      .eq("id", `settlements_${effectiveUid}`)
-      .maybeSingle();
+    const savedVal = await getSystemSetting<any[]>(`settlements_${effectiveUid}`);
+    const savedRecord = { value: savedVal };
 
     if (savedRecord?.value && Array.isArray(savedRecord.value)) {
       const persistedList = savedRecord.value as Settlement[];
@@ -581,11 +579,8 @@ export async function submitSettlementPayment(
 
   // 2. Persist to system_settings for persistent user state across sessions
   try {
-    const { data: existing } = await supabase
-      .from("system_settings")
-      .select("value")
-      .eq("id", `settlements_${payload.userId}`)
-      .maybeSingle();
+    const existingVal = await getSystemSetting<any[]>(`settlements_${payload.userId}`);
+    const existing = { value: existingVal };
 
     let currentList: any[] = Array.isArray(existing?.value) ? existing.value : [];
     const targetIdx = currentList.findIndex((s: any) => s.id === settlementId);
@@ -605,11 +600,7 @@ export async function submitSettlementPayment(
       currentList.push(updatedRecord);
     }
 
-    await supabase.from("system_settings").upsert({
-      id: `settlements_${payload.userId}`,
-      value: currentList,
-      updated_at: new Date().toISOString()
-    });
+    await setSystemSetting(`settlements_${payload.userId}`, currentList);
   } catch (e) {}
 
   // 3. Update local state

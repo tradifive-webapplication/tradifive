@@ -13,6 +13,7 @@ import DashboardLayout from "@/components/DashboardLayout";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import AutoTradeProfitCalculator from "@/components/AutoTradeProfitCalculator";
 import { supabase } from "@/lib/supabase";
+import { getSystemSetting, setSystemSetting } from "@/lib/systemSettings";
 
 // ─── BROKER CONFIGURATIONS ──────────────────────────────────────
 const BROKERS = [
@@ -247,14 +248,10 @@ export default function AITrading() {
         } else {
           // Check system_settings auto_trade_admin_records as fallback
           try {
-            const { data: recData } = await supabase
-              .from("system_settings")
-              .select("value")
-              .eq("id", "auto_trade_admin_records")
-              .maybeSingle();
+            const recData = await getSystemSetting<any>("auto_trade_admin_records");
             let matchedRec: any = null;
-            if (recData?.value && typeof recData.value === "object") {
-              const list = Object.values(recData.value) as any[];
+            if (recData && typeof recData === "object") {
+              const list = Object.values(recData) as any[];
               matchedRec = list.find(r => r.user_id === user.id || (user.email && r.user_email === user.email));
             }
             if (matchedRec?.bound_account || matchedRec?.mt5_account_number) {
@@ -334,14 +331,10 @@ export default function AITrading() {
 
       // 2. Check auto_trade_admin_records (where admin verifies accounts in admin portal)
       try {
-        const { data: recData } = await supabase
-          .from("system_settings")
-          .select("value")
-          .eq("id", "auto_trade_admin_records")
-          .maybeSingle();
+        const recData = await getSystemSetting<any>("auto_trade_admin_records");
 
-        if (recData?.value && typeof recData.value === "object") {
-          const recordsList = Object.values(recData.value) as any[];
+        if (recData && typeof recData === "object") {
+          const recordsList = Object.values(recData) as any[];
           const matchedAdmin = recordsList.find(r => 
             (currentUser && (r.user_id === currentUser.id || (currentUser.email && r.user_email === currentUser.email))) ||
             (mt5Account && (r.bound_account === mt5Account || r.mt5_account_number === mt5Account))
@@ -364,16 +357,12 @@ export default function AITrading() {
 
       // 3. Check ib_transfer_requests table in system_settings
       try {
-        const { data } = await supabase
-          .from("system_settings")
-          .select("*")
-          .eq("id", "ib_transfer_requests")
-          .maybeSingle();
+        const data = await getSystemSetting<any[]>("ib_transfer_requests");
 
-        if (data?.value && Array.isArray(data.value)) {
+        if (data && Array.isArray(data)) {
           const local = localStorage.getItem("tradifive_ib_proof_request");
           const parsed = local ? JSON.parse(local) : {};
-          const matching = data.value.find((r: any) =>
+          const matching = data.find((r: any) =>
             (parsed.id && r.id === parsed.id) ||
             (parsed.mt5_account_number && r.mt5_account_number === parsed.mt5_account_number) ||
             (mt5Account && r.mt5_account_number === mt5Account) ||
@@ -405,14 +394,10 @@ export default function AITrading() {
           setPaymentStatus("approved");
         }
 
-        const { data: payData } = await supabase
-          .from("system_settings")
-          .select("*")
-          .eq("id", "license_payment_requests")
-          .maybeSingle();
+        const payData = await getSystemSetting<any[]>("license_payment_requests");
 
-        if (payData?.value && Array.isArray(payData.value)) {
-          const matched = payData.value.find((r: any) =>
+        if (payData && Array.isArray(payData)) {
+          const matched = payData.find((r: any) =>
             (parsedPay.id && r.id === parsedPay.id) ||
             (parsedPay.utr_number && r.utr_number === parsedPay.utr_number) ||
             (paymentUtr && r.utr_number === paymentUtr) ||
@@ -473,14 +458,10 @@ export default function AITrading() {
       }
 
       // 2. Fallback check system_settings auto_trade_admin_records
-      const { data: recData } = await supabase
-        .from("system_settings")
-        .select("value")
-        .eq("id", "auto_trade_admin_records")
-        .maybeSingle();
+      const recData = await getSystemSetting<any>("auto_trade_admin_records");
 
-      if (recData?.value && typeof recData.value === "object") {
-        const rec = Object.values(recData.value).find((r: any) => 
+      if (recData && typeof recData === "object") {
+        const rec = Object.values(recData).find((r: any) => 
           r.bound_account === accToTest || r.mt5_account_number === accToTest
         );
         if (rec && rec.algo_execution_active === true && rec.is_connected === true) {
@@ -739,13 +720,9 @@ export default function AITrading() {
     setPaymentStatus("pending");
 
     try {
-      const { data: existing } = await supabase
-        .from("system_settings")
-        .select("*")
-        .eq("id", "license_payment_requests")
-        .maybeSingle();
+      const existing = await getSystemSetting<any[]>("license_payment_requests");
 
-      const list = Array.isArray(existing?.value) ? existing.value : [];
+      const list = Array.isArray(existing) ? existing : [];
       const filteredList = list.filter((p: any) => 
         p.id !== newPaymentRequest.id &&
         !(userId && p.user_id === userId) &&
@@ -753,13 +730,9 @@ export default function AITrading() {
       );
       filteredList.unshift(newPaymentRequest);
 
-      const { error: payErr } = await supabase.from("system_settings").upsert({
-        id: "license_payment_requests",
-        value: filteredList,
-        updated_at: new Date().toISOString()
-      });
-      if (payErr) {
-        console.error("Failed to update license_payment_requests:", payErr);
+      const ok = await setSystemSetting("license_payment_requests", filteredList);
+      if (!ok) {
+        console.error("Failed to update license_payment_requests");
       }
     } catch (err) {
       console.warn("Payment submission error:", err);
@@ -865,13 +838,9 @@ export default function AITrading() {
 
     try {
       // 1. Fetch & update ib_transfer_requests in system_settings
-      const { data: existing } = await supabase
-        .from("system_settings")
-        .select("*")
-        .eq("id", "ib_transfer_requests")
-        .maybeSingle();
+      const existing = await getSystemSetting<any[]>("ib_transfer_requests");
 
-      const list = Array.isArray(existing?.value) ? existing.value : [];
+      const list = Array.isArray(existing) ? existing : [];
       // Clean previous requests for same user or account
       const filteredList = list.filter((r: any) => 
         r.id !== newRequest.id &&
@@ -880,24 +849,16 @@ export default function AITrading() {
       );
       filteredList.unshift(newRequest);
 
-      const { error: ssErr } = await supabase.from("system_settings").upsert({
-        id: "ib_transfer_requests",
-        value: filteredList,
-        updated_at: new Date().toISOString()
-      });
-      if (ssErr) {
-        console.error("Failed to update ib_transfer_requests:", ssErr);
+      const ssOk = await setSystemSetting("ib_transfer_requests", filteredList);
+      if (!ssOk) {
+        console.error("Failed to update ib_transfer_requests");
       }
 
       // 2. Also register immediately into auto_trade_admin_records so the Admin page's Active Accounts tab displays this account
       try {
-        const { data: adminRecSetting } = await supabase
-          .from("system_settings")
-          .select("value")
-          .eq("id", "auto_trade_admin_records")
-          .maybeSingle();
+        const adminRecSetting = await getSystemSetting<any>("auto_trade_admin_records");
 
-        const currentRecords = (adminRecSetting?.value && typeof adminRecSetting.value === "object") ? { ...adminRecSetting.value } : {};
+        const currentRecords = (adminRecSetting && typeof adminRecSetting === "object") ? { ...adminRecSetting } : {};
         const recKey = userId && !userId.startsWith("usr-") ? `rec-${userId}` : newRequest.id;
         currentRecords[recKey] = {
           id: recKey,
@@ -937,13 +898,9 @@ export default function AITrading() {
           created_at: new Date().toISOString()
         };
 
-        const { error: atErr } = await supabase.from("system_settings").upsert({
-          id: "auto_trade_admin_records",
-          value: currentRecords,
-          updated_at: new Date().toISOString()
-        });
-        if (atErr) {
-          console.error("Failed to update auto_trade_admin_records:", atErr);
+        const atOk = await setSystemSetting("auto_trade_admin_records", currentRecords);
+        if (!atOk) {
+          console.error("Failed to update auto_trade_admin_records");
         }
       } catch (adminRecErr) {
         console.warn("Could not sync to auto_trade_admin_records:", adminRecErr);
@@ -951,16 +908,29 @@ export default function AITrading() {
 
       // 3. Upsert to public.mt5_accounts
       if (userId && !userId.startsWith("usr-")) {
-        const { error: mt5Err } = await supabase.from("mt5_accounts").upsert({
-          user_id: userId,
-          account_number: cleanNum,
-          activation_key: generatedLicKey,
-          broker_name: brokerLabel,
-          connection_status: "pending_verification",
-          algo_status: true
-        }, { onConflict: "user_id" });
-        if (mt5Err) {
-          console.error("Failed to upsert mt5_accounts:", mt5Err);
+        const { data: existingMt5 } = await supabase
+          .from("mt5_accounts")
+          .select("id")
+          .eq("user_id", userId)
+          .maybeSingle();
+
+        if (existingMt5?.id) {
+          await supabase.from("mt5_accounts").update({
+            account_number: cleanNum,
+            activation_key: generatedLicKey,
+            broker_name: brokerLabel,
+            connection_status: "pending_verification",
+            algo_status: true
+          }).eq("id", existingMt5.id);
+        } else {
+          await supabase.from("mt5_accounts").insert({
+            user_id: userId,
+            account_number: cleanNum,
+            activation_key: generatedLicKey,
+            broker_name: brokerLabel,
+            connection_status: "pending_verification",
+            algo_status: true
+          });
         }
       }
     } catch (err) {
@@ -1108,16 +1078,35 @@ MagicNumber=789104
           .update({ activation_key: licenseKey })
           .eq("id", session.user.id);
 
-        await supabase
+        const { data: existingMt5 } = await supabase
           .from("mt5_accounts")
-          .upsert({
-            user_id: session.user.id,
-            account_number: cleanAccount,
-            activation_key: licenseKey,
-            broker_server: brokerName,
-            connection_status: "deployed",
-            algo_status: true
-          }, { onConflict: "user_id" });
+          .select("id")
+          .eq("user_id", session.user.id)
+          .maybeSingle();
+
+        if (existingMt5?.id) {
+          await supabase
+            .from("mt5_accounts")
+            .update({
+              account_number: cleanAccount,
+              activation_key: licenseKey,
+              broker_server: brokerName,
+              connection_status: "deployed",
+              algo_status: true
+            })
+            .eq("id", existingMt5.id);
+        } else {
+          await supabase
+            .from("mt5_accounts")
+            .insert({
+              user_id: session.user.id,
+              account_number: cleanAccount,
+              activation_key: licenseKey,
+              broker_server: brokerName,
+              connection_status: "deployed",
+              algo_status: true
+            });
+        }
       }
     } catch (e) {
       console.warn("Could not sync account to Supabase:", e);

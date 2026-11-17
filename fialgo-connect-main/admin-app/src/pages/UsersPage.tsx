@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "../lib/supabase";
+import { getSystemSetting, setSystemSetting } from "../lib/systemSettings";
 import { useAdminAuth } from "../contexts/AdminAuthContext";
 import { Users, ShieldAlert, Search, Filter, Mail, Calendar, UserCheck, UserX, ScanEye, Ban, Trash2, BotOff } from "lucide-react";
 import UserDeepScan from "../components/UserDeepScan";
@@ -263,10 +264,10 @@ export default function UsersPage() {
 
       // 4. Remove approved license payment request if tracked in system_settings
       try {
-        const { data: sysSet } = await supabase.from("system_settings").select("*").eq("id", "license_payment_requests").maybeSingle();
-        if (sysSet?.value && Array.isArray(sysSet.value)) {
-          const filtered = sysSet.value.filter((r: any) => r.user_id !== user.id && r.userId !== user.id);
-          await supabase.from("system_settings").upsert({ id: "license_payment_requests", value: filtered });
+        const sysVal = await getSystemSetting<any[]>("license_payment_requests");
+        if (sysVal && Array.isArray(sysVal)) {
+          const filtered = sysVal.filter((r: any) => r.user_id !== user.id && r.userId !== user.id);
+          await setSystemSetting("license_payment_requests", filtered);
         }
       } catch (ePay) {}
 

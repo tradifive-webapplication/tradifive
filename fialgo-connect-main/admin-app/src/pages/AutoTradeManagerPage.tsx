@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { supabase } from "../lib/supabase";
+import { getSystemSetting, setSystemSetting } from "../lib/systemSettings";
 import { useAdminAuth } from "../contexts/AdminAuthContext";
 import {
   Bot,
@@ -277,28 +278,19 @@ export default function AutoTradeManagerPage() {
     setIsRefreshing(true);
     try {
       // 1. Fetch saved overrides from system_settings
-      const { data: settingsData } = await supabase
-        .from("system_settings")
-        .select("*")
-        .eq("id", "auto_trade_admin_records")
-        .maybeSingle();
+      const settingsVal = await getSystemSetting<any>("auto_trade_admin_records");
+      const settingsData = { value: settingsVal };
 
       const savedOverrides: Record<string, Partial<AutoTradeRecord>> = settingsData?.value || {};
 
       // 1.2 Fetch live telemetry from system_settings
-      const { data: telemetryData } = await supabase
-        .from("system_settings")
-        .select("value")
-        .eq("id", "mt5_telemetry_live")
-        .maybeSingle();
+      const telemetryVal = await getSystemSetting<any>("mt5_telemetry_live");
+      const telemetryData = { value: telemetryVal };
       const liveTelemetry = telemetryData?.value || {};
 
       // 1.5 Fetch proof requests from system_settings
-      const { data: proofData } = await supabase
-        .from("system_settings")
-        .select("*")
-        .eq("id", "ib_transfer_requests")
-        .maybeSingle();
+      const proofVal = await getSystemSetting<any[]>("ib_transfer_requests");
+      const proofData = { value: proofVal };
 
       let proofs: IbTransferProofRequest[] = Array.isArray(proofData?.value) ? proofData.value : [];
 
@@ -327,11 +319,8 @@ export default function AutoTradeManagerPage() {
       } catch (e) {}
 
       // 1.8 Fetch License Payment Requests (₹99,999 UPI / Bank)
-      const { data: licensePayData } = await supabase
-        .from("system_settings")
-        .select("*")
-        .eq("id", "license_payment_requests")
-        .maybeSingle();
+      const licensePayVal = await getSystemSetting<any[]>("license_payment_requests");
+      const licensePayData = { value: licensePayVal };
 
       let payments: LicensePaymentRequest[] = Array.isArray(licensePayData?.value) ? licensePayData.value : [];
 
@@ -559,11 +548,7 @@ export default function AutoTradeManagerPage() {
     setProofRequests(updatedList);
 
     // Save to Supabase system_settings
-    await supabase.from("system_settings").upsert({
-      id: "ib_transfer_requests",
-      value: updatedList,
-      updated_at: new Date().toISOString()
-    });
+    await setSystemSetting("ib_transfer_requests", updatedList);
 
     // Mirror to localStorage so user's browser updates instantaneously
     try {
@@ -656,11 +641,7 @@ export default function AutoTradeManagerPage() {
     const updatedList = proofRequests.map(p => (p.id === proof.id ? updatedProof : p));
     setProofRequests(updatedList);
 
-    await supabase.from("system_settings").upsert({
-      id: "ib_transfer_requests",
-      value: updatedList,
-      updated_at: new Date().toISOString()
-    });
+    await setSystemSetting("ib_transfer_requests", updatedList);
 
     try {
       const localReq = localStorage.getItem("tradifive_ib_proof_request");
@@ -737,11 +718,7 @@ export default function AutoTradeManagerPage() {
     const updatedList = licensePayments.map(p => (p.id === payment.id ? updatedPayment : p));
     setLicensePayments(updatedList);
 
-    await supabase.from("system_settings").upsert({
-      id: "license_payment_requests",
-      value: updatedList,
-      updated_at: new Date().toISOString()
-    });
+    await setSystemSetting("license_payment_requests", updatedList);
 
     try {
       const localReq = localStorage.getItem("tradifive_payment_request");
@@ -836,11 +813,7 @@ export default function AutoTradeManagerPage() {
     const updatedList = licensePayments.map(p => (p.id === payment.id ? updatedPayment : p));
     setLicensePayments(updatedList);
 
-    await supabase.from("system_settings").upsert({
-      id: "license_payment_requests",
-      value: updatedList,
-      updated_at: new Date().toISOString()
-    });
+    await setSystemSetting("license_payment_requests", updatedList);
 
     try {
       const localReq = localStorage.getItem("tradifive_payment_request");
@@ -956,11 +929,8 @@ export default function AutoTradeManagerPage() {
   const persistUpdate = async (updatedRecord: AutoTradeRecord) => {
     try {
       // 1. Fetch current overrides
-      const { data: current } = await supabase
-        .from("system_settings")
-        .select("*")
-        .eq("id", "auto_trade_admin_records")
-        .maybeSingle();
+      const currentVal = await getSystemSetting<any>("auto_trade_admin_records");
+      const current = { value: currentVal };
 
       const existingMap = current?.value || {};
       existingMap[updatedRecord.id] = updatedRecord;
@@ -969,13 +939,8 @@ export default function AutoTradeManagerPage() {
       }
 
       // 2. Save back to system_settings
-      const { error } = await supabase
-        .from("system_settings")
-        .upsert({
-          id: "auto_trade_admin_records",
-          value: existingMap,
-          updated_at: new Date().toISOString()
-        });
+      const ok = await setSystemSetting("auto_trade_admin_records", existingMap);
+      const error = ok ? null : { message: "Failed to persist setting" };
 
       if (error) {
         console.error("Failed to save to Supabase:", error.message);
@@ -986,7 +951,13 @@ export default function AutoTradeManagerPage() {
         const cleanAcc = String(updatedRecord.bound_account || updatedRecord.mt5_account_number || "").replace(/\D/g, "");
         if (cleanAcc && updatedRecord.user_id && !updatedRecord.user_id.startsWith("usr-")) {
           const isSuspended = updatedRecord.license_status === "suspended";
-          await supabase.from("mt5_accounts").upsert({
+          const { data: existingMt5 } = await supabase
+            .from("mt5_accounts")
+            .select("id")
+            .or(`user_id.eq.${updatedRecord.user_id},account_number.eq.${cleanAcc}`)
+            .maybeSingle();
+
+          const mt5Payload = {
             user_id: updatedRecord.user_id,
             account_number: cleanAcc,
             broker_name: updatedRecord.broker_name || "Vantage Markets",
@@ -998,7 +969,13 @@ export default function AutoTradeManagerPage() {
             equity: Number(updatedRecord.equity || 0),
             currency: updatedRecord.currency || "INR",
             activation_key: updatedRecord.license_key || undefined
-          }, { onConflict: "account_number" });
+          };
+
+          if (existingMt5?.id) {
+            await supabase.from("mt5_accounts").update(mt5Payload).eq("id", existingMt5.id);
+          } else {
+            await supabase.from("mt5_accounts").insert(mt5Payload);
+          }
 
           if (updatedRecord.license_key) {
             await supabase
@@ -1014,11 +991,8 @@ export default function AutoTradeManagerPage() {
       // 4. If verified, auto-approve matching ib_transfer_requests
       if (updatedRecord.is_under_tradifive === true || updatedRecord.ib_status === "verified") {
         try {
-          const { data: proofData } = await supabase
-            .from("system_settings")
-            .select("*")
-            .eq("id", "ib_transfer_requests")
-            .maybeSingle();
+          const proofVal = await getSystemSetting<any[]>("ib_transfer_requests");
+      const proofData = { value: proofVal };
           if (proofData?.value && Array.isArray(proofData.value)) {
             let changed = false;
             const updatedProofs = proofData.value.map((p: any) => {
@@ -1038,11 +1012,7 @@ export default function AutoTradeManagerPage() {
               return p;
             });
             if (changed) {
-              await supabase.from("system_settings").upsert({
-                id: "ib_transfer_requests",
-                value: updatedProofs,
-                updated_at: new Date().toISOString()
-              });
+              await setSystemSetting("ib_transfer_requests", updatedProofs);
             }
           }
         } catch (proofErr) {

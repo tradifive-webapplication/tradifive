@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
+import { getSystemSetting, setSystemSetting } from "../lib/systemSettings";
 import { Crown, Star, Zap, Save, RefreshCcw, Users, Target } from "lucide-react";
 
 export default function RewardsManagerPage() {
@@ -26,20 +27,14 @@ export default function RewardsManagerPage() {
   };
 
   const fetchConfig = async () => {
-    const { data } = await supabase
-      .from("system_settings")
-      .select("value")
-      .eq("id", "xp_config")
-      .single();
-    if (data?.value) setXpConfig(data.value);
+    const xpVal = await getSystemSetting<any>("xp_config");
+    if (xpVal) setXpConfig(xpVal);
   };
 
   useEffect(() => { fetchUsers(); fetchConfig(); }, []);
 
   const saveConfig = async () => {
-    await supabase
-      .from("system_settings")
-      .upsert({ id: "xp_config", value: xpConfig, updated_at: new Date().toISOString() }, { onConflict: "id" });
+    await setSystemSetting("xp_config", xpConfig);
     setConfigSaved(true);
     setTimeout(() => setConfigSaved(false), 2000);
   };

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
+import { getSystemSetting, setSystemSetting } from "../lib/systemSettings";
 import { useAdminAuth } from "../contexts/AdminAuthContext";
 import { canPerformAction } from "../lib/rbac";
 import { ShieldAlert, AlertTriangle, Users, Ban, Activity, Power, Unlock, Skull, Lock } from "lucide-react";
@@ -19,7 +20,7 @@ export default function RiskControlPage() {
       const [mt5Res, breachesRes, settingsRes] = await Promise.all([
         supabase.from("mt5_accounts").select("*, profiles(full_name, email)").order("created_at", { ascending: false }),
         supabase.from("risk_breach_logs").select("*, profiles(full_name)").order("created_at", { ascending: false }).limit(20),
-        supabase.from("system_settings").select("*").eq("id", "kill_switch").maybeSingle()
+        getSystemSetting<any>("kill_switch").then(val => ({ data: { value: val } }))
       ]);
       
       setAccounts(mt5Res.data || []);
@@ -46,11 +47,7 @@ export default function RiskControlPage() {
     setActionLoading("kill_switch");
     
     // UPSERT system_settings
-    await supabase.from("system_settings").upsert({
-      id: "kill_switch",
-      value: { active: newState },
-      updated_at: new Date().toISOString()
-    });
+    await setSystemSetting("kill_switch", { active: newState });
 
     if (newState) {
       // If activated, halt all algos

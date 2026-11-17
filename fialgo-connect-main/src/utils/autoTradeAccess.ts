@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import { getSystemSetting } from "@/lib/systemSettings";
 
 export interface AutoTradeAccessResult {
   hasAccess: boolean;
@@ -64,14 +65,10 @@ export async function checkUserAutoTradeAccess(userId?: string): Promise<AutoTra
     // 3. Check auto_trade_admin_records
     let adminRecordVerified = false;
     try {
-      const { data: adminSettings } = await supabase
-        .from("system_settings")
-        .select("value")
-        .eq("id", "auto_trade_admin_records")
-        .maybeSingle();
+      const adminSettings = await getSystemSetting<any>("auto_trade_admin_records");
 
-      if (adminSettings?.value && typeof adminSettings.value === "object") {
-        const recordsList = Object.values(adminSettings.value) as any[];
+      if (adminSettings && typeof adminSettings === "object") {
+        const recordsList = Object.values(adminSettings) as any[];
         const matched = recordsList.find(
           (r) =>
             (r.user_id === resolvedUserId || (resolvedEmail && r.user_email === resolvedEmail)) &&
@@ -84,14 +81,10 @@ export async function checkUserAutoTradeAccess(userId?: string): Promise<AutoTra
     // 4. Check ib_transfer_requests status
     let proofStatus: "none" | "pending" | "approved" | "rejected" = "none";
     try {
-      const { data: proofSettings } = await supabase
-        .from("system_settings")
-        .select("value")
-        .eq("id", "ib_transfer_requests")
-        .maybeSingle();
+      const proofSettings = await getSystemSetting<any[]>("ib_transfer_requests");
 
-      if (proofSettings?.value && Array.isArray(proofSettings.value)) {
-        const matchedProof = proofSettings.value.find(
+      if (proofSettings && Array.isArray(proofSettings)) {
+        const matchedProof = proofSettings.find(
           (r: any) => r.user_id === resolvedUserId || (resolvedEmail && r.user_email === resolvedEmail)
         );
         if (matchedProof?.status) {
@@ -103,14 +96,10 @@ export async function checkUserAutoTradeAccess(userId?: string): Promise<AutoTra
     // 5. Check license_payment_requests status
     let paymentStatus: "none" | "pending" | "approved" | "rejected" = "none";
     try {
-      const { data: paySettings } = await supabase
-        .from("system_settings")
-        .select("value")
-        .eq("id", "license_payment_requests")
-        .maybeSingle();
+      const paySettings = await getSystemSetting<any[]>("license_payment_requests");
 
-      if (paySettings?.value && Array.isArray(paySettings.value)) {
-        const matchedPay = paySettings.value.find(
+      if (paySettings && Array.isArray(paySettings)) {
+        const matchedPay = paySettings.find(
           (r: any) => r.user_id === resolvedUserId || (resolvedEmail && r.user_email === resolvedEmail)
         );
         if (matchedPay?.status) {
