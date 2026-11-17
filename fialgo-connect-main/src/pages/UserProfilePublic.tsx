@@ -135,12 +135,17 @@ export default function UserProfilePublic() {
   const [advMetrics, setAdvMetrics] = useState<any>(calculateTradingMetrics([]));
 
   // Privacy Settings state
-  const [privacySettings, setPrivacySettings] = useState({
+  const [privacySettings, setPrivacySettings] = useState<Record<string, any>>({
     show_location: true,
     show_winrate: true,
     show_roi: true,
+    show_avg_rr: true,
     show_streak: true,
     show_trades: true,
+    show_performance: true,
+    show_ai_analysis: true,
+    show_followers: true,
+    show_calendar: true,
     is_private: false,
     account_type: 'personal' as 'personal' | 'creator' | 'business'
   });
@@ -173,8 +178,13 @@ export default function UserProfilePublic() {
         show_location: true,
         show_winrate: true,
         show_roi: true,
+        show_avg_rr: true,
         show_streak: true,
         show_trades: true,
+        show_performance: true,
+        show_ai_analysis: true,
+        show_followers: true,
+        show_calendar: true,
         is_private: false,
         account_type: 'personal'
       };
@@ -1036,31 +1046,44 @@ export default function UserProfilePublic() {
             </div>
 
             <div className="space-y-6">
-              {/* --- QUICK STATS GRID CARDS (5 Cards) --- */}
-              {/* Redesigned to have 100% Tactile claymorphic styling matching mockup box shadow specs */}
-              <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
-                {[
+              {/* --- QUICK STATS GRID CARDS (Dynamic based on privacy toggles) --- */}
+              {(() => {
+                const visibleCards = [
                   { title: "Trades", value: safeTradesCount.toLocaleString(), isHidden: (!privacySettings.show_trades || isLocked), icon: <BarChart2 size={16} className="text-blue-500" />, color: "bg-blue-500/10 text-blue-600" },
                   { title: "Win Rate", value: safeWinRate, isHidden: (!privacySettings.show_winrate || isLocked), icon: <CheckCircle2 size={16} className="text-emerald-500" />, color: "bg-emerald-500/10 text-emerald-600" },
                   { title: "ROI (All Time)", value: safeRoi, isHidden: (!privacySettings.show_roi || isLocked), icon: <TrendingUp size={16} className="text-emerald-500 animate-pulse" />, color: "bg-emerald-500/10 text-emerald-600", highlighted: true },
-                  { title: "Avg RR", value: safeAvgRR, isHidden: (!privacySettings.show_winrate || isLocked), icon: <Target size={16} className="text-purple-500" />, color: "bg-purple-500/10 text-purple-600" },
+                  { title: "Avg RR", value: safeAvgRR, isHidden: (!privacySettings.show_avg_rr || isLocked), icon: <Target size={16} className="text-purple-500" />, color: "bg-purple-500/10 text-purple-600" },
                   { title: "Streak", value: safeStreak, isHidden: (!privacySettings.show_streak || isLocked), icon: <Flame size={16} className="text-orange-500 animate-pulse" />, color: "bg-orange-500/10 text-orange-600" }
-                ].map((card, idx) => (
-                  <div key={idx} className="py-3.5 px-5 rounded-2xl bg-white dark:bg-[#1E1E1E] border-2 border-white dark:border-white/5 shadow-[0_4px_7px_-5px_rgba(0,0,0,0.1),_0_0_0_2px_#E7E7E7] dark:shadow-none hover:-translate-y-0.5 transition-all duration-350 flex flex-col gap-2.5 group relative overflow-hidden">
-                    <div className={`transition-all duration-300 ${card.isHidden ? 'blur-[4px] opacity-40 pointer-events-none select-none' : ''}`}>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-[10px] font-bold text-slate-455 dark:text-slate-400 uppercase tracking-wider">{card.title}</span>
-                        <div className={`p-2 rounded-xl ${card.color} transition-transform group-hover:scale-105 duration-300`}>
-                          {card.icon}
+                ].filter(card => !card.isHidden);
+
+                if (visibleCards.length === 0) return null;
+
+                return (
+                  <div className={`grid gap-4 ${
+                    visibleCards.length === 1 ? 'grid-cols-1 max-w-xs' :
+                    visibleCards.length === 2 ? 'grid-cols-2 max-w-md' :
+                    visibleCards.length === 3 ? 'grid-cols-1 sm:grid-cols-3' :
+                    visibleCards.length === 4 ? 'grid-cols-2 sm:grid-cols-4' :
+                    'grid-cols-2 sm:grid-cols-5'
+                  }`}>
+                    {visibleCards.map((card, idx) => (
+                      <div key={idx} className="py-3.5 px-5 rounded-2xl bg-white dark:bg-[#1E1E1E] border-2 border-white dark:border-white/5 shadow-[0_4px_7px_-5px_rgba(0,0,0,0.1),_0_0_0_2px_#E7E7E7] dark:shadow-none hover:-translate-y-0.5 transition-all duration-350 flex flex-col gap-2.5 group relative overflow-hidden">
+                        <div>
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-[10px] font-bold text-slate-455 dark:text-slate-400 uppercase tracking-wider">{card.title}</span>
+                            <div className={`p-2 rounded-xl ${card.color} transition-transform group-hover:scale-105 duration-300`}>
+                              {card.icon}
+                            </div>
+                          </div>
+                          <p className={`text-xl sm:text-[22px] font-extrabold leading-none font-sans tracking-tight ${card.highlighted ? 'text-emerald-500' : 'text-slate-900 dark:text-white'}`}>
+                            {card.value}
+                          </p>
                         </div>
                       </div>
-                      <p className={`text-xl sm:text-[22px] font-extrabold leading-none font-sans tracking-tight ${card.highlighted ? 'text-emerald-500' : 'text-slate-900 dark:text-white'}`}>
-                        {card.value}
-                      </p>
-                    </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                );
+              })()}
 
               {/* --- TWO COLUMN MIDDLE SECTION: PERFORMANCE vs AI ANALYSIS --- */}
               {/* Both styled as tactile rounded-3xl containers */}
@@ -1068,7 +1091,7 @@ export default function UserProfilePublic() {
 
                 {/* Card A: Trading Performance */}
                 <div className="bg-gradient-to-b from-[#FAFBFD] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] p-6 rounded-3xl border-2 border-white dark:border-white/5 shadow-[0_4px_7px_-5px_rgba(0,0,0,0.06),_0_0_0_2px_#E7E7E7] dark:shadow-none relative overflow-hidden group">
-                  <div className={`flex flex-col gap-6 transition-all duration-300 ${(!privacySettings.show_roi || isLocked) ? 'blur-[5px] opacity-40 pointer-events-none select-none' : ''}`}>
+                  <div className={`flex flex-col gap-6 transition-all duration-300 ${(!privacySettings.show_roi || privacySettings.show_performance === false || isLocked) ? 'blur-[5px] opacity-40 pointer-events-none select-none' : ''}`}>
                     <div className="flex items-center justify-between">
                       <h3 className="text-[13px] font-bold text-slate-900 dark:text-white uppercase tracking-wider">Trading Performance</h3>
 
@@ -1142,7 +1165,7 @@ export default function UserProfilePublic() {
 
                 {/* Card B: Tradifive AI Analysis (Tactile rounded-3xl container) */}
                 <div className="bg-gradient-to-b from-[#FAFBFD] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] p-6 rounded-3xl border-2 border-white dark:border-white/5 shadow-[0_4px_7px_-5px_rgba(0,0,0,0.06),_0_0_0_2px_#E7E7E7] dark:shadow-none relative overflow-hidden group">
-                  <div className={`flex flex-col gap-5 transition-all duration-300 ${isLocked ? 'blur-[5px] opacity-40 pointer-events-none select-none' : ''}`}>
+                  <div className={`flex flex-col gap-5 transition-all duration-300 ${(privacySettings.show_ai_analysis === false || isLocked) ? 'blur-[5px] opacity-40 pointer-events-none select-none' : ''}`}>
                     <div className="flex items-center justify-between">
                       <h3 className="text-[13px] font-bold text-slate-900 dark:text-white uppercase tracking-wider">Tradifive AI Analysis</h3>
                       <span className="text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider">Updated 2h ago</span>
@@ -1487,7 +1510,7 @@ export default function UserProfilePublic() {
 
             {/* C. Performance Calendar Widget */}
             <div className="p-6 rounded-3xl border-2 border-white dark:border-white/5 bg-gradient-to-b from-[#FAFBFD] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.06),_0_0_0_2px_#E7E7E7] dark:shadow-none relative overflow-hidden group">
-              <div className={`flex flex-col gap-4.5 transition-all duration-300 ${(!privacySettings.show_trades || isLocked) ? 'blur-[5px] opacity-40 pointer-events-none select-none' : ''}`}>
+              <div className={`flex flex-col gap-4.5 transition-all duration-300 ${(!privacySettings.show_trades || privacySettings.show_calendar === false || isLocked) ? 'blur-[5px] opacity-40 pointer-events-none select-none' : ''}`}>
                 <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/5/60 mb-1">
                   <h3 className="text-[13px] font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
                     <Calendar size={15} className="text-blue-500" />

@@ -1077,7 +1077,7 @@ export default function Settings() {
 
                 <div className="p-4 space-y-4 pb-28">
                    {/* 1. Hero Profile Card with cover banner, overlapping avatar, Name, Username and Edit button */}
-                   <div className="bg-white dark:bg-[#1A1A1E] rounded-3xl overflow-hidden border border-slate-200/80 dark:border-white/10 shadow-xs relative">
+                   <div className="bg-white dark:bg-[#1A1A1E] rounded-2xl overflow-hidden border border-black/[0.05] dark:border-white/5 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.06),0_2px_6px_-1px_rgba(0,0,0,0.03)] relative">
                       {/* Banner Image with smooth bottom fade */}
                       <div className="relative h-36 w-full overflow-hidden bg-slate-100 dark:bg-neutral-800">
                          <img
@@ -1119,9 +1119,9 @@ export default function Settings() {
                                setMobileShowDetails(true);
                             }}
                             style={{
-                               background: "linear-gradient(180deg, #FFFFFF 0%, #F0F2F5 100%)",
+                               background: "linear-gradient(180deg, #FFFFFF 0%, #F5F6F8 100%)",
                             }}
-                            className="h-9 px-4 rounded-full text-slate-900 dark:text-white border border-black/[0.08] dark:border-[#4B4951] shadow-[0_2px_4px_rgba(0,0,0,0.10),0_4px_12px_rgba(0,0,0,0.05),inset_0_1px_0_rgba(255,255,255,1)] dark:shadow-[0_2px_4px_rgba(0,0,0,0.4),0_0_0_1px_#0D0D0D] dark:bg-gradient-to-b dark:from-[#201E25] dark:to-[#323137] hover:brightness-[0.98] active:brightness-[0.95] active:translate-y-[1px] active:scale-[0.97] active:shadow-[0_1px_2px_rgba(0,0,0,0.08),inset_0_1px_2px_rgba(0,0,0,0.04)] inline-flex items-center justify-center gap-1.5 transition-all duration-150 ease-out shrink-0 cursor-pointer select-none"
+                            className="h-9 px-4 rounded-2xl text-slate-800 dark:text-white border border-black/[0.08] dark:border-[#4B4951] shadow-[0_3px_8px_rgba(0,0,0,0.08),0_1px_3px_rgba(0,0,0,0.04),inset_0_1px_0_rgba(255,255,255,1),inset_0_-1.5px_2px_rgba(0,0,0,0.05)] dark:shadow-[0_3px_8px_rgba(0,0,0,0.4),0_0_0_1px_#0D0D0D,inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-1px_2px_rgba(0,0,0,0.3)] dark:bg-gradient-to-b dark:from-[#201E25] dark:to-[#323137] hover:brightness-[0.99] active:brightness-[0.96] active:translate-y-[1px] active:scale-[0.97] active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.12),0_1px_2px_rgba(0,0,0,0.04)] inline-flex items-center justify-center gap-1.5 transition-all duration-150 ease-out shrink-0 cursor-pointer select-none font-semibold text-[13px]"
                             title="Edit profile"
                          >
                             <Pencil size={14} strokeWidth={2.4} className="text-slate-900 dark:text-white shrink-0" />
@@ -1158,7 +1158,7 @@ export default function Settings() {
                             <h3 className="text-[11px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider mb-2 px-1">
                                ACCOUNT
                             </h3>
-                            <div className="bg-white dark:bg-[#1A1A1E] rounded-2xl border border-slate-200/80 dark:border-white/10 shadow-xs divide-y divide-slate-100 dark:divide-white/5 overflow-hidden">
+                            <div className="bg-white dark:bg-[#1A1A1E] rounded-2xl border border-black/[0.05] dark:border-white/5 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.06),0_2px_6px_-1px_rgba(0,0,0,0.03)] divide-y divide-slate-100 dark:divide-white/5 overflow-hidden">
                                {(!searchQuery || "profile".includes(searchQuery.toLowerCase())) && (
                                   <button
                                      type="button"
@@ -1264,7 +1264,7 @@ export default function Settings() {
                             <h3 className="text-[11px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider mb-2 px-1">
                                TRADING
                             </h3>
-                            <div className="bg-white dark:bg-[#1A1A1E] rounded-2xl border border-slate-200/80 dark:border-white/10 shadow-xs divide-y divide-slate-100 dark:divide-white/5 overflow-hidden">
+                            <div className="bg-white dark:bg-[#1A1A1E] rounded-2xl border border-black/[0.05] dark:border-white/5 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.06),0_2px_6px_-1px_rgba(0,0,0,0.03)] divide-y divide-slate-100 dark:divide-white/5 overflow-hidden">
                                {(!searchQuery || "break-even range risk".includes(searchQuery.toLowerCase())) && (
                                   <button
                                      type="button"
@@ -1338,7 +1338,7 @@ export default function Settings() {
                             <h3 className="text-[11px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider mb-2 px-1">
                                PREFERENCES & SUPPORT
                             </h3>
-                            <div className="bg-white dark:bg-[#1A1A1E] rounded-2xl border border-slate-200/80 dark:border-white/10 shadow-xs divide-y divide-slate-100 dark:divide-white/5 overflow-hidden">
+                            <div className="bg-white dark:bg-[#1A1A1E] rounded-2xl border border-black/[0.05] dark:border-white/5 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.06),0_2px_6px_-1px_rgba(0,0,0,0.03)] divide-y divide-slate-100 dark:divide-white/5 overflow-hidden">
                                {(!searchQuery || "subscription plan billing".includes(searchQuery.toLowerCase())) && (
                                   <button
                                      type="button"
@@ -1580,39 +1580,39 @@ export default function Settings() {
             </div>
 
             {/* RIGHT CONTENT PANEL inside Modal */}
-            <div className={`${mobileShowDetails ? 'flex' : 'hidden md:flex'} flex-1 min-w-0 bg-white dark:bg-[#121212] h-full min-h-0 overflow-hidden relative flex flex-col`}>
+            <div className={`${mobileShowDetails ? 'flex' : 'hidden md:flex'} flex-1 min-w-0 bg-[#F4F5F7] dark:bg-[#121215] md:bg-white md:dark:bg-[#121212] h-full min-h-0 overflow-hidden relative flex flex-col`}>
                
                {/* Fixed Header outside the scrollable container at the top */}
-               <div className="bg-white/95 dark:bg-[#1E1E1E]/95 backdrop-blur-sm px-4 sm:px-6 md:px-8 py-3 border-b border-slate-150 dark:border-white/5 flex items-center justify-between shrink-0">
+               <div className="bg-white dark:bg-[#1A1A1E] px-4 sm:px-6 md:px-8 py-3 border-b border-slate-200/60 dark:border-white/5 flex items-center justify-between shrink-0 sticky top-0 z-20">
                   <div className="flex items-center gap-2 min-w-0">
                      {/* Mobile Back Button to return to Settings Sidebar */}
                      <button
                         type="button"
                         onClick={() => setMobileShowDetails(false)}
-                        className="flex md:hidden items-center gap-1 text-[13px] font-bold text-blue-600 dark:text-blue-400 py-1 px-2 -ml-2 rounded-lg hover:bg-blue-50 dark:hover:bg-white/5 transition-colors shrink-0"
+                        className="flex md:hidden items-center gap-1 text-[14px] font-medium text-slate-800 dark:text-neutral-200 py-1 px-1 -ml-1 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 transition-colors shrink-0"
                      >
                         <ChevronLeft size={18} />
                         <span>Settings</span>
                      </button>
-                     <h1 className="text-[13px] font-extrabold text-slate-900 dark:text-white uppercase tracking-wider truncate">
+                     <h1 className="hidden md:block text-[13px] font-extrabold text-slate-900 dark:text-white uppercase tracking-wider truncate">
                         {headerTitle}
                      </h1>
                   </div>
                   
                   <button
                       onClick={handleCloseSettings}
-                      className="group flex items-center justify-center w-8 h-8 rounded-full border-2 border-white dark:border-white/5 bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:shadow-none text-slate-450 hover:text-rose-500 dark:hover:text-rose-400 transition-all hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#FCA5A5] dark:hover:shadow-none active:scale-95 shrink-0"
+                      className="w-7 h-7 rounded-full bg-slate-100 dark:bg-white/10 flex items-center justify-center text-slate-500 hover:text-slate-800 dark:text-neutral-400 dark:hover:text-white active:scale-90 transition-transform cursor-pointer shrink-0"
                       title="Close Settings"
                    >
-                      <X size={15} className="transition-transform group-hover:rotate-90 duration-200" />
+                      <X size={15} />
                    </button>
                </div>
 
                {/* Scrollable Content Container */}
-               <div id="settings-scroll-container" className="w-full flex-1 min-h-0 overflow-y-auto scrollbar-hide scroll-smooth overscroll-contain">
+               <div id="settings-scroll-container" className="w-full flex-1 min-h-0 overflow-y-auto amazing-scrollbar scroll-smooth overscroll-contain">
 
                   {/* Scrollable Content wrapper with padding */}
-                  <div className="w-full mx-auto pt-4 sm:pt-10 px-3 sm:px-10 pb-28 sm:pb-12 space-y-6">
+                  <div className="w-full mx-auto pt-2 sm:pt-10 px-3 sm:px-10 pb-3 sm:pb-12 space-y-5">
                      <AnimatePresence mode="wait">
 
                      {/* TAB 0: ACCOUNT SETTINGS */}
@@ -1655,6 +1655,10 @@ export default function Settings() {
                               avatarUploadRef={avatarUploadRef} 
                               bannerUploadRef={bannerUploadRef} 
                               isInitialLoading={isInitialLoading}
+                              onSave={() => handleUpdateProfile()}
+                              onCancel={() => setMobileShowDetails(false)}
+                              loading={loading}
+                              setActiveTab={setActiveTab}
                            />
 
                            {/* Hidden inputs triggers */}
@@ -1681,7 +1685,7 @@ export default function Settings() {
                               }
                            }} />
 
-                           <div className="flex justify-end items-center pt-6 pb-4 border-t border-slate-200/60 dark:border-slate-800">
+                           <div className="hidden md:flex justify-end items-center pt-6 pb-4 border-t border-slate-200/60 dark:border-slate-800">
                               <button 
                                  type="button"
                                  onClick={() => handleUpdateProfile()}
