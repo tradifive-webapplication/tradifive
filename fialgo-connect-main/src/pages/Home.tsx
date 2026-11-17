@@ -980,7 +980,7 @@ export default function Home() {
         <div className="flex items-center gap-2 sm:gap-3">
             <button
                 onClick={() => setIsCreatePostModalOpen(true)}
-                className="flex items-center justify-center gap-2 px-4 sm:px-5 h-10 rounded-full font-bold text-[13px] cursor-pointer select-none transition-all duration-150 active:scale-[0.985] bg-white hover:bg-slate-50 text-slate-800 hover:text-blue-600 border border-slate-200/90 shadow-[inset_0_1px_0_rgba(255,255,255,1),0_1px_3px_rgba(0,0,0,0.06)] dark:bg-gradient-to-r dark:from-[#1e293b] dark:to-[#0f172a] dark:text-[#60a5fa] dark:hover:text-[#93c5fd] dark:border-none dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_2px_6px_rgba(0,0,0,0.25)]"
+                className="hidden sm:flex items-center justify-center gap-2 px-4 sm:px-5 h-10 rounded-full font-bold text-[13px] cursor-pointer select-none transition-all duration-150 active:scale-[0.985] bg-white hover:bg-slate-50 text-slate-800 hover:text-blue-600 border border-slate-200/90 shadow-[inset_0_1px_0_rgba(255,255,255,1),0_1px_3px_rgba(0,0,0,0.06)] dark:bg-gradient-to-r dark:from-[#1e293b] dark:to-[#0f172a] dark:text-[#60a5fa] dark:hover:text-[#93c5fd] dark:border-none dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_2px_6px_rgba(0,0,0,0.25)]"
                 title="Create New Post"
             >
                 <Plus size={16} strokeWidth={2.5} className="text-blue-600 dark:text-blue-400" /> <span className="hidden sm:inline">New Post</span>
@@ -1372,7 +1372,7 @@ export default function Home() {
                                         <div className="flex items-center justify-between gap-2 sm:gap-4 mb-1">
                                             <h2 className="text-[22px] sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight shrink-0">Feeds</h2>
 
-                                            <div className="flex items-center overflow-x-auto no-scrollbar py-0.5">
+                                            <div className="hidden md:flex items-center overflow-x-auto no-scrollbar py-0.5">
                                                 <div className="flex items-center bg-slate-100/90 dark:bg-[#1A1A1C] p-1 rounded-full shrink-0">
                                                     {[
                                                         { id: 'for_you', label: 'For You' },
@@ -1859,6 +1859,17 @@ export default function Home() {
                     </div>
                 )}
             </AnimatePresence>
+
+            {/* Mobile Floating Action Button: Create Post (Only on Home on mobile) */}
+            <button
+                type="button"
+                onClick={() => setIsCreatePostModalOpen(true)}
+                className="sm:hidden fixed right-4 bottom-20 z-40 w-12 h-12 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-xl shadow-blue-500/25 flex items-center justify-center active:scale-90 transition-transform cursor-pointer border border-white/20"
+                title="Create New Post"
+                aria-label="Create New Post"
+            >
+                <Plus size={22} strokeWidth={2.5} />
+            </button>
 
         </DashboardLayout>
         </>

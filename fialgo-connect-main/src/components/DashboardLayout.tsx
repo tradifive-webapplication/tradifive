@@ -504,18 +504,6 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
             {/* Fixed Header Inside Backside Page */}
             <header className={`h-[70px] flex items-center justify-between px-4 sm:px-8 lg:px-10 border-b border-slate-100 dark:border-white/5 shrink-0 transition-all duration-300 ${comingSoonInfo.isSoon && !isPeeking ? "filter blur-[1.5px] opacity-85 pointer-events-none select-none" : ""}`}>
               <div className="flex items-center gap-2 sm:gap-3">
-                <div className="md:hidden flex items-center pointer-events-auto">
-                  <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-                    <SheetTrigger asChild>
-                      <button className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] text-[#393939] dark:text-[#E2E8F0] font-extrabold transition-all border-2 border-white dark:border-white/5 shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),_0_0_0_2px_#E7E7E7] dark:shadow-none active:scale-95 select-none mr-2">
-                        <Menu size={16} />
-                      </button>
-                    </SheetTrigger>
-                    <SheetContent side="left" className="p-0 w-[325px] sm:w-[350px] max-w-[86vw] bg-[#f4f7fb] dark:bg-[#121214] border-r border-slate-200/80 dark:border-white/10 shadow-2xl overflow-hidden focus:outline-none">
-                      <AppSidebar isMobile={true} toggleCollapse={() => setIsMobileMenuOpen(false)} />
-                    </SheetContent>
-                  </Sheet>
-                </div>
                 {location.pathname !== '/home' && (
                   <button
                     onClick={onBack ? onBack : () => navigate(-1)}
@@ -557,17 +545,17 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
                 {/* Mobile Title (shows only on mobile when breadcrumbs/segments are hidden) */}
                 <div className="sm:hidden flex items-center text-[15px] font-semibold text-slate-900 dark:text-white capitalize">
                   {location.pathname === '/home' ? (
-                    <div onClick={() => navigate('/home')} className="flex items-center gap-2.5 cursor-pointer">
-                      <img src="/tf-logo.png" alt="Logo" className="w-[34px] h-[34px] object-contain shrink-0" />
+                    <div onClick={() => navigate('/home')} className="flex items-center gap-2 sm:gap-2.5 cursor-pointer">
+                      <img src="/tf-logo.png" alt="Logo" className="w-[24px] h-[24px] sm:w-[34px] sm:h-[34px] object-contain shrink-0" />
                       <img 
                         src="/Tradifive_logo1.png" 
                         alt="Tradifive" 
-                        className="h-[28px] w-auto object-contain dark:hidden" 
+                        className="h-[18px] sm:h-[28px] w-auto object-contain dark:hidden" 
                       />
                       <img 
                         src="/Dark mode logo with white.png" 
                         alt="Tradifive" 
-                        className="h-[28px] w-auto object-contain hidden dark:block" 
+                        className="h-[18px] sm:h-[28px] w-auto object-contain hidden dark:block" 
                       />
                     </div>
                   ) : (
@@ -580,12 +568,12 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
                 {headerActions}
                 <NotificationHub />
                 
-                {/* AI Coach Top-Right Button */}
+                {/* AI Coach Top-Right Button (hidden on mobile, floats at bottom) */}
                 <button
                   type="button"
                   onClick={() => setIsAIOpen(true)}
                   title="Open AI Coach"
-                  className="flex items-center justify-center gap-2 px-3 sm:px-4 h-9 sm:h-10 rounded-full bg-white dark:bg-[#1E1E1E] hover:bg-slate-50 dark:hover:bg-white/[0.08] border border-slate-200/80 dark:border-white/10 text-slate-800 dark:text-white font-bold text-[13px] shadow-xs cursor-pointer transition-colors"
+                  className="hidden sm:flex items-center justify-center gap-2 px-3 sm:px-4 h-9 sm:h-10 rounded-full bg-white dark:bg-[#1E1E1E] hover:bg-slate-50 dark:hover:bg-white/[0.08] border border-slate-200/80 dark:border-white/10 text-slate-800 dark:text-white font-bold text-[13px] shadow-xs cursor-pointer transition-colors"
                 >
                   <Sparkles size={15} strokeWidth={2.5} className="text-purple-500" />
                   <span>AI Coach</span>
@@ -694,7 +682,23 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
       </div>
 
       {/* Mobile Bottom Navigation Bar */}
-      {!hideBottomNav && <BottomNav />}
+      {!hideBottomNav && (
+        <>
+          {/* Mobile Floating AI Coach Button (Only on Mobile) */}
+          <button
+            type="button"
+            onClick={() => setIsAIOpen(true)}
+            className="sm:hidden fixed left-4 bottom-20 z-40 flex items-center gap-2 px-3.5 py-2.5 rounded-full bg-slate-900/95 dark:bg-[#1A1A1E]/95 backdrop-blur-md text-white font-bold text-xs shadow-2xl shadow-purple-500/20 border border-slate-700/60 dark:border-white/15 active:scale-95 transition-transform cursor-pointer"
+            title="Open AI Coach"
+            aria-label="Open AI Coach"
+          >
+            <Sparkles size={15} strokeWidth={2.5} className="text-purple-400 animate-pulse" />
+            <span>AI Coach</span>
+          </button>
+
+          <BottomNav />
+        </>
+      )}
     </div>
   );
 }

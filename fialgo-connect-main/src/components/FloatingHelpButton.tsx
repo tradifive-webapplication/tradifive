@@ -512,12 +512,12 @@ export default function FloatingHelpButton() {
       {/* Bottom Floating Action Dock (Report, Suggest, Help - matches requested layout & Picture 3) */}
       {/* ── 1. Bottom Footer Action Strip (Down below the white page, refined compact size & uniform monochrome aesthetic) ── */}
       <div
+        className="hidden md:flex"
         style={{
           position: "fixed",
           bottom: 4,
           right: 24,
           zIndex: 9988,
-          display: "flex",
           alignItems: "center",
           gap: 14,
           fontSize: 11,
