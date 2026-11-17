@@ -129,6 +129,7 @@ export default function AITrading() {
 
   // Account & Verification - clean and empty by default for all new accounts
   const [mt5Account, setMt5Account] = useState<string>("");
+  const [isEditingAccount, setIsEditingAccount] = useState<boolean>(false);
   const [ibVerified, setIbVerified] = useState(false);
   const [depositConfirmed, setDepositConfirmed] = useState(true);
   const [proofFile, setProofFile] = useState<string | null>(null);
@@ -278,6 +279,7 @@ export default function AITrading() {
   // Sync saved proof request on mount and periodic check
   useEffect(() => {
     const checkProofStatus = async () => {
+      if (isEditingAccount) return;
       let currentUser: any = null;
       try {
         const { data: { user } } = await supabase.auth.getUser();
@@ -417,7 +419,7 @@ export default function AITrading() {
     checkProofStatus();
     const interval = setInterval(checkProofStatus, 4000);
     return () => clearInterval(interval);
-  }, [mt5Account]);
+  }, [mt5Account, isEditingAccount]);
 
   const [isMt5Connected, setIsMt5Connected] = useState<boolean>(false);
   const [isCheckingConnection, setIsCheckingConnection] = useState<boolean>(false);
@@ -762,7 +764,7 @@ export default function AITrading() {
       toast.error("Please confirm your MT5 account is funded with at least $500.");
       return;
     }
-    if (!proofFile) {
+    if (!proofFile && !isEditingAccount) {
       toast.error(
         setupPath === "transfer"
           ? "Please attach a screenshot of your transfer email or broker confirmation."
@@ -938,19 +940,17 @@ export default function AITrading() {
     }
 
     setIsSubmittingProof(false);
+    setIsEditingAccount(false);
     toast.success(`Verification Request Submitted for #${cleanNum}!`, {
       description: `License key ${generatedLicKey} auto-generated & cryptographically locked to your MT5 account.`
     });
   };
 
   const handleResetVerification = () => {
-    localStorage.removeItem("tradifive_ib_proof_request");
+    setIsEditingAccount(true);
     setIbVerified(false);
     setTransferRequestStatus("none");
-    setProofFile(null);
-    setProofFileName("");
-    setProofRemarks("");
-    toast.info("Ready to submit new account details.");
+    toast.info("You can now edit your MT5 account number and resubmit.");
   };
 
   const handleCopy = (text: string, message = "Copied to clipboard!") => {
@@ -1558,6 +1558,22 @@ MagicNumber=789104
             ) : (
               /* STATE 1C: SIMPLE 3-STEP FLOW */
               <div className="space-y-4">
+                {isEditingAccount && (
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-purple-500/10 border border-purple-500/25 text-xs">
+                    <div className="flex items-center gap-2 text-purple-300 font-semibold">
+                      <Sliders size={14} />
+                      <span>Editing MT5 Account Number</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setIsEditingAccount(false)}
+                      className="text-xs text-neutral-400 hover:text-white underline cursor-pointer"
+                    >
+                      Cancel &amp; Keep Current Account
+                    </button>
+                  </div>
+                )}
+
                 {/* 2-Option Segmented Control */}
                 <div className="grid grid-cols-2 gap-2 p-1.5 bg-[#141416] border border-white/5 rounded-full text-xs font-bold">
                   <button
@@ -1816,9 +1832,9 @@ MagicNumber=789104
                     <button
                       type="button"
                       onClick={handleSubmitProof}
-                      disabled={isSubmittingProof || !proofFile || !mt5Account.trim() || !depositConfirmed}
+                      disabled={isSubmittingProof || (!proofFile && !isEditingAccount) || !mt5Account.trim() || !depositConfirmed}
                       className={`btn-fialgo-primary w-full py-3.5 ${
-                        proofFile && mt5Account.trim() && depositConfirmed
+                        (proofFile || isEditingAccount) && mt5Account.trim() && depositConfirmed
                           ? ""
                           : "opacity-40 cursor-not-allowed pointer-events-none"
                       }`}
@@ -1830,7 +1846,7 @@ MagicNumber=789104
                         </>
                       ) : (
                         <>
-                          <span>Save MT5 Account &amp; Continue to Step 2</span>
+                          <span>{isEditingAccount ? "Update MT5 Account & Continue" : "Save MT5 Account & Continue to Step 2"}</span>
                           <ArrowRight size={16} />
                         </>
                       )}
