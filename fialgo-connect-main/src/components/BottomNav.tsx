@@ -14,6 +14,7 @@ export default function BottomNav() {
   const navigate = useNavigate();
   const [isMoreOpen, setIsMoreOpen] = useState(false);
   const [aiPrompt, setAiPrompt] = useState("");
+  const [hoveredTabId, setHoveredTabId] = useState<string | null>(null);
 
   const isAutoTradeSetup =
     typeof window !== "undefined" &&
@@ -136,24 +137,34 @@ export default function BottomNav() {
       {/* ── Modern Floating Pill Bottom Navigation Dock (Matching Reference Image) ── */}
       <nav
         aria-label="Mobile Navigation"
-        className="fixed bottom-[max(0.75rem,env(safe-area-inset-bottom))] inset-x-4 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 sm:w-full sm:max-w-md z-50 md:hidden bg-white dark:bg-[#121215] border border-slate-200/90 dark:border-white/10 rounded-full shadow-[0_6px_25px_rgba(0,0,0,0.08),0_1px_4px_rgba(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.6)] p-1.5 select-none"
+        className="fixed bottom-[max(0.75rem,env(safe-area-inset-bottom))] inset-x-4 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 sm:w-full sm:max-w-md z-50 md:hidden bg-[#F8F9FA]/95 dark:bg-[#121215]/95 backdrop-blur-md border border-slate-200/90 dark:border-white/10 rounded-full shadow-[0_6px_25px_rgba(0,0,0,0.08),0_1px_4px_rgba(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.6)] p-1.5 select-none"
       >
         <div className="flex items-center justify-between gap-1 w-full">
           {tabs.map((tab) => {
             const active = tab.isActive(location.pathname);
+            const isHovered = hoveredTabId === tab.id;
+
             return (
               <button
                 key={tab.id}
                 type="button"
                 onClick={() => handleTabClick(tab)}
-                className="relative flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-full min-h-[48px] cursor-pointer select-none active:scale-95 transition-transform"
+                onMouseEnter={() => setHoveredTabId(tab.id)}
+                onMouseLeave={() => setHoveredTabId(null)}
+                className="relative flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-full min-h-[48px] cursor-pointer select-none transition-all duration-150 ease-out hover:-translate-y-[1px] active:translate-y-[0.5px] active:scale-[0.98] touch-manipulation"
               >
-                {/* Active Stadium Pill (Encloses both icon and label, adjusted height) */}
+                {/* Active Tactile Pill (rounded-full matching dock curves, white fill, inner bottom shadow, 1px ring, drop shadow) */}
                 {active && (
                   <motion.div
                     layoutId="mobile-nav-active-pill"
-                    className="absolute inset-0 rounded-full bg-slate-100/95 dark:bg-[#202024] border border-slate-200/90 dark:border-white/15 shadow-[0_1px_3px_rgba(0,0,0,0.06)] dark:shadow-none"
-                    transition={{ type: "spring", stiffness: 480, damping: 36 }}
+                    className="absolute inset-0 rounded-full dark:bg-gradient-to-b dark:from-[#201E25] dark:to-[#323137] dark:shadow-[0_2px_4px_rgba(0,0,0,0.5),0_0_0_1px_#0D0D0D,inset_0_1px_0_rgba(255,255,255,0.12)] transition-all duration-150"
+                    style={{
+                      background: isHovered ? "#F8F9FA" : "#FFFFFF",
+                      boxShadow: isHovered
+                        ? "0 3.5px 7px 0 rgba(0, 0, 0, 0.10), 0 0 0 1px rgba(0, 0, 0, 0.14), inset 0 -1.5px 2px 0 rgba(0, 0, 0, 0.06), inset 0 1px 0 0 #FFFFFF"
+                        : "0 2px 4px 0 rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.12), inset 0 -1.5px 2px 0 rgba(0, 0, 0, 0.07), inset 0 1px 0 0 #FFFFFF",
+                    }}
+                    transition={{ type: "spring", stiffness: 550, damping: 34 }}
                   />
                 )}
 
@@ -171,7 +182,7 @@ export default function BottomNav() {
                   <span
                     className={`text-[10px] sm:text-[10.5px] mt-0.5 tracking-tight leading-none font-sans ${
                       active
-                        ? "font-semibold text-slate-900 dark:text-white"
+                        ? "font-bold text-slate-900 dark:text-white"
                         : "font-normal text-slate-500 dark:text-zinc-400"
                     }`}
                   >
@@ -193,8 +204,9 @@ export default function BottomNav() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
+              transition={{ duration: 0.16, ease: "easeOut" }}
               onClick={() => setIsMoreOpen(false)}
-              className="fixed inset-0 bg-black/60 backdrop-blur-xs"
+              className="fixed inset-0 bg-black/60 will-change-opacity"
             />
 
             {/* Sheet Content */}
@@ -202,8 +214,8 @@ export default function BottomNav() {
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
-              transition={{ type: "spring", damping: 28, stiffness: 320 }}
-              className="relative z-10 w-full max-h-[86vh] bg-[#F4F5F7] dark:bg-[#121215] border-t border-slate-200/80 dark:border-white/10 rounded-t-[2rem] shadow-2xl overflow-hidden flex flex-col"
+              transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+              className="relative z-10 w-full max-h-[86vh] bg-[#F4F5F7] dark:bg-[#121215] border-t border-slate-200/80 dark:border-white/10 rounded-t-[2rem] shadow-2xl overflow-hidden flex flex-col will-change-transform transform-gpu"
             >
               {/* Sheet Drag Handle & Header */}
               <div className="pt-3 pb-2 px-5 flex items-center justify-between border-b border-slate-200/50 dark:border-white/5 shrink-0 relative bg-white/70 dark:bg-[#121215]/70 backdrop-blur-md">
@@ -219,9 +231,9 @@ export default function BottomNav() {
               </div>
 
               {/* Sheet Scrollable Body */}
-              <div className="flex-1 overflow-y-auto amazing-scrollbar p-4 space-y-3.5 pb-24">
-                {/* 1. AI Coach Card (LiquidCoach Style from Reference) */}
-                <div className="bg-[#E8EDF2] dark:bg-[#1C1E24] rounded-2xl p-4 space-y-3 border border-slate-300/40 dark:border-white/5 shadow-xs">
+              <div className="flex-1 overflow-y-auto amazing-scrollbar overscroll-contain p-4 space-y-3.5 pb-24 touch-pan-y">
+                {/* 1. AI Coach Card (LiquidCoach Style with Figma Card 2 Shadow) */}
+                <div className="bg-[#E8EDF2] dark:bg-[#1C1E24] rounded-[24px] p-4 space-y-3 figma-card-shadow">
                   <div className="flex items-center gap-2">
                     <div className="w-5 h-5 rounded-md bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center shrink-0">
                       <Sparkles size={12} strokeWidth={2.4} />
@@ -274,8 +286,8 @@ export default function BottomNav() {
                   </div>
                 </div>
 
-                {/* 2. Core TradiFive Pages (Pure TradiFive Features) */}
-                <div className="bg-white dark:bg-[#1A1A1E] rounded-2xl border border-slate-200/80 dark:border-white/10 shadow-xs divide-y divide-slate-100 dark:divide-white/5 overflow-hidden">
+                {/* 2. Core TradiFive Pages (Figma Card 2 Diffused Shadow) */}
+                <div className="bg-white dark:bg-[#1A1A1E] rounded-[24px] figma-card-shadow divide-y divide-slate-100 dark:divide-white/5 overflow-hidden">
                   {/* TradiFive AI Coach Full View */}
                   <button
                     type="button"
@@ -457,12 +469,12 @@ export default function BottomNav() {
                   </button>
                 </div>
 
-                {/* 3. SYSTEM & PREFERENCES Section (Matching Reference Picture) */}
+                {/* 3. SYSTEM & PREFERENCES Section (Figma Card 2 Diffused Shadow) */}
                 <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500 px-1 pt-1">
                   SYSTEM & PREFERENCES
                 </p>
 
-                <div className="bg-white dark:bg-[#1A1A1E] rounded-2xl border border-slate-200/80 dark:border-white/10 shadow-xs divide-y divide-slate-100 dark:divide-white/5 overflow-hidden">
+                <div className="bg-white dark:bg-[#1A1A1E] rounded-[24px] figma-card-shadow divide-y divide-slate-100 dark:divide-white/5 overflow-hidden">
                   {/* Settings */}
                   <button
                     type="button"

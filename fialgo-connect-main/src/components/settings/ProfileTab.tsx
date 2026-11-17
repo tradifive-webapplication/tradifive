@@ -14,22 +14,50 @@ import { toast } from 'sonner';
 import defaultAvatar from '@/assets/default-avatar.svg';
 
 export const TactileBoxButton = ({ children, onClick, className = "", disabled = false, style = {}, type = "button", ...props }: any) => {
+   const [isHovered, setIsHovered] = useState(false);
+   const [isPressed, setIsPressed] = useState(false);
+
+   // Resting: clean white with soft inner bottom shadow
+   const restingShadow = "0 2px 4px 0 rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.12), inset 0 -1.5px 2px 0 rgba(0, 0, 0, 0.07), inset 0 1px 0 0 #FFFFFF";
+   // Hover: slight lift with elevated depth, subtle soft bottom line, top highlight
+   const hoverShadow = "0 3.5px 7px 0 rgba(0, 0, 0, 0.10), 0 0 0 1px rgba(0, 0, 0, 0.14), inset 0 -1.5px 2px 0 rgba(0, 0, 0, 0.06), inset 0 1px 0 0 #FFFFFF";
+   // Pressed / Active: tactile pressed cushion
+   const pressedShadow = "0 1px 2px 0 rgba(0, 0, 0, 0.10), 0 0 0 1px rgba(0, 0, 0, 0.20), inset 0 2px 4px 0 rgba(0, 0, 0, 0.12)";
+
+   // Subtle hover background change (very soft off-white #F8F9FA instead of dark grey)
+   const currentBackground = isPressed
+      ? "#EDEDF0"
+      : isHovered
+      ? "#F8F9FA"
+      : "#FFFFFF";
+
+   const currentShadow = isPressed
+      ? pressedShadow
+      : isHovered
+      ? hoverShadow
+      : restingShadow;
+
    return (
       <button
          type={type}
          disabled={disabled}
          onClick={onClick}
+         onMouseEnter={() => setIsHovered(true)}
+         onMouseLeave={() => { setIsHovered(false); setIsPressed(false); }}
+         onMouseDown={() => setIsPressed(true)}
+         onMouseUp={() => setIsPressed(false)}
+         onTouchStart={() => setIsPressed(true)}
+         onTouchEnd={() => setIsPressed(false)}
          style={{
-            background: "rgba(227, 227, 227, 0.8)",
-            boxShadow: "0 2px 4px 0 rgba(0, 0, 0, 0.10), 0 0 0 1px rgba(0, 0, 0, 0.16), inset 0 1px 0 0 #FDFDFD",
+            background: currentBackground,
+            boxShadow: currentShadow,
             ...style
          }}
          className={cn(
             "h-9 px-4 rounded-[11px] text-slate-900 dark:text-white font-bold text-[13px]",
             "dark:bg-gradient-to-b dark:from-[#201E25] dark:to-[#323137]",
             "dark:shadow-[0_2px_4px_rgba(0,0,0,0.5),0_0_0_1px_#0D0D0D,inset_0_1px_0_rgba(255,255,255,0.12)]",
-            "hover:brightness-[0.98] active:brightness-[0.95] active:translate-y-[0.5px] active:scale-[0.98]",
-            "active:shadow-[0_1px_2px_rgba(0,0,0,0.10),0_0_0_1px_rgba(0,0,0,0.20),inset_0_2px_4px_rgba(0,0,0,0.12)]",
+            "hover:-translate-y-[1.5px] active:translate-y-[0.5px] active:scale-[0.98]",
             "inline-flex items-center justify-center gap-1.5 transition-all duration-150 ease-out cursor-pointer select-none disabled:opacity-50 disabled:cursor-not-allowed",
             className
          )}
@@ -41,18 +69,24 @@ export const TactileBoxButton = ({ children, onClick, className = "", disabled =
 };
 
 export const TactileSegmentButton = ({ active, children, onClick, className = "" }: any) => {
+   const [isHovered, setIsHovered] = useState(false);
+
    return (
       <button
          type="button"
          onClick={onClick}
+         onMouseEnter={() => setIsHovered(true)}
+         onMouseLeave={() => setIsHovered(false)}
          style={active ? { 
-            background: "rgba(227, 227, 227, 0.8)",
-            boxShadow: "0 2px 4px 0 rgba(0, 0, 0, 0.10), 0 0 0 1px rgba(0, 0, 0, 0.16), inset 0 1px 0 0 #FDFDFD" 
+            background: isHovered ? "#F8F9FA" : "#FFFFFF",
+            boxShadow: isHovered 
+               ? "0 3.5px 7px 0 rgba(0, 0, 0, 0.10), 0 0 0 1px rgba(0, 0, 0, 0.14), inset 0 -1.5px 2px 0 rgba(0, 0, 0, 0.06), inset 0 1px 0 0 #FFFFFF" 
+               : "0 2px 4px 0 rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.12), inset 0 -1.5px 2px 0 rgba(0, 0, 0, 0.07), inset 0 1px 0 0 #FFFFFF" 
          } : {}}
          className={cn(
             "transition-all duration-150 cursor-pointer select-none font-bold text-[13px]",
             active
-               ? "rounded-[11px] text-slate-900 dark:text-white dark:shadow-[0_2px_4px_rgba(0,0,0,0.5),0_0_0_1px_#0D0D0D] dark:bg-gradient-to-b dark:from-[#201E25] dark:to-[#323137]"
+               ? "rounded-[11px] text-slate-900 dark:text-white hover:-translate-y-[1px] dark:shadow-[0_2px_4px_rgba(0,0,0,0.5),0_0_0_1px_#0D0D0D] dark:bg-gradient-to-b dark:from-[#201E25] dark:to-[#323137]"
                : "text-slate-500 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white bg-transparent border border-transparent",
             className
          )}

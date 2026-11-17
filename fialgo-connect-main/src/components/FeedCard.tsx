@@ -409,7 +409,7 @@ function FeedCard({
     const hasVotedOrOwns = votedOption !== null || feed.user_id === currentUserId;
 
     return (
-        <div className="p-4 sm:p-5 md:p-6 rounded-[24px] sm:rounded-[32px] bg-white dark:bg-[#1C1C1E] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100/50 dark:border-white/5 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300">
+        <div className="p-4 sm:p-5 md:p-6 rounded-[24px] sm:rounded-[32px] bg-white dark:bg-[#1C1C1E] figma-card-shadow-hover border-0 transition-all duration-300">
             {/* Header */}
             <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3 text-left">

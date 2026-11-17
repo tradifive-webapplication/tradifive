@@ -6,7 +6,7 @@ import DashboardLayout from '@/components/DashboardLayout';
 import logoOnly from '@/assets/Logo_only.png';
 import defaultAvatar from '@/assets/default-avatar.svg';
 import AccountTab from '@/components/settings/AccountTab';
-import ProfileTab from '@/components/settings/ProfileTab';
+import ProfileTab, { TactileBoxButton } from '@/components/settings/ProfileTab';
 import HelpTab from '@/components/settings/HelpTab';
 import ReportTab from '@/components/settings/ReportTab';
 import CreatorTab from '@/components/settings/CreatorTab';
@@ -1111,23 +1111,18 @@ export default function Settings() {
                                @{profile.username || "nikhilharake"}
                             </p>
                          </div>
-                         <button
-                            type="button"
+                         <TactileBoxButton
                             onClick={() => {
                                triggerHaptic("selection");
                                setActiveTab("profile");
                                setMobileShowDetails(true);
                             }}
-                            style={{
-                               background: "rgba(227, 227, 227, 0.8)",
-                               boxShadow: "0 2px 4px 0 rgba(0, 0, 0, 0.10), 0 0 0 1px rgba(0, 0, 0, 0.16), inset 0 1px 0 0 #FDFDFD",
-                            }}
-                            className="h-9 px-4 rounded-[11px] text-slate-900 dark:text-white dark:bg-gradient-to-b dark:from-[#201E25] dark:to-[#323137] dark:shadow-[0_2px_4px_rgba(0,0,0,0.5),0_0_0_1px_#0D0D0D,inset_0_1px_0_rgba(255,255,255,0.12)] hover:brightness-[0.98] active:brightness-[0.95] active:translate-y-[0.5px] active:scale-[0.98] active:shadow-[0_1px_2px_rgba(0,0,0,0.10),0_0_0_1px_rgba(0,0,0,0.20),inset_0_2px_4px_rgba(0,0,0,0.12)] inline-flex items-center justify-center gap-1.5 transition-all duration-150 ease-out shrink-0 cursor-pointer select-none font-bold text-[13px]"
+                            className="h-9 px-4 shrink-0"
                             title="Edit profile"
                          >
                             <Pencil size={13.5} strokeWidth={2.4} className="text-slate-900 dark:text-white shrink-0" />
                             <span className="text-[13.5px] font-bold text-slate-900 dark:text-white leading-none tracking-tight">Edit</span>
-                         </button>
+                         </TactileBoxButton>
                       </div>
                    </div>
 
