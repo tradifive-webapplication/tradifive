@@ -45,7 +45,7 @@ import { calculateTradingMetrics } from "@/utils/tradeMetrics";
 import { FollowListModal } from "@/components/FollowListModal";
 import { validateUsername } from "@/utils/usernameValidation";
 import ShareProfileModal from "@/components/ShareProfileModal";
-import { ProfileSocialIcons, DefaultCoverWaves } from "@/components/ProfileSocialIcons";
+import { ProfileSocialIcons } from "@/components/ProfileSocialIcons";
 
 // Placeholder display names to filter out from suggestions
 const WrappedTrophy = (props: any) => {
@@ -1028,7 +1028,7 @@ export default function Profile() {
                   ) : (
                     <div className="w-full h-full relative">
                       {(!profile?.banner_url) ? (
-                        <DefaultCoverWaves />
+                        <div className="w-full h-full bg-gradient-to-r from-slate-800 to-slate-900 relative" />
                       ) : (
                         <img
                           src={profile.banner_url}
@@ -1037,8 +1037,21 @@ export default function Profile() {
                           onError={(e) => { (e.target as HTMLImageElement).src = "/default-cover.png"; }}
                         />
                       )}
-                      {/* Smooth Bottom Shade Fade into Card Background (Matching Reference Pic 2) */}
-                      <div className="absolute inset-x-0 bottom-0 h-20 sm:h-24 bg-gradient-to-t from-white via-white/70 to-transparent dark:from-[#1A1A1E] dark:via-[#1A1A1E]/70 dark:to-transparent pointer-events-none z-10" />
+                      {/* Ultra-Smooth Multi-Stop Eased Bottom Fade into Card Background */}
+                      <div
+                        className="absolute inset-x-0 bottom-0 h-16 sm:h-20 pointer-events-none z-10 dark:hidden"
+                        style={{
+                          background:
+                            "linear-gradient(to top, rgba(255,255,255,1) 0%, rgba(255,255,255,0.85) 18%, rgba(255,255,255,0.56) 38%, rgba(255,255,255,0.28) 58%, rgba(255,255,255,0.10) 76%, rgba(255,255,255,0.02) 90%, rgba(255,255,255,0) 100%)",
+                        }}
+                      />
+                      <div
+                        className="absolute inset-x-0 bottom-0 h-16 sm:h-20 pointer-events-none z-10 hidden dark:block"
+                        style={{
+                          background:
+                            "linear-gradient(to top, rgba(26,26,30,1) 0%, rgba(26,26,30,0.85) 18%, rgba(26,26,30,0.56) 38%, rgba(26,26,30,0.28) 58%, rgba(26,26,30,0.10) 76%, rgba(26,26,30,0.02) 90%, rgba(26,26,30,0) 100%)",
+                        }}
+                      />
                     </div>
                   )}
                 </div>
