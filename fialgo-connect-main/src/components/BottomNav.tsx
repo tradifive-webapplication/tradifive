@@ -1,47 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { triggerHaptic } from "@/utils/haptics";
 import { 
-  Home, Activity, LayoutGrid, User, MoreHorizontal, BookOpen, BarChart3, Users,
-  Sparkles, ArrowUp, X, ChevronRight, Building2, ShieldCheck, 
-  Cpu, ReceiptText, Trophy, ShoppingBag, Gift, Layers, FileText, Settings, 
-  HelpCircle
+  Home, Activity, LayoutGrid, MoreHorizontal, BookOpen,
+  Sparkles, ArrowUp, X, ChevronRight, ShieldCheck, 
+  Cpu, Gift, Settings, HelpCircle, Compass, Calendar, Bookmark,
+  MessageSquare, Mail
 } from "lucide-react";
-
-const renderDynamicIcon = (iconName: string, active: boolean) => {
-  const props = { size: 20, strokeWidth: active ? 2.2 : 1.8 };
-  switch (iconName) {
-    case "Activity":
-      return <Activity {...props} />;
-    case "LayoutGrid":
-      return <LayoutGrid {...props} />;
-    case "Building2":
-      return <Building2 {...props} />;
-    case "Cpu":
-      return <Cpu {...props} />;
-    case "ReceiptText":
-      return <ReceiptText {...props} />;
-    case "Trophy":
-      return <Trophy {...props} />;
-    case "ShoppingBag":
-      return <ShoppingBag {...props} />;
-    case "Gift":
-      return <Gift {...props} />;
-    case "Layers":
-      return <Layers {...props} />;
-    case "FileText":
-      return <FileText {...props} />;
-    case "Settings":
-      return <Settings {...props} />;
-    case "HelpCircle":
-      return <HelpCircle {...props} />;
-    case "User":
-      return <User {...props} />;
-    default:
-      return <Activity {...props} />;
-  }
-};
 
 export default function BottomNav() {
   const location = useLocation();
@@ -55,73 +21,6 @@ export default function BottomNav() {
   const autoTradePath = isAutoTradeSetup
     ? "/auto-trade/dashboard"
     : "/auto-trade/setup";
-
-  const DEFAULT_DYNAMIC_TAB = {
-    id: "autotrade",
-    label: "AutoTrade",
-    path: autoTradePath,
-    iconName: "Activity",
-  };
-
-  // Tab 4 defaults to AutoTrade, and dynamically switches to whichever item the user chooses in the menu
-  const [dynamicTab, setDynamicTab] = useState<{
-    id: string;
-    label: string;
-    path: string;
-    iconName: string;
-  }>(() => {
-    try {
-      const saved = localStorage.getItem("tradifive_dynamic_bottom_tab");
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed?.id && parsed?.label && parsed?.path && parsed?.iconName) {
-          return parsed;
-        }
-      }
-    } catch (e) {}
-    return DEFAULT_DYNAMIC_TAB;
-  });
-
-  // Watch route changes: If user lands on a menu page, dynamically switch Tab 4 to match it
-  useEffect(() => {
-    const p = location.pathname;
-    // Dedicated tabs: Home (tab 1), Journal (tab 2), RiskGuard (tab 3)
-    if (p === "/" || p.startsWith("/home") || p.startsWith("/journal") || p.startsWith("/risk-guard")) {
-      return;
-    }
-
-    let nextTab: typeof DEFAULT_DYNAMIC_TAB | null = null;
-    if (p.startsWith("/auto-trade")) {
-      nextTab = { id: "autotrade", label: "AutoTrade", path: autoTradePath, iconName: "Activity" };
-    } else if (p.startsWith("/dashboard")) {
-      nextTab = { id: "dashboard", label: "Dashboard", path: "/dashboard", iconName: "LayoutGrid" };
-    } else if (p.startsWith("/strategy-builder")) {
-      nextTab = { id: "strategy", label: "Strategy", path: "/strategy-builder", iconName: "Cpu" };
-    } else if (p.startsWith("/weekly-settlements") || p.startsWith("/settlements")) {
-      nextTab = { id: "settlements", label: "Settlements", path: "/weekly-settlements", iconName: "ReceiptText" };
-    } else if (p.startsWith("/competitions")) {
-      nextTab = { id: "competitions", label: "Contests", path: "/competitions", iconName: "Trophy" };
-    } else if (p.startsWith("/store")) {
-      nextTab = { id: "store", label: "Store", path: "/store", iconName: "ShoppingBag" };
-    } else if (p.startsWith("/referrals") || p.startsWith("/rewards")) {
-      nextTab = { id: "referrals", label: "Rewards", path: "/referrals", iconName: "Gift" };
-    } else if (p.startsWith("/settings")) {
-      nextTab = { id: "settings", label: "Settings", path: "/settings", iconName: "Settings" };
-    } else if (p.startsWith("/support")) {
-      nextTab = { id: "support", label: "Support", path: "/support", iconName: "HelpCircle" };
-    } else if (p.startsWith("/profile")) {
-      nextTab = { id: "profile", label: "Profile", path: "/profile", iconName: "User" };
-    } else if (p.startsWith("/broker-connect")) {
-      nextTab = { id: "brokers", label: "Brokers", path: "/broker-connect", iconName: "Building2" };
-    }
-
-    if (nextTab && nextTab.id !== dynamicTab.id) {
-      setDynamicTab(nextTab);
-      try {
-        localStorage.setItem("tradifive_dynamic_bottom_tab", JSON.stringify(nextTab));
-      } catch (e) {}
-    }
-  }, [location.pathname, autoTradePath, dynamicTab.id]);
 
   const tabs = [
     {
@@ -218,22 +117,6 @@ export default function BottomNav() {
     handleAskAI(q);
   };
 
-  // Dynamic menu item selection: sets the 4th tab to this item and navigates to it
-  const handleSelectMenuItem = (item: {
-    id: string;
-    label: string;
-    path: string;
-    iconName: string;
-  }) => {
-    triggerHaptic("selection");
-    setDynamicTab(item);
-    try {
-      localStorage.setItem("tradifive_dynamic_bottom_tab", JSON.stringify(item));
-    } catch (e) {}
-    setIsMoreOpen(false);
-    navigate(item.path);
-  };
-
   const handleNavigate = (path: string) => {
     triggerHaptic("selection");
     setIsMoreOpen(false);
@@ -312,34 +195,39 @@ export default function BottomNav() {
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 28, stiffness: 320 }}
-              className="relative z-10 w-full max-h-[86vh] bg-[#f8fafc] dark:bg-[#121215] border-t border-slate-200/80 dark:border-white/10 rounded-t-[2rem] shadow-2xl overflow-hidden flex flex-col"
+              className="relative z-10 w-full max-h-[86vh] bg-[#F4F5F7] dark:bg-[#121215] border-t border-slate-200/80 dark:border-white/10 rounded-t-[2rem] shadow-2xl overflow-hidden flex flex-col"
             >
               {/* Sheet Drag Handle & Header */}
-              <div className="pt-3 pb-2 px-5 flex items-center justify-between border-b border-slate-200/50 dark:border-white/5 shrink-0 relative">
+              <div className="pt-3 pb-2 px-5 flex items-center justify-between border-b border-slate-200/50 dark:border-white/5 shrink-0 relative bg-white/70 dark:bg-[#121215]/70 backdrop-blur-md">
                 <div className="w-10 h-1 rounded-full bg-slate-300 dark:bg-white/20 absolute left-1/2 -translate-x-1/2 top-2.5" />
-                <h2 className="text-base font-extrabold text-slate-900 dark:text-white mt-1">More</h2>
+                <h2 className="text-base font-bold text-slate-900 dark:text-white mt-1">More</h2>
                 <button
                   onClick={() => setIsMoreOpen(false)}
-                  className="w-7 h-7 rounded-full bg-slate-200/70 dark:bg-white/10 flex items-center justify-center text-slate-500 hover:text-slate-800 dark:text-neutral-400 dark:hover:text-white mt-1 active:scale-90 transition-transform cursor-pointer"
+                  className="w-7 h-7 rounded-full bg-slate-200/60 dark:bg-white/10 flex items-center justify-center text-slate-500 hover:text-slate-800 dark:text-neutral-400 dark:hover:text-white mt-1 active:scale-90 transition-transform cursor-pointer"
+                  aria-label="Close menu"
                 >
                   <X size={15} />
                 </button>
               </div>
 
               {/* Sheet Scrollable Body */}
-              <div className="flex-1 overflow-y-auto amazing-scrollbar p-4 space-y-4 pb-24">
-                {/* 1. AI Coach Card (LiquidCoach Style from Reference Image 2) */}
-                <div className="bg-white dark:bg-[#1A1A1E] rounded-2xl p-4 border border-slate-200/70 dark:border-white/10 shadow-xs space-y-3">
+              <div className="flex-1 overflow-y-auto amazing-scrollbar p-4 space-y-3.5 pb-24">
+                {/* 1. AI Coach Card (LiquidCoach Style from Reference) */}
+                <div className="bg-[#E8EDF2] dark:bg-[#1C1E24] rounded-2xl p-4 space-y-3 border border-slate-300/40 dark:border-white/5 shadow-xs">
                   <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-500">
-                      <Sparkles size={14} />
+                    <div className="w-5 h-5 rounded-md bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center shrink-0">
+                      <Sparkles size={12} strokeWidth={2.4} />
                     </div>
-                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300">TradiFive AI Coach</span>
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200">TradiFive AI</span>
                   </div>
 
                   <div>
-                    <h3 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight">Ask about your week</h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">TradiFive AI Coach analyzes your trading psychology</p>
+                    <h3 className="text-[18px] font-bold text-slate-900 dark:text-white tracking-tight leading-snug">
+                      Ask about your week
+                    </h3>
+                    <p className="text-[11.5px] text-slate-500 dark:text-slate-400 mt-0.5 font-normal">
+                      TradiFive AI comes with your plan
+                    </p>
                   </div>
 
                   <form onSubmit={handleSubmitAIPrompt} className="relative flex items-center">
@@ -348,14 +236,15 @@ export default function BottomNav() {
                       value={aiPrompt}
                       onChange={(e) => setAiPrompt(e.target.value)}
                       placeholder="Ask anything"
-                      className="w-full bg-slate-100/80 dark:bg-[#252529] rounded-xl pl-3.5 pr-10 py-2.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-neutral-500 border border-slate-200/50 dark:border-white/5 focus:outline-none focus:border-blue-500 transition-colors"
+                      className="w-full bg-[#DDE2EA] dark:bg-[#282A32] rounded-xl pl-3.5 pr-11 py-2.5 text-xs text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-neutral-400 border border-transparent focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors"
                     />
                     <button
                       type="submit"
                       disabled={!aiPrompt.trim()}
-                      className="absolute right-1.5 w-7 h-7 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-all shadow-xs cursor-pointer"
+                      className="absolute right-1.5 w-7 h-7 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-all shadow-xs cursor-pointer"
+                      aria-label="Send prompt"
                     >
-                      <ArrowUp size={14} strokeWidth={2.5} />
+                      <ArrowUp size={13} strokeWidth={2.6} />
                     </button>
                   </form>
 
@@ -369,7 +258,7 @@ export default function BottomNav() {
                         key={chip}
                         type="button"
                         onClick={() => handleAskAI(chip)}
-                        className="shrink-0 text-[11px] font-semibold px-3 py-1.5 rounded-full bg-slate-100 dark:bg-[#252529] hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-neutral-300 border border-slate-200/60 dark:border-white/5 active:scale-95 transition-all cursor-pointer"
+                        className="shrink-0 text-[11px] font-medium px-3.5 py-1.5 rounded-full bg-[#DCE1E9] dark:bg-[#2A2C35] hover:bg-slate-300/80 dark:hover:bg-white/10 text-slate-700 dark:text-neutral-200 border-0 active:scale-95 transition-all cursor-pointer"
                       >
                         {chip}
                       </button>
@@ -377,270 +266,232 @@ export default function BottomNav() {
                   </div>
                 </div>
 
-                {/* 2. Core Trading List (Group 1) */}
-                <div className="bg-white dark:bg-[#1A1A1E] rounded-2xl border border-slate-200/70 dark:border-white/10 shadow-xs divide-y divide-slate-100 dark:divide-white/5 overflow-hidden">
-                  {/* AutoTrade (Algo & Robots) */}
-                  <button
-                    type="button"
-                    onClick={() => handleSelectMenuItem({ id: "autotrade", label: "AutoTrade", path: autoTradePath, iconName: "Activity" })}
-                    className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-colors cursor-pointer text-left"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center shrink-0">
-                        <Activity size={16} />
-                      </div>
-                      <div>
-                        <span className="text-xs font-bold text-slate-900 dark:text-white block">AutoTrade</span>
-                        <span className="text-[10px] text-slate-400 dark:text-neutral-400">Automated trading & bots</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1 text-slate-400 dark:text-neutral-500 text-xs font-medium">
-                      <span>Launch</span>
-                      <ChevronRight size={14} />
-                    </div>
-                  </button>
-
+                {/* 2. Core TradiFive Pages (Pure TradiFive Features) */}
+                <div className="bg-white dark:bg-[#1A1A1E] rounded-2xl border border-slate-200/80 dark:border-white/10 shadow-xs divide-y divide-slate-100 dark:divide-white/5 overflow-hidden">
+                  {/* TradiFive AI Coach Full View */}
                   <button
                     type="button"
                     onClick={() => handleAskAI("")}
-                    className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-colors cursor-pointer text-left"
+                    className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center shrink-0">
-                        <Sparkles size={16} />
+                      <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.08] text-slate-700 dark:text-neutral-300 flex items-center justify-center shrink-0">
+                        <Sparkles size={18} />
                       </div>
-                      <span className="text-xs font-bold text-slate-900 dark:text-white">AI Coach</span>
+                      <span className="text-[13.5px] font-semibold text-slate-900 dark:text-white">
+                        TradiFive AI Coach
+                      </span>
                     </div>
-                    <div className="flex items-center gap-1 text-slate-400 dark:text-neutral-500 text-xs font-medium">
+                    <div className="flex items-center gap-1.5 text-slate-400 dark:text-neutral-500 text-[12.5px] font-normal">
                       <span>Full view</span>
-                      <ChevronRight size={14} />
+                      <ChevronRight size={14} className="text-slate-300 dark:text-neutral-600" />
                     </div>
                   </button>
 
+                  {/* AutoTrade */}
                   <button
                     type="button"
-                    onClick={() => handleSelectMenuItem({ id: "brokers", label: "Brokers", path: "/broker-connect", iconName: "Building2" })}
-                    className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-colors cursor-pointer text-left"
+                    onClick={() => handleNavigate(autoTradePath)}
+                    className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0">
-                        <Building2 size={16} />
+                      <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.08] text-slate-700 dark:text-neutral-300 flex items-center justify-center shrink-0">
+                        <Activity size={18} />
                       </div>
-                      <span className="text-xs font-bold text-slate-900 dark:text-white">Prop firms & Brokers</span>
+                      <span className="text-[13.5px] font-semibold text-slate-900 dark:text-white">
+                        AutoTrade
+                      </span>
                     </div>
-                    <div className="flex items-center gap-1 text-slate-400 dark:text-neutral-500 text-xs font-medium">
-                      <span>Add an account</span>
-                      <ChevronRight size={14} />
+                    <div className="flex items-center gap-1.5 text-slate-400 dark:text-neutral-500 text-[12.5px] font-normal">
+                      <span>Algo & bots</span>
+                      <ChevronRight size={14} className="text-slate-300 dark:text-neutral-600" />
                     </div>
                   </button>
 
+                  {/* Strategy Builder */}
                   <button
                     type="button"
-                    onClick={() => { setIsMoreOpen(false); navigate("/journal"); }}
-                    className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-colors cursor-pointer text-left"
+                    onClick={() => handleNavigate("/strategy-builder")}
+                    className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center shrink-0">
-                        <BookOpen size={16} />
+                      <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.08] text-slate-700 dark:text-neutral-300 flex items-center justify-center shrink-0">
+                        <Cpu size={18} />
                       </div>
-                      <span className="text-xs font-bold text-slate-900 dark:text-white">Study & Journal</span>
+                      <span className="text-[13.5px] font-semibold text-slate-900 dark:text-white">
+                        Strategy Builder
+                      </span>
                     </div>
-                    <div className="flex items-center gap-1 text-slate-400 dark:text-neutral-500 text-xs font-medium">
-                      <span>Log a trade</span>
-                      <ChevronRight size={14} />
-                    </div>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleSelectMenuItem({ id: "strategy", label: "Strategy", path: "/strategy-builder", iconName: "Cpu" })}
-                    className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-colors cursor-pointer text-left"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center shrink-0">
-                        <Cpu size={16} />
-                      </div>
-                      <span className="text-xs font-bold text-slate-900 dark:text-white">Strategy Builder</span>
-                    </div>
-                    <div className="flex items-center gap-1 text-slate-400 dark:text-neutral-500 text-xs font-medium">
+                    <div className="flex items-center gap-1.5 text-slate-400 dark:text-neutral-500 text-[12.5px] font-normal">
                       <span>Add a setup</span>
-                      <ChevronRight size={14} />
+                      <ChevronRight size={14} className="text-slate-300 dark:text-neutral-600" />
                     </div>
                   </button>
 
+                  {/* Discover Hub */}
                   <button
                     type="button"
-                    onClick={() => { setIsMoreOpen(false); navigate("/risk-guard"); }}
-                    className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-colors cursor-pointer text-left"
+                    onClick={() => handleNavigate("/discover")}
+                    className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0">
-                        <ShieldCheck size={16} />
+                      <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.08] text-slate-700 dark:text-neutral-300 flex items-center justify-center shrink-0">
+                        <Compass size={18} />
                       </div>
-                      <span className="text-xs font-bold text-slate-900 dark:text-white">RiskGuard</span>
+                      <span className="text-[13.5px] font-semibold text-slate-900 dark:text-white">
+                        Discover
+                      </span>
                     </div>
-                    <div className="flex items-center gap-1 text-slate-400 dark:text-neutral-500 text-xs font-medium">
-                      <span>Discipline shield</span>
-                      <ChevronRight size={14} />
+                    <div className="flex items-center gap-1.5 text-slate-400 dark:text-neutral-500 text-[12.5px] font-normal">
+                      <span>Top strategies</span>
+                      <ChevronRight size={14} className="text-slate-300 dark:text-neutral-600" />
                     </div>
                   </button>
 
+                  {/* Economic Calendar */}
                   <button
                     type="button"
-                    onClick={() => handleSelectMenuItem({ id: "settlements", label: "Settlements", path: "/weekly-settlements", iconName: "ReceiptText" })}
-                    className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-colors cursor-pointer text-left"
+                    onClick={() => handleNavigate("/home?tab=calendar")}
+                    className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-xl bg-teal-500/10 text-teal-500 flex items-center justify-center shrink-0">
-                        <ReceiptText size={16} />
+                      <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.08] text-slate-700 dark:text-neutral-300 flex items-center justify-center shrink-0">
+                        <Calendar size={18} />
                       </div>
-                      <span className="text-xs font-bold text-slate-900 dark:text-white">Profit Settlements</span>
+                      <span className="text-[13.5px] font-semibold text-slate-900 dark:text-white">
+                        Economic Calendar
+                      </span>
                     </div>
-                    <div className="flex items-center gap-1 text-slate-400 dark:text-neutral-500 text-xs font-medium">
-                      <span>Settlements hub</span>
-                      <ChevronRight size={14} />
+                    <div className="flex items-center gap-1.5 text-slate-400 dark:text-neutral-500 text-[12.5px] font-normal">
+                      <span>Market events</span>
+                      <ChevronRight size={14} className="text-slate-300 dark:text-neutral-600" />
                     </div>
                   </button>
 
+                  {/* Saved Posts */}
                   <button
                     type="button"
-                    onClick={() => handleSelectMenuItem({ id: "competitions", label: "Contests", path: "/competitions", iconName: "Trophy" })}
-                    className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-colors cursor-pointer text-left"
+                    onClick={() => handleNavigate("/home?tab=saved")}
+                    className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-xl bg-yellow-500/10 text-yellow-500 flex items-center justify-center shrink-0">
-                        <Trophy size={16} />
+                      <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.08] text-slate-700 dark:text-neutral-300 flex items-center justify-center shrink-0">
+                        <Bookmark size={18} />
                       </div>
-                      <span className="text-xs font-bold text-slate-900 dark:text-white">Showcase & Competitions</span>
+                      <span className="text-[13.5px] font-semibold text-slate-900 dark:text-white">
+                        Saved Posts
+                      </span>
                     </div>
-                    <div className="flex items-center gap-1 text-slate-400 dark:text-neutral-500 text-xs font-medium">
-                      <span>Leaderboard</span>
-                      <ChevronRight size={14} />
+                    <div className="flex items-center gap-1.5 text-slate-400 dark:text-neutral-500 text-[12.5px] font-normal">
+                      <span>Pinned feeds</span>
+                      <ChevronRight size={14} className="text-slate-300 dark:text-neutral-600" />
                     </div>
                   </button>
 
+                  {/* Channels & Chat */}
                   <button
                     type="button"
-                    onClick={() => handleSelectMenuItem({ id: "store", label: "Store", path: "/store", iconName: "ShoppingBag" })}
-                    className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-colors cursor-pointer text-left"
+                    onClick={() => handleNavigate("/channel")}
+                    className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-xl bg-rose-500/10 text-rose-500 flex items-center justify-center shrink-0">
-                        <ShoppingBag size={16} />
+                      <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.08] text-slate-700 dark:text-neutral-300 flex items-center justify-center shrink-0">
+                        <MessageSquare size={18} />
                       </div>
-                      <span className="text-xs font-bold text-slate-900 dark:text-white">Creator Store</span>
+                      <span className="text-[13.5px] font-semibold text-slate-900 dark:text-white">
+                        Channels
+                      </span>
                     </div>
-                    <div className="flex items-center gap-1 text-slate-400 dark:text-neutral-500 text-xs font-medium">
-                      <span>Tools & bots</span>
-                      <ChevronRight size={14} />
+                    <div className="flex items-center gap-1.5 text-slate-400 dark:text-neutral-500 text-[12.5px] font-normal">
+                      <span>Chat rooms</span>
+                      <ChevronRight size={14} className="text-slate-300 dark:text-neutral-600" />
                     </div>
                   </button>
 
+                  {/* Direct Messages */}
                   <button
                     type="button"
-                    onClick={() => handleSelectMenuItem({ id: "referrals", label: "Rewards", path: "/referrals", iconName: "Gift" })}
-                    className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-colors cursor-pointer text-left"
+                    onClick={() => handleNavigate("/inbox")}
+                    className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-xl bg-pink-500/10 text-pink-500 flex items-center justify-center shrink-0">
-                        <Gift size={16} />
+                      <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.08] text-slate-700 dark:text-neutral-300 flex items-center justify-center shrink-0">
+                        <Mail size={18} />
                       </div>
-                      <span className="text-xs font-bold text-slate-900 dark:text-white">Gift a plan</span>
+                      <span className="text-[13.5px] font-semibold text-slate-900 dark:text-white">
+                        Inbox
+                      </span>
                     </div>
-                    <div className="flex items-center gap-1 text-slate-400 dark:text-neutral-500 text-xs font-medium">
+                    <div className="flex items-center gap-1.5 text-slate-400 dark:text-neutral-500 text-[12.5px] font-normal">
+                      <span>Direct messages</span>
+                      <ChevronRight size={14} className="text-slate-300 dark:text-neutral-600" />
+                    </div>
+                  </button>
+
+                  {/* Refer & Earn */}
+                  <button
+                    type="button"
+                    onClick={() => handleNavigate("/referrals")}
+                    className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.08] text-slate-700 dark:text-neutral-300 flex items-center justify-center shrink-0">
+                        <Gift size={18} />
+                      </div>
+                      <span className="text-[13.5px] font-semibold text-slate-900 dark:text-white">
+                        Refer & Earn
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-slate-400 dark:text-neutral-500 text-[12.5px] font-normal">
                       <span>Rewards</span>
-                      <ChevronRight size={14} />
+                      <ChevronRight size={14} className="text-slate-300 dark:text-neutral-600" />
                     </div>
                   </button>
                 </div>
 
-                {/* 3. TODAY Section (Matching Reference Image 2) */}
-                <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 dark:text-neutral-500 px-1 pt-1">
-                  TODAY
+                {/* 3. SYSTEM & PREFERENCES Section (Matching Reference Picture) */}
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500 px-1 pt-1">
+                  SYSTEM & PREFERENCES
                 </p>
 
-                <div className="bg-white dark:bg-[#1A1A1E] rounded-2xl border border-slate-200/70 dark:border-white/10 shadow-xs divide-y divide-slate-100 dark:divide-white/5 overflow-hidden">
+                <div className="bg-white dark:bg-[#1A1A1E] rounded-2xl border border-slate-200/80 dark:border-white/10 shadow-xs divide-y divide-slate-100 dark:divide-white/5 overflow-hidden">
+                  {/* Settings */}
                   <button
                     type="button"
-                    onClick={() => handleSelectMenuItem({ id: "dashboard", label: "Dashboard", path: "/dashboard", iconName: "LayoutGrid" })}
-                    className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-colors cursor-pointer text-left"
+                    onClick={() => handleNavigate("/settings")}
+                    className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-neutral-300 flex items-center justify-center shrink-0">
-                        <Layers size={16} />
+                      <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.08] text-slate-700 dark:text-neutral-300 flex items-center justify-center shrink-0">
+                        <Settings size={18} />
                       </div>
-                      <span className="text-xs font-bold text-slate-900 dark:text-white">Desk</span>
+                      <span className="text-[13.5px] font-semibold text-slate-900 dark:text-white">
+                        Settings
+                      </span>
                     </div>
-                    <div className="flex items-center gap-1 text-slate-400 dark:text-neutral-500 text-xs font-medium">
-                      <span>Terminal</span>
-                      <ChevronRight size={14} />
+                    <div className="flex items-center gap-1.5 text-slate-400 dark:text-neutral-500 text-[12.5px] font-normal">
+                      <span>Preferences</span>
+                      <ChevronRight size={14} className="text-slate-300 dark:text-neutral-600" />
                     </div>
                   </button>
 
+                  {/* Help & Support */}
                   <button
                     type="button"
-                    onClick={() => handleSelectMenuItem({ id: "history", label: "Plan", path: "/auto-trade/history", iconName: "FileText" })}
-                    className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-colors cursor-pointer text-left"
+                    onClick={() => handleNavigate("/support")}
+                    className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-neutral-300 flex items-center justify-center shrink-0">
-                        <FileText size={16} />
+                      <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.08] text-slate-700 dark:text-neutral-300 flex items-center justify-center shrink-0">
+                        <HelpCircle size={18} />
                       </div>
-                      <span className="text-xs font-bold text-slate-900 dark:text-white">Today's plan</span>
+                      <span className="text-[13.5px] font-semibold text-slate-900 dark:text-white">
+                        Help & Support
+                      </span>
                     </div>
-                    <div className="flex items-center gap-1 text-slate-400 dark:text-neutral-500 text-xs font-medium">
-                      <span>Audit log</span>
-                      <ChevronRight size={14} />
-                    </div>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleSelectMenuItem({ id: "settings", label: "Settings", path: "/settings", iconName: "Settings" })}
-                    className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-colors cursor-pointer text-left"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-neutral-300 flex items-center justify-center shrink-0">
-                        <Settings size={16} />
-                      </div>
-                      <span className="text-xs font-bold text-slate-900 dark:text-white">Settings</span>
-                    </div>
-                    <div className="flex items-center gap-1 text-slate-400 dark:text-neutral-500 text-xs font-medium">
-                      <ChevronRight size={14} />
-                    </div>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleSelectMenuItem({ id: "profile", label: "Profile", path: "/profile", iconName: "User" })}
-                    className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-colors cursor-pointer text-left"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-neutral-300 flex items-center justify-center shrink-0">
-                        <User size={16} />
-                      </div>
-                      <span className="text-xs font-bold text-slate-900 dark:text-white">Profile</span>
-                    </div>
-                    <div className="flex items-center gap-1 text-slate-400 dark:text-neutral-500 text-xs font-medium">
-                      <span>View</span>
-                      <ChevronRight size={14} />
-                    </div>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleSelectMenuItem({ id: "support", label: "Support", path: "/support", iconName: "HelpCircle" })}
-                    className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-colors cursor-pointer text-left"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-neutral-300 flex items-center justify-center shrink-0">
-                        <HelpCircle size={16} />
-                      </div>
-                      <span className="text-xs font-bold text-slate-900 dark:text-white">Help & Support</span>
-                    </div>
-                    <div className="flex items-center gap-1 text-slate-400 dark:text-neutral-500 text-xs font-medium">
+                    <div className="flex items-center gap-1.5 text-slate-400 dark:text-neutral-500 text-[12.5px] font-normal">
                       <span>24/7 Desk</span>
-                      <ChevronRight size={14} />
+                      <ChevronRight size={14} className="text-slate-300 dark:text-neutral-600" />
                     </div>
                   </button>
                 </div>
