@@ -1,11 +1,28 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
-import { X, MessageSquare, MessageCircle, Send, Lock, Loader2, Trash2, CheckCircle2, MapPin, CornerDownRight, Heart, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  X,
+  MessageCircle,
+  Lock,
+  Loader2,
+  Trash2,
+  MapPin,
+  ChevronLeft,
+  ChevronRight,
+  Repeat2,
+  Bookmark,
+  Share,
+  Smile,
+  MoreHorizontal,
+  BarChart2,
+  Heart,
+  UserCheck,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-import { Heart as IconlyHeart, Send as IconlySend } from "react-iconly";
+import { Heart as IconlyHeart } from "react-iconly";
 
 interface Comment {
   id: string;
@@ -26,10 +43,24 @@ interface CommentModalProps {
   onClose: () => void;
   postId: string;
   currentUserId: string;
-  post: any; // original feed post context
+  post: any;
   onCommentsCountChange: (newCount: number) => void;
   focusedImageUrl?: string | null;
+  isLiked?: boolean;
+  likes?: number;
+  onLike?: (postId: string) => void;
+  isReposted?: boolean;
+  repostCount?: number;
+  onRepost?: (e: React.MouseEvent) => void;
+  viewCount?: number;
+  isBookmarked?: boolean;
+  onBookmark?: () => void;
+  onShare?: () => void;
+  isFollowing?: boolean;
+  onToggleFollow?: (targetUserId: string, targetName: string) => void;
 }
+
+const QUICK_EMOJIS = ["🔥", "🚀", "📈", "📉", "💎", "👏", "🎯", "💯", "😂", "❤️", "🫡", "⚡"];
 
 export default function CommentModal({
   isOpen,
@@ -38,18 +69,97 @@ export default function CommentModal({
   currentUserId,
   post,
   onCommentsCountChange,
-  focusedImageUrl
+  focusedImageUrl,
+  isLiked = false,
+  likes = 0,
+  onLike,
+  isReposted = false,
+  repostCount = 0,
+  onRepost,
+  viewCount = 0,
+  isBookmarked = false,
+  onBookmark,
+  onShare,
+  isFollowing = false,
+  onToggleFollow,
 }: CommentModalProps) {
   const navigate = useNavigate();
   const [comments, setComments] = useState<Comment[]>([]);
   const [inputText, setInputText] = useState("");
-  const [replyText, setReplyText] = useState("");
   const [replyingToCommentId, setReplyingToCommentId] = useState<string | null>(null);
+  const [replyTargetName, setReplyTargetName] = useState<string>("");
+  const [replyTargetHandle, setReplyTargetHandle] = useState<string>("");
+  const [isComposerOpen, setIsComposerOpen] = useState(false);
+  const [showEmojiStrip, setShowEmojiStrip] = useState(false);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [deletingCommentId, setDeletingCommentId] = useState<string | null>(null);
   const [likedComments, setLikedComments] = useState<string[]>([]);
   const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
+
+  // Mobile virtual keyboard viewport tracking so the reply composer rides smoothly above the keyboard
+  const [viewportStyle, setViewportStyle] = useState<{ height?: string; top?: number }>({});
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const scrollBodyRef = useRef<HTMLDivElement>(null);
+
+  const authorName = post.profiles?.full_name || post.profiles?.display_name || "Anonymous Trader";
+  const authorHandle = post.profiles?.username ? `@${post.profiles.username}` : "@anonymous";
+  const authorAvatar = post.profiles?.avatar_url || "/default-avatar.svg";
+  const allowComments = post.allow_comments !== false;
+  const isOwnPost = Boolean(
+    currentUserId && (post.user_id === currentUserId || post.profiles?.id === currentUserId)
+  );
+  const currentUserAvatar =
+    localStorage.getItem("tradifive_cached_avatar_url") || "/default-avatar.svg";
+
+  // Sync visualViewport height/offset for iOS Safari & Android Chrome virtual keyboard
+  useEffect(() => {
+    if (!isOpen) return;
+    const vv = window.visualViewport;
+    if (!vv) return;
+
+    const updateViewport = () => {
+      if (window.innerWidth < 768) {
+        setViewportStyle({
+          height: `${Math.round(vv.height)}px`,
+          top: Math.round(vv.offsetTop),
+        });
+      } else {
+        setViewportStyle({});
+      }
+    };
+
+    updateViewport();
+    vv.addEventListener("resize", updateViewport);
+    vv.addEventListener("scroll", updateViewport);
+    window.addEventListener("resize", updateViewport);
+
+    return () => {
+      vv.removeEventListener("resize", updateViewport);
+      vv.removeEventListener("scroll", updateViewport);
+      window.removeEventListener("resize", updateViewport);
+    };
+  }, [isOpen]);
+
+  // Reset composer state when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setIsComposerOpen(false);
+      setShowEmojiStrip(false);
+      setReplyingToCommentId(null);
+      setInputText("");
+    }
+  }, [isOpen]);
+
+  // Auto-focus textarea when composer opens
+  useEffect(() => {
+    if (isComposerOpen) {
+      const t = window.setTimeout(() => {
+        textareaRef.current?.focus();
+      }, 60);
+      return () => window.clearTimeout(t);
+    }
+  }, [isComposerOpen, replyingToCommentId]);
 
   useEffect(() => {
     if (isOpen) {
@@ -62,44 +172,92 @@ export default function CommentModal({
     }
   }, [isOpen, focusedImageUrl, post.media_urls]);
 
-  const hasMultipleImages = post.media_urls && post.media_urls.length > 1;
-  const currentImageUrl = post.media_urls && post.media_urls.length > 0 ? post.media_urls[currentImageIndex] : (focusedImageUrl || post.media_url);
+  const rawMediaUrls = Array.isArray(post.media_urls)
+    ? post.media_urls.filter(
+        (u: any) =>
+          typeof u === "string" &&
+          u.trim() !== "" &&
+          !u.trim().startsWith("{") &&
+          !u.trim().startsWith("[")
+      )
+    : [];
+  const hasMultipleImages = rawMediaUrls.length > 1;
+  const currentImageUrl =
+    rawMediaUrls.length > 0
+      ? rawMediaUrls[currentImageIndex]
+      : focusedImageUrl || (post.post_type !== "poll" && post.post_type !== "signal" ? post.media_url : null);
 
   const handlePrevImage = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (post.media_urls) {
-      setCurrentImageIndex((prev) => (prev > 0 ? prev - 1 : post.media_urls.length - 1));
+    if (rawMediaUrls.length > 1) {
+      setCurrentImageIndex((prev) => (prev > 0 ? prev - 1 : rawMediaUrls.length - 1));
     }
   };
 
   const handleNextImage = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (post.media_urls) {
-      setCurrentImageIndex((prev) => (prev < post.media_urls.length - 1 ? prev + 1 : 0));
+    if (rawMediaUrls.length > 1) {
+      setCurrentImageIndex((prev) => (prev < rawMediaUrls.length - 1 ? prev + 1 : 0));
     }
   };
 
-  const authorName = post.profiles?.full_name || "Anonymous Trader";
-  const authorHandle = post.profiles?.username ? `@${post.profiles.username}` : "@anonymous";
-  const authorAvatar = post.profiles?.avatar_url || "/default-avatar.svg";
-  const allowComments = post.allow_comments !== false;
-
-  // Extract Location and Clean Caption Content
+  // Extract Location, Optional Heading (`### Heading`), and Clean Caption Content
   let parsedContent = post.content || "";
   let locationNameVal = "";
-  const locMatch = parsedContent.match(/^📍\s+(.+)\n/);
+  let parsedHeadingVal = "";
+  const locMatch = parsedContent.match(/^📍\s+(.+)(?:\n|$)/);
   if (locMatch) {
-    locationNameVal = locMatch[1];
-    parsedContent = parsedContent.replace(/^📍\s+.+\n/, "");
+    locationNameVal = locMatch[1].trim();
+    parsedContent = parsedContent.replace(/^📍\s+.+(?:\n|$)/, "");
   }
+  const headingMatch = parsedContent.match(/^###\s+(.+)(?:\n|$)/);
+  if (headingMatch) {
+    parsedHeadingVal = headingMatch[1].trim();
+    parsedContent = parsedContent.replace(/^###\s+.+(?:\n|$)/, "");
+  }
+  parsedContent = parsedContent.trim();
+
+  const postTags: string[] = Array.isArray(post.tags) ? post.tags : [];
+  const inlineTagsLower = new Set(
+    Array.from(parsedContent.matchAll(/#([A-Za-z0-9_]+)/g)).map((m: any) => m[1].toLowerCase())
+  );
+  const extraPostTags = postTags.filter((t) => !inlineTagsLower.has(t.toLowerCase()));
+
+  const renderStyledPostText = (text: string) => {
+    const tokenRegex = /(\$[A-Za-z][A-Za-z0-9._-]{0,14}|#[A-Za-z0-9_]+|@[A-Za-z0-9_.]+)/g;
+    return text.split(tokenRegex).map((part, idx) => {
+      if (!part) return null;
+      if (part.startsWith("$") || part.startsWith("#")) {
+        return (
+          <span key={idx} className="text-blue-600 dark:text-blue-400 font-medium">
+            {part}
+          </span>
+        );
+      }
+      if (part.startsWith("@")) {
+        return (
+          <span
+            key={idx}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleUserClick(part.slice(1));
+            }}
+            className="text-blue-600 dark:text-blue-400 font-medium hover:underline cursor-pointer"
+          >
+            {part}
+          </span>
+        );
+      }
+      return <React.Fragment key={idx}>{part}</React.Fragment>;
+    });
+  };
 
   const fetchComments = async () => {
     if (!isOpen) return;
     setLoading(true);
     try {
       let dbComments: Comment[] = [];
-      
-      // 1. Fetch from Supabase
+
       try {
         const { data, error } = await supabase
           .from("social_post_comments")
@@ -107,20 +265,16 @@ export default function CommentModal({
           .eq("post_id", postId)
           .order("created_at", { ascending: true });
 
-        if (error) {
-          console.warn("Supabase comments read failed, using offline fallback:", error);
-        } else if (data) {
+        if (!error && data) {
           dbComments = data as any;
         }
       } catch (err) {
         console.warn("Supabase read error:", err);
       }
 
-      // 2. Fetch offline comments from localStorage
       const localComments = JSON.parse(localStorage.getItem("fialgo_local_comments") || "[]");
       const filteredLocal = localComments.filter((c: any) => c.post_id === postId);
 
-      // 3. Merge & Sort
       const combined = [...dbComments, ...filteredLocal];
       combined.sort((a, b) => {
         const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
@@ -140,16 +294,42 @@ export default function CommentModal({
   useEffect(() => {
     fetchComments();
     if (isOpen) {
-      const localLikedComments = JSON.parse(localStorage.getItem("fialgo_local_comment_likes") || "[]");
-      setLikedComments(localLikedComments);
+      try {
+        const localLikedComments = JSON.parse(
+          localStorage.getItem("fialgo_local_comment_likes") || "[]"
+        );
+        setLikedComments(localLikedComments);
+      } catch {
+        setLikedComments([]);
+      }
     }
   }, [postId, isOpen]);
 
+  const openReplyComposer = (
+    parentId: string | null,
+    targetName: string,
+    targetHandle: string
+  ) => {
+    setReplyingToCommentId(parentId);
+    setReplyTargetName(targetName);
+    setReplyTargetHandle(targetHandle.startsWith("@") ? targetHandle : `@${targetHandle}`);
+    setIsComposerOpen(true);
+    setShowEmojiStrip(false);
+  };
+
+  const closeReplyComposer = () => {
+    setIsComposerOpen(false);
+    setShowEmojiStrip(false);
+    setReplyingToCommentId(null);
+  };
+
   const handleLikeToggle = (commentId: string) => {
-    setLikedComments(prev => {
-      const isLiked = prev.includes(commentId);
-      const newLiked = isLiked ? prev.filter(id => id !== commentId) : [...prev, commentId];
-      try { localStorage.setItem("fialgo_local_comment_likes", JSON.stringify(newLiked)); } catch(e){}
+    setLikedComments((prev) => {
+      const liked = prev.includes(commentId);
+      const newLiked = liked ? prev.filter((id) => id !== commentId) : [...prev, commentId];
+      try {
+        localStorage.setItem("fialgo_local_comment_likes", JSON.stringify(newLiked));
+      } catch {}
       return newLiked;
     });
   };
@@ -170,13 +350,12 @@ export default function CommentModal({
       user_id: currentUserId || "mock-user-id",
       content: contentText,
       parent_comment_id: parentId,
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
     };
 
     try {
       let publishedComment: Comment | null = null;
 
-      // 1. Try publishing to Supabase
       try {
         const { data, error } = await supabase
           .from("social_post_comments")
@@ -184,76 +363,63 @@ export default function CommentModal({
           .select("*, profiles(full_name, username, avatar_url)")
           .single();
 
-        if (error) {
-          console.warn("Supabase comment insert failed, using fallback:", error);
-          throw error;
-        }
-        if (data) {
-          publishedComment = data as any;
-        }
-      } catch (dbErr) {
-        // 2. Graceful offline/guest localStorage fallback
+        if (error) throw error;
+        if (data) publishedComment = data as any;
+      } catch {
         const localComments = JSON.parse(localStorage.getItem("fialgo_local_comments") || "[]");
-        
-        // Load active profile info
         const mockProfile = {
           full_name: localStorage.getItem("tradifive_cached_display_name") || "Trader",
           username: localStorage.getItem("tradifive_cached_username") || "trader",
-          avatar_url: localStorage.getItem("tradifive_cached_avatar_url") || "/default-avatar.svg"
+          avatar_url: localStorage.getItem("tradifive_cached_avatar_url") || "/default-avatar.svg",
         };
-
         const offlineComment = {
           id: `local-comment-${Date.now()}`,
           ...newCommentPayload,
-          profiles: mockProfile
+          profiles: mockProfile,
         };
-
         localComments.push(offlineComment);
         try {
-          localStorage.setItem("fialgo_local_comments", JSON.stringify(localComments));
-        } catch (storageErr) {
-          console.warn("Storage quota exceeded for comments. Trimming array...");
-          try {
-            // Keep only the last 30 comments to save space
-            const trimmedComments = localComments.slice(-30);
-            localStorage.setItem("fialgo_local_comments", JSON.stringify(trimmedComments));
-          } catch (e) {
-            // If it still fails (e.g., massive base64 in a single comment), just keep the latest
-            try {
-              localStorage.setItem("fialgo_local_comments", JSON.stringify([offlineComment]));
-            } catch (e2) {
-              console.error("Critical storage error:", e2);
-            }
-          }
-        }
+          localStorage.setItem("fialgo_local_comments", JSON.stringify(localComments.slice(-50)));
+        } catch {}
         publishedComment = offlineComment;
       }
 
       if (publishedComment) {
-        // Sync local post comment counts inside localStorage fialgo_local_posts cache
         const localPosts = JSON.parse(localStorage.getItem("fialgo_local_posts") || "[]");
         const postIdx = localPosts.findIndex((p: any) => p.id === postId);
         if (postIdx !== -1) {
-          const currentCount = localPosts[postIdx].comment_count ?? localPosts[postIdx].comments_count ?? 0;
+          const currentCount =
+            localPosts[postIdx].comment_count ?? localPosts[postIdx].comments_count ?? 0;
           localPosts[postIdx].comment_count = currentCount + 1;
           localPosts[postIdx].comments_count = currentCount + 1;
-          try { localStorage.setItem("fialgo_local_posts", JSON.stringify(localPosts)); } catch(e) {}
+          try {
+            localStorage.setItem("fialgo_local_posts", JSON.stringify(localPosts));
+          } catch {}
         } else {
-          // Store an override map for database post comments so that counts persist locally
-          const localCommentCounts = JSON.parse(localStorage.getItem("fialgo_local_comment_counts") || "{}");
-          const currentCount = localCommentCounts[postId] || 0;
-          localCommentCounts[postId] = currentCount + 1;
-          try { localStorage.setItem("fialgo_local_comment_counts", JSON.stringify(localCommentCounts)); } catch(e) {}
+          const localCommentCounts = JSON.parse(
+            localStorage.getItem("fialgo_local_comment_counts") || "{}"
+          );
+          localCommentCounts[postId] = (localCommentCounts[postId] || 0) + 1;
+          try {
+            localStorage.setItem(
+              "fialgo_local_comment_counts",
+              JSON.stringify(localCommentCounts)
+            );
+          } catch {}
         }
 
         const updatedList = [...comments, publishedComment];
         setComments(updatedList);
         onCommentsCountChange(updatedList.length);
-        toast.success(parentId ? "Reply published!" : "Comment published!");
+        setInputText("");
+        setIsComposerOpen(false);
+        setShowEmojiStrip(false);
+        setReplyingToCommentId(null);
+        toast.success(parentId ? "Reply published!" : "Reply published!");
       }
     } catch (err: any) {
       console.error("Comment submission failed:", err);
-      toast.error(err.message || "Failed to submit comment.");
+      toast.error(err.message || "Failed to submit reply.");
     } finally {
       setSubmitting(false);
     }
@@ -261,77 +427,67 @@ export default function CommentModal({
 
   const handleDeleteComment = async (commentId: string) => {
     try {
-      let deletedFromDb = false;
-
-      // 1. Try deleting from Supabase
       if (!commentId.startsWith("local-comment-")) {
         try {
-          const { error } = await supabase
-            .from("social_post_comments")
-            .delete()
-            .eq("id", commentId);
-
-          if (error) {
-            console.warn("Supabase comment delete failed, checking local:", error);
-          } else {
-            deletedFromDb = true;
-          }
-        } catch (dbErr) {
-          console.warn("Supabase comment delete catch:", dbErr);
-        }
+          await supabase.from("social_post_comments").delete().eq("id", commentId);
+        } catch {}
       }
 
-      // 2. Try deleting from local storage comment stream
       const localComments = JSON.parse(localStorage.getItem("fialgo_local_comments") || "[]");
-      const existsLocally = localComments.some((c: any) => c.id === commentId);
-
-      if (existsLocally) {
+      if (localComments.some((c: any) => c.id === commentId)) {
         const filtered = localComments.filter((c: any) => c.id !== commentId);
         localStorage.setItem("fialgo_local_comments", JSON.stringify(filtered));
       }
 
-      // Update local comment counts inside localStorage fialgo_local_posts cache
       const localPosts = JSON.parse(localStorage.getItem("fialgo_local_posts") || "[]");
       const postIdx = localPosts.findIndex((p: any) => p.id === postId);
       if (postIdx !== -1) {
-        const currentCount = localPosts[postIdx].comment_count ?? localPosts[postIdx].comments_count ?? 0;
+        const currentCount =
+          localPosts[postIdx].comment_count ?? localPosts[postIdx].comments_count ?? 0;
         const newCount = Math.max(0, currentCount - 1);
         localPosts[postIdx].comment_count = newCount;
         localPosts[postIdx].comments_count = newCount;
         localStorage.setItem("fialgo_local_posts", JSON.stringify(localPosts));
       } else {
-        // Decrement local override comments map
-        const localCommentCounts = JSON.parse(localStorage.getItem("fialgo_local_comment_counts") || "{}");
-        const currentCount = localCommentCounts[postId] || 0;
-        localCommentCounts[postId] = Math.max(0, currentCount - 1);
+        const localCommentCounts = JSON.parse(
+          localStorage.getItem("fialgo_local_comment_counts") || "{}"
+        );
+        localCommentCounts[postId] = Math.max(0, (localCommentCounts[postId] || 0) - 1);
         localStorage.setItem("fialgo_local_comment_counts", JSON.stringify(localCommentCounts));
       }
 
-      // Automatically cascade delete children locally if deleting parent
-      const updatedList = comments.filter((c) => c.id !== commentId && c.parent_comment_id !== commentId);
+      const updatedList = comments.filter(
+        (c) => c.id !== commentId && c.parent_comment_id !== commentId
+      );
       setComments(updatedList);
       onCommentsCountChange(updatedList.length);
-      toast.success("Comment deleted successfully!");
-    } catch (err: any) {
+      toast.success("Reply deleted");
+    } catch (err) {
       console.error("Failed to delete comment:", err);
-      toast.error("Failed to delete comment.");
+      toast.error("Failed to delete reply.");
     }
   };
 
-  const formatCommentDate = (dateStr: string | null) => {
-    if (!dateStr) return "Just now";
+  const formatShortTime = (dateStr: string | null | undefined) => {
+    if (!dateStr) return "now";
     const date = new Date(dateStr);
-    const diffMs = Date.now() - date.getTime();
+    const diffMs = Math.max(0, Date.now() - date.getTime());
     const diffMins = Math.floor(diffMs / 60000);
     const diffHours = Math.floor(diffMins / 60);
-
-    if (diffMins < 1) return "Just now";
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffMins < 1) return "now";
+    if (diffMins < 60) return `${diffMins}m`;
+    if (diffHours < 24) return `${diffHours}h`;
+    if (diffDays < 7) return `${diffDays}d`;
     return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
   };
 
-  // Group root comments and child replies
+  const formatCompactCount = (count: number) => {
+    if (count >= 1_000_000) return `${(count / 1_000_000).toFixed(1).replace(/\.0$/, "")}M`;
+    if (count >= 1_000) return `${(count / 1_000).toFixed(1).replace(/\.0$/, "")}K`;
+    return String(count);
+  };
+
   const rootComments = comments.filter((c) => !c.parent_comment_id);
   const repliesMap = comments.reduce((acc, c) => {
     if (c.parent_comment_id) {
@@ -343,477 +499,658 @@ export default function CommentModal({
 
   const handleUserClick = (username: string | null | undefined) => {
     if (!username) return;
-    const cleanUsername = username.startsWith('@') ? username.substring(1) : username;
+    const cleanUsername = username.startsWith("@") ? username.substring(1) : username;
     onClose();
     navigate(`/user/${cleanUsername}`);
   };
 
   if (!isOpen) return null;
 
+  // ── Fullscreen Image Lightbox mode when user taps an image directly ──
+  if (focusedImageUrl) {
+    return createPortal(
+      <AnimatePresence>
+        <div
+          className="fixed inset-0 z-[9999] bg-black/95 backdrop-blur-md flex items-center justify-center p-4"
+          onClick={onClose}
+        >
+          <button
+            type="button"
+            onClick={onClose}
+            className="absolute top-4 right-4 z-20 w-10 h-10 rounded-full bg-white/15 hover:bg-white/25 text-white flex items-center justify-center transition-colors cursor-pointer"
+            aria-label="Close image"
+          >
+            <X size={20} />
+          </button>
+
+          <img
+            src={currentImageUrl}
+            alt="Post attachment"
+            onClick={(e) => e.stopPropagation()}
+            className="max-w-full max-h-[88dvh] object-contain rounded-2xl shadow-2xl select-none"
+          />
+
+          {hasMultipleImages && (
+            <>
+              <button
+                type="button"
+                onClick={handlePrevImage}
+                className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center backdrop-blur-sm cursor-pointer"
+              >
+                <ChevronLeft size={22} />
+              </button>
+              <button
+                type="button"
+                onClick={handleNextImage}
+                className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center backdrop-blur-sm cursor-pointer"
+              >
+                <ChevronRight size={22} />
+              </button>
+            </>
+          )}
+        </div>
+      </AnimatePresence>,
+      document.body
+    );
+  }
+
+  // ── Native Post + Replies View (Matching Reference Images 1 & 2) ──
   return createPortal(
     <AnimatePresence>
-      <div className={`fixed inset-0 z-[9999] flex items-center justify-center ${focusedImageUrl ? "p-0" : "p-4 sm:p-6"}`}>
-        {/* Backdrop Blur Overlay */}
-        <div 
-          className={`fixed inset-0 backdrop-blur-md cursor-pointer ${focusedImageUrl ? "bg-black/98" : "bg-slate-955/75"}`} 
-          onClick={onClose} 
+      <div
+        className="fixed inset-x-0 top-0 z-[9999] flex items-end md:items-center justify-center md:p-6"
+        style={{
+          height: viewportStyle.height || "100dvh",
+          top: viewportStyle.top ? `${viewportStyle.top}px` : 0,
+        }}
+      >
+        {/* Backdrop */}
+        <div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm cursor-pointer"
+          onClick={onClose}
         />
 
-        {/* Modal Container (Centered, Systematic Inter Layout) */}
+        {/* Post View Container */}
         <motion.div
-          initial={{ opacity: 0, y: 30, scale: 0.96 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 30, scale: 0.96 }}
-          transition={{ duration: 0.22, ease: "easeOut" }}
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 24 }}
+          transition={{ duration: 0.2, ease: "easeOut" }}
           onClick={(e) => e.stopPropagation()}
-          className={focusedImageUrl 
-            ? "bg-black flex text-white relative z-50 w-full h-[100dvh] max-w-none flex-col md:flex-row font-sans rounded-none overflow-hidden" 
-            : "bg-white dark:bg-[#1E1E1E] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] dark:shadow-none flex text-slate-800 dark:text-slate-100 relative z-50 w-[95vw] md:w-[85vw] lg:w-[75vw] max-w-5xl h-[85vh] md:h-[80vh] rounded-3xl overflow-hidden flex-col md:flex-row font-sans border border-slate-100 dark:border-white/5"}
+          className="relative z-10 w-full md:max-w-[640px] h-full md:h-[88vh] bg-white dark:bg-[#141416] md:rounded-[28px] figma-card-shadow flex flex-col overflow-hidden font-sans text-slate-900 dark:text-slate-100"
         >
-          {/* Left Pane: Post Details Card (Highly Systematic layout, proper Inter weights) */}
-          {focusedImageUrl ? (
-            <div className="flex-1 bg-black flex items-center justify-center p-4 relative group" onClick={onClose}>
-               <img src={currentImageUrl} onClick={(e) => e.stopPropagation()} className="max-w-full max-h-full object-contain select-none cursor-default rounded-xl md:rounded-2xl shadow-2xl transition-opacity duration-300" />
-               {hasMultipleImages && (
-                 <>
-                   <button 
-                     onClick={handlePrevImage}
-                     className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10 backdrop-blur-sm"
-                   >
-                     <ChevronLeft size={24} />
-                   </button>
-                   <button 
-                     onClick={handleNextImage}
-                     className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10 backdrop-blur-sm"
-                   >
-                     <ChevronRight size={24} />
-                   </button>
-                   <div className="absolute bottom-4 left-1/2 -translate-y-1/2 flex gap-1.5 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-                     {post.media_urls.map((_: any, idx: number) => (
-                       <div key={idx} className={`w-2 h-2 rounded-full transition-colors ${idx === currentImageIndex ? 'bg-white' : 'bg-white/40'}`} />
-                     ))}
-                   </div>
-                 </>
-               )}
-            </div>
-          ) : (
-            <div className="flex-1 p-6 md:p-8 bg-slate-50/30 dark:bg-transparent border-b md:border-b-0 md:border-r border-slate-100 dark:border-white/5 overflow-y-auto amazing-scrollbar flex flex-col gap-6 select-text font-sans">
-            
-            {/* Original Post Header */}
+          {/* Top Bar: Circular Back (<) + "Post" */}
+          <div className="flex items-center justify-between px-4 sm:px-5 py-3 border-b border-slate-100 dark:border-white/10 shrink-0 bg-white dark:bg-[#141416]">
             <div className="flex items-center gap-3">
-              <img 
-                src={authorAvatar} 
-                alt={authorName} 
-                className="w-11 h-11 rounded-full bg-slate-200 object-cover border border-slate-200/50 dark:border-slate-800 shadow-sm shrink-0" 
-                onError={(e) => { e.currentTarget.src = "/default-avatar.svg"; }}
-              />
-              <div className="min-w-0 flex flex-col justify-center">
-                <p className="text-[15px] font-bold text-slate-900 dark:text-white leading-tight flex items-center gap-1.5 font-sans">
-                  {authorName}
-                </p>
-                <p className="text-[13px] text-slate-500 font-medium mt-0.5 font-sans">{authorHandle}</p>
-              </div>
+              <button
+                type="button"
+                onClick={onClose}
+                className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/15 text-slate-700 dark:text-slate-200 flex items-center justify-center active:scale-95 transition-all cursor-pointer"
+                aria-label="Back"
+              >
+                <ChevronLeft size={19} strokeWidth={2.4} />
+              </button>
+              <h2 className="text-[17px] font-bold text-slate-900 dark:text-white tracking-tight">
+                Post
+              </h2>
             </div>
+          </div>
 
-            {/* Systematic Location Pill Tag */}
-            {locationNameVal && (
-              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 w-fit text-[12px] font-semibold select-none font-sans">
-                <MapPin size={12} className="text-blue-500" />
-                <span>{locationNameVal}</span>
-              </div>
-            )}
+          {/* Scrollable Body: Original Post + Divider + Replies */}
+          <div
+            ref={scrollBodyRef}
+            className="flex-1 overflow-y-auto amazing-scrollbar min-h-0 overscroll-contain"
+          >
+            {/* Original Post Block */}
+            <div className="px-4 sm:px-5 pt-4 pb-3">
+              {/* Author Row */}
+              <div className="flex items-center justify-between gap-3">
+                <div
+                  onClick={() => handleUserClick(post.profiles?.username || post.user_id)}
+                  className="flex items-center gap-3 min-w-0 cursor-pointer"
+                >
+                  <img
+                    src={authorAvatar}
+                    alt={authorName}
+                    className="w-10 h-10 rounded-full object-cover bg-slate-100 dark:bg-white/10 border border-slate-200/70 dark:border-white/10 shrink-0"
+                    onError={(e) => {
+                      e.currentTarget.src = "/default-avatar.svg";
+                    }}
+                  />
+                  <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
+                    <span className="text-[15px] font-bold text-slate-900 dark:text-white truncate">
+                      {authorName}
+                    </span>
+                    <span className="text-[13px] font-medium text-slate-400 dark:text-neutral-500">
+                      · {formatShortTime(post.created_at)}
+                    </span>
+                  </div>
+                </div>
 
-            {/* Post caption text content */}
-            <div className="text-[15px] text-slate-800 dark:text-slate-200 leading-relaxed font-normal select-text whitespace-pre-wrap font-sans">
-              {parsedContent}
-            </div>
-
-            {/* Post image/media previews if present - aspect ratio preserved */}
-            {post.media_urls && post.media_urls.length > 0 ? (
-              <div className="rounded-2xl overflow-hidden border border-slate-100 dark:border-[#222B3F] bg-slate-50 dark:bg-slate-900/30 flex items-center justify-center max-h-[250px] shadow-sm shrink-0 relative group">
-                <img src={currentImageUrl} className="w-full h-auto max-h-[250px] object-contain select-none transition-opacity duration-300" alt="Post attachment" />
-                {hasMultipleImages && (
-                 <>
-                   <button 
-                     onClick={handlePrevImage}
-                     className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10 backdrop-blur-sm"
-                   >
-                     <ChevronLeft size={20} />
-                   </button>
-                   <button 
-                     onClick={handleNextImage}
-                     className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10 backdrop-blur-sm"
-                   >
-                     <ChevronRight size={20} />
-                   </button>
-                   <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-                     {post.media_urls.map((_: any, idx: number) => (
-                       <div key={idx} className={`w-1.5 h-1.5 rounded-full transition-colors ${idx === currentImageIndex ? 'bg-white' : 'bg-white/50'}`} />
-                     ))}
-                   </div>
-                 </>
-               )}
-              </div>
-            ) : post.media_url && post.post_type !== 'poll' && (
-              <div className="rounded-2xl overflow-hidden border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/30 flex items-center justify-center max-h-[250px] shadow-sm shrink-0">
-                {post.media_type === 'video' ? (
-                  <video src={post.media_url} controls className="w-full max-h-[250px] object-contain select-none" poster="https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800&auto=format&fit=crop" />
-                ) : (
-                  <img src={post.media_url} className="w-full h-auto max-h-[250px] object-contain select-none" alt="Post attachment" />
-                )}
-              </div>
-            )}
-
-            {/* Post Tags */}
-            {post.tags && post.tags.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-1">
-                {post.tags.map((tag: string) => {
-                  const isUserTag = tag.startsWith("@");
-                  return (
-                    <span 
-                      key={tag} 
-                      className={`inline-flex items-center text-[14px] font-medium transition-colors duration-200 select-none cursor-pointer font-sans ${
-                        isUserTag
-                          ? "text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
-                          : "text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300"
+                <div className="flex items-center gap-2 shrink-0">
+                  {!isOwnPost && onToggleFollow && post.user_id && (
+                    <button
+                      type="button"
+                      onClick={() => onToggleFollow(post.user_id, authorName)}
+                      className={`px-4 py-1.5 rounded-full text-[12.5px] font-bold cursor-pointer select-none flex items-center gap-1 ${
+                        isFollowing ? "tactile-white-pill" : "tactile-black-pill"
                       }`}
                     >
-                      {tag.startsWith("#") || tag.startsWith("@") ? tag : `#${tag}`}
-                    </span>
-                  );
-                })}
+                      {isFollowing ? (
+                        <>
+                          <UserCheck size={12} strokeWidth={2.4} /> Following
+                        </>
+                      ) : (
+                        "Follow"
+                      )}
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={onShare}
+                    className="w-8 h-8 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 text-slate-400 hover:text-slate-700 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                    aria-label="More options"
+                  >
+                    <MoreHorizontal size={18} />
+                  </button>
+                </div>
               </div>
-            )}
-            {/* End of Left pane */}
-            </div>
-          )}
 
-          {/* Right Pane: Premium Comments Discussion Flow */}
-          <div className={`w-full md:w-[420px] lg:w-[480px] bg-white dark:bg-[#1E1E1E] flex flex-col justify-between overflow-hidden shrink-0 font-sans ${focusedImageUrl ? "border-l border-slate-100 dark:border-white/5" : ""}`}>
-            {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-white/5 shrink-0">
-              <h3 className="text-[16px] font-bold text-slate-900 dark:text-white font-sans flex items-center gap-2">
-                Comments <span className="text-slate-400 dark:text-slate-400 font-normal text-[14px]">({comments.length})</span>
-              </h3>
-              <button
-                onClick={onClose}
-                className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            {/* Scrollable Threaded Comments Stream */}
-            <div className="flex-grow overflow-y-auto amazing-scrollbar px-6 py-4 space-y-6 min-h-0 select-text">
-              {focusedImageUrl && (
-                <div className="flex flex-col gap-3 pb-5 mb-5 border-b border-slate-100 dark:border-white/5">
-                   <div className="flex items-center gap-3">
-                     <img src={authorAvatar} className="w-10 h-10 rounded-full object-cover border border-slate-200/50 dark:border-slate-800" onError={(e) => { e.currentTarget.src = "/default-avatar.svg"; }} />
-                     <div>
-                        <p className="text-[14px] font-bold flex items-center gap-1 dark:text-white text-slate-900 leading-tight">
-                           {authorName}
-                        </p>
-                        <p className="text-[12px] text-slate-500 font-medium mt-0.5">{authorHandle}</p>
-                     </div>
-                   </div>
-                   <div className="text-[14px] font-normal leading-relaxed whitespace-pre-wrap dark:text-slate-200 text-slate-800">
-                      {parsedContent}
-                   </div>
+              {/* Location Tag */}
+              {locationNameVal && (
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 text-[11.5px] font-semibold mt-3">
+                  <MapPin size={11} />
+                  <span>{locationNameVal}</span>
                 </div>
               )}
+
+              {/* Post Heading (optional) */}
+              {parsedHeadingVal && (
+                <h3 className="mt-3 text-[16.5px] font-bold text-slate-900 dark:text-white leading-snug tracking-tight break-words">
+                  {parsedHeadingVal}
+                </h3>
+              )}
+
+              {/* Post Content */}
+              {parsedContent && (
+                <div className={`${parsedHeadingVal ? "mt-1.5" : "mt-3"} text-[15px] text-slate-800 dark:text-slate-100 leading-relaxed whitespace-pre-wrap select-text break-words`}>
+                  {renderStyledPostText(parsedContent)}
+                </div>
+              )}
+
+              {/* Extra Post Hashtags */}
+              {extraPostTags.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-x-2 gap-y-1">
+                  {extraPostTags.map((tag) => (
+                    <span key={tag} className="text-[14.5px] font-medium text-blue-600 dark:text-blue-400">
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* Post Media */}
+              {currentImageUrl && (
+                <div className="mt-3 rounded-2xl overflow-hidden border border-slate-100 dark:border-white/10 bg-slate-50 dark:bg-black/40 relative group">
+                  {post.media_type === "video" ? (
+                    <video
+                      src={currentImageUrl}
+                      controls
+                      className="w-full max-h-[360px] object-contain"
+                    />
+                  ) : (
+                    <img
+                      src={currentImageUrl}
+                      alt="Post attachment"
+                      className="w-full max-h-[380px] object-cover select-none"
+                    />
+                  )}
+                  {hasMultipleImages && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={handlePrevImage}
+                        className="absolute left-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/55 hover:bg-black/75 text-white flex items-center justify-center backdrop-blur-sm cursor-pointer"
+                      >
+                        <ChevronLeft size={18} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleNextImage}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/55 hover:bg-black/75 text-white flex items-center justify-center backdrop-blur-sm cursor-pointer"
+                      >
+                        <ChevronRight size={18} />
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* Post Action Row (Comment, Repost, Like, Views, Bookmark, Share — matching Image 1) */}
+              <div className="flex items-center justify-between pt-3.5 mt-3 text-slate-500 dark:text-neutral-400">
+                <button
+                  type="button"
+                  onClick={() => openReplyComposer(null, authorName, authorHandle)}
+                  className="flex items-center gap-1.5 hover:text-slate-900 dark:hover:text-white transition-colors p-1.5 -ml-1.5 rounded-full cursor-pointer"
+                  title="Reply"
+                >
+                  <MessageCircle size={18} strokeWidth={1.9} />
+                  {comments.length > 0 && (
+                    <span className="text-[13px] font-semibold tabular-nums">
+                      {comments.length}
+                    </span>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={onRepost}
+                  className={`flex items-center gap-1.5 transition-colors p-1.5 rounded-full cursor-pointer ${
+                    isReposted
+                      ? "text-emerald-500"
+                      : "hover:text-emerald-500"
+                  }`}
+                  title="Repost"
+                >
+                  <Repeat2 size={18} strokeWidth={isReposted ? 2.3 : 1.9} />
+                  {repostCount > 0 && (
+                    <span className="text-[13px] font-semibold tabular-nums">
+                      {repostCount}
+                    </span>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => onLike && onLike(postId)}
+                  className={`flex items-center gap-1.5 transition-colors p-1.5 rounded-full cursor-pointer ${
+                    isLiked
+                      ? "text-slate-900 dark:text-white"
+                      : "hover:text-rose-500"
+                  }`}
+                  title="Like"
+                >
+                  <Heart
+                    size={18}
+                    strokeWidth={1.9}
+                    className={
+                      isLiked
+                        ? "fill-slate-900 text-slate-900 dark:fill-white dark:text-white"
+                        : ""
+                    }
+                  />
+                  {likes > 0 && (
+                    <span className="text-[13px] font-bold text-slate-900 dark:text-white tabular-nums">
+                      {likes}
+                    </span>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={onBookmark}
+                  className={`p-1.5 rounded-full transition-colors cursor-pointer ${
+                    isBookmarked
+                      ? "text-blue-500"
+                      : "hover:text-blue-500"
+                  }`}
+                  title="Bookmark"
+                >
+                  <Bookmark
+                    size={18}
+                    strokeWidth={1.9}
+                    className={isBookmarked ? "fill-blue-500 text-blue-500" : ""}
+                  />
+                </button>
+
+                <div
+                  className="flex items-center gap-1.5 text-slate-500 dark:text-neutral-400 select-none"
+                  title={`${viewCount.toLocaleString()} views`}
+                >
+                  <BarChart2 size={18} strokeWidth={1.9} />
+                  <span className="text-[13px] font-medium tabular-nums">
+                    {formatCompactCount(viewCount)}
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={onShare}
+                  className="p-1.5 -mr-1.5 rounded-full hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
+                  title="Share"
+                >
+                  <Share size={17} strokeWidth={1.9} />
+                </button>
+              </div>
+            </div>
+
+            {/* Subtle Divider */}
+            <div className="border-t border-slate-100 dark:border-white/10 mx-4 sm:mx-5" />
+
+            {/* Replies Stream */}
+            <div className="px-4 sm:px-5 py-4 space-y-5 select-text">
               {loading ? (
-                <div className="flex flex-col items-center justify-center py-16 text-slate-400 gap-3">
-                  <Loader2 size={24} className="animate-spin text-blue-500" />
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 size={22} className="animate-spin text-slate-400" />
                 </div>
               ) : rootComments.length === 0 ? (
-                <div className="text-center py-20 text-slate-500 flex flex-col items-center justify-center">
-                  <div className="w-16 h-16 mb-4 flex items-center justify-center">
-                    <MessageCircle size={48} strokeWidth={1} className="text-slate-300 dark:text-slate-300" />
-                  </div>
-                  <p className="text-[18px] font-bold text-slate-900 dark:text-white font-sans">No comments yet</p>
-                  <p className="text-[14px] mt-1 font-sans">
-                    Start the conversation.
+                <div className="py-12 text-center">
+                  <p className="text-[14px] font-medium text-slate-400 dark:text-neutral-500">
+                    No replies yet.
                   </p>
                 </div>
               ) : (
                 rootComments.map((comment) => {
                   const commenterName = comment.profiles?.full_name || "Anonymous Trader";
-                  const commenterHandle = comment.profiles?.username ? `@${comment.profiles.username}` : "@anonymous";
+                  const commenterHandle = comment.profiles?.username
+                    ? `@${comment.profiles.username}`
+                    : "@anonymous";
                   const commenterAvatar = comment.profiles?.avatar_url || "/default-avatar.svg";
-                  const isOwnComment = comment.user_id === currentUserId || commenterHandle === `@${localStorage.getItem("tradifive_cached_username")}`;
+                  const isOwnComment =
+                    comment.user_id === currentUserId ||
+                    commenterHandle === `@${localStorage.getItem("tradifive_cached_username")}`;
                   const commentReplies = repliesMap[comment.id] || [];
 
                   return (
-                    <div key={comment.id} className="space-y-4 animate-in fade-in duration-200">
-                      
-                      {/* Parent Comment Box */}
-                      <div className="flex gap-3 items-start group relative">
-                        <img 
-                          src={commenterAvatar} 
-                          alt={commenterName} 
-                          onClick={() => handleUserClick(comment.profiles?.username || commenterName)}
-                          className="w-9 h-9 rounded-full shrink-0 border border-slate-200/50 dark:border-slate-800 object-cover bg-slate-100 cursor-pointer hover:opacity-80 transition-opacity" 
-                          onError={(e) => { e.currentTarget.src = "/default-avatar.svg"; }}
+                    <div key={comment.id} className="space-y-3.5">
+                      <div className="flex gap-3 items-start group">
+                        <img
+                          src={commenterAvatar}
+                          alt={commenterName}
+                          onClick={() =>
+                            handleUserClick(comment.profiles?.username || commenterName)
+                          }
+                          className="w-9 h-9 rounded-full shrink-0 border border-slate-200/60 dark:border-white/10 object-cover bg-slate-100 cursor-pointer"
+                          onError={(e) => {
+                            e.currentTarget.src = "/default-avatar.svg";
+                          }}
                         />
-                        <div className="flex-grow relative pt-0.5">
-                          <div className="flex items-center justify-between gap-2 mb-0.5">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-2">
                             <div className="flex items-center gap-1.5 min-w-0">
-                              <span className="text-[14px] font-bold text-slate-900 dark:text-white flex items-center gap-1 truncate font-sans">
+                              <span
+                                onClick={() =>
+                                  handleUserClick(comment.profiles?.username || commenterName)
+                                }
+                                className="text-[14px] font-bold text-slate-900 dark:text-white truncate cursor-pointer hover:underline"
+                              >
                                 {commenterName}
                               </span>
-                              <span className="text-[13px] text-slate-500 font-normal truncate font-sans">{formatCommentDate(comment.created_at)}</span>
-                            </div>
-                            
-                            {/* Delete Action */}
-                            <div className="flex items-center gap-2 shrink-0 relative">
-                              {isOwnComment && (
-                                <div className="relative">
-                                  {deletingCommentId === comment.id ? (
-                                    <div className="flex items-center gap-1.5 bg-rose-50 dark:bg-rose-955/20 border border-rose-100 dark:border-rose-900/30 px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider animate-in fade-in zoom-in-95 shrink-0 font-sans shadow-sm absolute right-0 top-1/2 -translate-y-1/2 whitespace-nowrap z-10">
-                                      <span className="text-rose-500 dark:text-rose-400 mr-0.5">Delete?</span>
-                                      <button 
-                                        onClick={() => {
-                                          handleDeleteComment(comment.id);
-                                          setDeletingCommentId(null);
-                                        }}
-                                        className="text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300 font-extrabold"
-                                      >
-                                        Yes
-                                      </button>
-                                      <span className="text-slate-300 dark:text-slate-800">|</span>
-                                      <button 
-                                        onClick={() => setDeletingCommentId(null)}
-                                        className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300 font-extrabold"
-                                      >
-                                        No
-                                      </button>
-                                    </div>
-                                  ) : (
-                                    <button
-                                      onClick={() => setDeletingCommentId(comment.id)}
-                                      className="opacity-0 group-hover:opacity-100 p-1 hover:bg-slate-100 dark:hover:bg-slate-850 text-slate-400 hover:text-rose-500 rounded transition-all cursor-pointer shrink-0"
-                                      title="Delete comment"
-                                    >
-                                      <Trash2 size={12} />
-                                    </button>
-                                  )}
-                                </div>
-                              )}
+                              <span className="text-[12.5px] text-slate-400 dark:text-neutral-500 shrink-0">
+                                · {formatShortTime(comment.created_at)}
+                              </span>
                             </div>
 
+                            {isOwnComment && (
+                              <div className="relative shrink-0">
+                                {deletingCommentId === comment.id ? (
+                                  <div className="flex items-center gap-1.5 bg-rose-50 dark:bg-rose-950/40 border border-rose-200/70 dark:border-rose-800/40 px-2 py-0.5 rounded-md text-[10px] font-bold">
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        handleDeleteComment(comment.id);
+                                        setDeletingCommentId(null);
+                                      }}
+                                      className="text-rose-600 dark:text-rose-400 cursor-pointer"
+                                    >
+                                      Delete
+                                    </button>
+                                    <span className="text-slate-300">|</span>
+                                    <button
+                                      type="button"
+                                      onClick={() => setDeletingCommentId(null)}
+                                      className="text-slate-500 cursor-pointer"
+                                    >
+                                      Cancel
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={() => setDeletingCommentId(comment.id)}
+                                    className="p-1 text-slate-400 hover:text-rose-500 rounded transition-colors cursor-pointer"
+                                    title="Delete reply"
+                                  >
+                                    <Trash2 size={13} />
+                                  </button>
+                                )}
+                              </div>
+                            )}
                           </div>
-                          
-                          {/* Body Content */}
-                          <p className="text-[14px] text-slate-800 dark:text-slate-200 leading-relaxed whitespace-pre-wrap font-sans mt-0.5">
+
+                          <p className="text-[14px] text-slate-800 dark:text-slate-200 leading-relaxed whitespace-pre-wrap mt-0.5">
                             {comment.content}
                           </p>
-                          <div className="flex items-center gap-5 mt-2 mb-1">
-                            {allowComments && !deletingCommentId && (
+
+                          <div className="flex items-center gap-4 mt-1.5">
+                            {allowComments && (
                               <button
-                                onClick={() => {
-                                  setReplyingToCommentId(replyingToCommentId === comment.id ? null : comment.id);
-                                  setReplyText("");
-                                }}
-                                className="text-[13px] font-semibold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 transition-colors"
+                                type="button"
+                                onClick={() =>
+                                  openReplyComposer(comment.id, commenterName, commenterHandle)
+                                }
+                                className="text-[12.5px] font-semibold text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white transition-colors cursor-pointer"
                               >
                                 Reply
                               </button>
                             )}
-                            <button 
-                               onClick={() => handleLikeToggle(comment.id)}
-                               className={`text-[13px] font-semibold transition-colors flex items-center gap-1 ${
-                                 likedComments.includes(comment.id) 
-                                   ? "text-rose-500" 
-                                   : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
-                               }`}>
-                               <IconlyHeart size={14} set={likedComments.includes(comment.id) ? "bold" : "curved"} primaryColor="currentColor" className={likedComments.includes(comment.id) ? "text-rose-500" : ""} />
-                               {likedComments.includes(comment.id) ? "1" : ""}
+                            <button
+                              type="button"
+                              onClick={() => handleLikeToggle(comment.id)}
+                              className={`text-[12.5px] font-semibold flex items-center gap-1 transition-colors cursor-pointer ${
+                                likedComments.includes(comment.id)
+                                  ? "text-rose-500"
+                                  : "text-slate-500 hover:text-rose-500 dark:text-neutral-400"
+                              }`}
+                            >
+                              <IconlyHeart
+                                size={13}
+                                set={likedComments.includes(comment.id) ? "bold" : "curved"}
+                                primaryColor="currentColor"
+                              />
+                              {likedComments.includes(comment.id) ? "1" : ""}
                             </button>
                           </div>
                         </div>
                       </div>
 
-                      {/* INDENTED THREADED REPLIES CONTAINER WITH SLATE TIMELINE CONNECTING LINE */}
-                      {(commentReplies.length > 0 || replyingToCommentId === comment.id) && (
-                        <div className="ml-5 pl-5 border-l-2 border-slate-100 dark:border-slate-800/70 space-y-4 relative">
-                          
-                          {/* Nested Replies Loop */}
+                      {/* Nested Replies */}
+                      {commentReplies.length > 0 && (
+                        <div className="ml-5 pl-4 border-l-2 border-slate-100 dark:border-white/10 space-y-3">
                           {commentReplies.map((reply) => {
-                            const replyName = reply.profiles?.full_name || "Anonymous Trader";
-                            const replyHandle = reply.profiles?.username ? `@${reply.profiles.username}` : "@anonymous";
-                            const replyAvatar = reply.profiles?.avatar_url || "/default-avatar.svg";
-                            const isOwnReply = reply.user_id === currentUserId || replyHandle === `@${localStorage.getItem("tradifive_cached_username")}`;
+                            const rName = reply.profiles?.full_name || "Anonymous Trader";
+                            const rHandle = reply.profiles?.username
+                              ? `@${reply.profiles.username}`
+                              : "@anonymous";
+                            const rAvatar = reply.profiles?.avatar_url || "/default-avatar.svg";
+                            const isOwnReply =
+                              reply.user_id === currentUserId ||
+                              rHandle === `@${localStorage.getItem("tradifive_cached_username")}`;
 
                             return (
-                              <div key={reply.id} className="flex gap-2.5 items-start group relative animate-in fade-in duration-200">
-                                {/* Child Reply Box - Professional Flat Layout */}
-                                <div className="flex gap-2.5 items-start group relative">
-                                  <img 
-                                    src={replyAvatar} 
-                                    alt={replyName} 
-                                    onClick={() => handleUserClick(reply.profiles?.username || replyName)}
-                                    className="w-7 h-7 rounded-full shrink-0 border border-slate-200/50 dark:border-slate-800 object-cover bg-slate-100 shadow-sm mt-0.5 cursor-pointer hover:opacity-80 transition-opacity" 
-                                    onError={(e) => { e.currentTarget.src = "/default-avatar.svg"; }}
-                                  />
-                                  <div className="flex-grow text-xs relative pt-0.5">
-                                    <div className="flex items-center justify-between gap-2 mb-1">
-                                      <div className="flex items-center gap-1.5 min-w-0">
-                                        <span className="font-bold text-slate-900 dark:text-white flex items-center gap-1 truncate font-sans">
-                                          {replyName}
-                                        </span>
-                                        <span className="text-[10px] text-slate-500 dark:text-slate-450 font-medium truncate font-sans">{replyHandle}</span>
-                                      </div>      
-                                      
-                                      {/* Date and Delete Action for Reply */}
-                                      <div className="flex items-center gap-2 shrink-0 relative">
-                                        <span className="text-[9px] text-slate-400 dark:text-slate-400 font-bold font-sans">
-                                          {formatCommentDate(reply.created_at)}
-                                        </span>
-                                        {isOwnReply && (
-                                          <div className="relative">
-                                            {deletingCommentId === reply.id ? (
-                                              <div className="flex items-center gap-1.5 bg-rose-50 dark:bg-rose-955/20 border border-rose-100 dark:border-rose-900/30 px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider animate-in fade-in zoom-in-95 shrink-0 font-sans shadow-sm absolute right-0 top-1/2 -translate-y-1/2 whitespace-nowrap z-10">
-                                                <span className="text-rose-500 dark:text-rose-400 mr-0.5">Delete?</span>
-                                                <button 
-                                                  onClick={() => {
-                                                    handleDeleteComment(reply.id);
-                                                    setDeletingCommentId(null);
-                                                  }}
-                                                  className="text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300 font-extrabold"
-                                                >
-                                                  Yes
-                                                </button>
-                                                <span className="text-slate-300 dark:text-slate-800">|</span>
-                                                <button 
-                                                  onClick={() => setDeletingCommentId(null)}
-                                                  className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300 font-extrabold"
-                                                >
-                                                  No
-                                                </button>
-                                              </div>
-                                            ) : (
-                                              <button
-                                                onClick={() => setDeletingCommentId(reply.id)}
-                                                className="opacity-0 group-hover:opacity-100 p-1 hover:bg-slate-100 dark:hover:bg-slate-850 text-slate-450 hover:text-rose-500 rounded transition-all cursor-pointer shrink-0"
-                                                title="Delete reply"
-                                              >
-                                                <Trash2 size={11} />
-                                              </button>
-                                            )}
-                                          </div>
-                                        )}
-                                      </div>
+                              <div key={reply.id} className="flex gap-2.5 items-start">
+                                <img
+                                  src={rAvatar}
+                                  alt={rName}
+                                  onClick={() =>
+                                    handleUserClick(reply.profiles?.username || rName)
+                                  }
+                                  className="w-7 h-7 rounded-full shrink-0 border border-slate-200/60 dark:border-white/10 object-cover bg-slate-100 cursor-pointer"
+                                  onError={(e) => {
+                                    e.currentTarget.src = "/default-avatar.svg";
+                                  }}
+                                />
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center justify-between gap-2">
+                                    <div className="flex items-center gap-1.5 min-w-0">
+                                      <span className="text-[13px] font-bold text-slate-900 dark:text-white truncate">
+                                        {rName}
+                                      </span>
+                                      <span className="text-[11.5px] text-slate-400 dark:text-neutral-500 shrink-0">
+                                        · {formatShortTime(reply.created_at)}
+                                      </span>
                                     </div>
-                                    <p className="text-[12px] text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap font-sans mt-0.5">
-                                      {reply.content}
-                                    </p>
-                                    <div className="flex items-center gap-4 mt-2">
-                                      <button 
-                                        onClick={() => handleLikeToggle(reply.id)}
-                                        className={`text-[12px] font-semibold transition-colors flex items-center gap-1 ${
-                                          likedComments.includes(reply.id) 
-                                            ? "text-rose-500" 
-                                            : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
-                                        }`}>
-                                         <IconlyHeart size={13} set={likedComments.includes(reply.id) ? "bold" : "curved"} primaryColor="currentColor" className={likedComments.includes(reply.id) ? "text-rose-500" : ""} />
-                                         {likedComments.includes(reply.id) ? "1" : ""}
+                                    {isOwnReply && (
+                                      <button
+                                        type="button"
+                                        onClick={() => handleDeleteComment(reply.id)}
+                                        className="p-1 text-slate-400 hover:text-rose-500 rounded cursor-pointer"
+                                        title="Delete reply"
+                                      >
+                                        <Trash2 size={12} />
                                       </button>
-                                    </div>
+                                    )}
                                   </div>
+                                  <p className="text-[13.5px] text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap mt-0.5">
+                                    {reply.content}
+                                  </p>
                                 </div>
                               </div>
                             );
                           })}
-
-                          {/* Nesting Inline Reply Input Form */}
-                          {replyingToCommentId === comment.id && (
-                            <form 
-                              onSubmit={(e) => {
-                                e.preventDefault();
-                                if (!replyText.trim()) return;
-                                handlePublishComment(replyText, comment.id);
-                                setReplyText("");
-                                setReplyingToCommentId(null);
-                              }}
-                              className="flex items-center gap-2 relative pt-2 pb-1 animate-in fade-in slide-in-from-top-1 duration-150 font-sans"
-                            >
-                              <div className="relative flex-grow">
-                                <input
-                                  type="text"
-                                  value={replyText}
-                                  onChange={(e) => setReplyText(e.target.value)}
-                                  placeholder={`Reply to ${commenterHandle}...`}
-                                  disabled={submitting}
-                                  maxLength={140}
-                                  className="w-full pl-4 pr-10 py-2 rounded-full bg-slate-100 dark:bg-slate-800/60 border border-transparent text-[13px] outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-slate-300 dark:focus:border-slate-700 transition-colors text-slate-900 dark:text-white placeholder:text-slate-500"
-                                />
-                                <button
-                                  type="submit"
-                                  disabled={!replyText.trim() || submitting}
-                                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-full text-blue-500 hover:text-blue-600 disabled:opacity-40 transition-colors"
-                                >
-                                  {submitting ? (
-                                    <Loader2 size={16} className="animate-spin" />
-                                  ) : (
-                                    <IconlySend size={16} set={replyText.trim() ? "bold" : "curved"} primaryColor="currentColor" />
-                                  )}
-                                </button>
-                              </div>
-                            </form>
-                          )}
-
                         </div>
                       )}
-
                     </div>
                   );
                 })
               )}
             </div>
-
-            {/* Comment Input Footer */}
-            <div className="p-4 border-t border-slate-100 dark:border-white/5 shrink-0 bg-white dark:bg-[#1E1E1E]">
-              {allowComments ? (
-                <form onSubmit={(e) => {
-                  e.preventDefault();
-                  if (!inputText.trim()) return;
-                  handlePublishComment(inputText);
-                  setInputText("");
-                }} className="flex items-center gap-3 relative">
-                  <img src={localStorage.getItem("tradifive_cached_avatar_url") || "/default-avatar.svg"} className="w-9 h-9 rounded-full shrink-0 border border-slate-200/50 dark:border-slate-800 object-cover" onError={(e) => { e.currentTarget.src = "/default-avatar.svg"; }} />
-                  <div className="relative flex-grow">
-                    <input
-                      type="text"
-                      value={inputText}
-                      onChange={(e) => setInputText(e.target.value)}
-                      placeholder="Add a comment..."
-                      disabled={submitting}
-                      maxLength={180}
-                      className="w-full pl-4 pr-10 py-2.5 rounded-full bg-slate-100 dark:bg-slate-800/60 border border-transparent text-[14px] outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-slate-300 dark:focus:border-slate-700 transition-colors text-slate-900 dark:text-white placeholder:text-slate-500"
-                    />
-                    <button
-                      type="submit"
-                      disabled={!inputText.trim() || submitting}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full text-blue-500 hover:text-blue-600 disabled:opacity-40 transition-colors"
-                    >
-                      {submitting ? (
-                        <Loader2 size={18} className="animate-spin" />
-                      ) : (
-                        <IconlySend size={18} set={inputText.trim() ? "bold" : "curved"} primaryColor="currentColor" />
-                      )}
-                    </button>
-                  </div>
-                </form>
-              ) : (
-                <div className="flex items-center justify-center gap-2 p-3 rounded-xl border border-dashed border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/10 text-slate-450 text-[12px] font-semibold select-none">
-                  <Lock size={14} className="text-slate-400" />
-                  <span>Comments are disabled for this post.</span>
-                </div>
-              )}
-            </div>
-
           </div>
 
+          {/* Bottom Reply Bar: Collapsed Pill (Image 1) -> Expanded Composer above Keyboard (Image 2) */}
+          <div className="shrink-0 bg-white dark:bg-[#141416] border-t border-slate-100 dark:border-white/10">
+            {!allowComments ? (
+              <div className="px-4 py-3.5 flex items-center justify-center gap-2 text-slate-400 text-[12.5px] font-semibold select-none">
+                <Lock size={14} />
+                <span>Replies are disabled for this post.</span>
+              </div>
+            ) : !isComposerOpen ? (
+              /* Collapsed State — Matching Reference Image 1 */
+              <div className="px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+                <button
+                  type="button"
+                  onClick={() => openReplyComposer(null, authorName, authorHandle)}
+                  className="w-full py-3 px-4 rounded-full bg-slate-100 hover:bg-slate-200/80 dark:bg-white/[0.08] dark:hover:bg-white/[0.12] flex items-center justify-center gap-2 text-[14px] font-semibold text-slate-800 dark:text-slate-100 transition-all active:scale-[0.99] cursor-pointer select-none"
+                >
+                  <MessageCircle size={16} strokeWidth={2.1} />
+                  <span>Reply to {authorName}</span>
+                </button>
+              </div>
+            ) : (
+              /* Expanded Composer State — Matching Reference Image 2 (Stays right above mobile keyboard) */
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (!inputText.trim()) return;
+                  handlePublishComment(inputText, replyingToCommentId);
+                }}
+                className="px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] space-y-2.5 animate-in fade-in slide-in-from-bottom-2 duration-150"
+              >
+                {/* Row 1: "Replying to @handle" + Circular Close (×) */}
+                <div className="flex items-center justify-between">
+                  <span className="text-[13px] font-medium text-slate-400 dark:text-neutral-400">
+                    Replying to {replyTargetHandle || authorHandle}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={closeReplyComposer}
+                    className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/15 text-slate-600 dark:text-slate-300 flex items-center justify-center active:scale-95 transition-all cursor-pointer"
+                    aria-label="Close reply composer"
+                  >
+                    <X size={15} strokeWidth={2.2} />
+                  </button>
+                </div>
+
+                {/* Row 2: Current User Avatar + Auto-Focused Reply Input */}
+                <div className="flex items-start gap-3">
+                  <img
+                    src={currentUserAvatar}
+                    alt="You"
+                    className="w-9 h-9 rounded-full object-cover shrink-0 border border-slate-200/70 dark:border-white/10 bg-slate-100"
+                    onError={(e) => {
+                      e.currentTarget.src = "/default-avatar.svg";
+                    }}
+                  />
+                  <textarea
+                    ref={textareaRef}
+                    rows={2}
+                    value={inputText}
+                    onChange={(e) => setInputText(e.target.value)}
+                    onKeyDown={(e) => {
+                      if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && inputText.trim()) {
+                        e.preventDefault();
+                        handlePublishComment(inputText, replyingToCommentId);
+                      }
+                    }}
+                    placeholder={`Reply to ${replyTargetName || authorName}`}
+                    disabled={submitting}
+                    maxLength={500}
+                    enterKeyHint="send"
+                    className="flex-1 resize-none bg-transparent border-none outline-none text-[15px] text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 leading-relaxed pt-1 max-h-28"
+                  />
+                </div>
+
+                {/* Optional Quick Emoji Bar */}
+                {showEmojiStrip && (
+                  <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1 px-1 bg-slate-50 dark:bg-white/[0.04] rounded-xl">
+                    {QUICK_EMOJIS.map((em) => (
+                      <button
+                        key={em}
+                        type="button"
+                        onClick={() => {
+                          setInputText((prev) => prev + em);
+                          textareaRef.current?.focus();
+                        }}
+                        className="w-8 h-8 rounded-lg hover:bg-slate-200/70 dark:hover:bg-white/10 flex items-center justify-center text-[17px] shrink-0 cursor-pointer active:scale-90 transition-transform"
+                      >
+                        {em}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* Row 3: Emoji + GIF buttons on Left, "Reply" Pill Button on Right */}
+                <div className="flex items-center justify-between pt-1">
+                  <div className="flex items-center gap-2 pl-12">
+                    <button
+                      type="button"
+                      onClick={() => setShowEmojiStrip((prev) => !prev)}
+                      className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors cursor-pointer ${
+                        showEmojiStrip
+                          ? "bg-slate-200 dark:bg-white/20 text-slate-900 dark:text-white"
+                          : "bg-slate-100 hover:bg-slate-200/80 dark:bg-white/10 dark:hover:bg-white/15 text-slate-700 dark:text-slate-200"
+                      }`}
+                      title="Add emoji"
+                      aria-label="Add emoji"
+                    >
+                      <Smile size={18} strokeWidth={2} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => toast.info("GIF picker coming soon")}
+                      className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200/80 dark:bg-white/10 dark:hover:bg-white/15 text-slate-700 dark:text-slate-200 flex items-center justify-center text-[11px] font-extrabold tracking-tight transition-colors cursor-pointer"
+                      title="Add GIF"
+                      aria-label="Add GIF"
+                    >
+                      GIF
+                    </button>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={!inputText.trim() || submitting}
+                    className={`px-5 py-2 rounded-full text-[13.5px] font-bold transition-all select-none ${
+                      inputText.trim() && !submitting
+                        ? "tactile-black-pill cursor-pointer"
+                        : "bg-slate-300 dark:bg-white/15 text-white cursor-not-allowed"
+                    }`}
+                  >
+                    {submitting ? "Replying..." : "Reply"}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
         </motion.div>
       </div>
     </AnimatePresence>,

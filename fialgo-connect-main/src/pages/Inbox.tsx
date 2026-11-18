@@ -4,7 +4,7 @@ import { supabase } from "@/lib/supabase";
 import { useInboxData } from "@/hooks/useInboxData";
 import { usePlan } from "@/hooks/usePlan";
 import { motion, AnimatePresence } from "framer-motion";
-import DashboardLayout from "@/components/DashboardLayout";
+import { CommunityPageWrapper } from "@/components/CommunityShell";
 import { 
   Search, CheckCircle2, MoreVertical, Search as SearchIcon, VolumeX, Volume2, X, ChevronLeft,
   Share2, CornerUpRight, Pin, Gift, Phone, User, Users, Bookmark, Settings as SettingsIcon, 
@@ -202,6 +202,42 @@ export default function InboxPage() {
   }, [dbMessages, user?.id]);
 
   // ── REAL PARTNER TRADING PERFORMANCE FROM SUPABASE JOURNAL_TRADES ──
+  const [showInlineNotifications, setShowInlineNotifications] = useState(false);
+  const [inboxSectionTab, setInboxSectionTab] = useState<"inbox" | "requests">("inbox");
+  const [pendingRequests, setPendingRequests] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    let active = true;
+    const loadRequests = async () => {
+      try {
+        const { data } = await supabase
+          .from("social_follow_requests")
+          .select("*, requester:profiles!social_follow_requests_requester_id_fkey(id, display_name, full_name, username, avatar_url)")
+          .eq("target_id", user.id)
+          .order("created_at", { ascending: false });
+        if (active && data) setPendingRequests(data);
+      } catch {}
+    };
+    loadRequests();
+    return () => { active = false; };
+  }, [user?.id]);
+
+  const handleInboxRequestAction = async (req: any, accept: boolean) => {
+    setPendingRequests((prev) => prev.filter((r) => r.id !== req.id));
+    try {
+      if (accept && req.requester_id && user?.id) {
+        await supabase
+          .from("social_follows")
+          .insert([{ follower_id: req.requester_id, following_id: user.id }]);
+        toast.success("Request accepted");
+      } else {
+        toast.info("Request declined");
+      }
+      await supabase.from("social_follow_requests").delete().eq("id", req.id);
+    } catch {}
+  };
+
   const [partnerTradingStats, setPartnerTradingStats] = useState<{
     winRate: number | null;
     wins: number;
@@ -460,9 +496,9 @@ function InboxSkeleton() {
 
   if (!authChecked || inboxLoading) {
     return (
-      <DashboardLayout breadcrumbs={[{ label: "Inbox", path: "/inbox" }]} noPadding={true} noScroll={true}>
+      <CommunityPageWrapper breadcrumbs={[{ label: "Inbox", path: "/inbox" }]} noPadding={true} noScroll={true}>
         <InboxSkeleton />
-      </DashboardLayout>
+      </CommunityPageWrapper>
     );
   }
 
@@ -511,7 +547,7 @@ function InboxSkeleton() {
   };
 
   return (
-    <DashboardLayout
+    <CommunityPageWrapper
       noPadding={true}
       noScroll={true}
       hideBottomNav={false}
@@ -556,122 +592,135 @@ function InboxSkeleton() {
         {/* --- 1. CONVERSATIONS LIST PANEL --- */}
         <div className={`
           ${mobileView === "list" ? "flex w-full" : "hidden"} 
-          md:flex md:w-[360px] shrink-0 border-r border-slate-150 dark:border-white/5 bg-[#F8FAFC] dark:bg-[#121212] flex-col overflow-hidden h-full
+          md:flex md:w-[380px] shrink-0 border-r border-slate-150 dark:border-white/5 bg-white dark:bg-[#121212] flex-col overflow-hidden h-full
         `}>
-          
-          {/* Search Header */}
-          <div className="p-3 px-4 flex flex-col border-b border-slate-100 dark:border-white/5 bg-white dark:bg-[#121212] gap-2.5 shrink-0">
-            <div className="relative w-full">
-              <IconlySearch set="curved" primaryColor="currentColor" className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-400" size={15} />
-              <input 
-                type="text" 
-                placeholder="Search inbox..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-slate-100/80 dark:bg-[#1E1E1E] border border-slate-200/50 dark:border-white/5 rounded-xl pl-10 pr-8 py-2.5 text-[13px] font-normal placeholder:text-slate-400 dark:placeholder:text-slate-500 text-slate-800 dark:text-white outline-none focus:border-slate-400 focus:bg-white transition-all"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-white p-0.5"
-                >
-                  <X size={14} />
-                </button>
-              )}
-            </div>
-            
-            {/* SaaS Filter Tabs (Favorites, Mentors, Support) */}
-            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide py-0.5">
-              <button 
-                onClick={() => {
-                  setActiveFilter("all");
-                  triggerHaptic("selection");
-                }}
-                className={`px-3.5 py-1.5 rounded-full text-[12px] font-bold transition-all shrink-0 border active:scale-[0.985] ${
-                  activeFilter === "all" 
-                    ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-slate-900 dark:border-white shadow-sm' 
-                    : 'bg-white dark:bg-[#1E1E1E] text-slate-600 dark:text-[#B5BAC1] border-slate-200/80 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20'
-                }`}
-              >
-                All
-              </button>
-              <button 
-                onClick={() => {
-                  if (!canAccess('inbox_favorites')) {
-                    toast.error("Pro Feature", { description: "Upgrade to Pro to filter by Favorites." });
-                    return;
-                  }
-                  triggerHaptic("selection");
-                  setActiveFilter("favorites");
-                }}
-                className={`px-3.5 py-1.5 flex items-center justify-center gap-1.5 rounded-full text-[12px] font-bold transition-all shrink-0 border active:scale-[0.985] ${
-                  activeFilter === "favorites" 
-                    ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-slate-900 dark:border-white shadow-sm' 
-                    : 'bg-white dark:bg-[#1E1E1E] text-slate-600 dark:text-[#B5BAC1] border-slate-200/80 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20'
-                } ${!canAccess('inbox_favorites') ? 'opacity-60' : ''}`}
-              >
-                {!canAccess('inbox_favorites') && <div className="text-amber-500"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></div>}
-                Favorites
-              </button>
-              <button 
-                onClick={() => {
-                  setActiveFilter("mentors");
-                  triggerHaptic("selection");
-                }}
-                className={`px-3.5 py-1.5 rounded-full text-[12px] font-bold transition-all shrink-0 border active:scale-[0.985] ${
-                  activeFilter === "mentors" 
-                    ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-slate-900 dark:border-white shadow-sm' 
-                    : 'bg-white dark:bg-[#1E1E1E] text-slate-600 dark:text-[#B5BAC1] border-slate-200/80 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20'
-                }`}
-              >
-                Mentors
-              </button>
-              <button 
-                onClick={() => {
-                  if (!canAccess('inbox_support')) {
-                    toast.error("Pro Feature", { description: "Upgrade to Pro to access priority Support." });
-                    return;
-                  }
-                  triggerHaptic("selection");
-                  setActiveFilter("support");
-                }}
-                className={`px-3.5 py-1.5 flex items-center justify-center gap-1.5 rounded-full text-[12px] font-bold transition-all shrink-0 border active:scale-[0.985] ${
-                  activeFilter === "support" 
-                    ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-slate-900 dark:border-white shadow-sm' 
-                    : 'bg-white dark:bg-[#1E1E1E] text-slate-600 dark:text-[#B5BAC1] border-slate-200/80 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20'
-                } ${!canAccess('inbox_support') ? 'opacity-60' : ''}`}
-              >
-                {!canAccess('inbox_support') && <div className="text-amber-500"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></div>}
-                Support
-              </button>
-            </div>
-          </div>
-
-          {/* Scrollable list of conversations divided by light dividers */}
-          <div className="flex-1 overflow-y-auto amazing-scrollbar bg-white dark:bg-[#121212] min-h-0 pb-24 md:pb-0">
-            {filteredConversations.length === 0 ? (
-              <div className="flex flex-col items-center justify-center p-8 text-center h-full min-h-[260px] text-slate-400 select-none">
-                <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/5 flex items-center justify-center mb-3 text-slate-400 dark:text-slate-500">
-                  <MessageSquare size={20} />
-                </div>
-                <h4 className="text-[13px] font-bold text-slate-800 dark:text-white">
-                  {searchQuery ? "No matching conversations" : "No Messages Yet"}
-                </h4>
-                <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1 max-w-[220px] leading-relaxed">
-                  {searchQuery 
-                    ? `No conversations match "${searchQuery}". Try a different keyword.` 
-                    : "Direct messages with mentors, risk desk analysts, and peers will appear here."}
-                </p>
-                {!searchQuery && (
-                  <Link
-                    to="/community"
-                    className="mt-4 px-4 py-2 rounded-xl text-[11px] font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 border border-slate-200/60 dark:border-white/5 transition-all shadow-2xs"
+              {/* Full-Width "Inbox" & "Requests" Tabs Bar */}
+              <div className="flex items-center w-full border-b border-slate-200/80 dark:border-white/10 bg-white dark:bg-[#121212] shrink-0">
+                {[
+                  { id: "inbox", label: "Inbox" },
+                  {
+                    id: "requests",
+                    label: pendingRequests.length > 0 ? `Requests (${pendingRequests.length})` : "Requests",
+                  },
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => {
+                      triggerHaptic("selection");
+                      setInboxSectionTab(tab.id as "inbox" | "requests");
+                    }}
+                    className={`flex-1 flex items-center justify-center py-3 text-[15px] tracking-tight cursor-pointer transition-all relative select-none ${
+                      inboxSectionTab === tab.id
+                        ? "font-bold text-slate-900 dark:text-white"
+                        : "font-semibold text-slate-500 hover:text-slate-800 dark:text-neutral-400 dark:hover:text-white"
+                    }`}
                   >
-                    Explore Community
-                  </Link>
-                )}
+                    {tab.label}
+                    {inboxSectionTab === tab.id && (
+                      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-14 h-[3px] bg-blue-600 rounded-full" />
+                    )}
+                  </button>
+                ))}
               </div>
-            ) : (
+
+              {/* Rounded Search Pill */}
+              <div className="px-3.5 py-3 border-b border-slate-100 dark:border-white/5 bg-white dark:bg-[#121212] shrink-0">
+                <div className="relative w-full">
+                  <IconlySearch
+                    set="curved"
+                    primaryColor="currentColor"
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-zinc-500"
+                    size={16}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Search chats and people"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full h-10 bg-slate-100/90 dark:bg-white/[0.07] border border-transparent focus:border-slate-300 dark:focus:border-white/20 rounded-full pl-10 pr-8 text-[14px] font-normal placeholder:text-slate-400 dark:placeholder:text-zinc-500 text-slate-900 dark:text-white outline-none transition-colors"
+                  />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchQuery("")}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-white p-0.5 cursor-pointer"
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Scrollable Conversations or Requests List */}
+              <div className="flex-1 overflow-y-auto amazing-scrollbar bg-white dark:bg-[#121212] min-h-0 pb-24 md:pb-0">
+                {inboxSectionTab === "requests" ? (
+                  pendingRequests.length === 0 ? (
+                    <div className="py-10 px-6 text-center border-b border-slate-100 dark:border-white/5">
+                      <p className="text-[14.5px] font-semibold text-slate-800 dark:text-slate-200">
+                        No requests yet.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-slate-100 dark:divide-white/10 px-4">
+                      {pendingRequests.map((req) => {
+                        const rName =
+                          req.requester?.display_name ||
+                          req.requester?.full_name ||
+                          req.requester?.username ||
+                          "Trader";
+                        const rAvatar = req.requester?.avatar_url || "/default-avatar.svg";
+                        return (
+                          <div key={req.id} className="py-4 flex items-center gap-3">
+                            <img
+                              src={rAvatar}
+                              alt={rName}
+                              onClick={() =>
+                                req.requester?.username && navigate(`/user/${req.requester.username}`)
+                              }
+                              className="w-10 h-10 rounded-full object-cover bg-slate-100 dark:bg-white/10 shrink-0 cursor-pointer"
+                              onError={(e) => {
+                                (e.currentTarget as HTMLImageElement).src = "/default-avatar.svg";
+                              }}
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-[14px] font-bold text-slate-900 dark:text-white truncate">
+                                {rName}
+                              </p>
+                              <p className="text-[12.5px] text-slate-500 dark:text-zinc-400">
+                                Wants to connect with you
+                              </p>
+                              <div className="flex items-center gap-2 mt-2">
+                                <button
+                                  type="button"
+                                  onClick={() => handleInboxRequestAction(req, true)}
+                                  className="px-4 py-1.5 rounded-full tactile-black-pill text-[12.5px] font-bold cursor-pointer"
+                                >
+                                  Accept
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleInboxRequestAction(req, false)}
+                                  className="px-4 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-white/10 text-slate-700 dark:text-slate-200 text-[12.5px] font-bold cursor-pointer"
+                                >
+                                  Decline
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )
+                ) : filteredConversations.length === 0 ? (
+                  <div className="py-8 px-6 text-center border-b border-slate-100 dark:border-white/5 select-none">
+                    <p className="text-[14.5px] font-semibold text-slate-800 dark:text-slate-200">
+                      {searchQuery
+                        ? `No chats found for "${searchQuery}".`
+                        : "No messages yet. Message someone from their profile."}
+                    </p>
+                  </div>
+                ) : (
               filteredConversations.map(conv => {
                 const isActive = conv.id === activeConvId;
                 
@@ -851,8 +900,8 @@ function InboxSkeleton() {
                         {activeConv.status}
                       </span>
                     </div>
-                    <p className="text-[10px] sm:text-[10.5px] font-bold text-slate-500 dark:text-slate-400 mt-0.5 sm:mt-1 uppercase tracking-wider truncate">
-                      {activeConv.designation} &bull; {activeConv.roleTag}
+                    <p className="text-[12px] font-medium text-slate-500 dark:text-zinc-400 mt-0.5 truncate">
+                      @{activeConv.username || activeConv.name.replace(/\s+/g, "").toLowerCase()}
                     </p>
                   </div>
                 </div>
@@ -913,12 +962,6 @@ function InboxSkeleton() {
                 }}
               >
                 
-                <div className="flex justify-center my-2">
-                  <span className="bg-slate-200/60 dark:bg-slate-900/80 border border-slate-300/30 dark:border-white/5 px-4 py-1.5 rounded-full text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400 tracking-wider">
-                    Audited Communication Thread
-                  </span>
-                </div>
-
                 {(() => {
                   const activeMessages = activeConv
                     ? dbMessages.map(msg => {
@@ -1011,42 +1054,43 @@ function InboxSkeleton() {
               </div>
 
               {/* --- RIGHT CHAT FOOTER PANEL --- */}
-              <div className="p-2.5 sm:p-4 px-3 sm:px-6 border-t border-slate-150 dark:border-white/5 bg-white dark:bg-[#121212] flex items-center justify-between z-10 shadow-xs shrink-0 w-full pb-[calc(max(0.75rem,env(safe-area-inset-bottom))+4.75rem)] md:pb-4">
-                <form onSubmit={handleSendMessage} className="w-full flex items-center gap-2 sm:gap-3">
+              <div className="py-2.5 sm:py-3.5 px-3 sm:px-5 border-t border-slate-200/80 dark:border-white/10 bg-white dark:bg-[#121212] flex items-center justify-between z-10 shrink-0 w-full">
+                <form onSubmit={handleSendMessage} className="w-full flex items-center gap-2 sm:gap-2.5">
                   <button 
                     type="button" 
                     onClick={() => {
                       toast.success("Attachment selector opened");
                       triggerHaptic("light");
                     }} 
-                    className="w-10 h-10 sm:w-11 sm:h-11 rounded-full border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#1E1E1E] text-slate-600 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400 shadow-sm hover:bg-slate-50 dark:hover:bg-[#252525] flex items-center justify-center transition-all duration-150 active:scale-[0.985] shrink-0 outline-none"
+                    className="w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200/80 dark:bg-white/[0.08] dark:hover:bg-white/[0.14] text-slate-700 dark:text-slate-200 flex items-center justify-center transition-all duration-150 active:scale-95 shrink-0 outline-none cursor-pointer"
                     title="Add attachment"
                   >
-                    <IconlyPlus set="curved" primaryColor="currentColor" size={19} />
+                    <IconlyPlus set="curved" stroke="bold" primaryColor="currentColor" size={19} />
                   </button>
                   
-                  <div className="flex-1 bg-slate-100 dark:bg-[#1E1E1E] border border-transparent rounded-[24px] flex items-center px-4 sm:px-5 py-1 sm:py-1.5 transition-all relative">
+                  <div className="flex-1 bg-slate-100/95 dark:bg-white/[0.07] border border-transparent focus-within:border-slate-300 dark:focus-within:border-white/20 rounded-full flex items-center px-4 py-1 transition-all relative">
                     <input 
                       ref={chatInputRef}
                       type="text" 
                       value={inputText}
                       onChange={(e) => setInputText(e.target.value)}
-                      placeholder={`Reply to ${activeConv.name}...`} 
-                      className="w-full bg-transparent border-none outline-none text-slate-800 dark:text-slate-200 placeholder:text-slate-400 font-medium text-[13.5px] sm:text-[14px] py-1 sm:py-1.5"
+                      placeholder={`Message @${activeConv.username || activeConv.name.replace(/\s+/g, "").toLowerCase()}...`} 
+                      className="w-full bg-transparent border-none outline-none text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-500 font-normal text-[14px] py-1.5"
                     />
                   </div>
 
                   <button 
                     type="submit" 
                     disabled={!inputText.trim()} 
-                    className={`w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center transition-all duration-150 shrink-0 outline-none active:scale-[0.985] ${
+                    className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-150 shrink-0 outline-none select-none ${
                       inputText.trim() 
-                        ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-sm shadow-blue-500/25 cursor-pointer' 
-                        : 'border border-slate-200/60 dark:border-white/5 bg-slate-100 dark:bg-[#1A1A1A] text-slate-400 dark:text-slate-600 opacity-40 cursor-not-allowed'
+                        ? 'tactile-black-pill cursor-pointer' 
+                        : 'bg-slate-200 dark:bg-white/10 text-slate-500 dark:text-zinc-400 cursor-not-allowed'
                     }`}
                     title="Send message"
+                    aria-label="Send message"
                   >
-                    <IconlySend set="curved" primaryColor="currentColor" size={19} className="mr-0.5" />
+                    <IconlySend set={inputText.trim() ? "bold" : "curved"} stroke="bold" primaryColor="currentColor" size={18} />
                   </button>
                 </form>
               </div>
@@ -1112,8 +1156,8 @@ function InboxSkeleton() {
                     {activeConv.name}
                     {activeConv.verified && <CheckCircle2 size={15} className="text-slate-400 fill-slate-450 dark:text-slate-400 dark:fill-slate-550 text-white shrink-0" />}
                   </h3>
-                  <p className="text-[12.5px] text-slate-400 dark:text-slate-400 font-bold leading-none uppercase tracking-wider">
-                    {activeConv.roleTag} &bull; {activeConv.department} Desk
+                  <p className="text-[12.5px] text-slate-500 dark:text-zinc-400 font-medium leading-none">
+                    @{activeConv.username || activeConv.name.replace(/\s+/g, "").toLowerCase()}
                   </p>
                   
                   <Link to={`/user/${activeConv.username || activeConv.name.replace(/\s+/g, '').toLowerCase()}`} className="mt-4 inline-flex items-center justify-center gap-1.5 w-full h-[38px] rounded-full text-[12px] font-extrabold uppercase tracking-wider text-slate-900 dark:text-white transition-all bg-white dark:bg-[#1E1E1E] shadow-sm border border-slate-200/90 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-[#252525] active:scale-[0.985]">
@@ -1381,6 +1425,6 @@ function InboxSkeleton() {
           />
         </div>
       )}
-    </DashboardLayout>
+    </CommunityPageWrapper>
   );
 }

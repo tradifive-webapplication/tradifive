@@ -8,6 +8,7 @@ import { TradingProvider } from "@/contexts/TradingContext";
 import { AuthGuard } from "@/components/AuthGuard";
 import { MaintenanceGuard } from "@/components/MaintenanceGuard";
 import { ProtectedLayout } from "./components/ProtectedLayout";
+import CommunityShell from "./components/CommunityShell";
 import { CustomCursor } from "./components/CustomCursor";
 import { NetworkNotifier } from "@/components/NetworkNotifier";
 import { AppUpdateBanner } from "@/components/AppUpdateBanner";
@@ -88,6 +89,7 @@ const MyStore = lazy(() => import("./pages/creator/MyStore"));
 const LiveSessions = lazy(() => import("./pages/creator/LiveSessions"));
 const Create = lazy(() => import("./pages/create"));
 const Home = lazyWithRetry(() => import("./pages/Home"));
+const PostDetail = lazyWithRetry(() => import("./pages/PostDetail"));
 const Discover = lazy(() => import("./pages/Discover"));
 const DiscoverPublic = lazy(() => import("./pages/DiscoverPublic"));
 const ChannelsPublic = lazy(() => import("./pages/ChannelsPublic"));
@@ -145,6 +147,11 @@ const App = () => {
       import("./pages/UserProfilePublic");
       import("./pages/Profile");
       import("./pages/Home");
+      import("./pages/PostDetail");
+      import("./pages/Discover");
+      import("./pages/Inbox");
+      import("./pages/Channel");
+      import("./pages/creator/LiveSessions");
     };
 
     if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
@@ -207,13 +214,23 @@ const App = () => {
                 <Route path="/broker-auth/:brokerId" element={<BrokerAuth />} />
                 {/* Protected Routes Wrapper */}
                 <Route element={<ProtectedLayout />}>
-                  <Route path="/home" element={<Home />} />
-                  <Route path="/discover" element={<Discover />} />
-                  <Route path="/marketplace" element={<Discover />} />
-                  <Route path="/auto-trade/marketplace" element={<Discover />} />
-                  <Route path="/marketplace/store" element={<Discover />} />
-                  <Route path="/marketplace/signals" element={<Discover />} />
-                  <Route path="/store" element={<Discover />} />
+                  {/* Persistent Community Shell: Top Logo, Profile/Bell, and 5-Icon Bar stay fixed while lower content animates */}
+                  <Route element={<CommunityShell />}>
+                    <Route path="/home" element={<Home />} />
+                    <Route path="/discover" element={<Discover />} />
+                    <Route path="/marketplace" element={<Discover />} />
+                    <Route path="/auto-trade/marketplace" element={<Discover />} />
+                    <Route path="/marketplace/store" element={<Discover />} />
+                    <Route path="/marketplace/signals" element={<Discover />} />
+                    <Route path="/store" element={<Discover />} />
+                    <Route path="/learning" element={<Discover />} />
+                    <Route path="/courses" element={<Discover />} />
+                    <Route path="/creator/live" element={<LiveSessions />} />
+                    <Route path="/inbox" element={<Inbox />} />
+                    <Route path="/channel" element={<Channel />} />
+                    <Route path="/channel/:channelId" element={<Channel />} />
+                  </Route>
+                  <Route path="/post/:postId" element={<PostDetail />} />
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/dashboard/portfolio" element={<Portfolio />} />
                   <Route path="/dashboard/brokers" element={<Brokers />} />
@@ -261,15 +278,10 @@ const App = () => {
                   <Route path="/rewards" element={<Rewards />} />
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/user/:username" element={<UserProfilePublic />} />
-                  <Route path="/channel" element={<Channel />} />
                   <Route path="/channels" element={<Navigate to="/channel" replace />} />
                   <Route path="/channels/all" element={<Navigate to="/channel" replace />} />
-                  <Route path="/channel/:channelId" element={<Channel />} />
-                  <Route path="/inbox" element={<Inbox />} />
                   <Route path="/messages" element={<Navigate to="/inbox" replace />} />
                   <Route path="/channels/messages" element={<Navigate to="/inbox" replace />} />
-                  <Route path="/learning" element={<Discover />} />
-                  <Route path="/courses" element={<Discover />} />
                   <Route path="/discover/strategies" element={<Navigate to="/discover" replace />} />
                   <Route path="/discover/traders" element={<Navigate to="/discover" replace />} />
                   <Route path="/finance" element={<Navigate to="/dashboard/portfolio" replace />} />
@@ -289,7 +301,6 @@ const App = () => {
                   <Route path="/creator/analytics" element={<CreatorAnalytics />} />
                   <Route path="/creator/mentorship" element={<MentorshipHub />} />
                   <Route path="/creator/store" element={<MyStore />} />
-                  <Route path="/creator/live" element={<LiveSessions />} />
                 </Route>
 
                 {/* Admin Routes */}

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { Link, useNavigate, useSearchParams, useLocation } from "react-router-dom";
-import DashboardLayout from "@/components/DashboardLayout";
+import { CommunityPageWrapper } from "@/components/CommunityShell";
 import { Cpu, Camera, X, Upload, Image as ImageIcon, Check, ArrowRight, ShieldCheck, Zap, Copy, QrCode, Sparkles, Star, TrendingUp, KeyRound, ExternalLink, Eye, Info, Download, CheckCircle2, AlertCircle, HelpCircle, Smartphone, Landmark } from "lucide-react";
 import { QRCodeSVG } from 'qrcode.react';
 import { toast } from 'sonner';
@@ -118,6 +118,7 @@ export default function Discover() {
     });
     const [addedUsers, setAddedUsers] = useState<string[]>([]);
     const [joinedChannels, setJoinedChannels] = useState<string[]>([]);
+    const [showInlineNotifications, setShowInlineNotifications] = useState(false);
 
     const [detailsModalProduct, setDetailsModalProduct] = useState<MarketplaceProduct | null>(null);
     const [purchaseModalProduct, setPurchaseModalProduct] = useState<any>(null);
@@ -536,26 +537,17 @@ export default function Discover() {
 
     if (!authChecked || loading) {
         return (
-            <DashboardLayout breadcrumbs={[{ label: "Discover", path: "/discover" }]} noPadding={true} noScroll={true}>
+            <CommunityPageWrapper breadcrumbs={[{ label: "Discover", path: "/discover" }]} noPadding={true} noScroll={true}>
                 <div className="h-full overflow-y-auto w-full scrollbar-hide">
                     <DiscoverSkeleton />
                 </div>
-            </DashboardLayout>
+            </CommunityPageWrapper>
         );
     }
 
-
-
-
-
-
-
-
-
     return (
-        <DashboardLayout breadcrumbs={[{ label: "Discover", path: "/discover" }]} noPadding={true} noScroll={true}>
-            <div className="w-full font-sans pb-32 bg-white dark:bg-transparent text-slate-800 dark:text-slate-100 h-full overflow-y-auto overflow-x-hidden relative scrollbar-hide">
-
+        <CommunityPageWrapper breadcrumbs={[{ label: "Discover", path: "/discover" }]} noPadding={true} noScroll={true}>
+            <div className="w-full font-sans pb-32 bg-white dark:bg-transparent text-slate-800 dark:text-slate-100 relative">
                 {/* 1. DISCORD TOP BAR NAVIGATION (STICKY) */}
                 <div className="w-full flex justify-center sticky top-0 z-50 border-b border-slate-100 dark:border-white/5 bg-white/80 dark:bg-[#1C1C21]/80 backdrop-blur-md">
                     <div className="w-full max-w-[1400px] mx-auto px-4 md:px-8 lg:px-12 flex flex-col md:flex-row md:items-stretch justify-between gap-4">
@@ -1842,6 +1834,6 @@ export default function Discover() {
                 .scrollbar-hide::-webkit-scrollbar { display: none; }
                 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
             `}} />
-        </DashboardLayout>
+        </CommunityPageWrapper>
     )
 }

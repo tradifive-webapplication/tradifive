@@ -27,7 +27,7 @@ import {
 } from "react-iconly";
 
 import { Link, useNavigate, useParams } from "react-router-dom";
-import DashboardLayout from "@/components/DashboardLayout";
+import { CommunityPageWrapper } from "@/components/CommunityShell";
 import { 
     Activity, ArrowLeft, Heart, MoreHorizontal, MoreVertical, Search, Share2, ShieldCheck, Star, 
     Pin, Gift, Phone, User, Users, Bookmark, Settings as SettingsIcon, 
@@ -138,6 +138,7 @@ export default function Channel() {
   } | null>(null);
 
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+  const [showInlineNotifications, setShowInlineNotifications] = useState(false);
 
   useEffect(() => {
     const closeMenu = () => setContextMenu(null);
@@ -438,13 +439,13 @@ function ChannelSkeleton() {
 
   if (!authChecked || (dbLoading && dbChannels.length === 0)) {
     return (
-      <DashboardLayout 
+      <CommunityPageWrapper 
         noPadding={true} 
         noScroll={true}
         breadcrumbs={[{ label: 'Channel', path: '/channel' }, { label: 'Loading...' }]}
       >
         <ChannelSkeleton />
-      </DashboardLayout>
+      </CommunityPageWrapper>
     );
   }
 
@@ -736,55 +737,10 @@ function ChannelSkeleton() {
     c.content.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const headerActions = (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <button 
-          className="flex items-center justify-center w-10 h-10 rounded-xl border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:shadow-none shadow-[0_4px_7px_-5px_rgba(0,0,0,0.08),0_0_0_2px_#E2E8F0] dark:shadow-none text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-all active:scale-95 cursor-pointer outline-none"
-          title="Channel Menu"
-        >
-          <Menu size={20} />
-        </button>
-      </DropdownMenuTrigger>
-      
-      <DropdownMenuContent align="end" className="w-56 mt-2 rounded-2xl border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:shadow-none shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:shadow-none p-1.5 z-[100] outline-none">
-        <DropdownMenuLabel className="px-3 py-2 text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider">
-          Channel Actions
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator className="my-1 border-slate-100 dark:border-white/5" />
-        
-        <DropdownMenuItem 
-          onClick={() => setIsCreateModalOpen(true)}
-          className="flex items-center gap-3 text-[13.5px] font-medium text-slate-700 dark:text-slate-350 hover:bg-slate-100/80 dark:hover:bg-slate-800/40 px-3 py-2.5 rounded-xl transition-all cursor-pointer outline-none"
-        >
-          <Users size={16} className="text-slate-400" />
-          <span>New Group</span>
-        </DropdownMenuItem>
-
-        <DropdownMenuItem 
-          onClick={() => setIsCreateModalOpen(true)}
-          className="flex items-center gap-3 text-[13.5px] font-medium text-slate-700 dark:text-slate-350 hover:bg-slate-100/80 dark:hover:bg-slate-800/40 px-3 py-2.5 rounded-xl transition-all cursor-pointer outline-none"
-        >
-          <Megaphone size={16} className="text-slate-400" />
-          <span>New Channel</span>
-        </DropdownMenuItem>
-
-        <DropdownMenuItem 
-          onClick={() => toast.info("Settings console requested")}
-          className="flex items-center gap-3 text-[13.5px] font-medium text-slate-700 dark:text-slate-350 hover:bg-slate-100/80 dark:hover:bg-slate-800/40 px-3 py-2.5 rounded-xl transition-all cursor-pointer outline-none"
-        >
-          <SettingsIcon size={16} className="text-slate-400" />
-          <span>Settings</span>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-
   return (
-    <DashboardLayout 
+    <CommunityPageWrapper 
       noPadding={true} 
       noScroll={true} 
-      headerActions={headerActions}
       breadcrumbs={[{ label: 'Channel', path: '/channel' }, { label: activeChannel ? activeChannel.name : 'Loading...' }]}
     >
       <div className="font-sans relative flex w-full bg-white dark:bg-[#121212] text-slate-800 dark:text-slate-100 rounded-b-[2.4rem] overflow-hidden flex-1 min-h-0 select-none transition-colors duration-200">
@@ -821,85 +777,302 @@ function ChannelSkeleton() {
           }
         `}} />
 
-        {/* --- 1. CHANNEL LIST COLUMN --- */}
-        <div className={`${mobileView === 'chat' ? 'hidden md:flex' : 'flex'} w-full md:w-[360px] shrink-0 border-r border-slate-150 dark:border-white/5 bg-[#F8FAFC] dark:bg-[#121212] flex-col overflow-hidden h-full`}>
-          
-          {/* List Search Header */}
-          <div className="p-3 px-4 flex items-center gap-2 border-b border-slate-100 dark:border-white/5 bg-white dark:bg-[#121212] h-[60px] shrink-0">
-            <div className="relative flex-1">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-400" size={15} strokeWidth={2.5} />
-              <input 
-                type="text" 
-                placeholder="Search..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:shadow-none shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:shadow-none rounded-xl pl-10 pr-4 py-2 text-[13px] font-normal placeholder:text-slate-400 dark:placeholder:text-slate-655 text-slate-800 dark:text-white outline-none focus:border-blue-600 transition-all"
-              />
-            </div>
-            <button 
-              onClick={() => setIsCreateModalOpen(true)}
-              className="w-9 h-9 shrink-0 flex items-center justify-center rounded-xl border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:shadow-none shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:shadow-none text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-all active:scale-95"
-              title="Create Channel or Group"
-            >
-              <IconlyPlus set="curved" primaryColor="currentColor" size={20} stroke="bold" strokeWidth={2} />
-            </button>
-          </div>
+        {/* --- 1. CHANNEL LIST COLUMN (Editorial Channels Hub) --- */}
+        <div className={`${mobileView === 'chat' ? 'hidden md:flex' : 'flex'} relative w-full md:w-[400px] shrink-0 border-r border-slate-150 dark:border-white/5 bg-white dark:bg-[#121212] flex-col overflow-hidden h-full`}>
+          {(() => {
+              const getChannelTag = (name: string) => {
+                const words = (name || "CH").trim().split(/\s+/).filter(Boolean);
+                if (words.length >= 2) {
+                  return words.slice(0, 3).map((w) => w[0]).join("").toUpperCase();
+                }
+                return (words[0] || "CH").slice(0, 4).toUpperCase();
+              };
 
-          {/* Channels Scrollable list */}
-          <div className="flex-1 overflow-y-auto amazing-scrollbar bg-white dark:bg-[#121212] min-h-0">
-            {filteredChannels.map(ch => {
-              const isActive = ch.id === activeChannelId;
+              const featuredChannel =
+                filteredChannels.find((c) => c.id === activeChannelId) ||
+                filteredChannels.find((c) => c.created_by === user?.id) ||
+                filteredChannels[0] ||
+                null;
+
+              const topThreeChannels = filteredChannels.slice(0, 3);
+              const remainingChannels = filteredChannels.slice(3);
+
+              const openChannelRoom = (channelId: string) => {
+                setActiveChannelId(channelId);
+                setMobileView('chat');
+              };
+
               return (
-                <div
-                  key={ch.id}
-                  onClick={() => {
-                    setActiveChannelId(ch.id);
-                    setMobileView('chat');
-                  }}
-                  className={`relative text-left w-full p-4 flex gap-3.5 border-b border-slate-100/60 dark:border-white/5 transition-all duration-200 outline-none items-center cursor-pointer select-none ${
-                    isActive 
-                      ? "bg-slate-100/70 dark:bg-slate-800/30 text-slate-900 dark:text-white" 
-                      : "hover:bg-slate-50/50 dark:hover:bg-slate-800/10"
-                  }`}
-                >
-                  {isActive && (
-                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-slate-500 dark:bg-slate-400 rounded-r-full shadow-xs" />
-                  )}
-                  
-                  <img src={ch.avatar} alt={ch.name} className="w-10 h-10 rounded-full object-cover shrink-0 border border-slate-100 dark:border-white/5 shadow-xs" onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.svg"; }} />
-                  
-                  <div className="flex-1 min-w-0 flex flex-col gap-1">
-                    <div className="flex items-center justify-between gap-2">
-                      <h4 className="text-[13.5px] font-semibold leading-none truncate flex items-center gap-1 min-w-0 text-slate-900 dark:text-white">
-                        <span className="truncate">{ch.name}</span>
-                        {ch.created_by === user?.id && <Crown size={14} className="text-amber-500 fill-amber-500/20 shrink-0 ml-0.5" title="You created this channel" />}
-                        {ch.verified && <CheckCircle2 size={13} className="text-slate-400 fill-slate-400 dark:text-slate-400 dark:fill-slate-550 text-white shrink-0" />}
-                      </h4>
-                      <span className="text-[11px] shrink-0 font-semibold tabular-nums text-slate-400 dark:text-slate-400">
-                        {ch.time}
-                      </span>
-                    </div>
-                    
-                    <div className="flex items-start justify-between gap-2.5">
-                      <p className="text-[12.5px] font-normal leading-snug line-clamp-2 flex-1 text-slate-555 dark:text-slate-400">
-                        {ch.content}
+                <>
+                  <div className="flex-1 overflow-y-auto amazing-scrollbar bg-white dark:bg-[#121212] min-h-0 px-3.5 sm:px-4 pt-4 pb-24 space-y-5">
+                    {/* Title & Subtitle */}
+                    <div>
+                      <h1 className="text-[24px] font-bold text-slate-900 dark:text-white tracking-tight leading-tight">
+                        Channels
+                      </h1>
+                      <p className="text-[13.5px] text-slate-500 dark:text-zinc-400 mt-1 leading-relaxed">
+                        Small groups of traders. Join channels to share setups and discuss markets.
                       </p>
-                      
-                      {ch.unread > 0 && (
-                        <span className={`shrink-0 self-end px-2 py-0.5 rounded-full text-[10px] font-extrabold shadow-xs tabular-nums mt-0.5 ${
-                          isActive 
-                            ? "bg-slate-700 dark:bg-slate-600 text-white" 
-                            : "bg-slate-100 dark:bg-slate-800/60 text-slate-650 dark:text-slate-400 border border-slate-200/50 dark:border-white/5"
-                        }`}>
-                          {ch.unread > 999 ? `${(ch.unread / 1000).toFixed(1)}k` : ch.unread}
-                        </span>
+                    </div>
+
+                    {/* Rounded Search Pill */}
+                    <div className="relative w-full">
+                      <Search
+                        className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-zinc-500"
+                        size={16}
+                        strokeWidth={2.2}
+                      />
+                      <input
+                        type="text"
+                        placeholder="Search channels by name or tag"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full h-11 bg-slate-100/90 dark:bg-white/[0.07] border border-transparent focus:border-slate-300 dark:focus:border-white/20 rounded-full pl-11 pr-9 text-[14px] font-normal placeholder:text-slate-400 dark:placeholder:text-zinc-500 text-slate-900 dark:text-white outline-none transition-colors"
+                      />
+                      {searchQuery && (
+                        <button
+                          type="button"
+                          onClick={() => setSearchQuery("")}
+                          className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer"
+                        >
+                          <X size={15} />
+                        </button>
                       )}
                     </div>
+
+                    {/* Featured Dark Card: YOUR CHANNEL */}
+                    {featuredChannel && !searchQuery && (
+                      <div className="rounded-[24px] bg-gradient-to-br from-[#18181B] via-[#0B0B0D] to-[#1E1E24] text-white p-4 border border-white/10 shadow-[0_12px_30px_-10px_rgba(0,0,0,0.45)]">
+                        <div className="flex items-start gap-3.5">
+                          <img
+                            src={featuredChannel.avatar}
+                            alt={featuredChannel.name}
+                            className="w-16 h-16 rounded-2xl object-cover bg-black/50 border border-white/15 shrink-0"
+                            onError={(e) => {
+                              (e.currentTarget as HTMLImageElement).src = "/default-avatar.svg";
+                            }}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400 block">
+                              YOUR CHANNEL
+                            </span>
+                            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                              <h2 className="text-[17px] font-bold text-white leading-tight truncate">
+                                {featuredChannel.name}
+                              </h2>
+                              <span className="px-1.5 py-0.5 rounded-md bg-white/12 border border-white/15 text-[10px] font-extrabold text-zinc-200 tracking-wide shrink-0">
+                                {getChannelTag(featuredChannel.name)}
+                              </span>
+                            </div>
+                            <p className="text-[12px] text-zinc-400 mt-1 truncate">
+                              {featuredChannel.subscribers || "Active community"}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2.5 mt-4">
+                          <button
+                            type="button"
+                            onClick={() => openChannelRoom(featuredChannel.id)}
+                            className="px-5 py-2 rounded-full bg-white hover:bg-slate-100 text-slate-900 text-[13px] font-bold transition-all active:scale-95 cursor-pointer"
+                          >
+                            Open
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const inviteUrl = `${window.location.origin}/channel/${featuredChannel.id}`;
+                              navigator.clipboard.writeText(inviteUrl);
+                              toast.success("Channel invite link copied!");
+                            }}
+                            className="px-4 py-2 rounded-full bg-white/10 hover:bg-white/15 border border-white/15 text-white text-[13px] font-semibold flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer"
+                          >
+                            <Link2 size={14} />
+                            <span>Invite</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* TOP CHANNELS Podium (1, 2, 3) */}
+                    {topThreeChannels.length > 0 && (
+                      <div className="space-y-3">
+                        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500 dark:text-zinc-400">
+                          TOP CHANNELS
+                        </p>
+
+                        <div className="grid grid-cols-3 gap-2.5">
+                          {topThreeChannels.map((ch, idx) => {
+                            const isJoined = ch.id === activeChannelId || ch.created_by === user?.id;
+                            const tag = getChannelTag(ch.name);
+                            const topGradient =
+                              idx === 0
+                                ? "from-slate-300/65 via-slate-100/70 to-slate-50 dark:from-white/[0.12] dark:via-white/[0.05] dark:to-white/[0.02]"
+                                : idx === 1
+                                  ? "from-zinc-200/75 via-slate-100/60 to-slate-50 dark:from-white/[0.09] dark:via-white/[0.04] dark:to-white/[0.02]"
+                                  : "from-amber-100/60 via-slate-100/60 to-slate-50 dark:from-amber-500/10 dark:via-white/[0.04] dark:to-white/[0.02]";
+
+                            return (
+                              <div
+                                key={ch.id}
+                                onClick={() => openChannelRoom(ch.id)}
+                                className={`rounded-[22px] bg-gradient-to-b ${topGradient} border border-slate-200/75 dark:border-white/10 p-2.5 pt-3 flex flex-col items-center text-center relative cursor-pointer transition-all hover:shadow-sm`}
+                              >
+                                <span className="absolute top-2.5 left-3 text-[17px] font-black text-slate-900 dark:text-white leading-none">
+                                  {idx + 1}
+                                </span>
+
+                                <img
+                                  src={ch.avatar}
+                                  alt={ch.name}
+                                  className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl object-cover bg-white dark:bg-black/40 border border-white/80 dark:border-white/10 shadow-xs mt-1"
+                                  onError={(e) => {
+                                    (e.currentTarget as HTMLImageElement).src = "/default-avatar.svg";
+                                  }}
+                                />
+
+                                <h3 className="text-[12.5px] font-bold text-slate-900 dark:text-white leading-tight line-clamp-2 mt-2 min-h-[30px]">
+                                  {ch.name}
+                                </h3>
+
+                                <p className="text-[10.5px] text-slate-500 dark:text-zinc-400 truncate max-w-full mt-0.5">
+                                  <span className="font-bold text-slate-700 dark:text-zinc-300">{tag}</span>
+                                  {ch.subscribers ? ` · ${ch.subscribers.split(" ")[0]}` : ""}
+                                </p>
+
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    openChannelRoom(ch.id);
+                                  }}
+                                  className={`mt-2.5 w-full py-1.5 rounded-full text-[11.5px] font-bold flex items-center justify-center gap-1 transition-all cursor-pointer ${
+                                    isJoined
+                                      ? "tactile-white-pill"
+                                      : "tactile-black-pill"
+                                  }`}
+                                >
+                                  {isJoined ? (
+                                    <>
+                                      <Check size={12} strokeWidth={2.6} /> Joined
+                                    </>
+                                  ) : (
+                                    "Join"
+                                  )}
+                                </button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Ranked Channels List (#4+) */}
+                    {remainingChannels.length > 0 && (
+                      <div className="divide-y divide-slate-100 dark:divide-white/10">
+                        {remainingChannels.map((ch, idx) => {
+                          const rank = idx + 4;
+                          const tag = getChannelTag(ch.name);
+                          const isLocked = ch.type === "private" || ch.type === "vip";
+                          return (
+                            <div
+                              key={ch.id}
+                              onClick={() => openChannelRoom(ch.id)}
+                              className="py-3 flex items-center gap-3 cursor-pointer hover:bg-slate-50/70 dark:hover:bg-white/[0.03] -mx-1 px-1 rounded-xl transition-colors"
+                            >
+                              <span className="w-5 text-center text-[13px] font-bold text-slate-400 dark:text-zinc-500 shrink-0 tabular-nums">
+                                {rank}
+                              </span>
+
+                              <img
+                                src={ch.avatar}
+                                alt={ch.name}
+                                className="w-10 h-10 rounded-xl object-cover bg-slate-100 dark:bg-white/10 border border-slate-200/70 dark:border-white/10 shrink-0"
+                                onError={(e) => {
+                                  (e.currentTarget as HTMLImageElement).src = "/default-avatar.svg";
+                                }}
+                              />
+
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-1.5 min-w-0">
+                                  <h4 className="text-[14px] font-bold text-slate-900 dark:text-white truncate">
+                                    {ch.name}
+                                  </h4>
+                                  <span className="px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-white/10 text-[10px] font-extrabold text-slate-600 dark:text-zinc-300 shrink-0">
+                                    {tag}
+                                  </span>
+                                </div>
+                                <p className="text-[12px] text-slate-500 dark:text-zinc-400 truncate mt-0.5">
+                                  {ch.subscribers || ch.content || "Trading community"}
+                                </p>
+                              </div>
+
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openChannelRoom(ch.id);
+                                }}
+                                className="px-3.5 py-1.5 rounded-full border border-slate-200 dark:border-white/15 bg-white dark:bg-white/[0.05] hover:bg-slate-50 dark:hover:bg-white/10 text-slate-800 dark:text-slate-100 text-[12px] font-bold flex items-center gap-1 shrink-0 transition-colors cursor-pointer"
+                              >
+                                {isLocked ? (
+                                  <>
+                                    <Lock size={11} /> Invite only
+                                  </>
+                                ) : (
+                                  "Join"
+                                )}
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* Empty State */}
+                    {filteredChannels.length === 0 && (
+                      <div className="py-10 text-center">
+                        <p className="text-[14px] font-semibold text-slate-500 dark:text-zinc-400">
+                          {searchQuery
+                            ? `No channels found matching "${searchQuery}".`
+                            : "No channels yet. Start the first trading channel below!"}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Dashed "Start a channel" Card */}
+                    <button
+                      type="button"
+                      onClick={() => setIsCreateModalOpen(true)}
+                      className="w-full text-left rounded-[22px] border-2 border-dashed border-slate-200 dark:border-white/15 hover:border-slate-300 dark:hover:border-white/25 p-4 flex items-center gap-3.5 transition-colors cursor-pointer group"
+                    >
+                      <div className="w-11 h-11 rounded-xl border border-dashed border-slate-300 dark:border-white/20 bg-slate-50 dark:bg-white/[0.04] flex items-center justify-center text-slate-600 dark:text-slate-300 group-hover:bg-slate-100 dark:group-hover:bg-white/10 shrink-0 transition-colors">
+                        <Plus size={20} strokeWidth={2.2} />
+                      </div>
+                      <div className="min-w-0">
+                        <h4 className="text-[14.5px] font-bold text-slate-900 dark:text-white leading-tight">
+                          Start a channel
+                        </h4>
+                        <p className="text-[12.5px] text-slate-500 dark:text-zinc-400 mt-0.5 leading-snug">
+                          Create your own trading channel with a picture, name, and live community chat.
+                        </p>
+                      </div>
+                    </button>
                   </div>
-                </div>
+
+                  {/* Floating Black Tactile + Button (Create Channel) */}
+                  <button
+                    type="button"
+                    onClick={() => setIsCreateModalOpen(true)}
+                    className="md:hidden fixed right-5 bottom-[calc(max(0.75rem,env(safe-area-inset-bottom))+5.25rem)] z-40 w-[52px] h-[52px] rounded-full tactile-black-pill flex items-center justify-center cursor-pointer select-none"
+                    title="Start a channel"
+                    aria-label="Start a channel"
+                  >
+                    <Plus size={24} strokeWidth={2.6} />
+                  </button>
+                </>
               );
-            })}
-          </div>
+            })()}
 
         </div>
 
@@ -2140,6 +2313,6 @@ function ChannelSkeleton() {
           />
         </div>
       )}
-    </DashboardLayout>
+    </CommunityPageWrapper>
   );
 }

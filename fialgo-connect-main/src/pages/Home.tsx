@@ -1,5 +1,5 @@
-﻿import { Search, Plus, X, MoreHorizontal, Heart, MessageCircle, Bookmark, UserPlus, UserCheck, Flame, ShieldCheck, TrendingUp, Layers, Eye, Calendar, Sliders, Trash2, Check, ArrowUp, Globe } from "lucide-react";
-import DashboardLayout from "@/components/DashboardLayout";
+﻿import { Search, Plus, X, MoreHorizontal, Heart, MessageCircle, MessageSquare, Bookmark, UserPlus, UserCheck, Flame, ShieldCheck, TrendingUp, Layers, Eye, Calendar, Sliders, Trash2, Check, ArrowUp, Globe, Home as HomeIcon, Compass, Radio, Bell, Users, Smile, ImagePlus, Video as VideoIcon, Loader2 } from "lucide-react";
+import { CommunityPageWrapper, useCommunityShell } from "@/components/CommunityShell";
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
@@ -10,8 +10,26 @@ import { useHomeData, FeedPost } from "@/hooks/useHomeData";
 import { useMarket } from "@/contexts/MarketContext";
 import CreatePostModal from "@/components/CreatePostModal";
 import FeedCard from "@/components/FeedCard";
+import CommunityHeaderBar from "@/components/CommunityHeaderBar";
+import InlineNotificationsPanel from "@/components/InlineNotificationsPanel";
 import { triggerHaptic } from "@/utils/haptics";
-import { Star as IconlyStar, Discovery as IconlyDiscovery, Wallet as IconlyWallet, Activity as IconlyActivity, Graph as IconlyGraph, AddUser as IconlyAddUser, ShieldDone as IconlyShieldDone, Calendar as IconlyCalendar } from "react-iconly";
+import {
+    Star as IconlyStar,
+    Discovery as IconlyDiscovery,
+    Wallet as IconlyWallet,
+    Activity as IconlyActivity,
+    Graph as IconlyGraph,
+    AddUser as IconlyAddUser,
+    ShieldDone as IconlyShieldDone,
+    Calendar as IconlyCalendar,
+    Home as IconlyHome,
+    Notification as IconlyNotification,
+    Play as IconlyPlay,
+    Chat as IconlyChat,
+    TwoUsers as IconlyTwoUsers,
+    Image as IconlyImage,
+    Video as IconlyVideo,
+} from "react-iconly";
 import EconomicCalendarWidget from "@/components/EconomicCalendarWidget";
 import NewsWidget from "@/components/NewsWidget";
 import MajorsWidget from "@/components/MajorsWidget";
@@ -336,21 +354,32 @@ export default function Home() {
     const [user, setUser] = useState<any>(null);
     const [authChecked, setAuthChecked] = useState(false);
 
+    const { inShell, scrollContainerRef } = useCommunityShell();
     const [showNewPosts, setShowNewPosts] = useState(false);
     const middleColumnRef = useRef<HTMLDivElement>(null);
 
     const handleScroll = useCallback(() => {
-        if (!middleColumnRef.current) return;
-        if (middleColumnRef.current.scrollTop > 800) {
+        const scroller = inShell ? scrollContainerRef.current : middleColumnRef.current;
+        if (!scroller) return;
+        if (scroller.scrollTop > 800) {
             setShowNewPosts(true);
         } else {
             setShowNewPosts(false);
         }
-    }, []);
+    }, [inShell, scrollContainerRef]);
+
+    useEffect(() => {
+        if (!inShell) return;
+        const scroller = scrollContainerRef.current;
+        if (!scroller) return;
+        scroller.addEventListener("scroll", handleScroll, { passive: true });
+        return () => scroller.removeEventListener("scroll", handleScroll);
+    }, [inShell, scrollContainerRef, handleScroll]);
 
     const scrollToTop = () => {
-        if (middleColumnRef.current) {
-            middleColumnRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+        const scroller = inShell ? scrollContainerRef.current : middleColumnRef.current;
+        if (scroller) {
+            scroller.scrollTo({ top: 0, behavior: 'smooth' });
             setShowNewPosts(false);
         }
     };
@@ -551,11 +580,81 @@ export default function Home() {
 
     const [isCreatePostModalOpen, setIsCreatePostModalOpen] = useState(false);
     const [editPost, setEditPost] = useState<FeedPost | null>(null);
+    const [quickPostText, setQuickPostText] = useState("");
+    const [isQuickPosting, setIsQuickPosting] = useState(false);
+    const [showQuickEmoji, setShowQuickEmoji] = useState(false);
+    const [showInlineNotifications, setShowInlineNotifications] = useState(false);
+    const [unreadNotifCount, setUnreadNotifCount] = useState(0);
     const [followedUsers, setFollowedUsers] = useState<Record<string, boolean>>({});
+
+    // Fetch unread notification count for the Home header bell badge
+    useEffect(() => {
+        if (!user?.id) return;
+        let active = true;
+        const loadUnreadCount = async () => {
+            try {
+                const [{ count: notifCount }, { count: reqCount }] = await Promise.all([
+                    supabase
+                        .from("notifications")
+                        .select("id", { count: "exact", head: true })
+                        .eq("user_id", user.id)
+                        .eq("is_read", false),
+                    supabase
+                        .from("social_follow_requests")
+                        .select("id", { count: "exact", head: true })
+                        .eq("target_id", user.id),
+                ]);
+                if (active) {
+                    setUnreadNotifCount((notifCount || 0) + (reqCount || 0));
+                }
+            } catch {
+                // ignore
+            }
+        };
+        loadUnreadCount();
+        return () => { active = false; };
+    }, [user?.id]);
     const [likedPosts, setLikedPosts] = useState<Record<string, boolean>>({});
     const [likesOffsets, setLikesOffsets] = useState<Record<string, number>>({});
     const [feedSort, setFeedSort] = useState<'popular' | 'latest'>('latest');
     const [feedMarketFilter, setFeedMarketFilter] = useState<'for_you' | 'following' | 'forex' | 'indian' | 'psychology'>('for_you');
+
+    const handleQuickPost = async () => {
+        const trimmed = quickPostText.trim();
+        if (!trimmed || isQuickPosting) return;
+        if (!user?.id) {
+            toast.error("Please log in to post.");
+            return;
+        }
+        setIsQuickPosting(true);
+        try {
+            const autoTags = Array.from(
+                new Set(Array.from(trimmed.matchAll(/#([A-Za-z0-9_]+)/g)).map((m) => m[1]))
+            );
+            const { error } = await supabase.from("social_posts").insert([
+                {
+                    user_id: user.id,
+                    content: trimmed,
+                    media_url: null,
+                    media_urls: null,
+                    media_type: null,
+                    post_type: "text",
+                    tags: autoTags.length > 0 ? autoTags : null,
+                    is_public: true,
+                },
+            ]);
+            if (error) throw error;
+            setQuickPostText("");
+            setShowQuickEmoji(false);
+            toast.success("Post published!");
+            refetch();
+        } catch (err: any) {
+            console.error("Quick post failed:", err);
+            toast.error(err?.message || "Failed to publish post.");
+        } finally {
+            setIsQuickPosting(false);
+        }
+    };
 
     const handleDeletePost = useCallback(async (postId: string) => {
         const postIdStr = String(postId);
@@ -1003,11 +1102,17 @@ export default function Home() {
         });
     }, [finalDisciplined]);
 
+    useEffect(() => {
+        const handleScrollTopEvent = () => scrollToTop();
+        window.addEventListener("community-scroll-top", handleScrollTopEvent);
+        return () => window.removeEventListener("community-scroll-top", handleScrollTopEvent);
+    }, []);
+
     if (!authChecked || loading) {
         return (
-            <DashboardLayout breadcrumbs={[{ label: "Home", path: "/home" }]} noScroll={true} noPadding={true}>
+            <CommunityPageWrapper breadcrumbs={[{ label: "Home", path: "/home" }]} noScroll={true} noPadding={true}>
                 <HomeSkeleton />
-            </DashboardLayout>
+            </CommunityPageWrapper>
         );
     }
 
@@ -1240,13 +1345,13 @@ export default function Home() {
 
     return (
         <>
-            <DashboardLayout breadcrumbs={[{ label: "Home", path: "/home" }]} headerActions={headerActions} noScroll={true} noPadding={true}>
-                <div className="w-full h-full flex flex-col min-h-0 px-2 sm:px-4 lg:px-10 pt-0 pb-0 select-none font-sans text-slate-800 dark:text-slate-100">
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 h-full min-h-0 relative">
+            <CommunityPageWrapper breadcrumbs={[{ label: "Home", path: "/home" }]} headerActions={headerActions} noScroll={true} noPadding={true}>
+                <div className="w-full flex flex-col px-0 sm:px-4 lg:px-10 pt-0 pb-0 select-none font-sans text-slate-800 dark:text-slate-100">
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 relative items-start">
 
                         {/* --- COLUMN 1: LEFT SIDEBAR (col-span-3) --- */}
                         {currentTab !== 'calendar' && (showWatchlist || showCalendar || showFollowers) && (
-                            <div className="hidden xl:block xl:col-span-3 xl:col-start-1 h-full overflow-y-auto amazing-scrollbar space-y-4 px-4 pt-5 pb-4">
+                            <div className="hidden xl:block xl:col-span-3 xl:col-start-1 xl:sticky xl:top-3 xl:max-h-[calc(100vh-110px)] xl:overflow-y-auto amazing-scrollbar space-y-4 px-4 pt-5 pb-4">
 
                                 {/* A. My Watchlist / Market Segment */}
                                 {showWatchlist && (
@@ -1382,7 +1487,7 @@ export default function Home() {
                             </div>
                         )}
                         {/* --- COLUMN 2: MIDDLE MAIN CONTENT --- */}
-                        <div className={`h-full relative overflow-hidden flex flex-col ${currentTab === 'calendar' ? 'col-span-12 px-4 sm:px-8' : 'col-span-12 lg:col-span-8 xl:col-span-6 xl:col-start-4'}`}>
+                        <div className={`relative flex flex-col ${currentTab === 'calendar' ? 'col-span-12 px-4 sm:px-8' : 'col-span-12 lg:col-span-8 xl:col-span-6 xl:col-start-4'}`}>
                             <AnimatePresence>
                                 {showNewPosts && (
                                     <motion.button
@@ -1390,50 +1495,175 @@ export default function Home() {
                                         animate={{ y: 0, opacity: 1, scale: 1 }}
                                         exit={{ y: -20, opacity: 0, scale: 0.9 }}
                                         onClick={scrollToTop}
-                                        className="absolute top-6 left-1/2 -translate-x-1/2 -ml-4 z-50 bg-white/95 backdrop-blur-md dark:bg-[#2C2C2E]/95 border border-slate-200 dark:border-white/10 shadow-[0_4px_20px_rgb(0,0,0,0.08)] hover:shadow-[0_4px_25px_rgb(0,0,0,0.12)] text-slate-700 dark:text-slate-200 px-5 py-2 rounded-full font-medium tracking-tight text-[14px] flex items-center gap-2 transition-all hover:-translate-y-0.5 cursor-pointer"
+                                        className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-white/95 backdrop-blur-md dark:bg-[#2C2C2E]/95 border border-slate-200 dark:border-white/10 shadow-[0_4px_20px_rgb(0,0,0,0.08)] hover:shadow-[0_4px_25px_rgb(0,0,0,0.12)] text-slate-700 dark:text-slate-200 px-5 py-2 rounded-full font-medium tracking-tight text-[14px] flex items-center gap-2 transition-all hover:-translate-y-0.5 cursor-pointer"
                                     >
                                         <ArrowUp size={16} strokeWidth={2} className="text-slate-500 dark:text-slate-400" />
                                         New posts
                                     </motion.button>
                                 )}
                             </AnimatePresence>
-                            <div className="flex-1 overflow-y-auto amazing-scrollbar space-y-5 sm:space-y-6 px-1 sm:px-4 pt-3 sm:pt-5 pb-24 md:pb-6" onScroll={handleScroll} ref={middleColumnRef}>
+                            <div className="space-y-4 sm:space-y-5 px-0 sm:px-4 pt-0 sm:pt-2 pb-24 md:pb-8" ref={middleColumnRef}>
 
 
                                 {/* Feeds Section */}
                                 {currentTab === 'feed' && (
                                 <div className="space-y-4 sm:space-y-5">
-                                    {/* Systemic Full-Width "For You" & "Following" Tabs Bar */}
-                                    <div className="flex items-center w-full border-b border-slate-200 dark:border-white/10 sticky top-0 z-20 bg-[#F8FAFC]/95 dark:bg-[#000000]/95 backdrop-blur-md -mx-1 px-1 sm:mx-0 sm:px-0">
-                                        {[
-                                            { id: 'for_you', label: 'For You' },
-                                            { id: 'following', label: 'Following' }
-                                        ].map(tab => (
-                                            <button
-                                                key={tab.id}
-                                                type="button"
-                                                onClick={() => {
-                                                    triggerHaptic("selection");
-                                                    setFeedMarketFilter(tab.id as 'for_you' | 'following');
+                                    {/* Full-Width "For You" & "Following" Tabs */}
+                                    <div className="bg-white dark:bg-[#121212]">
+                                        <div className="flex items-center w-full border-b border-slate-200/80 dark:border-white/10">
+                                            {[
+                                                { id: 'for_you', label: 'For You' },
+                                                { id: 'following', label: 'Following' }
+                                            ].map(tab => (
+                                                <button
+                                                    key={tab.id}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        triggerHaptic("selection");
+                                                        setFeedMarketFilter(tab.id as 'for_you' | 'following');
+                                                    }}
+                                                    className={`flex-1 flex items-center justify-center py-3 text-[15px] sm:text-[15.5px] tracking-tight cursor-pointer transition-all relative select-none ${
+                                                        feedMarketFilter === tab.id
+                                                            ? "font-bold text-slate-900 dark:text-white"
+                                                            : "font-semibold text-slate-500 hover:text-slate-800 dark:text-neutral-400 dark:hover:text-white"
+                                                    }`}
+                                                >
+                                                    {tab.label}
+                                                    {feedMarketFilter === tab.id && (
+                                                        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-16 sm:w-20 h-[3px] bg-blue-600 rounded-full" />
+                                                    )}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Inline Quick Post Composer (Matching Reference) */}
+                                    <div className="px-4 sm:px-3 py-3.5 border-b border-slate-200/80 dark:border-white/10">
+                                        <div className="flex items-start gap-3">
+                                            <img
+                                                src={localStorage.getItem("tradifive_cached_avatar_url") || "/default-avatar.svg"}
+                                                alt="Your avatar"
+                                                onClick={() => navigate('/profile')}
+                                                className="w-10 h-10 rounded-full object-cover bg-slate-100 dark:bg-white/10 border border-slate-200/70 dark:border-white/10 shrink-0 cursor-pointer"
+                                                onError={(e) => {
+                                                    (e.currentTarget as HTMLImageElement).src = "/default-avatar.svg";
                                                 }}
-                                                className={`flex-1 flex items-center justify-center pb-3.5 pt-2 text-[15.5px] sm:text-[16px] tracking-tight cursor-pointer transition-all relative select-none ${
-                                                    feedMarketFilter === tab.id
-                                                        ? "font-bold text-slate-900 dark:text-white"
-                                                        : "font-semibold text-slate-500 hover:text-slate-800 dark:text-neutral-400 dark:hover:text-white"
-                                                }`}
-                                            >
-                                                {tab.label}
-                                                {feedMarketFilter === tab.id && (
-                                                    <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-16 sm:w-20 h-[3.5px] bg-gradient-to-r from-blue-600 to-blue-500 rounded-full" />
+                                            />
+                                            <div className="flex-1 min-w-0">
+                                                <textarea
+                                                    rows={quickPostText.includes('\n') ? Math.min(4, quickPostText.split('\n').length) : 1}
+                                                    value={quickPostText}
+                                                    onChange={(e) => setQuickPostText(e.target.value.slice(0, 2000))}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                                                            e.preventDefault();
+                                                            handleQuickPost();
+                                                        }
+                                                    }}
+                                                    placeholder="Share a trade, a lesson, a theme..."
+                                                    className="w-full bg-transparent pt-2 text-[15.5px] text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-500 outline-none resize-none leading-relaxed font-normal"
+                                                />
+
+                                                {showQuickEmoji && (
+                                                    <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide pt-2 pb-1">
+                                                        {["📈", "📉", "🚀", "💎", "🔥", "🎯", "💰", "🐂", "🐻", "👏", "🫡", "⚡"].map((emoji) => (
+                                                            <button
+                                                                key={emoji}
+                                                                type="button"
+                                                                onClick={() => setQuickPostText((prev) => (prev + emoji).slice(0, 2000))}
+                                                                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/15 flex items-center justify-center text-base shrink-0 active:scale-90 transition-transform cursor-pointer"
+                                                            >
+                                                                {emoji}
+                                                            </button>
+                                                        ))}
+                                                    </div>
                                                 )}
-                                            </button>
-                                        ))}
+
+                                                <div className="flex items-center justify-between mt-3">
+                                                    <div className="flex items-center gap-2">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                triggerHaptic("selection");
+                                                                setShowQuickEmoji((prev) => !prev);
+                                                            }}
+                                                            className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors cursor-pointer ${
+                                                                showQuickEmoji
+                                                                    ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900"
+                                                                    : "bg-slate-100 hover:bg-slate-200/80 dark:bg-white/[0.08] dark:hover:bg-white/[0.14] text-slate-700 dark:text-slate-200"
+                                                            }`}
+                                                            title="Emoji"
+                                                            aria-label="Add emoji"
+                                                        >
+                                                            <Smile size={18} strokeWidth={1.9} />
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                triggerHaptic("selection");
+                                                                setIsCreatePostModalOpen(true);
+                                                            }}
+                                                            className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200/80 dark:bg-white/[0.08] dark:hover:bg-white/[0.14] text-slate-800 dark:text-slate-100 text-[11px] font-black tracking-tight flex items-center justify-center transition-colors cursor-pointer"
+                                                            title="GIF & Full Post"
+                                                            aria-label="Add GIF"
+                                                        >
+                                                            GIF
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                triggerHaptic("selection");
+                                                                setIsCreatePostModalOpen(true);
+                                                            }}
+                                                            className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200/80 dark:bg-white/[0.08] dark:hover:bg-white/[0.14] text-slate-700 dark:text-slate-200 flex items-center justify-center transition-colors cursor-pointer"
+                                                            title="Add Photo"
+                                                            aria-label="Add photo"
+                                                        >
+                                                            <IconlyImage set="curved" stroke="bold" primaryColor="currentColor" size={19} />
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                triggerHaptic("selection");
+                                                                setIsCreatePostModalOpen(true);
+                                                            }}
+                                                            className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200/80 dark:bg-white/[0.08] dark:hover:bg-white/[0.14] text-slate-700 dark:text-slate-200 flex items-center justify-center transition-colors cursor-pointer"
+                                                            title="Add Video (up to 60s)"
+                                                            aria-label="Add video"
+                                                        >
+                                                            <IconlyVideo set="curved" stroke="bold" primaryColor="currentColor" size={19} />
+                                                        </button>
+                                                    </div>
+
+                                                    <button
+                                                        type="button"
+                                                        disabled={!quickPostText.trim() || isQuickPosting}
+                                                        onClick={handleQuickPost}
+                                                        className={`px-5 py-2 rounded-full text-[13.5px] font-bold transition-all select-none flex items-center justify-center ${
+                                                            quickPostText.trim() && !isQuickPosting
+                                                                ? "tactile-black-pill cursor-pointer"
+                                                                : "bg-slate-400/75 dark:bg-white/15 text-white dark:text-neutral-500 cursor-not-allowed"
+                                                        }`}
+                                                    >
+                                                        {isQuickPosting ? <Loader2 size={15} className="animate-spin" /> : "Post"}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
 
                                     {/* Feed List */}
-                                    <div className="space-y-3">
+                                    <div className="space-y-3 px-3 sm:px-0">
                                         {feedCardsList}
                                     </div>
+
+                                    {Array.isArray(feedCardsList) && feedCardsList.length > 0 && (
+                                        <div className="py-8 text-center select-none">
+                                            <p className="text-[14px] font-medium text-slate-400 dark:text-zinc-500">
+                                                You&apos;re all caught up.
+                                            </p>
+                                        </div>
+                                    )}
                                 </div>
                                 )}
                                 
@@ -1533,7 +1763,7 @@ export default function Home() {
 
                         {/* --- COLUMN 3: RIGHT SIDEBAR (col-span-3) --- */}
                         {currentTab !== 'calendar' && (showRequests || showSuggestions || showStreaks || showDisciplined) && (
-                            <div className="hidden xl:block xl:col-span-3 xl:col-start-10 h-full overflow-y-auto amazing-scrollbar space-y-4 px-4 pt-5 pb-4">
+                            <div className="hidden xl:block xl:col-span-3 xl:col-start-10 xl:sticky xl:top-3 xl:max-h-[calc(100vh-110px)] xl:overflow-y-auto amazing-scrollbar space-y-4 px-4 pt-5 pb-4">
 
                                 {/* Requests Section */}
                                 {showRequests && (
@@ -1905,14 +2135,14 @@ export default function Home() {
                     background: "linear-gradient(180deg, #38383A 0%, #1E1E20 50%, #080808 100%)",
                     boxShadow: "0 6px 16px -2px rgba(0, 0, 0, 0.45), 0 2px 6px -1px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(0, 0, 0, 0.85), inset 0 1px 0.5px 0 rgba(255, 255, 255, 0.28)",
                 }}
-                className="sm:hidden fixed right-4 bottom-[calc(max(0.75rem,env(safe-area-inset-bottom))+4.75rem)] z-40 w-[52px] h-[52px] rounded-full text-white flex items-center justify-center active:scale-95 active:brightness-90 hover:scale-105 transition-all duration-150 cursor-pointer touch-manipulation select-none"
+                className="sm:hidden fixed right-5 bottom-[calc(max(0.75rem,env(safe-area-inset-bottom))+5.25rem)] z-40 w-[52px] h-[52px] rounded-full text-white flex items-center justify-center active:scale-95 active:brightness-90 hover:scale-105 transition-all duration-150 cursor-pointer touch-manipulation select-none"
                 title="Create New Post"
                 aria-label="Create New Post"
             >
                 <Plus size={24} strokeWidth={2.8} className="text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.4)]" />
             </button>
 
-        </DashboardLayout>
+        </CommunityPageWrapper>
         </>
     );
 }

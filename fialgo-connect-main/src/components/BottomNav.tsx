@@ -28,7 +28,8 @@ export default function BottomNav() {
       id: "home",
       label: "Home",
       path: "/home",
-      isActive: (p: string) => (p === "/" || p.startsWith("/home")) && !isMoreOpen,
+      isActive: (p: string) =>
+        (p === "/" || p.startsWith("/home") || p.startsWith("/post/")) && !isMoreOpen,
       renderIcon: (active: boolean) => (
         <Home
           set="curved"

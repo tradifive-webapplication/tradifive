@@ -356,7 +356,14 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
 
   // Effective Full Screen: True if toggled, passed via prop, or on AutoTrade setup route
   const isEffectiveFullScreen = isFullScreen || fullScreen;
-  const isHomePage = location.pathname === "/" || location.pathname.startsWith("/home");
+  const isHomePage =
+    location.pathname === "/" ||
+    location.pathname.startsWith("/home") ||
+    location.pathname.startsWith("/post/") ||
+    location.pathname.startsWith("/inbox") ||
+    location.pathname.startsWith("/channel") ||
+    location.pathname.startsWith("/discover") ||
+    location.pathname.startsWith("/creator/live");
   const { isFiAlgo } = useWorkspace();
 
   const [bgFadeStyle, setBgFadeStyle] = useState(() => {
@@ -505,12 +512,7 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
   }
 
   return (
-    <div ref={constraintsRef} className={`min-h-screen bg-gradient-to-br ${gradientClass} dark:from-[#000000] dark:via-[#000000] dark:to-[#000000] flex relative overflow-hidden`}>
-
-      {/* Decorative Blobs */}
-      <div className="absolute top-[-20%] left-[-10%] w-[40%] h-[40%] rounded-full bg-black/[0.1] dark:hidden blur-[100px] -z-10 pointer-events-none" />
-      <div className="absolute top-[-10%] left-[-5%] w-[40%] h-[40%] rounded-full bg-primary/5 dark:hidden blur-[120px] -z-10 animate-float" />
-      <div className="absolute bottom-[10%] right-[-5%] w-[30%] h-[40%] rounded-full bg-purple-400/5 dark:hidden blur-[100px] -z-10 animate-pulse" />
+    <div ref={constraintsRef} className="min-h-screen bg-[#F1F3F6] dark:bg-[#09090B] flex relative overflow-hidden">
 
       {!isMobile && (
         <div className="hidden md:block">
@@ -535,15 +537,18 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
           </div>
         )}
 
-        {/* Main Content Area - Fixed Backside Page (Card Never Scrolls, Only Inner Content Scrolls) */}
-        <div className={`flex-1 h-full min-h-0 flex flex-col overflow-hidden ${isEffectiveFullScreen || (noScroll && hideBottomNav) ? 'p-0' : `px-0 md:px-5 ${impersonatingUser ? 'pt-0 md:pt-3' : 'pt-0 md:pt-5'} pb-20 md:pb-5`}`}>
-          <main
-            className={`relative flex-1 h-full min-h-0 flex flex-col overflow-hidden ${isEffectiveFullScreen ? 'rounded-none border-0 shadow-none' : 'rounded-none md:rounded-[2.5rem] border-0 md:border md:border-slate-100 dark:md:border-white/5 shadow-none md:shadow-[0_8px_30_rgb(0,0,0,0.04)]'} bg-white dark:bg-[#121212] font-sans`}
-          >
-            {/* Fixed Header Inside Backside Page */}
-            <header className={`h-[70px] flex items-center justify-between px-4 sm:px-8 lg:px-10 border-b border-slate-100 dark:border-white/5 shrink-0 transition-all duration-300 ${comingSoonInfo.isSoon && !isPeeking ? "filter blur-[1.5px] opacity-85 pointer-events-none select-none" : ""}`}>
-              <div className="flex items-center gap-2 sm:gap-3">
-                {location.pathname === '/profile' || location.pathname.startsWith('/user/') || location.pathname.startsWith('/inbox') ? (
+        {/* Top Logo Header — sits cleanly ABOVE the floating rounded content box on ALL pages */}
+        {!isEffectiveFullScreen && (
+          <header className={`h-[56px] sm:h-[62px] flex items-center justify-between px-3.5 sm:px-5 md:px-6 shrink-0 transition-all duration-300 ${comingSoonInfo.isSoon && !isPeeking ? "filter blur-[1.5px] opacity-85 pointer-events-none select-none" : ""}`}>
+            <div className="flex items-center gap-2 sm:gap-3">
+                {location.pathname === '/profile' ||
+                location.pathname === '/dashboard' ||
+                location.pathname.startsWith('/user/') ||
+                location.pathname.startsWith('/inbox') ||
+                location.pathname.startsWith('/post/') ||
+                location.pathname.startsWith('/discover') ||
+                location.pathname.startsWith('/channel') ||
+                location.pathname.startsWith('/creator/live') ? (
                   <div onClick={() => navigate('/home')} className="flex items-center gap-2 sm:gap-2.5 cursor-pointer">
                     <img src="/tf-logo.png" alt="Logo" className="w-[24px] h-[24px] sm:w-[30px] sm:h-[30px] object-contain shrink-0" />
                     <img
@@ -623,13 +628,12 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
 
               <div className="flex items-center gap-2 sm:gap-3">
                 {headerActions}
-                <NotificationHub />
 
                 {/* Mobile Top-Right Profile with Username & Avatar */}
                 <button
                   type="button"
                   onClick={() => navigate('/profile')}
-                  className="sm:hidden flex items-center gap-1.5 pl-2.5 pr-1 py-1 rounded-full bg-slate-100/90 dark:bg-white/[0.08] hover:bg-slate-200/90 dark:hover:bg-white/[0.12] border border-slate-200/70 dark:border-white/10 active:scale-95 transition-all cursor-pointer"
+                  className="sm:hidden flex items-center gap-1.5 pl-2.5 pr-1 py-1 rounded-full bg-white dark:bg-white/[0.08] hover:bg-white/80 dark:hover:bg-white/[0.12] shadow-[0_1px_4px_rgba(15,23,42,0.06)] active:scale-95 transition-all cursor-pointer"
                   title="Profile"
                   aria-label="Profile"
                 >
@@ -661,13 +665,32 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
                   type="button"
                   onClick={() => setIsAIOpen(true)}
                   title="Open AI Coach"
-                  className="hidden sm:flex items-center justify-center gap-2 px-3 sm:px-4 h-9 sm:h-10 rounded-full bg-white dark:bg-[#1E1E1E] hover:bg-slate-50 dark:hover:bg-white/[0.08] border border-slate-200/80 dark:border-white/10 text-slate-800 dark:text-white font-bold text-[13px] shadow-xs cursor-pointer transition-colors"
+                  className="hidden sm:flex items-center justify-center gap-2 px-3 sm:px-4 h-9 sm:h-10 rounded-full bg-white dark:bg-[#1E1E1E] hover:bg-slate-50 dark:hover:bg-white/[0.08] text-slate-800 dark:text-white font-bold text-[13px] shadow-[0_1px_4px_rgba(15,23,42,0.06)] cursor-pointer transition-colors"
                 >
                   <Sparkles size={15} strokeWidth={2.5} className="text-purple-500" />
                   <span>AI Coach</span>
                 </button>
               </div>
-            </header>
+          </header>
+        )}
+
+        {/* Main Content Box — sits below logo and above bottom nav on ALL pages, borderless with curved corners; all scrolling happens inside */}
+        <div
+          className={`flex-1 min-h-0 flex flex-col overflow-hidden ${
+            isEffectiveFullScreen
+              ? "p-0"
+              : hideBottomNav
+              ? "px-2.5 sm:px-4 md:px-5 pb-2.5 md:pb-5"
+              : "px-2.5 sm:px-4 md:px-5 pb-[calc(max(0.75rem,env(safe-area-inset-bottom))+4.6rem)] md:pb-5"
+          }`}
+        >
+          <main
+            className={`relative flex-1 h-full min-h-0 flex flex-col overflow-hidden border-0 ${
+              isEffectiveFullScreen
+                ? "rounded-none shadow-none"
+                : "rounded-[14px] md:rounded-[18px] shadow-[0_2px_18px_rgba(15,23,42,0.055)] dark:shadow-none"
+            } bg-white dark:bg-[#121212] font-sans`}
+          >
 
             {/* Premium Global Emergency Halt Banner - Crimson red warning card with physics-based gravity drop & free drag */}
             <AnimatePresence>
@@ -738,8 +761,11 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
               )}
             </AnimatePresence>
 
-            {/* Internal Content Area - Scrollable Inside the Fixed Backside Page */}
-            <div className={`flex-1 min-h-0 ${noScroll ? "overflow-hidden flex flex-col" : "overflow-y-auto scrollbar-hide"} ${noPadding || noScroll ? "p-0" : isEffectiveFullScreen ? "p-0 sm:p-4 lg:p-6 pb-20" : "p-3 pb-24 md:p-10 md:pb-20"}`}>
+            {/* Internal Content Area - Scrollable STRICTLY inside the floating rounded box */}
+            <div
+              style={{ WebkitOverflowScrolling: "touch" }}
+              className={`flex-1 min-h-0 ${noScroll ? "overflow-hidden flex flex-col" : "overflow-y-auto overscroll-y-contain scrollbar-hide"} ${noPadding || noScroll ? "p-0" : isEffectiveFullScreen ? "p-0 sm:p-4 lg:p-6 pb-8" : "p-3 sm:p-5 md:p-8 pb-8"}`}
+            >
               <motion.div
                 initial={{ opacity: location.pathname === '/settings' ? 1 : 0, y: location.pathname === '/settings' ? 0 : 15 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -772,8 +798,8 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
       {/* Mobile Bottom Navigation Bar */}
       {!hideBottomNav && (
         <>
-          {/* Mobile Floating AI Coach Button (Only on Mobile, NOT on Home page, Icon only) */}
-          {!isHomePage && (
+          {/* Mobile Floating AI Coach Button (Only on Mobile, NOT on Home or Dashboard) */}
+          {!isHomePage && location.pathname !== '/dashboard' && (
             <button
               type="button"
               onClick={() => setIsAIOpen(true)}

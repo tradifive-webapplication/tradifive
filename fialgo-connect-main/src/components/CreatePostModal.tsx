@@ -39,6 +39,19 @@ const CURATED_GIFS = [
 
 const COMMON_EMOJIS = ["📈", "📉", "🚀", "💎", "🙌", "🐂", "🐻", "💰", "📊", "🔥", "👍", "👏", "🚨", "🎯", "🤔", "😂"];
 
+const FAMOUS_HASHTAGS = [
+  "hottake",
+  "recap",
+  "ICT",
+  "FVG",
+  "propfirm",
+  "psychology",
+  "discipline",
+  "risk",
+  "scalping",
+  "backtest",
+];
+
 const PRESET_LOCATIONS = [
   "Maharashtra, India",
   "Delhi, India",
@@ -68,12 +81,15 @@ export default function CreatePostModal({
   variant = "modal"
 }: CreatePostModalProps) {
   // Base states
+  const [heading, setHeading] = useState("");
   const [content, setContent] = useState("");
   const [mediaPreviews, setMediaPreviews] = useState<string[]>([]);
   const [mediaFiles, setMediaFiles] = useState<File[]>([]);
   const [mediaType, setMediaType] = useState<"image" | "video" | "poll" | null>(null);
+  const [videoDuration, setVideoDuration] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Textarea mentions
@@ -257,15 +273,23 @@ export default function CreatePostModal({
       if (isTransitionToOpen || isDifferentPost) {
         if (mode === "edit") {
           let parsedLocation = "";
+          let parsedHeading = "";
           let parsedContent = initialContent;
 
-          const locMatch = initialContent.match(/^📍\s+(.+)\n/);
+          const locMatch = parsedContent.match(/^📍\s+(.+)\n?/);
           if (locMatch) {
             parsedLocation = locMatch[1];
-            parsedContent = parsedContent.replace(/^📍\s+.+\n/, "");
+            parsedContent = parsedContent.replace(/^📍\s+.+\n?/, "");
+          }
+
+          const headingMatch = parsedContent.match(/^###\s+(.+)(?:\n|$)/);
+          if (headingMatch) {
+            parsedHeading = headingMatch[1].trim();
+            parsedContent = parsedContent.replace(/^###\s+.+(?:\n|$)/, "");
           }
 
           setLocationName(parsedLocation);
+          setHeading(parsedHeading);
           setContent(parsedContent.trim());
           setTagsList(initialTags.length > 0 ? initialTags : []);
 
@@ -310,11 +334,13 @@ export default function CreatePostModal({
         } else {
           // Defaults
           setLocationName("");
+          setHeading("");
           setContent("");
           setTagsList([]);
           setMediaPreviews([]);
           setMediaFiles([]);
           setMediaType(null);
+          setVideoDuration(null);
           setShowPollCreator(false);
           setShowSignalCreator(false);
           setPollOptions(["", ""]);
@@ -378,56 +404,123 @@ export default function CreatePostModal({
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const MAX_VIDEO_SECONDS = 60;
+
+  const readVideoDuration = (file: File): Promise<number> => {
+    return new Promise((resolve, reject) => {
+      const tempUrl = URL.createObjectURL(file);
+      const videoEl = document.createElement("video");
+      videoEl.preload = "metadata";
+      videoEl.muted = true;
+      videoEl.playsInline = true;
+      videoEl.onloadedmetadata = () => {
+        const dur = videoEl.duration;
+        URL.revokeObjectURL(tempUrl);
+        resolve(dur);
+      };
+      videoEl.onerror = () => {
+        URL.revokeObjectURL(tempUrl);
+        reject(new Error("Could not read video metadata"));
+      };
+      videoEl.src = tempUrl;
+    });
+  };
+
+  const formatDurationLabel = (secs: number) => {
+    const rounded = Math.max(0, Math.round(secs));
+    const m = Math.floor(rounded / 60);
+    const s = rounded % 60;
+    return `${m}:${String(s).padStart(2, "0")}`;
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
 
-    const isVideo = files[0].type.startsWith("video/");
+    const firstFile = files[0];
+    const isVideo =
+      firstFile.type.startsWith("video/") ||
+      /\.(mp4|webm|ogg|mov|m4v)$/i.test(firstFile.name);
 
     if (isVideo) {
-      // Limit to 1 video
-      const file = files[0];
-      if (file.size > 50 * 1024 * 1024) {
-        toast.error("Video is too large! Please upload a file smaller than 50MB.");
+      // Limit to 1 video, up to 60 seconds and 100MB
+      const file = firstFile;
+      if (file.size > 100 * 1024 * 1024) {
+        toast.error("Video is too large! Please upload a video smaller than 100MB.");
+        e.target.value = "";
         return;
       }
-      if (!["video/mp4", "video/webm", "video/ogg"].includes(file.type)) {
-        toast.error("Unsupported video format! Please upload an MP4 or WebM video.");
+
+      try {
+        const duration = await readVideoDuration(file);
+        if (!Number.isFinite(duration)) {
+          toast.error("Could not read this video file. Please try an MP4 or WebM video.");
+          e.target.value = "";
+          return;
+        }
+        if (duration > MAX_VIDEO_SECONDS + 0.5) {
+          toast.error(
+            `Video must be ${MAX_VIDEO_SECONDS} seconds or shorter! Your video is ${Math.ceil(duration)}s.`
+          );
+          e.target.value = "";
+          return;
+        }
+        setVideoDuration(duration);
+      } catch {
+        toast.error("Unsupported video format! Please upload an MP4, MOV, or WebM video.");
+        e.target.value = "";
         return;
       }
+
+      // Clean up any previous blob previews
+      mediaPreviews.forEach((url) => {
+        if (url.startsWith("blob:")) URL.revokeObjectURL(url);
+      });
       setMediaFiles([file]);
       setMediaType("video");
       setAttachmentType("video");
       setMediaPreviews([URL.createObjectURL(file)]);
+      setShowPollCreator(false);
+      setShowSignalCreator(false);
+      e.target.value = "";
     } else {
       // Limit to max 4 images
-      const currentImagesCount = mediaFiles.length;
-      const imagesToAdd = files.filter(f => f.type.startsWith("image/"));
-      
+      const currentImagesCount = mediaType === "image" ? mediaFiles.length : 0;
+      const imagesToAdd = files.filter((f) => f.type.startsWith("image/"));
+
       if (imagesToAdd.length === 0) {
         toast.error("Please upload image files.");
+        e.target.value = "";
         return;
       }
 
       if (currentImagesCount + imagesToAdd.length > 4) {
         toast.error("You can add up to 4 images only!");
+        e.target.value = "";
         return;
       }
 
       for (const file of imagesToAdd) {
         if (file.size > 10 * 1024 * 1024) {
           toast.error(`Image ${file.name} is too large! Max size is 10MB.`);
+          e.target.value = "";
           return;
         }
       }
 
-      const newFiles = [...mediaFiles, ...imagesToAdd];
-      const newPreviews = [...mediaPreviews, ...imagesToAdd.map(f => URL.createObjectURL(f))];
+      const baseFiles = mediaType === "image" ? mediaFiles : [];
+      const basePreviews = mediaType === "image" ? mediaPreviews : [];
+      const newFiles = [...baseFiles, ...imagesToAdd];
+      const newPreviews = [...basePreviews, ...imagesToAdd.map((f) => URL.createObjectURL(f))];
 
+      setVideoDuration(null);
       setMediaFiles(newFiles);
       setMediaType("image");
       setAttachmentType("image");
       setMediaPreviews(newPreviews);
+      setShowPollCreator(false);
+      setShowSignalCreator(false);
+      e.target.value = "";
     }
   };
 
@@ -506,9 +599,13 @@ export default function CreatePostModal({
     setMediaPreviews([]);
     setMediaFiles([]);
     setMediaType(null);
+    setVideoDuration(null);
     setAttachmentType("none");
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
+    }
+    if (videoInputRef.current) {
+      videoInputRef.current.value = "";
     }
   };
 
@@ -536,7 +633,7 @@ export default function CreatePostModal({
       return;
     }
 
-    if (!content.trim() && mediaPreviews.length === 0 && attachmentType !== "poll") {
+    if (!heading.trim() && !content.trim() && mediaPreviews.length === 0 && attachmentType !== "poll") {
       toast.error("Please add some text or media to your post!");
       return;
     }
@@ -641,7 +738,11 @@ export default function CreatePostModal({
       if (locationName.trim()) {
         finalContent += `📍 ${locationName.trim()}\n`;
       }
+      if (heading.trim()) {
+        finalContent += `### ${heading.trim()}\n`;
+      }
       finalContent += `${content.trim()}`;
+      finalContent = finalContent.trim();
 
       const createdTime = isScheduled && scheduleDate && scheduleTime
         ? new Date(`${scheduleDate}T${scheduleTime}`).toISOString()
@@ -818,6 +919,20 @@ export default function CreatePostModal({
     }
   };
 
+  const toggleFamousHashtag = (tag: string) => {
+    setTagsList((prev) => {
+      const exists = prev.some((t) => t.toLowerCase() === tag.toLowerCase());
+      if (exists) {
+        return prev.filter((t) => t.toLowerCase() !== tag.toLowerCase());
+      }
+      return [...prev, tag];
+    });
+  };
+
+  const canSubmitPost =
+    !isSubmitting &&
+    (Boolean(heading.trim()) || Boolean(content.trim()) || mediaPreviews.length > 0 || attachmentType === "poll");
+
   if (!isOpen) return null;
 
   return createPortal(
@@ -856,62 +971,20 @@ export default function CreatePostModal({
                 </div>
 
                 <div className="flex items-center gap-2">
-                   {/* Market Dropdown */}
-                   <div className="relative">
-                      <button 
-                          type="button" 
-                          onClick={() => setShowMarketDropdown(!showMarketDropdown)} 
-                          className="flex items-center gap-1.5 bg-white hover:bg-slate-50 dark:bg-zinc-900 dark:hover:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-slate-700 dark:text-slate-200 text-[13px] font-bold rounded-full px-3 py-1.5 transition-colors whitespace-nowrap shrink-0 shadow-sm"
-                      >
-                          {postMarket === 'global' ? 'Global (Forex)' : postMarket === 'indian' ? 'Indian Market' : 'Psychology'}
-                          <ChevronDown set="curved" stroke="bold" primaryColor="currentColor" size={14} className="text-slate-500 ml-0.5" />
-                      </button>
-
-                      {showMarketDropdown && (
-                          <div className="absolute top-full right-0 mt-2 w-48 bg-white dark:bg-[#1C1C1E] border border-slate-200 dark:border-zinc-700 rounded-xl shadow-xl py-1 z-50 text-sm overflow-hidden">
-                              <button 
-                                  type="button"
-                                  onClick={() => { setPostMarket('global'); setShowMarketDropdown(false); }} 
-                                  className="w-full flex items-center gap-2 px-4 py-2 hover:bg-slate-50 dark:hover:bg-zinc-800 text-slate-700 dark:text-slate-300 text-left font-medium"
-                              >
-                                  <Globe size={14} className="text-slate-500" />
-                                  Global (Forex)
-                              </button>
-                              <button 
-                                  type="button"
-                                  onClick={() => { setPostMarket('indian'); setShowMarketDropdown(false); }} 
-                                  className="w-full flex items-center justify-between px-4 py-2 hover:bg-slate-50 dark:hover:bg-zinc-800 text-slate-700 dark:text-slate-300 text-left font-medium"
-                              >
-                                  <div className="flex items-center gap-2">
-                                      <IndianRupee size={14} className="text-slate-500" />
-                                      <span>Indian Market</span>
-                                  </div>
-                                  <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.2 rounded-full bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-white/10">
-                                      Soon
-                                  </span>
-                              </button>
-                              <button 
-                                  type="button"
-                                  onClick={() => { setPostMarket('psychology'); setShowMarketDropdown(false); }} 
-                                  className="w-full flex items-center gap-2 px-4 py-2 hover:bg-slate-50 dark:hover:bg-zinc-800 text-slate-700 dark:text-slate-300 text-left font-medium"
-                              >
-                                  <Brain size={14} className="text-slate-500" />
-                                  Psychology
-                              </button>
-                          </div>
-                      )}
-                   </div>
-
                    {/* Schedule Button */}
-                   <button type="button" onClick={() => setIsScheduled(true)} className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-500 transition-colors" title="Schedule">
+                   <button type="button" onClick={() => setIsScheduled(true)} className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-500 transition-colors cursor-pointer" title="Schedule">
                         <IconlyCalendar set="curved" stroke="bold" primaryColor="currentColor" size={20} />
                    </button>
                      
-                   {/* Post Button */}
+                   {/* Consistent Black Tactile Post Button */}
                    <button
                       type="submit"
-                      disabled={isSubmitting || (!content.trim() && mediaPreviews.length === 0 && attachmentType !== "poll")}
-                      className="px-5 py-1.5 rounded-full bg-blue-500 hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white text-[14px] font-bold transition-colors flex items-center justify-center gap-1.5 shadow-sm"
+                      disabled={!canSubmitPost}
+                      className={`px-5 py-1.5 rounded-full text-[14px] font-bold flex items-center justify-center gap-1.5 transition-all select-none ${
+                        canSubmitPost
+                          ? "tactile-black-pill cursor-pointer"
+                          : "bg-slate-200 dark:bg-white/10 text-slate-400 dark:text-zinc-500 cursor-not-allowed"
+                      }`}
                    >
                       {isSubmitting ? <Loader2 size={16} className="animate-spin" /> : (mode === "edit" ? "Update" : "Post")}
                    </button>
@@ -971,6 +1044,18 @@ export default function CreatePostModal({
                     </div>
                  </div>
 
+               {/* Heading (optional) */}
+               <div className="mb-3">
+                 <input
+                   type="text"
+                   value={heading}
+                   onChange={(e) => setHeading(e.target.value)}
+                   maxLength={120}
+                   placeholder="Heading (optional)"
+                   className="w-full px-3.5 py-2.5 rounded-xl bg-slate-100/90 dark:bg-white/[0.06] border border-transparent focus:border-slate-300 dark:focus:border-white/20 text-[15px] font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 outline-none transition-colors"
+                 />
+               </div>
+
                {/* Text Area */}
                <div className="relative">
                  <textarea
@@ -1000,6 +1085,27 @@ export default function CreatePostModal({
                  )}
                </div>
 
+               {/* Famous Trading Hashtags */}
+               <div className="mt-3 flex flex-wrap gap-1.5">
+                 {FAMOUS_HASHTAGS.map((tag) => {
+                   const isSelected = tagsList.some((t) => t.toLowerCase() === tag.toLowerCase());
+                   return (
+                     <button
+                       key={tag}
+                       type="button"
+                       onClick={() => toggleFamousHashtag(tag)}
+                       className={`px-3 py-1.5 rounded-full text-[12.5px] font-semibold transition-all cursor-pointer select-none active:scale-95 ${
+                         isSelected
+                           ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-sm"
+                           : "bg-slate-100 hover:bg-slate-200/80 dark:bg-white/[0.07] dark:hover:bg-white/[0.12] text-slate-700 dark:text-slate-200"
+                       }`}
+                     >
+                       #{tag}
+                     </button>
+                   );
+                 })}
+               </div>
+
                 {/* Attachment Inline Renders */}
                 {attachmentType === "image" && mediaPreviews.length > 0 && (
                   <div className="mt-4 flex flex-wrap gap-3">
@@ -1018,9 +1124,20 @@ export default function CreatePostModal({
                 {attachmentType === "video" && mediaPreviews.length > 0 && (
                     <div className="mt-4 relative inline-block w-full max-w-sm">
                      <div className="relative rounded-2xl overflow-hidden border border-slate-200 dark:border-zinc-800 w-full bg-black flex items-center justify-center min-h-[150px]">
-                        <video src={mediaPreviews[0]} className="w-full h-auto max-h-[300px] object-contain" autoPlay muted loop playsInline />
+                        <video
+                          src={mediaPreviews[0]}
+                          className="w-full h-auto max-h-[300px] object-contain"
+                          controls
+                          muted
+                          playsInline
+                        />
+                        {videoDuration !== null && (
+                          <span className="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-full bg-black/70 text-white text-[11px] font-bold backdrop-blur-sm pointer-events-none">
+                            {formatDurationLabel(videoDuration)} / 1:00
+                          </span>
+                        )}
                      </div>
-                     <button type="button" onClick={removeMedia} className="absolute -top-2 -right-2 w-7 h-7 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 shadow-sm rounded-full flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-zinc-700 transition-colors z-10">
+                     <button type="button" onClick={removeMedia} className="absolute -top-2 -right-2 w-7 h-7 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 shadow-sm rounded-full flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-zinc-700 transition-colors z-10 cursor-pointer">
                         <LucideX size={14} strokeWidth={3} />
                      </button>
                   </div>
@@ -1111,13 +1228,24 @@ export default function CreatePostModal({
                    {/* Toolbelt */}
                    <div className="flex items-center gap-1">
                       {(mediaPreviews.length < 4 && mediaType !== 'video') && (
-                        <button type="button" onClick={() => { handleAttachmentTypeChange("image"); setTimeout(() => fileInputRef.current?.click(), 100); }} className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-600 dark:text-slate-400 transition-colors" title="Add Media">
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-600 dark:text-slate-400 transition-colors cursor-pointer"
+                          title="Add Photo (up to 4)"
+                        >
                            <Image set="curved" stroke="bold" primaryColor="currentColor" size={22} />
                         </button>
                       )}
                       {(mediaPreviews.length === 0 && mediaType !== 'image') && (
-                        <button type="button" onClick={() => { handleAttachmentTypeChange("video"); setTimeout(() => fileInputRef.current?.click(), 100); }} className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-600 dark:text-slate-400 transition-colors hidden sm:block" title="Add Video">
+                        <button
+                          type="button"
+                          onClick={() => videoInputRef.current?.click()}
+                          className="flex items-center gap-1 px-2 py-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-600 dark:text-slate-400 transition-colors cursor-pointer"
+                          title="Add Video (up to 60s)"
+                        >
                            <Video set="curved" stroke="bold" primaryColor="currentColor" size={22} />
+                           <span className="text-[11px] font-bold text-slate-500 dark:text-zinc-400">60s</span>
                         </button>
                       )}
                       <button type="button" onClick={() => handleAttachmentTypeChange(attachmentType === 'poll' ? 'none' : 'poll')} className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors hidden sm:block text-slate-600 dark:text-slate-400" title={attachmentType === 'poll' ? "Cancel Poll" : "Create Poll"}>
@@ -1169,8 +1297,15 @@ export default function CreatePostModal({
                   type="file"
                   ref={fileInputRef}
                   onChange={handleFileChange}
-                  multiple={attachmentType === "image"}
-                  accept={attachmentType === "video" ? "video/mp4,video/webm" : "image/*"}
+                  multiple
+                  accept="image/*"
+                  className="hidden"
+                />
+                <input
+                  type="file"
+                  ref={videoInputRef}
+                  onChange={handleFileChange}
+                  accept="video/mp4,video/webm,video/quicktime,video/*"
                   className="hidden"
                 />
              </div>
@@ -1253,7 +1388,7 @@ export default function CreatePostModal({
                   <button type="button" onClick={() => setShowPostSettings(false)} className="px-5 py-2 rounded-full font-semibold text-[15px] text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors">
                      Back
                   </button>
-                  <button type="button" onClick={() => setShowPostSettings(false)} className="px-5 py-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-semibold text-[15px] transition-colors">
+                  <button type="button" onClick={() => setShowPostSettings(false)} className="px-5 py-2 rounded-full tactile-black-pill font-semibold text-[15px] cursor-pointer">
                      Done
                   </button>
                </div>

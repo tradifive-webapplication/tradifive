@@ -1,11 +1,19 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-  ShieldAlert, ChevronRight, Activity, AlertCircle,
-  ShieldCheck, BarChart3, ExternalLink, Clock, CheckCircle2,
-  Sparkles, Shield, Target, Trophy, Zap, Star, Gift,
-  BookOpen, Brain, Award, TrendingUp, Flame
+  Share2,
+  ArrowRight,
+  Eye,
+  EyeOff,
+  Info,
+  ShieldCheck,
+  Sparkles,
+  Flame,
+  Plus,
+  Quote,
+  Check,
+  TrendingUp,
 } from "lucide-react";
 import DashboardLayout from "@/components/DashboardLayout";
 import Portfolio from "./dashboard/Portfolio";
@@ -14,514 +22,1061 @@ import Reports from "./dashboard/Reports";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { useMarket } from "@/contexts/MarketContext";
 import { supabase } from "@/lib/supabase";
-import { Skeleton } from "@/components/ui/skeleton";
 import PerformanceChart from "@/components/charts/PerformanceChart";
+import ShareProfileModal from "@/components/ShareProfileModal";
+import DashboardNewsCard from "@/components/dashboard/DashboardNewsCard";
+import DashboardPnLCalendar from "@/components/dashboard/DashboardPnLCalendar";
+import DashboardGoalsCard from "@/components/dashboard/DashboardGoalsCard";
+import PreMarketPlanModal, {
+  loadTodayPlan,
+  DailyPreMarketPlan,
+} from "@/components/dashboard/PreMarketPlanModal";
+import LogTradeModal from "@/components/dashboard/LogTradeModal";
 import { getGamificationState } from "@/utils/gamification";
 
-// ── Reusable GlassCard ──────────────────────────────────────────────────────
-const GlassCard = ({ children, className = "", noPadding = false }: { children: React.ReactNode; className?: string; noPadding?: boolean }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 16 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.35 }}
-    className={`bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] border-2 border-white rounded-[22px] ${noPadding ? '' : 'p-5'} shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] transition-all dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:rounded-[20px] dark:shadow-none ${className}`}
-  >
-    {children}
-  </motion.div>
-);
+type PnlRange = "all" | "today" | "week" | "month";
 
-// ── Small Icon Components ───────────────────────────────────────────────────
-const WalletIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400">
-    <path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/><path d="M4 6v12c0 1.1.9 2 2 2h14v-4"/><path d="M18 12a2 2 0 0 0-2 2c0 1.1.9 2 2 2h4v-4h-4z"/>
-  </svg>
-);
-const TrendUpIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400">
-    <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>
-  </svg>
-);
+const PNL_RANGE_TABS: { id: PnlRange; short: string; subLabel: string }[] = [
+  { id: "all", short: "All", subLabel: "All time" },
+  { id: "today", short: "1D", subLabel: "Today" },
+  { id: "week", short: "7D", subLabel: "Last 7 days" },
+  { id: "month", short: "1M", subLabel: "This month" },
+];
 
-// ── Main Component ──────────────────────────────────────────────────────────
+const DAILY_QUOTES = [
+  {
+    text: "Socrates in this way became perfect, in all things improving himself, attending to nothing except to reason.",
+    author: "EPICTETUS",
+  },
+  {
+    text: "You have power over your mind — not outside events. Realize this, and you will find strength.",
+    author: "MARCUS AURELIUS",
+  },
+  {
+    text: "The best traders have no ego. To be a great trader you have to swallow your pride and get out of a losing position.",
+    author: "TOM BALDWIN",
+  },
+  {
+    text: "Consistency is a state of mind. Protect your capital first, and let your edge play out over a series of trades.",
+    author: "MARK DOUGLAS",
+  },
+  {
+    text: "We suffer more often in imagination than in reality. Execute the plan in front of you.",
+    author: "SENECA",
+  },
+  {
+    text: "Where you want to be is always in control, never wishing, always trading, and always first and foremost protecting your downside.",
+    author: "PAUL TUDOR JONES",
+  },
+];
+
+function getDailyQuote() {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 0);
+  const diff = now.getTime() - start.getTime();
+  const dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24));
+  return DAILY_QUOTES[dayOfYear % DAILY_QUOTES.length];
+}
+
+function getLiveSessionBadge(): { name: string; active: boolean } {
+  const utcHour = new Date().getUTCHours();
+  const day = new Date().getUTCDay();
+  if (day === 0 || day === 6) return { name: "Weekend · Crypto", active: false };
+  if (utcHour >= 12 && utcHour < 16) return { name: "LDN / NY Overlap", active: true };
+  if (utcHour >= 7 && utcHour < 12) return { name: "London Session", active: true };
+  if (utcHour >= 16 && utcHour < 21) return { name: "New York Session", active: true };
+  return { name: "Asian Session", active: true };
+}
+
+function formatCompactMoney(val: number, symbol: string, showPlus = false): string {
+  const abs = Math.abs(val);
+  const sign = val < 0 ? "-" : showPlus && val > 0 ? "+" : "";
+  const formatted =
+    abs === 0
+      ? "0"
+      : abs >= 1000
+      ? abs.toLocaleString("en-US", {
+          minimumFractionDigits: abs % 1 === 0 ? 0 : 2,
+          maximumFractionDigits: 2,
+        })
+      : abs % 1 === 0
+      ? abs.toFixed(0)
+      : abs.toFixed(2);
+  return `${sign}${symbol}${formatted}`;
+}
+
+const InfoTip: React.FC<{ text: string }> = ({ text }) => {
+  const [open, setOpen] = useState(false);
+  return (
+    <span
+      className="relative inline-flex items-center"
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+    >
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="text-slate-300 hover:text-slate-500 dark:text-neutral-600 dark:hover:text-neutral-400 transition-colors cursor-pointer"
+        aria-label={text}
+      >
+        <Info size={11.5} strokeWidth={2} />
+      </button>
+      {open && (
+        <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 w-44 px-2.5 py-1.5 rounded-xl bg-slate-900 text-white text-[10.5px] font-medium leading-snug shadow-lg z-30 pointer-events-none text-center">
+          {text}
+        </span>
+      )}
+    </span>
+  );
+};
+
+// Sculpted tactile white card surface
+const SURFACE_CARD =
+  "bg-white dark:bg-[#17171A] rounded-[18px] shadow-[0_2px_10px_rgba(15,23,42,0.04),0_10px_26px_-10px_rgba(15,23,42,0.07)] dark:shadow-none border border-slate-200/70 dark:border-white/[0.07]";
+
+const EXPO_OUT: [number, number, number, number] = [0.16, 1, 0.3, 1];
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.065,
+      delayChildren: 0.05,
+    },
+  },
+};
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 20, scale: 0.975 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      duration: 0.48,
+      ease: EXPO_OUT,
+    },
+  },
+};
+
 const Dashboard = () => {
   const [searchParams] = useSearchParams();
   const currentTab = searchParams.get("tab") || "main";
   const navigate = useNavigate();
-  let {
-    equity, balance, todayProfit, totalProfit, winRate, tradesToday,
-    riskConfig, recentTrades, avgDisciplineScore, isConnected,
-    profitFactor, openRiskPct, accountMetrics, dailyXpEarned, breachLogs
+
+  const {
+    equity,
+    balance,
+    riskConfig,
+    recentTrades,
+    avgDisciplineScore,
+    isConnected,
+    accountMetrics,
+    dailyXpEarned,
+    tradesToday,
+    refetch,
   } = useDashboardData();
 
-  // ── Mock data for demo mode ───────────────────────────────────────────────
-  if (!isConnected) {
-    equity = 25420.60;
-    balance = 25000.00;
-    todayProfit = 131.50;
-    totalProfit = 420.60;
-    winRate = 68;
-    tradesToday = 5;
-    profitFactor = 1.82;
-    openRiskPct = 1.2;
-    avgDisciplineScore = 85;
-    dailyXpEarned = 120;
-    riskConfig = { max_daily_loss_percent: 5, max_open_trades: 10, is_prop_firm_mode: false, max_open_risk: 2.0 };
-    recentTrades = [
-      { id: "1", symbol: "XAUUSD", type: "buy", volume: 0.10, open_price: 2024.50, current_price: 2026.80, profit: 23.00, closed_at: null, sl: 2020.0 },
-      { id: "2", symbol: "EURUSD", type: "sell", volume: 1.00, open_price: 1.0850, current_price: 1.0840, profit: 10.00, closed_at: null, sl: 1.0870 },
-      { id: "3", symbol: "GBPUSD", type: "buy", volume: 0.50, profit: 45.00, closed_at: new Date(Date.now() - 3600000).toISOString(), discipline_score: 88 },
-      { id: "4", symbol: "USDJPY", type: "sell", volume: 0.50, profit: -12.50, closed_at: new Date(Date.now() - 7200000).toISOString(), discipline_score: 72 },
-      { id: "5", symbol: "BTCUSD", type: "buy", volume: 0.05, profit: 120.00, closed_at: new Date(Date.now() - 10800000).toISOString(), discipline_score: 95 },
-      { id: "6", symbol: "NZDUSD", type: "sell", volume: 0.30, profit: 35.00, closed_at: new Date(Date.now() - 14400000).toISOString(), discipline_score: 80 },
-      { id: "7", symbol: "AUDUSD", type: "buy", volume: 0.20, profit: -8.00, closed_at: new Date(Date.now() - 18000000).toISOString(), discipline_score: 65 },
-    ];
-  }
-
   const { activeMarket } = useMarket();
-  const [userName, setUserName] = useState<string | null>(null);
+  const currSym = activeMarket === "indian" ? "₹" : "$";
+
+  const [pnlRange, setPnlRange] = useState<PnlRange>("all");
+  const [hidePnl, setHidePnl] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem("tf_dashboard_hide_pnl") === "true";
+    } catch {
+      return false;
+    }
+  });
+  const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
+  const [todayPlan, setTodayPlan] = useState<DailyPreMarketPlan | null>(() =>
+    loadTodayPlan()
+  );
+  const [logModalOpen, setLogModalOpen] = useState(false);
+  const [logModalTab, setLogModalTab] = useState<"manual" | "import">("manual");
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [profileData, setProfileData] = useState<any>(null);
   const [gamification, setGamification] = useState(getGamificationState());
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (data.user) {
-        const metadata = data.user.user_metadata;
-        const emailPrefix = data.user.email?.split('@')[0] || "Trader";
-        let name = metadata?.first_name || metadata?.full_name?.split(' ')[0] || emailPrefix;
-        if (!metadata?.first_name && !metadata?.full_name) {
-          name = name.replace(/[0-9]/g, '').split(/[._-]/)[0];
-        }
-        setUserName(name.charAt(0).toUpperCase() + name.slice(1).toLowerCase());
-      }
-    });
+    try {
+      localStorage.setItem("tf_dashboard_hide_pnl", String(hidePnl));
+    } catch {
+      // Ignore storage error
+    }
+  }, [hidePnl]);
 
-    // Listen for XP updates
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const user = session?.user;
+      if (!user) return;
+      const { data } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (data) {
+        setProfileData(data);
+      } else {
+        setProfileData({
+          display_name:
+            user.user_metadata?.full_name ||
+            user.email?.split("@")[0] ||
+            "TradiFive Trader",
+          username: user.email?.split("@")[0] || "trader",
+        });
+      }
+    };
+    fetchProfile();
+
     const handleXPUpdate = () => setGamification(getGamificationState());
     window.addEventListener("tradifive_xp_update", handleXPUpdate);
     return () => window.removeEventListener("tradifive_xp_update", handleXPUpdate);
   }, []);
 
-  // ── Computed values ───────────────────────────────────────────────────────
-  const riskData = useMemo(() => {
-    const currentDrawdownDollar = Math.max(0, balance - equity);
-    const maxLossPercent = riskConfig?.max_daily_loss_percent ?? 0;
-    const isLimitConfigured = maxLossPercent > 0 || (riskConfig?.is_prop_firm_mode && riskConfig?.prop_firm_daily_loss > 0);
-    const drawdownPercentage = balance > 0 ? (currentDrawdownDollar / balance) * 100 : 0;
-    const maxExecutions = riskConfig?.max_open_trades || 5;
+  const activeTrades = useMemo(() => recentTrades || [], [recentTrades]);
+
+  const effectiveBalance = balance;
+  const effectiveEquity = equity;
+  const effectiveDiscipline = avgDisciplineScore;
+  const effectiveDailyXp = dailyXpEarned;
+  const effectiveStreak = gamification.streak;
+  const effectiveLevel = gamification.level;
+  const effectiveRiskConfig = riskConfig;
+  const effectiveTradesToday = tradesToday;
+
+  const scopedTrades = useMemo(() => {
+    if (pnlRange === "all") return activeTrades;
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfWeek = new Date(startOfToday);
+    startOfWeek.setDate(startOfToday.getDate() - 6);
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    return activeTrades.filter((t: any) => {
+      const dt = new Date(t.closed_at || t.opened_at || t.created_at);
+      if (isNaN(dt.getTime())) return false;
+      if (pnlRange === "today") return dt >= startOfToday;
+      if (pnlRange === "week") return dt >= startOfWeek;
+      if (pnlRange === "month") return dt >= startOfMonth;
+      return true;
+    });
+  }, [activeTrades, pnlRange]);
+
+  const openPositions = useMemo(
+    () => activeTrades.filter((t: any) => !t.closed_at && !t.is_pending),
+    [activeTrades]
+  );
+
+  const metrics = useMemo(() => {
+    const closed = scopedTrades.filter((t: any) => !!t.closed_at && !t.is_pending);
+    const total = closed.reduce((sum: number, t: any) => sum + Number(t.profit || 0), 0);
+    const winsArr = closed.filter((t: any) => Number(t.profit || 0) > 0);
+    const lossesArr = closed.filter((t: any) => Number(t.profit || 0) < 0);
+
+    const wins = winsArr.length;
+    const losses = lossesArr.length;
+    const totalClosed = closed.length;
+    const winRatePct = totalClosed > 0 ? (wins / totalClosed) * 100 : 0;
+
+    const grossProfit = winsArr.reduce((s: number, t: any) => s + Number(t.profit || 0), 0);
+    const grossLoss = Math.abs(
+      lossesArr.reduce((s: number, t: any) => s + Number(t.profit || 0), 0)
+    );
+
+    const avgWin = wins > 0 ? grossProfit / wins : 0;
+    const avgLoss = losses > 0 ? grossLoss / losses : 0;
+    const pf =
+      grossLoss > 0 ? grossProfit / grossLoss : grossProfit > 0 ? 99.9 : 0;
+
+    const rrTrades = winsArr.filter(
+      (t: any) =>
+        t.risk_reward_ratio !== null &&
+        t.risk_reward_ratio !== undefined &&
+        !isNaN(Number(t.risk_reward_ratio)) &&
+        Number(t.risk_reward_ratio) > 0
+    );
+    const avgWinRR =
+      rrTrades.length > 0
+        ? rrTrades.reduce((s: number, t: any) => s + Number(t.risk_reward_ratio), 0) /
+          rrTrades.length
+        : avgLoss > 0
+        ? avgWin / avgLoss
+        : 0;
 
     return {
-      drawdownPct: drawdownPercentage.toFixed(1),
-      maxLossPct: maxLossPercent.toFixed(1),
-      tradesTaken: tradesToday,
-      maxTrades: maxExecutions,
-      openRiskPct: openRiskPct !== null ? Number(openRiskPct).toFixed(1) : null,
-      maxOpenRiskPct: (riskConfig?.max_open_risk || 2.0).toFixed(1),
-      isLimitConfigured,
+      total,
+      wins,
+      losses,
+      totalClosed,
+      winRatePct,
+      avgWin,
+      avgLoss,
+      pf,
+      avgWinRR,
     };
-  }, [balance, equity, riskConfig, tradesToday, openRiskPct]);
+  }, [scopedTrades]);
 
-  const openPositions = useMemo(() => {
-    return recentTrades?.filter((t: any) => !t.closed_at && !t.is_pending) || [];
-  }, [recentTrades]);
+  const riskSummary = useMemo(() => {
+    const currentDrawdownDollar = Math.max(0, effectiveBalance - effectiveEquity);
+    const maxLossPercent = effectiveRiskConfig?.max_daily_loss_percent ?? 0;
+    const isLimitConfigured =
+      maxLossPercent > 0 ||
+      (effectiveRiskConfig?.is_prop_firm_mode &&
+        effectiveRiskConfig?.prop_firm_daily_loss > 0);
+    const drawdownPct =
+      effectiveBalance > 0 ? (currentDrawdownDollar / effectiveBalance) * 100 : 0;
+    const maxTrades = effectiveRiskConfig?.max_open_trades || 5;
+    const usedRatio =
+      isLimitConfigured && maxLossPercent > 0
+        ? Math.min(100, (drawdownPct / maxLossPercent) * 100)
+        : 0;
+    return {
+      drawdownPct: drawdownPct.toFixed(1),
+      maxLossPct: maxLossPercent.toFixed(1),
+      isLimitConfigured,
+      tradesTaken: effectiveTradesToday,
+      maxTrades,
+      usedRatio,
+    };
+  }, [
+    effectiveBalance,
+    effectiveEquity,
+    effectiveRiskConfig,
+    effectiveTradesToday,
+  ]);
 
-  const currSym = activeMarket === 'indian' ? '₹' : '$';
-  const pnlTodayStr = todayProfit === 0 ? `${currSym}0.00` : (todayProfit > 0 ? `+${currSym}${todayProfit.toFixed(2)}` : `-${currSym}${Math.abs(todayProfit).toFixed(2)}`);
-  const pnlNetStr = totalProfit === 0 ? `${currSym}0.00` : (totalProfit > 0 ? `+${currSym}${totalProfit.toFixed(2)}` : `-${currSym}${Math.abs(totalProfit).toFixed(2)}`);
+  const activeRangeMeta =
+    PNL_RANGE_TABS.find((r) => r.id === pnlRange) || PNL_RANGE_TABS[0];
 
-  // Greeting based on time of day
-  const hour = new Date().getHours();
-  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+  const todayFormatted = useMemo(
+    () =>
+      new Date().toLocaleDateString("en-US", {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      }),
+    []
+  );
 
-  // AI Coach insight
-  const coachInsight = useMemo(() => {
-    if (!isConnected || recentTrades.length < 3)
-      return "Connect your account and complete a few trades to receive personalised coaching.";
-    if (Number(riskData.drawdownPct) > Number(riskData.maxLossPct) * 0.8)
-      return `Warning: You've used ${riskData.drawdownPct}% of your ${riskData.maxLossPct}% daily limit. Consider pausing.`;
-    if (winRate < 40 && tradesToday > 0)
-      return "Your win rate is trending low today. Step back and review your setup criteria.";
-    return "You're trading within plan. Keep following your strategy and managing risk.";
-  }, [isConnected, recentTrades, riskData, winRate, tradesToday]);
+  const sessionBadge = useMemo(() => getLiveSessionBadge(), []);
+  const dailyQuote = useMemo(() => getDailyQuote(), []);
 
-  // XP progress
-  const xpProgress = gamification.xp_required > 0 ? Math.min((gamification.xp / gamification.xp_required) * 100, 100) : 0;
+  // Compact SVG Win Rate Ring
+  const donutSize = 78;
+  const strokeWidth = 6.5;
+  const radius = (donutSize - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const dashOffset =
+    circumference - (Math.min(100, Math.max(0, metrics.winRatePct)) / 100) * circumference;
+
+  const pnlColorClass =
+    metrics.total < 0
+      ? "text-rose-600 dark:text-rose-400"
+      : "text-[#2563EB] dark:text-blue-400";
+
+  const isDark =
+    typeof document !== "undefined" &&
+    document.documentElement.classList.contains("dark");
+
+  const openLogModal = (tab: "manual" | "import") => {
+    setLogModalTab(tab);
+    setLogModalOpen(true);
+  };
 
   return (
-    <DashboardLayout breadcrumbs={[{ label: 'Dashboard' }]}>
-      {currentTab === 'main' && (
-        <div className="max-w-[1600px] mx-auto px-3 sm:px-6 md:px-8 pb-12 space-y-4 sm:space-y-5 min-h-screen font-sans">
-
-        {/* ── Demo Mode Banner ──────────────────────────────────────────── */}
-        {!isConnected && activeMarket !== 'indian' && (
-          <motion.div
-            initial={{ opacity: 0, y: -8 }}
+    <DashboardLayout
+      breadcrumbs={[{ label: "Dashboard" }]}
+      noScroll={currentTab === "main"}
+      noPadding={currentTab === "main"}
+    >
+      {currentTab === "main" && (
+        <div className="flex-1 h-full min-h-0 bg-[#F7F8FA] dark:bg-[#141416] flex flex-col overflow-hidden font-sans transition-colors">
+          {/* ── 1. Pinned Header Row (Dashboard + Date + Session + Share stay fixed on scroll) ── */}
+          <motion.header
+            initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.35 }}
-            className="bg-gradient-to-b from-[#FFFBEB] to-[#FFFDF5] border-2 border-white rounded-[22px] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.08),0_0_0_2px_#FDE68A] dark:bg-none dark:bg-[#1E1912] dark:border-[1px] dark:border-amber-500/30 dark:shadow-[inset_0_1px_1px_rgba(251,191,36,0.05)] mt-3 sm:mt-4 p-3.5 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"
+            transition={{ duration: 0.4, ease: EXPO_OUT }}
+            className="shrink-0 bg-[#F7F8FA]/95 dark:bg-[#141416]/95 backdrop-blur-md z-20"
           >
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl shrink-0 bg-amber-500/15 border border-amber-500/30 flex items-center justify-center">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-                </svg>
-              </div>
-              <div>
-                <p className="text-[13px] font-semibold text-amber-800 dark:text-amber-300 leading-snug">
-                  You're viewing demo data
-                </p>
-                <p className="text-[12px] text-amber-700/80 dark:text-slate-300 leading-snug">
-                  Connect your real broker account to see live trades, P&amp;L and risk metrics.
+            <div className="max-w-[540px] lg:max-w-[1060px] mx-auto px-3.5 sm:px-6 py-3 sm:py-3.5 flex items-center justify-between gap-2.5">
+              <div className="min-w-0">
+                <h1 className="text-[19px] sm:text-[21px] font-bold text-slate-900 dark:text-white tracking-tight leading-none">
+                  Dashboard
+                </h1>
+                <p className="text-[11.5px] text-slate-400 dark:text-neutral-500 mt-1">
+                  {todayFormatted}
                 </p>
               </div>
+
+              <div className="flex items-center gap-1.5 shrink-0">
+                <motion.span
+                  initial={{ opacity: 0, scale: 0.92 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.35, delay: 0.08, ease: EXPO_OUT }}
+                  className="tactile-white-pill rounded-[11px] px-2.5 py-1.5 text-[11.5px] font-semibold inline-flex items-center gap-1.5 select-none"
+                >
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                      sessionBadge.active ? "bg-emerald-500" : "bg-slate-400"
+                    }`}
+                  />
+                  <span>{sessionBadge.name}</span>
+                </motion.span>
+
+                <motion.button
+                  initial={{ opacity: 0, scale: 0.92 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.35, delay: 0.12, ease: EXPO_OUT }}
+                  whileTap={{ scale: 0.94 }}
+                  type="button"
+                  onClick={() => setShareModalOpen(true)}
+                  className="tactile-white-pill rounded-[11px] px-2.5 py-1.5 text-[12px] font-semibold flex items-center gap-1.5 cursor-pointer"
+                  title="Share profile"
+                >
+                  <Share2 size={13} strokeWidth={2.1} />
+                  <span className="hidden sm:inline">Share</span>
+                </motion.button>
+              </div>
             </div>
-            <button
-              onClick={() => navigate('/settings?tab=trading')}
-              className="w-full sm:w-auto text-[13px] font-semibold text-white flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl shrink-0 shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all bg-gradient-to-r from-amber-500 to-amber-600 cursor-pointer"
+          </motion.header>
+
+          {/* ── Smooth Scrollable Content Area Below Pinned Header ────────── */}
+          <div
+            style={{ WebkitOverflowScrolling: "touch", willChange: "scroll-position" }}
+            className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-y-contain amazing-scrollbar"
+          >
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              className="max-w-[540px] lg:max-w-[1060px] mx-auto px-3.5 sm:px-6 pt-2.5 sm:pt-3 pb-10 space-y-3.5 sm:space-y-4"
             >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
-              </svg>
-              Connect Real Account
-            </button>
-          </motion.div>
-        )}
 
-        {/* ── Header ───────────────────────────────────────────────────── */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end pt-3 sm:pt-4 pb-1">
-          <div>
-            <h1 className="text-[24px] sm:text-[26px] font-extrabold text-slate-900 dark:text-white tracking-tight">
-              {greeting}, {userName || <Skeleton className="inline-block w-20 h-7 bg-slate-200" />}
-            </h1>
-            <div className="flex items-center gap-4 mt-1">
-              <div className="flex items-center gap-1.5">
-                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.5)]" />
-                <span className="text-slate-500 dark:text-slate-400 text-[12px] sm:text-[13px] font-medium">Markets open</span>
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 mt-2.5 md:mt-0 flex-wrap">
-            <div className="px-3 py-1 bg-white dark:bg-[#1E1E1E] rounded-full border border-slate-200 dark:border-white/10 flex items-center gap-1.5 shadow-sm">
-              <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-emerald-500' : 'bg-slate-300'}`} />
-              <span className="text-[12px] sm:text-[13px] font-bold text-slate-700 dark:text-slate-300">
-                {isConnected && accountMetrics ? `${accountMetrics.broker} • Live` : 'Not Connected'}
-              </span>
-            </div>
-            <button
-              className="px-3 py-1 bg-white dark:bg-[#1E1E1E] rounded-full border border-rose-200 dark:border-rose-500/30 text-rose-500 flex items-center gap-1.5 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors shadow-sm disabled:opacity-40 cursor-pointer"
-              disabled={!isConnected}
-            >
-              <ShieldAlert size={13} strokeWidth={2.5} />
-              <span className="text-[12px] sm:text-[13px] font-bold">Emergency Stop</span>
-            </button>
-          </div>
-        </div>
+            {/* ── 2. Tactile Sculpted Quick-Start / Account Action Card ─────── */}
+            <motion.section variants={cardVariants}>
+              {activeTrades.length === 0 ? (
+                <div className={`${SURFACE_CARD} px-4 py-3.5 sm:px-5 sm:py-4`}>
+                  <h2 className="text-[14.5px] font-bold text-slate-900 dark:text-white tracking-tight">
+                    Log your first trade
+                  </h2>
+                  <p className="text-[12.5px] text-slate-500 dark:text-neutral-400 mt-0.5 leading-snug">
+                    Your numbers, calendar and AI coach fill in from your trades. Start with one.
+                  </p>
 
-        {/* ── Top KPI Strip ────────────────────────────────────────────── */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
-
-          {/* Equity */}
-          <GlassCard className="!p-3.5 sm:!p-4 group cursor-pointer hover:shadow-[0_4px_12px_-4px_rgba(0,0,0,0.15),0_0_0_2px_#E2E8F0] flex flex-col justify-between h-full">
-            <div>
-              <div className="flex items-center gap-1.5 mb-2">
-                <WalletIcon />
-                <span className="text-[10.5px] sm:text-[11px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Account Equity</span>
-              </div>
-              <h3 className="text-[20px] sm:text-[22px] font-semibold text-slate-900 dark:text-white tracking-tight leading-none mb-1" >
-                {currSym}{equity > 0 ? equity.toLocaleString('en-US', { minimumFractionDigits: 2 }) : '0.00'}
-              </h3>
-            </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-              Balance {currSym}{balance > 0 ? balance.toLocaleString('en-US', { minimumFractionDigits: 2 }) : '0.00'}
-            </p>
-          </GlassCard>
-
-          {/* Today's P&L */}
-          <GlassCard className="!p-3.5 sm:!p-4 group cursor-pointer hover:shadow-[0_4px_12px_-4px_rgba(0,0,0,0.15),0_0_0_2px_#E2E8F0] flex flex-col justify-between h-full">
-            <div>
-              <div className="flex items-center gap-1.5 mb-2">
-                <TrendUpIcon />
-                <span className="text-[10.5px] sm:text-[11px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Today's P&L</span>
-              </div>
-              <h3 className={`text-[20px] sm:text-[22px] font-semibold tracking-tight leading-none mb-1 ${todayProfit === 0 ? 'text-slate-900 dark:text-white' : (todayProfit > 0 ? 'text-emerald-500' : 'text-rose-500')}`} >
-                {pnlTodayStr}
-              </h3>
-            </div>
-            <p className={`text-xs font-medium ${todayProfit === 0 ? 'text-slate-500' : (todayProfit > 0 ? 'text-emerald-500' : 'text-rose-500')}`}>
-              {balance > 0 ? `${todayProfit > 0 ? '+' : ''}${((todayProfit / balance) * 100).toFixed(2)}%` : '0.00%'} today
-            </p>
-          </GlassCard>
-
-          {/* Win Rate */}
-          <GlassCard className="!p-3.5 sm:!p-4 group cursor-pointer hover:shadow-[0_4px_12px_-4px_rgba(0,0,0,0.15),0_0_0_2px_#E2E8F0] flex flex-col justify-between h-full">
-            <div>
-              <div className="flex items-center gap-1.5 mb-2">
-                <Target size={15} className="text-slate-400" />
-                <span className="text-[10.5px] sm:text-[11px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Win Rate</span>
-              </div>
-              <h3 className="text-[20px] sm:text-[22px] font-semibold text-slate-900 dark:text-white tracking-tight leading-none mb-1" >
-                {winRate}%
-              </h3>
-            </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-              {tradesToday} trade{tradesToday !== 1 ? 's' : ''} today
-            </p>
-          </GlassCard>
-
-          {/* Discipline Score */}
-          <GlassCard className="!p-3.5 sm:!p-4 group cursor-pointer hover:shadow-[0_4px_12px_-4px_rgba(0,0,0,0.15),0_0_0_2px_#E2E8F0] flex flex-col justify-between h-full">
-            <div>
-              <div className="flex items-center gap-1.5 mb-2">
-                <Shield size={15} className="text-slate-400" />
-                <span className="text-[10.5px] sm:text-[11px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Discipline</span>
-              </div>
-              <div className="flex items-end gap-1.5 mb-1">
-                <h3 className="text-[20px] sm:text-[22px] font-semibold text-slate-900 dark:text-white tracking-tight leading-none" >
-                  {avgDisciplineScore !== null ? avgDisciplineScore : '—'}
-                </h3>
-                {avgDisciplineScore !== null && <span className="text-xs font-bold text-slate-400 mb-0.5">/ 100</span>}
-              </div>
-            </div>
-            <div>
-              {avgDisciplineScore !== null ? (
-                <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold border ${avgDisciplineScore >= 80 ? 'bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-950/30 dark:border-emerald-500/30' : (avgDisciplineScore >= 50 ? 'bg-amber-50 text-amber-600 border-amber-100 dark:bg-amber-950/30 dark:border-amber-500/30' : 'bg-rose-50 text-rose-600 border-rose-100 dark:bg-rose-950/30 dark:border-rose-500/30')}`}>
-                  {avgDisciplineScore >= 80 ? 'Excellent' : (avgDisciplineScore >= 50 ? 'Average' : 'Needs Work')}
-                </span>
-              ) : (
-                <p className="text-xs text-slate-500 font-medium">Not enough data</p>
-              )}
-            </div>
-          </GlassCard>
-        </div>
-
-        {/* ── Main Content Grid ────────────────────────────────────────── */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-
-          {/* ── Left Column (span 2) ─────────────────────────────────── */}
-          <div className="lg:col-span-2 space-y-5">
-
-            {/* Equity Curve */}
-            <GlassCard noPadding className="p-5">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-[15px] font-bold text-slate-900 dark:text-white">Portfolio Performance</h2>
-                <Link to="/journal" className="text-xs font-bold text-blue-600 dark:text-blue-400 flex items-center gap-1 hover:text-blue-700 transition-colors">
-                  Open Journal <ExternalLink size={12} strokeWidth={2.5} />
-                </Link>
-              </div>
-
-              {recentTrades && recentTrades.length > 0 ? (
-                <>
-                  <div className="h-[180px] w-full rounded-lg">
-                    <PerformanceChart trades={recentTrades || []} isDark={false} />
+                  <div className="flex flex-wrap items-center gap-2 mt-3">
+                    <motion.button
+                      whileTap={{ scale: 0.96 }}
+                      type="button"
+                      onClick={() => openLogModal("manual")}
+                      className="tactile-white-pill rounded-full px-3.5 py-1.5 text-[12px] font-semibold cursor-pointer"
+                    >
+                      Log a trade
+                    </motion.button>
+                    <motion.button
+                      whileTap={{ scale: 0.96 }}
+                      type="button"
+                      onClick={() => openLogModal("import")}
+                      className="tactile-white-pill rounded-full px-3.5 py-1.5 text-[12px] font-semibold cursor-pointer"
+                    >
+                      Import trades
+                    </motion.button>
+                    <motion.button
+                      whileTap={{ scale: 0.96 }}
+                      type="button"
+                      onClick={() => navigate("/settings?tab=trading")}
+                      className="tactile-white-pill rounded-full px-3.5 py-1.5 text-[12px] font-semibold cursor-pointer"
+                    >
+                      Connect broker
+                    </motion.button>
                   </div>
-                  <div className="grid grid-cols-3 border-t border-slate-100 dark:border-white/5 mt-4 pt-4">
-                    <div>
-                      <p className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-0.5">Net P&L</p>
-                      <p className={`text-base font-extrabold tracking-tight ${totalProfit === 0 ? 'text-slate-900 dark:text-white' : (totalProfit > 0 ? 'text-emerald-500' : 'text-rose-500')}`}>
-                        {pnlNetStr}
+                </div>
+              ) : (
+                <div
+                  className={`${SURFACE_CARD} px-3.5 py-2.5 flex flex-wrap items-center justify-between gap-2`}
+                >
+                  <div className="flex items-center gap-2 text-[12px]">
+                    <span
+                      className={`w-1.5 h-1.5 rounded-full ${
+                        isConnected ? "bg-emerald-500" : "bg-blue-500"
+                      }`}
+                    />
+                    <span className="font-semibold text-slate-800 dark:text-slate-100">
+                      {isConnected && accountMetrics?.broker
+                        ? `${accountMetrics.broker} · Live`
+                        : "TradiFive Journal"}
+                    </span>
+                    {isConnected && effectiveEquity > 0 && (
+                      <span className="text-slate-400 dark:text-neutral-500 tabular-nums">
+                        · Equity{" "}
+                        <span
+                          className={`inline-block transition-[filter,opacity] duration-200 ${
+                            hidePnl ? "blur-[5px] select-none opacity-75" : ""
+                          }`}
+                        >
+                          {formatCompactMoney(effectiveEquity, currSym, false)}
+                        </span>
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    <motion.button
+                      whileTap={{ scale: 0.96 }}
+                      type="button"
+                      onClick={() => openLogModal("manual")}
+                      className="tactile-white-pill rounded-full px-3 py-1 text-[11.5px] font-semibold flex items-center gap-1 cursor-pointer"
+                    >
+                      <Plus size={12} strokeWidth={2.5} />
+                      Log trade
+                    </motion.button>
+                    <motion.button
+                      whileTap={{ scale: 0.96 }}
+                      type="button"
+                      onClick={() => openLogModal("import")}
+                      className="tactile-white-pill rounded-full px-3 py-1 text-[11.5px] font-semibold cursor-pointer"
+                    >
+                      Import
+                    </motion.button>
+                    {!isConnected && (
+                      <motion.button
+                        whileTap={{ scale: 0.96 }}
+                        type="button"
+                        onClick={() => navigate("/settings?tab=trading")}
+                        className="tactile-white-pill rounded-full px-3 py-1 text-[11.5px] font-semibold cursor-pointer"
+                      >
+                        Connect
+                      </motion.button>
+                    )}
+                  </div>
+                </div>
+              )}
+            </motion.section>
+
+            {/* ── 3. Main Responsive Grid ───────────────────────────────────── */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 sm:gap-4 items-start">
+              {/* LEFT COLUMN: Unified Performance + Clean Equity Curve + Risk & Discipline */}
+              <div className="lg:col-span-7 space-y-3.5 sm:space-y-4">
+                {/* A. TradiFive Signature Performance & P&L Card */}
+                <motion.section
+                  variants={cardVariants}
+                  className={`${SURFACE_CARD} overflow-hidden`}
+                >
+                  {/* Top Bar: Timeframe Sliding Pills + Analytics + Hide Blur */}
+                  <div className="px-4 pt-3.5 pb-2.5 flex items-center justify-between gap-2 border-b border-slate-100/90 dark:border-white/[0.05]">
+                    <div className="inline-flex items-center p-0.5 rounded-[10px] bg-slate-100/90 dark:bg-white/[0.06]">
+                      {PNL_RANGE_TABS.map((tab) => {
+                        const active = pnlRange === tab.id;
+                        return (
+                          <button
+                            key={tab.id}
+                            type="button"
+                            onClick={() => setPnlRange(tab.id)}
+                            className={`relative px-2.5 py-1 rounded-[8px] text-[11.5px] font-semibold transition-colors cursor-pointer ${
+                              active
+                                ? "text-slate-900 dark:text-white"
+                                : "text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-white"
+                            }`}
+                          >
+                            {active && (
+                              <motion.span
+                                layoutId="dashboard-range-pill"
+                                transition={{ type: "spring", stiffness: 480, damping: 34 }}
+                                className="absolute inset-0 bg-white dark:bg-[#26262B] rounded-[8px] shadow-[0_1px_4px_rgba(15,23,42,0.09)]"
+                              />
+                            )}
+                            <span className="relative z-10">{tab.short}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Link
+                        to="/journal"
+                        className="inline-flex items-center gap-1 text-[11.5px] font-semibold text-slate-500 hover:text-blue-600 dark:text-neutral-400 dark:hover:text-blue-400 transition-colors"
+                      >
+                        <span>Analytics</span>
+                        <ArrowRight size={11.5} strokeWidth={2.2} />
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => setHidePnl((v) => !v)}
+                        className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-100/80 hover:bg-slate-200/70 dark:bg-white/[0.06] dark:hover:bg-white/10 text-[11px] font-semibold text-slate-600 dark:text-neutral-300 transition-colors cursor-pointer"
+                        title={hidePnl ? "Show amounts" : "Blur amounts"}
+                      >
+                        {hidePnl ? <Eye size={12} /> : <EyeOff size={12} />}
+                        <span>{hidePnl ? "Show" : "Hide"}</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Center Row: Net P&L (Left) + Animated Win Rate Ring (Right) */}
+                  <div className="px-4 py-4 flex items-center justify-between gap-4">
+                    <div className="min-w-0">
+                      <p className="text-[11px] font-semibold text-slate-400 dark:text-neutral-500">
+                        Net P&amp;L · {activeRangeMeta.subLabel}
+                      </p>
+
+                      <AnimatePresence mode="wait">
+                        <motion.div
+                          key={`${pnlRange}-${metrics.total}`}
+                          initial={{ opacity: 0, y: 4 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -4 }}
+                          transition={{ duration: 0.16 }}
+                          className={`mt-1 text-[32px] sm:text-[36px] font-bold tracking-tight leading-none tabular-nums transition-[filter,opacity] duration-200 ${pnlColorClass} ${
+                            hidePnl ? "blur-[8px] select-none opacity-80" : "blur-0 opacity-100"
+                          }`}
+                        >
+                          {formatCompactMoney(
+                            metrics.total,
+                            currSym,
+                            metrics.total !== 0
+                          )}
+                        </motion.div>
+                      </AnimatePresence>
+
+                      <div className="mt-2.5 flex items-center flex-wrap gap-2 text-[11.5px]">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/[0.07] font-semibold text-slate-700 dark:text-neutral-200 tabular-nums">
+                          {metrics.wins}W / {metrics.losses}L
+                        </span>
+                        <span className="text-slate-400 dark:text-neutral-500 font-medium">
+                          {metrics.totalClosed} closed trade
+                          {metrics.totalClosed !== 1 ? "s" : ""}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Animated Win Rate Ring */}
+                    <div className="flex flex-col items-center shrink-0">
+                      <div className="relative w-[78px] h-[78px]">
+                        <svg
+                          width={donutSize}
+                          height={donutSize}
+                          viewBox={`0 0 ${donutSize} ${donutSize}`}
+                          className="-rotate-90"
+                        >
+                          <circle
+                            cx={donutSize / 2}
+                            cy={donutSize / 2}
+                            r={radius}
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth={strokeWidth}
+                            className="text-slate-100 dark:text-white/10"
+                          />
+                          <motion.circle
+                            cx={donutSize / 2}
+                            cy={donutSize / 2}
+                            r={radius}
+                            fill="none"
+                            stroke="#2563EB"
+                            strokeWidth={strokeWidth}
+                            strokeLinecap="round"
+                            strokeDasharray={circumference}
+                            initial={{ strokeDashoffset: circumference }}
+                            animate={{ strokeDashoffset: dashOffset }}
+                            transition={{
+                              type: "spring",
+                              stiffness: 120,
+                              damping: 22,
+                            }}
+                          />
+                        </svg>
+                        <div className="absolute inset-0 flex flex-col items-center justify-center">
+                          <span className="text-[14px] font-bold text-slate-900 dark:text-white leading-none tabular-nums">
+                            {metrics.winRatePct.toFixed(0)}%
+                          </span>
+                          <span className="text-[9px] font-semibold uppercase tracking-wider text-slate-400 mt-0.5">
+                            Win
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Bottom 3-Metric Telemetry Row */}
+                  <div className="grid grid-cols-3 divide-x divide-slate-100 dark:divide-white/[0.06] border-t border-slate-100 dark:border-white/[0.06] bg-slate-50/50 dark:bg-white/[0.015]">
+                    <div className="px-3 py-2.5 text-center">
+                      <div className="flex items-center justify-center gap-1 text-[10.5px] font-medium text-slate-400">
+                        <span>Avg RR</span>
+                        <InfoTip text="Average reward-to-risk ratio on winning trades." />
+                      </div>
+                      <p className="mt-0.5 text-[14px] font-semibold text-slate-900 dark:text-white tabular-nums">
+                        {metrics.avgWinRR.toFixed(2)}R
                       </p>
                     </div>
-                    <div>
-                      <p className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-0.5">Win Rate</p>
-                      <p className="text-base font-extrabold tracking-tight text-slate-900 dark:text-white">{winRate}%</p>
+
+                    <div className="px-3 py-2.5 text-center">
+                      <div className="flex items-center justify-center gap-1 text-[10.5px] font-medium text-slate-400">
+                        <span>Profit Factor</span>
+                        <InfoTip text="Gross profit divided by gross loss." />
+                      </div>
+                      <p className="mt-0.5 text-[14px] font-semibold text-slate-900 dark:text-white tabular-nums">
+                        {metrics.pf.toFixed(2)}
+                      </p>
                     </div>
-                    <div>
-                      <p className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-0.5">Profit Factor</p>
-                      <p className="text-base font-extrabold tracking-tight text-slate-900 dark:text-white">{profitFactor !== null ? profitFactor : '—'}</p>
+
+                    <div className="px-3 py-2.5 text-center">
+                      <div className="flex items-center justify-center gap-1 text-[10.5px] font-medium text-slate-400">
+                        <span>Avg W / L</span>
+                        <InfoTip text="Average dollar win vs average dollar loss." />
+                      </div>
+                      <p
+                        className={`mt-0.5 text-[14px] font-semibold tabular-nums transition-[filter,opacity] duration-200 ${
+                          hidePnl ? "blur-[5.5px] select-none opacity-75" : ""
+                        }`}
+                      >
+                        <span className="text-slate-900 dark:text-white">
+                          {formatCompactMoney(metrics.avgWin, currSym, false)}
+                        </span>
+                        <span className="text-slate-300 dark:text-neutral-600 mx-0.5 font-normal">
+                          /
+                        </span>
+                        <span className="text-slate-400 dark:text-neutral-500">
+                          {formatCompactMoney(metrics.avgLoss, currSym, false)}
+                        </span>
+                      </p>
                     </div>
                   </div>
-                </>
-              ) : (
-                <div className="h-[200px] flex flex-col items-center justify-center text-center px-4 py-6 border-2 border-dashed border-slate-200 dark:border-white/10 rounded-xl bg-slate-50/50 dark:bg-white/5">
-                  <Activity size={28} className="text-slate-300 dark:text-slate-600 mb-2" />
-                  <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">No trading data yet</h3>
-                  <p className="text-xs text-slate-500 max-w-[220px] mb-3">Connect an account or import trades to view performance.</p>
-                  <Link to="/journal" className="px-4 py-1.5 bg-white dark:bg-[#2A2A2A] text-blue-600 font-bold text-xs rounded-full border border-blue-100 dark:border-blue-500/30 hover:bg-blue-50 transition-colors">
-                    Open Journal
-                  </Link>
-                </div>
-              )}
-            </GlassCard>
 
-            {/* Open Positions */}
-            <GlassCard noPadding className="p-5">
-              <div className="flex justify-between items-center mb-3">
-                <h2 className="text-[15px] font-bold text-slate-900 dark:text-white">Open Positions</h2>
-                {openPositions.length > 0 && (
-                  <span className="text-xs font-bold text-slate-400">{openPositions.length} active</span>
-                )}
-              </div>
-
-              {openPositions.length > 0 ? (
-                <div className="w-full overflow-x-auto">
-                  <table className="w-full text-sm text-left">
-                    <thead>
-                      <tr className="text-[11px] font-bold text-slate-400 dark:text-slate-500 tracking-wider border-b border-slate-100 dark:border-white/5">
-                        <th className="pb-2.5 font-medium">Symbol</th>
-                        <th className="pb-2.5 font-medium">Side</th>
-                        <th className="pb-2.5 font-medium">Size</th>
-                        <th className="pb-2.5 font-medium">Entry</th>
-                        <th className="pb-2.5 font-medium text-right">P&L</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {openPositions.map((pos: any, idx: number) => (
-                        <tr key={idx} className="border-b border-slate-50 dark:border-white/5 last:border-0">
-                          <td className="py-2.5 font-bold text-slate-900 dark:text-white">{pos.symbol}</td>
-                          <td className="py-2.5">
-                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${pos.type?.includes('buy') ? 'bg-blue-50 text-blue-600 border border-blue-100 dark:bg-blue-950/30 dark:border-blue-500/30' : 'bg-orange-50 text-orange-600 border border-orange-100 dark:bg-orange-950/30 dark:border-orange-500/30'}`}>
-                              {pos.type?.includes('buy') ? 'BUY' : 'SELL'}
+                  {/* Interactive Pre-Market Plan Strip */}
+                  <button
+                    type="button"
+                    onClick={() => setIsPlanModalOpen(true)}
+                    className="w-full px-4 py-2.5 border-t border-slate-100 dark:border-white/[0.06] flex items-center justify-between text-[12px] hover:bg-slate-50/80 dark:hover:bg-white/[0.03] transition-colors cursor-pointer group"
+                  >
+                    <span className="flex items-center gap-2 font-semibold text-slate-700 dark:text-neutral-200">
+                      {todayPlan ? (
+                        <>
+                          <span className="w-4 h-4 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                            <Check size={10} strokeWidth={3} />
+                          </span>
+                          <span>
+                            Pre-market plan active ·{" "}
+                            <span className="capitalize text-slate-500 dark:text-neutral-400 font-medium">
+                              {todayPlan.bias} bias
                             </span>
-                          </td>
-                          <td className="py-2.5 font-medium text-slate-600 dark:text-slate-400">{pos.volume?.toFixed(2)}</td>
-                          <td className="py-2.5 font-medium text-slate-600 dark:text-slate-400">{pos.open_price}</td>
-                          <td className={`py-2.5 font-bold text-right ${pos.profit >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
-                            {pos.profit >= 0 ? `+$${pos.profit.toFixed(2)}` : `-$${Math.abs(pos.profit).toFixed(2)}`}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center text-center py-6 border-2 border-dashed border-slate-200 dark:border-white/10 rounded-xl bg-slate-50/50 dark:bg-white/5">
-                  <Shield size={24} className="text-slate-300 dark:text-slate-600 mb-2" />
-                  <p className="text-xs text-slate-500 font-medium">No open positions right now.</p>
-                </div>
-              )}
-            </GlassCard>
-
-
-          </div>
-
-          {/* ── Right Column (span 1) ────────────────────────────────── */}
-          <div className="space-y-5">
-
-            {/* Risk Guard Summary */}
-            <GlassCard noPadding className="overflow-hidden">
-              <div className="p-4 border-b border-slate-100 dark:border-white/5 flex justify-between items-center">
-                <h2 className="text-[15px] font-bold text-slate-900 dark:text-white">Risk Guard</h2>
-                <Link to="/risk-guard" className="text-xs font-bold text-blue-600 dark:text-blue-400 flex items-center gap-1 hover:text-blue-700 transition-colors">
-                  Open <ExternalLink size={11} strokeWidth={2.5} />
-                </Link>
-              </div>
-              <div className="p-4 space-y-4">
-                {/* Daily Loss */}
-                <div>
-                  <div className="flex justify-between items-center mb-1.5">
-                    <span className="text-xs font-medium text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
-                      <ShieldCheck size={13} className="text-slate-400" /> Daily loss
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="w-1.5 h-1.5 rounded-full bg-teal-500" />
+                          <span className="text-teal-700 dark:text-teal-400">
+                            Start today&apos;s pre-market plan
+                          </span>
+                        </>
+                      )}
                     </span>
-                    {riskData.isLimitConfigured ? (
-                      <span className="text-xs font-bold text-slate-900 dark:text-white">{riskData.drawdownPct}% <span className="text-slate-400 font-medium">/ {riskData.maxLossPct}%</span></span>
-                    ) : (
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">—</span>
-                    )}
-                  </div>
-                  <div className="w-full h-1 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
-                    <div className="h-full bg-emerald-500 rounded-full" style={{ width: riskData.isLimitConfigured ? `${Math.min(100, (Number(riskData.drawdownPct) / Number(riskData.maxLossPct)) * 100)}%` : '0%' }} />
-                  </div>
-                </div>
+                    <ArrowRight
+                      size={13}
+                      className="text-slate-400 group-hover:translate-x-0.5 group-hover:text-slate-700 dark:group-hover:text-white transition-all"
+                    />
+                  </button>
+                </motion.section>
 
-                {/* Trades Taken */}
-                <div>
-                  <div className="flex justify-between items-center mb-1.5">
-                    <span className="text-xs font-medium text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
-                      <BarChart3 size={13} className="text-slate-400" /> Trades taken
+                {/* B. Clean Precision Equity Curve Card */}
+                <motion.section
+                  variants={cardVariants}
+                  className={`${SURFACE_CARD} p-4`}
+                >
+                  <div className="flex items-center justify-between gap-2 mb-2.5">
+                    <div className="flex items-center gap-2">
+                      <TrendingUp size={13.5} className="text-slate-500 dark:text-neutral-400" />
+                      <h2 className="text-[12.5px] font-semibold text-slate-900 dark:text-white tracking-tight">
+                        Equity curve
+                      </h2>
+                      <span className="text-[11.5px] text-slate-400">
+                        · {activeRangeMeta.subLabel}
+                      </span>
+                    </div>
+                    <span
+                      className={`text-[12.5px] font-semibold tabular-nums transition-[filter,opacity] duration-200 ${pnlColorClass} ${
+                        hidePnl ? "blur-[5.5px] select-none opacity-75" : ""
+                      }`}
+                    >
+                      {formatCompactMoney(
+                        metrics.total,
+                        currSym,
+                        metrics.total !== 0
+                      )}
                     </span>
-                    <span className="text-xs font-bold text-slate-900 dark:text-white">{riskData.tradesTaken} <span className="text-slate-400 font-medium">/ {riskData.maxTrades}</span></span>
                   </div>
-                  <div className="w-full h-1 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
-                    <div className="h-full bg-blue-500 rounded-full" style={{ width: `${Math.min(100, (riskData.tradesTaken / riskData.maxTrades) * 100)}%` }} />
-                  </div>
-                </div>
 
-                {/* Open Risk */}
-                <div>
-                  <div className="flex justify-between items-center mb-1.5">
-                    <span className="text-xs font-medium text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
-                      <Target size={13} className="text-slate-400" /> Open risk
-                    </span>
-                    {riskData.openRiskPct !== null ? (
-                      <span className="text-xs font-bold text-slate-900 dark:text-white">{riskData.openRiskPct}% <span className="text-slate-400 font-medium">/ {riskData.maxOpenRiskPct}%</span></span>
-                    ) : (
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">—</span>
-                    )}
-                  </div>
-                  <div className="w-full h-1 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
-                    <div className="h-full bg-emerald-500 rounded-full" style={{ width: riskData.openRiskPct !== null ? `${Math.min(100, (Number(riskData.openRiskPct) / Number(riskData.maxOpenRiskPct)) * 100)}%` : '0%' }} />
-                  </div>
-                </div>
-              </div>
-              <div className={`px-4 py-3 border-t border-slate-100 dark:border-white/5 flex items-center gap-2 text-xs font-medium ${riskData.isLimitConfigured ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500'}`}>
-                {riskData.isLimitConfigured ? (
-                  <><CheckCircle2 size={13} className="text-emerald-500" /> All rules enforced</>
-                ) : (
-                  <><AlertCircle size={13} /> Limits not fully configured</>
+                  {scopedTrades.some((t: any) => t.closed_at) ? (
+                    <div
+                      className={`h-[165px] w-full transition-[filter,opacity] duration-200 ${
+                        hidePnl ? "blur-[6px] select-none pointer-events-none opacity-75" : ""
+                      }`}
+                    >
+                      <PerformanceChart
+                        trades={scopedTrades}
+                        isDark={isDark}
+                        currencySymbol={currSym}
+                      />
+                    </div>
+                  ) : (
+                    <div className="py-7 px-3 flex flex-col items-center justify-center rounded-xl bg-slate-50/70 dark:bg-white/[0.02] border border-dashed border-slate-200/80 dark:border-white/[0.07]">
+                      <div className="w-full max-w-[76%] border-t-2 border-dotted border-slate-200 dark:border-white/10" />
+                      <p className="mt-2.5 text-[11.5px] text-slate-400 dark:text-neutral-500">
+                        Curve updates live after your first closed trade
+                      </p>
+                    </div>
+                  )}
+                </motion.section>
+
+                {/* C. Compact 2-Column Bento: Risk Guard + Discipline */}
+                <motion.section
+                  variants={cardVariants}
+                  className="grid grid-cols-2 gap-3"
+                >
+                  <Link
+                    to="/risk-guard"
+                    className={`${SURFACE_CARD} p-3.5 hover:-translate-y-[1px] transition-transform block`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="inline-flex items-center gap-1.5 text-[11.5px] font-semibold text-slate-600 dark:text-neutral-300">
+                        <ShieldCheck size={13} className="text-blue-600 dark:text-blue-400" />
+                        Risk guard
+                      </span>
+                      <span
+                        className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
+                          riskSummary.isLimitConfigured
+                            ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400"
+                            : "bg-slate-100 text-slate-500 dark:bg-white/10 dark:text-neutral-400"
+                        }`}
+                      >
+                        {riskSummary.isLimitConfigured ? "Active" : "Setup"}
+                      </span>
+                    </div>
+
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-[19px] font-bold text-slate-900 dark:text-white tabular-nums">
+                        {riskSummary.isLimitConfigured
+                          ? `${riskSummary.drawdownPct}%`
+                          : "—"}
+                      </span>
+                      <span className="text-[11px] text-slate-400">
+                        {riskSummary.isLimitConfigured
+                          ? `/ ${riskSummary.maxLossPct}% limit`
+                          : "daily loss"}
+                      </span>
+                    </div>
+
+                    <div className="w-full h-1.5 rounded-full bg-slate-100 dark:bg-white/[0.07] mt-2.5 overflow-hidden">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${riskSummary.usedRatio}%` }}
+                        transition={{ duration: 0.5, ease: "easeOut" }}
+                        className={`h-full rounded-full ${
+                          riskSummary.usedRatio > 75
+                            ? "bg-rose-500"
+                            : "bg-emerald-600"
+                        }`}
+                      />
+                    </div>
+                  </Link>
+
+                  <Link
+                    to="/rewards"
+                    className={`${SURFACE_CARD} p-3.5 hover:-translate-y-[1px] transition-transform block`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="inline-flex items-center gap-1.5 text-[11.5px] font-semibold text-slate-600 dark:text-neutral-300">
+                        <Flame size={13} className="text-orange-500" />
+                        Discipline
+                      </span>
+                      <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400">
+                        Lv.{effectiveLevel}
+                      </span>
+                    </div>
+
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-[19px] font-bold text-slate-900 dark:text-white tabular-nums">
+                        {effectiveDiscipline !== null ? effectiveDiscipline : "—"}
+                      </span>
+                      <span className="text-[11px] text-slate-400">
+                        {effectiveDiscipline !== null ? "/ 100" : "score"}
+                      </span>
+                    </div>
+
+                    <div className="mt-2 flex items-center justify-between text-[11px] text-slate-500 dark:text-neutral-400 font-medium">
+                      <span>{effectiveStreak}d streak</span>
+                      <span className="text-blue-600 dark:text-blue-400 font-semibold">
+                        +{effectiveDailyXp} XP
+                      </span>
+                    </div>
+                  </Link>
+                </motion.section>
+
+                {/* Open Positions (only when active) */}
+                {openPositions.length > 0 && (
+                  <motion.section
+                    variants={cardVariants}
+                    className={`${SURFACE_CARD} p-4`}
+                  >
+                    <div className="flex items-center justify-between mb-2.5">
+                      <h2 className="text-[12.5px] font-semibold text-slate-900 dark:text-white tracking-tight">
+                        Open positions ({openPositions.length})
+                      </h2>
+                      <Link
+                        to="/journal"
+                        className="text-[11.5px] font-semibold text-blue-600 dark:text-blue-400 hover:underline"
+                      >
+                        Manage →
+                      </Link>
+                    </div>
+                    <div className="divide-y divide-slate-100 dark:divide-white/[0.05]">
+                      {openPositions.map((pos: any, idx: number) => {
+                        const isBuy =
+                          String(pos.trade_type || pos.type || "")
+                            .toLowerCase()
+                            .includes("buy") || pos.trade_type === 0;
+                        const pnlVal = Number(pos.profit || 0);
+                        return (
+                          <div
+                            key={pos.id || idx}
+                            className="py-2 flex items-center justify-between text-[12.5px]"
+                          >
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold text-slate-900 dark:text-white">
+                                {pos.symbol}
+                              </span>
+                              <span
+                                className={`px-1.5 py-0.5 rounded-full text-[9.5px] font-semibold ${
+                                  isBuy
+                                    ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400"
+                                    : "bg-rose-50 text-rose-600 dark:bg-rose-500/15 dark:text-rose-400"
+                                }`}
+                              >
+                                {isBuy ? "BUY" : "SELL"}
+                              </span>
+                              <span className="text-[11px] text-slate-400 tabular-nums">
+                                {Number(pos.lot_size ?? pos.volume ?? 0).toFixed(2)}
+                              </span>
+                            </div>
+                            <span
+                              className={`font-semibold tabular-nums transition-[filter,opacity] duration-200 ${
+                                pnlVal >= 0 ? "text-emerald-700 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
+                              } ${hidePnl ? "blur-[5px] select-none opacity-75" : ""}`}
+                            >
+                              {formatCompactMoney(pnlVal, currSym, true)}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </motion.section>
                 )}
               </div>
-            </GlassCard>
 
-            {/* Rewards & Level */}
-            <GlassCard noPadding className="p-4">
-              <div className="flex justify-between items-center mb-3">
-                <h2 className="text-[15px] font-bold text-slate-900 dark:text-white">Rewards</h2>
-                <Link to="/rewards" className="text-xs font-bold text-blue-600 dark:text-blue-400 flex items-center gap-1 hover:text-blue-700 transition-colors">
-                  View <ExternalLink size={11} strokeWidth={2.5} />
-                </Link>
-              </div>
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-sm">
-                  <Star size={18} className="text-white" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[15px] font-bold text-slate-900 dark:text-white">Level {gamification.level}</span>
-                    <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-600 border border-amber-100 dark:bg-amber-950/30 dark:border-amber-500/30">
-                      {gamification.xp} XP
-                    </span>
-                  </div>
-                  <div className="w-full h-1.5 bg-slate-100 dark:bg-white/5 rounded-full mt-1.5 overflow-hidden">
-                    <div className="h-full bg-gradient-to-r from-amber-400 to-orange-500 rounded-full transition-all" style={{ width: `${xpProgress}%` }} />
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-white/5">
-                <div className="flex items-center gap-1.5">
-                  <Flame size={14} className="text-orange-500" />
-                  <span className="text-xs font-bold text-slate-600 dark:text-slate-400">{gamification.streak} day streak</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <Zap size={14} className="text-blue-500" />
-                  <span className="text-xs font-bold text-slate-600 dark:text-slate-400">+{dailyXpEarned} XP today</span>
-                </div>
-              </div>
-            </GlassCard>
+              {/* RIGHT COLUMN: Tactile Button P&L Calendar + Market Radar + Goals + AI Coach */}
+              <div className="lg:col-span-5 space-y-3.5 sm:space-y-4">
+                <motion.div variants={cardVariants}>
+                  <DashboardPnLCalendar
+                    trades={activeTrades}
+                    currSym={currSym}
+                    hidePnl={hidePnl}
+                    onLogTrade={() => openLogModal("manual")}
+                  />
+                </motion.div>
 
+                <motion.div variants={cardVariants}>
+                  <DashboardNewsCard />
+                </motion.div>
 
+                <motion.div variants={cardVariants}>
+                  <DashboardGoalsCard />
+                </motion.div>
 
-            {/* AI Coach Insight */}
-            <GlassCard noPadding className="p-4">
-              <div className="flex items-center gap-1.5 mb-2">
-                <Sparkles size={14} className="text-purple-500" />
-                <span className="text-[11px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider">AI Coach</span>
+                <motion.div variants={cardVariants}>
+                  <Link
+                    to="/ai-coach"
+                    className={`${SURFACE_CARD} px-4 py-3.5 flex items-center justify-between gap-3 hover:-translate-y-[1px] transition-transform group`}
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-8 h-8 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center shrink-0">
+                        <Sparkles size={14} />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-[13px] font-semibold text-slate-900 dark:text-white leading-tight">
+                          TradiFive AI Coach
+                        </p>
+                        <p className="text-[11.5px] text-slate-400 truncate mt-0.5">
+                          Review your setups, psychology &amp; risk rules
+                        </p>
+                      </div>
+                    </div>
+                    <ArrowRight
+                      size={14}
+                      className="text-slate-400 group-hover:translate-x-0.5 group-hover:text-slate-900 dark:group-hover:text-white transition-all shrink-0"
+                    />
+                  </Link>
+                </motion.div>
               </div>
-              <p className="text-[13px] font-semibold text-slate-900 dark:text-white leading-snug mb-3">
-                {coachInsight}
+            </div>
+
+            {/* ── 4. Subtle Daily Discipline Quote Footer ───────────────────── */}
+            <motion.footer
+              variants={cardVariants}
+              className="pt-3 pb-4 px-2 flex items-start justify-center gap-2 text-center max-w-[560px] mx-auto"
+            >
+              <Quote
+                size={13}
+                className="text-slate-300 dark:text-neutral-700 shrink-0 mt-0.5 rotate-180"
+              />
+              <p className="text-[11.5px] italic text-slate-400 dark:text-neutral-500 leading-relaxed">
+                &ldquo;{dailyQuote.text}&rdquo;{" "}
+                <span className="not-italic font-semibold tracking-[0.11em] uppercase text-[10px] text-slate-400/90 dark:text-neutral-500 ml-1">
+                  {dailyQuote.author}
+                </span>
               </p>
-              <Link to="/ai-coach" className="text-xs font-bold text-blue-600 dark:text-blue-400 flex items-center gap-1 hover:text-blue-700 transition-colors">
-                Chat with AI Coach <ChevronRight size={12} strokeWidth={3} />
-              </Link>
-            </GlassCard>
+            </motion.footer>
+              </motion.div>
+            </div>
 
-          </div>
+          {/* Modals */}
+          <PreMarketPlanModal
+            isOpen={isPlanModalOpen}
+            onClose={() => setIsPlanModalOpen(false)}
+            onSaved={(plan) => setTodayPlan(plan)}
+          />
+
+          <LogTradeModal
+            isOpen={logModalOpen}
+            initialTab={logModalTab}
+            onClose={() => setLogModalOpen(false)}
+            onSuccess={() => refetch()}
+          />
+
+          <ShareProfileModal
+            isOpen={shareModalOpen}
+            onClose={() => setShareModalOpen(false)}
+            profile={{
+              display_name: profileData?.display_name || profileData?.full_name,
+              username: profileData?.username,
+              avatar_url: profileData?.avatar_url,
+              banner_url: profileData?.banner_url,
+              bio: profileData?.bio,
+              trading_style: profileData?.trading_style,
+              trades_count: metrics.totalClosed,
+              win_rate: `${metrics.winRatePct.toFixed(1)}%`,
+              level: effectiveLevel,
+            }}
+          />
         </div>
+      )}
 
-      </div>
-          )}
-        {currentTab === 'portfolio' && <Portfolio />}
-        {currentTab === 'brokers' && <Brokers />}
-        {currentTab === 'reports' && <Reports />}
-      </DashboardLayout>
+      {currentTab === "portfolio" && <Portfolio />}
+      {currentTab === "brokers" && <Brokers />}
+      {currentTab === "reports" && <Reports />}
+    </DashboardLayout>
   );
 };
 
