@@ -57,34 +57,52 @@ function ChartCard({
   title,
   legend,
   children,
+  footer,
   filter,
   onFilter,
   filters,
   chartHeight = 250,
+  frameless = false,
 }: {
   title: string;
   legend?: React.ReactNode;
   children: React.ReactNode;
+  footer?: React.ReactNode;
   filter?: string;
   onFilter?: (v: string) => void;
   filters?: string[];
   chartHeight?: number;
+  frameless?: boolean;
 }) {
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className={`${CARD_SURFACE} p-4 sm:p-5 flex flex-col h-full min-h-[340px] sm:min-h-[370px] relative`}
+      className={
+        frameless
+          ? "flex flex-col h-full relative px-0.5 pt-0.5 pb-1"
+          : `${CARD_SURFACE} p-4 sm:p-5 flex flex-col h-full min-h-[340px] sm:min-h-[370px] relative`
+      }
     >
-      <div className="flex items-start justify-between gap-2 mb-4">
+      <div
+        className={`flex items-start justify-between gap-2 ${
+          frameless ? "mb-3 min-h-[42px]" : "mb-4"
+        }`}
+      >
         <div className="min-w-0">
           <h3 className="text-[13.5px] font-semibold text-slate-900 dark:text-white tracking-tight leading-tight">
             {title}
           </h3>
-          {legend && <div className="mt-1.5">{legend}</div>}
+          {legend && <div className="mt-1">{legend}</div>}
         </div>
         {filters && (
-          <div className="inline-flex items-center bg-slate-100/90 dark:bg-white/[0.06] p-0.5 rounded-[9px] shrink-0">
+          <div
+            className={`inline-flex items-center p-0.5 rounded-[9px] shrink-0 ${
+              frameless
+                ? "bg-slate-200/70 dark:bg-white/[0.07]"
+                : "bg-slate-100/90 dark:bg-white/[0.06]"
+            }`}
+          >
             {filters.map((f) => (
               <button
                 key={f}
@@ -103,11 +121,12 @@ function ChartCard({
         )}
       </div>
       <div
-        className="w-full relative flex-1 min-h-[240px]"
-        style={{ height: chartHeight, minHeight: chartHeight }}
+        className={`w-full relative flex-1 flex flex-col min-h-0 ${frameless ? "" : "min-h-[240px]"}`}
+        style={frameless ? { minHeight: chartHeight } : { height: chartHeight, minHeight: chartHeight }}
       >
         {children}
       </div>
+      {footer}
     </motion.div>
   );
 }
@@ -254,9 +273,11 @@ const EmptyChartHint = ({ message }: { message: string }) => (
 export default function JournalCharts({
   cardId,
   demoData,
+  frameless = false,
 }: {
   cardId?: string;
   demoData?: { allTrades: any[]; balance: number } | null;
+  frameless?: boolean;
 }) {
   const {
     recentTrades: rawRecentTrades,
@@ -529,6 +550,10 @@ export default function JournalCharts({
                   stroke={chartColor}
                   strokeWidth={2}
                   fill="url(#tfCumPnlGrad)"
+                  isAnimationActive={true}
+                  animationBegin={90}
+                  animationDuration={950}
+                  animationEasing="ease-out"
                 />
               </AreaChart>
             </ResponsiveContainer>
@@ -611,7 +636,15 @@ export default function JournalCharts({
                   stroke={isDark ? "rgba(255,255,255,0.12)" : "#cbd5e1"}
                   strokeDasharray="3 3"
                 />
-                <Bar dataKey="value" radius={[5, 5, 0, 0]} maxBarSize={24}>
+                <Bar
+                  dataKey="value"
+                  radius={[5, 5, 0, 0]}
+                  maxBarSize={24}
+                  isAnimationActive={true}
+                  animationBegin={110}
+                  animationDuration={900}
+                  animationEasing="ease-out"
+                >
                   {filteredData.map((d, i) => (
                     <Cell
                       key={i}
@@ -629,9 +662,47 @@ export default function JournalCharts({
 
   if (cardId === "account-balance") {
     const filteredData = getFilteredData(accountBalance, balFilter);
+    const balValues = filteredData.flatMap((d) => [
+      Number(d.balance || 0),
+      Number(d.deposits || 0),
+    ]);
+    const minVal = balValues.length ? Math.min(...balValues) : 0;
+    const maxVal = balValues.length ? Math.max(...balValues) : 1000;
+    const span = Math.max(maxVal - minVal, Math.abs(maxVal) * 0.04, 100);
+    const pad = span * 0.22;
+    const niceStep = (() => {
+      const rough = (span + pad * 2) / 4;
+      const mag = Math.pow(10, Math.floor(Math.log10(Math.max(rough, 1))));
+      const norm = rough / mag;
+      return (norm <= 1 ? 1 : norm <= 2 ? 2 : norm <= 5 ? 5 : 10) * mag;
+    })();
+    const domainMin = Math.max(0, Math.floor((minVal - pad) / niceStep) * niceStep);
+    const domainMax = Math.ceil((maxVal + pad) / niceStep) * niceStep;
+
+    const firstDeposit = filteredData.length > 0 ? Number(filteredData[0].deposits || 0) : 0;
+    const latestBalance =
+      filteredData.length > 0 ? Number(filteredData[filteredData.length - 1].balance || 0) : 0;
+    const pctChange =
+      firstDeposit > 0 ? ((latestBalance - firstDeposit) / firstDeposit) * 100 : 0;
+
+    const formatCompactAxis = (v: number) => {
+      const sample = fmtMoney(0, { raw: true });
+      const symMatch = sample.match(/^[^0-9-]+/);
+      const sym = symMatch ? symMatch[0] : "$";
+      const abs = Math.abs(v);
+      const sign = v < 0 ? "-" : "";
+      if (abs >= 1000) {
+        const k = abs / 1000;
+        return `${sign}${sym}${Number.isInteger(k) ? k : k.toFixed(1)}k`;
+      }
+      return `${sign}${sym}${Math.round(abs)}`;
+    };
+
     return (
       <ChartCard
         title="Account Balance"
+        frameless={frameless}
+        chartHeight={frameless ? 235 : 250}
         legend={
           <div className="flex items-center gap-3 text-[11px] font-medium text-slate-400">
             <span className="inline-flex items-center gap-1.5">
@@ -647,6 +718,29 @@ export default function JournalCharts({
         filter={balFilter}
         onFilter={setBalFilter}
         filters={["1W", "1M", "All"]}
+        footer={
+          frameless ? (
+            <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-white/[0.06] flex items-center justify-between text-[11px] tabular-nums">
+              <span className="text-slate-400 font-medium">
+                Start{" "}
+                <span className="text-slate-600 dark:text-neutral-300 font-semibold">
+                  {hasData ? fmtMoney(firstDeposit, { raw: true }) : "—"}
+                </span>
+              </span>
+              <span
+                className={`font-semibold ${
+                  pctChange >= 0
+                    ? "text-[#2563EB] dark:text-blue-400"
+                    : "text-rose-600 dark:text-rose-400"
+                }`}
+              >
+                {hasData
+                  ? `${fmtMoney(latestBalance, { raw: true })} (${pctChange >= 0 ? "+" : ""}${pctChange.toFixed(1)}%)`
+                  : "No trades yet"}
+              </span>
+            </div>
+          ) : undefined
+        }
       >
         {loading ? (
           <ChartSkeleton />
@@ -654,40 +748,42 @@ export default function JournalCharts({
           <EmptyChartHint message="Tracks your balance vs. initial deposits." />
         ) : (
           <div
-            className={`h-[250px] w-full transition-[filter,opacity] duration-200 ${
+            className={`${frameless ? "h-[235px] flex-1" : "h-[250px]"} w-full transition-[filter,opacity] duration-200 ${
               hideBalance || hideOnlyBalance || percentageOnly
                 ? "blur-[6px] select-none pointer-events-none opacity-75"
                 : ""
             }`}
           >
-            <ResponsiveContainer width="100%" height={250}>
+            <ResponsiveContainer width="100%" height={frameless ? "100%" : 250} minHeight={frameless ? 235 : 250}>
               <AreaChart
                 data={filteredData}
-                margin={{ top: 6, right: 8, left: -6, bottom: 0 }}
+                margin={{ top: 8, right: 8, left: -12, bottom: 2 }}
               >
                 <defs>
                   <linearGradient id="tfBalGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#2563EB" stopOpacity={0.14} />
-                    <stop offset="100%" stopColor="#2563EB" stopOpacity={0} />
+                    <stop offset="0%" stopColor="#2563EB" stopOpacity={0.18} />
+                    <stop offset="100%" stopColor="#2563EB" stopOpacity={0.01} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid
                   vertical={false}
-                  stroke={isDark ? "rgba(255,255,255,0.05)" : "#f1f5f9"}
+                  stroke={isDark ? "rgba(255,255,255,0.06)" : "#eef2f6"}
                 />
                 <XAxis
                   dataKey="date"
                   tick={tickStyle}
                   axisLine={false}
                   tickLine={false}
-                  minTickGap={22}
+                  minTickGap={26}
+                  dy={4}
                 />
                 <YAxis
-                  width={62}
+                  width={52}
+                  domain={[domainMin, domainMax]}
                   tick={tickStyle}
                   axisLine={false}
                   tickLine={false}
-                  tickFormatter={(v) => fmtMoney(v, { raw: true })}
+                  tickFormatter={formatCompactAxis}
                 />
                 <Tooltip
                   contentStyle={dynamicTooltipStyle}
@@ -699,20 +795,28 @@ export default function JournalCharts({
                   ]}
                 />
                 <Area
-                  type="linear"
+                  type="monotone"
                   dataKey="deposits"
                   stroke="#94A3B8"
                   strokeWidth={1.5}
                   strokeDasharray="4 4"
                   fill="none"
                   dot={false}
+                  isAnimationActive={true}
+                  animationBegin={100}
+                  animationDuration={850}
+                  animationEasing="ease-out"
                 />
                 <Area
-                  type="linear"
+                  type="monotone"
                   dataKey="balance"
                   stroke="#2563EB"
                   strokeWidth={2}
                   fill="url(#tfBalGrad)"
+                  isAnimationActive={true}
+                  animationBegin={140}
+                  animationDuration={950}
+                  animationEasing="ease-out"
                 />
               </AreaChart>
             </ResponsiveContainer>
@@ -802,6 +906,10 @@ export default function JournalCharts({
                   stroke={chartColor}
                   strokeWidth={2}
                   fill="url(#tfDdGrad)"
+                  isAnimationActive={true}
+                  animationBegin={120}
+                  animationDuration={950}
+                  animationEasing="ease-out"
                 />
               </AreaChart>
             </ResponsiveContainer>
@@ -898,8 +1006,24 @@ export default function JournalCharts({
                   stroke={isDark ? "rgba(255,255,255,0.12)" : "#cbd5e1"}
                   strokeDasharray="4 4"
                 />
-                <Scatter data={scatterData.profit} fill="#2563EB" opacity={0.85} />
-                <Scatter data={scatterData.loss} fill="#E11D48" opacity={0.85} />
+                <Scatter
+                  data={scatterData.profit}
+                  fill="#2563EB"
+                  opacity={0.85}
+                  isAnimationActive={true}
+                  animationBegin={110}
+                  animationDuration={850}
+                  animationEasing="ease-out"
+                />
+                <Scatter
+                  data={scatterData.loss}
+                  fill="#E11D48"
+                  opacity={0.85}
+                  isAnimationActive={true}
+                  animationBegin={150}
+                  animationDuration={850}
+                  animationEasing="ease-out"
+                />
               </ScatterChart>
             </ResponsiveContainer>
           </div>

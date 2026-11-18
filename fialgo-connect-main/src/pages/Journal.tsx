@@ -34,6 +34,7 @@ import {
 } from "@/contexts/JournalSettingsContext";
 import { formatUTCDate, formatHoldDuration } from "@/utils/tradeUtils";
 import { buildJournalDemoData } from "@/utils/journalDemoData";
+import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { useMarket } from "@/contexts/MarketContext";
 import { usePlan } from "@/hooks/usePlan";
@@ -621,7 +622,7 @@ function JournalContent() {
                     </p>
                   ) : (
                     <div className="space-y-3 mt-4">
-                      {extraStats.symbolRows.map((row) => {
+                      {extraStats.symbolRows.map((row, idx) => {
                         const pctWidth = Math.max(
                           8,
                           (Math.abs(row.pnl) / extraStats.maxAbsSymbol) * 100
@@ -634,7 +635,13 @@ function JournalContent() {
                                   {row.symbol}
                                 </span>
                                 <span className="text-[10.5px] text-slate-400 tabular-nums">
-                                  {row.count}t · {row.winRate}%
+                                  {row.count}t ·{" "}
+                                  <AnimatedNumber
+                                    value={row.winRate}
+                                    duration={850}
+                                    delay={100 + idx * 45}
+                                    format={(v) => `${Math.round(v)}%`}
+                                  />
                                 </span>
                               </div>
                               <span
@@ -644,12 +651,23 @@ function JournalContent() {
                                     : "text-[#2563EB] dark:text-blue-400"
                                 }`}
                               >
-                                {formatMoney(row.pnl, { showSign: true, raw: true })}
+                                <AnimatedNumber
+                                  value={row.pnl}
+                                  duration={900}
+                                  delay={100 + idx * 45}
+                                  format={(v) => formatMoney(v, { showSign: true, raw: true })}
+                                />
                               </span>
                             </div>
                             <div className="h-1.5 rounded-full bg-slate-100 dark:bg-white/[0.06] overflow-hidden">
-                              <div
-                                style={{ width: `${pctWidth}%` }}
+                              <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: `${pctWidth}%` }}
+                                transition={{
+                                  duration: 0.9,
+                                  delay: 0.1 + idx * 0.05,
+                                  ease: EXPO_OUT,
+                                }}
                                 className={`h-full rounded-full ${
                                   row.pnl < 0 ? "bg-rose-400" : "bg-[#2563EB]"
                                 }`}
@@ -675,10 +693,21 @@ function JournalContent() {
                           : "text-[#2563EB] dark:text-blue-400"
                       }`}
                     >
-                      {formatMoney(extraStats.longPnl, { showSign: true, raw: true })}
+                      <AnimatedNumber
+                        value={extraStats.longPnl}
+                        duration={950}
+                        delay={140}
+                        format={(v) => formatMoney(v, { showSign: true, raw: true })}
+                      />
                     </p>
                     <p className="text-[10px] text-slate-400 mt-0.5 tabular-nums">
-                      {extraStats.longWinRate}% win rate
+                      <AnimatedNumber
+                        value={extraStats.longWinRate}
+                        duration={850}
+                        delay={160}
+                        format={(v) => `${Math.round(v)}%`}
+                      />{" "}
+                      win rate
                     </p>
                   </div>
                   <div className="rounded-xl bg-slate-50/80 dark:bg-white/[0.03] border border-slate-100 dark:border-white/[0.05] p-3">
@@ -692,10 +721,21 @@ function JournalContent() {
                           : "text-[#2563EB] dark:text-blue-400"
                       }`}
                     >
-                      {formatMoney(extraStats.shortPnl, { showSign: true, raw: true })}
+                      <AnimatedNumber
+                        value={extraStats.shortPnl}
+                        duration={950}
+                        delay={180}
+                        format={(v) => formatMoney(v, { showSign: true, raw: true })}
+                      />
                     </p>
                     <p className="text-[10px] text-slate-400 mt-0.5 tabular-nums">
-                      {extraStats.shortWinRate}% win rate
+                      <AnimatedNumber
+                        value={extraStats.shortWinRate}
+                        duration={850}
+                        delay={200}
+                        format={(v) => `${Math.round(v)}%`}
+                      />{" "}
+                      win rate
                     </p>
                   </div>
                 </div>
@@ -720,7 +760,12 @@ function JournalContent() {
                       <p
                         className={`text-[14px] font-bold text-[#2563EB] dark:text-blue-400 tabular-nums mt-1 ${blurClass}`}
                       >
-                        {formatMoney(extraStats.bestTrade, { showSign: true, raw: true })}
+                        <AnimatedNumber
+                          value={extraStats.bestTrade}
+                          duration={950}
+                          delay={120}
+                          format={(v) => formatMoney(v, { showSign: true, raw: true })}
+                        />
                       </p>
                     </div>
 
@@ -736,7 +781,12 @@ function JournalContent() {
                             : "text-slate-900 dark:text-white"
                         }`}
                       >
-                        {formatMoney(extraStats.worstTrade, { showSign: true, raw: true })}
+                        <AnimatedNumber
+                          value={extraStats.worstTrade}
+                          duration={950}
+                          delay={150}
+                          format={(v) => formatMoney(v, { showSign: true, raw: true })}
+                        />
                       </p>
                     </div>
 
@@ -746,7 +796,14 @@ function JournalContent() {
                         <span>Best / worst streak</span>
                       </div>
                       <p className="text-[14px] font-bold text-slate-900 dark:text-white tabular-nums mt-1">
-                        {extraStats.bestWinStreak}W / {extraStats.worstLossStreak}L
+                        <AnimatedNumber value={extraStats.bestWinStreak} duration={800} delay={160} />
+                        W /{" "}
+                        <AnimatedNumber
+                          value={extraStats.worstLossStreak}
+                          duration={800}
+                          delay={190}
+                        />
+                        L
                       </p>
                     </div>
 
@@ -773,7 +830,7 @@ function JournalContent() {
                     </p>
                   ) : (
                     <div className="space-y-1.5">
-                      {extraStats.setupRows.map((s) => (
+                      {extraStats.setupRows.map((s, idx) => (
                         <div
                           key={s.setup}
                           className="flex items-center justify-between text-[11.5px] py-1"
@@ -792,7 +849,12 @@ function JournalContent() {
                                   : "text-[#2563EB] dark:text-blue-400"
                               }`}
                             >
-                              {formatMoney(s.pnl, { showSign: true, raw: true })}
+                              <AnimatedNumber
+                                value={s.pnl}
+                                duration={900}
+                                delay={140 + idx * 45}
+                                format={(v) => formatMoney(v, { showSign: true, raw: true })}
+                              />
                             </span>
                           </div>
                         </div>

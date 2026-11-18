@@ -100,14 +100,14 @@ export default function CommunityShell() {
   const direction =
     TAB_ORDER[activeTab] >= TAB_ORDER[prevTabRef.current] ? 1 : -1;
 
-  // Close inline notifications & reset scroll cleanly when switching tabs
+  // Close inline notifications & reset scroll cleanly when switching tabs or query params
   useEffect(() => {
     setShowNotifications(false);
     prevTabRef.current = activeTab;
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
     }
-  }, [activeTab]);
+  }, [activeTab, location.search]);
 
   // Clear page-provided headerActions when switching between tabs
   useEffect(() => {

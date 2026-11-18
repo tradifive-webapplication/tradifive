@@ -32,7 +32,12 @@ import PreMarketPlanModal, {
   DailyPreMarketPlan,
 } from "@/components/dashboard/PreMarketPlanModal";
 import LogTradeModal from "@/components/dashboard/LogTradeModal";
+import JournalCharts from "@/components/journal/JournalCharts";
+import { ChartRadarDefault } from "@/components/journal/ChartRadarDefault";
+import { JournalSettingsProvider } from "@/contexts/JournalSettingsContext";
+import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
 import { getGamificationState } from "@/utils/gamification";
+import { buildJournalDemoData } from "@/utils/journalDemoData";
 
 type PnlRange = "all" | "today" | "week" | "month";
 
@@ -182,6 +187,7 @@ const Dashboard = () => {
   const currSym = activeMarket === "indian" ? "₹" : "$";
 
   const [pnlRange, setPnlRange] = useState<PnlRange>("all");
+  const [demoMode, setDemoMode] = useState<boolean>(true);
   const [hidePnl, setHidePnl] = useState<boolean>(() => {
     try {
       return localStorage.getItem("tf_dashboard_hide_pnl") === "true";
@@ -238,16 +244,41 @@ const Dashboard = () => {
     return () => window.removeEventListener("tradifive_xp_update", handleXPUpdate);
   }, []);
 
-  const activeTrades = useMemo(() => recentTrades || [], [recentTrades]);
+  const demoData = useMemo(
+    () => (demoMode ? buildJournalDemoData(activeMarket) : null),
+    [demoMode, activeMarket]
+  );
 
-  const effectiveBalance = balance;
-  const effectiveEquity = equity;
-  const effectiveDiscipline = avgDisciplineScore;
-  const effectiveDailyXp = dailyXpEarned;
-  const effectiveStreak = gamification.streak;
-  const effectiveLevel = gamification.level;
-  const effectiveRiskConfig = riskConfig;
-  const effectiveTradesToday = tradesToday;
+  const activeTrades = useMemo(
+    () => (demoData ? demoData.allTrades : recentTrades || []),
+    [demoData, recentTrades]
+  );
+
+  const effectiveBalance = demoData ? demoData.balance : balance;
+  const effectiveEquity = demoData ? demoData.equity : equity;
+  const effectiveConnected = demoData ? true : isConnected;
+  const effectiveBroker = demoData
+    ? activeMarket === "indian"
+      ? "Zerodha Kite"
+      : "FTMO MT5"
+    : accountMetrics?.broker;
+  const effectiveDiscipline = demoData ? 92 : avgDisciplineScore;
+  const effectiveDailyXp = demoData ? 140 : dailyXpEarned;
+  const effectiveStreak = demoData ? 9 : gamification.streak;
+  const effectiveLevel = demoData ? 7 : gamification.level;
+  const effectiveRiskConfig = useMemo(
+    () =>
+      demoData
+        ? {
+            max_daily_loss_percent: 4.0,
+            max_open_trades: 5,
+            is_prop_firm_mode: false,
+            prop_firm_daily_loss: 0,
+          }
+        : riskConfig,
+    [demoData, riskConfig]
+  );
+  const effectiveTradesToday = demoData ? 3 : tradesToday;
 
   const scopedTrades = useMemo(() => {
     if (pnlRange === "all") return activeTrades;
@@ -328,8 +359,11 @@ const Dashboard = () => {
       maxLossPercent > 0 ||
       (effectiveRiskConfig?.is_prop_firm_mode &&
         effectiveRiskConfig?.prop_firm_daily_loss > 0);
-    const drawdownPct =
-      effectiveBalance > 0 ? (currentDrawdownDollar / effectiveBalance) * 100 : 0;
+    const drawdownPct = demoData
+      ? 0.8
+      : effectiveBalance > 0
+      ? (currentDrawdownDollar / effectiveBalance) * 100
+      : 0;
     const maxTrades = effectiveRiskConfig?.max_open_trades || 5;
     const usedRatio =
       isLimitConfigured && maxLossPercent > 0
@@ -344,6 +378,7 @@ const Dashboard = () => {
       usedRatio,
     };
   }, [
+    demoData,
     effectiveBalance,
     effectiveEquity,
     effectiveRiskConfig,
@@ -404,17 +439,98 @@ const Dashboard = () => {
             transition={{ duration: 0.4, ease: EXPO_OUT }}
             className="shrink-0 bg-[#F7F8FA]/95 dark:bg-[#141416]/95 backdrop-blur-md z-20"
           >
-            <div className="max-w-[540px] lg:max-w-[1060px] mx-auto px-3.5 sm:px-6 py-3 sm:py-3.5 flex items-center justify-between gap-2.5">
+            <div className="w-full max-w-[1500px] mx-auto px-3.5 sm:px-6 py-3 sm:py-3.5 flex items-center justify-between gap-2.5">
               <div className="min-w-0">
-                <h1 className="text-[19px] sm:text-[21px] font-bold text-slate-900 dark:text-white tracking-tight leading-none">
-                  Dashboard
-                </h1>
+                <div className="flex items-center gap-2.5">
+                  <h1 className="text-[19px] sm:text-[21px] font-bold text-slate-900 dark:text-white tracking-tight leading-none">
+                    Dashboard
+                  </h1>
+                  <button
+                    type="button"
+                    onClick={() => setDemoMode((v) => !v)}
+                    className={`px-2 py-0.5 rounded-full text-[10px] font-semibold transition-colors cursor-pointer ${
+                      demoMode
+                        ? "bg-blue-50 text-[#2563EB] dark:bg-blue-500/15 dark:text-blue-400"
+                        : "bg-slate-200/70 text-slate-500 dark:bg-white/[0.06] dark:text-neutral-400"
+                    }`}
+                    title="Toggle demo preview data"
+                  >
+                    {demoMode ? "Demo data · On" : "Demo data · Off"}
+                  </button>
+                </div>
                 <p className="text-[11.5px] text-slate-400 dark:text-neutral-500 mt-1">
                   {todayFormatted}
                 </p>
               </div>
 
-              <div className="flex items-center shrink-0">
+              <div className="flex items-center gap-2.5 shrink-0">
+                {/* Desktop Web App (md+): Compact Account Action Pill right beside Share Profile */}
+                {activeTrades.length > 0 && (
+                  <div className="hidden md:flex items-center gap-3 bg-white dark:bg-[#17171A] rounded-full pl-3.5 pr-1.5 py-1.5 border border-slate-200/75 dark:border-white/[0.08] shadow-[0_2px_10px_rgba(15,23,42,0.04)] dark:shadow-none">
+                    <div className="flex items-center gap-2 text-[12px]">
+                      <span
+                        className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                          effectiveConnected ? "bg-emerald-500" : "bg-blue-500"
+                        }`}
+                      />
+                      <span className="font-semibold text-slate-800 dark:text-slate-100 whitespace-nowrap">
+                        {effectiveConnected && effectiveBroker
+                          ? `${effectiveBroker} · Live`
+                          : "TradiFive Journal"}
+                      </span>
+                      {effectiveConnected && effectiveEquity > 0 && (
+                        <span className="text-slate-400 dark:text-neutral-500 tabular-nums whitespace-nowrap">
+                          · Equity{" "}
+                          <span
+                            className={`inline-block transition-[filter,opacity] duration-200 ${
+                              hidePnl ? "blur-[5px] select-none opacity-75" : ""
+                            }`}
+                          >
+                            <AnimatedNumber
+                              value={effectiveEquity}
+                              duration={950}
+                              delay={60}
+                              format={(v) => formatCompactMoney(v, currSym, false)}
+                            />
+                          </span>
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="h-4 w-px bg-slate-200/80 dark:bg-white/10" />
+
+                    <div className="flex items-center gap-1.5">
+                      <motion.button
+                        whileTap={{ scale: 0.96 }}
+                        type="button"
+                        onClick={() => openLogModal("manual")}
+                        className="tactile-white-pill rounded-full px-3 py-1 text-[11.5px] font-semibold flex items-center gap-1 cursor-pointer whitespace-nowrap"
+                      >
+                        <Plus size={12} strokeWidth={2.5} />
+                        Log trade
+                      </motion.button>
+                      <motion.button
+                        whileTap={{ scale: 0.96 }}
+                        type="button"
+                        onClick={() => openLogModal("import")}
+                        className="tactile-white-pill rounded-full px-3 py-1 text-[11.5px] font-semibold cursor-pointer whitespace-nowrap"
+                      >
+                        Import
+                      </motion.button>
+                      {!effectiveConnected && (
+                        <motion.button
+                          whileTap={{ scale: 0.96 }}
+                          type="button"
+                          onClick={() => navigate("/settings?tab=trading")}
+                          className="tactile-white-pill rounded-full px-3 py-1 text-[11.5px] font-semibold cursor-pointer whitespace-nowrap"
+                        >
+                          Connect
+                        </motion.button>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 <motion.button
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -422,7 +538,7 @@ const Dashboard = () => {
                   whileTap={{ scale: 0.96 }}
                   type="button"
                   onClick={() => setShareModalOpen(true)}
-                  className="inline-flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[12.5px] font-medium text-slate-600 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white hover:bg-white/70 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[12.5px] font-medium text-slate-600 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white hover:bg-white/70 dark:hover:bg-white/5 transition-colors cursor-pointer"
                   title="Share profile"
                 >
                   <Share2 size={13.5} strokeWidth={2} />
@@ -441,11 +557,13 @@ const Dashboard = () => {
               variants={containerVariants}
               initial="hidden"
               animate="visible"
-              className="max-w-[540px] lg:max-w-[1060px] mx-auto px-3.5 sm:px-6 pt-2.5 sm:pt-3 pb-10 space-y-3.5 sm:space-y-4"
+              className="w-full max-w-[1500px] mx-auto px-3.5 sm:px-6 pt-2.5 sm:pt-3 pb-10 space-y-4 sm:space-y-5"
             >
-
-            {/* ── 2. Tactile Sculpted Quick-Start / Account Action Card ─────── */}
-            <motion.section variants={cardVariants}>
+            {/* ── 1.5. Tactile Quick-Start / Account Action Bar (Mobile keeps full bar; Desktop shows compact pill beside Share) ── */}
+            <motion.section
+              variants={cardVariants}
+              className={activeTrades.length > 0 ? "md:hidden" : ""}
+            >
               {activeTrades.length === 0 ? (
                 <div className={`${SURFACE_CARD} px-4 py-3.5 sm:px-5 sm:py-4`}>
                   <h2 className="text-[14.5px] font-bold text-slate-900 dark:text-white tracking-tight">
@@ -489,15 +607,15 @@ const Dashboard = () => {
                   <div className="flex items-center gap-2 text-[12px]">
                     <span
                       className={`w-1.5 h-1.5 rounded-full ${
-                        isConnected ? "bg-emerald-500" : "bg-blue-500"
+                        effectiveConnected ? "bg-emerald-500" : "bg-blue-500"
                       }`}
                     />
                     <span className="font-semibold text-slate-800 dark:text-slate-100">
-                      {isConnected && accountMetrics?.broker
-                        ? `${accountMetrics.broker} · Live`
+                      {effectiveConnected && effectiveBroker
+                        ? `${effectiveBroker} · Live`
                         : "TradiFive Journal"}
                     </span>
-                    {isConnected && effectiveEquity > 0 && (
+                    {effectiveConnected && effectiveEquity > 0 && (
                       <span className="text-slate-400 dark:text-neutral-500 tabular-nums">
                         · Equity{" "}
                         <span
@@ -505,7 +623,12 @@ const Dashboard = () => {
                             hidePnl ? "blur-[5px] select-none opacity-75" : ""
                           }`}
                         >
-                          {formatCompactMoney(effectiveEquity, currSym, false)}
+                          <AnimatedNumber
+                            value={effectiveEquity}
+                            duration={950}
+                            delay={60}
+                            format={(v) => formatCompactMoney(v, currSym, false)}
+                          />
                         </span>
                       </span>
                     )}
@@ -529,7 +652,7 @@ const Dashboard = () => {
                     >
                       Import
                     </motion.button>
-                    {!isConnected && (
+                    {!effectiveConnected && (
                       <motion.button
                         whileTap={{ scale: 0.96 }}
                         type="button"
@@ -544,18 +667,13 @@ const Dashboard = () => {
               )}
             </motion.section>
 
-            {/* ── 3. Main Responsive Grid ───────────────────────────────────── */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 sm:gap-4 items-start">
-              {/* LEFT COLUMN: Unified Performance + Clean Equity Curve + Risk & Discipline */}
-              <div className="lg:col-span-7 space-y-3.5 sm:space-y-4">
-                {/* A. TradiFive Signature Performance & P&L Card */}
-                <motion.section
-                  variants={cardVariants}
-                  className={`${SURFACE_CARD} overflow-hidden`}
-                >
-                  {/* Top Bar: Timeframe Sliding Pills + Analytics + Hide Blur */}
-                  <div className="px-4 pt-3.5 pb-2.5 flex items-center justify-between gap-2 border-b border-slate-100/90 dark:border-white/[0.05]">
-                    <div className="inline-flex items-center p-0.5 rounded-[10px] bg-slate-100/90 dark:bg-white/[0.06]">
+            {/* ── 2. HERO BAND: Open Net P&L (Left) + 3-Metric Telemetry & Plan (Right) ── */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 items-center">
+              {/* LEFT: Open Net P&L Hero + Win Rate Ring (NO BOX) */}
+              <motion.section variants={cardVariants} className="lg:col-span-6 pt-1 pb-1 space-y-3.5">
+                  {/* Top Bar: Timeframe Sliding Pills + Analytics + Hide Button */}
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="inline-flex items-center p-0.5 rounded-[10px] bg-slate-200/70 dark:bg-white/[0.07]">
                       {PNL_RANGE_TABS.map((tab) => {
                         const active = pnlRange === tab.id;
                         return (
@@ -603,38 +721,40 @@ const Dashboard = () => {
                     </div>
                   </div>
 
-                  {/* Center Row: Net P&L (Left) + Animated Win Rate Ring (Right) */}
-                  <div className="px-4 py-4 flex items-center justify-between gap-4">
+                  {/* Open Net P&L Hero Number + Win Rate Ring (outside any box) */}
+                  <div className="flex items-center justify-between gap-4 px-0.5">
                     <div className="min-w-0">
-                      <p className="text-[11px] font-semibold text-slate-400 dark:text-neutral-500">
+                      <p className="text-[11.5px] font-semibold text-slate-400 dark:text-neutral-500">
                         Net P&amp;L · {activeRangeMeta.subLabel}
                       </p>
 
-                      <AnimatePresence mode="wait">
-                        <motion.div
-                          key={`${pnlRange}-${metrics.total}`}
-                          initial={{ opacity: 0, y: 4 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -4 }}
-                          transition={{ duration: 0.16 }}
-                          className={`mt-1 text-[32px] sm:text-[36px] font-bold tracking-tight leading-none tabular-nums transition-[filter,opacity] duration-200 ${pnlColorClass} ${
-                            hidePnl ? "blur-[8px] select-none opacity-80" : "blur-0 opacity-100"
-                          }`}
-                        >
-                          {formatCompactMoney(
-                            metrics.total,
-                            currSym,
-                            metrics.total !== 0
-                          )}
-                        </motion.div>
-                      </AnimatePresence>
+                      <div
+                        className={`mt-1 text-[38px] sm:text-[42px] font-bold tracking-tight leading-none tabular-nums transition-[filter,opacity] duration-200 ${pnlColorClass} ${
+                          hidePnl ? "blur-[8px] select-none opacity-80" : "blur-0 opacity-100"
+                        }`}
+                      >
+                        <AnimatedNumber
+                          value={metrics.total}
+                          duration={1000}
+                          delay={80}
+                          format={(v) =>
+                            formatCompactMoney(
+                              Math.abs(v) < 0.01 ? 0 : v,
+                              currSym,
+                              metrics.total !== 0
+                            )
+                          }
+                        />
+                      </div>
 
                       <div className="mt-2.5 flex items-center flex-wrap gap-2 text-[11.5px]">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/[0.07] font-semibold text-slate-700 dark:text-neutral-200 tabular-nums">
-                          {metrics.wins}W / {metrics.losses}L
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-white dark:bg-white/[0.07] shadow-[0_1px_2px_rgba(15,23,42,0.05)] font-semibold text-slate-700 dark:text-neutral-200 tabular-nums">
+                          <AnimatedNumber value={metrics.wins} duration={850} delay={110} />W /{" "}
+                          <AnimatedNumber value={metrics.losses} duration={850} delay={130} />L
                         </span>
-                        <span className="text-slate-400 dark:text-neutral-500 font-medium">
-                          {metrics.totalClosed} closed trade
+                        <span className="text-slate-400 dark:text-neutral-500 font-medium tabular-nums">
+                          <AnimatedNumber value={metrics.totalClosed} duration={850} delay={140} />{" "}
+                          closed trade
                           {metrics.totalClosed !== 1 ? "s" : ""}
                         </span>
                       </div>
@@ -656,7 +776,7 @@ const Dashboard = () => {
                             fill="none"
                             stroke="currentColor"
                             strokeWidth={strokeWidth}
-                            className="text-slate-100 dark:text-white/10"
+                            className="text-slate-200/80 dark:text-white/10"
                           />
                           <motion.circle
                             cx={donutSize / 2}
@@ -670,15 +790,20 @@ const Dashboard = () => {
                             initial={{ strokeDashoffset: circumference }}
                             animate={{ strokeDashoffset: dashOffset }}
                             transition={{
-                              type: "spring",
-                              stiffness: 120,
-                              damping: 22,
+                              duration: 1.05,
+                              delay: 0.08,
+                              ease: EXPO_OUT,
                             }}
                           />
                         </svg>
                         <div className="absolute inset-0 flex flex-col items-center justify-center">
                           <span className="text-[14px] font-bold text-slate-900 dark:text-white leading-none tabular-nums">
-                            {metrics.winRatePct.toFixed(0)}%
+                            <AnimatedNumber
+                              value={metrics.winRatePct}
+                              duration={1000}
+                              delay={80}
+                              format={(v) => `${Math.round(v)}%`}
+                            />
                           </span>
                           <span className="text-[9px] font-semibold uppercase tracking-wider text-slate-400 mt-0.5">
                             Win
@@ -687,47 +812,73 @@ const Dashboard = () => {
                       </div>
                     </div>
                   </div>
+                </motion.section>
 
-                  {/* Bottom 3-Metric Telemetry Row */}
-                  <div className="grid grid-cols-3 divide-x divide-slate-100 dark:divide-white/[0.06] border-t border-slate-100 dark:border-white/[0.06] bg-slate-50/50 dark:bg-white/[0.015]">
-                    <div className="px-3 py-2.5 text-center">
-                      <div className="flex items-center justify-center gap-1 text-[10.5px] font-medium text-slate-400">
+              {/* RIGHT: 3-Metric Telemetry (Mobile: single card · Desktop web app: 3 distinct boxes) + Pre-Market Plan */}
+              <motion.section
+                variants={cardVariants}
+                className={`lg:col-span-6 ${SURFACE_CARD} overflow-hidden md:bg-transparent md:dark:bg-transparent md:border-0 md:shadow-none md:rounded-none md:overflow-visible md:flex md:flex-col md:gap-3`}
+              >
+                  {/* 3-Metric Telemetry Row — unified on mobile, 3 separate sculpted boxes on desktop (md+) */}
+                  <div className="grid grid-cols-3 divide-x divide-slate-100 dark:divide-white/[0.06] md:divide-x-0 md:gap-3">
+                    <div className="px-3 py-3 text-center md:px-4 md:py-4 md:bg-white md:dark:bg-[#17171A] md:rounded-[18px] md:border md:border-slate-200/70 md:dark:border-white/[0.07] md:shadow-[0_2px_10px_rgba(15,23,42,0.04),0_10px_26px_-10px_rgba(15,23,42,0.07)] md:dark:shadow-none md:flex md:flex-col md:items-center md:justify-center">
+                      <div className="flex items-center justify-center gap-1 text-[10.5px] md:text-[11.5px] font-medium text-slate-400">
                         <span>Avg RR</span>
                         <InfoTip text="Average reward-to-risk ratio on winning trades." />
                       </div>
-                      <p className="mt-0.5 text-[14px] font-semibold text-slate-900 dark:text-white tabular-nums">
-                        {metrics.avgWinRR.toFixed(2)}R
+                      <p className="mt-0.5 md:mt-1 text-[14px] md:text-[18px] font-semibold md:font-bold text-slate-900 dark:text-white tabular-nums tracking-tight">
+                        <AnimatedNumber
+                          value={metrics.avgWinRR}
+                          duration={900}
+                          delay={120}
+                          format={(v) => `${v.toFixed(2)}R`}
+                        />
                       </p>
                     </div>
 
-                    <div className="px-3 py-2.5 text-center">
-                      <div className="flex items-center justify-center gap-1 text-[10.5px] font-medium text-slate-400">
+                    <div className="px-3 py-3 text-center md:px-4 md:py-4 md:bg-white md:dark:bg-[#17171A] md:rounded-[18px] md:border md:border-slate-200/70 md:dark:border-white/[0.07] md:shadow-[0_2px_10px_rgba(15,23,42,0.04),0_10px_26px_-10px_rgba(15,23,42,0.07)] md:dark:shadow-none md:flex md:flex-col md:items-center md:justify-center">
+                      <div className="flex items-center justify-center gap-1 text-[10.5px] md:text-[11.5px] font-medium text-slate-400">
                         <span>Profit Factor</span>
                         <InfoTip text="Gross profit divided by gross loss." />
                       </div>
-                      <p className="mt-0.5 text-[14px] font-semibold text-slate-900 dark:text-white tabular-nums">
-                        {metrics.pf.toFixed(2)}
+                      <p className="mt-0.5 md:mt-1 text-[14px] md:text-[18px] font-semibold md:font-bold text-slate-900 dark:text-white tabular-nums tracking-tight">
+                        <AnimatedNumber
+                          value={metrics.pf}
+                          duration={900}
+                          delay={160}
+                          format={(v) => v.toFixed(2)}
+                        />
                       </p>
                     </div>
 
-                    <div className="px-3 py-2.5 text-center">
-                      <div className="flex items-center justify-center gap-1 text-[10.5px] font-medium text-slate-400">
+                    <div className="px-3 py-3 text-center md:px-4 md:py-4 md:bg-white md:dark:bg-[#17171A] md:rounded-[18px] md:border md:border-slate-200/70 md:dark:border-white/[0.07] md:shadow-[0_2px_10px_rgba(15,23,42,0.04),0_10px_26px_-10px_rgba(15,23,42,0.07)] md:dark:shadow-none md:flex md:flex-col md:items-center md:justify-center">
+                      <div className="flex items-center justify-center gap-1 text-[10.5px] md:text-[11.5px] font-medium text-slate-400">
                         <span>Avg W / L</span>
                         <InfoTip text="Average dollar win vs average dollar loss." />
                       </div>
                       <p
-                        className={`mt-0.5 text-[14px] font-semibold tabular-nums transition-[filter,opacity] duration-200 ${
+                        className={`mt-0.5 md:mt-1 text-[14px] md:text-[17px] font-semibold md:font-bold tabular-nums tracking-tight transition-[filter,opacity] duration-200 ${
                           hidePnl ? "blur-[5.5px] select-none opacity-75" : ""
                         }`}
                       >
                         <span className="text-slate-900 dark:text-white">
-                          {formatCompactMoney(metrics.avgWin, currSym, false)}
+                          <AnimatedNumber
+                            value={metrics.avgWin}
+                            duration={900}
+                            delay={180}
+                            format={(v) => formatCompactMoney(v, currSym, false)}
+                          />
                         </span>
                         <span className="text-slate-300 dark:text-neutral-600 mx-0.5 font-normal">
                           /
                         </span>
                         <span className="text-slate-400 dark:text-neutral-500">
-                          {formatCompactMoney(metrics.avgLoss, currSym, false)}
+                          <AnimatedNumber
+                            value={metrics.avgLoss}
+                            duration={900}
+                            delay={200}
+                            format={(v) => formatCompactMoney(v, currSym, false)}
+                          />
                         </span>
                       </p>
                     </div>
@@ -737,12 +888,12 @@ const Dashboard = () => {
                   <button
                     type="button"
                     onClick={() => setIsPlanModalOpen(true)}
-                    className="w-full px-4 py-2.5 border-t border-slate-100 dark:border-white/[0.06] flex items-center justify-between text-[12px] hover:bg-slate-50/80 dark:hover:bg-white/[0.03] transition-colors cursor-pointer group"
+                    className="w-full px-4 py-2.5 border-t border-slate-100 dark:border-white/[0.06] md:border md:border-slate-200/70 md:dark:border-white/[0.07] md:bg-white md:dark:bg-[#17171A] md:rounded-[15px] md:shadow-[0_2px_10px_rgba(15,23,42,0.04),0_8px_20px_-10px_rgba(15,23,42,0.06)] md:dark:shadow-none flex items-center justify-between text-[12px] hover:bg-slate-50/80 dark:hover:bg-white/[0.03] transition-colors cursor-pointer group"
                   >
                     <span className="flex items-center gap-2 font-semibold text-slate-700 dark:text-neutral-200">
                       {todayPlan ? (
                         <>
-                          <span className="w-4 h-4 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                          <span className="w-4 h-4 rounded-full bg-blue-500/15 text-[#2563EB] dark:text-blue-400 flex items-center justify-center">
                             <Check size={10} strokeWidth={3} />
                           </span>
                           <span>
@@ -754,8 +905,8 @@ const Dashboard = () => {
                         </>
                       ) : (
                         <>
-                          <span className="w-1.5 h-1.5 rounded-full bg-teal-500" />
-                          <span className="text-teal-700 dark:text-teal-400">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#2563EB]" />
+                          <span className="text-[#2563EB] dark:text-blue-400">
                             Start today&apos;s pre-market plan
                           </span>
                         </>
@@ -766,143 +917,117 @@ const Dashboard = () => {
                       className="text-slate-400 group-hover:translate-x-0.5 group-hover:text-slate-700 dark:group-hover:text-white transition-all"
                     />
                   </button>
-                </motion.section>
+              </motion.section>
+            </div>
 
-                {/* B. Clean Precision Equity Curve Card */}
-                <motion.section
-                  variants={cardVariants}
-                  className={`${SURFACE_CARD} p-4`}
-                >
-                  <div className="flex items-center justify-between gap-2 mb-2.5">
-                    <div className="flex items-center gap-2">
-                      <TrendingUp size={13.5} className="text-slate-500 dark:text-neutral-400" />
-                      <h2 className="text-[12.5px] font-semibold text-slate-900 dark:text-white tracking-tight">
-                        Equity curve
-                      </h2>
-                      <span className="text-[11.5px] text-slate-400">
-                        · {activeRangeMeta.subLabel}
-                      </span>
-                    </div>
+            {/* ── 3. OPEN 3-GRAPH ANALYTICS BAND: Cumulative P&L | Account Balance | TradiFive Score ── */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-7 pt-5 pb-1 border-t border-slate-200/75 dark:border-white/[0.08] items-stretch">
+              {/* Graph 1: Open Cumulative P&L */}
+              <motion.section variants={cardVariants} className="flex flex-col h-full px-0.5 pt-0.5 pb-1">
+                <div className="flex items-start justify-between gap-2 mb-3 min-h-[42px]">
+                  <div className="min-w-0">
+                    <h3 className="text-[13.5px] font-semibold text-slate-900 dark:text-white tracking-tight leading-tight flex items-center gap-1.5">
+                      <TrendingUp size={13.5} className="text-[#2563EB] dark:text-blue-400 shrink-0" />
+                      <span>Cumulative P&amp;L</span>
+                    </h3>
+                    <p className="text-[11px] text-slate-400 mt-1">
+                      Closed trade equity curve · {activeRangeMeta.subLabel}
+                    </p>
+                  </div>
+                  <div className="flex flex-col items-end shrink-0">
                     <span
-                      className={`text-[12.5px] font-semibold tabular-nums transition-[filter,opacity] duration-200 ${pnlColorClass} ${
-                        hidePnl ? "blur-[5.5px] select-none opacity-75" : ""
+                      className={`text-[15px] font-bold tabular-nums leading-tight transition-[filter,opacity] duration-200 ${pnlColorClass} ${
+                        hidePnl ? "blur-[5px] select-none opacity-75" : ""
                       }`}
                     >
-                      {formatCompactMoney(
-                        metrics.total,
-                        currSym,
-                        metrics.total !== 0
-                      )}
+                      <AnimatedNumber
+                        value={metrics.total}
+                        duration={900}
+                        delay={100}
+                        format={(v) =>
+                          formatCompactMoney(
+                            Math.abs(v) < 0.01 ? 0 : v,
+                            currSym,
+                            metrics.total !== 0
+                          )
+                        }
+                      />
+                    </span>
+                    <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider mt-0.5">
+                      Net
                     </span>
                   </div>
+                </div>
 
-                  {scopedTrades.some((t: any) => t.closed_at) ? (
-                    <div
-                      className={`h-[165px] w-full transition-[filter,opacity] duration-200 ${
-                        hidePnl ? "blur-[6px] select-none pointer-events-none opacity-75" : ""
-                      }`}
-                    >
-                      <PerformanceChart
-                        trades={scopedTrades}
-                        isDark={isDark}
-                        currencySymbol={currSym}
-                      />
-                    </div>
-                  ) : (
-                    <div className="py-7 px-3 flex flex-col items-center justify-center rounded-xl bg-slate-50/70 dark:bg-white/[0.02] border border-dashed border-slate-200/80 dark:border-white/[0.07]">
-                      <div className="w-full max-w-[76%] border-t-2 border-dotted border-slate-200 dark:border-white/10" />
-                      <p className="mt-2.5 text-[11.5px] text-slate-400 dark:text-neutral-500">
-                        Curve updates live after your first closed trade
-                      </p>
-                    </div>
-                  )}
-                </motion.section>
-
-                {/* C. Compact 2-Column Bento: Risk Guard + Discipline */}
-                <motion.section
-                  variants={cardVariants}
-                  className="grid grid-cols-2 gap-3"
-                >
-                  <Link
-                    to="/risk-guard"
-                    className={`${SURFACE_CARD} p-3.5 hover:-translate-y-[1px] transition-transform block`}
+                {scopedTrades.some((t: any) => t.closed_at) ? (
+                  <div
+                    className={`h-[235px] w-full flex-1 transition-[filter,opacity] duration-200 ${
+                      hidePnl ? "blur-[6px] select-none pointer-events-none opacity-75" : ""
+                    }`}
                   >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="inline-flex items-center gap-1.5 text-[11.5px] font-semibold text-slate-600 dark:text-neutral-300">
-                        <ShieldCheck size={13} className="text-blue-600 dark:text-blue-400" />
-                        Risk guard
-                      </span>
-                      <span
-                        className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
-                          riskSummary.isLimitConfigured
-                            ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400"
-                            : "bg-slate-100 text-slate-500 dark:bg-white/10 dark:text-neutral-400"
-                        }`}
-                      >
-                        {riskSummary.isLimitConfigured ? "Active" : "Setup"}
-                      </span>
-                    </div>
+                    <PerformanceChart
+                      key={`${pnlRange}-${demoMode}`}
+                      trades={scopedTrades}
+                      isDark={isDark}
+                      currencySymbol={currSym}
+                    />
+                  </div>
+                ) : (
+                  <div className="h-[235px] px-2 flex flex-col items-center justify-center flex-1">
+                    <div className="w-full border-t border-dashed border-slate-300/80 dark:border-white/15" />
+                    <p className="mt-2.5 text-[11.5px] text-slate-400 dark:text-neutral-500 text-center">
+                      Cumulative P&amp;L curve plots live after your first closed trade
+                    </p>
+                  </div>
+                )}
 
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-[19px] font-bold text-slate-900 dark:text-white tabular-nums">
-                        {riskSummary.isLimitConfigured
-                          ? `${riskSummary.drawdownPct}%`
-                          : "—"}
-                      </span>
-                      <span className="text-[11px] text-slate-400">
-                        {riskSummary.isLimitConfigured
-                          ? `/ ${riskSummary.maxLossPct}% limit`
-                          : "daily loss"}
-                      </span>
-                    </div>
+                <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-white/[0.06] flex items-center justify-between text-[11px] tabular-nums">
+                  <span className="text-slate-400 font-medium">
+                    Win rate{" "}
+                    <span className="text-slate-700 dark:text-neutral-200 font-semibold">
+                      {Math.round(metrics.winRatePct)}%
+                    </span>
+                  </span>
+                  <span className="text-slate-400">
+                    {metrics.totalClosed} closed trade{metrics.totalClosed !== 1 ? "s" : ""}
+                  </span>
+                </div>
+              </motion.section>
 
-                    <div className="w-full h-1.5 rounded-full bg-slate-100 dark:bg-white/[0.07] mt-2.5 overflow-hidden">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${riskSummary.usedRatio}%` }}
-                        transition={{ duration: 0.5, ease: "easeOut" }}
-                        className={`h-full rounded-full ${
-                          riskSummary.usedRatio > 75
-                            ? "bg-rose-500"
-                            : "bg-emerald-600"
-                        }`}
-                      />
-                    </div>
-                  </Link>
+              {/* Graph 2: Open Account Balance */}
+              <motion.section
+                variants={cardVariants}
+                className={`flex flex-col h-full pt-5 lg:pt-0 border-t lg:border-t-0 lg:border-l border-slate-200/75 dark:border-white/[0.08] lg:pl-7 transition-[filter,opacity] duration-200 ${
+                  hidePnl ? "blur-[5px] select-none opacity-80" : ""
+                }`}
+              >
+                <JournalSettingsProvider>
+                  <JournalCharts cardId="account-balance" demoData={demoData} frameless />
+                </JournalSettingsProvider>
+              </motion.section>
 
-                  <Link
-                    to="/rewards"
-                    className={`${SURFACE_CARD} p-3.5 hover:-translate-y-[1px] transition-transform block`}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="inline-flex items-center gap-1.5 text-[11.5px] font-semibold text-slate-600 dark:text-neutral-300">
-                        <Flame size={13} className="text-orange-500" />
-                        Discipline
-                      </span>
-                      <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400">
-                        Lv.{effectiveLevel}
-                      </span>
-                    </div>
+              {/* Graph 3: Open TradiFive Score 6-Axis Radar */}
+              <motion.section
+                variants={cardVariants}
+                className="flex flex-col h-full pt-5 lg:pt-0 border-t lg:border-t-0 lg:border-l border-slate-200/75 dark:border-white/[0.08] lg:pl-7"
+              >
+                <ChartRadarDefault demoTrades={demoData ? demoData.allTrades : null} frameless />
+              </motion.section>
+            </div>
 
-                    <div className="flex items-baseline gap-1.5">
-                      <span className="text-[19px] font-bold text-slate-900 dark:text-white tabular-nums">
-                        {effectiveDiscipline !== null ? effectiveDiscipline : "—"}
-                      </span>
-                      <span className="text-[11px] text-slate-400">
-                        {effectiveDiscipline !== null ? "/ 100" : "score"}
-                      </span>
-                    </div>
+            {/* ── 4. LOWER WORKSPACE BENTO: Calendar + News & AI Coach + Risk/Discipline/Goals ── */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start pt-4 border-t border-slate-200/75 dark:border-white/[0.08]">
+              {/* Col 1: P&L Calendar + Open Positions */}
+              <div className="lg:col-span-5 space-y-4">
+                <motion.div variants={cardVariants}>
+                  <DashboardPnLCalendar
+                    trades={activeTrades}
+                    currSym={currSym}
+                    hidePnl={hidePnl}
+                    onLogTrade={() => openLogModal("manual")}
+                  />
+                </motion.div>
 
-                    <div className="mt-2 flex items-center justify-between text-[11px] text-slate-500 dark:text-neutral-400 font-medium">
-                      <span>{effectiveStreak}d streak</span>
-                      <span className="text-blue-600 dark:text-blue-400 font-semibold">
-                        +{effectiveDailyXp} XP
-                      </span>
-                    </div>
-                  </Link>
-                </motion.section>
-
-                {/* Open Positions (only when active) */}
                 {openPositions.length > 0 && (
                   <motion.section
                     variants={cardVariants}
@@ -953,7 +1078,12 @@ const Dashboard = () => {
                                 pnlVal >= 0 ? "text-emerald-700 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
                               } ${hidePnl ? "blur-[5px] select-none opacity-75" : ""}`}
                             >
-                              {formatCompactMoney(pnlVal, currSym, true)}
+                              <AnimatedNumber
+                                value={pnlVal}
+                                duration={850}
+                                delay={180 + idx * 50}
+                                format={(v) => formatCompactMoney(v, currSym, true)}
+                              />
                             </span>
                           </div>
                         );
@@ -963,23 +1093,10 @@ const Dashboard = () => {
                 )}
               </div>
 
-              {/* RIGHT COLUMN: Tactile Button P&L Calendar + Market Radar + Goals + AI Coach */}
-              <div className="lg:col-span-5 space-y-3.5 sm:space-y-4">
-                <motion.div variants={cardVariants}>
-                  <DashboardPnLCalendar
-                    trades={activeTrades}
-                    currSym={currSym}
-                    hidePnl={hidePnl}
-                    onLogTrade={() => openLogModal("manual")}
-                  />
-                </motion.div>
-
+              {/* Col 2: Forex Factory News + TradiFive AI Coach */}
+              <div className="lg:col-span-4 space-y-4">
                 <motion.div variants={cardVariants}>
                   <DashboardNewsCard />
-                </motion.div>
-
-                <motion.div variants={cardVariants}>
-                  <DashboardGoalsCard />
                 </motion.div>
 
                 <motion.div variants={cardVariants}>
@@ -1005,6 +1122,114 @@ const Dashboard = () => {
                       className="text-slate-400 group-hover:translate-x-0.5 group-hover:text-slate-900 dark:group-hover:text-white transition-all shrink-0"
                     />
                   </Link>
+                </motion.div>
+              </div>
+
+              {/* Col 3: Risk Guard + Discipline + Goals */}
+              <div className="lg:col-span-3 space-y-4">
+                <motion.section
+                  variants={cardVariants}
+                  className="grid grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-3"
+                >
+                  <Link
+                    to="/risk-guard"
+                    className={`${SURFACE_CARD} p-3.5 hover:-translate-y-[1px] transition-transform block`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="inline-flex items-center gap-1.5 text-[11.5px] font-semibold text-slate-600 dark:text-neutral-300">
+                        <ShieldCheck size={13} className="text-blue-600 dark:text-blue-400" />
+                        Risk guard
+                      </span>
+                      <span
+                        className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
+                          riskSummary.isLimitConfigured
+                            ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400"
+                            : "bg-slate-100 text-slate-500 dark:bg-white/10 dark:text-neutral-400"
+                        }`}
+                      >
+                        {riskSummary.isLimitConfigured ? "Active" : "Setup"}
+                      </span>
+                    </div>
+
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-[19px] font-bold text-slate-900 dark:text-white tabular-nums">
+                        {riskSummary.isLimitConfigured ? (
+                          <AnimatedNumber
+                            value={Number(riskSummary.drawdownPct)}
+                            duration={900}
+                            delay={140}
+                            format={(v) => `${v.toFixed(1)}%`}
+                          />
+                        ) : (
+                          "—"
+                        )}
+                      </span>
+                      <span className="text-[11px] text-slate-400">
+                        {riskSummary.isLimitConfigured
+                          ? `/ ${riskSummary.maxLossPct}% limit`
+                          : "daily loss"}
+                      </span>
+                    </div>
+
+                    <div className="w-full h-1.5 rounded-full bg-slate-100 dark:bg-white/[0.07] mt-2.5 overflow-hidden">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${riskSummary.usedRatio}%` }}
+                        transition={{ duration: 0.95, delay: 0.14, ease: EXPO_OUT }}
+                        className={`h-full rounded-full ${
+                          riskSummary.usedRatio > 75
+                            ? "bg-rose-500"
+                            : "bg-emerald-600"
+                        }`}
+                      />
+                    </div>
+                  </Link>
+
+                  <Link
+                    to="/rewards"
+                    className={`${SURFACE_CARD} p-3.5 hover:-translate-y-[1px] transition-transform block`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="inline-flex items-center gap-1.5 text-[11.5px] font-semibold text-slate-600 dark:text-neutral-300">
+                        <Flame size={13} className="text-orange-500" />
+                        Discipline
+                      </span>
+                      <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400">
+                        Lv.{effectiveLevel}
+                      </span>
+                    </div>
+
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-[19px] font-bold text-slate-900 dark:text-white tabular-nums">
+                        {effectiveDiscipline !== null ? (
+                          <AnimatedNumber
+                            value={effectiveDiscipline}
+                            duration={950}
+                            delay={160}
+                          />
+                        ) : (
+                          "—"
+                        )}
+                      </span>
+                      <span className="text-[11px] text-slate-400">
+                        {effectiveDiscipline !== null ? "/ 100" : "score"}
+                      </span>
+                    </div>
+
+                    <div className="mt-2 flex items-center justify-between text-[11px] text-slate-500 dark:text-neutral-400 font-medium tabular-nums">
+                      <span>
+                        <AnimatedNumber value={effectiveStreak} duration={800} delay={180} />d
+                        streak
+                      </span>
+                      <span className="text-blue-600 dark:text-blue-400 font-semibold">
+                        +<AnimatedNumber value={effectiveDailyXp} duration={900} delay={200} /> XP
+                      </span>
+                    </div>
+                  </Link>
+                </motion.section>
+
+                <motion.div variants={cardVariants}>
+                  <DashboardGoalsCard />
                 </motion.div>
               </div>
             </div>

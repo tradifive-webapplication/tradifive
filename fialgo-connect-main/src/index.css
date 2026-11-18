@@ -106,9 +106,23 @@
     @apply border-border;
   }
 
+  html,
+  body {
+    touch-action: manipulation;
+    -webkit-text-size-adjust: 100%;
+  }
+
   body {
     @apply bg-background text-foreground font-sans antialiased tabular-nums;
-    
+  }
+
+  /* Prevent mobile browsers (especially iOS Safari) from auto-zooming on input focus */
+  @media (max-width: 768px) {
+    input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+    textarea,
+    select {
+      font-size: 16px !important;
+    }
   }
 }
 

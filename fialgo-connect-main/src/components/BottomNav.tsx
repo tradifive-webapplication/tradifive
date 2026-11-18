@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { triggerHaptic } from "@/utils/haptics";
 import { 
   Home, Category, Document, ShieldDone, Activity, Setting, 
-  Discovery, TimeCircle, Bookmark, Chat, Message, TicketStar, 
+  Bookmark, TicketStar, 
   ChevronRight 
 } from "react-iconly";
 import { Sparkles, ArrowUp, X, MoreHorizontal, HelpCircle } from "lucide-react";
@@ -112,11 +112,19 @@ export default function BottomNav() {
   const handleAskAI = (promptText: string) => {
     triggerHaptic("selection");
     setIsMoreOpen(false);
-    window.dispatchEvent(
-      new CustomEvent("open-floating-ai-coach", {
-        detail: { text: promptText, autoSend: !!promptText.trim() },
-      })
-    );
+    const trimmed = promptText.trim();
+    if (trimmed) {
+      navigate("/ai-coach", {
+        state: {
+          initialMessages: [
+            { role: "user", content: trimmed, timestamp: new Date().toISOString() },
+          ],
+          initialIsThinking: true,
+        },
+      });
+    } else {
+      navigate("/ai-coach");
+    }
   };
 
   const handleSubmitAIPrompt = (e: React.FormEvent) => {
@@ -289,10 +297,10 @@ export default function BottomNav() {
 
                 {/* 2. Core TradiFive Pages (Figma Card 2 Diffused Shadow) */}
                 <div className="bg-white dark:bg-[#1A1A1E] rounded-[24px] figma-card-shadow divide-y divide-slate-100 dark:divide-white/5 overflow-hidden">
-                  {/* TradiFive AI Coach Full View */}
+                  {/* TradiFive AI Coach Full Page */}
                   <button
                     type="button"
-                    onClick={() => handleAskAI("")}
+                    onClick={() => handleNavigate("/ai-coach")}
                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
                   >
                     <div className="flex items-center gap-3">
@@ -304,8 +312,8 @@ export default function BottomNav() {
                       </span>
                     </div>
                     <div className="flex items-center gap-1.5 text-slate-400 dark:text-neutral-500 text-[12.5px] font-normal">
-                      <span>Full view</span>
-                      <ChevronRight size={14} className="text-slate-300 dark:text-neutral-600" />
+                      <span>Full page</span>
+                      <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
                     </div>
                   </button>
 
@@ -349,46 +357,6 @@ export default function BottomNav() {
                     </div>
                   </button>
 
-                  {/* Discover Hub */}
-                  <button
-                    type="button"
-                    onClick={() => handleNavigate("/discover")}
-                    className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.08] text-slate-700 dark:text-neutral-300 flex items-center justify-center shrink-0">
-                        <Discovery set="curved" stroke="bold" primaryColor="currentColor" size={18} />
-                      </div>
-                      <span className="text-[13.5px] font-semibold text-slate-900 dark:text-white">
-                        Discover
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1.5 text-slate-400 dark:text-neutral-500 text-[12.5px] font-normal">
-                      <span>Top strategies</span>
-                      <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
-                    </div>
-                  </button>
-
-                  {/* Economic Calendar */}
-                  <button
-                    type="button"
-                    onClick={() => handleNavigate("/home?tab=calendar")}
-                    className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.08] text-slate-700 dark:text-neutral-300 flex items-center justify-center shrink-0">
-                        <TimeCircle set="curved" stroke="bold" primaryColor="currentColor" size={18} />
-                      </div>
-                      <span className="text-[13.5px] font-semibold text-slate-900 dark:text-white">
-                        Economic Calendar
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1.5 text-slate-400 dark:text-neutral-500 text-[12.5px] font-normal">
-                      <span>Market events</span>
-                      <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
-                    </div>
-                  </button>
-
                   {/* Saved Posts */}
                   <button
                     type="button"
@@ -405,46 +373,6 @@ export default function BottomNav() {
                     </div>
                     <div className="flex items-center gap-1.5 text-slate-400 dark:text-neutral-500 text-[12.5px] font-normal">
                       <span>Pinned feeds</span>
-                      <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
-                    </div>
-                  </button>
-
-                  {/* Channels & Chat */}
-                  <button
-                    type="button"
-                    onClick={() => handleNavigate("/channel")}
-                    className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.08] text-slate-700 dark:text-neutral-300 flex items-center justify-center shrink-0">
-                        <Chat set="curved" stroke="bold" primaryColor="currentColor" size={18} />
-                      </div>
-                      <span className="text-[13.5px] font-semibold text-slate-900 dark:text-white">
-                        Channels
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1.5 text-slate-400 dark:text-neutral-500 text-[12.5px] font-normal">
-                      <span>Chat rooms</span>
-                      <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
-                    </div>
-                  </button>
-
-                  {/* Direct Messages */}
-                  <button
-                    type="button"
-                    onClick={() => handleNavigate("/inbox")}
-                    className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.08] text-slate-700 dark:text-neutral-300 flex items-center justify-center shrink-0">
-                        <Message set="curved" stroke="bold" primaryColor="currentColor" size={18} />
-                      </div>
-                      <span className="text-[13.5px] font-semibold text-slate-900 dark:text-white">
-                        Inbox
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1.5 text-slate-400 dark:text-neutral-500 text-[12.5px] font-normal">
-                      <span>Direct messages</span>
                       <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
                     </div>
                   </button>

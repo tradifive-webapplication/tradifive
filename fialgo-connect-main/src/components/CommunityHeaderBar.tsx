@@ -141,7 +141,7 @@ export default function CommunityHeaderBar({
   ];
 
   return (
-    <div className={`w-full bg-white dark:bg-[#121212] shrink-0 ${className}`}>
+    <div className={`w-full bg-white dark:bg-[#121212] shrink-0 md:hidden ${className}`}>
       {/* Row 0: Profile Pic (left) + Iconly Notification Bell (right) */}
       <div className="flex items-center justify-between px-6 pt-2.5 pb-1.5">
         <button

@@ -476,11 +476,37 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
 
   // Format string utility: capitalize and replace hyphens with spaces
   const formatSegment = (str: string) => {
-    if (str.toLowerCase() === 'ai-coach') return 'AI Coach';
+    const lower = str.toLowerCase();
+    if (lower === 'ai-coach') return 'AI Coach';
+    if (lower === 'risk-guard') return 'Risk Guard';
+    if (lower === 'channel') return 'Channels';
+    if (lower === 'live') return 'Live';
     return str.charAt(0).toUpperCase() + str.slice(1).replace(/-/g, " ");
   };
 
+  const resolveDesktopPageName = (): string => {
+    const p = location.pathname;
+    const params = new URLSearchParams(location.search);
+    if (p === '/home') return params.get('tab') === 'saved' ? 'Saved' : 'Home';
+    if (p.startsWith('/discover') || p.startsWith('/marketplace')) return 'Discover';
+    if (p.startsWith('/creator/live')) return 'Live';
+    if (p.startsWith('/channel')) return 'Channels';
+    if (p.startsWith('/inbox')) return 'Inbox';
+    if (p.startsWith('/post/')) return 'Post';
+    if (p.startsWith('/user/')) return 'Profile';
+    if (p === '/profile') return 'Profile';
+    if (p === '/dashboard') return 'Dashboard';
+    if (p.startsWith('/journal/history')) return 'Trade History';
+    if (p.startsWith('/journal/mistakes')) return 'Mistake Tracking';
+    if (p.startsWith('/journal')) return 'Journal';
+    if (p.startsWith('/risk-guard')) return 'Risk Guard';
+    if (p.startsWith('/ai-coach')) return 'AI Coach';
+    if (breadcrumbs && breadcrumbs.length > 0) return breadcrumbs[breadcrumbs.length - 1].label;
+    return formatSegment(lastSegment);
+  };
+
   const title = formatSegment(lastSegment);
+  const desktopPageName = resolveDesktopPageName();
 
   const getCategoryName = (pathname: string) => {
     if (pathname.startsWith('/inbox') || pathname.startsWith('/notifications')) return 'Communication';
@@ -520,7 +546,7 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
         </div>
       )}
 
-      <div className={`flex-1 flex flex-col h-screen overflow-hidden ${isMounted ? 'transition-[margin-left] duration-300' : ''} ml-0 ${isCollapsed ? 'md:ml-[90px]' : isFiAlgo ? 'md:ml-[260px] xl:ml-[274px]' : 'md:ml-[90px] xl:ml-[340px]'}`}>
+      <div className={`flex-1 flex flex-col h-screen overflow-hidden ${isMounted ? 'transition-[margin-left] duration-300' : ''} ml-0 ${isCollapsed ? 'md:ml-[90px]' : isFiAlgo ? 'md:ml-[260px] xl:ml-[274px]' : 'md:ml-[340px]'}`}>
 
         {impersonatingUser && (
           <div className="bg-rose-500 text-white px-4 py-2 flex items-center justify-center gap-3 shrink-0 shadow-lg z-50">
@@ -541,17 +567,36 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
         {!isEffectiveFullScreen && (
           <header className={`h-[56px] sm:h-[62px] flex items-center justify-between px-3.5 sm:px-5 md:px-6 shrink-0 transition-all duration-300 ${comingSoonInfo.isSoon && !isPeeking ? "filter blur-[1.5px] opacity-85 pointer-events-none select-none" : ""}`}>
             <div className="flex items-center gap-2 sm:gap-3">
-                {location.pathname === '/profile' ||
+              {/* DESKTOP WEB APP (md+): Always show clean page name breadcrumb (no duplicate top-left logo) */}
+              <div className="hidden md:flex items-center gap-2 text-[14px] font-semibold text-slate-500 dark:text-slate-400">
+                <button
+                  type="button"
+                  onClick={() => navigate('/dashboard')}
+                  className="hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors cursor-pointer"
+                >
+                  {categoryName}
+                </button>
+                <span className="text-slate-300 dark:text-slate-500">/</span>
+                <span className="text-[15px] font-semibold text-slate-900 dark:text-white">
+                  {desktopPageName}
+                </span>
+              </div>
+
+              {/* MOBILE WEB VIEW (< md): Keep TradiFive logo on primary pages & back+title on sub-pages */}
+              <div className="flex md:hidden items-center gap-2">
+                {location.pathname === '/home' ||
+                location.pathname === '/profile' ||
                 location.pathname === '/dashboard' ||
                 location.pathname.startsWith('/journal') ||
                 location.pathname.startsWith('/risk-guard') ||
+                location.pathname.startsWith('/ai-coach') ||
                 location.pathname.startsWith('/user/') ||
                 location.pathname.startsWith('/inbox') ||
                 location.pathname.startsWith('/post/') ||
                 location.pathname.startsWith('/discover') ||
                 location.pathname.startsWith('/channel') ||
                 location.pathname.startsWith('/creator/live') ? (
-                  <div onClick={() => navigate('/home')} className="flex items-center gap-2 sm:gap-2.5 cursor-pointer">
+                  <div onClick={() => navigate('/home')} className="flex items-center gap-2 cursor-pointer">
                     <img src="/tf-logo.png" alt="Logo" className="w-[24px] h-[24px] sm:w-[30px] sm:h-[30px] object-contain shrink-0" />
                     <img
                       src="/Tradifive_logo1.png"
@@ -566,67 +611,21 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
                   </div>
                 ) : (
                   <>
-                    {location.pathname !== '/home' && (
-                      <button
-                        onClick={onBack ? onBack : () => navigate(-1)}
-                        className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] text-[#393939] dark:text-[#E2E8F0] font-extrabold transition-all border-2 border-white dark:border-white/5 shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),_0_0_0_2px_#E7E7E7] dark:shadow-none hover:shadow-[0_6px_10px_-4px_rgba(0,0,0,0.15),_0_0_0_2px_#D4D4D4] dark:hover:shadow-none active:scale-95 select-none mr-2 pointer-events-auto"
-                        title="Go Back"
-                      >
-                        <ChevronLeft size={16} />
-                      </button>
-                    )}
-                    {breadcrumbs && breadcrumbs.length > 0 ? (
-                      <div className="hidden sm:flex items-center gap-2 text-[14px] font-semibold text-slate-500 dark:text-slate-400">
-                        <button onClick={() => navigate('/dashboard')} className="hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors">{categoryName}</button>
-                        <span className="text-slate-300 dark:text-slate-400">/</span>
-                        {breadcrumbs.map((bc, idx) => (
-                          <span key={idx} className="flex items-center gap-2">
-                            <span className={idx === breadcrumbs.length - 1 ? "text-[15px] font-semibold text-slate-900 dark:text-white capitalize" : "capitalize hover:text-indigo-500 transition-colors cursor-pointer"}>{bc.label}</span>
-                            {idx < breadcrumbs.length - 1 && <span className="text-slate-300 dark:text-slate-400">/</span>}
-                          </span>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="hidden sm:flex items-center gap-2 text-[14px] font-semibold text-slate-500 dark:text-slate-400">
-                        <button onClick={() => navigate('/dashboard')} className="hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors">{categoryName}</button>
-                        {displaySegments.length > 0 ? displaySegments.map((segment, idx) => (
-                          <span key={idx} className="flex items-center gap-2">
-                            <span className="text-slate-300 dark:text-slate-400">/</span>
-                            <span className={idx === displaySegments.length - 1 ? "text-[15px] font-semibold text-slate-900 dark:text-white capitalize" : "capitalize text-slate-500"}>
-                              {formatSegment(segment)}
-                            </span>
-                          </span>
-                        )) : (
-                          <span className="flex items-center gap-2">
-                            <span className="text-slate-300 dark:text-slate-400">/</span>
-                            <span className="text-[15px] font-semibold text-slate-900 dark:text-white capitalize">Dashboard</span>
-                          </span>
-                        )}
-                      </div>
-                    )}
-                    {/* Mobile Title (shows only on mobile when breadcrumbs/segments are hidden) */}
-                    <div className="sm:hidden flex items-center text-[15px] font-semibold text-slate-900 dark:text-white capitalize">
-                      {location.pathname === '/home' ? (
-                        <div onClick={() => navigate('/home')} className="flex items-center gap-2 sm:gap-2.5 cursor-pointer">
-                          <img src="/tf-logo.png" alt="Logo" className="w-[24px] h-[24px] sm:w-[34px] sm:h-[34px] object-contain shrink-0" />
-                          <img 
-                            src="/Tradifive_logo1.png" 
-                            alt="Tradifive" 
-                            className="h-[18px] sm:h-[28px] w-auto object-contain dark:hidden" 
-                          />
-                          <img 
-                            src="/Dark mode logo with white.png" 
-                            alt="Tradifive" 
-                            className="h-[18px] sm:h-[28px] w-auto object-contain hidden dark:block" 
-                          />
-                        </div>
-                      ) : (
-                        breadcrumbs && breadcrumbs.length > 0 ? breadcrumbs[breadcrumbs.length - 1].label : title
-                      )}
-                    </div>
+                    <button
+                      type="button"
+                      onClick={onBack ? onBack : () => navigate(-1)}
+                      className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] text-[#393939] dark:text-[#E2E8F0] font-extrabold transition-all border-2 border-white dark:border-white/5 shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),_0_0_0_2px_#E7E7E7] dark:shadow-none active:scale-95 select-none mr-1 pointer-events-auto"
+                      title="Go Back"
+                    >
+                      <ChevronLeft size={16} />
+                    </button>
+                    <span className="text-[15px] font-semibold text-slate-900 dark:text-white capitalize">
+                      {breadcrumbs && breadcrumbs.length > 0 ? breadcrumbs[breadcrumbs.length - 1].label : title}
+                    </span>
                   </>
                 )}
               </div>
+            </div>
 
               <div className="flex items-center gap-2 sm:gap-3">
                 {headerActions}
@@ -662,16 +661,18 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
                   </div>
                 </button>
                 
-                {/* AI Coach Top-Right Button (hidden on mobile, floats at bottom) */}
-                <button
-                  type="button"
-                  onClick={() => setIsAIOpen(true)}
-                  title="Open AI Coach"
-                  className="hidden sm:flex items-center justify-center gap-2 px-3 sm:px-4 h-9 sm:h-10 rounded-full bg-white dark:bg-[#1E1E1E] hover:bg-slate-50 dark:hover:bg-white/[0.08] text-slate-800 dark:text-white font-bold text-[13px] shadow-[0_1px_4px_rgba(15,23,42,0.06)] cursor-pointer transition-colors"
-                >
-                  <Sparkles size={15} strokeWidth={2.5} className="text-purple-500" />
-                  <span>AI Coach</span>
-                </button>
+                {/* AI Coach Top-Right Button — hidden when already on /ai-coach */}
+                {!location.pathname.startsWith('/ai-coach') && (
+                  <button
+                    type="button"
+                    onClick={() => navigate('/ai-coach')}
+                    title="Open AI Coach"
+                    className="hidden sm:flex items-center justify-center gap-2 px-3 sm:px-4 h-9 sm:h-10 rounded-full bg-white dark:bg-[#1E1E1E] hover:bg-slate-50 dark:hover:bg-white/[0.08] text-slate-800 dark:text-white font-bold text-[13px] shadow-[0_1px_4px_rgba(15,23,42,0.06)] cursor-pointer transition-colors"
+                  >
+                    <Sparkles size={15} strokeWidth={2.5} className="text-purple-500" />
+                    <span>AI Coach</span>
+                  </button>
+                )}
               </div>
           </header>
         )}
@@ -800,11 +801,15 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
       {/* Mobile Bottom Navigation Bar */}
       {!hideBottomNav && (
         <>
-          {/* Mobile Floating AI Coach Button (Only on Mobile, NOT on Home, Dashboard, Journal, or Risk Guard) */}
-          {!isHomePage && location.pathname !== '/dashboard' && !location.pathname.startsWith('/journal') && !location.pathname.startsWith('/risk-guard') && (
+          {/* Mobile Floating AI Coach Button (Only on Mobile, NOT on Home, Dashboard, Journal, Risk Guard, or AI Coach) */}
+          {!isHomePage &&
+            location.pathname !== '/dashboard' &&
+            !location.pathname.startsWith('/journal') &&
+            !location.pathname.startsWith('/risk-guard') &&
+            !location.pathname.startsWith('/ai-coach') && (
             <button
               type="button"
-              onClick={() => setIsAIOpen(true)}
+              onClick={() => navigate('/ai-coach')}
               className="sm:hidden fixed right-4 bottom-[calc(max(0.75rem,env(safe-area-inset-bottom))+4.75rem)] z-40 w-12 h-12 rounded-full bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 text-white shadow-xl shadow-purple-500/30 flex items-center justify-center active:scale-90 transition-transform cursor-pointer border border-white/20"
               title="Open AI Coach"
               aria-label="Open AI Coach"

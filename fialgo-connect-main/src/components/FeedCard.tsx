@@ -11,7 +11,14 @@ import { supabase } from "@/lib/supabase";
 import ReactMarkdown from "react-markdown";
 import { UserHoverCard } from "@/components/UserHoverCard";
 
-import { Heart as IconlyHeart, Upload as IconlySend, Bookmark as IconlyBookmark } from "react-iconly";
+import {
+  Chat as IconlyChat,
+  Swap as IconlySwap,
+  Heart as IconlyHeart,
+  Bookmark as IconlyBookmark,
+  Chart as IconlyChart,
+  Upload as IconlySend,
+} from "react-iconly";
 import {
   AlertDialog,
   AlertDialogClose,
@@ -615,7 +622,7 @@ function FeedCard({
     const hasVotedOrOwns = votedOption !== null || feed.user_id === currentUserId;
 
     return (
-        <div ref={cardRef} className="p-4 sm:p-5 rounded-[24px] sm:rounded-[28px] bg-white dark:bg-[#1C1C1E] figma-card-shadow-hover border-0 transition-all duration-300">
+        <div ref={cardRef} className="px-4 py-3.5 sm:px-5 sm:py-4 bg-white dark:bg-transparent border-b border-slate-200/85 dark:border-white/[0.09] transition-colors">
             <div className="flex items-start gap-3">
                 {/* Left Column: Avatar */}
                 <UserHoverCard
@@ -698,7 +705,7 @@ function FeedCard({
                                         e.stopPropagation();
                                         onToggleFollow(authorId, authorName);
                                     }}
-                                    className={`px-3.5 sm:px-4 py-1.5 rounded-full text-[12.5px] font-bold whitespace-nowrap cursor-pointer select-none flex items-center gap-1 ${
+                                    className={`px-3 py-1 rounded-full text-[11.5px] font-semibold whitespace-nowrap cursor-pointer select-none flex items-center gap-1 ${
                                         followedUsers[authorId]
                                             ? "tactile-white-pill"
                                             : "tactile-black-pill"
@@ -706,7 +713,7 @@ function FeedCard({
                                 >
                                     {followedUsers[authorId] ? (
                                         <>
-                                            <UserCheck size={12} strokeWidth={2.4} /> Following
+                                            <UserCheck size={11} strokeWidth={2.4} /> Following
                                         </>
                                     ) : (
                                         "Follow"
@@ -814,9 +821,9 @@ function FeedCard({
                     {shouldShowReadMore && (
                         <button
                             onClick={() => setIsExpanded(!isExpanded)}
-                            className="font-semibold text-blue-600 dark:text-blue-400 -mt-1 mb-2.5 hover:underline focus:outline-none text-[13px] cursor-pointer"
+                            className="font-semibold text-slate-900 dark:text-white -mt-1 mb-2.5 hover:underline focus:outline-none text-[13.5px] cursor-pointer"
                         >
-                            {isExpanded ? 'Show less' : 'Read more'}
+                            {isExpanded ? 'Show less' : 'Show more'}
                         </button>
                     )}
 
@@ -1118,7 +1125,7 @@ function FeedCard({
 
 
 
-                    {/* Editorial 6-Action Row: Comment, Repost, Like, Bookmark, Views, Share */}
+                    {/* Cute Curved Iconly 6-Action Row: Comment, Repost, Like, Bookmark, Views, Share */}
                     <div className="flex items-center justify-between pt-2.5 text-slate-500 dark:text-neutral-400">
                         {/* Comment — navigates to /post/:postId keeping upper & bottom navigation intact */}
                         <button
@@ -1140,16 +1147,14 @@ function FeedCard({
                                     },
                                 });
                             }}
-                            className="flex items-center gap-1.5 transition-colors group cursor-pointer p-1.5 -ml-1.5 rounded-full hover:text-slate-900 dark:hover:text-white"
+                            className="flex items-center gap-1.5 transition-colors group cursor-pointer p-1.5 -ml-1.5 rounded-full hover:text-[#2563EB] dark:hover:text-blue-400"
                             title="Reply"
                         >
-                            <MessageCircle
-                                size={18}
-                                strokeWidth={1.85}
-                                className="transition-transform duration-150 group-active:scale-90"
-                            />
+                            <span className="inline-flex transition-transform duration-150 group-hover:scale-110 group-active:scale-90">
+                                <IconlyChat set="curved" stroke="bold" primaryColor="currentColor" size={19} />
+                            </span>
                             {localCommentsCount > 0 && (
-                                <span className="text-[13px] font-medium tabular-nums">
+                                <span className="text-[12.5px] font-medium tabular-nums">
                                     <AnimatedCounter value={localCommentsCount} />
                                 </span>
                             )}
@@ -1164,13 +1169,11 @@ function FeedCard({
                             }`}
                             title={isReposted ? "Undo Repost" : "Repost"}
                         >
-                            <Repeat2
-                                size={18}
-                                strokeWidth={isReposted ? 2.2 : 1.85}
-                                className="transition-transform duration-200 group-active:scale-90"
-                            />
+                            <span className="inline-flex transition-transform duration-200 group-hover:scale-110 group-active:scale-90">
+                                <IconlySwap set="curved" stroke="bold" primaryColor="currentColor" size={19} />
+                            </span>
                             {localRepostCount > 0 && (
-                                <span className="text-[13px] font-medium tabular-nums">
+                                <span className="text-[12.5px] font-medium tabular-nums">
                                     <AnimatedCounter value={localRepostCount} />
                                 </span>
                             )}
@@ -1197,16 +1200,17 @@ function FeedCard({
                                 <AnimatePresence>
                                     {showLikeBurst && <LikeBurst />}
                                 </AnimatePresence>
-                                <Heart
-                                    size={18}
-                                    strokeWidth={1.85}
-                                    className={`transition-transform duration-150 group-active:scale-90 ${
-                                        isLiked ? "fill-rose-500 text-rose-500" : ""
-                                    }`}
-                                />
+                                <span className="inline-flex transition-transform duration-150 group-hover:scale-110 group-active:scale-90">
+                                    <IconlyHeart
+                                        set={isLiked ? "bold" : "curved"}
+                                        stroke="bold"
+                                        primaryColor="currentColor"
+                                        size={19}
+                                    />
+                                </span>
                             </div>
                             {likes > 0 && (
-                                <span className="text-[13px] font-medium tabular-nums">
+                                <span className="text-[12.5px] font-medium tabular-nums">
                                     <AnimatedCounter value={likes} />
                                 </span>
                             )}
@@ -1217,26 +1221,27 @@ function FeedCard({
                             type="button"
                             onClick={handleBookmark}
                             className={`flex items-center transition-colors group cursor-pointer p-1.5 rounded-full ${
-                                isBookmarked ? "text-blue-500" : "hover:text-blue-500"
+                                isBookmarked ? "text-[#2563EB] dark:text-blue-400" : "hover:text-[#2563EB] dark:hover:text-blue-400"
                             }`}
                             title="Bookmark"
                         >
-                            <Bookmark
-                                size={18}
-                                strokeWidth={1.85}
-                                className={`transition-transform duration-150 group-active:scale-90 ${
-                                    isBookmarked ? "fill-blue-500 text-blue-500" : ""
-                                }`}
-                            />
+                            <span className="inline-flex transition-transform duration-150 group-hover:scale-110 group-active:scale-90">
+                                <IconlyBookmark
+                                    set={isBookmarked ? "bold" : "curved"}
+                                    stroke="bold"
+                                    primaryColor="currentColor"
+                                    size={19}
+                                />
+                            </span>
                         </button>
 
-                        {/* Views (Analytics Bar Chart Icon + Count) */}
+                        {/* Views (Iconly Chart + Count) */}
                         <div
                             className="flex items-center gap-1.5 text-slate-500 dark:text-neutral-400 select-none px-1"
                             title={`${localViewCount.toLocaleString()} ${localViewCount === 1 ? "view" : "views"}`}
                         >
-                            <BarChart2 size={18} strokeWidth={1.85} className="shrink-0" />
-                            <span className="text-[13px] font-medium tabular-nums">
+                            <IconlyChart set="curved" stroke="bold" primaryColor="currentColor" size={18} />
+                            <span className="text-[12.5px] font-medium tabular-nums">
                                 {formatCompactViews(localViewCount)}
                             </span>
                         </div>
@@ -1248,11 +1253,9 @@ function FeedCard({
                             className="flex items-center text-slate-500 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white transition-colors group cursor-pointer p-1.5 -mr-1.5 rounded-full"
                             title="Share"
                         >
-                            <Share
-                                size={17}
-                                strokeWidth={1.85}
-                                className="transition-transform duration-150 group-active:scale-90"
-                            />
+                            <span className="inline-flex transition-transform duration-150 group-hover:scale-110 group-active:scale-90">
+                                <IconlySend set="curved" stroke="bold" primaryColor="currentColor" size={18} />
+                            </span>
                         </button>
                     </div>
                 </div>

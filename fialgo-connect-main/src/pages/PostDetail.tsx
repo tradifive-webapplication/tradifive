@@ -3,20 +3,14 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { createPortal } from "react-dom";
 import {
   X,
-  MessageCircle,
   Lock,
   Loader2,
   Trash2,
   MapPin,
   ChevronLeft,
   ChevronRight,
-  Repeat2,
-  Bookmark,
-  Share,
   Smile,
   MoreHorizontal,
-  BarChart2,
-  Heart,
   UserCheck,
   TrendingUp,
   CheckCircle2,
@@ -26,7 +20,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import DashboardLayout from "@/components/DashboardLayout";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-import { Heart as IconlyHeart } from "react-iconly";
+import {
+  Heart as IconlyHeart,
+  Chat as IconlyChat,
+  Swap as IconlySwap,
+  Bookmark as IconlyBookmark,
+  Chart as IconlyChart,
+  Upload as IconlyUpload,
+} from "react-iconly";
 
 interface Comment {
   id: string;
@@ -688,11 +689,11 @@ export default function PostDetail() {
 
   return (
     <DashboardLayout noScroll noPadding>
-      <div className="w-full h-full flex flex-col items-center px-2 sm:px-4 pt-2 sm:pt-4 pb-2.5 sm:pb-4 min-h-0">
-        {/* Main Post Surface — Keeps Top Nav & Bottom Nav Visible */}
-        <div className="w-full max-w-[680px] flex-1 min-h-0 bg-white dark:bg-[#141416] rounded-[24px] sm:rounded-[28px] figma-card-shadow flex flex-col overflow-hidden font-sans text-slate-900 dark:text-slate-100">
-          {/* Card Header: Circular Back (<) + "Post" */}
-          <div className="flex items-center justify-between px-4 sm:px-5 py-3 border-b border-slate-100 dark:border-white/10 shrink-0 bg-white dark:bg-[#141416]">
+      <div className="w-full h-full flex flex-col items-center min-h-0 bg-white dark:bg-[#121212]">
+        {/* Flat Post Stream — Sits directly inside the single global DashboardLayout surface */}
+        <div className="w-full max-w-[680px] flex-1 min-h-0 flex flex-col overflow-hidden font-sans text-slate-900 dark:text-slate-100">
+          {/* Header: Circular Back (<) + "Post" */}
+          <div className="flex items-center justify-between px-4 sm:px-5 py-3 border-b border-slate-200/85 dark:border-white/[0.09] shrink-0 bg-white dark:bg-[#121212]">
             <div className="flex items-center gap-3">
               <button
                 type="button"
@@ -770,13 +771,13 @@ export default function PostDetail() {
                             <button
                               type="button"
                               onClick={handleToggleFollow}
-                              className={`px-3.5 sm:px-4 py-1.5 rounded-full text-[12.5px] font-bold cursor-pointer select-none flex items-center gap-1 ${
+                              className={`px-3 py-1 rounded-full text-[11.5px] font-semibold cursor-pointer select-none flex items-center gap-1 ${
                                 isFollowing ? "tactile-white-pill" : "tactile-black-pill"
                               }`}
                             >
                               {isFollowing ? (
                                 <>
-                                  <UserCheck size={12} strokeWidth={2.4} /> Following
+                                  <UserCheck size={11} strokeWidth={2.4} /> Following
                                 </>
                               ) : (
                                 "Follow"
@@ -962,17 +963,19 @@ export default function PostDetail() {
                         </div>
                       )}
 
-                      {/* 6-Action Bar: Comment, Repost, Like, Bookmark, Views, Share */}
+                      {/* Cute Curved Iconly 6-Action Bar: Comment, Repost, Like, Bookmark, Views, Share */}
                       <div className="flex items-center justify-between pt-3 mt-2 text-slate-500 dark:text-neutral-400">
                         <button
                           type="button"
                           onClick={() => openReplyComposer(null, authorName, authorHandle)}
-                          className="flex items-center gap-1.5 hover:text-slate-900 dark:hover:text-white transition-colors p-1.5 -ml-1.5 rounded-full cursor-pointer"
+                          className="flex items-center gap-1.5 hover:text-[#2563EB] dark:hover:text-blue-400 transition-colors group p-1.5 -ml-1.5 rounded-full cursor-pointer"
                           title="Reply"
                         >
-                          <MessageCircle size={18} strokeWidth={1.85} />
+                          <span className="inline-flex transition-transform duration-150 group-hover:scale-110 group-active:scale-90">
+                            <IconlyChat set="curved" stroke="bold" primaryColor="currentColor" size={19} />
+                          </span>
                           {comments.length > 0 && (
-                            <span className="text-[13px] font-medium tabular-nums">
+                            <span className="text-[12.5px] font-medium tabular-nums">
                               {comments.length}
                             </span>
                           )}
@@ -981,14 +984,16 @@ export default function PostDetail() {
                         <button
                           type="button"
                           onClick={handleRepost}
-                          className={`flex items-center gap-1.5 transition-colors p-1.5 rounded-full cursor-pointer ${
+                          className={`flex items-center gap-1.5 transition-colors group p-1.5 rounded-full cursor-pointer ${
                             isReposted ? "text-emerald-500" : "hover:text-emerald-500"
                           }`}
                           title="Repost"
                         >
-                          <Repeat2 size={18} strokeWidth={isReposted ? 2.2 : 1.85} />
+                          <span className="inline-flex transition-transform duration-200 group-hover:scale-110 group-active:scale-90">
+                            <IconlySwap set="curved" stroke="bold" primaryColor="currentColor" size={19} />
+                          </span>
                           {repostCount > 0 && (
-                            <span className="text-[13px] font-medium tabular-nums">
+                            <span className="text-[12.5px] font-medium tabular-nums">
                               {repostCount}
                             </span>
                           )}
@@ -997,42 +1002,48 @@ export default function PostDetail() {
                         <button
                           type="button"
                           onClick={handleToggleLike}
-                          className={`flex items-center gap-1.5 transition-colors p-1.5 rounded-full cursor-pointer ${
+                          className={`flex items-center gap-1.5 transition-colors group p-1.5 rounded-full cursor-pointer ${
                             isLiked ? "text-rose-500" : "hover:text-rose-500"
                           }`}
                           title="Like"
                         >
-                          <Heart
-                            size={18}
-                            strokeWidth={1.85}
-                            className={isLiked ? "fill-rose-500 text-rose-500" : ""}
-                          />
+                          <span className="inline-flex transition-transform duration-150 group-hover:scale-110 group-active:scale-90">
+                            <IconlyHeart
+                              set={isLiked ? "bold" : "curved"}
+                              stroke="bold"
+                              primaryColor="currentColor"
+                              size={19}
+                            />
+                          </span>
                           {likes > 0 && (
-                            <span className="text-[13px] font-medium tabular-nums">{likes}</span>
+                            <span className="text-[12.5px] font-medium tabular-nums">{likes}</span>
                           )}
                         </button>
 
                         <button
                           type="button"
                           onClick={handleBookmark}
-                          className={`p-1.5 rounded-full transition-colors cursor-pointer ${
-                            isBookmarked ? "text-blue-500" : "hover:text-blue-500"
+                          className={`p-1.5 rounded-full transition-colors group cursor-pointer ${
+                            isBookmarked ? "text-[#2563EB] dark:text-blue-400" : "hover:text-[#2563EB] dark:hover:text-blue-400"
                           }`}
                           title="Bookmark"
                         >
-                          <Bookmark
-                            size={18}
-                            strokeWidth={1.85}
-                            className={isBookmarked ? "fill-blue-500 text-blue-500" : ""}
-                          />
+                          <span className="inline-flex transition-transform duration-150 group-hover:scale-110 group-active:scale-90">
+                            <IconlyBookmark
+                              set={isBookmarked ? "bold" : "curved"}
+                              stroke="bold"
+                              primaryColor="currentColor"
+                              size={19}
+                            />
+                          </span>
                         </button>
 
                         <div
-                          className="flex items-center gap-1.5 text-slate-500 dark:text-neutral-400 select-none"
+                          className="flex items-center gap-1.5 text-slate-500 dark:text-neutral-400 select-none px-1"
                           title={`${viewCount.toLocaleString()} views`}
                         >
-                          <BarChart2 size={18} strokeWidth={1.85} />
-                          <span className="text-[13px] font-medium tabular-nums">
+                          <IconlyChart set="curved" stroke="bold" primaryColor="currentColor" size={18} />
+                          <span className="text-[12.5px] font-medium tabular-nums">
                             {formatCompactCount(viewCount)}
                           </span>
                         </div>
@@ -1040,10 +1051,12 @@ export default function PostDetail() {
                         <button
                           type="button"
                           onClick={handleShare}
-                          className="p-1.5 -mr-1.5 rounded-full hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
+                          className="p-1.5 -mr-1.5 rounded-full hover:text-slate-900 dark:hover:text-white transition-colors group cursor-pointer"
                           title="Share"
                         >
-                          <Share size={17} strokeWidth={1.85} />
+                          <span className="inline-flex transition-transform duration-150 group-hover:scale-110 group-active:scale-90">
+                            <IconlyUpload set="curved" stroke="bold" primaryColor="currentColor" size={18} />
+                          </span>
                         </button>
                       </div>
                     </div>
@@ -1051,7 +1064,7 @@ export default function PostDetail() {
                 </div>
 
                 {/* Divider */}
-                <div className="border-t border-slate-100 dark:border-white/10 mx-4 sm:mx-5" />
+                <div className="border-t border-slate-200/85 dark:border-white/[0.09]" />
 
                 {/* Replies Stream */}
                 <div className="px-4 sm:px-5 py-4 space-y-5 select-text">
@@ -1227,7 +1240,7 @@ export default function PostDetail() {
               </div>
 
               {/* Sticky Bottom Reply Trigger Bar (Sits right above BottomNav just like reference!) */}
-              <div className="shrink-0 border-t border-slate-100 dark:border-white/10 bg-white dark:bg-[#141416] px-3.5 sm:px-5 py-3">
+              <div className="shrink-0 border-t border-slate-200/85 dark:border-white/[0.09] bg-white dark:bg-[#121212] px-3.5 sm:px-5 py-3">
                 {!allowComments ? (
                   <div className="flex items-center justify-center gap-2 py-2.5 text-[13px] font-semibold text-slate-400">
                     <Lock size={14} />
@@ -1239,7 +1252,7 @@ export default function PostDetail() {
                     onClick={() => openReplyComposer(null, authorName, authorHandle)}
                     className="w-full h-11 rounded-full bg-slate-100/95 hover:bg-slate-200/80 dark:bg-white/[0.07] dark:hover:bg-white/[0.11] text-slate-800 dark:text-slate-100 font-semibold text-[14px] flex items-center justify-center gap-2 transition-colors active:scale-[0.99] cursor-pointer"
                   >
-                    <MessageCircle size={17} strokeWidth={2} />
+                    <IconlyChat set="curved" stroke="bold" primaryColor="currentColor" size={18} />
                     <span>Reply to {authorName}</span>
                   </button>
                 )}

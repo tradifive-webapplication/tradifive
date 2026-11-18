@@ -214,16 +214,21 @@ const wrapLucide = (IconComponent: any) => {
 
 
 
-// Dynamic communicationMenu will be defined inside AppSidebar component
+// Stable module-scoped icon components (never recreated on render!)
+const SidebarIconHome = WrappedIconly(Home);
+const SidebarIconDiscovery = WrappedIconly(Discovery);
+const SidebarIconPlay = WrappedIconly(Play);
+const SidebarIconTwoUsers = WrappedIconly(TwoUsers);
+const SidebarIconBookmark = WrappedIconly(Bookmark);
+const SidebarIconMessage = WrappedIconly(Message);
+const SidebarIconNotification = WrappedIconly(Notification);
 
 const homeMenu = [
-
-  { path: "/home", icon: WrappedIconly(Home), label: "Feed" },
-
-  { path: "/home?tab=saved", icon: WrappedIconly(Bookmark), label: "Saved" },
-
-  { path: "/home?tab=calendar", icon: wrapLucide(Clock), label: "Economic Calendar" },
-
+  { path: "/home", icon: SidebarIconHome, label: "Home" },
+  { path: "/discover", icon: SidebarIconDiscovery, label: "Discover" },
+  { path: "/creator/live", icon: SidebarIconPlay, label: "Live" },
+  { path: "/channel", icon: SidebarIconTwoUsers, label: "Channels" },
+  { path: "/home?tab=saved", icon: SidebarIconBookmark, label: "Saved" },
 ];
 
 
@@ -560,7 +565,18 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
     const path = location.pathname;
 
-    if (path.startsWith("/home")) return "home";
+    if (
+      path.startsWith("/home") ||
+      path.startsWith("/post/") ||
+      path.startsWith("/discover") ||
+      path.startsWith("/marketplace") ||
+      path.startsWith("/store") ||
+      path.startsWith("/learning") ||
+      path.startsWith("/courses") ||
+      path.startsWith("/creator/live") ||
+      path.startsWith("/inbox") ||
+      path.startsWith("/channel")
+    ) return "home";
 
     if (path.startsWith("/dashboard")) return "dashboard";
 
@@ -572,9 +588,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
     if (path.startsWith("/fialgo") || path.startsWith("/auto-trade") || path.startsWith("/strategy-builder") || path.startsWith("/weekly-settlements") || path.startsWith("/settlements")) return "autoTrade";
 
-    if (path.startsWith("/discover") || path.startsWith("/marketplace")) return "discover";
-
-    if (path.startsWith("/channel") || path.startsWith("/inbox") || path.startsWith("/notifications") || path.startsWith("/community")) return "community";
+    if (path.startsWith("/notifications") || path.startsWith("/community")) return "community";
 
     if (path.startsWith("/rewards") || path.startsWith("/referrals")) return "rewards";
 
@@ -1292,9 +1306,9 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
   const communicationMenu = [
 
-    { path: "/inbox", icon: WrappedIconly(Message), label: "Inbox", badge: (unreadDMs > 0 ? String(unreadDMs) : undefined) },
+    { path: "/inbox", icon: SidebarIconMessage, label: "Inbox", badge: (unreadDMs > 0 ? String(unreadDMs) : undefined) },
 
-    { path: "/notifications", icon: WrappedIconly(Notification), label: "Notifications", badge: (unreadNotifications > 0 ? (unreadNotifications > 15 ? "15+" : String(unreadNotifications)) : undefined) },
+    { path: "/notifications", icon: SidebarIconNotification, label: "Notifications", badge: (unreadNotifications > 0 ? (unreadNotifications > 15 ? "15+" : String(unreadNotifications)) : undefined) },
 
   ];
 
@@ -1358,15 +1372,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
       case "home":
 
-        return [
-
-          { path: "/home", icon: WrappedIconly(Home), label: "Home Feed" },
-
-          { path: "/home?tab=saved", icon: WrappedIconly(Bookmark), label: "Saved Posts" },
-
-          { path: "/home?tab=calendar", icon: WrappedIconly(TimeCircle), label: "Economic Calendar" },
-
-        ];
+        return homeMenu;
 
       case "dashboard":
 
@@ -1569,7 +1575,13 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
       (location.pathname === '/' && item.path === '/dashboard') ||
 
-      ((item.path === '/home' || item.path === '/home') && location.pathname === '/home' && (!location.search || location.search === ''))
+      (item.path === '/home' && location.pathname === '/home' && (!location.search || location.search === '')) ||
+
+      (item.path === '/channel' && location.pathname.startsWith('/channel')) ||
+
+      (item.path === '/discover' && location.pathname.startsWith('/discover')) ||
+
+      (item.path === '/inbox' && location.pathname.startsWith('/inbox'))
 
     );
 
@@ -1579,6 +1591,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
       <button
         key={item.label}
+        type="button"
 
         id={`tour-nav-${item.label.toLowerCase().replace(/[\s\/]+/g, '-')}`}
 
@@ -1610,7 +1623,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
           if (item.path && item.path !== "#") {
 
-            React.startTransition(() => navigate(item.path));
+            navigate(item.path);
 
             if (isMobile) {
 
@@ -1776,7 +1789,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
           : `fixed left-0 top-0 z-40 flex h-screen flex-row bg-transparent dark:bg-transparent ${isMounted ? "transition-[width] duration-300" : ""
 
-          } ${isCollapsed ? "w-[90px]" : isFiAlgo ? "w-[260px] xl:w-[274px]" : "w-[90px] xl:w-[340px]"}`
+          } ${isCollapsed ? "w-[90px]" : isFiAlgo ? "w-[260px] xl:w-[274px]" : "w-[340px]"}`
 
           }`}
 

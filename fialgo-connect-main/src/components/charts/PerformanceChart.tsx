@@ -253,7 +253,8 @@ export default function PerformanceChart({
               fill: strokeColor,
             }}
             isAnimationActive={true}
-            animationDuration={450}
+            animationBegin={90}
+            animationDuration={950}
             animationEasing="ease-out"
           />
         </AreaChart>

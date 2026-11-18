@@ -1,4 +1,4 @@
-﻿import { Search, Plus, X, MoreHorizontal, Heart, MessageCircle, MessageSquare, Bookmark, UserPlus, UserCheck, Flame, ShieldCheck, TrendingUp, Layers, Eye, Calendar, Sliders, Trash2, Check, ArrowUp, Globe, Home as HomeIcon, Compass, Radio, Bell, Users, Smile, ImagePlus, Video as VideoIcon, Loader2 } from "lucide-react";
+﻿import { Search, Plus, X, MoreHorizontal, Heart, MessageCircle, MessageSquare, Bookmark, UserPlus, UserCheck, Flame, ShieldCheck, TrendingUp, Layers, Eye, Calendar, Sliders, Trash2, Check, ArrowUp, RotateCw, Globe, Home as HomeIcon, Compass, Radio, Bell, Users, Smile, ImagePlus, Video as VideoIcon, Loader2 } from "lucide-react";
 import { CommunityPageWrapper, useCommunityShell } from "@/components/CommunityShell";
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { createPortal } from "react-dom";
@@ -10,6 +10,7 @@ import { useHomeData, FeedPost } from "@/hooks/useHomeData";
 import { useMarket } from "@/contexts/MarketContext";
 import CreatePostModal from "@/components/CreatePostModal";
 import FeedCard from "@/components/FeedCard";
+import HomeProfileCard from "@/components/HomeProfileCard";
 import CommunityHeaderBar from "@/components/CommunityHeaderBar";
 import InlineNotificationsPanel from "@/components/InlineNotificationsPanel";
 import { triggerHaptic } from "@/utils/haptics";
@@ -355,32 +356,51 @@ export default function Home() {
     const [authChecked, setAuthChecked] = useState(false);
 
     const { inShell, scrollContainerRef } = useCommunityShell();
-    const [showNewPosts, setShowNewPosts] = useState(false);
+    const [newPostsCount, setNewPostsCount] = useState(0);
     const middleColumnRef = useRef<HTMLDivElement>(null);
 
-    const handleScroll = useCallback(() => {
-        const scroller = inShell ? scrollContainerRef.current : middleColumnRef.current;
-        if (!scroller) return;
-        if (scroller.scrollTop > 800) {
-            setShowNewPosts(true);
-        } else {
-            setShowNewPosts(false);
-        }
-    }, [inShell, scrollContainerRef]);
-
+    // Show "New posts" pill ONLY when another trader publishes a new post in real time
     useEffect(() => {
-        if (!inShell) return;
-        const scroller = scrollContainerRef.current;
-        if (!scroller) return;
-        scroller.addEventListener("scroll", handleScroll, { passive: true });
-        return () => scroller.removeEventListener("scroll", handleScroll);
-    }, [inShell, scrollContainerRef, handleScroll]);
+        const channel = supabase
+            .channel('home-new-posts-pill')
+            .on(
+                'postgres_changes',
+                { event: 'INSERT', schema: 'public', table: 'social_posts' },
+                (payload: any) => {
+                    const insertedUserId = payload?.new?.user_id;
+                    if (user?.id && insertedUserId && String(insertedUserId) === String(user.id)) {
+                        return;
+                    }
+                    setNewPostsCount((prev) => prev + 1);
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, [user?.id]);
+
+    const [feedSearchQuery, setFeedSearchQuery] = useState("");
+    const [isRefreshingFeed, setIsRefreshingFeed] = useState(false);
 
     const scrollToTop = () => {
         const scroller = inShell ? scrollContainerRef.current : middleColumnRef.current;
         if (scroller) {
             scroller.scrollTo({ top: 0, behavior: 'smooth' });
-            setShowNewPosts(false);
+        }
+    };
+
+    const handleRefreshFeed = async () => {
+        if (isRefreshingFeed) return;
+        triggerHaptic("selection");
+        setIsRefreshingFeed(true);
+        setNewPostsCount(0);
+        try {
+            await Promise.resolve(refetch());
+            scrollToTop();
+        } finally {
+            setTimeout(() => setIsRefreshingFeed(false), 500);
         }
     };
 
@@ -863,7 +883,20 @@ export default function Home() {
                 </div>
             );
         }
+        const q = feedSearchQuery.trim().toLowerCase();
         const filteredFeeds = [...feeds].filter(feed => {
+            if (q) {
+                const contentText = String(feed.content || "").toLowerCase();
+                const authorName = String(feed.profiles?.display_name || feed.profiles?.full_name || "").toLowerCase();
+                const authorUser = String(feed.profiles?.username || "").toLowerCase();
+                const cleanQ = q.replace(/^[@#$]/, "");
+                const matchesSearch =
+                    contentText.includes(q) ||
+                    contentText.includes(cleanQ) ||
+                    authorName.includes(cleanQ) ||
+                    authorUser.includes(cleanQ);
+                if (!matchesSearch) return false;
+            }
             if (feedMarketFilter === 'for_you') return true;
             if (feedMarketFilter === 'following') {
                 const authorId = typeof feed.user_id === 'object' ? feed.user_id?.id : (feed.user_id || feed.profiles?.id);
@@ -889,6 +922,25 @@ export default function Home() {
         });
 
         if (filteredFeeds.length === 0) {
+            if (q) {
+                return (
+                    <div className="py-12 px-6 text-center flex flex-col items-center justify-center gap-2.5">
+                        <p className="text-[14.5px] font-bold text-slate-900 dark:text-white">
+                            No posts found for &ldquo;{feedSearchQuery.trim()}&rdquo;
+                        </p>
+                        <p className="text-[12.5px] text-slate-500 dark:text-neutral-400">
+                            Try searching another $ticker, #tag, or trader handle.
+                        </p>
+                        <button
+                            type="button"
+                            onClick={() => setFeedSearchQuery("")}
+                            className="mt-1 px-4 py-1.5 rounded-full tactile-white-pill text-[12px] font-semibold cursor-pointer"
+                        >
+                            Clear search
+                        </button>
+                    </div>
+                );
+            }
             if (feedMarketFilter === 'following') {
                 return (
                     <div className="p-8 sm:p-10 rounded-[24px] bg-white dark:bg-[#1E1E1E] figma-card-shadow text-center flex flex-col items-center justify-center gap-3">
@@ -946,7 +998,7 @@ export default function Home() {
                 onVote={handleVote}
             />
         ));
-    }, [feeds, feedSort, feedMarketFilter, likedPosts, likesOffsets, followedUsers, user?.id, toggleFollowUser, handleLikePost, handleDeletePost, handleVote]);
+    }, [feeds, feedSort, feedMarketFilter, feedSearchQuery, likedPosts, likesOffsets, followedUsers, user?.id, toggleFollowUser, handleLikePost, handleDeletePost, handleVote]);
 
 
 
@@ -1346,19 +1398,19 @@ export default function Home() {
     return (
         <>
             <CommunityPageWrapper breadcrumbs={[{ label: "Home", path: "/home" }]} headerActions={headerActions} noScroll={true} noPadding={true}>
-                <div className="w-full flex flex-col px-0 sm:px-4 lg:px-10 pt-0 pb-0 select-none font-sans text-slate-800 dark:text-slate-100">
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 relative items-start">
+                <div className="w-full min-h-full flex flex-col px-0 sm:px-4 lg:px-6 xl:px-8 pt-0 pb-0 select-none font-sans text-slate-800 dark:text-slate-100">
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 lg:gap-5 relative items-start min-h-full">
 
                         {/* --- COLUMN 1: LEFT SIDEBAR (col-span-3) --- */}
                         {currentTab !== 'calendar' && (showWatchlist || showCalendar || showFollowers) && (
-                            <div className="hidden xl:block xl:col-span-3 xl:col-start-1 xl:sticky xl:top-3 xl:max-h-[calc(100vh-110px)] xl:overflow-y-auto amazing-scrollbar space-y-4 px-4 pt-5 pb-4">
+                            <div className="hidden xl:block xl:col-span-3 xl:col-start-1 xl:sticky xl:top-4 xl:max-h-[calc(100vh-110px)] xl:overflow-y-auto amazing-scrollbar space-y-3.5 px-1 xl:px-2 pt-4 pb-4">
 
                                 {/* A. My Watchlist / Market Segment */}
                                 {showWatchlist && (
-                                    <div className="p-5 rounded-[28px] bg-white dark:bg-[#1C1C1E] border border-slate-100/50 dark:border-white/5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300">
-                                        <div className="flex items-center justify-between mb-5">
-                                            <h3 className="text-[16px] font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-                                                <IconlyGraph size={16} set="curved" primaryColor="currentColor" className="text-blue-500 shrink-0" />
+                                    <div className="p-4 rounded-[22px] bg-white dark:bg-[#17171A] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.045)] dark:shadow-none">
+                                        <div className="flex items-center justify-between mb-3.5">
+                                            <h3 className="text-[14.5px] font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+                                                <IconlyGraph size={15} set="curved" primaryColor="currentColor" className="text-[#2563EB] shrink-0" />
                                                 <span>My Watchlist</span>
                                             </h3>
                                             <button
@@ -1367,28 +1419,28 @@ export default function Home() {
                                                     setCustomizeActiveTab('watchlist');
                                                     setShowCustomizeModal(true);
                                                 }}
-                                                className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 hover:bg-blue-100 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 font-bold text-[11px] border border-blue-500/20 transition-all cursor-pointer select-none active:scale-[0.985]"
+                                                className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white dark:bg-white/[0.06] border border-slate-200/90 dark:border-white/15 hover:bg-slate-50 dark:hover:bg-white/[0.11] text-slate-900 dark:text-white font-semibold text-[11.5px] shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition-all cursor-pointer select-none active:scale-[0.97]"
                                                 title="Add Pairs"
                                             >
-                                                <Plus size={12} strokeWidth={2.5} />
+                                                <Plus size={11.5} strokeWidth={2.4} />
                                                 <span>Add Pair</span>
                                             </button>
                                         </div>
 
-                                        <div className="space-y-4">
+                                        <div className="space-y-3">
                                             {watchlist.length === 0 ? (
-                                                <div className="flex flex-col items-center justify-center py-8 px-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5 text-center">
-                                                    <IconlyGraph size={24} set="curved" primaryColor="currentColor" className="text-slate-400 dark:text-slate-400 mb-3" />
-                                                    <h4 className="text-[13px] font-bold text-slate-900 dark:text-white mb-1">Watchlist Empty</h4>
-                                                    <p className="text-[12px] text-slate-500 dark:text-slate-400 mb-4 max-w-[180px]">Track forex, crypto, and commodity assets live.</p>
+                                                <div className="flex flex-col items-center justify-center py-6 px-4 rounded-2xl bg-slate-50/80 dark:bg-white/[0.03] border border-slate-200/70 dark:border-white/[0.06] text-center">
+                                                    <IconlyGraph size={20} set="curved" primaryColor="currentColor" className="text-slate-400 mb-2" />
+                                                    <h4 className="text-[13px] font-bold text-slate-900 dark:text-white mb-0.5">Watchlist Empty</h4>
+                                                    <p className="text-[11.5px] text-slate-400 mb-3 max-w-[180px]">Track forex, crypto, and commodity assets live.</p>
                                                     <button
                                                         type="button"
                                                         onClick={() => {
                                                             setCustomizeActiveTab('watchlist');
                                                             setShowCustomizeModal(true);
                                                         }}
-                                                        className="px-6 py-2.5 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-bold text-xs tracking-wide transition-all duration-150 shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_2px_6px_rgba(37,99,235,0.3)] active:scale-[0.985] flex items-center justify-center gap-1.5 cursor-pointer select-none border-none">
-                                                        <Plus size={13} strokeWidth={2.5} />
+                                                        className="px-4 py-1.5 rounded-full bg-white dark:bg-white/[0.06] border border-slate-200/90 dark:border-white/15 hover:bg-slate-50 text-slate-900 dark:text-white font-semibold text-[12px] active:scale-[0.97] inline-flex items-center gap-1.5 cursor-pointer select-none">
+                                                        <Plus size={12} strokeWidth={2.5} />
                                                         <span>Add Pair</span>
                                                     </button>
                                                 </div>
@@ -1403,21 +1455,19 @@ export default function Home() {
                                                     const price = asset.price && asset.price !== '—' ? asset.price : '—';
                                                     const change = asset.change && asset.change !== '—' ? asset.change : '—';
 
-                                                    const logoUrl = null;
-
                                                     return (
-                                                        <div key={i} className="flex items-center justify-between group hover:translate-x-0.5 transition-transform duration-200">
-                                                            <div className="flex items-center gap-2.5">
+                                                        <div key={i} className="flex items-center justify-between group">
+                                                            <div className="flex items-center gap-2.5 min-w-0">
                                                                 <div>
                                                                     <p className="text-[13px] font-semibold text-slate-900 dark:text-white leading-tight tracking-tight">{displaySymbol}</p>
-                                                                    <p className="text-[10px] font-medium text-slate-455 dark:text-slate-400 leading-none mt-0.5 capitalize">{displayName}</p>
+                                                                    <p className="text-[10.5px] font-medium text-slate-400 leading-none mt-0.5 capitalize">{displayName}</p>
                                                                 </div>
                                                             </div>
 
-                                                            <div className="text-right">
-                                                                <p className="text-[13px] font-semibold text-slate-900 dark:text-white leading-tight">{price}</p>
-                                                                <span className={`inline-block text-[9.5px] font-bold px-1.5 py-0.5 rounded mt-0.5 leading-none ${isPositive
-                                                                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-455"
+                                                            <div className="text-right shrink-0">
+                                                                <p className="text-[13px] font-semibold text-slate-900 dark:text-white leading-tight tabular-nums">{price}</p>
+                                                                <span className={`inline-block text-[9.5px] font-bold px-1.5 py-0.5 rounded-md mt-0.5 leading-none tabular-nums ${isPositive
+                                                                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
                                                                     : "bg-rose-500/10 text-rose-600 dark:text-rose-400"
                                                                     }`}>
                                                                     {change}
@@ -1433,17 +1483,17 @@ export default function Home() {
 
                                 {/* B. Economic Calendar News */}
                                 {showCalendar && (
-                                    <div className="p-5 rounded-[28px] bg-white dark:bg-[#1C1C1E] border border-slate-100/50 dark:border-white/5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300">
-                                        <div className="flex items-center justify-between gap-2 mb-5">
-                                            <h3 className="text-[16px] font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-                                                <IconlyDiscovery size={16} set="curved" primaryColor="currentColor" className="text-slate-400 dark:text-slate-400 shrink-0" />
+                                    <div className="p-4 rounded-[22px] bg-white dark:bg-[#17171A] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.045)] dark:shadow-none">
+                                        <div className="flex items-center justify-between gap-2 mb-3.5">
+                                            <h3 className="text-[14.5px] font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+                                                <IconlyDiscovery size={15} set="curved" primaryColor="currentColor" className="text-slate-400 shrink-0" />
                                                 <span>Economic Calendar</span>
                                             </h3>
-                                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
+                                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-rose-50 text-rose-600 dark:bg-rose-500/15 dark:text-rose-400 border border-rose-200/70 dark:border-rose-500/20">
                                                 High Impact
                                             </span>
                                         </div>
-                                        <div className="space-y-4">
+                                        <div className="space-y-3">
                                             {calendarRender}
                                         </div>
                                     </div>
@@ -1451,63 +1501,133 @@ export default function Home() {
 
                                 {/* C. Followers Stats Box */}
                                 {showFollowers && (
-                                    <div className="p-5 rounded-[28px] bg-white dark:bg-[#1C1C1E] border border-slate-100/50 dark:border-white/5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 relative overflow-hidden group cursor-pointer">
-
-                                        {/* Beautiful Colorful Top-Right Design */}
-                                        <div className="absolute -top-6 -right-6 w-32 h-32 bg-gradient-to-br from-indigo-400/30 via-purple-400/30 to-pink-400/30 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0"></div>
-                                        <div className="absolute top-2 right-2 w-16 h-16 bg-blue-400/20 rounded-full blur-xl group-hover:-translate-y-2 group-hover:translate-x-2 transition-transform duration-700 pointer-events-none z-0"></div>
-
-                                        <div className="absolute top-5 right-5 text-indigo-500/80 dark:text-indigo-400/80 group-hover:rotate-12 group-hover:scale-110 transition-transform duration-500 z-0">
-                                            <IconlyGraph size={22} set="bold" primaryColor="currentColor" />
+                                    <div
+                                        onClick={() => navigate('/profile')}
+                                        className="p-4 rounded-[22px] bg-white dark:bg-[#17171A] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.045)] dark:shadow-none cursor-pointer group hover:border-slate-300/90 dark:hover:border-white/15 transition-colors"
+                                    >
+                                        <div className="flex items-center justify-between mb-2">
+                                            <span className="text-[12px] font-semibold text-slate-400 dark:text-neutral-500">
+                                                Community reach
+                                            </span>
+                                            <IconlyGraph size={16} set="curved" primaryColor="currentColor" className="text-[#2563EB]" />
                                         </div>
 
-                                        <div className="flex items-center mb-5 pl-3 relative z-10">
-                                            {followersAvatarsList.map((url, i) => (
-                                                <img
-                                                    key={i}
-                                                    src={url || "/default-avatar.svg"}
-                                                    onError={(e) => {
-                                                        e.currentTarget.src = "/default-avatar.svg";
-                                                    }}
-                                                    className="w-8 h-8 rounded-full border-2 border-white dark:border-white/5 bg-slate-200 shadow-sm"
-                                                    style={{
-                                                        zIndex: followersAvatarsList.length - i,
-                                                        marginLeft: '-12px'
-                                                    }}
-                                                />
-                                            ))}
+                                        {followersAvatarsList.length > 0 && (
+                                            <div className="flex items-center mb-3 pl-3">
+                                                {followersAvatarsList.map((url, i) => (
+                                                    <img
+                                                        key={i}
+                                                        src={url || "/default-avatar.svg"}
+                                                        onError={(e) => {
+                                                            e.currentTarget.src = "/default-avatar.svg";
+                                                        }}
+                                                        className="w-7 h-7 rounded-full ring-2 ring-white dark:ring-[#17171A] bg-slate-200 object-cover"
+                                                        style={{
+                                                            zIndex: followersAvatarsList.length - i,
+                                                            marginLeft: '-10px'
+                                                        }}
+                                                    />
+                                                ))}
+                                            </div>
+                                        )}
+                                        <div className="flex items-baseline gap-1.5">
+                                            <h4 className="text-[24px] font-bold text-slate-900 dark:text-white tracking-tight leading-none tabular-nums">
+                                                {followerCountText}
+                                            </h4>
+                                            <span className="text-[11.5px] font-semibold text-slate-400 uppercase tracking-wider">
+                                                Followers
+                                            </span>
                                         </div>
-                                        <h4 className="text-[28px] font-bold text-slate-900 dark:text-white tracking-tight mb-1 relative z-10">
-                                            {followerCountText} <span className="text-[13px] font-bold text-slate-455 uppercase tracking-widest ml-1">Followers</span>
-                                        </h4>
-                                        <p className="text-[12px] font-medium text-slate-505 leading-none relative z-10">Active now on your profile</p>
+                                        <p className="text-[11.5px] font-medium text-slate-400 mt-1.5">
+                                            Active now on your profile
+                                        </p>
                                     </div>
                                 )}
 
                             </div>
                         )}
-                        {/* --- COLUMN 2: MIDDLE MAIN CONTENT --- */}
-                        <div className={`relative flex flex-col ${currentTab === 'calendar' ? 'col-span-12 px-4 sm:px-8' : 'col-span-12 lg:col-span-8 xl:col-span-6 xl:col-start-4'}`}>
-                            <AnimatePresence>
-                                {showNewPosts && (
-                                    <motion.button
-                                        initial={{ y: -20, opacity: 0, scale: 0.9 }}
-                                        animate={{ y: 0, opacity: 1, scale: 1 }}
-                                        exit={{ y: -20, opacity: 0, scale: 0.9 }}
-                                        onClick={scrollToTop}
-                                        className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-white/95 backdrop-blur-md dark:bg-[#2C2C2E]/95 border border-slate-200 dark:border-white/10 shadow-[0_4px_20px_rgb(0,0,0,0.08)] hover:shadow-[0_4px_25px_rgb(0,0,0,0.12)] text-slate-700 dark:text-slate-200 px-5 py-2 rounded-full font-medium tracking-tight text-[14px] flex items-center gap-2 transition-all hover:-translate-y-0.5 cursor-pointer"
-                                    >
-                                        <ArrowUp size={16} strokeWidth={2} className="text-slate-500 dark:text-slate-400" />
-                                        New posts
-                                    </motion.button>
-                                )}
-                            </AnimatePresence>
-                            <div className="space-y-4 sm:space-y-5 px-0 sm:px-4 pt-0 sm:pt-2 pb-24 md:pb-8" ref={middleColumnRef}>
+                        {/* --- COLUMN 2: MIDDLE MAIN CONTENT (vertical borders left & right on desktop) --- */}
+                        <div
+                            className={`relative flex flex-col min-h-[calc(100vh-80px)] ${
+                                currentTab === 'calendar'
+                                    ? 'col-span-12 px-4 sm:px-8'
+                                    : (showWatchlist || showCalendar || showFollowers)
+                                        ? 'col-span-12 lg:col-span-8 xl:col-span-6 xl:col-start-4 md:border-x md:border-slate-200/85 dark:md:border-white/[0.09]'
+                                        : 'col-span-12 lg:col-span-8 xl:col-span-7 xl:col-start-2 md:border-x md:border-slate-200/85 dark:md:border-white/[0.09]'
+                            }`}
+                        >
+                            {/* Dead-center top floating pill — appears ONLY when someone posts a new post */}
+                            <div className="sticky top-3 z-50 h-0 flex justify-center pointer-events-none">
+                                <AnimatePresence>
+                                    {newPostsCount > 0 && currentTab === 'feed' && (
+                                        <motion.button
+                                            type="button"
+                                            initial={{ y: -16, opacity: 0, scale: 0.94 }}
+                                            animate={{ y: 0, opacity: 1, scale: 1 }}
+                                            exit={{ y: -16, opacity: 0, scale: 0.94 }}
+                                            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                                            onClick={() => {
+                                                setNewPostsCount(0);
+                                                refetch();
+                                                scrollToTop();
+                                            }}
+                                            className="pointer-events-auto h-9 px-4 rounded-full bg-[#2563EB] hover:bg-blue-700 text-white shadow-[0_6px_20px_rgba(37,99,235,0.32)] font-semibold tracking-tight text-[13px] inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+                                        >
+                                            <ArrowUp size={14} strokeWidth={2.5} />
+                                            <span>{newPostsCount === 1 ? "New post" : `${newPostsCount} new posts`}</span>
+                                        </motion.button>
+                                    )}
+                                </AnimatePresence>
+                            </div>
+                            <div className="space-y-0 px-0 pt-0 pb-24 md:pb-8" ref={middleColumnRef}>
 
 
                                 {/* Feeds Section */}
                                 {currentTab === 'feed' && (
-                                <div className="space-y-4 sm:space-y-5">
+                                <div>
+                                    {/* Desktop Top Bar: Home + Pill Search + Circular Refresh */}
+                                    <div className="hidden md:flex items-center gap-3.5 px-5 py-3 border-b border-slate-200/85 dark:border-white/[0.09] sticky top-0 z-30 bg-white/95 dark:bg-[#121212]/95 backdrop-blur-md">
+                                        <h1 className="text-[18px] font-bold text-slate-900 dark:text-white tracking-tight shrink-0">
+                                            Home
+                                        </h1>
+
+                                        <div className="flex-1 flex items-center gap-2.5 h-10 px-4 rounded-full bg-slate-100/90 dark:bg-white/[0.06] border border-transparent focus-within:border-slate-300/80 dark:focus-within:border-white/15 transition-colors">
+                                            <Search size={16} strokeWidth={2} className="text-slate-400 dark:text-neutral-500 shrink-0" />
+                                            <input
+                                                type="text"
+                                                value={feedSearchQuery}
+                                                onChange={(e) => setFeedSearchQuery(e.target.value)}
+                                                placeholder="Search $tickers, #tags or traders"
+                                                className="w-full bg-transparent text-[13.5px] font-normal text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 outline-none"
+                                            />
+                                            {feedSearchQuery && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setFeedSearchQuery("")}
+                                                    className="w-5 h-5 rounded-full bg-slate-200/80 hover:bg-slate-300/80 dark:bg-white/10 dark:hover:bg-white/20 text-slate-600 dark:text-neutral-300 flex items-center justify-center shrink-0 cursor-pointer"
+                                                    aria-label="Clear search"
+                                                >
+                                                    <X size={11} strokeWidth={2.5} />
+                                                </button>
+                                            )}
+                                        </div>
+
+                                        <button
+                                            type="button"
+                                            onClick={handleRefreshFeed}
+                                            disabled={isRefreshingFeed}
+                                            className="w-10 h-10 rounded-full bg-slate-100/90 hover:bg-slate-200/80 dark:bg-white/[0.06] dark:hover:bg-white/[0.11] text-slate-700 dark:text-slate-200 flex items-center justify-center shrink-0 active:scale-95 transition-all cursor-pointer"
+                                            title="Refresh feed"
+                                            aria-label="Refresh feed"
+                                        >
+                                            <RotateCw
+                                                size={16}
+                                                strokeWidth={2}
+                                                className={isRefreshingFeed ? "animate-spin text-[#2563EB]" : ""}
+                                            />
+                                        </button>
+                                    </div>
+
                                     {/* Full-Width "For You" & "Following" Tabs */}
                                     <div className="bg-white dark:bg-[#121212]">
                                         <div className="flex items-center w-full border-b border-slate-200/80 dark:border-white/10">
@@ -1538,7 +1658,7 @@ export default function Home() {
                                     </div>
 
                                     {/* Inline Quick Post Composer (Matching Reference) */}
-                                    <div className="px-4 sm:px-3 py-3.5 border-b border-slate-200/80 dark:border-white/10">
+                                    <div className="px-4 sm:px-5 py-3.5 border-b border-slate-200/85 dark:border-white/[0.09]">
                                         <div className="flex items-start gap-3">
                                             <img
                                                 src={localStorage.getItem("tradifive_cached_avatar_url") || "/default-avatar.svg"}
@@ -1653,7 +1773,7 @@ export default function Home() {
                                     </div>
 
                                     {/* Feed List */}
-                                    <div className="space-y-3 px-3 sm:px-0">
+                                    <div>
                                         {feedCardsList}
                                     </div>
 
@@ -1709,7 +1829,7 @@ export default function Home() {
                                                 </button>
                                             </div>
                                         ) : (
-                                            <div className="space-y-4">
+                                            <div>
                                                 {savedPosts.map((post: any) => (
                                                     <FeedCard
                                                         key={post.id}
@@ -1761,82 +1881,94 @@ export default function Home() {
                             </div>
                         </div>
 
-                        {/* --- COLUMN 3: RIGHT SIDEBAR (col-span-3) --- */}
-                        {currentTab !== 'calendar' && (showRequests || showSuggestions || showStreaks || showDisciplined) && (
-                            <div className="hidden xl:block xl:col-span-3 xl:col-start-10 xl:sticky xl:top-3 xl:max-h-[calc(100vh-110px)] xl:overflow-y-auto amazing-scrollbar space-y-4 px-4 pt-5 pb-4">
+                        {/* --- COLUMN 3: RIGHT SIDEBAR (Profile Card + Optional Community Widgets) --- */}
+                        {currentTab !== 'calendar' && (
+                            <div
+                                className={`hidden lg:block lg:col-span-4 ${
+                                    (showWatchlist || showCalendar || showFollowers)
+                                        ? 'xl:col-span-3 xl:col-start-10'
+                                        : 'xl:col-span-4 xl:col-start-9'
+                                } lg:sticky lg:top-4 lg:max-h-[calc(100vh-110px)] lg:overflow-y-auto amazing-scrollbar space-y-3.5 px-1 xl:px-2 pt-4 pb-4`}
+                            >
+                                {/* Compact User Profile Card */}
+                                <HomeProfileCard userId={user?.id} />
 
                                 {/* Requests Section */}
                                 {showRequests && (
-                                    <div className="p-5 rounded-3xl bg-white dark:bg-[#1A1A1C] border border-slate-200/50 dark:border-[#222] shadow-sm">
-                                        <div className="flex items-center justify-between mb-4">
-                                            <h3 className="text-[16px] font-bold text-slate-900 dark:text-white tracking-tight">Follow Requests</h3>
-                                            <span className="bg-rose-500 text-white text-[11px] font-bold px-2 py-0.5 rounded-full shadow-sm">
+                                    <div className="p-4 rounded-[22px] bg-white dark:bg-[#17171A] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.045)] dark:shadow-none">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <h3 className="text-[14.5px] font-bold text-slate-900 dark:text-white tracking-tight">Follow Requests</h3>
+                                            <span className="bg-slate-100 dark:bg-white/[0.08] text-slate-700 dark:text-neutral-200 text-[11px] font-bold px-2 py-0.5 rounded-full tabular-nums">
                                                 0
                                             </span>
                                         </div>
-                                        <div className="flex flex-col gap-1">
-                                            <div className="text-center py-6">
-                                                <p className="text-[13px] font-medium text-slate-400">No pending requests</p>
-                                            </div>
+                                        <div className="text-center py-4">
+                                            <p className="text-[12.5px] font-medium text-slate-400">No pending requests</p>
                                         </div>
                                     </div>
                                 )}
 
                                 {/* Suggestions Section */}
                                 {showSuggestions && (
-                                    <div className="p-5 rounded-[28px] bg-white dark:bg-[#1C1C1E] border border-slate-100/50 dark:border-white/5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300">
-                                        <h3 className="text-[16px] font-bold text-slate-900 dark:text-white tracking-tight mb-5">Suggestions for you</h3>
-                                        <div className="space-y-4">
+                                    <div className="p-4 rounded-[22px] bg-white dark:bg-[#17171A] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.045)] dark:shadow-none">
+                                        <div className="flex items-center justify-between mb-3.5">
+                                            <h3 className="text-[14.5px] font-bold text-slate-900 dark:text-white tracking-tight">Suggestions for you</h3>
+                                            {finalSuggestions.length > 0 && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => navigate('/discover')}
+                                                    className="px-3 py-1 rounded-full bg-white dark:bg-white/[0.06] border border-slate-200/90 dark:border-white/15 hover:bg-slate-50 dark:hover:bg-white/[0.11] text-[11.5px] font-semibold text-slate-900 dark:text-white transition-all active:scale-[0.97] cursor-pointer"
+                                                >
+                                                    View all
+                                                </button>
+                                            )}
+                                        </div>
+                                        <div className="space-y-3">
                                             {suggestionsRender}
                                             {finalSuggestions.length === 0 && (
                                                 <div className="text-center py-4">
-                                                    <p className="text-[12px] font-medium text-slate-400 dark:text-slate-400">No suggestions right now</p>
+                                                    <p className="text-[12px] font-medium text-slate-400">No suggestions right now</p>
                                                 </div>
                                             )}
                                         </div>
-                                        {finalSuggestions.length > 0 && (
-                                            <button onClick={() => navigate('/discover')} className="w-full text-center text-[12px] font-bold text-blue-600 pt-3 hover:underline transition-all active:scale-95">View All</button>
-                                        )}
                                     </div>
                                 )}
 
                                 {/* Top Winning Streaks Section */}
                                 {showStreaks && (
-                                    <div className="p-5 rounded-[28px] bg-white dark:bg-[#1C1C1E] border border-slate-100/50 dark:border-white/5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300">
-                                        <h3 className="text-[16px] font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2 mb-5">
-                                            <IconlyActivity size={16} set="curved" primaryColor="currentColor" className="text-orange-500 animate-pulse shrink-0" />
+                                    <div className="p-4 rounded-[22px] bg-white dark:bg-[#17171A] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.045)] dark:shadow-none">
+                                        <h3 className="text-[14.5px] font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2 mb-3.5">
+                                            <IconlyActivity size={15} set="curved" primaryColor="currentColor" className="text-orange-500 shrink-0" />
                                             <span>Top Winning Streaks</span>
                                         </h3>
-                                        <div className="space-y-4">
+                                        <div className="space-y-3">
                                             {streaksRender}
                                             {finalStreaks.length === 0 && (
                                                 <div className="text-center py-4">
-                                                    <p className="text-[12px] font-medium text-slate-400 dark:text-slate-400">No streaks yet</p>
+                                                    <p className="text-[12px] font-medium text-slate-400">No streaks yet</p>
                                                 </div>
                                             )}
                                         </div>
                                     </div>
                                 )}
+
                                 {/* Top Disciplined Section */}
                                 {showDisciplined && (
-                                    <div className="p-5 rounded-[28px] bg-white dark:bg-[#1C1C1E] border border-slate-100/50 dark:border-white/5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300">
-                                        <h3 className="text-[16px] font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2 mb-5">
-                                            <IconlyShieldDone size={16} set="curved" primaryColor="currentColor" className="text-emerald-500 shrink-0" />
+                                    <div className="p-4 rounded-[22px] bg-white dark:bg-[#17171A] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.045)] dark:shadow-none">
+                                        <h3 className="text-[14.5px] font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2 mb-3.5">
+                                            <IconlyShieldDone size={15} set="curved" primaryColor="currentColor" className="text-emerald-500 shrink-0" />
                                             <span>Top Disciplined</span>
                                         </h3>
-                                        <div className="space-y-4">
+                                        <div className="space-y-3">
                                             {disciplinedRender}
                                             {finalDisciplined.length === 0 && (
                                                 <div className="text-center py-4">
-                                                    <p className="text-[12px] font-medium text-slate-400 dark:text-slate-400">No data available</p>
+                                                    <p className="text-[12px] font-medium text-slate-400">No data available</p>
                                                 </div>
                                             )}
                                         </div>
                                     </div>
                                 )}
-
-
-
                             </div>
                         )}
 

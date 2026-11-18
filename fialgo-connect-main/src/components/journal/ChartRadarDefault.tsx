@@ -11,6 +11,7 @@ import {
   Tooltip,
 } from "recharts";
 import { useDashboardData } from "@/hooks/useDashboardData";
+import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
 import { useMemo } from "react";
 
 export const description = "A radar chart";
@@ -48,8 +49,10 @@ function CustomTooltip({ active, payload }: any) {
 
 export function ChartRadarDefault({
   demoTrades,
+  frameless = false,
 }: {
   demoTrades?: any[] | null;
+  frameless?: boolean;
 } = {}) {
   const { recentTrades: rawRecentTrades } = useDashboardData();
   const recentTrades = demoTrades || rawRecentTrades || [];
@@ -132,31 +135,41 @@ export function ChartRadarDefault({
   const hasData = closedCount > 0;
 
   return (
-    <div className="bg-white dark:bg-[#17171A] rounded-[18px] border border-slate-200/70 dark:border-white/[0.07] shadow-[0_2px_10px_rgba(15,23,42,0.04),0_10px_26px_-10px_rgba(15,23,42,0.07)] dark:shadow-none overflow-hidden flex flex-col h-full p-4 sm:p-5">
+    <div
+      className={
+        frameless
+          ? "flex flex-col h-full px-0.5 pt-0.5 pb-1"
+          : "bg-white dark:bg-[#17171A] rounded-[18px] border border-slate-200/70 dark:border-white/[0.07] shadow-[0_2px_10px_rgba(15,23,42,0.04),0_10px_26px_-10px_rgba(15,23,42,0.07)] dark:shadow-none overflow-hidden flex flex-col h-full p-4 sm:p-5"
+      }
+    >
       {/* Header */}
-      <div className="flex items-start justify-between mb-1">
+      <div className={`flex items-start justify-between ${frameless ? "mb-1 min-h-[42px]" : "mb-1"}`}>
         <div>
           <h3 className="text-[13.5px] font-semibold text-slate-900 dark:text-white tracking-tight leading-tight">
             TradiFive Score
           </h3>
-          <p className="text-[11px] text-slate-400 mt-0.5">
-            6-axis trading performance breakdown
+          <p className="text-[11px] text-slate-400 mt-1">
+            6-axis performance breakdown
           </p>
         </div>
         <div className="flex flex-col items-end">
-          <span className="text-[24px] font-bold text-[#2563EB] dark:text-blue-400 tabular-nums leading-none">
-            {overallScore}
+          <span className="text-[22px] font-bold text-[#2563EB] dark:text-blue-400 tabular-nums leading-none">
+            <AnimatedNumber value={overallScore} duration={950} delay={120} />
           </span>
-          <span className="text-[9.5px] font-semibold text-slate-400 uppercase tracking-wider mt-0.5">
+          <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider mt-0.5">
             Overall
           </span>
         </div>
       </div>
 
       {/* Radar */}
-      <div className="flex-1 min-h-[220px] flex flex-col items-center justify-center">
-        <ResponsiveContainer width="100%" height={230}>
-          <RadarChart cx="50%" cy="50%" outerRadius="70%" data={chartData}>
+      <div
+        className={`flex-1 flex flex-col items-center justify-center ${
+          frameless ? "min-h-[188px]" : "min-h-[220px]"
+        }`}
+      >
+        <ResponsiveContainer width="100%" height={frameless ? 192 : 230}>
+          <RadarChart cx="50%" cy="50%" outerRadius={frameless ? "72%" : "70%"} data={chartData}>
             <defs>
               <radialGradient id="tfRadarGrad" cx="50%" cy="50%" r="50%">
                 <stop offset="0%" stopColor="#2563EB" stopOpacity={0.38} />
@@ -191,6 +204,10 @@ export function ChartRadarDefault({
               strokeWidth={2}
               fill="url(#tfRadarGrad)"
               fillOpacity={1}
+              isAnimationActive={true}
+              animationBegin={140}
+              animationDuration={950}
+              animationEasing="ease-out"
             />
             <Tooltip content={<CustomTooltip />} />
           </RadarChart>
@@ -198,11 +215,11 @@ export function ChartRadarDefault({
       </div>
 
       {/* Legend scores */}
-      <div className="grid grid-cols-3 gap-x-3 gap-y-2 mt-1">
-        {chartData.map((d) => {
+      <div className="grid grid-cols-3 gap-x-3 gap-y-1.5 mt-0.5">
+        {chartData.map((d, idx) => {
           const meta = METRIC_COLORS[d.metric] || { fill: "#2563EB" };
           return (
-            <div key={d.metric} className="flex items-center gap-1.5">
+            <div key={d.metric} className="flex items-center gap-1.5 min-w-0">
               <span
                 className="w-1.5 h-1.5 rounded-full shrink-0"
                 style={{ background: meta.fill }}
@@ -211,7 +228,7 @@ export function ChartRadarDefault({
                 {d.metric}
               </span>
               <span className="text-[10.5px] font-bold text-slate-900 dark:text-white ml-auto tabular-nums">
-                {d.score}
+                <AnimatedNumber value={d.score} duration={850} delay={140 + idx * 45} />
               </span>
             </div>
           );
@@ -219,12 +236,12 @@ export function ChartRadarDefault({
       </div>
 
       {/* Footer */}
-      <div className="mt-3.5 pt-3 border-t border-slate-100 dark:border-white/[0.06] flex items-center justify-between">
+      <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-white/[0.06] flex items-center justify-between">
         <div className="flex items-center gap-1.5 text-[11px] font-semibold text-[#2563EB] dark:text-blue-400">
           <TrendingUp size={12} />
           <span>{hasData ? "Live score active" : "Ready for trades"}</span>
         </div>
-        <span className="text-[10.5px] text-slate-400 tabular-nums">
+        <span className="text-[11px] text-slate-400 tabular-nums">
           {hasData
             ? `Last ${Math.min(50, closedCount)} trade${closedCount !== 1 ? "s" : ""}`
             : "No trades yet"}

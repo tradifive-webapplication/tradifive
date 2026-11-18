@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from "react";
+import { motion } from "framer-motion";
 import { Check, GripVertical, Percent, RefreshCw } from "lucide-react";
+import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
 import {
   ChevronDown as IconlyChevronDown,
   Show as IconlyShow,
@@ -57,6 +59,8 @@ function MetricTooltip({ content }: { content: string }) {
   );
 }
 
+const EXPO_OUT: [number, number, number, number] = [0.16, 1, 0.3, 1];
+
 // --- Donut/Gauge for Win Rate (TradiFive Blue + Slate + Rose) ---
 function WinRateGauge({
   wins,
@@ -87,39 +91,48 @@ function WinRateGauge({
         />
         {total > 0 && (
           <>
-            <circle
+            <motion.circle
               cx="32"
               cy="32"
               r={r}
               fill="none"
               stroke="#2563EB"
               strokeWidth="5.5"
-              strokeDasharray={`${winArc} ${c - winArc}`}
-              strokeDashoffset="0"
               strokeLinecap="round"
+              initial={{ strokeDasharray: `0 ${c}`, strokeDashoffset: 0 }}
+              animate={{ strokeDasharray: `${winArc} ${c - winArc}`, strokeDashoffset: 0 }}
+              transition={{ duration: 1.0, delay: 0.1, ease: EXPO_OUT }}
             />
             {evenArc > 0 && (
-              <circle
+              <motion.circle
                 cx="32"
                 cy="32"
                 r={r}
                 fill="none"
                 stroke="#94A3B8"
                 strokeWidth="5.5"
-                strokeDasharray={`${evenArc} ${c - evenArc}`}
-                strokeDashoffset={`${-winArc}`}
+                initial={{ strokeDasharray: `0 ${c}`, strokeDashoffset: 0 }}
+                animate={{
+                  strokeDasharray: `${evenArc} ${c - evenArc}`,
+                  strokeDashoffset: -winArc,
+                }}
+                transition={{ duration: 1.0, delay: 0.18, ease: EXPO_OUT }}
               />
             )}
             {lossArc > 0 && (
-              <circle
+              <motion.circle
                 cx="32"
                 cy="32"
                 r={r}
                 fill="none"
                 stroke="#E11D48"
                 strokeWidth="5.5"
-                strokeDasharray={`${lossArc} ${c - lossArc}`}
-                strokeDashoffset={`${-(winArc + evenArc)}`}
+                initial={{ strokeDasharray: `0 ${c}`, strokeDashoffset: 0 }}
+                animate={{
+                  strokeDasharray: `${lossArc} ${c - lossArc}`,
+                  strokeDashoffset: -(winArc + evenArc),
+                }}
+                transition={{ duration: 1.0, delay: 0.24, ease: EXPO_OUT }}
               />
             )}
           </>
@@ -130,13 +143,13 @@ function WinRateGauge({
         style={{ gap: "1px" }}
       >
         <span className="text-[9px] font-bold text-[#2563EB] dark:text-blue-400 tabular-nums">
-          {wins}
+          <AnimatedNumber value={wins} duration={850} delay={100} />
         </span>
         <span className="text-[7.5px] text-slate-400 font-semibold tabular-nums">
-          {even}
+          <AnimatedNumber value={even} duration={850} delay={120} />
         </span>
         <span className="text-[8px] font-bold text-rose-500 tabular-nums">
-          {losses}
+          <AnimatedNumber value={losses} duration={850} delay={140} />
         </span>
       </div>
     </div>
@@ -161,21 +174,29 @@ function CircularGauge({ value, max = 3 }: { value: number; max?: number }) {
           className="stroke-slate-100 dark:stroke-white/[0.08]"
         />
         {value > 0 && (
-          <circle
+          <motion.circle
             cx="28"
             cy="28"
             r={r}
             fill="none"
             stroke={color}
             strokeWidth="5"
-            strokeDasharray={`${pct * c} ${c - pct * c}`}
+            strokeDasharray={c}
             strokeLinecap="round"
+            initial={{ strokeDashoffset: c }}
+            animate={{ strokeDashoffset: c * (1 - pct) }}
+            transition={{ duration: 1.05, delay: 0.14, ease: EXPO_OUT }}
           />
         )}
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
         <span className="text-[9.5px] font-bold tabular-nums" style={{ color }}>
-          {value.toFixed(1)}
+          <AnimatedNumber
+            value={value}
+            duration={950}
+            delay={140}
+            format={(v) => v.toFixed(1)}
+          />
         </span>
       </div>
     </div>
@@ -192,13 +213,17 @@ function WinLossBar({ avgWin, avgLoss }: { avgWin: number; avgLoss: number }) {
   return (
     <div className="space-y-1.5 w-full max-w-[88px] sm:max-w-[108px] shrink-0">
       <div className="flex h-[5px] rounded-full overflow-hidden bg-slate-100 dark:bg-white/[0.08]">
-        <div
-          className="rounded-l-full bg-[#2563EB] transition-[width] duration-300"
-          style={{ width: `${winW}%` }}
+        <motion.div
+          className="rounded-l-full bg-[#2563EB]"
+          initial={{ width: 0 }}
+          animate={{ width: `${winW}%` }}
+          transition={{ duration: 0.95, delay: 0.14, ease: EXPO_OUT }}
         />
-        <div
-          className="rounded-r-full bg-rose-400 transition-[width] duration-300"
-          style={{ width: `${100 - winW}%` }}
+        <motion.div
+          className="rounded-r-full bg-rose-400"
+          initial={{ width: 0 }}
+          animate={{ width: `${100 - winW}%` }}
+          transition={{ duration: 0.95, delay: 0.2, ease: EXPO_OUT }}
         />
       </div>
       <div className="flex justify-between text-[8.5px] sm:text-[9px] font-semibold tabular-nums">
@@ -207,14 +232,24 @@ function WinLossBar({ avgWin, avgLoss }: { avgWin: number; avgLoss: number }) {
             hideBalance || percentageOnly ? "blur-[4px] select-none opacity-60" : ""
           }`}
         >
-          {formatMoney(displayWin, { raw: true })}
+          <AnimatedNumber
+            value={displayWin}
+            duration={900}
+            delay={140}
+            format={(v) => formatMoney(v, { raw: true })}
+          />
         </span>
         <span
           className={`text-rose-500 transition-[filter,opacity] duration-200 ${
             hideBalance || percentageOnly ? "blur-[4px] select-none opacity-60" : ""
           }`}
         >
-          {`-${formatMoney(displayLoss, { raw: true }).replace("-", "")}`}
+          <AnimatedNumber
+            value={displayLoss}
+            duration={900}
+            delay={180}
+            format={(v) => `-${formatMoney(v, { raw: true }).replace("-", "")}`}
+          />
         </span>
       </div>
     </div>
@@ -227,7 +262,7 @@ function StreakPill({
   variant = "blue",
 }: {
   label: string;
-  value: string;
+  value: React.ReactNode;
   variant?: "blue" | "rose" | "slate";
 }) {
   const cls =
@@ -441,7 +476,7 @@ export default function JournalMetrics({
               Balance &amp; P&amp;L
             </p>
             <span className="bg-slate-100 dark:bg-white/[0.08] text-slate-600 dark:text-neutral-300 text-[10px] font-semibold px-1.5 py-0.5 rounded-full tabular-nums">
-              {recentTrades.length}
+              <AnimatedNumber value={recentTrades.length} duration={800} delay={60} />
             </span>
           </div>
           <MetricTooltip content="Your current account balance, equity, and net profit/loss across all closed and open trades." />
@@ -454,7 +489,12 @@ export default function JournalMetrics({
                 : ""
             }`}
           >
-            {formatMoney(balance, { raw: true })}
+            <AnimatedNumber
+              value={balance}
+              duration={1000}
+              delay={60}
+              format={(v) => formatMoney(v, { raw: true })}
+            />
           </h3>
           <p className="text-[11.5px] font-medium text-slate-400 mt-1.5 tabular-nums">
             P&amp;L:{" "}
@@ -467,11 +507,21 @@ export default function JournalMetrics({
                   : "text-[#2563EB] dark:text-blue-400"
               }`}
             >
-              {percentageOnly
-                ? `${totalProfit >= 0 ? "+" : ""}${
-                    balance > 0 ? ((totalProfit / balance) * 100).toFixed(2) : "0.00"
-                  }%`
-                : formatMoney(totalProfit, { showSign: true, raw: true })}
+              {percentageOnly ? (
+                <AnimatedNumber
+                  value={balance > 0 ? (totalProfit / balance) * 100 : 0}
+                  duration={950}
+                  delay={100}
+                  format={(v) => `${v >= 0 ? "+" : ""}${v.toFixed(2)}%`}
+                />
+              ) : (
+                <AnimatedNumber
+                  value={totalProfit}
+                  duration={950}
+                  delay={100}
+                  format={(v) => formatMoney(v, { showSign: true, raw: true })}
+                />
+              )}
             </span>
           </p>
         </div>
@@ -501,7 +551,12 @@ export default function JournalMetrics({
         </div>
         <div className="flex items-center justify-between gap-2">
           <h3 className="text-[20px] sm:text-[22px] font-bold text-slate-900 dark:text-white tracking-tight leading-none tabular-nums">
-            {winRate}%
+            <AnimatedNumber
+              value={winRate}
+              duration={950}
+              delay={100}
+              format={(v) => `${Math.round(v)}%`}
+            />
           </h3>
           <WinRateGauge wins={totalWins} even={totalEvens} losses={totalLosses} />
         </div>
@@ -536,7 +591,14 @@ export default function JournalMetrics({
             </span>
             <StreakPill
               label="risk"
-              value={`${drawdown.toFixed(1)}%`}
+              value={
+                <AnimatedNumber
+                  value={drawdown}
+                  duration={900}
+                  delay={120}
+                  format={(v) => `${v.toFixed(1)}%`}
+                />
+              }
               variant={drawdown > 0 ? "rose" : "slate"}
             />
           </div>
@@ -544,8 +606,16 @@ export default function JournalMetrics({
             <span className="text-[9.5px] font-semibold text-slate-400 w-[52px] shrink-0">
               Trades
             </span>
-            <StreakPill label="W" value={`${totalWins}`} variant="blue" />
-            <StreakPill label="L" value={`${totalLosses}`} variant="rose" />
+            <StreakPill
+              label="W"
+              value={<AnimatedNumber value={totalWins} duration={850} delay={140} />}
+              variant="blue"
+            />
+            <StreakPill
+              label="L"
+              value={<AnimatedNumber value={totalLosses} duration={850} delay={160} />}
+              variant="rose"
+            />
           </div>
         </div>
       </>
@@ -574,7 +644,12 @@ export default function JournalMetrics({
         </div>
         <div className="flex items-center justify-between gap-2">
           <h3 className="text-[20px] sm:text-[22px] font-bold text-slate-900 dark:text-white tracking-tight leading-none tabular-nums">
-            {avgWinLossRatio > 0 ? avgWinLossRatio.toFixed(2) : "0.00"}
+            <AnimatedNumber
+              value={avgWinLossRatio > 0 ? avgWinLossRatio : 0}
+              duration={950}
+              delay={140}
+              format={(v) => v.toFixed(2)}
+            />
           </h3>
           <WinLossBar avgWin={avgWin} avgLoss={avgLoss} />
         </div>
@@ -604,7 +679,12 @@ export default function JournalMetrics({
         </div>
         <div className="flex items-center justify-between gap-2">
           <h3 className="text-[20px] sm:text-[22px] font-bold text-slate-900 dark:text-white tracking-tight leading-none tabular-nums">
-            {profitFactor > 0 ? profitFactor.toFixed(2) : "0.00"}
+            <AnimatedNumber
+              value={profitFactor > 0 ? profitFactor : 0}
+              duration={950}
+              delay={160}
+              format={(v) => v.toFixed(2)}
+            />
           </h3>
           <CircularGauge value={profitFactor > 0 ? profitFactor : 0} />
         </div>
