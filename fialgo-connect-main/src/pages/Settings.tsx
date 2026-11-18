@@ -2713,7 +2713,7 @@ export default function Settings() {
                                        </div>
                                        <div>
                                           <h3 className="text-[16px] font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-0.5">
-                                             {activePlan.charAt(0).toUpperCase() + activePlan.slice(1)} 
+                                             {activePlan === 'starter' ? 'Standard' : activePlan.charAt(0).toUpperCase() + activePlan.slice(1)} 
                                              <span className="px-2 py-0.5 rounded text-emerald-500 text-[10px] font-bold uppercase tracking-wide border border-emerald-500/30 ml-1">Active</span>
                                           </h3>
                                           <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1]">
@@ -2722,10 +2722,12 @@ export default function Settings() {
                                        </div>
                                     </div>
                                     <div className="text-right">
-                                       <div className="text-[24px] font-black text-slate-900 dark:text-white">
-                                          {activePlan === 'starter' ? '₹0' : activePlan === 'pro' ? '₹1,499' : activePlan === 'elite' ? '₹2,999' : '₹0'}
+                                       <div className="text-[24px] font-black text-slate-900 dark:text-white tabular-nums">
+                                          {activePlan === 'starter' ? 'Free' : activePlan === 'pro' ? '$14.99' : activePlan === 'elite' ? '$29.99' : 'Free'}
                                        </div>
-                                       <div className="text-[12px] text-slate-500 font-medium">per month</div>
+                                       <div className="text-[12px] text-slate-500 font-medium">
+                                          {activePlan === 'starter' ? '$0 forever' : 'per month'}
+                                       </div>
                                     </div>
                                  </div>
 

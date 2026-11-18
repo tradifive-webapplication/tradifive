@@ -54,7 +54,7 @@ export const TactileBoxButton = ({ children, onClick, className = "", disabled =
             ...style
          }}
          className={cn(
-            "h-9 px-4 rounded-[11px] text-slate-900 dark:text-white font-bold text-[13px]",
+            "h-9 px-4 rounded-full text-slate-900 dark:text-white font-semibold text-[13px]",
             "dark:bg-gradient-to-b dark:from-[#201E25] dark:to-[#323137]",
             "dark:shadow-[0_2px_4px_rgba(0,0,0,0.5),0_0_0_1px_#0D0D0D,inset_0_1px_0_rgba(255,255,255,0.12)]",
             "hover:-translate-y-[1.5px] active:translate-y-[0.5px] active:scale-[0.98]",

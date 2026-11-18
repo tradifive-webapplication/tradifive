@@ -457,32 +457,32 @@ export default function LandingPro() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Reveal delay={0}>
               <PricingCard
-                tier="Starter"
-                price="₹0"
-                description="Perfect for getting started and exploring the platform."
+                tier="Standard"
+                price="Free"
+                description="For beginners learning discipline & journaling."
                 features={[
-                  "1 MT5 Account Connection",
-                  "Basic AI Coach Access",
-                  "3 Trading Channels",
+                  "1 Broker Connection",
+                  "Up to 5 Executions/day",
+                  "Basic Trading Journal",
+                  "10 AI Coach Credits/day",
+                  "Core Risk Guard",
                   "Community Access",
-                  "Standard RiskGuard",
-                  "Trade Journal",
                 ]}
               />
             </Reveal>
             <Reveal delay={0.1}>
               <PricingCard
                 tier="Pro"
-                price="₹2499"
-                description="For serious traders who want the full power of AI + social."
+                price="$14.99"
+                description="Designed to make traders consistent, not lucky."
                 features={[
-                  "Unlimited MT5 Accounts",
-                  "Full AI Coach (Unlimited)",
-                  "Unlimited Channels",
-                  "Competition Access",
-                  "Advanced RiskGuard",
-                  "Smart Journal + Analytics",
-                  "Creator Tools",
+                  "Up to 6 Broker Connections",
+                  "Unlimited Trades/day",
+                  "Full Journal & Behavior Insights",
+                  "50 AI Coach Credits/day",
+                  "Advanced Risk Guard & Cooldown",
+                  "Private Channels & Privacy Tools",
+                  "1 Trading Competition/month",
                   "Priority Support",
                 ]}
                 popular
@@ -490,18 +490,18 @@ export default function LandingPro() {
             </Reveal>
             <Reveal delay={0.2}>
               <PricingCard
-                tier="Enterprise"
-                price="Custom"
-                description="For prop firms, brokerages, and trading communities."
+                tier="Elite"
+                price="$29.99"
+                description="For serious traders, mentors & automation users."
                 features={[
-                  "White-label Solution",
-                  "Custom AI Training",
-                  "Dedicated Infrastructure",
-                  "Admin Dashboard",
-                  "API Access",
-                  "SSO & RBAC",
-                  "24/7 Dedicated Support",
-                  "Custom Integrations",
+                  "Unlimited Broker Connections",
+                  "AI-Assisted Automated Trading",
+                  "Strategy-Level Risk Controls",
+                  "100 AI Coach Credits/day",
+                  "Deep Behavioral Analytics",
+                  "Mentor Workspace & Reviews",
+                  "2 Trading Competitions/month",
+                  "Elite Badge & Dedicated Support",
                 ]}
               />
             </Reveal>

@@ -538,7 +538,7 @@ const Dashboard = () => {
                   whileTap={{ scale: 0.96 }}
                   type="button"
                   onClick={() => setShareModalOpen(true)}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[12.5px] font-medium text-slate-600 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white hover:bg-white/70 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full tactile-white-pill text-[12.5px] font-semibold cursor-pointer select-none"
                   title="Share profile"
                 >
                   <Share2 size={13.5} strokeWidth={2} />

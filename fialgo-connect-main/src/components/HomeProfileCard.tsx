@@ -219,7 +219,7 @@ export default function HomeProfileCard({ userId }: HomeProfileCardProps) {
           <button
             type="button"
             onClick={() => navigate("/profile")}
-            className="px-4 py-1.5 rounded-full bg-white dark:bg-white/[0.06] border border-slate-200/90 dark:border-white/15 hover:bg-slate-50 dark:hover:bg-white/[0.11] text-[12.5px] font-semibold text-slate-900 dark:text-white shadow-[0_1px_2px_rgba(15,23,42,0.04)] active:scale-[0.97] transition-all cursor-pointer shrink-0"
+            className="px-4 py-1.5 rounded-full tactile-white-pill text-[12.5px] font-semibold cursor-pointer shrink-0 select-none"
           >
             View profile
           </button>

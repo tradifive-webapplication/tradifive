@@ -716,14 +716,14 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
           </AnimatePresence>
 
           {/* ── ACTION BUTTONS ── */}
-          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mt-2">
+          <div className="flex items-center gap-4 mt-2">
             <button
               type="button"
               disabled={!isContinueEnabled() || isSaving}
               onClick={handleNext}
-              className={`group w-full sm:w-auto h-12 sm:h-11 px-7 rounded-2xl sm:rounded-full text-sm font-bold tracking-wide transition-all duration-200 inline-flex items-center justify-center gap-2 border-0 outline-none select-none ${
+              className={`group h-11 px-7 rounded-full text-sm font-bold tracking-wide transition-all duration-200 inline-flex items-center justify-center gap-2 border-0 outline-none select-none ${
                 isContinueEnabled() && !isSaving
-                  ? "bg-[#2563EB] hover:bg-blue-500 text-white shadow-[0_6px_20px_rgba(37,99,235,0.32)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.985] cursor-pointer"
+                  ? "bg-gradient-to-br from-[#1e293b] to-[#0f172a] hover:from-[#253347] hover:to-[#131c33] text-[#60a5fa] hover:text-[#93c5fd] shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_2px_6px_rgba(0,0,0,0.3)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.985] cursor-pointer"
                   : "bg-[#141a24] text-[#60a5fa]/40 shadow-none cursor-not-allowed opacity-50"
               }`}
             >

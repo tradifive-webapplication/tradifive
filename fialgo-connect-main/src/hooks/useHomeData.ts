@@ -59,7 +59,7 @@ export function useHomeData(userId: string) {
   const [watchlist, setWatchlist] = useState<WatchItem[]>(() => getCache('home_cache_watchlist', []));
   const [calendar, setCalendar] = useState<CalendarEvent[]>(() => {
     const cached = getCache('home_cache_calendar', []);
-    return (cached || []).filter((e: any) => (e.impact || '').toLowerCase() === 'high');
+    return Array.isArray(cached) ? cached : [];
   });
   const [followers, setFollowers] = useState<{ count: number; avatars: string[] }>(() => getCache('home_cache_followers', { count: 0, avatars: [] }));
   const [suggestions, setSuggestions] = useState<ProfileShort[]>(() => getCache('home_cache_suggestions', []));
@@ -181,75 +181,75 @@ export function useHomeData(userId: string) {
       setFeeds(combinedFeeds);
       localStorage.setItem('home_cache_feeds', JSON.stringify(combinedFeeds));
 
-      // 1. Filter Watchlist by activeMarket
-      let finalWatch = [];
+      // 1. Filter Watchlist by activeMarket (keep all relevant asset classes visible)
+      let finalWatch: WatchItem[] = [];
       const rawWatch = watchData ?? [];
       if (activeMarket === 'indian') {
         finalWatch = rawWatch.filter(item => item.symbol_type === 'index' || item.symbol_type === 'equity');
       } else {
-        finalWatch = rawWatch.filter(item => item.symbol_type === 'crypto' || item.symbol_type === 'forex' || item.symbol_type === 'commodity');
+        finalWatch = rawWatch.filter(item => item.symbol_type === 'crypto' || item.symbol_type === 'forex' || item.symbol_type === 'commodity' || item.symbol_type === 'index' || item.symbol_type === 'equity');
       }
-
-      // Seed Default Watchlist if empty in the database for the active market
-      const seedKey = `has_seeded_watchlist_${userId}_${activeMarket}`;
-      const hasSeeded = localStorage.getItem(seedKey) === 'true';
-
-
 
       setWatchlist(finalWatch);
       localStorage.setItem('home_cache_watchlist', JSON.stringify(finalWatch));
 
-      // 2. Filter Calendar by activeMarket (Keep ONLY High Impact events)
+      // 2. Fetch Real Live Economic News from Forex Factory (official nfs.faireconomy.media feed, with 15m rate-limit-safe cache)
       let finalCal: any[] = [];
-      const rawCal = (calData ?? []).filter((item: any) => (item.impact || '').toLowerCase() === 'high');
+      const rawCal = (calData ?? []).filter((item: any) => {
+        const imp = (item.impact || '').toLowerCase();
+        return imp === 'high' || imp === 'medium' || imp === 'low';
+      });
       if (activeMarket === 'indian') {
         finalCal = rawCal.filter(item => item.currency === 'INR');
       } else {
         finalCal = rawCal.filter(item => item.currency !== 'INR');
       }
 
-      // Try to fetch live Economic Calendar from ForexFactory for Global Market (High Impact Only)
-      if (activeMarket !== 'indian') {
-        try {
-          // Prefer Vercel proxy rewrite /api/economic-calendar, fallback to direct ForexFactory CDN
+      try {
+        const cachedCal = getCache('home_cache_calendar', []);
+        const lastFfFetch = Number(localStorage.getItem('home_ff_last_fetch_time') || '0');
+        const cacheFresh = Array.isArray(cachedCal) && cachedCal.length > 0 && (Date.now() - lastFfFetch) < 15 * 60 * 1000;
+
+        if (cacheFresh && cachedCal[0]?.source === 'ForexFactory') {
+          finalCal = cachedCal;
+        } else {
           let liveEvents: any[] = [];
-          try {
-            const calRes = await fetch('/api/economic-calendar', { cache: 'no-cache' });
-            if (calRes.ok) {
-              liveEvents = await calRes.json();
-            }
-          } catch {
-            // Direct fallback
-            const calRes = await fetch('https://nfs.faireconomy.media/ff_calendar_thisweek.json', { cache: 'no-cache' });
-            if (calRes.ok) {
-              liveEvents = await calRes.json();
+          const endpoints = [
+            '/api/economic-calendar',
+            'https://nfs.faireconomy.media/ff_calendar_thisweek.json',
+            'https://www.tradifive.in/api/economic-calendar',
+          ];
+          for (const url of endpoints) {
+            if (liveEvents.length > 0) break;
+            try {
+              const calRes = await fetch(url, { cache: 'no-store' });
+              if (!calRes.ok) continue;
+              const ct = calRes.headers.get('content-type') || '';
+              if (!ct.includes('json') && !url.endsWith('.json')) continue;
+              const parsed = await calRes.json();
+              if (Array.isArray(parsed) && parsed.length > 0) {
+                liveEvents = parsed;
+              }
+            } catch {
+              // try next endpoint
             }
           }
 
           if (Array.isArray(liveEvents) && liveEvents.length > 0) {
-            const now = new Date();
-            const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+            // Keep High, Medium, and Low impact real Forex Factory events sorted chronologically
+            const filteredLive = liveEvents
+              .filter((e: any) => {
+                const imp = (e.impact || '').toLowerCase();
+                return imp === 'high' || imp === 'medium' || imp === 'low';
+              })
+              .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-            // Strict filter: ONLY High Impact economic events
-            const allHigh = liveEvents.filter((e: any) => (e.impact || '').toLowerCase() === 'high');
-
-            // Sort: upcoming & today's events first, then recent ones
-            allHigh.sort((a: any, b: any) => {
-              const timeA = new Date(a.date).getTime();
-              const timeB = new Date(b.date).getTime();
-              const isAFuture = timeA >= startOfToday;
-              const isBFuture = timeB >= startOfToday;
-              if (isAFuture && !isBFuture) return -1;
-              if (!isAFuture && isBFuture) return 1;
-              return timeA - timeB;
-            });
-
-            const fetchedLive = allHigh.map((e: any, idx: number) => ({
-              id: `live-high-${e.country || 'USD'}-${idx}-${e.date}`,
+            const fetchedLive = filteredLive.map((e: any, idx: number) => ({
+              id: `ff-${e.country || 'USD'}-${idx}-${e.date}`,
               event_time: e.date,
               event_title: e.title,
-              currency: e.country,
-              impact: 'high',
+              currency: (e.country || 'USD').toUpperCase(),
+              impact: (e.impact || 'low').toLowerCase(),
               forecast: e.forecast || '',
               previous: e.previous || '',
               actual: e.actual || null,
@@ -259,27 +259,15 @@ export function useHomeData(userId: string) {
 
             if (fetchedLive.length > 0) {
               finalCal = fetchedLive;
-              // Background async sync to Supabase table so database always stays updated daily
-              supabase.from('economic_calendar').select('id', { count: 'exact', head: true }).then(async ({ count }) => {
-                if (!count || count < 5) {
-                  const rows = fetchedLive.slice(0, 15).map(item => ({
-                    event_title: item.event_title,
-                    currency: item.currency,
-                    event_time: item.event_time,
-                    impact: 'High',
-                    forecast: item.forecast,
-                    previous: item.previous,
-                    actual: item.actual,
-                    source: 'ForexFactory'
-                  }));
-                  await supabase.from('economic_calendar').insert(rows).catch(() => {});
-                }
-              }).catch(() => {});
+              localStorage.setItem('home_ff_last_fetch_time', String(Date.now()));
             }
+          } else if (Array.isArray(cachedCal) && cachedCal.length > 0 && cachedCal[0]?.source === 'ForexFactory') {
+            // Preserve valid cached Forex Factory data if temporarily rate-limited
+            finalCal = cachedCal;
           }
-        } catch (e) {
-          console.warn('Live calendar fetch failed, using fallback.', e);
         }
+      } catch (e) {
+        console.warn('Live Forex Factory fetch failed, using cached/fallback data.', e);
       }
 
       if (finalCal.length === 0 && rawCal.length > 0) {
@@ -326,7 +314,7 @@ export function useHomeData(userId: string) {
     };
   }, [userId, activeMarket]);
 
-  // Real-time market data background polling
+  // Real-time multi-asset market data engine (Binance Crypto & Gold, Currency-API Forex/Metals, Yahoo Indices/Stocks)
   useEffect(() => {
     if (!watchlist || watchlist.length === 0) return;
 
@@ -334,170 +322,303 @@ export function useHomeData(userId: string) {
     let ws: WebSocket | null = null;
     let interval: any;
 
-    const cryptoSymbolsMap: Record<string, string> = {};
-    const streamsToSubscribe: string[] = [];
+    const CRYPTO_BASES = new Set([
+      'BTC', 'ETH', 'SOL', 'XRP', 'BNB', 'DOGE', 'ADA', 'AVAX', 'LINK', 'DOT',
+      'LTC', 'SHIB', 'SUI', 'TON', 'MATIC', 'POL', 'UNI', 'BCH', 'PEPE', 'TRX',
+      'ARB', 'OP', 'NEAR', 'APT', 'ATOM', 'XLM', 'ETC', 'FIL', 'INJ', 'PAXG'
+    ]);
 
-    watchlist.forEach(item => {
-      const isCrypto = item.symbol_type === 'crypto';
+    const FIAT_AND_METALS = new Set([
+      'USD', 'EUR', 'GBP', 'JPY', 'AUD', 'NZD', 'CAD', 'CHF', 'SGD', 'HKD',
+      'CNY', 'INR', 'ZAR', 'MXN', 'TRY', 'SEK', 'NOK', 'DKK', 'PLN', 'AED',
+      'XAU', 'XAG', 'XPT', 'XPD'
+    ]);
 
-      if (isCrypto) {
-        let s = item.symbol.toUpperCase().replace(/\//g, '');
-        cryptoSymbolsMap[s] = item.symbol;
-        streamsToSubscribe.push(`${s.toLowerCase()}@ticker`);
+    const YAHOO_ALIAS: Record<string, string> = {
+      NAS100: 'NQ=F',
+      NASDAQ: '^IXIC',
+      NDX: '^NDX',
+      US100: 'NQ=F',
+      US30: 'YM=F',
+      DJI: '^DJI',
+      SPX500: 'ES=F',
+      US500: 'ES=F',
+      SPX: '^GSPC',
+      USOIL: 'CL=F',
+      WTI: 'CL=F',
+      BRENT: 'BZ=F',
+      UKOIL: 'BZ=F',
+      DXY: 'DX-Y.NYB',
+      NIFTY50: '^NSEI',
+      NIFTY: '^NSEI',
+      BANKNIFTY: '^NSEBANK',
+      FINNIFTY: 'NIFTY_FIN_SERVICE.NS',
+      SENSEX: '^BSESN',
+      RELIANCE: 'RELIANCE.NS',
+      TCS: 'TCS.NS',
+      INFY: 'INFY.NS',
+      HDFCBANK: 'HDFCBANK.NS',
+      ICICIBANK: 'ICICIBANK.NS',
+      SBIN: 'SBIN.NS',
+      TATAMOTORS: 'TATAMOTORS.NS',
+      ITC: 'ITC.NS',
+      BHARTIARTL: 'BHARTIARTL.NS',
+    };
+
+    const normalizePair = (raw: string) => {
+      let s = raw.trim().toUpperCase().replace(/\s+/g, '').replace(/[-_]/g, '/');
+      // Fix common quote typo (e.g. XAU/UAD -> XAU/USD)
+      s = s.replace(/\/UAD$/, '/USD').replace(/UAD$/, 'USD');
+      if (s === 'GOLD') return 'XAU/USD';
+      if (s === 'SILVER') return 'XAG/USD';
+      return s;
+    };
+
+    const formatMarketPrice = (val: number, symbol: string) => {
+      const upper = symbol.toUpperCase();
+      if (upper.includes('JPY') || upper.includes('XAU') || upper.includes('GOLD') || upper.includes('BTC') || upper.includes('ETH') || val >= 50) {
+        return val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       }
+      if (val < 0.1) {
+        return val.toLocaleString('en-US', { minimumFractionDigits: 5, maximumFractionDigits: 6 });
+      }
+      return val.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
+    };
+
+    // Bucket symbols by best live data provider
+    const binanceMap: Record<string, string[]> = {}; // binanceSymbol -> original watchlist symbols[]
+    const forexItems: { original: string; normalized: string; base: string; quote: string }[] = [];
+    const yahooItems: { original: string; yahooSymbol: string }[] = [];
+
+    watchlist.forEach((item) => {
+      const norm = normalizePair(item.symbol);
+      const compact = norm.replace(/\//g, '');
+
+      // 1. Gold spot -> real-time Binance PAXGUSDT (1:1 troy oz Gold) + currency-api fallback
+      if (norm === 'XAU/USD' || compact === 'XAUUSD' || norm === 'XAU') {
+        if (!binanceMap['PAXGUSDT']) binanceMap['PAXGUSDT'] = [];
+        binanceMap['PAXGUSDT'].push(item.symbol);
+        forexItems.push({ original: item.symbol, normalized: 'XAU/USD', base: 'XAU', quote: 'USD' });
+        return;
+      }
+
+      // 2. Standard Forex & Precious Metals pairs (check before crypto so mis-tagged FX pairs still resolve!)
+      let fxBase = '';
+      let fxQuote = '';
+      if (norm.includes('/')) {
+        [fxBase, fxQuote] = norm.split('/');
+      } else if (compact.length === 6) {
+        fxBase = compact.slice(0, 3);
+        fxQuote = compact.slice(3, 6);
+      }
+      if (fxBase && fxQuote && FIAT_AND_METALS.has(fxBase) && FIAT_AND_METALS.has(fxQuote)) {
+        forexItems.push({ original: item.symbol, normalized: `${fxBase}/${fxQuote}`, base: fxBase, quote: fxQuote });
+        return;
+      }
+
+      // 3. Known Indices / Oil / Equities -> Yahoo Finance same-origin proxy
+      if (YAHOO_ALIAS[compact] || item.symbol_type === 'index' || item.symbol_type === 'equity') {
+        const ySym = YAHOO_ALIAS[compact] || (activeMarket === 'indian' && !compact.includes('.') && !compact.startsWith('^') ? `${compact}.NS` : compact);
+        yahooItems.push({ original: item.symbol, yahooSymbol: ySym });
+        return;
+      }
+
+      // 4. Direct Crypto pairs -> Binance REST + WebSocket (normalize /USD -> USDT)
+      const [partBase, partQuote] = norm.includes('/') ? norm.split('/') : [compact.replace(/(USDT|USDC|USD)$/, ''), compact.match(/(USDT|USDC|USD)$/)?.[0] || ''];
+      if (CRYPTO_BASES.has(partBase) || item.symbol_type === 'crypto' || partQuote === 'USDT' || partQuote === 'USDC') {
+        const bSym = `${partBase}${partQuote === 'USD' || !partQuote ? 'USDT' : partQuote}`;
+        if (!binanceMap[bSym]) binanceMap[bSym] = [];
+        binanceMap[bSym].push(item.symbol);
+        return;
+      }
+
+      // 5. Fallback: try Yahoo Finance for any other ticker (e.g. AAPL, TSLA, NVDA, RELIANCE)
+      yahooItems.push({ original: item.symbol, yahooSymbol: compact });
     });
 
-    // 1. Connect WebSocket for crypto using Binance API
-    if (streamsToSubscribe.length > 0) {
-      const streamParams = streamsToSubscribe.join('/');
-      const streamUrl = `wss://stream.binance.com:9443/stream?streams=${streamParams}`;
-      ws = new WebSocket(streamUrl);
+    // A. Binance Live REST + WebSocket (Crypto + Gold XAU/USD via PAXGUSDT)
+    const binanceSymbols = Object.keys(binanceMap);
+    if (binanceSymbols.length > 0) {
+      const fetchBinanceRest = async () => {
+        const updates: Record<string, { price: string; change: string; is_positive: boolean }> = {};
+        const applyTicker = (ticker: any) => {
+          const origList = binanceMap[ticker.symbol];
+          if (!origList) return;
+          const p = parseFloat(ticker.lastPrice);
+          const ch = parseFloat(ticker.priceChangePercent);
+          if (!isNaN(p) && p > 0) {
+            origList.forEach((origSym) => {
+              updates[origSym] = {
+                price: formatMarketPrice(p, origSym),
+                change: `${ch >= 0 ? '+' : ''}${ch.toFixed(2)}%`,
+                is_positive: ch >= 0,
+              };
+            });
+          }
+        };
 
-      ws.onmessage = (event) => {
-        if (!isMounted) return;
         try {
-          const msg = JSON.parse(event.data);
-          if (msg.data && msg.data.s) {
-            const sym = msg.data.s;
-            const originalSymbol = cryptoSymbolsMap[sym];
+          const encoded = encodeURIComponent(JSON.stringify(binanceSymbols));
+          const res = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbols=${encoded}`);
+          if (res.ok) {
+            const arr = await res.json();
+            if (Array.isArray(arr)) arr.forEach(applyTicker);
+          } else {
+            // If any single symbol is invalid on Binance, query individually so valid symbols still populate
+            await Promise.allSettled(
+              binanceSymbols.map(async (sym) => {
+                const r = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${encodeURIComponent(sym)}`);
+                if (r.ok) applyTicker(await r.json());
+              })
+            );
+          }
+          if (isMounted && Object.keys(updates).length > 0) {
+            setLivePrices((prev) => ({ ...prev, ...updates }));
+          }
+        } catch {
+          // WebSocket / fallback will populate
+        }
+      };
 
-            if (originalSymbol) {
-              setLivePrices(prev => {
-                const prevData = prev[originalSymbol] || { price: '0', change: '0%', is_positive: true };
-                
-                let newPrice = prevData.price;
-                if (msg.data.c !== undefined) {
-                  newPrice = parseFloat(msg.data.c).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                }
-                
-                let newChange = prevData.change;
-                let isPositive = prevData.is_positive;
-                if (msg.data.P !== undefined) {
-                  const changeVal = parseFloat(msg.data.P);
-                  newChange = (changeVal >= 0 ? '+' : '') + changeVal.toFixed(2) + '%';
-                  isPositive = changeVal >= 0;
-                }
+      fetchBinanceRest();
 
-                return {
-                  ...prev,
-                  [originalSymbol]: {
-                    price: newPrice,
-                    change: newChange,
-                    is_positive: isPositive
-                  }
+      try {
+        const streams = binanceSymbols.map((s) => `${s.toLowerCase()}@ticker`).join('/');
+        ws = new WebSocket(`wss://stream.binance.com:9443/stream?streams=${streams}`);
+        ws.onmessage = (event) => {
+          if (!isMounted) return;
+          try {
+            const msg = JSON.parse(event.data);
+            const d = msg.data;
+            if (!d || !d.s) return;
+            const origList = binanceMap[d.s];
+            if (!origList) return;
+            const p = parseFloat(d.c);
+            const ch = parseFloat(d.P);
+            if (isNaN(p) || p <= 0) return;
+            setLivePrices((prev) => {
+              const next = { ...prev };
+              origList.forEach((origSym) => {
+                next[origSym] = {
+                  price: formatMarketPrice(p, origSym),
+                  change: `${ch >= 0 ? '+' : ''}${ch.toFixed(2)}%`,
+                  is_positive: ch >= 0,
                 };
+              });
+              return next;
+            });
+          } catch {
+            // ignore malformed tick
+          }
+        };
+      } catch {
+        // ignore ws errors
+      }
+    }
+
+    // B. Forex & Metals Real Rates (Today + Yesterday from jsDelivr Currency API -> REAL 24h % change)
+    const fetchForexAndYahoo = async () => {
+      if (forexItems.length > 0) {
+        try {
+          const yest = new Date(Date.now() - 24 * 60 * 60 * 1000);
+          const yestStr = `${yest.getUTCFullYear()}-${String(yest.getUTCMonth() + 1).padStart(2, '0')}-${String(yest.getUTCDate()).padStart(2, '0')}`;
+
+          const [latestRes, prevRes] = await Promise.all([
+            fetch('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.json', { cache: 'no-store' }),
+            fetch(`https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@${yestStr}/v1/currencies/usd.json`).catch(() => null),
+          ]);
+
+          if (latestRes.ok) {
+            const latestJson = await latestRes.json();
+            const prevJson = prevRes && prevRes.ok ? await prevRes.json().catch(() => null) : null;
+            const rates = latestJson.usd || {};
+            const prevRates = prevJson?.usd || {};
+
+            const calcRate = (map: Record<string, number>, b: string, q: string) => {
+              const bl = b.toLowerCase();
+              const ql = q.toLowerCase();
+              if (bl === 'usd' && map[ql]) return map[ql];
+              if (ql === 'usd' && map[bl]) return 1 / map[bl];
+              if (map[bl] && map[ql]) return map[ql] / map[bl];
+              return 0;
+            };
+
+            const forexUpdates: Record<string, { price: string; change: string; is_positive: boolean }> = {};
+            forexItems.forEach((item) => {
+              const curr = calcRate(rates, item.base, item.quote);
+              if (curr > 0) {
+                const prevVal = calcRate(prevRates, item.base, item.quote);
+                const pct = prevVal > 0 ? ((curr - prevVal) / prevVal) * 100 : 0;
+                forexUpdates[item.original] = {
+                  price: formatMarketPrice(curr, item.normalized),
+                  change: `${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%`,
+                  is_positive: pct >= 0,
+                };
+              }
+            });
+
+            if (isMounted && Object.keys(forexUpdates).length > 0) {
+              setLivePrices((prev) => {
+                // Keep real-time Binance tick if already populated for Gold (XAU/USD)
+                const merged = { ...prev };
+                Object.entries(forexUpdates).forEach(([k, v]) => {
+                  const isGold = normalizePair(k).startsWith('XAU');
+                  if (isGold && merged[k] && merged[k].price !== 'Unavailable' && merged[k].price !== '—') {
+                    return;
+                  }
+                  merged[k] = v;
+                });
+                return merged;
               });
             }
           }
-        } catch (e) { }
-      };
+        } catch {
+          // ignore network error
+        }
+      }
 
-      // Fallback: Fetch all tickers from Binance REST API via CORS Proxy
-      fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent('https://api.binance.com/api/v3/ticker/24hr')}`)
-        .then(res => res.json())
-        .then(json => {
-          if (!isMounted) return;
-          if (Array.isArray(json)) {
-            const initialData: Record<string, any> = {};
-
-            Object.keys(cryptoSymbolsMap).forEach(sym => {
-              initialData[cryptoSymbolsMap[sym]] = { price: 'Unavailable', change: '—', is_positive: false };
-            });
-
-            json.forEach((item: any) => {
-              const originalSymbol = cryptoSymbolsMap[item.symbol];
-              if (originalSymbol) {
-                const changeVal = parseFloat(item.priceChangePercent);
-                initialData[originalSymbol] = {
-                  price: parseFloat(item.lastPrice).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-                  change: (changeVal >= 0 ? '+' : '') + changeVal.toFixed(2) + '%',
-                  is_positive: changeVal >= 0
+      // C. Indices, Oil, US & Indian Equities via same-origin Vercel Yahoo Finance proxy
+      if (yahooItems.length > 0) {
+        const yahooUpdates: Record<string, { price: string; change: string; is_positive: boolean }> = {};
+        await Promise.allSettled(
+          yahooItems.map(async ({ original, yahooSymbol }) => {
+            try {
+              const res = await fetch(`/api/market-quote/${encodeURIComponent(yahooSymbol)}`, { cache: 'no-store' });
+              if (!res.ok) return;
+              const ct = res.headers.get('content-type') || '';
+              if (!ct.includes('json')) return;
+              const json = await res.json();
+              const meta = json?.chart?.result?.[0]?.meta;
+              const price = Number(meta?.regularMarketPrice);
+              const prevClose = Number(meta?.chartPreviousClose || meta?.previousClose || price);
+              if (!isNaN(price) && price > 0) {
+                const pct = prevClose > 0 ? ((price - prevClose) / prevClose) * 100 : 0;
+                yahooUpdates[original] = {
+                  price: formatMarketPrice(price, original),
+                  change: `${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%`,
+                  is_positive: pct >= 0,
                 };
               }
-            });
-            setLivePrices(prev => ({ ...prev, ...initialData }));
-          }
-        }).catch(() => { });
-    }
-
-    // 2. Poll for forex/commodity currencies from currency-api
-    const otherForexWatchlist = watchlist.filter(item => {
-      const isCommodityName = ['XAU', 'XAG', 'WTI', 'BRENT', 'USOIL', 'UKOIL'].some(c => item.symbol.toUpperCase().includes(c));
-      return item.symbol_type === 'forex' || item.symbol_type === 'commodity' || isCommodityName;
-    });
-
-    if (otherForexWatchlist.length > 0) {
-      const fetchForex = async () => {
-        try {
-          const responseForex = await fetch('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.json');
-          if (responseForex.ok) {
-            const json = await responseForex.json();
-            const rates = json.usd || {};
-
-            const forexData: Record<string, any> = {};
-            otherForexWatchlist.forEach(item => {
-              const sym = item.symbol.toUpperCase();
-              let base = '', quote = '';
-              if (sym.includes('/')) {
-                [base, quote] = sym.split('/');
-              } else if (sym.length >= 6) {
-                base = sym.substring(0, 3);
-                quote = sym.substring(3, 6);
-              } else if (sym.length >= 3) {
-                base = sym;
-                quote = 'USD'; // fallback for single commodities like WTI
-              }
-
-              let calculatedPrice = 0;
-              if (base && quote) {
-                const b = base.toLowerCase(), q = quote.toLowerCase();
-                if (b === 'usd' && rates[q]) calculatedPrice = rates[q];
-                else if (q === 'usd' && rates[b]) calculatedPrice = 1 / rates[b];
-                else if (rates[b] && rates[q]) calculatedPrice = rates[q] / rates[b];
-              }
-
-              if (calculatedPrice > 0) {
-                const isWeekend = new Date().getUTCDay() === 0 || new Date().getUTCDay() === 6;
-                const absoluteTick = calculatedPrice < 10 ? 0.0003 : calculatedPrice * 0.00005;
-                const tickFluctuation = isWeekend ? 0 : (Math.random() - 0.5) * absoluteTick;
-                const livePriceVal = calculatedPrice + tickFluctuation;
-
-                const hash = sym.charCodeAt(0) + sym.charCodeAt(1);
-                const baseChange = ((hash % 100) - 50) / 250;
-                const fluctuation = isWeekend ? 0 : (Math.random() - 0.5) * 0.04;
-                const finalChange = baseChange + fluctuation;
-
-                forexData[item.symbol] = {
-                  price: livePriceVal.toLocaleString(undefined, { minimumFractionDigits: 4, maximumFractionDigits: 4 }),
-                  change: (finalChange >= 0 ? '+' : '') + finalChange.toFixed(2) + '%',
-                  is_positive: finalChange >= 0
-                };
-              } else {
-                forexData[item.symbol] = {
-                  price: 'Unavailable',
-                  change: '—',
-                  is_positive: false
-                };
-              }
-            });
-
-            if (isMounted) {
-              setLivePrices(prev => ({ ...prev, ...forexData }));
+            } catch {
+              // ignore individual ticker failures
             }
-          }
-        } catch (err) { }
-      };
+          })
+        );
+        if (isMounted && Object.keys(yahooUpdates).length > 0) {
+          setLivePrices((prev) => ({ ...prev, ...yahooUpdates }));
+        }
+      }
+    };
 
-      fetchForex();
-      interval = setInterval(fetchForex, 60000);
-    }
+    fetchForexAndYahoo();
+    interval = setInterval(fetchForexAndYahoo, 30000);
 
     return () => {
       isMounted = false;
       if (ws) ws.close();
       if (interval) clearInterval(interval);
     };
-  }, [watchlist]);
+  }, [watchlist, activeMarket]);
 
   // Combine live prices into return watchlist object
   const watchlistWithPrices = watchlist.map(item => {

@@ -929,7 +929,7 @@ function PhoneMockup({ screen }: { screen: any }) {
 function Pricing({ onStart }: { onStart: () => void }) {
   const navigate = useNavigate();
   const [pricingCategory, setPricingCategory] = useState<"autotrade" | "platform">("autotrade");
-  const [selectedPlan, setSelectedPlan] = useState<"starter" | "pro" | "elite" | "enterprise">("pro");
+  const [selectedPlan, setSelectedPlan] = useState<"starter" | "pro" | "elite">("pro");
   const [selectedFialgoPlan, setSelectedFialgoPlan] = useState<"three_years" | "profit_share">("three_years");
   const [enterpriseExpanded, setEnterpriseExpanded] = useState(true);
   const [performanceExpanded, setPerformanceExpanded] = useState(false);

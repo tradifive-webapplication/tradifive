@@ -5,9 +5,9 @@ import { toast } from 'sonner';
 import ElectricBorder from './ElectricBorder';
 
 interface PricingCardsProps {
-  selectedPlan: 'starter' | 'pro' | 'elite' | 'enterprise';
-  onSelectPlan: (plan: 'starter' | 'pro' | 'elite' | 'enterprise') => void;
-  onUpgradeClick?: (plan: 'starter' | 'pro' | 'elite' | 'enterprise') => void;
+  selectedPlan: 'starter' | 'pro' | 'elite';
+  onSelectPlan: (plan: 'starter' | 'pro' | 'elite') => void;
+  onUpgradeClick?: (plan: 'starter' | 'pro' | 'elite') => void;
   isStandalone?: boolean;
   activePlan?: string;
   showCheckoutBar?: boolean;
@@ -64,46 +64,41 @@ const eliteFeatures: FeatureItem[] = [
   { type: 'feature', text: 'Elite badge & profile boost', included: true },
 ];
 
-const enterpriseFeatures: FeatureItem[] = [
-  { type: 'header', text: 'Your Rules. Your Server. Your Way.' },
-  { type: 'feature', text: 'Custom risk guard rules (e.g., Max Qty Kill Switch, Consecutive Loss Kill Switch)', included: true },
-  { type: 'feature', text: 'Deployed on your own dedicated server', included: true },
-  { type: 'feature', text: 'Custom broker API integrations', included: true },
-  { type: 'feature', text: 'White-glove onboarding & dedicated support', included: true },
-  { type: 'feature', text: 'Advanced API access for external tools', included: true },
-];
-
 export function PricingCards({ selectedPlan, onSelectPlan, onUpgradeClick, isStandalone = false, activePlan = 'starter', showCheckoutBar = false }: PricingCardsProps) {
   const [billingInterval, setBillingInterval] = useState<'monthly' | 'annually'>('monthly');
-  const annualDiscountPercent = 20; // Discount configurable later
+  const annualDiscountPercent = 20;
 
-  const getPriceDisplay = (basePrice: number) => {
+  const getUsdPriceDisplay = (baseMonthlyUsd: number) => {
+    if (baseMonthlyUsd === 0) {
+      return {
+        monthly: '0',
+        subtitle: 'Free forever'
+      };
+    }
     if (billingInterval === 'monthly') {
       return {
-        monthly: basePrice.toLocaleString('en-IN'),
+        monthly: baseMonthlyUsd.toFixed(2),
         subtitle: 'billed monthly'
       };
     } else {
-      const discountedMonthly = Math.round(basePrice * (1 - annualDiscountPercent / 100));
-      const annualTotal = discountedMonthly * 12;
+      const discountedMonthly = Math.round(baseMonthlyUsd * (1 - annualDiscountPercent / 100) * 100) / 100;
+      const annualTotal = (discountedMonthly * 12).toFixed(2);
       return {
-        monthly: discountedMonthly.toLocaleString('en-IN'),
-        subtitle: `Billed annually at ₹${annualTotal.toLocaleString('en-IN')}`
+        monthly: discountedMonthly.toFixed(2),
+        subtitle: `Billed annually at $${annualTotal}`
       };
     }
   };
 
-  const standardPrice = getPriceDisplay(1299);
-  const proPrice = getPriceDisplay(2499);
-  const elitePrice = getPriceDisplay(4999);
+  const proPrice = getUsdPriceDisplay(14.99);
+  const elitePrice = getUsdPriceDisplay(29.99);
   const [starterExpanded, setStarterExpanded] = useState(false);
   const [proExpanded, setProExpanded] = useState(false);
   const [eliteExpanded, setEliteExpanded] = useState(false);
-  const [enterpriseExpanded, setEnterpriseExpanded] = useState(false);
 
   const isCurrentPlan = (plan: string) => !isStandalone && activePlan === plan;
 
-  const handleUpgrade = (plan: 'starter' | 'pro' | 'elite' | 'enterprise') => {
+  const handleUpgrade = (plan: 'starter' | 'pro' | 'elite') => {
     if (onUpgradeClick) {
       onUpgradeClick(plan);
     } else {
@@ -204,7 +199,7 @@ export function PricingCards({ selectedPlan, onSelectPlan, onUpgradeClick, isSta
         </div>
       </div>
 
-      <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-10 max-w-7xl mx-auto w-full ${isStandalone ? 'dark' : ''}`}>
+      <div className={`grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 max-w-5xl mx-auto w-full ${isStandalone ? 'dark' : ''}`}>
         <div
           onClick={() => onSelectPlan('starter')}
           className={`cursor-pointer p-6 rounded-[32px] border-[2px] transition-all duration-300 flex flex-col relative overflow-hidden bg-white dark:bg-[#121214] ${selectedPlan === 'starter'
@@ -219,12 +214,12 @@ export function PricingCards({ selectedPlan, onSelectPlan, onUpgradeClick, isSta
 
           <h3 className="text-[16px] font-bold text-slate-800 dark:text-white mb-2 relative z-10">Standard</h3>
           <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1] mb-6 min-h-[36px]">For beginners learning discipline & journaling</p>
-          <div className={`flex items-baseline gap-1 ${billingInterval === 'monthly' ? 'mb-6' : 'mb-1'}`}>
-            <span className="text-[32px] font-extrabold text-slate-900 dark:text-white" >₹{standardPrice.monthly}</span>
-            <span className="text-[12px] font-medium text-slate-500">/ month</span>
+          <div className={`flex items-baseline gap-1.5 ${billingInterval === 'monthly' ? 'mb-6' : 'mb-1'}`}>
+            <span className="text-[32px] font-extrabold text-slate-900 dark:text-white">Free</span>
+            <span className="text-[12px] font-medium text-slate-500">/ $0 forever</span>
           </div>
           {billingInterval === 'annually' && (
-            <div className="text-[11.5px] font-bold text-amber-600 dark:text-amber-500 mb-6">{standardPrice.subtitle}</div>
+            <div className="text-[11.5px] font-bold text-slate-500 dark:text-slate-400 mb-6">No credit card required</div>
           )}
           <button
             onClick={() => !isCurrentPlan('starter') && handleUpgrade('starter')}
@@ -237,7 +232,7 @@ export function PricingCards({ selectedPlan, onSelectPlan, onUpgradeClick, isSta
               boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 8px rgba(0, 0, 0, 0.4)',
             }}
           >
-            {isCurrentPlan('starter') ? 'Current Plan' : 'Get Standard'}
+            {isCurrentPlan('starter') ? 'Current Plan' : 'Get Started Free'}
           </button>
 
           {renderFeatureList(starterFeatures, 'check', 'text-slate-400', starterExpanded, () => setStarterExpanded(!starterExpanded))}
@@ -264,7 +259,7 @@ export function PricingCards({ selectedPlan, onSelectPlan, onUpgradeClick, isSta
           </h3>
           <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1] mb-6 min-h-[36px]">Designed to make traders consistent, not lucky.</p>
           <div className={`flex items-baseline gap-1 ${billingInterval === 'monthly' ? 'mb-6' : 'mb-1'}`}>
-            <span className="text-[32px] font-extrabold text-slate-900 dark:text-white" >₹{proPrice.monthly}</span>
+            <span className="text-[32px] font-extrabold text-slate-900 dark:text-white tabular-nums">${proPrice.monthly}</span>
             <span className="text-[12px] font-medium text-slate-500">/ month</span>
           </div>
           {billingInterval === 'annually' && (
@@ -308,7 +303,7 @@ export function PricingCards({ selectedPlan, onSelectPlan, onUpgradeClick, isSta
             <h3 className="text-[16px] font-bold text-slate-800 dark:text-white mb-2 relative z-10">Elite</h3>
             <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1] mb-6 min-h-[36px] relative z-10">For serious traders, mentors & automation users</p>
             <div className={`flex items-baseline gap-1 ${billingInterval === 'monthly' ? 'mb-6' : 'mb-1'}`}>
-              <span className="text-[32px] font-extrabold text-slate-900 dark:text-white" >₹{elitePrice.monthly}</span>
+              <span className="text-[32px] font-extrabold text-slate-900 dark:text-white tabular-nums">${elitePrice.monthly}</span>
               <span className="text-[12px] font-medium text-slate-500">/ month</span>
             </div>
             {billingInterval === 'annually' && (
@@ -334,43 +329,6 @@ export function PricingCards({ selectedPlan, onSelectPlan, onUpgradeClick, isSta
             {renderFeatureList(eliteFeatures, 'checkCircle', 'text-purple-400', eliteExpanded, () => setEliteExpanded(!eliteExpanded))}
           </div>
         </ElectricBorder>
-
-        {/* ENTERPRISE PLAN */}
-        <div
-          onClick={() => onSelectPlan('enterprise')}
-          className={`cursor-pointer p-6 rounded-[32px] border-[2px] transition-all duration-300 flex flex-col relative overflow-hidden bg-white dark:bg-[#121214] h-full ${selectedPlan === 'enterprise'
-            ? 'border-emerald-500 dark:border-emerald-500/80 bg-gradient-to-b from-emerald-50/50 to-[#FFFFFF] dark:from-emerald-900/20 dark:to-[#121214] shadow-[0_8px_30px_-5px_rgba(16,185,129,0.25)] md:-translate-y-2 scale-[1.02] z-10'
-            : 'border-transparent dark:border-transparent bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_1px_#E2E8F0] dark:shadow-none hover:shadow-[0_8px_15px_-5px_rgba(16,185,129,0.15),0_0_0_1px_#6ee7b7] dark:hover:border-emerald-500/40 dark:hover:shadow-none'
-            }`}
-        >
-          <div className="absolute -top-10 -right-10 w-40 h-40 bg-emerald-500/10 blur-3xl rounded-full z-0 pointer-events-none mix-blend-screen transition-opacity duration-700"></div>
-
-          <h3 className="text-[16px] font-bold text-slate-800 dark:text-white mb-2 relative z-10">Enterprise</h3>
-          <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1] mb-6 min-h-[36px] relative z-10">For institutional desks & proprietary traders</p>
-          <div className={`flex items-baseline gap-1 ${billingInterval === 'monthly' ? 'mb-6' : 'mb-1'}`}>
-            <span className="text-[32px] font-extrabold text-slate-900 dark:text-white">Custom</span>
-          </div>
-          {billingInterval === 'annually' && (
-            <div className="text-[11.5px] font-bold text-transparent mb-6">Pricing on request</div>
-          )}
-          <button
-            onClick={(e) => { e.stopPropagation(); toast.success("Redirecting to Contact form...", { icon: <CheckCircle className="text-emerald-500" /> }); }}
-            className="w-full flex items-center justify-center h-12 rounded-full font-bold text-[13px] tracking-wide transition-all duration-200 active:scale-[0.985] hover:brightness-110 mb-4"
-            style={{
-              background: 'linear-gradient(135deg, #062315 0%, #03130b 100%)',
-              color: '#34d399',
-              border: '1px solid rgba(16, 185, 129, 0.5)',
-              boxShadow: 'inset 0 1px 0 rgba(16, 185, 129, 0.35), 0 4px 16px rgba(16, 185, 129, 0.25)',
-            }}
-          >
-            Contact Us &rarr;
-          </button>
-
-          <div className="mb-1 mt-2">
-            <span className="text-[12px] font-bold text-slate-800 dark:text-slate-200">Bespoke features:</span>
-          </div>
-          {renderFeatureList(enterpriseFeatures, 'checkCircle', 'text-emerald-500', enterpriseExpanded, () => setEnterpriseExpanded(!enterpriseExpanded))}
-        </div>
       </div>
 
       {showCheckoutBar && (selectedPlan === 'pro' || selectedPlan === 'elite') && (
@@ -380,7 +338,7 @@ export function PricingCards({ selectedPlan, onSelectPlan, onUpgradeClick, isSta
               <div>
                 <h4 className="text-white font-bold text-[15px]">{selectedPlan === 'elite' ? 'Elite' : 'Pro'}</h4>
                 <div className="flex items-baseline gap-1 mt-1">
-                  <span className="text-white font-extrabold text-[24px]">₹{selectedPlan === 'elite' ? elitePrice.monthly : proPrice.monthly}</span>
+                  <span className="text-white font-extrabold text-[24px] tabular-nums">${selectedPlan === 'elite' ? elitePrice.monthly : proPrice.monthly}</span>
                   <span className="text-zinc-400 font-medium text-[12px]">/ month</span>
                 </div>
                 <div className="text-zinc-500 text-[12px] font-medium mt-1">

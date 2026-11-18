@@ -87,7 +87,7 @@ export default function ProSubscriptionModal({ isOpen, onClose, onSuccess }: Pro
                   <div className="text-xs text-slate-500 mt-0.5">Cancel anytime</div>
                 </div>
                 <div className="text-right">
-                  <div className="text-xl font-black text-slate-900 dark:text-white">₹1,499</div>
+                  <div className="text-xl font-black text-slate-900 dark:text-white tabular-nums">$14.99</div>
                   <div className="text-[10px] uppercase font-bold text-slate-400">/ month</div>
                 </div>
               </div>

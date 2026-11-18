@@ -1157,7 +1157,7 @@ function DownloadModal({ showDownloadModal, setShowDownloadModal }: { showDownlo
   );
 }
 function PricingSection({ onStart }: { onStart: () => void }) {
-  const [selectedPlan, setSelectedPlan] = React.useState<'starter' | 'pro' | 'elite' | 'enterprise'>('pro');
+  const [selectedPlan, setSelectedPlan] = React.useState<'starter' | 'pro' | 'elite'>('pro');
   return (
     <section id="pricing" style={{ padding: "80px 24px", background: "#050505" }}>
       <PricingCards 

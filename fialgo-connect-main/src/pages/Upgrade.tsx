@@ -18,7 +18,7 @@ export default function Upgrade() {
   const navigate = useNavigate();
   const { setSubscription } = useTrading();
 
-  const [selectedPlan, setSelectedPlan] = useState<"starter" | "pro" | "elite" | "enterprise">(() => {
+  const [selectedPlan, setSelectedPlan] = useState<"starter" | "pro" | "elite">(() => {
     const params = new URLSearchParams(window.location.search);
     const planParam = params.get('plan');
     if (planParam && ["starter", "pro", "elite"].includes(planParam)) {
@@ -26,6 +26,7 @@ export default function Upgrade() {
     }
     return "pro";
   });
+  const selectedPlanLabel = selectedPlan === 'starter' ? 'Standard' : selectedPlan === 'pro' ? 'Pro' : 'Elite';
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const activePlan = localStorage.getItem('tradifive_cached_plan') || 'starter';
@@ -45,7 +46,7 @@ export default function Upgrade() {
         window.dispatchEvent(new Event('tradifive_profile_update'));
       }
       setSubscription(selectedPlan as any, selectedPlan === "starter" ? "demo" : "real");
-      toast.success(`${selectedPlan.charAt(0).toUpperCase() + selectedPlan.slice(1)} Plan activated!`, {
+      toast.success(`${selectedPlanLabel} Plan activated!`, {
         description: selectedPlan === 'elite'
           ? 'Go to Settings → Creator Account to enable Creator Mode.'
           : 'Your new plan is live.',
@@ -152,17 +153,16 @@ export default function Upgrade() {
               }
             ].map((section, idx) => (
               <div key={idx} className="bg-[#16181c] rounded-2xl overflow-x-auto">
-                <table className="w-full text-left border-collapse min-w-[800px]">
+                <table className="w-full text-left border-collapse min-w-[640px]">
                   <thead>
                     <tr>
-                      <th className="py-4 px-6 text-[15px] font-bold text-[#e7e9ea] w-[28%]">{section.category}</th>
-                      <th className="py-4 px-6 text-[15px] font-bold text-[#e7e9ea] text-center w-[18%]">Starter</th>
-                      <th className="py-4 px-6 text-[15px] font-bold text-[#e7e9ea] text-center w-[18%]">Pro</th>
-                      <th className="py-4 px-6 text-[15px] font-bold text-[#e7e9ea] text-center w-[18%]">Elite</th>
-                      <th className="py-4 px-6 text-[15px] font-bold text-[#e7e9ea] text-center w-[18%]">Enterprise</th>
+                      <th className="py-4 px-6 text-[15px] font-bold text-[#e7e9ea] w-[40%]">{section.category}</th>
+                      <th className="py-4 px-6 text-[15px] font-bold text-[#e7e9ea] text-center w-[20%]">Standard</th>
+                      <th className="py-4 px-6 text-[15px] font-bold text-[#e7e9ea] text-center w-[20%]">Pro</th>
+                      <th className="py-4 px-6 text-[15px] font-bold text-[#e7e9ea] text-center w-[20%]">Elite</th>
                     </tr>
                     <tr>
-                      <th colSpan={5} className="p-0">
+                      <th colSpan={4} className="p-0">
                         <div className="h-[1px] w-[92%] mx-auto bg-gradient-to-r from-transparent via-[#2f3336] to-transparent"></div>
                       </th>
                     </tr>
@@ -200,16 +200,10 @@ export default function Upgrade() {
                               : <span className="text-[14px] font-medium text-[#e7e9ea]">{row.elite}</span>
                             }
                           </td>
-                          <td className="py-4 px-6 text-center">
-                            {typeof row.enterprise === 'boolean'
-                              ? (row.enterprise ? <Check size={18} strokeWidth={2.5} className="text-[#e7e9ea] mx-auto" /> : <X size={18} strokeWidth={2} className="text-[#71767b] mx-auto" />)
-                              : <span className="text-[14px] font-medium text-[#e7e9ea]">{row.enterprise}</span>
-                            }
-                          </td>
                         </tr>
                         {i !== section.features.length - 1 && (
                           <tr>
-                            <td colSpan={5} className="p-0">
+                            <td colSpan={4} className="p-0">
                               <div className="h-[1px] w-[92%] mx-auto bg-gradient-to-r from-transparent via-[#2f3336] to-transparent"></div>
                             </td>
                           </tr>
@@ -255,7 +249,7 @@ export default function Upgrade() {
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-2">Initialize Connection</h3>
                 <p className="text-[#B5BAC1] text-[13px]">
-                  You are selecting the <span className="font-bold text-white capitalize">{selectedPlan}</span> protocol.
+                  You are selecting the <span className="font-bold text-white">{selectedPlanLabel}</span> protocol.
                 </p>
               </div>
 
@@ -270,7 +264,7 @@ export default function Upgrade() {
                     Activating...
                   </>
                 ) : (
-                  <><Zap size={16} /> Activate {selectedPlan.charAt(0).toUpperCase() + selectedPlan.slice(1)} Plan</>
+                  <><Zap size={16} /> Activate {selectedPlanLabel} Plan</>
                 )}
               </button>
               <p className="text-[10px] text-gray-400 text-center mt-4 leading-relaxed">

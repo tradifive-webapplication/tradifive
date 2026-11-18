@@ -28,6 +28,14 @@ export default defineConfig(({ mode }) => {
         changeOrigin: true,
         rewrite: () => '/ff_calendar_thisweek.json',
       },
+      '/api/market-quote': {
+        target: 'https://query1.finance.yahoo.com',
+        changeOrigin: true,
+        rewrite: (p) => {
+          const sym = p.replace(/^\/api\/market-quote\//, '');
+          return `/v8/finance/chart/${sym}?interval=1d&range=5d`;
+        },
+      },
     },
   },
   optimizeDeps: { force: true },

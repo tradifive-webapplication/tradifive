@@ -1169,9 +1169,9 @@ export default function Profile() {
                       <button
                         type="button"
                         onClick={openEditModal}
-                        className="flex items-center justify-center gap-1.5 px-4 sm:px-5 py-1.5 sm:py-2 rounded-full text-[12.5px] sm:text-[13.5px] font-bold whitespace-nowrap tactile-black-pill cursor-pointer select-none"
+                        className="flex items-center justify-center gap-1.5 px-4 sm:px-5 py-1.5 sm:py-2 rounded-full text-[12.5px] sm:text-[13.5px] font-bold whitespace-nowrap tactile-white-pill cursor-pointer select-none"
                       >
-                        <IconlyEdit set="curved" primaryColor="currentColor" size={14} stroke="bold" strokeWidth={2} /> Edit Profile
+                        <IconlyEdit set="curved" primaryColor="currentColor" size={14} stroke="bold" strokeWidth={2} /> Edit profile
                       </button>
                     </div>
                   </div>

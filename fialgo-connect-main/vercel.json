@@ -3,6 +3,7 @@
   "outputDirectory": "dist",
   "rewrites": [
     { "source": "/api/economic-calendar", "destination": "https://nfs.faireconomy.media/ff_calendar_thisweek.json" },
+    { "source": "/api/market-quote/:symbol", "destination": "https://query1.finance.yahoo.com/v8/finance/chart/:symbol?interval=1d&range=5d" },
     { "source": "/mobile/((?!assets/|.*\\\\..*).*$)", "destination": "/mobile/index.html" },
     { "source": "/((?!assets/|mobile/|.*\\\\..*).*$)", "destination": "/index.html" }
   ],

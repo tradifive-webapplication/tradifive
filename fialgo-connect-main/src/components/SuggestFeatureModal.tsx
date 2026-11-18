@@ -209,28 +209,10 @@ export default function SuggestFeatureModal({
                   <button
                     type="submit"
                     disabled={isSubmitting || !featureIdea.trim()}
-                    style={{
-                      borderRadius: 100,
-                      padding: "9px 20px",
-                      fontWeight: 700,
-                      fontSize: 12.5,
-                      letterSpacing: "0.01em",
-                      display: "inline-flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 6,
-                      background: "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)",
-                      color: "#ffffff",
-                      border: "none",
-                      boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 2px 6px rgba(0, 0, 0, 0.25)",
-                      cursor: isSubmitting || !featureIdea.trim() ? "not-allowed" : "pointer",
-                      opacity: isSubmitting || !featureIdea.trim() ? 0.45 : 1,
-                      transition: "all 0.18s ease",
-                    }}
-                    className="active:scale-95 hover:brightness-110"
+                    className="h-9 px-5 rounded-full tactile-white-pill font-semibold text-[12.5px] inline-flex items-center justify-center gap-1.5 disabled:opacity-45 disabled:cursor-not-allowed cursor-pointer select-none"
                   >
                     <span>{isSubmitting ? "Sending..." : "Send Idea"}</span>
-                    <ArrowRight size={13.5} strokeWidth={2.4} />
+                    <ArrowRight size={13.5} strokeWidth={2.2} />
                   </button>
                 </div>
               </div>

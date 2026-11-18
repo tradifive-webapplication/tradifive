@@ -1,4 +1,4 @@
-﻿import { Search, Plus, X, MoreHorizontal, Heart, MessageCircle, MessageSquare, Bookmark, UserPlus, UserCheck, Flame, ShieldCheck, TrendingUp, Layers, Eye, Calendar, Sliders, Trash2, Check, ArrowUp, RotateCw, Globe, Home as HomeIcon, Compass, Radio, Bell, Users, Smile, ImagePlus, Video as VideoIcon, Loader2 } from "lucide-react";
+﻿import { Search, Plus, X, MoreHorizontal, Heart, MessageCircle, MessageSquare, Bookmark, UserPlus, UserCheck, Flame, ShieldCheck, TrendingUp, Layers, Eye, Calendar, Sliders, Trash2, Check, ArrowUp, RotateCw, Globe, Home as HomeIcon, Compass, Radio, Bell, Users, Smile, ImagePlus, Video as VideoIcon, Loader2, Folder } from "lucide-react";
 import { CommunityPageWrapper, useCommunityShell } from "@/components/CommunityShell";
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { createPortal } from "react-dom";
@@ -40,13 +40,16 @@ import TickersWidget from "@/components/TickersWidget";
 
 
 
-function ToggleRow({ label, checked, onChange }: { label: string, checked: boolean, onChange: (val: boolean) => void }) {
+function ToggleRow({ label, checked, onChange, dotClass }: { label: string, checked: boolean, onChange: (val: boolean) => void, dotClass?: string }) {
     return (
-        <label className="flex items-center justify-between cursor-pointer group">
-            <span className="text-[12px] font-semibold text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">{label}</span>
-            <div className="relative inline-flex items-center">
+        <label className="flex items-center justify-between cursor-pointer group py-0.5 select-none">
+            <span className="flex items-center gap-2 text-[12.5px] font-medium text-slate-700 dark:text-slate-200 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
+                {dotClass && <span className={`w-2 h-2 rounded-full shrink-0 ${dotClass}`} />}
+                {label}
+            </span>
+            <div className="relative inline-flex items-center shrink-0">
                 <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="sr-only peer" />
-                <div className="w-9 h-5 bg-slate-200 dark:bg-[#333] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-500"></div>
+                <div className="w-9 h-5 bg-slate-200 dark:bg-white/15 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-4 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white dark:peer-checked:after:bg-slate-950 after:shadow-xs after:rounded-full after:h-4 after:w-4 after:transition-transform peer-checked:bg-slate-900 dark:peer-checked:bg-white transition-colors"></div>
             </div>
         </label>
     );
@@ -225,32 +228,46 @@ function HomeSkeleton() {
 }
 
 // --- SMART WATCHLIST AUTO-DETECTION & ANIMATED LIVE TICKS ---
-const detectSymbolDetails = (input: string): { symbol: string; type: 'crypto' | 'forex' } => {
-    const clean = input.trim().toUpperCase().replace(/[-_]/g, '/');
+const detectSymbolDetails = (input: string): { symbol: string; type: 'crypto' | 'forex' | 'commodity' | 'index' | 'equity' } => {
+    let clean = input.trim().toUpperCase().replace(/\s+/g, '').replace(/[-_]/g, '/');
+    // Fix common typos & shorthands (e.g. XAU/UAD -> XAU/USD, GOLD -> XAU/USD)
+    clean = clean.replace(/\/UAD$/, '/USD').replace(/UAD$/, 'USD');
+    if (clean === 'GOLD' || clean === 'XAU') return { symbol: 'XAU/USD', type: 'commodity' };
+    if (clean === 'SILVER' || clean === 'XAG') return { symbol: 'XAG/USD', type: 'commodity' };
+    if (clean === 'NIFTY') return { symbol: 'NIFTY50', type: 'index' };
 
-    // Common crypto base tokens
-    const cryptoBases = ['BTC', 'ETH', 'SOL', 'ADA', 'DOGE', 'XRP', 'DOT', 'LINK', 'BNB', 'LTC', 'BCH', 'UNI', 'AVAX', 'MATIC', 'SHIB', 'TRX'];
-    // Common crypto quotes
+    const cryptoBases = ['BTC', 'ETH', 'SOL', 'ADA', 'DOGE', 'XRP', 'DOT', 'LINK', 'BNB', 'LTC', 'BCH', 'UNI', 'AVAX', 'MATIC', 'POL', 'SHIB', 'TRX', 'SUI', 'TON', 'PEPE', 'ARB', 'OP', 'NEAR', 'APT', 'ATOM', 'XLM', 'PAXG'];
     const cryptoQuotes = ['USDT', 'USDC', 'BUSD', 'DAI'];
-
-    // Common forex currencies
+    const commodityKeys = ['XAU', 'XAG', 'XPT', 'XPD', 'WTI', 'BRENT', 'USOIL', 'UKOIL', 'NATGAS'];
+    const indexKeys = ['NAS100', 'NASDAQ', 'NDX', 'US100', 'US30', 'DJI', 'SPX500', 'US500', 'SPX', 'DXY', 'NIFTY50', 'BANKNIFTY', 'FINNIFTY', 'SENSEX'];
     const forexCurrencies = ['EUR', 'GBP', 'AUD', 'NZD', 'USD', 'CAD', 'CHF', 'JPY', 'SGD', 'HKD', 'CNY', 'INR', 'ZAR', 'MXN', 'TRY', 'SEK', 'NOK', 'DKK'];
+
+    const compact = clean.replace(/\//g, '');
+    if (indexKeys.includes(compact)) {
+        return { symbol: compact, type: 'index' };
+    }
+    if (['WTI', 'BRENT', 'USOIL', 'UKOIL', 'NATGAS'].includes(compact)) {
+        return { symbol: compact, type: 'commodity' };
+    }
 
     // 1. If it already has a slash
     if (clean.includes('/')) {
         const [base, quote] = clean.split('/');
+        if (commodityKeys.includes(base)) {
+            return { symbol: `${base}/${quote || 'USD'}`, type: 'commodity' };
+        }
         if (cryptoQuotes.includes(quote) || cryptoBases.includes(base)) {
             return { symbol: clean, type: 'crypto' };
         }
         if (forexCurrencies.includes(base) && forexCurrencies.includes(quote)) {
             return { symbol: clean, type: 'forex' };
         }
-        return { symbol: clean, type: quote.length > 3 ? 'crypto' : 'forex' };
+        return { symbol: clean, type: quote && quote.length > 3 ? 'crypto' : 'forex' };
     }
 
-    // 2. If it does not have a slash: e.g. "EURUSD" or "BTCUSDT"
+    // 2. If it does not have a slash: e.g. "EURUSD", "XAUUSD", "BTCUSDT"
     for (const quote of cryptoQuotes) {
-        if (clean.endsWith(quote)) {
+        if (clean.endsWith(quote) && clean.length > quote.length) {
             const base = clean.slice(0, -quote.length);
             return { symbol: `${base}/${quote}`, type: 'crypto' };
         }
@@ -259,23 +276,29 @@ const detectSymbolDetails = (input: string): { symbol: string; type: 'crypto' | 
     if (clean.length === 6) {
         const base = clean.substring(0, 3);
         const quote = clean.substring(3, 6);
+        if (commodityKeys.includes(base)) {
+            return { symbol: `${base}/${quote}`, type: 'commodity' };
+        }
         if (forexCurrencies.includes(base) && forexCurrencies.includes(quote)) {
             return { symbol: `${base}/${quote}`, type: 'forex' };
         }
         if (cryptoBases.includes(base)) {
             return { symbol: `${base}/${quote}`, type: 'crypto' };
         }
-        return { symbol: `${base}/${quote}`, type: 'forex' };
     }
 
-    if (clean.length > 6) {
-        if (clean.endsWith('USD')) {
-            return { symbol: `${clean.slice(0, -3)}/USD`, type: 'crypto' };
+    if (clean.length > 6 && clean.endsWith('USD')) {
+        const base = clean.slice(0, -3);
+        if (cryptoBases.includes(base)) {
+            return { symbol: `${base}/USD`, type: 'crypto' };
         }
-        return { symbol: `${clean.substring(0, 4)}/${clean.substring(4)}`, type: 'crypto' };
     }
 
-    return { symbol: clean, type: 'crypto' };
+    if (cryptoBases.includes(clean)) {
+        return { symbol: `${clean}/USD`, type: 'crypto' };
+    }
+
+    return { symbol: clean, type: 'equity' };
 };
 
 function WatchlistItem({ asset }: { asset: any }) {
@@ -419,41 +442,48 @@ export default function Home() {
 
     const [customizeActiveTab, setCustomizeActiveTab] = useState<'layout' | 'watchlist' | 'calendar'>('layout');
     const [newSymbolName, setNewSymbolName] = useState("");
-    const [newSymbolType, setNewSymbolType] = useState<'crypto' | 'forex' | 'commodity'>('crypto');
+    const [newSymbolType, setNewSymbolType] = useState<'crypto' | 'forex' | 'commodity' | 'index' | 'equity'>('crypto');
     const [isAddingSymbol, setIsAddingSymbol] = useState(false);
+    const [newsViewMode, setNewsViewMode] = useState<'today' | 'week'>('today');
+    const [newsExpanded, setNewsExpanded] = useState(false);
 
     const [calendarFilters, setCalendarFilters] = useState<{ high: boolean; medium: boolean; low: boolean }>(() => {
         try {
-            const cached = localStorage.getItem('home_calendar_filters');
+            const cached = localStorage.getItem('home_news_filters_v2');
             if (cached) {
                 const parsed = JSON.parse(cached);
-                return { high: true, medium: parsed.medium === true, low: parsed.low === true };
+                return { high: parsed.high !== false, medium: parsed.medium !== false, low: parsed.low === true };
             }
-            return { high: true, medium: false, low: false };
+            return { high: true, medium: true, low: false };
         } catch (e) {
-            return { high: true, medium: false, low: false };
+            return { high: true, medium: true, low: false };
         }
     });
 
     useEffect(() => {
         try {
-            localStorage.setItem('home_calendar_filters', JSON.stringify(calendarFilters));
+            localStorage.setItem('home_news_filters_v2', JSON.stringify(calendarFilters));
         } catch (e) {
             console.warn("localStorage not accessible");
         }
     }, [calendarFilters]);
 
-    const handleAddSymbol = async () => {
-        if (!newSymbolName.trim()) return;
+    const handleAddSymbol = async (overrideSymbol?: string) => {
+        const rawInput = typeof overrideSymbol === 'string' ? overrideSymbol : newSymbolName;
+        if (!rawInput.trim()) return;
         if (!user?.id) {
             toast.error("Please sign in to customize your watchlist.");
             return;
         }
 
-        const { symbol: sym } = detectSymbolDetails(newSymbolName);
+        const { symbol: sym, type: detectedType } = detectSymbolDetails(rawInput);
+        const resolvedType = detectedType || newSymbolType;
 
         // Check duplication
-        const exists = watchlist.some((item: any) => item.symbol.toUpperCase() === sym.toUpperCase());
+        const exists = watchlist.some((item: any) => {
+            const normExisting = String(item.symbol || '').toUpperCase().replace(/\/UAD$/, '/USD').replace(/UAD$/, 'USD');
+            return normExisting === sym.toUpperCase();
+        });
         if (exists) {
             toast.warning(`${sym} is already in your watchlist!`);
             return;
@@ -463,7 +493,7 @@ export default function Home() {
         try {
             const { error } = await supabase.from('feed_watchlist').insert([{
                 symbol: sym,
-                symbol_type: newSymbolType,
+                symbol_type: resolvedType,
                 is_pinned: false,
                 sort_order: watchlist.length + 1,
                 user_id: user.id
@@ -471,7 +501,7 @@ export default function Home() {
             if (error) throw error;
 
             toast.success(`Added ${sym} to watchlist!`);
-            setNewSymbolName("");
+            if (!overrideSymbol) setNewSymbolName("");
             refetch();
         } catch (err: any) {
             console.error("Error adding symbol:", err);
@@ -480,6 +510,23 @@ export default function Home() {
             setIsAddingSymbol(false);
         }
     };
+
+    // Toggle backside page scaling & blur + Escape close (matches Suggest & Report bottom sheets)
+    useEffect(() => {
+        if (showCustomizeModal) {
+            document.body.classList.add('tf-sheet-open');
+            const onKeyDown = (e: KeyboardEvent) => {
+                if (e.key === 'Escape') setShowCustomizeModal(false);
+            };
+            window.addEventListener('keydown', onKeyDown);
+            return () => {
+                document.body.classList.remove('tf-sheet-open');
+                window.removeEventListener('keydown', onKeyDown);
+            };
+        } else {
+            document.body.classList.remove('tf-sheet-open');
+        }
+    }, [showCustomizeModal]);
 
     const handleDeleteSymbol = async (id: string) => {
         try {
@@ -1003,55 +1050,187 @@ export default function Home() {
 
 
     const calendarRender = useMemo(() => {
-        const filteredCalendar = calendar.filter(news => {
+        const now = new Date();
+        const isSameLocalDay = (d: Date) =>
+            d.getFullYear() === now.getFullYear() &&
+            d.getMonth() === now.getMonth() &&
+            d.getDate() === now.getDate();
+
+        const impactMatched = calendar.filter((news) => {
             const impact = (news.impact || 'low').toLowerCase();
-            // Strict: Keep ONLY high impact news
-            if (impact !== 'high') return false;
-            if (!calendarFilters.high) return false;
-            return true;
+            if (impact === 'high' && calendarFilters.high) return true;
+            if (impact === 'medium' && calendarFilters.medium) return true;
+            if (impact === 'low' && calendarFilters.low) return true;
+            return false;
         });
 
-        if (filteredCalendar.length === 0) {
+        const allMatchedNews = newsViewMode === 'today'
+            ? impactMatched.filter((news) => {
+                const d = new Date(news.event_time);
+                return !isNaN(d.getTime()) && isSameLocalDay(d);
+            })
+            : impactMatched;
+
+        const maxVisible = newsExpanded ? (newsViewMode === 'today' ? 12 : 16) : 4;
+        const nowMs = now.getTime();
+
+        // When collapsed, prioritize upcoming events so the trader sees what matters next
+        let orderedNews = allMatchedNews;
+        if (!newsExpanded && allMatchedNews.length > maxVisible) {
+            const firstUpcomingIdx = allMatchedNews.findIndex((n) => {
+                const t = new Date(n.event_time).getTime();
+                return !isNaN(t) && t >= nowMs;
+            });
+            if (firstUpcomingIdx > 0) {
+                const startIdx = Math.max(0, Math.min(firstUpcomingIdx - 1, allMatchedNews.length - maxVisible));
+                orderedNews = allMatchedNews.slice(startIdx, startIdx + maxVisible);
+            } else {
+                orderedNews = allMatchedNews.slice(0, maxVisible);
+            }
+        } else {
+            orderedNews = allMatchedNews.slice(0, maxVisible);
+        }
+
+        const filteredNews = orderedNews;
+        const hasMoreNews = allMatchedNews.length > 4;
+
+        if (filteredNews.length === 0) {
             return (
-                <div className="flex flex-col items-center justify-center py-8 px-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5 text-center my-1">
-                    <Calendar size={24} className="text-slate-400 dark:text-slate-400 mb-3" />
-                    <h4 className="text-[13px] font-bold text-slate-900 dark:text-white mb-1">No High Impact Events</h4>
-                    <p className="text-[12px] text-slate-500 dark:text-slate-400 max-w-[180px]">No high impact market events scheduled for this period.</p>
+                <div className="px-3.5 py-6 text-center">
+                    <p className="text-[12.5px] font-medium text-slate-800 dark:text-slate-100">
+                        {newsViewMode === 'today' ? "No major news today" : "No upcoming news"}
+                    </p>
+                    {newsViewMode === 'today' && impactMatched.length > 0 && (
+                        <button
+                            type="button"
+                            onClick={() => setNewsViewMode('week')}
+                            className="mt-2 px-3.5 py-1.5 rounded-full tactile-white-pill font-semibold text-[11.5px] cursor-pointer"
+                        >
+                            View this week ({impactMatched.length})
+                        </button>
+                    )}
                 </div>
             );
         }
 
-        return filteredCalendar.map((news, i) => {
-            const dateObj = new Date(news.event_time);
-            const displayTime = dateObj.toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
-            const displayImpact = news.impact?.toUpperCase() || "HIGH";
+        const nextUpcomingId = allMatchedNews.find((n) => {
+            const t = new Date(n.event_time).getTime();
+            return !isNaN(t) && t >= nowMs;
+        })?.id;
 
-            return (
-                <div key={i} className="flex gap-3 items-center group">
-                    <div className="shrink-0 px-2 py-1.5 min-w-[54px] text-center bg-slate-150/40 dark:bg-[#1A1F2B] border border-slate-200/50 dark:border-white/5 rounded-xl flex flex-col justify-center items-center shadow-3xs">
-                        <span className="text-[9px] font-bold text-slate-850 dark:text-slate-250 leading-none tracking-tight">{displayTime}</span>
-                        <span className="text-[7.5px] font-bold text-slate-455 uppercase mt-1 tracking-wider">{news.currency || "USD"}</span>
-                    </div>
+        const formatCountdown = (diffMs: number) => {
+            const totalMin = Math.max(1, Math.round(diffMs / 60000));
+            const hrs = Math.floor(totalMin / 60);
+            const mins = totalMin % 60;
+            if (hrs >= 24) return `in ${Math.floor(hrs / 24)}d`;
+            if (hrs > 0) return mins > 0 ? `in ${hrs}h ${mins}m` : `in ${hrs}h`;
+            return `in ${mins}m`;
+        };
 
-                    <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-1.5">
-                            <h4 className="text-[13px] font-semibold text-slate-900 dark:text-white truncate leading-snug">
-                                {news.event_title}
-                            </h4>
-                            <span className="shrink-0 text-[7.5px] font-bold px-1.5 py-0.5 rounded leading-none bg-rose-500/15 text-rose-650 dark:text-rose-400 border border-rose-500/10">
-                                HIGH
-                            </span>
-                        </div>
+        return (
+            <>
+                <div className="divide-y divide-slate-100 dark:divide-white/[0.06]">
+                    {filteredNews.map((news, i) => {
+                        const dateObj = new Date(news.event_time);
+                        const isValidDate = !isNaN(dateObj.getTime());
+                        const eventMs = isValidDate ? dateObj.getTime() : 0;
+                        const isPast = isValidDate && eventMs < nowMs;
+                        const isNextUp = Boolean(nextUpcomingId && news.id === nextUpcomingId);
 
-                        <div className="flex gap-3 mt-1.5 text-[10px] font-semibold text-slate-455 dark:text-slate-400 leading-none">
-                            <span>Forecast: <strong className="text-slate-655 dark:text-slate-400 font-bold">{news.forecast || "--"}</strong></span>
-                            <span>Previous: <strong className="text-slate-655 dark:text-slate-400 font-bold">{news.previous || "--"}</strong></span>
-                        </div>
-                    </div>
+                        const displayTime = isValidDate
+                            ? dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
+                            : '—';
+                        const displayDay = isValidDate && newsViewMode === 'week'
+                            ? dateObj.toLocaleDateString([], { weekday: 'short' })
+                            : null;
+
+                        const impactLower = (news.impact || 'low').toLowerCase();
+                        const impactMeta =
+                            impactLower === 'high'
+                                ? {
+                                    label: 'High',
+                                    folderClass: 'text-rose-600 fill-rose-500/85 dark:text-rose-400 dark:fill-rose-500/80',
+                                    textClass: 'text-rose-600 dark:text-rose-400',
+                                }
+                                : impactLower === 'medium'
+                                    ? {
+                                        label: 'Medium',
+                                        folderClass: 'text-orange-500 fill-orange-400/85 dark:text-orange-400 dark:fill-orange-400/80',
+                                        textClass: 'text-orange-600 dark:text-orange-400',
+                                    }
+                                    : {
+                                        label: 'Low',
+                                        folderClass: 'text-amber-500 fill-amber-300/90 dark:text-amber-400 dark:fill-amber-300/75',
+                                        textClass: 'text-amber-600 dark:text-amber-400',
+                                    };
+
+                        return (
+                            <div
+                                key={news.id || i}
+                                className={`flex items-center gap-2.5 px-3.5 py-2 transition-colors hover:bg-slate-50/80 dark:hover:bg-white/[0.025] ${
+                                    isNextUp ? 'bg-slate-50/80 dark:bg-white/[0.03]' : ''
+                                }`}
+                            >
+                                {/* Colored Impact Folder Icon (Red = High, Orange = Medium, Yellow = Low) */}
+                                <Folder
+                                    size={15}
+                                    strokeWidth={1.75}
+                                    aria-label={`${impactMeta.label} impact`}
+                                    className={`shrink-0 ${impactMeta.folderClass} ${isPast ? 'opacity-50' : ''}`}
+                                />
+
+                                {/* Event Title + Timing & Currency Pair */}
+                                <div className="flex-1 min-w-0">
+                                    <p
+                                        title={news.event_title}
+                                        className={`text-[12px] font-medium truncate leading-tight ${
+                                            isPast
+                                                ? 'text-slate-500 dark:text-slate-400'
+                                                : 'text-slate-900 dark:text-slate-100'
+                                        }`}
+                                    >
+                                        {news.event_title}
+                                    </p>
+                                    <div className="flex items-center gap-1.5 mt-0.5 text-[10.5px] tabular-nums leading-tight">
+                                        <span className={isNextUp ? 'text-slate-900 dark:text-white font-semibold' : 'text-slate-400 dark:text-slate-500'}>
+                                            {displayDay ? `${displayDay} ${displayTime}` : displayTime}
+                                        </span>
+                                        <span className="text-slate-300 dark:text-slate-600">·</span>
+                                        <span className="font-semibold text-slate-600 dark:text-slate-300">
+                                            {news.currency || 'USD'}
+                                        </span>
+                                        {isNextUp && (
+                                            <>
+                                                <span className="text-slate-300 dark:text-slate-600">·</span>
+                                                <span className="text-slate-700 dark:text-slate-200 font-medium">
+                                                    {formatCountdown(eventMs - nowMs)}
+                                                </span>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Clear Impact Level Label */}
+                                <span className={`shrink-0 text-[10.5px] font-semibold leading-none ${impactMeta.textClass} ${isPast ? 'opacity-60' : ''}`}>
+                                    {impactMeta.label}
+                                </span>
+                            </div>
+                        );
+                    })}
                 </div>
-            );
-        });
-    }, [calendar, calendarFilters]);
+
+                {hasMoreNews && (
+                    <button
+                        type="button"
+                        onClick={() => setNewsExpanded((prev) => !prev)}
+                        className="w-full py-2 text-[11px] font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50/70 dark:hover:bg-white/[0.03] border-t border-slate-100 dark:border-white/[0.06] transition-colors cursor-pointer"
+                    >
+                        {newsExpanded ? 'Show less' : `Show all (${allMatchedNews.length})`}
+                    </button>
+                )}
+            </>
+        );
+    }, [calendar, calendarFilters, newsViewMode, newsExpanded]);
 
     const suggestionsRender = useMemo(() => {
         const source = finalSuggestions;
@@ -1252,7 +1431,7 @@ export default function Home() {
                                     </div>
                                     <div className="space-y-3">
                                         <ToggleRow label="My Watchlist" checked={showWatchlist} onChange={(v) => handleToggle(setShowWatchlist, v)} />
-                                        <ToggleRow label="Economic Calendar" checked={showCalendar} onChange={(v) => handleToggle(setShowCalendar, v)} />
+                                        <ToggleRow label="News" checked={showCalendar} onChange={(v) => handleToggle(setShowCalendar, v)} />
                                         <ToggleRow label="Followers Stats" checked={showFollowers} onChange={(v) => handleToggle(setShowFollowers, v)} />
                                     </div>
 
@@ -1291,7 +1470,7 @@ export default function Home() {
                                                         <button
                                                             key={type}
                                                             type="button"
-                                                            onClick={() => setNewSymbolType(type)}
+                                                            onClick={() => setNewSymbolType(type as any)}
                                                             className={`flex-1 py-1 rounded-md uppercase tracking-wider transition-all ${newSymbolType === type
                                                                 ? 'bg-white dark:bg-[#222] text-slate-900 dark:text-white shadow-xs'
                                                                 : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-350'
@@ -1302,7 +1481,7 @@ export default function Home() {
                                                     ))}
                                                 </div>
                                                 <button
-                                                    onClick={handleAddSymbol}
+                                                    onClick={() => handleAddSymbol()}
                                                     disabled={isAddingSymbol || !newSymbolName.trim()}
                                                     className="px-4 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-extrabold text-[10px] uppercase tracking-wider transition-all disabled:opacity-50 select-none flex items-center gap-1 shadow-sm"
                                                 >
@@ -1410,7 +1589,7 @@ export default function Home() {
                                     <div className="p-4 rounded-[22px] bg-white dark:bg-[#17171A] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.045)] dark:shadow-none">
                                         <div className="flex items-center justify-between mb-3.5">
                                             <h3 className="text-[14.5px] font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-                                                <IconlyGraph size={15} set="curved" primaryColor="currentColor" className="text-[#2563EB] shrink-0" />
+                                                <IconlyGraph size={15} set="curved" primaryColor="currentColor" className="text-slate-700 dark:text-slate-300 shrink-0" />
                                                 <span>My Watchlist</span>
                                             </h3>
                                             <button
@@ -1419,10 +1598,10 @@ export default function Home() {
                                                     setCustomizeActiveTab('watchlist');
                                                     setShowCustomizeModal(true);
                                                 }}
-                                                className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white dark:bg-white/[0.06] border border-slate-200/90 dark:border-white/15 hover:bg-slate-50 dark:hover:bg-white/[0.11] text-slate-900 dark:text-white font-semibold text-[11.5px] shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition-all cursor-pointer select-none active:scale-[0.97]"
+                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full tactile-white-pill font-semibold text-[11.5px] cursor-pointer select-none"
                                                 title="Add Pairs"
                                             >
-                                                <Plus size={11.5} strokeWidth={2.4} />
+                                                <Plus size={12} strokeWidth={2.4} />
                                                 <span>Add Pair</span>
                                             </button>
                                         </div>
@@ -1439,39 +1618,75 @@ export default function Home() {
                                                             setCustomizeActiveTab('watchlist');
                                                             setShowCustomizeModal(true);
                                                         }}
-                                                        className="px-4 py-1.5 rounded-full bg-white dark:bg-white/[0.06] border border-slate-200/90 dark:border-white/15 hover:bg-slate-50 text-slate-900 dark:text-white font-semibold text-[12px] active:scale-[0.97] inline-flex items-center gap-1.5 cursor-pointer select-none">
+                                                        className="px-4 py-1.5 rounded-full tactile-white-pill font-semibold text-[12px] inline-flex items-center gap-1.5 cursor-pointer select-none">
                                                         <Plus size={12} strokeWidth={2.5} />
                                                         <span>Add Pair</span>
                                                     </button>
                                                 </div>
                                             ) : (
                                                 watchlist.map((asset: any, i) => {
-                                                    const isPositive = asset.is_positive !== undefined ? asset.is_positive : (asset.symbol_type === "crypto" || asset.is_pinned);
-                                                    const displaySymbol = asset.symbol;
-                                                    let displayName = asset.symbol_type === "forex" ? "Forex Spot" : asset.symbol_type === "commodity" ? "Commodity Spot" : asset.symbol_type === "crypto" ? "Crypto Spot" : asset.symbol_type;
-                                                    if (['XAU', 'XAG', 'WTI', 'BRENT', 'USOIL', 'UKOIL'].some(c => displaySymbol.includes(c))) {
+                                                    const rawSymbol = String(asset.symbol || '').toUpperCase();
+                                                    const normalizedDisplay = rawSymbol.replace(/\/UAD$/, '/USD').replace(/UAD$/, 'USD');
+                                                    let displayName =
+                                                        asset.symbol_type === "forex"
+                                                            ? "Forex Spot"
+                                                            : asset.symbol_type === "commodity"
+                                                                ? "Commodity Spot"
+                                                                : asset.symbol_type === "crypto"
+                                                                    ? "Crypto Spot"
+                                                                    : asset.symbol_type === "index"
+                                                                        ? "Index"
+                                                                        : asset.symbol_type === "equity"
+                                                                            ? "Stock"
+                                                                            : (asset.symbol_type || "Market");
+                                                    if (normalizedDisplay.startsWith('XAU')) {
+                                                        displayName = "Gold Spot";
+                                                    } else if (['XAG', 'WTI', 'BRENT', 'USOIL', 'UKOIL'].some(c => normalizedDisplay.includes(c))) {
                                                         displayName = "Commodity Spot";
                                                     }
-                                                    const price = asset.price && asset.price !== '—' ? asset.price : '—';
-                                                    const change = asset.change && asset.change !== '—' ? asset.change : '—';
+
+                                                    const hasLivePrice = Boolean(asset.price && asset.price !== '—' && asset.price !== 'Unavailable');
+                                                    const hasLiveChange = Boolean(asset.change && asset.change !== '—');
+                                                    const isPositive = asset.is_positive !== undefined ? asset.is_positive : true;
 
                                                     return (
-                                                        <div key={i} className="flex items-center justify-between group">
-                                                            <div className="flex items-center gap-2.5 min-w-0">
-                                                                <div>
-                                                                    <p className="text-[13px] font-semibold text-slate-900 dark:text-white leading-tight tracking-tight">{displaySymbol}</p>
-                                                                    <p className="text-[10.5px] font-medium text-slate-400 leading-none mt-0.5 capitalize">{displayName}</p>
+                                                        <div key={asset.id || i} className="flex items-center justify-between gap-2 group">
+                                                            <div className="flex items-center gap-2 min-w-0">
+                                                                <div className="min-w-0">
+                                                                    <p className="text-[13px] font-semibold text-slate-900 dark:text-white leading-tight tracking-tight truncate">
+                                                                        {normalizedDisplay}
+                                                                    </p>
+                                                                    <p className="text-[10.5px] font-medium text-slate-400 leading-none mt-0.5 capitalize truncate">
+                                                                        {displayName}
+                                                                    </p>
                                                                 </div>
                                                             </div>
 
-                                                            <div className="text-right shrink-0">
-                                                                <p className="text-[13px] font-semibold text-slate-900 dark:text-white leading-tight tabular-nums">{price}</p>
-                                                                <span className={`inline-block text-[9.5px] font-bold px-1.5 py-0.5 rounded-md mt-0.5 leading-none tabular-nums ${isPositive
-                                                                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                                                                    : "bg-rose-500/10 text-rose-600 dark:text-rose-400"
+                                                            <div className="flex items-center gap-1.5 shrink-0">
+                                                                <div className="text-right">
+                                                                    <p className={`text-[13px] font-semibold leading-tight tabular-nums ${hasLivePrice ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-slate-500'}`}>
+                                                                        {hasLivePrice ? asset.price : '···'}
+                                                                    </p>
+                                                                    <span className={`inline-block text-[9.5px] font-bold px-1.5 py-0.5 rounded-md mt-0.5 leading-none tabular-nums ${
+                                                                        !hasLiveChange
+                                                                            ? "bg-slate-100 dark:bg-white/[0.06] text-slate-400"
+                                                                            : isPositive
+                                                                                ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                                                                                : "bg-rose-500/10 text-rose-600 dark:text-rose-400"
                                                                     }`}>
-                                                                    {change}
-                                                                </span>
+                                                                        {hasLiveChange ? asset.change : '—'}
+                                                                    </span>
+                                                                </div>
+                                                                {asset.id && (
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => handleDeleteSymbol(asset.id)}
+                                                                        title={`Remove ${normalizedDisplay}`}
+                                                                        className="opacity-0 group-hover:opacity-100 focus:opacity-100 p-1 -mr-1 rounded-lg text-slate-300 hover:text-rose-500 hover:bg-rose-500/10 transition-all cursor-pointer"
+                                                                    >
+                                                                        <X size={12} />
+                                                                    </button>
+                                                                )}
                                                             </div>
                                                         </div>
                                                     );
@@ -1481,19 +1696,68 @@ export default function Home() {
                                     </div>
                                 )}
 
-                                {/* B. Economic Calendar News */}
+                                {/* B. Market News Ledger */}
                                 {showCalendar && (
-                                    <div className="p-4 rounded-[22px] bg-white dark:bg-[#17171A] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.045)] dark:shadow-none">
-                                        <div className="flex items-center justify-between gap-2 mb-3.5">
-                                            <h3 className="text-[14.5px] font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-                                                <IconlyDiscovery size={15} set="curved" primaryColor="currentColor" className="text-slate-400 shrink-0" />
-                                                <span>Economic Calendar</span>
-                                            </h3>
-                                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-rose-50 text-rose-600 dark:bg-rose-500/15 dark:text-rose-400 border border-rose-200/70 dark:border-rose-500/20">
-                                                High Impact
-                                            </span>
+                                    <div className="rounded-[20px] bg-white dark:bg-[#17171A] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_1px_8px_rgba(15,23,42,0.04)] dark:shadow-none overflow-hidden">
+                                        {/* Compact Header */}
+                                        <div className="flex items-center justify-between gap-2 px-3.5 py-2.5 border-b border-slate-100 dark:border-white/[0.06]">
+                                            <div className="flex items-baseline gap-2 min-w-0">
+                                                <h3 className="text-[13.5px] font-semibold text-slate-900 dark:text-white leading-none">
+                                                    News
+                                                </h3>
+                                                <span className="text-[11px] text-slate-400 dark:text-slate-500 leading-none tabular-nums">
+                                                    {new Date().toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                                                </span>
+                                            </div>
+
+                                            <div className="flex items-center gap-1 shrink-0">
+                                                <div className="inline-flex items-center bg-slate-100 dark:bg-white/[0.06] p-0.5 rounded-lg">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setNewsViewMode('today');
+                                                            setNewsExpanded(false);
+                                                        }}
+                                                        className={`px-2 py-0.5 rounded-[6px] text-[10.5px] font-medium transition-colors cursor-pointer ${
+                                                            newsViewMode === 'today'
+                                                                ? 'bg-white dark:bg-[#26262B] text-slate-900 dark:text-white shadow-[0_1px_2px_rgba(15,23,42,0.06)]'
+                                                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+                                                        }`}
+                                                    >
+                                                        Today
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setNewsViewMode('week');
+                                                            setNewsExpanded(false);
+                                                        }}
+                                                        className={`px-2 py-0.5 rounded-[6px] text-[10.5px] font-medium transition-colors cursor-pointer ${
+                                                            newsViewMode === 'week'
+                                                                ? 'bg-white dark:bg-[#26262B] text-slate-900 dark:text-white shadow-[0_1px_2px_rgba(15,23,42,0.06)]'
+                                                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+                                                        }`}
+                                                    >
+                                                        Week
+                                                    </button>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setCustomizeActiveTab('calendar');
+                                                        setShowCustomizeModal(true);
+                                                    }}
+                                                    title="Filter news"
+                                                    aria-label="Filter news"
+                                                    className="w-6 h-6 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-colors cursor-pointer"
+                                                >
+                                                    <Sliders size={12.5} strokeWidth={1.75} />
+                                                </button>
+                                            </div>
                                         </div>
-                                        <div className="space-y-3">
+
+                                        {/* Compact Rows */}
+                                        <div>
                                             {calendarRender}
                                         </div>
                                     </div>
@@ -1858,7 +2122,7 @@ export default function Home() {
                                         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 h-[800px]">
                                             <div className="flex flex-col h-full">
                                                 <div className="flex items-center justify-between mb-4">
-                                                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight shrink-0">Economic Calendar</h2>
+                                                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight shrink-0">Economic News</h2>
                                                 </div>
                                                 <div className="bg-white dark:bg-[#1C1C1E] rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm overflow-hidden flex-1">
                                                     <CustomEconomicCalendar />
@@ -1917,7 +2181,7 @@ export default function Home() {
                                                 <button
                                                     type="button"
                                                     onClick={() => navigate('/discover')}
-                                                    className="px-3 py-1 rounded-full bg-white dark:bg-white/[0.06] border border-slate-200/90 dark:border-white/15 hover:bg-slate-50 dark:hover:bg-white/[0.11] text-[11.5px] font-semibold text-slate-900 dark:text-white transition-all active:scale-[0.97] cursor-pointer"
+                                                    className="px-3.5 py-1.5 rounded-full tactile-white-pill text-[11.5px] font-semibold cursor-pointer"
                                                 >
                                                     View all
                                                 </button>
@@ -2029,232 +2293,362 @@ export default function Home() {
 
 
             
-            {/* Modal Dialog for Customize Dashboard / Watchlist Manager (Image 2) */}
-            <AnimatePresence>
-                {showCustomizeModal && (
-                    <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
-                        {/* Backdrop */}
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            onClick={() => setShowCustomizeModal(false)}
-                            className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"
-                        />
+            {/* Bottom Sheet Drawer matching Suggest & Report (with backside page scale & blur) */}
+            {typeof document !== 'undefined' && createPortal(
+                <AnimatePresence>
+                    {showCustomizeModal && (
+                        <div className="fixed inset-0 z-[99999] flex flex-col justify-end items-center pointer-events-auto">
+                            {/* Backdrop (Darkens and complements tf-sheet-open backside scale & blur) */}
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                onClick={() => setShowCustomizeModal(false)}
+                                className="fixed inset-0 bg-black/45 backdrop-blur-[2px] cursor-pointer"
+                            />
 
-                        {/* Modal Dialog Content (Exact 1:1 match of Image 2) */}
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.95, y: 10 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                            transition={{ duration: 0.18, ease: "easeOut" }}
-                            onClick={(e) => e.stopPropagation()}
-                            className="relative w-full max-w-[360px] p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#171719] border border-slate-200 dark:border-white/10 shadow-2xl z-10 text-slate-800 dark:text-slate-100 max-h-[90vh] overflow-y-auto amazing-scrollbar"
-                        >
-                            <div className="flex items-center justify-between mb-4">
-                                <h4 className="text-[15px] font-bold text-slate-900 dark:text-white tracking-tight">Customize Dashboard</h4>
+                            {/* Bottom Sheet Drawer (Exact match to SuggestFeatureModal / ReportProblemModal) */}
+                            <motion.div
+                                initial={{ y: "100%" }}
+                                animate={{ y: 0 }}
+                                exit={{ y: "100%" }}
+                                transition={{ type: "spring", damping: 32, stiffness: 320 }}
+                                drag="y"
+                                dragConstraints={{ top: 0 }}
+                                dragElastic={{ top: 0, bottom: 0.6 }}
+                                onDragEnd={(_, info) => {
+                                    if (info.offset.y > 100 || info.velocity.y > 400) {
+                                        setShowCustomizeModal(false);
+                                    }
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                                className="relative w-full max-w-[820px] rounded-t-[28px] sm:rounded-t-[32px] bg-white dark:bg-[#121214] border-t border-x border-slate-200/90 dark:border-white/10 shadow-[0_-15px_45px_rgba(0,0,0,0.18)] dark:shadow-[0_-20px_50px_rgba(0,0,0,0.85)] max-h-[88vh] overflow-y-auto amazing-scrollbar text-slate-900 dark:text-white font-sans z-10"
+                            >
+                                {/* Top Pull Handle */}
+                                <div className="w-10 h-1 rounded-full bg-slate-300 dark:bg-white/20 mx-auto mt-3 mb-1 cursor-grab active:cursor-grabbing hover:bg-slate-400 dark:hover:bg-white/40 transition-colors" />
+
+                                {/* Circular Close Button */}
                                 <button
                                     type="button"
                                     onClick={() => setShowCustomizeModal(false)}
-                                    className="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                                    className="absolute top-4 right-4 w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/15 text-slate-500 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer"
                                     title="Close"
                                 >
-                                    <X size={16} />
+                                    <X size={14} strokeWidth={2.4} />
                                 </button>
-                            </div>
 
-                            {/* Tabs Header */}
-                            <div className="flex bg-slate-100 dark:bg-white/5 p-1 rounded-xl mb-4 text-[10px] font-bold">
-                                {(['layout', 'watchlist', 'calendar'] as const).map((tab) => (
-                                    <button
-                                        key={tab}
-                                        type="button"
-                                        onClick={() => setCustomizeActiveTab(tab)}
-                                        className={`flex-1 py-1.5 rounded-lg uppercase tracking-wider transition-all cursor-pointer ${customizeActiveTab === tab
-                                            ? 'bg-white dark:bg-[#222] text-blue-600 dark:text-blue-400 shadow-sm border border-slate-200/50 dark:border-white/5'
-                                            : 'text-slate-400 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
-                                            }`}
-                                    >
-                                        {tab}
-                                    </button>
-                                ))}
-                            </div>
+                                {/* 2-Column Content Grid matching Suggest & Report */}
+                                <div className="p-6 sm:p-8 pt-3 sm:pt-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-6 md:gap-9 items-start">
+                                        {/* Left Column: Title + Subtitle + Navigation */}
+                                        <div className="space-y-4">
+                                            <div className="space-y-1">
+                                                <h2 className="text-xl sm:text-[22px] font-bold text-slate-900 dark:text-white tracking-tight leading-tight">
+                                                    {customizeActiveTab === 'watchlist'
+                                                        ? 'My Watchlist'
+                                                        : customizeActiveTab === 'calendar'
+                                                            ? 'News'
+                                                            : 'Home Layout'}
+                                                </h2>
+                                                <p className="text-[12px] text-slate-500 dark:text-zinc-400 leading-relaxed">
+                                                    {customizeActiveTab === 'watchlist'
+                                                        ? 'Track live prices across crypto, forex, gold, indices & stocks.'
+                                                        : customizeActiveTab === 'calendar'
+                                                            ? 'Choose which scheduled market releases show in your sidebar.'
+                                                            : 'Toggle sidebar panels on or off for your workspace.'}
+                                                </p>
+                                            </div>
 
-                            {/* Tab 1: Layout Toggles */}
-                            {customizeActiveTab === 'layout' && (
-                                <motion.div
-                                    initial={{ opacity: 0, y: 5 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    className="space-y-4"
-                                >
-                                    <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-white/5">
-                                        <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Toggle Sections</span>
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                const anyVisible = showWatchlist || showCalendar || showFollowers || showRequests || showSuggestions || showStreaks || showDisciplined;
-                                                if (anyVisible) {
-                                                    setShowWatchlist(false);
-                                                    setShowCalendar(false);
-                                                    setShowFollowers(false);
-                                                    setShowRequests(false);
-                                                    setShowSuggestions(false);
-                                                    setShowStreaks(false);
-                                                    setShowDisciplined(false);
-                                                } else {
-                                                    handleToggle(setShowWatchlist, true);
-                                                    handleToggle(setShowCalendar, true);
-                                                    handleToggle(setShowFollowers, true);
-                                                    handleToggle(setShowRequests, true);
-                                                    handleToggle(setShowSuggestions, true);
-                                                    handleToggle(setShowStreaks, true);
-                                                    handleToggle(setShowDisciplined, true);
-                                                }
-                                            }}
-                                            className="text-[10px] font-bold text-blue-600 dark:text-blue-400 hover:underline"
-                                        >
-                                            {(showWatchlist || showCalendar || showFollowers || showRequests || showSuggestions || showStreaks || showDisciplined) ? 'Hide All' : 'Show All'}
-                                        </button>
-                                    </div>
+                                            {/* Consistent Monochrome Tab Switcher */}
+                                            <div className="grid grid-cols-3 md:grid-cols-1 gap-1 bg-[#f4f5f7] dark:bg-[#1a1b20] p-1 rounded-xl">
+                                                {([
+                                                    { id: 'watchlist', label: 'Watchlist' },
+                                                    { id: 'calendar', label: 'News' },
+                                                    { id: 'layout', label: 'Layout' },
+                                                ] as const).map((tab) => (
+                                                    <button
+                                                        key={tab.id}
+                                                        type="button"
+                                                        onClick={() => setCustomizeActiveTab(tab.id)}
+                                                        className={`px-3 py-2 rounded-lg text-[12px] font-medium text-center md:text-left transition-colors cursor-pointer ${
+                                                            customizeActiveTab === tab.id
+                                                                ? 'bg-white dark:bg-[#26272e] text-slate-900 dark:text-white shadow-[0_1px_2px_rgba(15,23,42,0.06)]'
+                                                                : 'text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
+                                                        }`}
+                                                    >
+                                                        {tab.label}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
 
-                                    <div className="space-y-3">
-                                        <ToggleRow label="Watchlist" checked={showWatchlist} onChange={(v) => handleToggle(setShowWatchlist, v)} />
-                                        <ToggleRow label="Economic Calendar" checked={showCalendar} onChange={(v) => handleToggle(setShowCalendar, v)} />
-                                        <ToggleRow label="Followers Stats" checked={showFollowers} onChange={(v) => handleToggle(setShowFollowers, v)} />
-                                        <ToggleRow label="Requests" checked={showRequests} onChange={(v) => handleToggle(setShowRequests, v)} />
-                                        <ToggleRow label="Suggestions" checked={showSuggestions} onChange={(v) => handleToggle(setShowSuggestions, v)} />
-                                        <ToggleRow label="Winning Streaks" checked={showStreaks} onChange={(v) => handleToggle(setShowStreaks, v)} />
-                                        <ToggleRow label="Top Disciplined" checked={showDisciplined} onChange={(v) => handleToggle(setShowDisciplined, v)} />
-                                    </div>
-                                </motion.div>
-                            )}
-
-                            {/* Tab 2: Watchlist Manager (Image 2) */}
-                            {customizeActiveTab === 'watchlist' && (
-                                <motion.div
-                                    initial={{ opacity: 0, y: 5 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    className="space-y-4"
-                                >
-                                    <div>
-                                        <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Add Watchlist Pair</h5>
-                                        <div className="space-y-2">
-                                            <input
-                                                type="text"
-                                                placeholder={activeMarket === 'indian' ? "e.g. RELIANCE, HDFCBANK" : "e.g. BTC/USDT, EUR/USD"}
-                                                value={newSymbolName}
-                                                onChange={(e) => setNewSymbolName(e.target.value)}
-                                                onKeyDown={(e) => {
-                                                    if (e.key === 'Enter') handleAddSymbol();
-                                                }}
-                                                className="w-full px-3 py-2 text-[12px] font-semibold bg-slate-50 dark:bg-[#1A1A1C] border border-slate-200 dark:border-white/5 rounded-xl outline-none focus:border-blue-500 transition-colors text-slate-800 dark:text-white placeholder:text-slate-400"
-                                                autoFocus
-                                            />
-                                            <div className="flex gap-2">
-                                                <div className="flex-1 bg-slate-100 dark:bg-white/5 p-0.5 rounded-lg flex text-[10px] font-bold border border-slate-200/50 dark:border-white/5">
-                                                    {(activeMarket === 'indian' ? ['index', 'equity'] : ['crypto', 'forex', 'commodity']).map((type) => (
+                                        {/* Right Column: Active Tab Panel */}
+                                        <div className="min-w-0">
+                                            {/* Tab 1: Layout Toggles */}
+                                            {customizeActiveTab === 'layout' && (
+                                                <div className="space-y-3">
+                                                    <div className="flex items-center justify-between">
+                                                        <span className="text-[12px] font-medium text-slate-500 dark:text-zinc-400">Sidebar widgets</span>
                                                         <button
-                                                            key={type}
                                                             type="button"
-                                                            onClick={() => setNewSymbolType(type as any)}
-                                                            className={`flex-1 py-1 rounded-md uppercase tracking-wider transition-all cursor-pointer ${newSymbolType === type
-                                                                ? 'bg-white dark:bg-[#222] text-slate-900 dark:text-white shadow-xs'
-                                                                : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
-                                                                }`}
+                                                            onClick={() => {
+                                                                const anyVisible = showWatchlist || showCalendar || showFollowers || showRequests || showSuggestions || showStreaks || showDisciplined;
+                                                                if (anyVisible) {
+                                                                    setShowWatchlist(false);
+                                                                    setShowCalendar(false);
+                                                                    setShowFollowers(false);
+                                                                    setShowRequests(false);
+                                                                    setShowSuggestions(false);
+                                                                    setShowStreaks(false);
+                                                                    setShowDisciplined(false);
+                                                                } else {
+                                                                    handleToggle(setShowWatchlist, true);
+                                                                    handleToggle(setShowCalendar, true);
+                                                                    handleToggle(setShowFollowers, true);
+                                                                    handleToggle(setShowRequests, true);
+                                                                    handleToggle(setShowSuggestions, true);
+                                                                    handleToggle(setShowStreaks, true);
+                                                                    handleToggle(setShowDisciplined, true);
+                                                                }
+                                                            }}
+                                                            className="h-7 px-3 rounded-full tactile-white-pill text-[11.5px] font-semibold cursor-pointer"
                                                         >
-                                                            {type}
+                                                            {(showWatchlist || showCalendar || showFollowers || showRequests || showSuggestions || showStreaks || showDisciplined) ? 'Hide all' : 'Show all'}
                                                         </button>
-                                                    ))}
+                                                    </div>
+
+                                                    <div className="rounded-xl bg-[#f4f5f7] dark:bg-[#1a1b20] px-4 py-1.5 divide-y divide-slate-200/70 dark:divide-white/[0.06]">
+                                                        <div className="py-2.5"><ToggleRow label="My Watchlist" checked={showWatchlist} onChange={(v) => handleToggle(setShowWatchlist, v)} /></div>
+                                                        <div className="py-2.5"><ToggleRow label="News" checked={showCalendar} onChange={(v) => handleToggle(setShowCalendar, v)} /></div>
+                                                        <div className="py-2.5"><ToggleRow label="Community Reach" checked={showFollowers} onChange={(v) => handleToggle(setShowFollowers, v)} /></div>
+                                                        <div className="py-2.5"><ToggleRow label="Follow Requests" checked={showRequests} onChange={(v) => handleToggle(setShowRequests, v)} /></div>
+                                                        <div className="py-2.5"><ToggleRow label="Suggestions" checked={showSuggestions} onChange={(v) => handleToggle(setShowSuggestions, v)} /></div>
+                                                        <div className="py-2.5"><ToggleRow label="Top Winning Streaks" checked={showStreaks} onChange={(v) => handleToggle(setShowStreaks, v)} /></div>
+                                                        <div className="py-2.5"><ToggleRow label="Top Disciplined" checked={showDisciplined} onChange={(v) => handleToggle(setShowDisciplined, v)} /></div>
+                                                    </div>
                                                 </div>
+                                            )}
+
+                                            {/* Tab 2: Watchlist Manager */}
+                                            {customizeActiveTab === 'watchlist' && (() => {
+                                                const detectedPreview = newSymbolName.trim() ? detectSymbolDetails(newSymbolName) : null;
+                                                const quickPairs = activeMarket === 'indian'
+                                                    ? ['NIFTY50', 'BANKNIFTY', 'SENSEX', 'RELIANCE', 'HDFCBANK', 'TCS']
+                                                    : ['XAU/USD', 'EUR/USD', 'GBP/USD', 'BTC/USD', 'ETH/USD', 'NAS100', 'US30', 'USOIL'];
+                                                const existingSet = new Set(
+                                                    watchlist.map((w: any) => String(w.symbol || '').toUpperCase().replace(/\/UAD$/, '/USD').replace(/UAD$/, 'USD'))
+                                                );
+
+                                                return (
+                                                    <div className="space-y-4">
+                                                        {/* Inline Add Input */}
+                                                        <div className="flex items-center gap-2.5">
+                                                            <div className="relative flex-1">
+                                                                <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                                                                <input
+                                                                    type="text"
+                                                                    placeholder={activeMarket === 'indian' ? "NIFTY50, RELIANCE, TCS" : "XAU/USD, BTC/USD, EUR/USD"}
+                                                                    value={newSymbolName}
+                                                                    onChange={(e) => setNewSymbolName(e.target.value)}
+                                                                    onKeyDown={(e) => {
+                                                                        if (e.key === 'Enter') handleAddSymbol();
+                                                                    }}
+                                                                    className="w-full h-10 pl-9 pr-20 text-[12.5px] font-medium bg-[#f4f5f7] dark:bg-[#1a1b20] border border-transparent dark:border-white/5 rounded-xl outline-none focus:border-slate-300 dark:focus:border-white/25 transition-colors text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-500"
+                                                                    autoFocus
+                                                                />
+                                                                {detectedPreview && (
+                                                                    <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] font-medium px-2 py-0.5 rounded-md bg-white dark:bg-white/10 text-slate-600 dark:text-zinc-300 capitalize pointer-events-none">
+                                                                        {detectedPreview.type}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleAddSymbol()}
+                                                                disabled={isAddingSymbol || !newSymbolName.trim()}
+                                                                className="h-10 px-5 rounded-full tactile-white-pill font-semibold text-[12.5px] disabled:opacity-45 disabled:cursor-not-allowed select-none inline-flex items-center gap-1.5 cursor-pointer shrink-0"
+                                                            >
+                                                                {isAddingSymbol ? (
+                                                                    <Loader2 size={13} className="animate-spin" />
+                                                                ) : (
+                                                                    <Plus size={13.5} strokeWidth={2.3} />
+                                                                )}
+                                                                <span>Add</span>
+                                                            </button>
+                                                        </div>
+
+                                                        {/* 1-Click Quick Add Popular Pairs */}
+                                                        <div>
+                                                            <span className="block text-[11.5px] font-medium text-slate-500 dark:text-zinc-400 mb-2">
+                                                                Quick add
+                                                            </span>
+                                                            <div className="flex flex-wrap gap-2">
+                                                                {quickPairs.map((sym) => {
+                                                                    const alreadyAdded = existingSet.has(sym);
+                                                                    return (
+                                                                        <button
+                                                                            key={sym}
+                                                                            type="button"
+                                                                            disabled={alreadyAdded || isAddingSymbol}
+                                                                            onClick={() => handleAddSymbol(sym)}
+                                                                            className={`inline-flex items-center gap-1.5 h-8 px-3.5 rounded-full text-[11.5px] font-semibold select-none ${
+                                                                                alreadyAdded
+                                                                                    ? 'bg-[#f4f5f7] dark:bg-[#1a1b20] text-slate-400 dark:text-zinc-500 cursor-default'
+                                                                                    : 'tactile-white-pill cursor-pointer'
+                                                                            }`}
+                                                                        >
+                                                                            {alreadyAdded ? (
+                                                                                <Check size={11} strokeWidth={2.2} />
+                                                                            ) : (
+                                                                                <Plus size={11} strokeWidth={2} />
+                                                                            )}
+                                                                            <span>{sym}</span>
+                                                                        </button>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Active Watchlist Pairs */}
+                                                        <div>
+                                                            <span className="block text-[11.5px] font-medium text-slate-500 dark:text-zinc-400 mb-2">
+                                                                Your pairs ({watchlist.length})
+                                                            </span>
+                                                            <div className="max-h-[190px] overflow-y-auto amazing-scrollbar pr-0.5 space-y-1.5">
+                                                                {watchlist.length === 0 ? (
+                                                                    <div className="py-5 px-4 rounded-xl bg-[#f4f5f7] dark:bg-[#1a1b20] text-center">
+                                                                        <p className="text-[12px] text-slate-400 dark:text-zinc-500">
+                                                                            No pairs added yet — pick one above or type a symbol
+                                                                        </p>
+                                                                    </div>
+                                                                ) : (
+                                                                    watchlist.map((item: any) => {
+                                                                        const cleanSym = String(item.symbol || '').toUpperCase().replace(/\/UAD$/, '/USD').replace(/UAD$/, 'USD');
+                                                                        const hasPrice = Boolean(item.price && item.price !== '—' && item.price !== 'Unavailable');
+                                                                        const hasChange = Boolean(item.change && item.change !== '—');
+                                                                        return (
+                                                                            <div
+                                                                                key={item.id}
+                                                                                className="flex items-center justify-between px-3.5 py-2 rounded-xl bg-[#f4f5f7] dark:bg-[#1a1b20] transition-colors"
+                                                                            >
+                                                                                <div className="flex items-center gap-2 min-w-0">
+                                                                                    <span className="text-[12.5px] font-semibold text-slate-900 dark:text-white">{cleanSym}</span>
+                                                                                    <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-white dark:bg-white/[0.08] text-slate-500 dark:text-zinc-300 capitalize">
+                                                                                        {item.symbol_type || 'market'}
+                                                                                    </span>
+                                                                                </div>
+                                                                                <div className="flex items-center gap-2.5 shrink-0">
+                                                                                    {hasPrice && (
+                                                                                        <div className="text-right tabular-nums">
+                                                                                            <span className="text-[12px] font-medium text-slate-800 dark:text-slate-100 mr-1.5">{item.price}</span>
+                                                                                            {hasChange && (
+                                                                                                <span className={`text-[10.5px] font-medium ${item.is_positive ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                                                                                                    {item.change}
+                                                                                                </span>
+                                                                                            )}
+                                                                                        </div>
+                                                                                    )}
+                                                                                    <button
+                                                                                        type="button"
+                                                                                        onClick={() => handleDeleteSymbol(item.id)}
+                                                                                        className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                                                                                        title={`Remove ${cleanSym}`}
+                                                                                    >
+                                                                                        <Trash2 size={13} />
+                                                                                    </button>
+                                                                                </div>
+                                                                            </div>
+                                                                        );
+                                                                    })
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })()}
+
+                                            {/* Tab 3: News Preferences */}
+                                            {customizeActiveTab === 'calendar' && (
+                                                <div className="space-y-4">
+                                                    <div>
+                                                        <span className="block text-[11.5px] font-medium text-slate-500 dark:text-zinc-400 mb-2">
+                                                            Time window
+                                                        </span>
+                                                        <div className="grid grid-cols-2 gap-2.5">
+                                                            {([
+                                                                { id: 'today', label: "Today's news", desc: 'Events scheduled today' },
+                                                                { id: 'week', label: 'This week', desc: 'Full weekly schedule' },
+                                                            ] as const).map((opt) => (
+                                                                <button
+                                                                    key={opt.id}
+                                                                    type="button"
+                                                                    onClick={() => setNewsViewMode(opt.id)}
+                                                                    className={`p-3 rounded-xl border text-left transition-colors cursor-pointer ${
+                                                                        newsViewMode === opt.id
+                                                                            ? 'bg-white dark:bg-[#22232a] border-slate-900 dark:border-white/75 text-slate-900 dark:text-white shadow-[0_1px_3px_rgba(15,23,42,0.06)]'
+                                                                            : 'bg-[#f4f5f7] dark:bg-[#1a1b20] border-transparent text-slate-600 dark:text-zinc-300 hover:border-slate-300 dark:hover:border-white/15'
+                                                                    }`}
+                                                                >
+                                                                    <p className="text-[12.5px] font-semibold leading-tight">{opt.label}</p>
+                                                                    <p className="text-[11px] text-slate-400 dark:text-zinc-500 mt-0.5">{opt.desc}</p>
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+
+                                                    <div>
+                                                        <span className="block text-[11.5px] font-medium text-slate-500 dark:text-zinc-400 mb-2">
+                                                            Impact filter
+                                                        </span>
+                                                        <div className="rounded-xl bg-[#f4f5f7] dark:bg-[#1a1b20] px-4 py-1.5 divide-y divide-slate-200/70 dark:divide-white/[0.06]">
+                                                            <div className="py-2.5">
+                                                                <ToggleRow
+                                                                    label="High impact"
+                                                                    dotClass="bg-rose-500"
+                                                                    checked={calendarFilters.high}
+                                                                    onChange={(v) => setCalendarFilters(prev => ({ ...prev, high: v }))}
+                                                                />
+                                                            </div>
+                                                            <div className="py-2.5">
+                                                                <ToggleRow
+                                                                    label="Medium impact"
+                                                                    dotClass="bg-orange-500"
+                                                                    checked={calendarFilters.medium}
+                                                                    onChange={(v) => setCalendarFilters(prev => ({ ...prev, medium: v }))}
+                                                                />
+                                                            </div>
+                                                            <div className="py-2.5">
+                                                                <ToggleRow
+                                                                    label="Low impact"
+                                                                    dotClass="bg-amber-400"
+                                                                    checked={calendarFilters.low}
+                                                                    onChange={(v) => setCalendarFilters(prev => ({ ...prev, low: v }))}
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Footer Done Button */}
+                                            <div className="flex items-center justify-end gap-3 pt-5">
                                                 <button
                                                     type="button"
-                                                    onClick={handleAddSymbol}
-                                                    disabled={isAddingSymbol || !newSymbolName.trim()}
-                                                    className="px-4 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-extrabold text-[10px] uppercase tracking-wider transition-all disabled:opacity-50 select-none flex items-center gap-1 shadow-sm cursor-pointer"
+                                                    onClick={() => setShowCustomizeModal(false)}
+                                                    className="h-9 px-5 rounded-full tactile-white-pill text-[12.5px] font-semibold cursor-pointer"
                                                 >
-                                                    <Plus size={12} strokeWidth={2.5} />
-                                                    <span>+ ADD</span>
+                                                    Done
                                                 </button>
                                             </div>
                                         </div>
                                     </div>
-
-                                    <div>
-                                        <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Active Pairs ({watchlist.length})</h5>
-                                        <div className="max-h-[160px] overflow-y-auto amazing-scrollbar pr-1 space-y-2">
-                                            {watchlist.length === 0 ? (
-                                                <p className="text-[11px] font-medium text-slate-400 dark:text-slate-400 text-center py-4 bg-slate-50/50 dark:bg-white/5 rounded-xl border border-dashed border-slate-200/60 dark:border-white/5">
-                                                    No active watchlist pairs
-                                                </p>
-                                            ) : (
-                                                watchlist.map((item: any) => (
-                                                    <div
-                                                        key={item.id}
-                                                        className="flex items-center justify-between p-2 rounded-xl bg-slate-50/70 dark:bg-white/5 border border-slate-200/40 dark:border-white/5 hover:bg-slate-100/50 dark:hover:bg-slate-900/60 transition-colors"
-                                                    >
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="text-[12px] font-bold text-slate-900 dark:text-white uppercase tracking-tight">{item.symbol}</span>
-                                                            <span className={`text-[8.5px] font-extrabold px-1.5 py-0.5 rounded uppercase tracking-wider ${item.symbol_type === 'commodity'
-                                                                ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/10"
-                                                                : item.symbol_type === 'crypto'
-                                                                    ? "bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/10"
-                                                                    : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/10"
-                                                                }`}>
-                                                                {item.symbol_type}
-                                                            </span>
-                                                        </div>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => handleDeleteSymbol(item.id)}
-                                                            className="p-1 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition-all active:scale-95 cursor-pointer"
-                                                            title="Delete symbol"
-                                                        >
-                                                            <Trash2 size={12} />
-                                                        </button>
-                                                    </div>
-                                                ))
-                                            )}
-                                        </div>
-                                    </div>
-                                </motion.div>
-                            )}
-
-                            {/* Tab 3: Calendar Filters */}
-                            {customizeActiveTab === 'calendar' && (
-                                <motion.div
-                                    initial={{ opacity: 0, y: 5 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    className="space-y-4"
-                                >
-                                    <div>
-                                        <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Filter Events Impact</h5>
-                                        <p className="text-[10px] font-medium text-slate-400 dark:text-slate-400 mb-4 leading-normal">
-                                            Adjust calendar feed to only show events matching these risk levels.
-                                        </p>
-                                        <div className="space-y-3 bg-slate-50/50 dark:bg-white/5 p-3 rounded-2xl border border-slate-200/60 dark:border-white/5">
-                                            <ToggleRow
-                                                label="High Impact Risk"
-                                                checked={calendarFilters.high}
-                                                onChange={(v) => setCalendarFilters(prev => ({ ...prev, high: v }))}
-                                            />
-                                            <ToggleRow
-                                                label="Medium Impact Risk"
-                                                checked={calendarFilters.medium}
-                                                onChange={(v) => setCalendarFilters(prev => ({ ...prev, medium: v }))}
-                                            />
-                                            <ToggleRow
-                                                label="Low Impact Risk"
-                                                checked={calendarFilters.low}
-                                                onChange={(v) => setCalendarFilters(prev => ({ ...prev, low: v }))}
-                                            />
-                                        </div>
-                                    </div>
-                                </motion.div>
-                            )}
-                        </motion.div>
-                    </div>
-                )}
-            </AnimatePresence>
+                                </div>
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>,
+                document.body
+            )}
 
             {/* Mobile Floating Action Button: Create Post (Black Tactile Style from Reference Image) */}
             <button
