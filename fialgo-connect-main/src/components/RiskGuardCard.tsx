@@ -3,6 +3,8 @@ import { Switch } from "./ui/switch";
 import { motion, AnimatePresence } from "framer-motion";
 import { Lock } from "lucide-react";
 
+type CardIntent = "trading" | "warning" | "discipline" | "emergency";
+
 export function RiskGuardCard({
   icon: Icon,
   title,
@@ -10,7 +12,8 @@ export function RiskGuardCard({
   value,
   active,
   onToggle,
-  children
+  intent = "trading",
+  children,
 }: {
   icon: React.ElementType;
   title: string;
@@ -18,45 +21,94 @@ export function RiskGuardCard({
   value?: string | number;
   active: boolean;
   onToggle: (val: boolean) => void;
+  intent?: CardIntent;
   children?: React.ReactNode;
 }) {
-  return (
-    <div className="p-3 sm:p-4 rounded-[22px] transition-all flex flex-col justify-start relative overflow-hidden isolate border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:bg-none dark:bg-[#191B1E] dark:border-[1px] dark:border-[#2B2F35] dark:shadow-none">
+  const activeIconStyle =
+    intent === "emergency"
+      ? "bg-rose-50 text-rose-600 dark:bg-rose-500/15 dark:text-rose-400"
+      : intent === "warning"
+      ? "bg-amber-50 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400"
+      : "bg-blue-50 text-[#2563EB] dark:bg-blue-500/15 dark:text-blue-400";
 
-      {/* Header row — always visible & interactive */}
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex items-start gap-3 flex-1 min-w-0">
-          <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${active ? "bg-[#22D99A]/10 text-[#22D99A]" : "bg-slate-200/50 dark:bg-zinc-800 text-slate-500"
-            }`}>
-            <Icon size={16} strokeWidth={2} />
+  const activeBadgeStyle =
+    intent === "emergency"
+      ? "bg-rose-50 text-rose-600 dark:bg-rose-500/15 dark:text-rose-400"
+      : intent === "warning"
+      ? "bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400"
+      : "bg-blue-50 text-[#2563EB] dark:bg-blue-500/15 dark:text-blue-400";
+
+  // Hide redundant "Disabled" / "Active" pills when the toggle switch already communicates on/off
+  const valueStr = value !== undefined ? String(value).trim() : "";
+  const showValuePill =
+    valueStr.length > 0 &&
+    valueStr.toLowerCase() !== "disabled" &&
+    valueStr.toLowerCase() !== "active";
+
+  return (
+    <div
+      className={`p-3 sm:p-3.5 rounded-[16px] transition-all flex flex-col justify-start relative overflow-hidden isolate bg-white dark:bg-[#17171A] border shadow-[0_2px_8px_rgba(15,23,42,0.035),0_8px_20px_-10px_rgba(15,23,42,0.06)] dark:shadow-none ${
+        active
+          ? intent === "emergency"
+            ? "border-rose-200/80 dark:border-rose-500/25"
+            : intent === "warning"
+            ? "border-amber-200/80 dark:border-amber-500/25"
+            : "border-blue-200/80 dark:border-blue-500/25"
+          : "border-slate-200/70 dark:border-white/[0.07]"
+      }`}
+    >
+      {/* Header row — compact, zero clutter */}
+      <div className="flex items-center justify-between gap-2.5">
+        <div className="flex items-center gap-2.5 flex-1 min-w-0">
+          <div
+            className={`w-7 h-7 rounded-[9px] flex items-center justify-center shrink-0 transition-colors ${
+              active
+                ? activeIconStyle
+                : "bg-slate-100 dark:bg-white/[0.06] text-slate-500 dark:text-neutral-400"
+            }`}
+          >
+            <Icon size={14} strokeWidth={2} />
           </div>
-          <div className="flex-1 min-w-0 pt-0.5">
-            <h3 className={`text-[14px] font-semibold truncate leading-tight antialiased ${active ? "text-slate-800 dark:text-[#F5F7FA]" : "text-slate-500 dark:text-[#E2E7EE]"
-              }`}>
+          <div className="flex-1 min-w-0">
+            <h3
+              className={`text-[13px] font-semibold truncate leading-tight ${
+                active
+                  ? "text-slate-900 dark:text-white"
+                  : "text-slate-800 dark:text-neutral-200"
+              }`}
+            >
               {title}
             </h3>
-            <p className="text-[11px] font-normal text-slate-400 dark:text-[#778396] antialiased truncate mt-0.5">
+            <p className="text-[10.5px] text-slate-400 dark:text-neutral-500 truncate mt-0.5 leading-tight">
               {description}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 shrink-0">
-          {value !== undefined && (
-            <span className={`text-[11.5px] font-bold px-3 py-1.5 rounded-lg ${active ? "bg-emerald-50 text-emerald-600 dark:bg-[#22D99A]/10 dark:text-[#22D99A]" : "bg-slate-100 text-slate-500 dark:bg-[#22252A] dark:text-[#9AA6B6]"
-              }`}>
-              {value}
+        <div className="flex items-center gap-2 shrink-0">
+          {showValuePill && (
+            <span
+              className={`text-[10.5px] font-semibold px-2 py-0.5 rounded-md tabular-nums ${
+                active
+                  ? activeBadgeStyle
+                  : "bg-slate-100 text-slate-500 dark:bg-white/[0.06] dark:text-neutral-400"
+              }`}
+            >
+              {valueStr}
             </span>
           )}
-          <Switch checked={active} onChange={onToggle} />
+          <Switch size="sm" checked={active} onChange={onToggle} />
         </div>
       </div>
 
       {/* Children content area */}
       {children && (
-        <div className="relative pt-3 mt-2 border-t border-slate-100 dark:border-[#2B2F35]">
-          {/* Actual content */}
-          <div className={`transition-all duration-300 ${active ? " opacity-40 pointer-events-none select-none" : ""}`}>
+        <div className="relative pt-2.5 mt-2.5 border-t border-slate-100 dark:border-white/[0.06]">
+          <div
+            className={`transition-all duration-200 ${
+              active ? "opacity-35 pointer-events-none select-none blur-[1px]" : ""
+            }`}
+          >
             {children}
           </div>
 
@@ -66,16 +118,22 @@ export function RiskGuardCard({
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="absolute inset-0 flex flex-col items-center justify-center z-10 pt-2"
+                className="absolute inset-0 flex items-center justify-center z-10 pt-1.5"
               >
-                <div className="flex flex-col items-center gap-1 p-2 text-center">
-                  <Lock className="text-slate-400 dark:text-[#E8ECF2] mb-0.5" size={16} />
-                  <span className="text-[10px] font-bold tracking-widest text-slate-500 dark:text-[#E8ECF2] uppercase">
-                    Protocol Guard Active
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/95 dark:bg-[#1E1E22]/95 border border-slate-200/80 dark:border-white/10 shadow-sm">
+                  <Lock
+                    size={11}
+                    className={
+                      intent === "emergency"
+                        ? "text-rose-500"
+                        : intent === "warning"
+                        ? "text-amber-500"
+                        : "text-[#2563EB] dark:text-blue-400"
+                    }
+                  />
+                  <span className="text-[10px] font-semibold text-slate-700 dark:text-neutral-200">
+                    Guard active · turn off to edit
                   </span>
-                  <p className="text-[9px] font-medium text-slate-400/80 dark:text-[#9AA4B2] leading-tight max-w-[200px]">
-                    Configuration is locked to prevent trade disruption while running.
-                  </p>
                 </div>
               </motion.div>
             )}

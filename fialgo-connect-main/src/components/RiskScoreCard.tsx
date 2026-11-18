@@ -1,415 +1,180 @@
-import React, { useEffect, useState } from 'react';
-import { motion, useMotionValue, useTransform, animate } from 'framer-motion';
-import { ArrowRight } from 'lucide-react';
+import React, { useEffect, useState } from "react";
+import { motion, useMotionValue, useTransform, animate } from "framer-motion";
+import { ArrowRight, ShieldCheck } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
-/* ─────────────────────────────────────────────
-   Animated Counter – counts from 0 → target
-   easeOutExpo over 1200ms
-   ───────────────────────────────────────────── */
-function AnimatedCounter({ value, className }: { value: number; className?: string }) {
+function AnimatedCounter({
+  value,
+  className,
+}: {
+  value: number;
+  className?: string;
+}) {
   const count = useMotionValue(0);
   const rounded = useTransform(count, (v) => Math.round(v));
   const [display, setDisplay] = useState(0);
 
   useEffect(() => {
     const ctrl = animate(count, value, {
-      duration: 1.2,
+      duration: 1.0,
       ease: [0.16, 1, 0.3, 1] as [number, number, number, number],
     });
-    const unsub = rounded.on('change', (v) => setDisplay(v));
-    return () => { ctrl.stop(); unsub(); };
+    const unsub = rounded.on("change", (v) => setDisplay(v));
+    return () => {
+      ctrl.stop();
+      unsub();
+    };
   }, [value]);
 
   return <span className={className}>{display}</span>;
 }
 
-/* ─────────────────────────────────────────────
-   Arc helpers
-   ───────────────────────────────────────────── */
-const toRad = (deg: number) => ((deg - 90) * Math.PI) / 180;
-
-function polarToXY(cx: number, cy: number, r: number, deg: number) {
-  const rad = toRad(deg);
-  return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
-}
-
-function arcPath(cx: number, cy: number, r: number, startDeg: number, endDeg: number) {
-  const s = polarToXY(cx, cy, r, startDeg);
-  const e = polarToXY(cx, cy, r, endDeg);
-  const large = endDeg - startDeg > 180 ? 1 : 0;
-  return `M ${s.x} ${s.y} A ${r} ${r} 0 ${large} 1 ${e.x} ${e.y}`;
-}
-
-/* ─────────────────────────────────────────────
-   Segment config – equal 28° arcs, 6° gaps
-   Arc sweeps from 210° → 340° (130° total)
-   ───────────────────────────────────────────── */
-interface Segment {
-  color: string;
-  glowColor: string;
-  startDeg: number;
-  endDeg: number;
-}
-
-const SEGMENTS: Segment[] = [
-  { color: '#22C55E', glowColor: 'rgba(34,197,94,.5)',   startDeg: 210, endDeg: 238 },
-  { color: '#FACC15', glowColor: 'rgba(250,204,21,.45)', startDeg: 244, endDeg: 272 },
-  { color: '#FB923C', glowColor: 'rgba(251,146,60,.45)', startDeg: 278, endDeg: 306 },
-  { color: '#EF4444', glowColor: 'rgba(239,68,68,.45)',  startDeg: 312, endDeg: 340 },
-];
-
-/* ─────────────────────────────────────────────
-   Floating Particles behind shield
-   ───────────────────────────────────────────── */
-function FloatingParticles({ color }: { color: string }) {
-  const particles = [
-    { size: 3, x: 25, y: 30, dur: 6, delay: 0 },
-    { size: 2, x: 75, y: 25, dur: 7, delay: 1 },
-    { size: 2.5, x: 20, y: 70, dur: 5.5, delay: 0.5 },
-    { size: 2, x: 80, y: 65, dur: 6.5, delay: 1.5 },
-    { size: 1.5, x: 50, y: 20, dur: 8, delay: 2 },
-    { size: 2, x: 40, y: 80, dur: 7, delay: 0.8 },
-  ];
-
-  return (
-    <div className="absolute inset-0 pointer-events-none overflow-hidden">
-      {particles.map((p, i) => (
-        <motion.div
-          key={i}
-          className="absolute rounded-full"
-          style={{
-            width: p.size,
-            height: p.size,
-            left: `${p.x}%`,
-            top: `${p.y}%`,
-            background: color,
-            opacity: 0.25 }}
-          animate={{
-            y: [-8, 8, -8],
-            x: [-4, 4, -4],
-            opacity: [0.15, 0.35, 0.15] }}
-          transition={{
-            duration: p.dur,
-            repeat: Infinity,
-            delay: p.delay,
-            ease: 'easeInOut' }}
-        />
-      ))}
-    </div>
-  );
-}
-
-/* ─────────────────────────────────────────────
-   Main Component
-   ───────────────────────────────────────────── */
 interface RiskScoreCardProps {
   score: number;
+  activeGuardsCount?: number;
 }
 
-export function RiskScoreCard({ score = 0 }: RiskScoreCardProps) {
-  /* ── Dynamic status ── */
-  let statusText = 'CRITICAL';
-  let statusDesc = 'High probability of emotional trading.';
-  let statusColor = '#FF4D5E';
-  let shieldGradient = 'linear-gradient(160deg, #DC2626 0%, #FF4D5E 45%, #B91C1C 100%)';
-  let shieldGlow = 'rgba(255,77,94,0.15)';
+export function RiskScoreCard({
+  score = 0,
+  activeGuardsCount = 0,
+}: RiskScoreCardProps) {
+  const navigate = useNavigate();
+  const clamped = Math.max(0, Math.min(100, Math.round(score)));
 
-  if (score >= 80) {
-    statusText = 'EXCELLENT';
-    statusDesc = 'Excellent discipline maintained.';
-    statusColor = '#22D99A';
-    shieldGradient = 'linear-gradient(160deg, #059669 0%, #22D99A 45%, #047857 100%)';
-    shieldGlow = 'rgba(34,217,154,0.15)';
-  } else if (score >= 60) {
-    statusText = 'GOOD';
-    statusDesc = 'Good trading behavior detected.';
-    statusColor = '#8DB8FF';
-    shieldGradient = 'linear-gradient(160deg, #2563EB 0%, #8DB8FF 45%, #1D4ED8 100%)';
-    shieldGlow = 'rgba(141,184,255,0.15)';
-  } else if (score >= 40) {
-    statusText = 'AVERAGE';
-    statusDesc = 'Moderate risk exposure detected.';
-    statusColor = '#FFB547';
-    shieldGradient = 'linear-gradient(160deg, #CA8A04 0%, #FFB547 45%, #A16207 100%)';
-    shieldGlow = 'rgba(255,181,71,0.15)';
-  } else if (score >= 20) {
-    statusText = 'WARNING';
-    statusDesc = 'Elevated risk detected.';
-    statusColor = '#FFB547';
-    shieldGradient = 'linear-gradient(160deg, #EA580C 0%, #FFB547 45%, #C2410C 100%)';
-    shieldGlow = 'rgba(255,181,71,0.15)';
+  let statusText = "READY";
+  let statusDesc = "Activate guards or log trades to build your live risk score.";
+  let accentColor = "#2563EB";
+  let badgeClass =
+    "bg-blue-50 text-[#2563EB] dark:bg-blue-500/15 dark:text-blue-400";
+
+  if (clamped >= 80) {
+    statusText = "EXCELLENT";
+    statusDesc = "Disciplined execution with tight risk adherence.";
+    accentColor = "#2563EB";
+    badgeClass =
+      "bg-blue-50 text-[#2563EB] dark:bg-blue-500/15 dark:text-blue-400";
+  } else if (clamped >= 60) {
+    statusText = "GOOD";
+    statusDesc = "Consistent risk control across recent sessions.";
+    accentColor = "#2563EB";
+    badgeClass =
+      "bg-blue-50 text-[#2563EB] dark:bg-blue-500/15 dark:text-blue-400";
+  } else if (clamped >= 40) {
+    statusText = "MODERATE";
+    statusDesc = "Some rule variance detected. Tighten daily caps.";
+    accentColor = "#D97706";
+    badgeClass =
+      "bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400";
+  } else if (clamped > 0) {
+    statusText = "ELEVATED RISK";
+    statusDesc = "High variance detected. Enable drawdown & cooldown guards.";
+    accentColor = "#E11D48";
+    badgeClass =
+      "bg-rose-50 text-rose-600 dark:bg-rose-500/15 dark:text-rose-400";
   }
 
-  const aiConfidence = 92;
+  const aiConfidence = clamped > 0 ? 92 : activeGuardsCount > 0 ? 84 : 0;
 
-  /* ── Ring draw animation ── */
-  const draw = {
-    hidden: { pathLength: 0, opacity: 0 },
-    visible: (i: number) => ({
-      pathLength: 1,
-      opacity: 1,
-      transition: {
-        pathLength: { delay: 0.2 + i * 0.12, duration: 1.0, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] },
-        opacity: { delay: 0.2 + i * 0.12, duration: 0.15 },
-      },
-    }),
-  };
-
-  const CX = 130;
-  const CY = 125;
-  const R = 100;
-  const SW = 11;
+  // Clean semicircular arc math
+  const r = 64;
+  const cx = 84;
+  const cy = 78;
+  const circumference = Math.PI * r;
+  const dashOffset = circumference - (circumference * clamped) / 100;
 
   return (
-    <div
-      className="w-full rounded-[22px] p-5 pb-4 flex flex-col items-center border-2 border-white shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] bg-[radial-gradient(ellipse_at_20%_0%,_#FFFFFF_0%,_#FAFBFC_100%)] dark:bg-none dark:bg-[#191B1E] dark:border-[1px] dark:border-[#2B2F35] dark:shadow-none hover:-translate-y-[3px] transition-all duration-[250ms] group cursor-default relative overflow-hidden"
-    >
-      {/* Ambient moving highlight */}
-      <motion.div
-        className="absolute top-0 left-0 w-[200px] h-[200px] rounded-full pointer-events-none opacity-[0.04]"
-        style={{ background: 'radial-gradient(circle, #6D5DF6, transparent 70%)' }}
-        animate={{ x: [-20, 40, -20], y: [-10, 30, -10] }}
-        transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
-      />
-
-      {/* ── HEADER ── */}
-      <div className="flex items-center justify-between w-full mb-0 relative z-10">
-        <h3 className="text-[18px] font-bold text-[#111827] dark:text-[#F5F7FA] tracking-[-0.02em]">
-          Risk Score
-        </h3>
-        <div className="flex items-center gap-1.5">
-          <div className="relative flex items-center justify-center">
-            <motion.div
-              animate={{ scale: [1, 1.4, 1], opacity: [0.3, 0.6, 0.3] }}
-              transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
-              className="absolute w-3 h-3 bg-[#22C55E] rounded-full "
-            />
-            <div className="w-[7px] h-[7px] rounded-full bg-[#22C55E] relative z-10 " />
-          </div>
-          <span className="text-[10px] font-bold text-[#22C55E] tracking-[0.08em] uppercase">
-            Live
-          </span>
+    <div className="w-full rounded-[18px] p-4 sm:p-5 bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] shadow-[0_2px_10px_rgba(15,23,42,0.04),0_10px_26px_-10px_rgba(15,23,42,0.07)] dark:shadow-none flex flex-col gap-4">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-[14px] font-semibold text-slate-900 dark:text-white tracking-tight">
+            Risk Score
+          </h3>
+          <p className="text-[11px] text-slate-400 mt-0.5">
+            Live discipline &amp; protection rating
+          </p>
         </div>
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-500/15 text-[#2563EB] dark:text-blue-400 text-[10px] font-semibold">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#2563EB] dark:bg-blue-400" />
+          Live
+        </span>
       </div>
-      {/* Subtitle under Live */}
-      <div className="flex items-center justify-end w-full -mt-1 mb-0 relative z-10">
-        <span className="text-[9px] font-medium text-[#94A3B8] tracking-wide">Updated just now</span>
-      </div>
 
-      {/* ── RING + SHIELD VISUAL ── */}
-      <div className="relative w-[240px] h-[165px] flex items-center justify-center z-10">
-
-        {/* Floating particles */}
-        <FloatingParticles color={statusColor} />
-
-        {/* SVG Ring */}
-        <svg
-          viewBox="0 0 260 195" preserveAspectRatio="xMidYMid meet"
-          className="absolute inset-0 w-full h-full overflow-visible pointer-events-none"
-        >
-          <defs>
-            {SEGMENTS.map((seg, i) => (
-              <filter key={`f${i}`} id={`seg-glow-${i}`} x="-50%" y="-50%" width="200%" height="200%">
-                <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur" />
-                <feColorMatrix
-                  in="blur"
-                  type="matrix"
-                  values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 0.5 0"
-                  result="glow"
-                />
-                <feMerge>
-                  <feMergeNode in="glow" />
-                  <feMergeNode in="SourceGraphic" />
-                </feMerge>
-              </filter>
-            ))}
-          </defs>
-
-          {/* Background track */}
-          <path
-            d={arcPath(CX, CY, R, 210, 340)}
-            fill="none"
-            stroke="currentColor"
-            className="text-slate-100/60 dark:text-zinc-800/60"
-            strokeWidth={SW}
-            strokeLinecap="round"
-          />
-
-          {/* Colored segments */}
-          {SEGMENTS.map((seg, i) => (
-            <motion.path
-              key={i}
-              d={arcPath(CX, CY, R, seg.startDeg, seg.endDeg)}
+      {/* Clean Precision Semi-Circular Gauge */}
+      <div className="flex flex-col items-center pt-1">
+        <div className="relative w-[168px] h-[94px] flex items-end justify-center">
+          <svg viewBox="0 0 168 92" className="w-full h-full overflow-visible">
+            {/* Track */}
+            <path
+              d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`}
               fill="none"
-              stroke={seg.color}
-              strokeWidth={SW}
+              strokeWidth="10"
               strokeLinecap="round"
-              filter={`url(#seg-glow-${i})`}
-              custom={i}
-              variants={draw}
-              initial="hidden"
-              animate="visible"
+              className="stroke-slate-100 dark:stroke-white/[0.08]"
             />
-          ))}
-
-          {/* White indicator dot on green segment */}
-          <motion.circle
-            cx={polarToXY(CX, CY, R, 224).x}
-            cy={polarToXY(CX, CY, R, 224).y}
-            r="4.5"
-            fill="white"
-            style={{ filter: 'drop-shadow(0 1px 4px rgba(0,0,0,0.18))' }}
-            initial={{ opacity: 0, scale: 0 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 1.3, type: 'spring', stiffness: 280, damping: 18 }}
-          />
-        </svg>
-
-        {/* Floating Shield */}
-        <motion.div
-          animate={{ y: [-3.5, 3.5, -3.5] }}
-          transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
-          className="relative z-10 w-[95px] h-[108px] mt-2"
-        >
-          {/* Deep outer glow – dynamic color */}
-          <div
-            className="absolute -inset-5 rounded-full pointer-events-none blur-2xl"
-            style={{
-              background: `radial-gradient(circle, ${shieldGlow}, transparent 70%)`,
-              opacity: 0.5 }}
-          />
-
-          {/* Ambient pulse behind shield */}
-          <motion.div
-            className="absolute -inset-3 rounded-full pointer-events-none"
-            style={{
-              background: `radial-gradient(circle, ${shieldGlow}, transparent 70%)` }}
-            animate={{ opacity: [0.2, 0.4, 0.2], scale: [0.95, 1.05, 0.95] }}
-            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-          />
-
-          {/* Shield shape */}
-          <div className="relative w-full h-full">
-            {/* Main gradient – dynamic based on score */}
-            <div
-              className="absolute inset-0"
-              style={{
-                clipPath: 'polygon(50% 0%, 100% 14%, 100% 68%, 50% 100%, 0% 68%, 0% 14%)',
-                background: shieldGradient,
-                boxShadow: `0 20px 50px -10px ${shieldGlow}` }}
+            {/* Active Fill */}
+            <motion.path
+              d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`}
+              fill="none"
+              stroke={accentColor}
+              strokeWidth="10"
+              strokeLinecap="round"
+              strokeDasharray={circumference}
+              initial={{ strokeDashoffset: circumference }}
+              animate={{ strokeDashoffset: dashOffset }}
+              transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
             />
+          </svg>
 
-            {/* Top reflection / glass highlight */}
-            <div
-              className="absolute inset-0"
-              style={{
-                clipPath: 'polygon(50% 0%, 100% 14%, 100% 68%, 50% 100%, 0% 68%, 0% 14%)',
-                background: 'linear-gradient(175deg, rgba(255,255,255,0.40) 0%, rgba(255,255,255,0.12) 30%, transparent 55%)',
-                pointerEvents: 'none' }}
-            />
-
-            {/* Inner border / edge highlight */}
-            <div
-              className="absolute inset-[1.5px]"
-              style={{
-                clipPath: 'polygon(50% 0%, 100% 14%, 100% 68%, 50% 100%, 0% 68%, 0% 14%)',
-                background: 'linear-gradient(160deg, rgba(255,255,255,0.30) 0%, rgba(255,255,255,0.03) 60%, rgba(255,255,255,0.08) 100%)',
-                pointerEvents: 'none' }}
-            />
-
-            {/* Bottom subtle reflection */}
-            <div
-              className="absolute inset-0"
-              style={{
-                clipPath: 'polygon(50% 0%, 100% 14%, 100% 68%, 50% 100%, 0% 68%, 0% 14%)',
-                background: 'linear-gradient(0deg, rgba(255,255,255,0.08) 0%, transparent 25%)',
-                pointerEvents: 'none' }}
-            />
-          {/* Score content */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center -mt-1 z-10">
-            <AnimatedCounter
-              value={score}
-              className="text-[48px] font-bold text-[#FFFFFF] leading-none tabular-nums antialiased"
-              style={{ textShadow: `none` }}
-            />
-            <span className="text-[12px] font-semibold text-[#8E99A8] antialiased">
-              /100
-            </span>
+          <div className="absolute bottom-1 flex flex-col items-center">
+            <div className="flex items-baseline gap-0.5">
+              <AnimatedCounter
+                value={clamped}
+                className="text-[32px] font-bold text-slate-900 dark:text-white tracking-tight leading-none tabular-nums"
+              />
+              <span className="text-[12px] font-medium text-slate-400">/100</span>
+            </div>
           </div>
         </div>
-      </motion.div>
-    </div>
 
-      {/* ── RISK LABEL ── */}
-      <div className="flex flex-col items-center mt-0.5 mb-0.5 relative z-10">
-        <motion.div
-          initial={{ opacity: 0, y: 4 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6, duration: 0.5 }}
-          className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-[0.1em] mb-1"
-        >
-          Risk Level
-        </motion.div>
-        <motion.div
-          className="text-[12px] font-bold uppercase tracking-[0.06em] mt-4 antialiased"
-          style={{ color: statusColor, textShadow: `none` }}
+        <span
+          className={`mt-2 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase ${badgeClass}`}
         >
           {statusText}
-        </motion.div>
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.0, duration: 0.5 }}
-          className="text-[12px] text-[#8E99A8] font-medium text-center antialiased max-w-[200px] leading-tight"
-        >
+        </span>
+        <p className="text-[11.5px] text-slate-400 text-center mt-1.5 leading-snug max-w-[230px]">
           {statusDesc}
-        </motion.p>
+        </p>
       </div>
 
-      {/* ── AI CONFIDENCE ── */}
-      <div className="w-full mt-1.5 mb-2 relative z-10">
-        <div className="flex items-center justify-between mb-1.5">
-          <span className="text-[10px] font-bold text-[#94A3B8] uppercase tracking-[0.08em]">
-            AI Confidence
+      {/* AI Confidence + Active Rules */}
+      <div className="pt-3 border-t border-slate-100 dark:border-white/[0.06] space-y-2">
+        <div className="flex items-center justify-between text-[11px]">
+          <span className="font-medium text-slate-400">Protection coverage</span>
+          <span className="font-semibold text-slate-900 dark:text-white tabular-nums inline-flex items-center gap-1">
+            <ShieldCheck size={12} className="text-[#2563EB] dark:text-blue-400" />
+            {activeGuardsCount} active · {aiConfidence}%
           </span>
-          <div className="flex items-center gap-1.5">
-            <span className="text-[13px] font-bold text-[#334155] dark:text-[#F5F7FA]">{aiConfidence}%</span>
-            <span className="text-[9px] font-semibold text-[#10B981] bg-[#10B981]/10 px-1.5 py-0.5 rounded-full">
-              Excellent
-            </span>
-          </div>
         </div>
-        <div className="w-full h-[6px] bg-[#F1F5F9] dark:bg-zinc-800 rounded-full overflow-hidden shadow-inner">
+        <div className="w-full h-1.5 rounded-full bg-slate-100 dark:bg-white/[0.08] overflow-hidden">
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${aiConfidence}%` }}
-            transition={{ delay: 1.2, duration: 1.2, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] }}
-            className="h-full rounded-full relative overflow-hidden"
-            style={{
-              background: 'linear-gradient(90deg, #6D5DF6, #3B82F6, #10B981)' }}
-          >
-            {/* Shimmer effect */}
-            <motion.div
-              className="absolute inset-0"
-              style={{
-                background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.25) 50%, transparent 100%)' }}
-              animate={{ x: ['-100%', '200%'] }}
-              transition={{ delay: 2.5, duration: 2, repeat: Infinity, repeatDelay: 4, ease: 'easeInOut' }}
-            />
-          </motion.div>
+            transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
+            className="h-full rounded-full bg-[#2563EB]"
+          />
         </div>
       </div>
 
-      {/* ── BOTTOM BUTTON ── */}
-      <button className="w-full h-[40px] rounded-[12px] border border-[#E7EAF0] bg-white/60 backdrop-blur-sm flex items-center justify-center gap-2 hover:bg-[#F5F3FF] hover:border-[#DDD6FE] hover:shadow-[0_4px_12px_rgba(109,93,246,0.08)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 dark:border-[#2B2F35] dark:bg-[#22252A] dark:hover:bg-[#292D33] relative z-10 group/btn">
-        <span className="text-[13px] font-semibold text-[#64748B] group-hover/btn:text-[#6D5DF6] transition-colors duration-200">
-          View Full Analysis
-        </span>
-        <motion.div className="group-hover/btn:translate-x-1 transition-transform duration-200">
-          <ArrowRight size={14} className="text-[#94A3B8] group-hover/btn:text-[#6D5DF6] transition-colors duration-200" />
-        </motion.div>
+      {/* Bottom Action */}
+      <button
+        type="button"
+        onClick={() => navigate("/journal")}
+        className="tactile-white-pill w-full h-[36px] rounded-[11px] text-[12px] font-semibold inline-flex items-center justify-center gap-1.5 cursor-pointer"
+      >
+        <span>View Full Analysis</span>
+        <ArrowRight size={13} />
       </button>
-
     </div>
   );
 }

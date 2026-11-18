@@ -414,33 +414,19 @@ const Dashboard = () => {
                 </p>
               </div>
 
-              <div className="flex items-center gap-1.5 shrink-0">
-                <motion.span
-                  initial={{ opacity: 0, scale: 0.92 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.35, delay: 0.08, ease: EXPO_OUT }}
-                  className="tactile-white-pill rounded-[11px] px-2.5 py-1.5 text-[11.5px] font-semibold inline-flex items-center gap-1.5 select-none"
-                >
-                  <span
-                    className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                      sessionBadge.active ? "bg-emerald-500" : "bg-slate-400"
-                    }`}
-                  />
-                  <span>{sessionBadge.name}</span>
-                </motion.span>
-
+              <div className="flex items-center shrink-0">
                 <motion.button
-                  initial={{ opacity: 0, scale: 0.92 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.35, delay: 0.12, ease: EXPO_OUT }}
-                  whileTap={{ scale: 0.94 }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.35, delay: 0.08, ease: EXPO_OUT }}
+                  whileTap={{ scale: 0.96 }}
                   type="button"
                   onClick={() => setShareModalOpen(true)}
-                  className="tactile-white-pill rounded-[11px] px-2.5 py-1.5 text-[12px] font-semibold flex items-center gap-1.5 cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[12.5px] font-medium text-slate-600 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white hover:bg-white/70 dark:hover:bg-white/5 transition-colors cursor-pointer"
                   title="Share profile"
                 >
-                  <Share2 size={13} strokeWidth={2.1} />
-                  <span className="hidden sm:inline">Share</span>
+                  <Share2 size={13.5} strokeWidth={2} />
+                  <span>Share profile</span>
                 </motion.button>
               </div>
             </div>
@@ -604,15 +590,16 @@ const Dashboard = () => {
                         <span>Analytics</span>
                         <ArrowRight size={11.5} strokeWidth={2.2} />
                       </Link>
-                      <button
+                      <motion.button
+                        whileTap={{ scale: 0.95 }}
                         type="button"
                         onClick={() => setHidePnl((v) => !v)}
-                        className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-100/80 hover:bg-slate-200/70 dark:bg-white/[0.06] dark:hover:bg-white/10 text-[11px] font-semibold text-slate-600 dark:text-neutral-300 transition-colors cursor-pointer"
+                        className="tactile-white-pill rounded-[10px] px-2.5 py-1 text-[11.5px] font-semibold inline-flex items-center gap-1.5 cursor-pointer"
                         title={hidePnl ? "Show amounts" : "Blur amounts"}
                       >
-                        {hidePnl ? <Eye size={12} /> : <EyeOff size={12} />}
+                        {hidePnl ? <Eye size={12.5} /> : <EyeOff size={12.5} />}
                         <span>{hidePnl ? "Show" : "Hide"}</span>
-                      </button>
+                      </motion.button>
                     </div>
                   </div>
 

@@ -6,13 +6,14 @@ interface SwitchProps extends Omit<React.HTMLAttributes<HTMLInputElement>, 'onCh
   onCheckedChange?: (checked: boolean) => void;
   onChange?: (checked: boolean) => void;
   disabled?: boolean;
+  size?: "default" | "sm";
 }
 
 const Switch = React.forwardRef<HTMLInputElement, SwitchProps>(
-  ({ className, checked, onCheckedChange, onChange, disabled, ...props }, ref) => (
+  ({ className, checked, onCheckedChange, onChange, disabled, size = "default", ...props }, ref) => (
     <label
       className={cn("custom-ui-switch shrink-0", className)}
-      style={{ fontSize: "2.8px" }}
+      style={{ fontSize: size === "sm" ? "2.2px" : "2.8px" }}
     >
       <input
         type="checkbox"

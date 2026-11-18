@@ -1,18 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/lib/supabase";
-import { ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { Search, Upload, Download, Share2 } from "lucide-react";
 import {
   ChevronDown as IconlyChevronDown,
-  Category as IconlyCategory,
   InfoSquare as IconlyInfoSquare,
-  Send as IconlySend
 } from "react-iconly";
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine, Cell } from "recharts";
-import { format, subDays, startOfWeek, endOfWeek, parseISO, isSameDay } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useJournalSettings } from "@/contexts/JournalSettingsContext";
 import { useMarket } from "@/contexts/MarketContext";
-import { useTrading } from "@/contexts/TradingContext";
+import { toast } from "sonner";
 
 interface TradeRecord {
   id: string;
@@ -47,25 +43,23 @@ interface AccountMetrics {
   account_number: string;
 }
 
-const tickStyle = { fontSize: 10, fill: "#94a3b8", fontWeight: 500 };
-
-// Helper to resolve flag emojis for currency pairs & assets
 function getFlagIcon(symbol: string): string {
-  const s = symbol.trim().toUpperCase();
-  if (s.includes("XAU")) return "🇺🇸";
-  if (s.includes("BTC")) return "🪙";
+  const s = (symbol || "").trim().toUpperCase();
+  if (s.includes("XAU")) return "🥇";
+  if (s.includes("BTC")) return "₿";
   if (s.includes("EUR")) return "🇪🇺";
   if (s.includes("GBP")) return "🇬🇧";
   if (s.includes("JPY")) return "🇯🇵";
-  return "🏳️";
+  if (s.includes("NIFTY") || s.includes("BANK")) return "🇮🇳";
+  return "📈";
 }
 
-// Helper to format dates to match UTC style in mockup
-function formatUTCDate(dateString: string): string {
+function formatUTCDate(dateString?: string): string {
+  if (!dateString) return "-";
   const d = new Date(dateString);
   if (isNaN(d.getTime())) return "-";
 
-  const pad = (n: number) => String(n).padStart(2, '0');
+  const pad = (n: number) => String(n).padStart(2, "0");
   const month = pad(d.getUTCMonth() + 1);
   const day = pad(d.getUTCDate());
   const year = d.getUTCFullYear();
@@ -73,97 +67,104 @@ function formatUTCDate(dateString: string): string {
   let hours = d.getUTCHours();
   const minutes = pad(d.getUTCMinutes());
   const seconds = pad(d.getUTCSeconds());
-  const ampm = hours >= 12 ? 'PM' : 'AM';
+  const ampm = hours >= 12 ? "PM" : "AM";
 
   hours = hours % 12;
-  hours = hours ? hours : 12; // the hour '0' should be '12'
+  hours = hours ? hours : 12;
   const hoursStr = pad(hours);
 
   return `${month}/${day}/${year}, ${hoursStr}:${minutes}:${seconds} ${ampm}`;
 }
 
-
-
 interface JournalTradesTableProps {
   onTradeClick?: (trade: TradeRecord) => void;
+  onImportCsv?: () => void;
+  refreshKey?: number;
+  demoData?: {
+    allTrades: any[];
+    balance: number;
+    equity: number;
+  } | null;
 }
 
-export default function JournalTradesTable({ onTradeClick }: JournalTradesTableProps = {}) {
-  const [activeTab, setActiveTab] = useState<"positions" | "pending" | "closed" | "alerts">("positions");
+export default function JournalTradesTable({
+  onTradeClick,
+  onImportCsv,
+  refreshKey = 0,
+  demoData,
+}: JournalTradesTableProps = {}) {
+  const [activeTab, setActiveTab] = useState<
+    "positions" | "pending" | "closed" | "alerts"
+  >("closed");
+  const [hasSetInitialTab, setHasSetInitialTab] = useState(false);
   const [plFilter, setPlFilter] = useState<"all" | "profit" | "loss">("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const [trades, setTrades] = useState<TradeRecord[]>([]);
   const [metrics, setMetrics] = useState<AccountMetrics | null>(null);
   const [isDataLoading, setIsLoading] = useState(true);
-  const { formatMoney: fmtMoney, percentageOnly, hideBalance, hideOnlyBalance, isSettingsLoading } = useJournalSettings();
+  const {
+    formatMoney: fmtMoney,
+    percentageOnly,
+    hideBalance,
+    hideOnlyBalance,
+    isSettingsLoading,
+  } = useJournalSettings();
   const { activeMarket } = useMarket();
-  const { isConnected } = useTrading();
-  const isLoading = isDataLoading || isSettingsLoading;
+  const isLoading = demoData ? isSettingsLoading : isDataLoading || isSettingsLoading;
 
-  // Fetch real-time data from Supabase
   useEffect(() => {
+    if (demoData) {
+      setTrades(demoData.allTrades as TradeRecord[]);
+      setMetrics({
+        balance: demoData.balance,
+        equity: demoData.equity,
+        broker_server: "TradiFive Demo",
+        account_number: "DEMO-8421",
+      });
+      setIsLoading(false);
+      return;
+    }
     let isMounted = true;
 
     const fetchData = async () => {
       try {
-        if (!isConnected) {
-          const mockRecentTrades: TradeRecord[] = Array.from({ length: 7 }).map((_, i) => {
-            const d = new Date();
-            d.setDate(d.getDate() - (6 - i));
-            const profit = [120.00, -50.00, 310.50, 45.00, -110.00, 280.00, 845.50][i];
-            return {
-              id: `mock${i}`,
-              ticket: `1000${i}`,
-              symbol: activeMarket === 'indian' 
-                ? ["NIFTY50", "BANKNIFTY", "RELIANCE", "HDFCBANK", "INFY", "TCS", "ITC"][i]
-                : ["EURUSD", "GBPUSD", "XAUUSD", "US30", "NAS100", "XAUUSD", "XAUUSD"][i],
-              profit: profit,
-              trade_type: profit > 0 ? 0 : 1, // 0 Buy, 1 Sell
-              lot_size: [1.5, 2.0, 1.0, 0.5, 0.8, 1.0, 2.5][i],
-              closed_at: d.toISOString(),
-              created_at: d.toISOString(),
-              is_pending: false,
-              notes: "Simulated trade execution."
-            };
-          });
-          
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        const user = session?.user;
+        if (!user) {
           if (isMounted) {
-            setTrades(mockRecentTrades);
-            setMetrics({
-              balance: 103240.75,
-              equity: 103240.75,
-              broker_server: "Simulated",
-              account_number: "DEMO-123456"
-            });
+            setTrades([]);
+            setMetrics(null);
             setIsLoading(false);
           }
           return;
         }
 
-        const { data: { session } } = await supabase.auth.getSession();
-        const user = session?.user;
-        if (!user) return;
-
-        // 1. Fetch mt5 metrics
         const { data: accountData } = await supabase
-          .from('mt5_accounts')
-          .select('balance, equity, broker_server, account_number')
-          .eq('user_id', user.id)
+          .from("mt5_accounts")
+          .select("balance, equity, broker_server, account_number")
+          .eq("user_id", user.id)
           .maybeSingle();
 
         if (accountData && isMounted) {
           setMetrics(accountData);
         }
 
-        // 2. Fetch completed trades
         const { data: tradesData } = await supabase
-          .from('trades')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('closed_at', { ascending: false });
+          .from("trades")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("closed_at", { ascending: false });
 
         if (tradesData && isMounted) {
-          const finalTrades = tradesData;
-          setTrades(finalTrades as TradeRecord[]);
+          const list = tradesData as TradeRecord[];
+          setTrades(list);
+          if (!hasSetInitialTab) {
+            const hasOpen = list.some((t) => !t.closed_at && !t.is_pending);
+            setActiveTab(hasOpen ? "positions" : "closed");
+            setHasSetInitialTab(true);
+          }
         }
       } catch (err) {
         console.error("Failed to load real-time positions table:", err);
@@ -174,45 +175,91 @@ export default function JournalTradesTable({ onTradeClick }: JournalTradesTableP
 
     fetchData();
 
-    // Set up Realtime subscriptions for live dashboard synchronizations
-    let channel: any = null;
-    
-    if (isConnected) {
-      channel = supabase.channel('realtime-positions-table')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'trades' }, () => {
+    const channel = supabase
+      .channel("realtime-positions-table")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "trades" },
+        () => {
           fetchData();
-        })
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'mt5_accounts' }, () => {
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "mt5_accounts" },
+        () => {
           fetchData();
-        })
-        .subscribe();
-    }
+        }
+      )
+      .subscribe();
 
     return () => {
       isMounted = false;
-      if (channel) supabase.removeChannel(channel);
+      supabase.removeChannel(channel);
     };
-  }, [isConnected]);
+  }, [refreshKey, demoData]);
 
-  // Calculate stats dynamically
   const balance = metrics?.balance || 0;
   const equity = metrics?.equity || 0;
 
-  // Separate open, closed and pending positions
-  const openPositions = trades.filter(t => !t.closed_at && !t.is_pending);
-  const closedPositions = trades.filter(t => t.closed_at && !t.is_pending);
-  const pendingOrders = trades.filter(t => t.is_pending);
-  let displayTrades = activeTab === "positions" ? openPositions : activeTab === "closed" ? closedPositions : activeTab === "pending" ? pendingOrders : [];
+  const openPositions = useMemo(
+    () => trades.filter((t) => !t.closed_at && !t.is_pending),
+    [trades]
+  );
+  const closedPositions = useMemo(
+    () => trades.filter((t) => t.closed_at && !t.is_pending),
+    [trades]
+  );
+  const pendingOrders = useMemo(
+    () => trades.filter((t) => t.is_pending),
+    [trades]
+  );
 
-  // Apply P/L Filter
-  if (plFilter === "profit") {
-    displayTrades = displayTrades.filter(t => Number(t.profit || 0) >= 0);
-  } else if (plFilter === "loss") {
-    displayTrades = displayTrades.filter(t => Number(t.profit || 0) < 0);
-  }
+  const displayTrades = useMemo(() => {
+    let base =
+      activeTab === "positions"
+        ? openPositions
+        : activeTab === "closed"
+        ? closedPositions
+        : activeTab === "pending"
+        ? pendingOrders
+        : [];
 
-  // Calculate overall cumulative Profit & Loss
-  const profitAndLoss = trades.reduce((acc, t) => acc + Number(t.profit || 0), 0);
+    if (plFilter === "profit") {
+      base = base.filter((t) => Number(t.profit || 0) >= 0);
+    } else if (plFilter === "loss") {
+      base = base.filter((t) => Number(t.profit || 0) < 0);
+    }
+
+    const q = searchQuery.trim().toLowerCase();
+    if (q) {
+      base = base.filter((t) => {
+        const sym = String(t.symbol || "").toLowerCase();
+        const setup = String(t.setup || "").toLowerCase();
+        const notes = String(t.notes || "").toLowerCase();
+        const ticket = String(t.ticket || "").toLowerCase();
+        return (
+          sym.includes(q) ||
+          setup.includes(q) ||
+          notes.includes(q) ||
+          ticket.includes(q)
+        );
+      });
+    }
+    return base;
+  }, [
+    activeTab,
+    openPositions,
+    closedPositions,
+    pendingOrders,
+    plFilter,
+    searchQuery,
+  ]);
+
+  const profitAndLoss = trades.reduce(
+    (acc, t) => acc + Number(t.profit || 0),
+    0
+  );
 
   const formatPnl = (pnl: number) => {
     let str = "";
@@ -222,335 +269,500 @@ export default function JournalTradesTable({ onTradeClick }: JournalTradesTableP
     } else {
       str = fmtMoney(pnl, { showSign: true, raw: true });
     }
-    return hideBalance ? <span className="blur-[5.5px] select-none opacity-50 transition-all duration-300">{str}</span> : str;
+    return hideBalance ? (
+      <span className="blur-[5px] select-none opacity-60 transition-all duration-200">
+        {str}
+      </span>
+    ) : (
+      str
+    );
   };
 
-  // Generate scatter data dynamically from real closed trades for the Recharts graph below
-  const scatterData = closedPositions.map(t => {
-    const profit = Number(t.profit);
-    const openedTime = new Date(t.opened_at || t.created_at).getTime();
-    const closedTime = new Date(t.closed_at!).getTime();
-    const realDurationSeconds = Math.max(0, Math.floor((closedTime - openedTime) / 1000));
-    return {
-      dur: realDurationSeconds,
-      pnl: profit
-    };
-  });
+  const handleShareTrade = (e: React.MouseEvent, ticket: string) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(`TRADIFIVE-TRADE-${ticket || "LOG"}`);
+    toast.success(`Trade #${ticket || "LOG"} copied to clipboard!`);
+  };
 
-  const handleShareTrade = (ticket: string) => {
-    navigator.clipboard.writeText(`FIALGO-TRADE-${ticket}`);
-    toast.success(`Trade Ticket #${ticket} copied to clipboard! Ready to share.`);
+  const handleExportCsv = () => {
+    if (displayTrades.length === 0) {
+      toast.info("No trades to export");
+      return;
+    }
+    const headers = [
+      "Instrument",
+      "Side",
+      "Lots",
+      "Entry Price",
+      "Exit Price",
+      "Stop Loss",
+      "Take Profit",
+      "Commission",
+      "Swaps",
+      "Net P&L",
+      "Entry Time (UTC)",
+      "Exit Time (UTC)",
+    ];
+    const rows = displayTrades.map((t) => [
+      t.symbol || "",
+      t.trade_type === 0 ? "BUY" : "SELL",
+      Number(t.lot_size || 0).toFixed(2),
+      t.open_price ?? t.entry_price ?? "",
+      t.close_price ?? t.exit_price ?? "",
+      t.stop_loss ?? "",
+      t.take_profit ?? "",
+      t.commission ?? 0,
+      t.swap ?? 0,
+      Number(t.profit || 0).toFixed(2),
+      t.opened_at || t.created_at || "",
+      t.closed_at || "Open",
+    ]);
+    const csv = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `tradifive-trades-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success(`Exported ${displayTrades.length} trades`);
   };
 
   return (
-    <div className="space-y-6">
-      <style>{`
-        .amazing-scrollbar::-webkit-scrollbar {
-          width: 5px;
-          height: 6px;
-        }
-        .amazing-scrollbar::-webkit-scrollbar-button {
-          display: none !important;
-          width: 0 !important;
-          height: 0 !important;
-        }
-        .amazing-scrollbar::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .amazing-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(156, 163, 175, 0.3);
-          border-radius: 9999px;
-        }
-        .amazing-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: rgba(156, 163, 175, 0.5);
-        }
-        .dark .amazing-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(255, 255, 255, 0.1);
-        }
-        .dark .amazing-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: rgba(255, 255, 255, 0.2);
-        }
-      `}</style>
-
-      {/* 📊 Premium Live Trades & Positions Container Card */}
-      <div className="bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] rounded-[22px] border-2 border-white shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] overflow-hidden flex flex-col transition-all duration-300 hover:scale-[1.002] hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#CBD5E1] relative dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:rounded-[20px] dark:shadow-none dark:hover:shadow-none">
-
-        {/* Account Metrics Bar */}
-        <div className="flex items-center space-x-12 px-6 py-4 bg-white/50 dark:bg-black/20 border-b border-slate-100 dark:border-white/5 overflow-x-auto no-scrollbar">
-          <div className="flex flex-col gap-1 shrink-0">
-            <span className="text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-wider">Balance</span>
-            {isLoading ? (
-              <Skeleton className="h-[18px] w-20 bg-slate-200 dark:bg-white/10 rounded" />
-            ) : (
-              <span className={`text-[13px] font-medium text-slate-900 dark:text-white tabular-nums ${hideBalance || hideOnlyBalance || percentageOnly ? 'blur-[5.5px] select-none opacity-50' : ''}`} >
-                {fmtMoney(balance, { raw: true })}
-              </span>
-            )}
-          </div>
-          <div className="flex flex-col gap-1 shrink-0">
-            <span className="text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-wider">Profit & Loss</span>
-            {isLoading ? (
-              <Skeleton className="h-[18px] w-16 bg-slate-200 dark:bg-white/10 rounded" />
-            ) : (
-              <span className={`text-[13px] font-medium tabular-nums ${profitAndLoss >= 0 ? "text-[#10B981]" : "text-[#F06363]"}`} >
-                {formatPnl(profitAndLoss)}
-              </span>
-            )}
-          </div>
-          <div className="flex flex-col gap-1 shrink-0">
-            <span className="text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-wider">Equity</span>
-            {isLoading ? (
-              <Skeleton className="h-[18px] w-20 bg-slate-200 dark:bg-white/10 rounded" />
-            ) : (
-              <span className={`text-[13px] font-medium text-slate-900 dark:text-white tabular-nums ${hideBalance || hideOnlyBalance || percentageOnly ? 'blur-[5.5px] select-none opacity-50' : ''}`} >
-                {fmtMoney(equity, { raw: true })}
-              </span>
-            )}
-          </div>
-          <div className="flex flex-col gap-1 shrink-0">
-            <span className="text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-wider">Initial Margin</span>
-            {isLoading ? (
-              <Skeleton className="h-[18px] w-12 bg-slate-200 dark:bg-white/10 rounded" />
-            ) : (
-              <span className={`text-[13px] font-medium text-slate-900 dark:text-white tabular-nums ${hideBalance || percentageOnly ? 'blur-[5.5px] select-none opacity-50' : ''}`} >
-                {fmtMoney(0, { raw: true })}
-              </span>
-            )}
-          </div>
-          <div className="flex flex-col gap-1 shrink-0">
-            <span className="text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-wider">Available Funds</span>
-            {isLoading ? (
-              <Skeleton className="h-[18px] w-20 bg-slate-200 dark:bg-white/10 rounded" />
-            ) : (
-              <span className={`text-[13px] font-medium text-slate-900 dark:text-white tabular-nums ${hideBalance || hideOnlyBalance || percentageOnly ? 'blur-[5.5px] select-none opacity-50' : ''}`} >
-                {fmtMoney(equity, { raw: true })}
-              </span>
-            )}
-          </div>
-          <div className="flex flex-col gap-1 shrink-0">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
-              Margin Level <IconlyInfoSquare set="curved" primaryColor="currentColor" size={11} stroke="bold" className="text-slate-400 dark:text-slate-400" />
+    <div className="bg-white dark:bg-[#17171A] rounded-[18px] border border-slate-200/70 dark:border-white/[0.07] shadow-[0_2px_10px_rgba(15,23,42,0.04),0_10px_26px_-10px_rgba(15,23,42,0.07)] dark:shadow-none overflow-hidden flex flex-col">
+      {/* Account Metrics Bar */}
+      <div className="flex items-center space-x-8 sm:space-x-10 px-5 py-3.5 bg-slate-50/70 dark:bg-white/[0.02] border-b border-slate-100 dark:border-white/[0.06] overflow-x-auto no-scrollbar">
+        <div className="flex flex-col gap-0.5 shrink-0">
+          <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+            Balance
+          </span>
+          {isLoading ? (
+            <Skeleton className="h-[18px] w-20 bg-slate-200 dark:bg-white/10 rounded" />
+          ) : (
+            <span
+              className={`text-[13px] font-semibold text-slate-900 dark:text-white tabular-nums ${
+                hideBalance || hideOnlyBalance || percentageOnly
+                  ? "blur-[5px] select-none opacity-60"
+                  : ""
+              }`}
+            >
+              {fmtMoney(balance, { raw: true })}
             </span>
-            {isLoading ? (
-              <Skeleton className="h-[18px] w-8 bg-slate-200 dark:bg-white/10 rounded" />
-            ) : (
-              <span className={`text-[13px] font-medium text-slate-900 dark:text-white tabular-nums ${hideBalance || percentageOnly ? 'blur-[5.5px] select-none opacity-50' : ''}`} >
-                {"\u221E"}
-              </span>
-            )}
-          </div>
+          )}
         </div>
 
-        {/* cTrader Style Tab Bar */}
-        <div className="flex items-center justify-between px-4 pt-4 pb-0 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-black/10">
-          <div className="flex items-center space-x-6 overflow-x-auto no-scrollbar w-full">
-            <button
-              onClick={() => setActiveTab("positions")}
-              className={`flex items-center gap-2 text-[12px] font-bold pb-3 shrink-0 transition-colors border-b-2 ${activeTab === "positions" ? "text-slate-900 dark:text-white border-emerald-500" : "text-slate-400 border-transparent hover:text-slate-500"
-                }`}
+        <div className="flex flex-col gap-0.5 shrink-0">
+          <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+            Profit &amp; Loss
+          </span>
+          {isLoading ? (
+            <Skeleton className="h-[18px] w-16 bg-slate-200 dark:bg-white/10 rounded" />
+          ) : (
+            <span
+              className={`text-[13px] font-semibold tabular-nums ${
+                profitAndLoss < 0
+                  ? "text-rose-600 dark:text-rose-400"
+                  : "text-[#2563EB] dark:text-blue-400"
+              }`}
             >
-              Positions <span className="bg-slate-200 dark:bg-white/10 px-1.5 py-0.5 rounded-md text-[10px] inline-flex items-center justify-center min-w-[20px] min-h-[16px]">
-                {isLoading ? (
-                  <Skeleton className="h-2 w-4 bg-slate-300 dark:bg-white/20 rounded" />
-                ) : (
-                  openPositions.length
-                )}
-              </span>
-            </button>
-            <button
-              onClick={() => setActiveTab("pending")}
-              className={`flex items-center gap-2 text-[12px] font-bold pb-3 shrink-0 transition-colors border-b-2 ${activeTab === "pending" ? "text-slate-900 dark:text-white border-emerald-500" : "text-slate-400 border-transparent hover:text-slate-500"
-                }`}
-            >
-              Pending <span className="bg-slate-200 dark:bg-white/10 px-1.5 py-0.5 rounded-md text-[10px] inline-flex items-center justify-center min-w-[20px] min-h-[16px]">
-                {isLoading ? (
-                  <Skeleton className="h-2 w-4 bg-slate-300 dark:bg-white/20 rounded" />
-                ) : (
-                  pendingOrders.length
-                )}
-              </span>
-            </button>
-            <button
-              onClick={() => setActiveTab("closed")}
-              className={`flex items-center gap-2 text-[12px] font-bold pb-3 shrink-0 transition-colors border-b-2 ${activeTab === "closed" ? "text-slate-900 dark:text-white border-emerald-500" : "text-slate-400 border-transparent hover:text-slate-500"
-                }`}
-            >
-              Closed Positions <span className="bg-slate-200 dark:bg-white/10 px-1.5 py-0.5 rounded-md text-[10px] inline-flex items-center justify-center min-w-[20px] min-h-[16px]">
-                {isLoading ? (
-                  <Skeleton className="h-2 w-4 bg-slate-300 dark:bg-white/20 rounded" />
-                ) : (
-                  closedPositions.length
-                )}
-              </span>
-            </button>
-            <button
-              onClick={() => setActiveTab("alerts")}
-              className={`flex items-center gap-2 text-[12px] font-bold pb-3 shrink-0 transition-colors border-b-2 ${activeTab === "alerts" ? "text-slate-900 dark:text-white border-emerald-500" : "text-slate-400 border-transparent hover:text-slate-500"
-                }`}
-            >
-              Alerts
-            </button>
-          </div>
-          <div className="flex items-center gap-4 pl-6 shrink-0 pb-3">
-            <button className="flex items-center gap-1 text-[12px] font-bold text-slate-900 dark:text-white hover:text-primary transition-colors">
-              Close All <IconlyChevronDown set="curved" primaryColor="currentColor" size={11} stroke="bold" />
-            </button>
-            <button className="text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
-              <IconlyCategory set="curved" primaryColor="currentColor" size={15} stroke="bold" />
-            </button>
-          </div>
-          
-          {/* P/L Filter Toggle */}
-          <div className="hidden sm:flex items-center bg-white dark:bg-[#1A1A1A] rounded-xl p-1 shadow-sm border border-slate-200 dark:border-white/5 mb-3 self-end shrink-0 ml-4">
-            <button
-              onClick={() => setPlFilter("all")}
-              className={`px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all ${plFilter === "all" ? "bg-slate-100 dark:bg-white/10 text-slate-800 dark:text-white" : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"}`}
-            >
-              All
-            </button>
-            <button
-              onClick={() => setPlFilter("profit")}
-              className={`px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all ${plFilter === "profit" ? "bg-emerald-50 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400" : "text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400"}`}
-            >
-              Wins
-            </button>
-            <button
-              onClick={() => setPlFilter("loss")}
-              className={`px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all ${plFilter === "loss" ? "bg-rose-50 dark:bg-rose-500/20 text-rose-700 dark:text-rose-400" : "text-slate-400 hover:text-rose-600 dark:hover:text-rose-400"}`}
-            >
-              Losses
-            </button>
-          </div>
+              {formatPnl(profitAndLoss)}
+            </span>
+          )}
         </div>
 
-        {/* Live Positions Table */}
-        <div className="overflow-x-auto overflow-y-auto max-h-[310px] amazing-scrollbar relative">
-          <table className="w-full text-left border-collapse min-w-[1200px]">
-            <thead className="sticky top-0 bg-slate-50 dark:bg-[#1E1E20] z-10 shadow-[0_1px_0_0_rgba(0,0,0,0.05)] dark:shadow-none">
-              <tr className="bg-slate-50 dark:bg-[#1E1E20] text-[10px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">
-                <th className="px-3 py-4">Instrument</th>
-                <th className="px-3 py-4">Entry Time (UTC)</th>
-                <th className="px-3 py-4">Side</th>
-                <th className="px-3 py-4">{activeMarket === 'indian' ? 'Qty' : 'Lots'}</th>
-                <th className="px-3 py-4">Entry Price</th>
-                <th className="px-3 py-4">Stop Loss</th>
-                <th className="px-3 py-4">Take Profit</th>
-                <th className="px-3 py-4">Exit Time (UTC)</th>
-                <th className="px-3 py-4">Exit Price</th>
-                <th className="px-3 py-4">Commission</th>
-                <th className="px-3 py-4">Swaps</th>
-                <th className="px-3 py-4">P&L</th>
-                <th className="px-3 py-4">Net P&L</th>
-                <th className="px-3 py-4 text-center"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-white/5 whitespace-nowrap">
-              {isLoading ? (
-                Array.from({ length: 5 }).map((_, rowIdx) => (
-                  <tr key={rowIdx} className="border-b border-slate-100 dark:border-white/5 animate-pulse">
-                    <td className="px-3 py-4"><Skeleton className="h-4 w-20 bg-slate-200 dark:bg-white/10" /></td>
-                    <td className="px-3 py-4"><Skeleton className="h-4 w-32 bg-slate-200 dark:bg-white/10" /></td>
-                    <td className="px-3 py-4"><Skeleton className="h-4 w-12 bg-slate-200 dark:bg-white/10" /></td>
-                    <td className="px-3 py-4"><Skeleton className="h-4 w-10 bg-slate-200 dark:bg-white/10" /></td>
-                    <td className="px-3 py-4"><Skeleton className="h-4 w-16 bg-slate-200 dark:bg-white/10" /></td>
-                    <td className="px-3 py-4 text-center">-</td>
-                    <td className="px-3 py-4 text-center">-</td>
-                    <td className="px-3 py-4"><Skeleton className="h-4 w-32 bg-slate-200 dark:bg-white/10" /></td>
-                    <td className="px-3 py-4"><Skeleton className="h-4 w-16 bg-slate-200 dark:bg-white/10" /></td>
-                    <td className="px-3 py-4 text-right"><Skeleton className="h-4 w-12 bg-slate-200 dark:bg-white/10 ml-auto" /></td>
-                    <td className="px-3 py-4 text-right"><Skeleton className="h-4 w-12 bg-slate-200 dark:bg-white/10 ml-auto" /></td>
-                    <td className="px-3 py-4 text-right"><Skeleton className="h-4 w-16 bg-slate-200 dark:bg-white/10 ml-auto" /></td>
-                    <td className="px-3 py-4 text-right"><Skeleton className="h-4 w-16 bg-slate-200 dark:bg-white/10 ml-auto" /></td>
-                    <td className="px-3 py-4"></td>
-                  </tr>
-                ))
-              ) : displayTrades.length === 0 ? (
-                <tr>
-                  <td colSpan={14} className="text-center py-12 text-slate-400 text-[13px] font-medium">
-                    No positions found for this category. Fire up your MT5 terminal bridge to sync!
-                  </td>
-                </tr>
-              ) : (
-                displayTrades.map((trade) => {
-                  const side: "BUY" | "SELL" = trade.trade_type === 0 ? "BUY" : "SELL";
-                  const profit = Number(trade.profit);
-                  const lot = Number(trade.lot_size);
-
-                  // Formatted Dates
-                  const entryDateStr = formatUTCDate(trade.opened_at || trade.created_at || new Date().toISOString());
-                  const exitDateStr = formatUTCDate(trade.closed_at || trade.created_at);
-
-                  return (
-                    <tr
-                      key={trade.id}
-                      onClick={() => onTradeClick?.(trade)}
-                      className="hover:bg-slate-50/50 dark:hover:bg-white/[0.02] transition-colors group cursor-pointer"
-                    >
-                      <td className="px-3 py-4 text-[13px] font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                        <span>{getFlagIcon(trade.symbol)}</span>
-                        <span>{trade.symbol}</span>
-                      </td>
-                      <td className="px-3 py-4 text-[12px] font-medium text-slate-500 dark:text-slate-400 tabular-nums">{entryDateStr}</td>
-                      <td className="px-3 py-4">
-                        <span className={`text-[12px] font-bold tracking-tight ${side === "BUY" ? "text-[#10B981]" : "text-[#F06363]"
-                          }`}>
-                          {side}
-                        </span>
-                      </td>
-                      <td className="px-3 py-4 text-[13px] font-bold text-slate-900 dark:text-white tabular-nums">{lot.toFixed(2)}</td>
-                      <td className="px-3 py-4 text-[13px] font-bold text-slate-900 dark:text-white tabular-nums">
-                        {trade.open_price ? trade.open_price.toFixed(5) : trade.entry_price ? trade.entry_price.toFixed(5) : "-"}
-                      </td>
-                      <td className="px-3 py-4 text-[13px] font-bold text-slate-500 dark:text-slate-400 text-center">
-                        {trade.stop_loss ? trade.stop_loss.toFixed(5) : "-"}
-                      </td>
-                      <td className="px-3 py-4 text-[13px] font-bold text-slate-500 dark:text-slate-400 text-center">
-                        {trade.take_profit ? trade.take_profit.toFixed(5) : "-"}
-                      </td>
-                      <td className="px-3 py-4 text-[12px] font-medium text-slate-500 dark:text-slate-400 tabular-nums">{trade.closed_at ? exitDateStr : "Open"}</td>
-                      <td className="px-3 py-4 text-[13px] font-bold text-slate-900 dark:text-white tabular-nums">
-                        {trade.closed_at ? (trade.close_price ? trade.close_price.toFixed(5) : trade.exit_price ? trade.exit_price.toFixed(5) : "-") : "-"}
-                      </td>
-                      <td className="px-3 py-4 text-[13px] font-bold text-slate-900 dark:text-white tabular-nums text-right">
-                        {trade.commission ? fmtMoney(trade.commission, { raw: true }) : fmtMoney(0, { raw: true })}
-                      </td>
-                      <td className="px-3 py-4 text-[13px] font-bold text-slate-900 dark:text-white tabular-nums text-right">
-                        {trade.swap ? fmtMoney(trade.swap, { raw: true }) : fmtMoney(0, { raw: true })}
-                      </td>
-                      <td className={`px-3 py-4 text-[13px] font-bold tabular-nums text-right ${profit - Number(trade.commission || 0) - Number(trade.swap || 0) - Number(trade.fee || 0) >= 0 ? "text-[#10B981]" : "text-[#F06363]"}`}>
-                        {formatPnl(profit - Number(trade.commission || 0) - Number(trade.swap || 0) - Number(trade.fee || 0))}
-                      </td>
-                      <td className={`px-3 py-4 text-[13px] font-bold tabular-nums text-right ${profit >= 0 ? "text-[#10B981]" : "text-[#F06363]"}`}>
-                        {formatPnl(profit)}
-                      </td>
-                      <td className="px-3 py-4 text-center">
-                        <button
-                          onClick={() => handleShareTrade(trade.ticket)}
-                          className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors text-slate-400 hover:text-emerald-500"
-                        >
-                          <IconlySend set="curved" primaryColor="currentColor" size={14} stroke="bold" />
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
+        <div className="flex flex-col gap-0.5 shrink-0">
+          <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+            Equity
+          </span>
+          {isLoading ? (
+            <Skeleton className="h-[18px] w-20 bg-slate-200 dark:bg-white/10 rounded" />
+          ) : (
+            <span
+              className={`text-[13px] font-semibold text-slate-900 dark:text-white tabular-nums ${
+                hideBalance || hideOnlyBalance || percentageOnly
+                  ? "blur-[5px] select-none opacity-60"
+                  : ""
+              }`}
+            >
+              {fmtMoney(equity, { raw: true })}
+            </span>
+          )}
         </div>
 
-        {/* Bottom Link */}
-        <div className="p-6 text-center border-t border-slate-50 dark:border-white/5">
-          <button
-            onClick={() => toast.info("Displaying full trading history link...")}
-            className="text-[11px] font-bold text-emerald-500 hover:text-emerald-600 transition-colors uppercase tracking-widest"
-          >
-            View Full Execution History
-          </button>
+        <div className="flex flex-col gap-0.5 shrink-0">
+          <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+            Initial Margin
+          </span>
+          {isLoading ? (
+            <Skeleton className="h-[18px] w-12 bg-slate-200 dark:bg-white/10 rounded" />
+          ) : (
+            <span
+              className={`text-[13px] font-semibold text-slate-900 dark:text-white tabular-nums ${
+                hideBalance || percentageOnly
+                  ? "blur-[5px] select-none opacity-60"
+                  : ""
+              }`}
+            >
+              {fmtMoney(0, { raw: true })}
+            </span>
+          )}
         </div>
 
+        <div className="flex flex-col gap-0.5 shrink-0">
+          <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+            Available Funds
+          </span>
+          {isLoading ? (
+            <Skeleton className="h-[18px] w-20 bg-slate-200 dark:bg-white/10 rounded" />
+          ) : (
+            <span
+              className={`text-[13px] font-semibold text-slate-900 dark:text-white tabular-nums ${
+                hideBalance || hideOnlyBalance || percentageOnly
+                  ? "blur-[5px] select-none opacity-60"
+                  : ""
+              }`}
+            >
+              {fmtMoney(equity, { raw: true })}
+            </span>
+          )}
+        </div>
+
+        <div className="flex flex-col gap-0.5 shrink-0">
+          <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+            Margin Level
+            <IconlyInfoSquare
+              set="curved"
+              primaryColor="currentColor"
+              size={11}
+              stroke="bold"
+              className="text-slate-400"
+            />
+          </span>
+          {isLoading ? (
+            <Skeleton className="h-[18px] w-8 bg-slate-200 dark:bg-white/10 rounded" />
+          ) : (
+            <span
+              className={`text-[13px] font-semibold text-slate-900 dark:text-white tabular-nums ${
+                hideBalance || percentageOnly
+                  ? "blur-[5px] select-none opacity-60"
+                  : ""
+              }`}
+            >
+              ∞
+            </span>
+          )}
+        </div>
       </div>
 
+      {/* cTrader Style Tab Bar + Search / Filters / Import-Export */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 px-4 sm:px-5 pt-3.5 pb-0 border-b border-slate-100 dark:border-white/[0.06]">
+        <div className="flex items-center space-x-5 overflow-x-auto no-scrollbar">
+          {[
+            { id: "positions" as const, label: "Positions", count: openPositions.length },
+            { id: "pending" as const, label: "Pending", count: pendingOrders.length },
+            {
+              id: "closed" as const,
+              label: "Closed Positions",
+              count: closedPositions.length,
+            },
+            { id: "alerts" as const, label: "Alerts", count: null },
+          ].map((t) => {
+            const active = activeTab === t.id;
+            return (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => setActiveTab(t.id)}
+                className={`flex items-center gap-1.5 text-[12px] font-semibold pb-3 shrink-0 transition-colors border-b-2 cursor-pointer ${
+                  active
+                    ? "text-slate-900 dark:text-white border-[#2563EB]"
+                    : "text-slate-400 border-transparent hover:text-slate-600 dark:hover:text-neutral-200"
+                }`}
+              >
+                <span>{t.label}</span>
+                {t.count !== null && (
+                  <span
+                    className={`px-1.5 py-0.5 rounded-md text-[10px] font-semibold tabular-nums ${
+                      active
+                        ? "bg-blue-50 text-[#2563EB] dark:bg-blue-500/15 dark:text-blue-400"
+                        : "bg-slate-100 dark:bg-white/[0.07] text-slate-500 dark:text-neutral-400"
+                    }`}
+                  >
+                    {isLoading ? "…" : t.count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="flex items-center gap-2 pb-3 flex-wrap">
+          <div className="relative flex-1 sm:flex-initial sm:w-[175px]">
+            <Search
+              size={13}
+              className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"
+            />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search symbol..."
+              className="w-full pl-8 pr-2.5 py-1.5 rounded-[10px] bg-slate-50 dark:bg-white/[0.04] border border-slate-200/70 dark:border-white/[0.08] text-[11.5px] text-slate-800 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-[#2563EB]"
+            />
+          </div>
+
+          {/* P/L Filter Toggle */}
+          <div className="inline-flex items-center bg-slate-100/90 dark:bg-white/[0.06] rounded-[10px] p-0.5">
+            {(
+              [
+                { id: "all", label: "All" },
+                { id: "profit", label: "Wins" },
+                { id: "loss", label: "Losses" },
+              ] as const
+            ).map((f) => (
+              <button
+                key={f.id}
+                type="button"
+                onClick={() => setPlFilter(f.id)}
+                className={`px-2.5 py-1 text-[10.5px] font-semibold rounded-[8px] transition-all cursor-pointer ${
+                  plFilter === f.id
+                    ? "bg-white dark:bg-[#26262B] text-slate-900 dark:text-white shadow-xs"
+                    : "text-slate-400 hover:text-slate-700 dark:hover:text-white"
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+
+          {onImportCsv && (
+            <button
+              type="button"
+              onClick={onImportCsv}
+              className="tactile-white-pill rounded-[10px] px-2.5 py-1.5 text-[11px] font-semibold inline-flex items-center gap-1 cursor-pointer"
+            >
+              <Upload size={12} />
+              <span>Import</span>
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={handleExportCsv}
+            className="tactile-white-pill rounded-[10px] px-2.5 py-1.5 text-[11px] font-semibold inline-flex items-center gap-1 cursor-pointer"
+          >
+            <Download size={12} />
+            <span>Export</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => toast.info("No live open orders to close.")}
+            className="hidden xl:inline-flex items-center gap-1 text-[11.5px] font-semibold text-slate-500 hover:text-slate-900 dark:hover:text-white px-2 py-1 cursor-pointer"
+          >
+            <span>Close All</span>
+            <IconlyChevronDown
+              set="curved"
+              primaryColor="currentColor"
+              size={11}
+              stroke="bold"
+            />
+          </button>
+        </div>
+      </div>
+
+      {/* Live Positions Table */}
+      <div className="overflow-x-auto overflow-y-auto max-h-[360px] amazing-scrollbar relative">
+        <table className="w-full text-left border-collapse min-w-[1140px]">
+          <thead className="sticky top-0 bg-slate-50/95 dark:bg-[#1C1C20] z-10 border-b border-slate-100 dark:border-white/[0.06]">
+            <tr className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap">
+              <th className="px-3.5 py-3">Instrument</th>
+              <th className="px-3 py-3">Entry Time (UTC)</th>
+              <th className="px-3 py-3">Side</th>
+              <th className="px-3 py-3">
+                {activeMarket === "indian" ? "Qty" : "Lots"}
+              </th>
+              <th className="px-3 py-3">Entry Price</th>
+              <th className="px-3 py-3 text-center">Stop Loss</th>
+              <th className="px-3 py-3 text-center">Take Profit</th>
+              <th className="px-3 py-3">Exit Time (UTC)</th>
+              <th className="px-3 py-3">Exit Price</th>
+              <th className="px-3 py-3 text-right">Commission</th>
+              <th className="px-3 py-3 text-right">Swaps</th>
+              <th className="px-3 py-3 text-right">P&amp;L</th>
+              <th className="px-3 py-3 text-right">Net P&amp;L</th>
+              <th className="px-3 py-3 text-center"></th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100 dark:divide-white/[0.05] whitespace-nowrap">
+            {isLoading ? (
+              Array.from({ length: 5 }).map((_, rowIdx) => (
+                <tr key={rowIdx} className="animate-pulse">
+                  <td className="px-3.5 py-3.5">
+                    <Skeleton className="h-4 w-20 bg-slate-200 dark:bg-white/10" />
+                  </td>
+                  <td className="px-3 py-3.5">
+                    <Skeleton className="h-4 w-32 bg-slate-200 dark:bg-white/10" />
+                  </td>
+                  <td className="px-3 py-3.5">
+                    <Skeleton className="h-4 w-10 bg-slate-200 dark:bg-white/10" />
+                  </td>
+                  <td className="px-3 py-3.5">
+                    <Skeleton className="h-4 w-10 bg-slate-200 dark:bg-white/10" />
+                  </td>
+                  <td className="px-3 py-3.5">
+                    <Skeleton className="h-4 w-16 bg-slate-200 dark:bg-white/10" />
+                  </td>
+                  <td className="px-3 py-3.5 text-center text-slate-300">-</td>
+                  <td className="px-3 py-3.5 text-center text-slate-300">-</td>
+                  <td className="px-3 py-3.5">
+                    <Skeleton className="h-4 w-32 bg-slate-200 dark:bg-white/10" />
+                  </td>
+                  <td className="px-3 py-3.5">
+                    <Skeleton className="h-4 w-16 bg-slate-200 dark:bg-white/10" />
+                  </td>
+                  <td className="px-3 py-3.5 text-right">
+                    <Skeleton className="h-4 w-12 bg-slate-200 dark:bg-white/10 ml-auto" />
+                  </td>
+                  <td className="px-3 py-3.5 text-right">
+                    <Skeleton className="h-4 w-12 bg-slate-200 dark:bg-white/10 ml-auto" />
+                  </td>
+                  <td className="px-3 py-3.5 text-right">
+                    <Skeleton className="h-4 w-14 bg-slate-200 dark:bg-white/10 ml-auto" />
+                  </td>
+                  <td className="px-3 py-3.5 text-right">
+                    <Skeleton className="h-4 w-14 bg-slate-200 dark:bg-white/10 ml-auto" />
+                  </td>
+                  <td className="px-3 py-3.5"></td>
+                </tr>
+              ))
+            ) : displayTrades.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={14}
+                  className="text-center py-12 text-slate-400 text-[12.5px] font-medium"
+                >
+                  No {activeTab === "closed" ? "closed trades" : activeTab} found yet.
+                  Log a trade, import CSV, or connect your broker to sync.
+                </td>
+              </tr>
+            ) : (
+              displayTrades.map((trade) => {
+                const side: "BUY" | "SELL" =
+                  trade.trade_type === 0 ||
+                  String(trade.trade_type).toUpperCase().includes("BUY")
+                    ? "BUY"
+                    : "SELL";
+                const profit = Number(trade.profit || 0);
+                const lot = Number(trade.lot_size || 0);
+                const grossPnl =
+                  profit -
+                  Number(trade.commission || 0) -
+                  Number(trade.swap || 0) -
+                  Number(trade.fee || 0);
+
+                const entryDateStr = formatUTCDate(
+                  trade.opened_at || trade.created_at
+                );
+                const exitDateStr = trade.closed_at
+                  ? formatUTCDate(trade.closed_at)
+                  : "Open";
+
+                return (
+                  <tr
+                    key={trade.id}
+                    onClick={() => onTradeClick?.(trade)}
+                    className="hover:bg-slate-50/80 dark:hover:bg-white/[0.03] transition-colors group cursor-pointer"
+                  >
+                    <td className="px-3.5 py-3 text-[12.5px] font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                      <span>{getFlagIcon(trade.symbol)}</span>
+                      <span>{trade.symbol}</span>
+                    </td>
+                    <td className="px-3 py-3 text-[11.5px] text-slate-500 dark:text-neutral-400 tabular-nums">
+                      {entryDateStr}
+                    </td>
+                    <td className="px-3 py-3">
+                      <span
+                        className={`px-1.5 py-0.5 rounded-md text-[10px] font-bold ${
+                          side === "BUY"
+                            ? "bg-blue-50 text-[#2563EB] dark:bg-blue-500/15 dark:text-blue-400"
+                            : "bg-rose-50 text-rose-600 dark:bg-rose-500/15 dark:text-rose-400"
+                        }`}
+                      >
+                        {side}
+                      </span>
+                    </td>
+                    <td className="px-3 py-3 text-[12.5px] font-semibold text-slate-800 dark:text-neutral-200 tabular-nums">
+                      {lot.toFixed(2)}
+                    </td>
+                    <td className="px-3 py-3 text-[12px] font-medium text-slate-700 dark:text-neutral-300 tabular-nums">
+                      {trade.open_price
+                        ? Number(trade.open_price).toFixed(5)
+                        : trade.entry_price
+                        ? Number(trade.entry_price).toFixed(5)
+                        : "-"}
+                    </td>
+                    <td className="px-3 py-3 text-[12px] text-slate-400 text-center tabular-nums">
+                      {trade.stop_loss ? Number(trade.stop_loss).toFixed(5) : "-"}
+                    </td>
+                    <td className="px-3 py-3 text-[12px] text-slate-400 text-center tabular-nums">
+                      {trade.take_profit
+                        ? Number(trade.take_profit).toFixed(5)
+                        : "-"}
+                    </td>
+                    <td className="px-3 py-3 text-[11.5px] text-slate-500 dark:text-neutral-400 tabular-nums">
+                      {exitDateStr}
+                    </td>
+                    <td className="px-3 py-3 text-[12px] font-medium text-slate-700 dark:text-neutral-300 tabular-nums">
+                      {trade.closed_at
+                        ? trade.close_price
+                          ? Number(trade.close_price).toFixed(5)
+                          : trade.exit_price
+                          ? Number(trade.exit_price).toFixed(5)
+                          : "-"
+                        : "-"}
+                    </td>
+                    <td className="px-3 py-3 text-[12px] font-medium text-slate-600 dark:text-neutral-300 tabular-nums text-right">
+                      {fmtMoney(Number(trade.commission || 0), { raw: true })}
+                    </td>
+                    <td className="px-3 py-3 text-[12px] font-medium text-slate-600 dark:text-neutral-300 tabular-nums text-right">
+                      {fmtMoney(Number(trade.swap || 0), { raw: true })}
+                    </td>
+                    <td
+                      className={`px-3 py-3 text-[12.5px] font-semibold tabular-nums text-right ${
+                        grossPnl < 0
+                          ? "text-rose-600 dark:text-rose-400"
+                          : "text-[#2563EB] dark:text-blue-400"
+                      }`}
+                    >
+                      {formatPnl(grossPnl)}
+                    </td>
+                    <td
+                      className={`px-3 py-3 text-[12.5px] font-bold tabular-nums text-right ${
+                        profit < 0
+                          ? "text-rose-600 dark:text-rose-400"
+                          : "text-[#2563EB] dark:text-blue-400"
+                      }`}
+                    >
+                      {formatPnl(profit)}
+                    </td>
+                    <td className="px-3 py-3 text-center">
+                      <button
+                        type="button"
+                        onClick={(e) => handleShareTrade(e, trade.ticket)}
+                        className="p-1.5 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition-colors text-slate-400 hover:text-[#2563EB] cursor-pointer"
+                        title="Copy trade reference"
+                      >
+                        <Share2 size={13} />
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

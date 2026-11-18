@@ -543,6 +543,8 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
             <div className="flex items-center gap-2 sm:gap-3">
                 {location.pathname === '/profile' ||
                 location.pathname === '/dashboard' ||
+                location.pathname.startsWith('/journal') ||
+                location.pathname.startsWith('/risk-guard') ||
                 location.pathname.startsWith('/user/') ||
                 location.pathname.startsWith('/inbox') ||
                 location.pathname.startsWith('/post/') ||
@@ -798,8 +800,8 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
       {/* Mobile Bottom Navigation Bar */}
       {!hideBottomNav && (
         <>
-          {/* Mobile Floating AI Coach Button (Only on Mobile, NOT on Home or Dashboard) */}
-          {!isHomePage && location.pathname !== '/dashboard' && (
+          {/* Mobile Floating AI Coach Button (Only on Mobile, NOT on Home, Dashboard, Journal, or Risk Guard) */}
+          {!isHomePage && location.pathname !== '/dashboard' && !location.pathname.startsWith('/journal') && !location.pathname.startsWith('/risk-guard') && (
             <button
               type="button"
               onClick={() => setIsAIOpen(true)}

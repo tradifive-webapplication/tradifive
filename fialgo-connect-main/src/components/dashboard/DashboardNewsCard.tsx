@@ -7,7 +7,6 @@ import {
   Share,
   RefreshCw,
   Check,
-  Radio,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -27,12 +26,24 @@ const MAJOR_CURRENCIES = ["USD", "EUR", "GBP", "JPY", "CAD", "AUD", "CHF", "NZD"
 const DEFAULT_CURRENCIES = ["USD", "EUR", "GBP", "JPY"];
 const DEFAULT_IMPACTS = ["High", "Medium"];
 
+function toDateKey(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function getEventTradingDateKey(iso: string): string {
+  // Forex Factory timestamps carry the trading-day date prefix (e.g. "2026-11-18T14:00:00-05:00")
+  if (typeof iso === "string" && /^\d{4}-\d{2}-\d{2}/.test(iso)) {
+    return iso.slice(0, 10);
+  }
+  const d = new Date(iso);
+  return isNaN(d.getTime()) ? "" : toDateKey(d);
+}
+
 function isSameCalendarDay(a: Date, b: Date): boolean {
-  return (
-    a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate()
-  );
+  return toDateKey(a) === toDateKey(b);
 }
 
 function formatEventTime(iso: string): string {
@@ -54,34 +65,61 @@ function getImpactStyle(impact: string) {
   if (norm === "high") {
     return {
       dot: "bg-rose-600 dark:bg-rose-500",
-      badge: "bg-rose-50 text-rose-700 border-rose-200/70 dark:bg-rose-500/15 dark:text-rose-400 dark:border-rose-500/25",
       label: "High",
     };
   }
   if (norm === "medium") {
     return {
       dot: "bg-amber-500",
-      badge: "bg-amber-50 text-amber-700 border-amber-200/70 dark:bg-amber-500/15 dark:text-amber-400 dark:border-amber-500/25",
-      label: "Med",
+      label: "Medium",
     };
   }
   return {
     dot: "bg-slate-400",
-    badge: "bg-slate-100 text-slate-500 border-slate-200/70 dark:bg-white/10 dark:text-neutral-400 dark:border-white/10",
     label: "Low",
   };
+}
+
+function normalizeFeedArray(data: any[]): NewsCalendarEvent[] {
+  return data
+    .filter((item) => item && (item.title || item.event_title) && (item.date || item.event_time))
+    .map((item: any, i: number) => ({
+      id: `${item.country || item.currency || "GL"}-${(item.title || item.event_title || "").replace(/\s+/g, "_")}-${item.date || item.event_time || i}`,
+      event_title: item.title || item.event_title || "Economic Event",
+      currency: String(item.country || item.currency || "USD").toUpperCase(),
+      event_time: item.date || item.event_time,
+      impact: item.impact || "Low",
+      forecast: item.forecast || "",
+      previous: item.previous || "",
+      actual: item.actual || "",
+    }))
+    .sort(
+      (a, b) => new Date(a.event_time).getTime() - new Date(b.event_time).getTime()
+    );
+}
+
+function isCacheFreshForThisWeek(items: NewsCalendarEvent[]): boolean {
+  if (!items.length) return false;
+  const now = new Date();
+  const sixDaysMs = 6 * 24 * 60 * 60 * 1000;
+  return items.some((ev) => {
+    const t = new Date(ev.event_time).getTime();
+    return !isNaN(t) && Math.abs(t - now.getTime()) <= sixDaysMs;
+  });
 }
 
 export const DashboardNewsCard: React.FC = () => {
   const [events, setEvents] = useState<NewsCalendarEvent[]>(() => {
     try {
-      const cached = localStorage.getItem("tf_calendar_cache");
+      const cached = localStorage.getItem("tf_calendar_cache_v2");
       if (cached) {
         const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && isCacheFreshForThisWeek(parsed)) {
+          return parsed;
+        }
       }
     } catch {
-      // Ignore cache error
+      // Ignore cache read errors
     }
     return [];
   });
@@ -111,27 +149,30 @@ export const DashboardNewsCard: React.FC = () => {
 
     let fetched: NewsCalendarEvent[] = [];
 
-    try {
-      const res = await fetch("/api/economic-calendar", { cache: "no-cache" });
-      if (res.ok) {
+    // Try live Forex Factory sources in order
+    const endpoints = [
+      "/api/economic-calendar",
+      "https://nfs.faireconomy.media/ff_calendar_thisweek.json",
+      "https://www.tradifive.in/api/economic-calendar",
+    ];
+
+    for (const url of endpoints) {
+      if (fetched.length > 0) break;
+      try {
+        const res = await fetch(url, { cache: "no-store" });
+        if (!res.ok) continue;
+        const contentType = res.headers.get("content-type") || "";
+        if (!contentType.includes("json") && !url.endsWith(".json")) continue;
         const data = await res.json();
         if (Array.isArray(data) && data.length > 0) {
-          fetched = data.map((item: any, i: number) => ({
-            id: `${item.country || "GL"}-${(item.title || "").replace(/\s+/g, "_")}-${item.date || i}`,
-            event_title: item.title || "Economic Event",
-            currency: (item.country || "USD").toUpperCase(),
-            event_time: item.date,
-            impact: item.impact || "Low",
-            forecast: item.forecast || "",
-            previous: item.previous || "",
-            actual: item.actual || "",
-          }));
+          fetched = normalizeFeedArray(data);
         }
+      } catch {
+        // Try next source
       }
-    } catch {
-      // Fallback below
     }
 
+    // Fallback to Supabase economic_calendar table
     if (fetched.length === 0) {
       try {
         const { data } = await supabase
@@ -139,16 +180,7 @@ export const DashboardNewsCard: React.FC = () => {
           .select("*")
           .order("event_time", { ascending: true });
         if (data && data.length > 0) {
-          fetched = data.map((row: any) => ({
-            id: row.id,
-            event_title: row.event_title || "Economic Event",
-            currency: (row.currency || "USD").toUpperCase(),
-            event_time: row.event_time || new Date().toISOString(),
-            impact: row.impact || "Low",
-            forecast: row.forecast || "",
-            previous: row.previous || "",
-            actual: row.actual || "",
-          }));
+          fetched = normalizeFeedArray(data);
         }
       } catch {
         // Ignore fallback failure
@@ -156,19 +188,16 @@ export const DashboardNewsCard: React.FC = () => {
     }
 
     if (fetched.length > 0) {
-      fetched.sort(
-        (a, b) => new Date(a.event_time).getTime() - new Date(b.event_time).getTime()
-      );
       setEvents(fetched);
       try {
-        localStorage.setItem("tf_calendar_cache", JSON.stringify(fetched));
+        localStorage.setItem("tf_calendar_cache_v2", JSON.stringify(fetched));
         localStorage.setItem("tf_calendar_last_fetch", new Date().toISOString());
       } catch {
-        // Ignore storage error
+        // Ignore storage errors
       }
-      if (manual) toast.success("Market radar refreshed");
+      if (manual) toast.success(`Updated with ${fetched.length} live events`);
     } else if (manual) {
-      toast.info("Calendar is up to date");
+      toast.error("Could not fetch live Forex Factory feed right now");
     }
 
     setLoading(false);
@@ -181,6 +210,7 @@ export const DashboardNewsCard: React.FC = () => {
 
   const today = useMemo(() => new Date(), []);
   const isTodaySelected = isSameCalendarDay(selectedDate, today);
+  const selectedKey = toDateKey(selectedDate);
 
   const filteredEvents = useMemo(() => {
     return events.filter((ev) => {
@@ -196,22 +226,22 @@ export const DashboardNewsCard: React.FC = () => {
       if (!impactMatch || !currencyMatch) return false;
 
       if (viewMode === "day") {
-        const evDate = new Date(ev.event_time);
-        if (isNaN(evDate.getTime())) return false;
-        return isSameCalendarDay(evDate, selectedDate);
+        return getEventTradingDateKey(ev.event_time) === selectedKey;
       }
       return true;
     });
-  }, [events, selectedImpacts, selectedCurrencies, viewMode, selectedDate]);
+  }, [events, selectedImpacts, selectedCurrencies, viewMode, selectedKey]);
 
   const groupedByDay = useMemo(() => {
     if (viewMode !== "week") return null;
     const map = new Map<string, { label: string; items: NewsCalendarEvent[] }>();
     filteredEvents.forEach((ev) => {
-      const d = new Date(ev.event_time);
-      const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+      const key = getEventTradingDateKey(ev.event_time);
+      if (!key) return;
       if (!map.has(key)) {
-        map.set(key, { label: formatDayHeader(d), items: [] });
+        const [y, m, d] = key.split("-").map(Number);
+        const dt = new Date(y, (m || 1) - 1, d || 1);
+        map.set(key, { label: formatDayHeader(dt), items: [] });
       }
       map.get(key)!.items.push(ev);
     });
@@ -241,8 +271,8 @@ export const DashboardNewsCard: React.FC = () => {
   const handleShareNews = async () => {
     const header =
       viewMode === "day"
-        ? `TradiFive Market Radar — ${formatDayHeader(selectedDate)}`
-        : "TradiFive Market Radar — This Week";
+        ? `TradiFive Economic News — ${formatDayHeader(selectedDate)}`
+        : "TradiFive Economic News — This Week";
     const lines =
       filteredEvents.length > 0
         ? filteredEvents
@@ -260,14 +290,14 @@ export const DashboardNewsCard: React.FC = () => {
         await navigator.share({ title: header, text });
       } else {
         await navigator.clipboard.writeText(text);
-        toast.success("Market calendar copied");
+        toast.success("News schedule copied");
       }
     } catch {
       try {
         await navigator.clipboard.writeText(text);
-        toast.success("Market calendar copied");
+        toast.success("News schedule copied");
       } catch {
-        toast.error("Unable to copy calendar");
+        toast.error("Unable to copy schedule");
       }
     }
   };
@@ -288,10 +318,10 @@ export const DashboardNewsCard: React.FC = () => {
       <div className="flex items-center justify-between gap-2 mb-3">
         <div className="flex items-baseline gap-2">
           <h2 className="text-[13px] font-semibold text-slate-900 dark:text-white tracking-tight">
-            Market radar
+            News
           </h2>
           <span className="text-[12px] text-slate-400 dark:text-neutral-500">
-            Forex Factory
+            Forex Factory · this week
           </span>
         </div>
 
@@ -394,8 +424,8 @@ export const DashboardNewsCard: React.FC = () => {
             onClick={() => fetchEvents(true)}
             disabled={refreshing}
             className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.06] transition-colors cursor-pointer disabled:opacity-50"
-            title="Refresh"
-            aria-label="Refresh"
+            title="Refresh live news"
+            aria-label="Refresh live news"
           >
             <RefreshCw
               size={12.5}
@@ -477,7 +507,7 @@ export const DashboardNewsCard: React.FC = () => {
       {/* Events List */}
       {loading ? (
         <div className="space-y-2 py-2">
-          {[1, 2, 3].map((n) => (
+          {[1, 2, 3, 4].map((n) => (
             <div
               key={n}
               className="h-7 rounded-lg bg-slate-100/80 dark:bg-white/[0.04] animate-pulse"
@@ -502,7 +532,7 @@ export const DashboardNewsCard: React.FC = () => {
       ) : (
         <AnimatePresence mode="wait">
           <motion.div
-            key={`${viewMode}-${selectedDate.toDateString()}-${selectedImpacts.join(",")}-${selectedCurrencies.join(",")}`}
+            key={`${viewMode}-${selectedKey}-${selectedImpacts.join(",")}-${selectedCurrencies.join(",")}`}
             initial={{ opacity: 0, y: 5 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
@@ -531,8 +561,9 @@ export const DashboardNewsCard: React.FC = () => {
                           {ev.event_title}
                         </span>
                         {(ev.forecast || ev.previous) && (
-                          <span className="hidden sm:inline-flex items-center gap-1 text-[10.5px] font-mono text-slate-400 dark:text-neutral-500 shrink-0">
+                          <span className="hidden sm:inline-flex items-center gap-1.5 text-[10.5px] font-mono text-slate-400 dark:text-neutral-500 shrink-0">
                             {ev.forecast && <span>F:{ev.forecast}</span>}
+                            {ev.previous && <span>P:{ev.previous}</span>}
                           </span>
                         )}
                       </div>
@@ -584,7 +615,7 @@ export const DashboardNewsCard: React.FC = () => {
         <Check size={11} strokeWidth={2.5} className="shrink-0" />
         <span className="truncate">
           {filteredEvents.length} event{filteredEvents.length !== 1 ? "s" : ""}{" "}
-          {viewMode === "day" ? `on ${formatDayHeader(selectedDate)}` : "this week"}
+          {viewMode === "day" ? `across ${formatDayHeader(selectedDate)}` : "this week"}
           {selectedImpacts.length > 0 ? ` · ${selectedImpacts.join(", ")}` : ""}
           {selectedCurrencies.length > 0
             ? ` · ${selectedCurrencies.slice(0, 4).join(" ")}${selectedCurrencies.length > 4 ? " +" : ""}`

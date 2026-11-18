@@ -13,6 +13,8 @@ interface DashboardPnLCalendarProps {
   currSym: string;
   hidePnl: boolean;
   onLogTrade?: () => void;
+  onOpenDayModal?: (date: Date, dayTrades: any[]) => void;
+  hideJournalLink?: boolean;
 }
 
 const WEEKDAYS = ["S", "M", "T", "W", "T", "F", "S"];
@@ -38,6 +40,8 @@ export const DashboardPnLCalendar: React.FC<DashboardPnLCalendarProps> = ({
   currSym,
   hidePnl,
   onLogTrade,
+  onOpenDayModal,
+  hideJournalLink = false,
 }) => {
   const today = useMemo(() => new Date(), []);
   const [viewMonth, setViewMonth] = useState(
@@ -328,25 +332,54 @@ export const DashboardPnLCalendar: React.FC<DashboardPnLCalendarProps> = ({
                   })}
                 </span>
                 {selectedDay.count > 0 ? (
-                  <span
-                    className={`text-[12px] font-semibold tabular-nums transition-[filter,opacity] duration-200 ${blurClass} ${
-                      selectedDay.pnl >= 0
-                        ? "text-emerald-700 dark:text-emerald-400"
-                        : "text-rose-600 dark:text-rose-400"
-                    }`}
-                  >
-                    {formatFullMoney(selectedDay.pnl, currSym)} · {selectedDay.count} trade
-                    {selectedDay.count !== 1 ? "s" : ""}
-                  </span>
+                  <div className="flex items-center gap-2.5">
+                    <span
+                      className={`text-[12px] font-semibold tabular-nums transition-[filter,opacity] duration-200 ${blurClass} ${
+                        selectedDay.pnl >= 0
+                          ? "text-emerald-700 dark:text-emerald-400"
+                          : "text-rose-600 dark:text-rose-400"
+                      }`}
+                    >
+                      {formatFullMoney(selectedDay.pnl, currSym)} · {selectedDay.count} trade
+                      {selectedDay.count !== 1 ? "s" : ""}
+                    </span>
+                    {onOpenDayModal && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          onOpenDayModal(
+                            new Date(year, month, selectedDay.day!),
+                            selectedDay.items
+                          )
+                        }
+                        className="text-[11.5px] font-semibold text-[#2563EB] dark:text-blue-400 hover:underline cursor-pointer"
+                      >
+                        Reflect →
+                      </button>
+                    )}
+                  </div>
                 ) : (
-                  <button
-                    type="button"
-                    onClick={onLogTrade}
-                    className="inline-flex items-center gap-1 text-[11.5px] font-medium text-slate-600 hover:text-slate-900 dark:text-neutral-300 dark:hover:text-white cursor-pointer"
-                  >
-                    <Plus size={12} strokeWidth={2} />
-                    Log a trade
-                  </button>
+                  <div className="flex items-center gap-3">
+                    {onOpenDayModal && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          onOpenDayModal(new Date(year, month, selectedDay.day!), [])
+                        }
+                        className="text-[11.5px] font-semibold text-[#2563EB] dark:text-blue-400 hover:underline cursor-pointer"
+                      >
+                        Daily notes →
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={onLogTrade}
+                      className="inline-flex items-center gap-1 text-[11.5px] font-medium text-slate-600 hover:text-slate-900 dark:text-neutral-300 dark:hover:text-white cursor-pointer"
+                    >
+                      <Plus size={12} strokeWidth={2} />
+                      Log a trade
+                    </button>
+                  </div>
                 )}
               </div>
 
@@ -389,13 +422,15 @@ export const DashboardPnLCalendar: React.FC<DashboardPnLCalendarProps> = ({
             : "Tap a day to open it"}
         </span>
 
-        <Link
-          to="/journal"
-          className="inline-flex items-center gap-1 font-medium text-slate-600 hover:text-slate-900 dark:text-neutral-300 dark:hover:text-white transition-colors"
-        >
-          <span>Journal</span>
-          <ArrowRight size={12} strokeWidth={1.75} />
-        </Link>
+        {!hideJournalLink && (
+          <Link
+            to="/journal"
+            className="inline-flex items-center gap-1 font-medium text-slate-600 hover:text-slate-900 dark:text-neutral-300 dark:hover:text-white transition-colors"
+          >
+            <span>Journal</span>
+            <ArrowRight size={12} strokeWidth={1.75} />
+          </Link>
+        )}
       </div>
     </section>
   );
