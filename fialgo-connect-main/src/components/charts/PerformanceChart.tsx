@@ -168,8 +168,8 @@ export default function PerformanceChart({
   };
 
   return (
-    <div className="w-full h-full">
-      <ResponsiveContainer width="100%" height="100%">
+    <div className="w-full h-full min-h-[235px] flex-1">
+      <ResponsiveContainer width="100%" height="100%" minHeight={235}>
         <AreaChart
           data={data}
           margin={{ top: 8, right: 8, left: -12, bottom: 0 }}

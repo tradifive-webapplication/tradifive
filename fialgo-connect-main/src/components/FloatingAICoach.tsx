@@ -466,87 +466,130 @@ ${JSON.stringify(contextData)}`;
     sendMessageRef.current?.(input);
   };
 
+  const quickPrompts =
+    activeMarket === 'indian'
+      ? [
+          "Audit my recent Nifty / BankNifty trades",
+          "Check my risk & drawdown today",
+          "What mistakes am I repeating?",
+        ]
+      : [
+          "Audit my recent trades",
+          "Check my risk & drawdown today",
+          "What trading mistakes am I repeating?",
+        ];
+
   if (!isOpen) return null;
 
   return (
     <AnimatePresence>
       <motion.div
-        initial={{ opacity: 0, y: 20, scale: 0.95 }}
+        initial={{ opacity: 0, y: 18, scale: 0.96 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
-        exit={{ opacity: 0, y: 20, scale: 0.95 }}
-        transition={{ type: "spring", stiffness: 300, damping: 25 }}
-        className="fixed bottom-6 right-6 w-[400px] h-[600px] max-h-[calc(100vh-120px)] z-[9999] flex flex-col bg-white dark:bg-[#1E1E1E] rounded-[22px] shadow-[0_8px_30px_rgba(0,0,0,0.12),_0_0_0_2px_#E7E7E7] dark:shadow-none border-2 border-white dark:border-[#2A2B2F] overflow-hidden font-sans"
+        exit={{ opacity: 0, y: 18, scale: 0.96 }}
+        transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
+        className="fixed bottom-5 right-5 w-[390px] max-w-[calc(100vw-2.5rem)] h-[560px] max-h-[calc(100vh-100px)] z-[9999] flex flex-col bg-white dark:bg-[#17171A] rounded-[22px] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_14px_40px_rgba(15,23,42,0.12),0_2px_10px_rgba(15,23,42,0.05)] dark:shadow-[0_16px_44px_rgba(0,0,0,0.45)] overflow-hidden font-sans"
       >
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200/50 dark:border-white/5 bg-transparent shrink-0">
-          <div className="flex items-center gap-2">
-            <Sparkles size={15} className="text-indigo-500 dark:text-indigo-400 animate-pulse" />
-            <span className="text-[13px] font-black text-slate-800 dark:text-white tracking-tight">
-              {isThinking && messages[messages.length - 1]?.postContext ? "Analyzing Post..." : "AI Coach"}
-            </span>
+        {/* Header — consistent with TradiFive sculpted cards */}
+        <div className="flex items-center justify-between px-4 py-3.5 border-b border-slate-100 dark:border-white/[0.06] bg-white dark:bg-[#17171A] shrink-0">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-8 h-8 rounded-[11px] bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center shrink-0">
+              <Sparkles size={14} strokeWidth={2.2} />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[13.5px] font-bold text-slate-900 dark:text-white tracking-tight leading-tight truncate">
+                {isThinking && messages[messages.length - 1]?.postContext ? "Analyzing Post..." : "TradiFive AI Coach"}
+              </p>
+              <p className="text-[11px] text-slate-400 dark:text-neutral-500 leading-tight mt-0.5 truncate">
+                {activePersona} · Live trade context
+              </p>
+            </div>
           </div>
-          
-          <div className="flex items-center gap-1.5">
-            <button 
+
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              type="button"
               onClick={() => setMessages([])}
-              className="flex items-center justify-center w-7 h-7 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 text-slate-500 dark:text-slate-400 transition-all" 
+              className="flex items-center justify-center w-7 h-7 rounded-full border border-slate-200/80 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] hover:bg-slate-50 dark:hover:bg-white/[0.08] text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white transition-colors cursor-pointer"
               title="Reset Chat"
             >
-              <RotateCcw size={15} strokeWidth={2} />
+              <RotateCcw size={13} strokeWidth={2.1} />
             </button>
-            <button 
+            <button
+              type="button"
               onClick={() => {
                 onClose();
                 navigate('/ai-coach', { state: { initialInput: input, initialMessages: messages, initialIsThinking: isThinking } });
               }}
-              className="flex items-center justify-center w-7 h-7 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 text-slate-500 dark:text-slate-400 transition-all" 
+              className="flex items-center justify-center w-7 h-7 rounded-full border border-slate-200/80 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] hover:bg-slate-50 dark:hover:bg-white/[0.08] text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white transition-colors cursor-pointer"
               title="Expand to Fullscreen"
             >
-              <Maximize2 size={15} strokeWidth={2} />
+              <Maximize2 size={13} strokeWidth={2.1} />
             </button>
-            <button 
+            <button
+              type="button"
               onClick={onClose}
-              className="flex items-center justify-center w-7 h-7 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 text-slate-500 dark:text-slate-400 transition-all" 
+              className="flex items-center justify-center w-7 h-7 rounded-full border border-slate-200/80 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] hover:bg-slate-50 dark:hover:bg-white/[0.08] text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white transition-colors cursor-pointer"
               title="Close"
             >
-              <X size={15} strokeWidth={2} />
+              <X size={13.5} strokeWidth={2.2} />
             </button>
           </div>
         </div>
 
         {/* Message Feed */}
-        <div 
+        <div
           ref={chatContainerRef}
-          className="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar bg-transparent"
+          className="flex-1 overflow-y-auto px-4 py-4 space-y-3.5 amazing-scrollbar bg-[#F7F8FA]/55 dark:bg-[#131316]/60"
         >
           {messages.length === 0 ? (
-            <div className="flex gap-3 items-start">
-               <div className="mt-2.5 flex items-start justify-center shrink-0">
-                  <Sparkles size={18} className="text-blue-400 dark:text-blue-300 drop-shadow-sm" />
-               </div>
-               <div className="max-w-[85%] text-[13px] leading-relaxed p-3 rounded-2xl bg-slate-50 dark:bg-white/[0.04] text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-transparent rounded-tl-md shadow-sm text-left">
-                  Hey! Ready to review your trades? What do you want to look at first?
-               </div>
+            <div className="flex flex-col justify-between h-full gap-4">
+              <div className="flex gap-2.5 items-start">
+                <div className="w-6 h-6 mt-0.5 rounded-lg bg-blue-50 dark:bg-blue-500/15 text-[#2563EB] dark:text-blue-400 flex items-center justify-center shrink-0">
+                  <Sparkles size={13} strokeWidth={2.2} />
+                </div>
+                <div className="max-w-[88%] text-[13px] leading-relaxed px-3.5 py-2.5 rounded-[16px] rounded-tl-[5px] bg-white dark:bg-[#1C1C20] text-slate-700 dark:text-neutral-200 border border-slate-200/75 dark:border-white/[0.07] shadow-[0_1px_3px_rgba(15,23,42,0.03)] text-left">
+                  Hey! Ready to review your trades? Ask me about your setups, psychology, or risk rules.
+                </div>
+              </div>
+
+              <div className="space-y-1.5 mt-auto">
+                <p className="text-[10.5px] font-semibold uppercase tracking-wider text-slate-400 dark:text-neutral-500 px-0.5">
+                  Quick prompts
+                </p>
+                <div className="flex flex-col gap-1.5">
+                  {quickPrompts.map((prompt) => (
+                    <button
+                      key={prompt}
+                      type="button"
+                      onClick={() => sendMessageRef.current?.(prompt)}
+                      className="w-full text-left px-3 py-2 rounded-[13px] bg-white dark:bg-[#1C1C20] hover:bg-blue-50/60 dark:hover:bg-blue-500/10 border border-slate-200/75 dark:border-white/[0.07] hover:border-blue-200 dark:hover:border-blue-500/30 text-[12px] font-medium text-slate-700 dark:text-neutral-200 hover:text-[#2563EB] dark:hover:text-blue-400 transition-colors cursor-pointer"
+                    >
+                      {prompt}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           ) : (
             messages.map((msg: any, idx) => (
-              <div key={idx} className={`flex gap-3 items-start ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+              <div key={idx} className={`flex gap-2.5 items-start ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
                 {msg.role === 'ai' && (
-                  <div className="mt-2.5 flex items-start justify-center shrink-0">
-                    <Sparkles size={18} className="text-blue-400 dark:text-blue-300 drop-shadow-sm" />
+                  <div className="w-6 h-6 mt-0.5 rounded-lg bg-blue-50 dark:bg-blue-500/15 text-[#2563EB] dark:text-blue-400 flex items-center justify-center shrink-0">
+                    <Sparkles size={13} strokeWidth={2.2} />
                   </div>
                 )}
                 {msg.role === 'user' && msg.postContext ? (
-                  /* Premium Twitter/Grok-Style Post Preview Card */
-                  <div className="w-[85%] rounded-[18px] border border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-[#121212]/50 p-4 text-left shadow-sm">
-                    <div className="flex items-center gap-2 mb-3">
-                      <img src={msg.postContext.authorAvatar} className="w-8 h-8 rounded-full bg-slate-200 object-cover shrink-0" />
+                  /* Post Preview Card */
+                  <div className="w-[86%] rounded-[16px] border border-slate-200/80 dark:border-white/[0.08] bg-white dark:bg-[#1C1C20] p-3.5 text-left shadow-[0_1px_4px_rgba(15,23,42,0.04)]">
+                    <div className="flex items-center gap-2 mb-2.5">
+                      <img src={msg.postContext.authorAvatar} className="w-7 h-7 rounded-full bg-slate-200 object-cover shrink-0" />
                       <div className="min-w-0 flex-1 leading-tight">
                         <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="text-xs font-black text-slate-900 dark:text-white truncate">{msg.postContext.authorName}</span>
-                          <span className="text-[10.5px] font-bold text-slate-400 dark:text-slate-400 truncate">{msg.postContext.authorHandle}</span>
+                          <span className="text-[12px] font-bold text-slate-900 dark:text-white truncate">{msg.postContext.authorName}</span>
+                          <span className="text-[10.5px] font-medium text-slate-400 truncate">{msg.postContext.authorHandle}</span>
                           {msg.postContext.timestamp && (
-                            <span className="text-[10.5px] text-slate-400 dark:text-slate-400 select-none">
+                            <span className="text-[10.5px] text-slate-400 select-none">
                               · {msg.postContext.timestamp.includes("Z") || !isNaN(Date.parse(msg.postContext.timestamp))
                                   ? formatDistanceToNow(new Date(msg.postContext.timestamp), { addSuffix: false })
                                       .replace("about ", "")
@@ -563,11 +606,10 @@ ${JSON.stringify(contextData)}`;
                         </div>
                       </div>
                     </div>
-                    
-                    <div className="flex gap-3">
-                      {/* Left: media thumbnail if present */}
+
+                    <div className="flex gap-2.5">
                       {Array.isArray(msg.postContext.mediaUrls) && msg.postContext.mediaUrls.length > 0 && msg.postContext.postType !== 'poll' && msg.postContext.postType !== 'signal' && typeof msg.postContext.mediaUrls[0] === 'string' && !msg.postContext.mediaUrls[0].trim().startsWith('{') && !msg.postContext.mediaUrls[0].trim().startsWith('[') && (
-                        <div className="w-14 h-14 rounded-xl overflow-hidden border border-slate-200/60 dark:border-slate-800 shrink-0 relative select-none">
+                        <div className="w-13 h-13 rounded-xl overflow-hidden border border-slate-200/70 dark:border-white/[0.08] shrink-0 relative select-none">
                           <img src={msg.postContext.mediaUrls[0]} className="w-full h-full object-cover" />
                           {msg.postContext.mediaType === 'video' && (
                             <div className="absolute inset-0 bg-black/30 flex items-center justify-center text-white">
@@ -576,17 +618,16 @@ ${JSON.stringify(contextData)}`;
                           )}
                         </div>
                       )}
-                      
-                      {/* Right: text content */}
+
                       <div className="flex-1 min-w-0">
                         {msg.postContext.content && (
-                            <p className="text-[12px] font-semibold text-slate-650 dark:text-slate-300 leading-normal break-words line-clamp-4 select-text">
+                            <p className="text-[12px] font-medium text-slate-600 dark:text-neutral-300 leading-normal break-words line-clamp-4 select-text">
                               {msg.postContext.content}
                             </p>
                         )}
                         {msg.postContext.postType === 'poll' && (
-                            <div className="mt-1.5 p-2 rounded-lg border border-slate-200/50 dark:border-white/5 bg-white dark:bg-white/[0.02]">
-                                <p className="text-[11px] font-bold text-slate-500 flex items-center gap-1.5"><Sparkles size={12} className="text-blue-500" /> Interactive Poll</p>
+                            <div className="mt-1.5 p-2 rounded-lg border border-slate-200/70 dark:border-white/[0.07] bg-slate-50 dark:bg-white/[0.03]">
+                                <p className="text-[11px] font-semibold text-slate-500 flex items-center gap-1.5"><Sparkles size={12} className="text-[#2563EB]" /> Interactive Poll</p>
                             </div>
                         )}
                       </div>
@@ -594,34 +635,35 @@ ${JSON.stringify(contextData)}`;
                   </div>
                 ) : (
                   /* Standard Chat Bubble */
-                  <div className={`max-w-[85%] text-[13px] leading-relaxed p-3 rounded-2xl ${
-                    msg.role === 'user' 
-                      ? 'bg-gradient-to-br from-violet-600 via-indigo-600 to-indigo-700 text-white font-medium rounded-tr-md shadow-sm text-left' 
-                      : 'bg-slate-50 dark:bg-white/[0.04] text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-transparent rounded-tl-md shadow-sm overflow-hidden text-left'
+                  <div className={`max-w-[85%] text-[13px] leading-relaxed px-3.5 py-2.5 rounded-[16px] ${
+                    msg.role === 'user'
+                      ? 'bg-[#2563EB] text-white font-medium rounded-tr-[5px] shadow-[0_2px_8px_rgba(37,99,235,0.22)] text-left'
+                      : 'bg-white dark:bg-[#1C1C20] text-slate-700 dark:text-neutral-200 border border-slate-200/75 dark:border-white/[0.07] rounded-tl-[5px] shadow-[0_1px_3px_rgba(15,23,42,0.03)] overflow-hidden text-left'
                   }`}>
                     {msg.role === 'ai' ? (
                       <>
                         {!msg.isOutOfCredits && (
-                          <div className="prose prose-sm dark:prose-invert max-w-none prose-p:leading-relaxed">
+                          <div className="prose prose-sm dark:prose-invert max-w-none prose-p:leading-relaxed prose-p:my-1 prose-headings:my-1.5">
                             <ReactMarkdown>
                               {msg.content}
                             </ReactMarkdown>
                           </div>
                         )}
                         {msg.isOutOfCredits ? (
-                          <div className="mt-2 w-full flex flex-col gap-2.5">
+                          <div className="mt-1 w-full flex flex-col gap-2">
                             <div className="flex items-center gap-2">
-                              <div className="p-1 rounded-lg bg-indigo-500/20 text-indigo-400">
+                              <div className="p-1 rounded-lg bg-blue-50 dark:bg-blue-500/15 text-[#2563EB] dark:text-blue-400">
                                 <Zap className="w-3.5 h-3.5" />
                               </div>
-                              <h4 className="font-bold text-[13px] text-slate-800 dark:text-slate-100">AI Credits Exhausted</h4>
+                              <h4 className="font-bold text-[13px] text-slate-900 dark:text-white">AI Credits Exhausted</h4>
                             </div>
-                            <p className="text-[12px] font-medium text-slate-600 dark:text-slate-400 leading-relaxed">
-                              You've reached your daily limit for the AI Coach. Upgrade your plan to unlock more credits and continue chatting instantly.
+                            <p className="text-[12px] text-slate-500 dark:text-neutral-400 leading-relaxed">
+                              You've reached your daily limit for the AI Coach. Upgrade your plan to unlock more credits and continue chatting.
                             </p>
                             <button
+                              type="button"
                               onClick={() => navigate("/settings?tab=ai")}
-                              className="mt-1 flex items-center justify-center gap-2 w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-xl font-bold text-[12px] shadow-md shadow-indigo-500/20 transition-all active:scale-[0.98]"
+                              className="mt-0.5 flex items-center justify-center gap-1.5 w-full px-3.5 py-2 bg-[#2563EB] hover:bg-blue-700 text-white rounded-[12px] font-semibold text-[12px] transition-colors cursor-pointer"
                             >
                               <Crown className="w-3.5 h-3.5" />
                               <span>Upgrade Plan</span>
@@ -639,53 +681,52 @@ ${JSON.stringify(contextData)}`;
           )}
 
           {isThinking && (
-            <div className="flex gap-3 items-start animate-pulse">
-              <div className="mt-2.5 flex items-start justify-center shrink-0">
-                <Sparkles size={18} className="text-blue-400 dark:text-blue-300 animate-spin" />
+            <div className="flex gap-2.5 items-center">
+              <div className="w-6 h-6 rounded-lg bg-blue-50 dark:bg-blue-500/15 text-[#2563EB] dark:text-blue-400 flex items-center justify-center shrink-0">
+                <Sparkles size={13} strokeWidth={2.2} />
               </div>
-              <div className="flex flex-col gap-1 text-left">
-                <div className="text-[12px] font-extrabold text-slate-500 dark:text-slate-400 flex items-center gap-1.5 py-1">
-                  <span className="flex h-2 w-2 relative">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
-                  </span>
-                  Thinking about your request
-                </div>
+              <div className="px-3.5 py-2 rounded-[16px] rounded-tl-[5px] bg-white dark:bg-[#1C1C20] border border-slate-200/75 dark:border-white/[0.07] text-[12px] font-medium text-slate-500 dark:text-neutral-400 flex items-center gap-2">
+                <span className="flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#2563EB] animate-bounce [animation-delay:-0.2s]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#2563EB] animate-bounce [animation-delay:-0.1s]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#2563EB] animate-bounce" />
+                </span>
+                <span>Analyzing...</span>
               </div>
             </div>
           )}
         </div>
 
-        {/* Input Area */}
-        <div className="p-4 bg-transparent border-t border-slate-100 dark:border-white/5 shrink-0 flex flex-col gap-2">
-          <div className="relative flex items-center">
+        {/* Input Composer */}
+        <div className="px-3.5 py-3 bg-white dark:bg-[#17171A] border-t border-slate-100 dark:border-white/[0.06] shrink-0 flex flex-col gap-1.5">
+          <div className="relative flex items-center rounded-[15px] bg-[#F7F8FA] dark:bg-white/[0.04] border border-slate-200/80 dark:border-white/[0.08] focus-within:bg-white dark:focus-within:bg-[#1C1C20] focus-within:border-[#2563EB]/45 transition-colors">
             <textarea
               ref={textareaRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={typingPlaceholder}
+              placeholder={typingPlaceholder || "Ask TradiFive AI Coach..."}
               rows={1}
-              className="w-full pl-4 pr-12 py-3 bg-slate-50 dark:bg-[#121212]/80 border border-slate-200 dark:border-white/10 rounded-xl text-[13px] text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-500/50 resize-none max-h-24 no-scrollbar"
+              className="w-full pl-3.5 pr-11 py-2.5 bg-transparent text-[13px] text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none resize-none max-h-24 no-scrollbar"
             />
             <button
+              type="button"
               onClick={handleSendMessage}
               disabled={!input.trim() || isThinking}
-              className={`absolute right-2 w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
+              className={`absolute right-1.5 w-8 h-8 rounded-full flex items-center justify-center transition-all ${
                 input.trim() && !isThinking
-                  ? 'bg-indigo-600 text-white hover:bg-indigo-700'
-                  : 'bg-slate-200 dark:bg-white/5 text-slate-400 cursor-not-allowed'
+                  ? 'bg-[#2563EB] text-white hover:bg-blue-700 active:scale-95 cursor-pointer shadow-[0_2px_6px_rgba(37,99,235,0.28)]'
+                  : 'bg-slate-200/80 dark:bg-white/[0.06] text-slate-400 cursor-not-allowed'
               }`}
+              aria-label="Send message"
             >
-              <IconlySend set="bold" primaryColor="currentColor" size={16} />
+              <IconlySend set="bold" primaryColor="currentColor" size={15} />
             </button>
           </div>
-          
-          <div className="flex items-center justify-between px-1">
-            <div className="text-[10px] text-slate-400 text-center w-full">
-              AI can make mistakes. Not financial advice.
-            </div>
-          </div>
+
+          <p className="text-[10px] text-slate-400 dark:text-neutral-500 text-center">
+            AI can make mistakes. Not financial advice.
+          </p>
         </div>
       </motion.div>
     </AnimatePresence>

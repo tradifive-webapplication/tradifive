@@ -293,8 +293,6 @@ const dashboardMenu = [
 
   { path: "/dashboard", icon: WrappedIconly(Category), label: "Main Dashboard" },
 
-  { path: "/dashboard?tab=portfolio", icon: WrappedIconly(Wallet), label: "Portfolio & Holdings" },
-
   { path: "/dashboard?tab=brokers", icon: wrapLucide(Server), label: "Connected Brokers" },
 
   { path: "/dashboard?tab=reports", icon: WrappedIconly(Document), label: "Reports & Statements" },
@@ -393,15 +391,13 @@ const getPillars = (isCreator: boolean, isFiAlgo: boolean = false) => {
     ];
   }
 
-  // TradiFive Workspace Pillars
+  // TradiFive Workspace Pillars (Desktop web app: Discover & Channels live under Home Feed secondary nav)
   return [
     { id: "home", icon: WrappedIconly(Home), tooltip: "Home Feed", defaultPath: "/home", isLive: true },
     { id: "dashboard", icon: WrappedIconly(Category), tooltip: "Trading Dashboard", defaultPath: "/dashboard", isLive: true },
-    { id: "community", icon: WrappedIconly(Chat), tooltip: "Channels & Community", defaultPath: "/channel", isLive: true },
     { id: "journal", icon: WrappedIconly(Document), tooltip: "Smart Trade Journal", defaultPath: "/journal", isLive: true },
     { id: "riskGuard", icon: WrappedIconly(ShieldDone), tooltip: "Risk Guard Protection", defaultPath: "/risk-guard", isLive: true },
     { id: "aiCoach", icon: WrappedSparkles, tooltip: "AI Coach & Copilot", defaultPath: "/ai-coach", isLive: true },
-    { id: "discover", icon: WrappedIconly(Discovery), tooltip: "Discover Hub", defaultPath: "/discover", isLive: true },
     ...(isCreator ? [{ id: "creatorHub", icon: WrappedIconly(Star), tooltip: "Creator Hub", defaultPath: "/creator/analytics", isLive: true }] : []),
   ];
 };
@@ -1379,8 +1375,6 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
         return [
 
           { path: "/dashboard", icon: WrappedIconly(Category), label: "Dashboard" },
-
-          { path: "/dashboard?tab=portfolio", icon: WrappedIconly(Wallet), label: "Portfolio & Holdings" },
 
           { path: "/broker-connect", icon: WrappedIconly(Activity), label: "Connected Brokers" },
 

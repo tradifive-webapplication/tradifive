@@ -748,7 +748,7 @@ export default function JournalCharts({
           <EmptyChartHint message="Tracks your balance vs. initial deposits." />
         ) : (
           <div
-            className={`${frameless ? "h-[235px] flex-1" : "h-[250px]"} w-full transition-[filter,opacity] duration-200 ${
+            className={`${frameless ? "min-h-[235px] h-[235px] lg:h-auto flex-1 flex flex-col" : "h-[250px]"} w-full transition-[filter,opacity] duration-200 ${
               hideBalance || hideOnlyBalance || percentageOnly
                 ? "blur-[6px] select-none pointer-events-none opacity-75"
                 : ""

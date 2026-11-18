@@ -661,15 +661,15 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
                   </div>
                 </button>
                 
-                {/* AI Coach Top-Right Button — hidden when already on /ai-coach */}
+                {/* AI Coach Top-Right Button — toggles mini FloatingAICoach (hidden when already on /ai-coach) */}
                 {!location.pathname.startsWith('/ai-coach') && (
                   <button
                     type="button"
-                    onClick={() => navigate('/ai-coach')}
-                    title="Open AI Coach"
+                    onClick={() => setIsAIOpen(prev => !prev)}
+                    title="Open Mini AI Coach"
                     className="hidden sm:flex items-center justify-center gap-2 px-3 sm:px-4 h-9 sm:h-10 rounded-full bg-white dark:bg-[#1E1E1E] hover:bg-slate-50 dark:hover:bg-white/[0.08] text-slate-800 dark:text-white font-bold text-[13px] shadow-[0_1px_4px_rgba(15,23,42,0.06)] cursor-pointer transition-colors"
                   >
-                    <Sparkles size={15} strokeWidth={2.5} className="text-purple-500" />
+                    <Sparkles size={15} strokeWidth={2.3} className="text-[#2563EB] dark:text-blue-400" />
                     <span>AI Coach</span>
                   </button>
                 )}

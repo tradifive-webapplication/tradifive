@@ -961,7 +961,7 @@ const Dashboard = () => {
 
                 {scopedTrades.some((t: any) => t.closed_at) ? (
                   <div
-                    className={`h-[235px] w-full flex-1 transition-[filter,opacity] duration-200 ${
+                    className={`min-h-[235px] h-[235px] lg:h-auto w-full flex-1 flex flex-col transition-[filter,opacity] duration-200 ${
                       hidePnl ? "blur-[6px] select-none pointer-events-none opacity-75" : ""
                     }`}
                   >
@@ -973,7 +973,7 @@ const Dashboard = () => {
                     />
                   </div>
                 ) : (
-                  <div className="h-[235px] px-2 flex flex-col items-center justify-center flex-1">
+                  <div className="min-h-[235px] h-[235px] lg:h-auto px-2 flex flex-col items-center justify-center flex-1">
                     <div className="w-full border-t border-dashed border-slate-300/80 dark:border-white/15" />
                     <p className="mt-2.5 text-[11.5px] text-slate-400 dark:text-neutral-500 text-center">
                       Cumulative P&amp;L curve plots live after your first closed trade

@@ -242,10 +242,42 @@ export default function Profile() {
   const [calendarDayMap, setCalendarDayMap] = useState<Record<string, 'green' | 'red' | 'gray'>>({});
   const [calendarMonth, setCalendarMonth] = useState(() => new Date());
 
+  const [rawTrades, setRawTrades] = useState<any[]>([]);
+  const [accountBalance, setAccountBalance] = useState<number>(10000);
+  const [perfRange, setPerfRange] = useState<"All" | "1M" | "7D" | "1D">("All");
+
   const [advMetrics, setAdvMetrics] = useState<any>(() => {
     const cached = localStorage.getItem(`prof_cache_adv_metrics_${userIdSync}`);
     return cached ? JSON.parse(cached) : calculateTradingMetrics([]);
   });
+
+  // Recompute Trading Performance in real time whenever trades, balance, or timeframe changes
+  useEffect(() => {
+    if (!rawTrades) return;
+    const now = Date.now();
+    const cutoff =
+      perfRange === "1D"
+        ? now - 24 * 60 * 60 * 1000
+        : perfRange === "7D"
+        ? now - 7 * 24 * 60 * 60 * 1000
+        : perfRange === "1M"
+        ? now - 30 * 24 * 60 * 60 * 1000
+        : 0;
+    const scoped =
+      cutoff > 0
+        ? rawTrades.filter((t) => {
+            const ts = new Date(t.closed_at || t.created_at || 0).getTime();
+            return !isNaN(ts) && ts >= cutoff;
+          })
+        : rawTrades;
+    const computed = calculateTradingMetrics(scoped, accountBalance || 10000);
+    setAdvMetrics(computed);
+    if (perfRange === "All") {
+      try {
+        localStorage.setItem(`prof_cache_adv_metrics_${userIdSync}`, JSON.stringify(computed));
+      } catch (_) {}
+    }
+  }, [rawTrades, accountBalance, perfRange, userIdSync]);
 
   // Interaction States
   const [likedPosts, setLikedPosts] = useState<Record<string, boolean>>({});
@@ -633,19 +665,31 @@ export default function Profile() {
       if (!user) { setLoadingTrades(false); return; }
 
       const [tradesRes, mt5Res] = await Promise.all([
-        supabase.from('trades').select('id, profit, created_at, closed_at').eq('user_id', user.id),
+        supabase.from('trades').select('id, profit, created_at, closed_at, risk_reward_ratio, rr, type, volume').eq('user_id', user.id),
         supabase.from('mt5_accounts').select('balance').eq('user_id', user.id).maybeSingle()
       ]);
 
-      const tradesData = tradesRes.data;
-      if (tradesData && tradesData.length > 0) {
+      const balance = Number(mt5Res.data?.balance) || 10000;
+      setAccountBalance(balance);
+
+      const tradesData = tradesRes.data || [];
+      setRawTrades(tradesData);
+
+      if (tradesData.length > 0) {
         const total = tradesData.length;
-        const wins = tradesData.filter((t) => Number(t.profit) > 0).length;
+        const winTrades = tradesData.filter((t) => Number(t.profit) > 0);
+        const lossTrades = tradesData.filter((t) => Number(t.profit) < 0);
+        const wins = winTrades.length;
         const wr = total > 0 ? Math.round((wins / total) * 100) : 0;
         const pnlSum = tradesData.reduce((acc, t) => acc + Number(t.profit || 0), 0);
 
+        const avgWin = wins > 0 ? winTrades.reduce((s, t) => s + Number(t.profit || 0), 0) / wins : 0;
+        const avgLoss = lossTrades.length > 0 ? lossTrades.reduce((s, t) => s + Math.abs(Number(t.profit || 0)), 0) / lossTrades.length : 0;
+        const rrVal = avgLoss > 0 ? `${(avgWin / avgLoss).toFixed(2)}R` : avgWin > 0 ? "1.00R" : "0";
+
         setTotalTradesCount(total);
         setWinRateVal(`${wr}%`);
+        setAvgRRVal(rrVal);
 
         let currentStreak = 0;
         const sortedTrades = [...tradesData].sort((a, b) => new Date(b.closed_at || b.created_at).getTime() - new Date(a.closed_at || a.created_at).getTime());
@@ -664,7 +708,7 @@ export default function Profile() {
 
         const today = new Date();
         const dots = [];
-        const dailyPnl = {};
+        const dailyPnl: Record<string, number> = {};
         for (const t of tradesData) {
           const d = new Date(t.closed_at || t.created_at);
           const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -682,16 +726,37 @@ export default function Profile() {
         }
         setStreakDots(dots);
 
-        const calMap = {};
+        const calMap: Record<string, 'green' | 'red' | 'gray'> = {};
         for (const [key, pnl] of Object.entries(dailyPnl)) {
           calMap[key] = pnl > 0 ? 'green' : 'red';
         }
         setCalendarDayMap(calMap);
 
-        const balance = mt5Res.data?.balance || 10000;
         const roiPercent = balance > 0 ? (pnlSum / balance) * 100 : 0;
         const calculatedRoi = (pnlSum >= 0 ? "+" : "") + roiPercent.toFixed(2) + "%";
         setRoiVal(calculatedRoi);
+
+        try {
+          localStorage.setItem(
+            `prof_cache_stats_${userIdSync}`,
+            JSON.stringify({
+              totalTradesCount: total,
+              winRateVal: `${wr}%`,
+              roiVal: calculatedRoi,
+              streakVal: `${currentStreak} Day${currentStreak !== 1 ? 's' : ''}`,
+              bestStreak: best,
+            })
+          );
+        } catch (_) {}
+      } else {
+        setTotalTradesCount(0);
+        setWinRateVal("0%");
+        setAvgRRVal("0");
+        setRoiVal("0.00%");
+        setStreakVal("0 Days");
+        setBestStreak(0);
+        setStreakDots([]);
+        setCalendarDayMap({});
       }
     } catch (err) {
       console.error(err);
@@ -699,6 +764,29 @@ export default function Profile() {
       setLoadingTrades(false);
     }
   };
+
+  // Real-time Supabase subscription for live trades updates on Profile
+  useEffect(() => {
+    const uid = profile?.id || (userIdSync !== 'guest' ? userIdSync : '');
+    if (!uid) return;
+    const channel = supabase
+      .channel(`profile-live-trades-${uid}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'trades', filter: `user_id=eq.${uid}` },
+        () => {
+          fetchTradesData();
+        }
+      )
+      .subscribe();
+
+    const onTradesUpdated = () => fetchTradesData();
+    window.addEventListener('tradifive_trades_updated', onTradesUpdated);
+    return () => {
+      supabase.removeChannel(channel);
+      window.removeEventListener('tradifive_trades_updated', onTradesUpdated);
+    };
+  }, [profile?.id, userIdSync]);
 
   const fetchBookmarksData = async (page = 0) => {
     if (page === 0) setLoadingBookmarks(true);
@@ -987,14 +1075,14 @@ export default function Profile() {
   return (
     <>
       <DashboardLayout breadcrumbs={[{ label: "Home", path: "/home" }, { label: "My Profile", path: "/profile" }]} headerActions={headerActions} noPadding={true}>
-        <div className="w-full min-h-screen flex flex-col px-3 sm:px-6 lg:px-10 pt-4 sm:pt-6 pb-28 md:pb-10 select-none font-sans text-slate-800 dark:text-slate-100 bg-[#F8FAFC] dark:bg-[#000000]">
-          <div className="max-w-4xl mx-auto w-full space-y-5">
+        <div className="w-full min-h-screen flex flex-col px-3 sm:px-6 lg:px-8 pt-4 sm:pt-6 pb-28 md:pb-10 select-none font-sans text-slate-800 dark:text-slate-100 bg-[#F7F8FA] dark:bg-[#141416]">
+          <div className="max-w-4xl lg:max-w-[1440px] mx-auto w-full space-y-5">
 
-            {/* --- UNIFIED PROFILE CONTENT --- */}
-            <div className="space-y-5">
+            {/* --- UNIFIED 2-COLUMN BENTO: Left scrolls (Profile Header + Tabs/Posts), Right stays pinned/sticky (Stats + Performance + Streak + Calendar) --- */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
 
-              {/* Header Card (Systemic Layout matching Reference Image 1) */}
-              <div className="bg-white dark:bg-[#1A1A1E] rounded-[28px] overflow-hidden figma-card-shadow relative">
+              {/* ITEM 1: Profile Header Card (Left column row 1 on desktop; #1 on mobile) */}
+              <div className="lg:col-span-7 xl:col-span-6 lg:col-start-1 lg:row-start-1 bg-white dark:bg-[#1A1A1E] rounded-[24px] border border-slate-200/75 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.045)] dark:shadow-none overflow-hidden relative flex flex-col">
 
                 {/* Cover Banner */}
                 <div className="h-44 sm:h-56 w-full relative bg-slate-200 dark:bg-[#1A1A1E] overflow-hidden">
@@ -1150,6 +1238,9 @@ export default function Profile() {
                 </div>
               </div>
 
+              {/* ITEM 2: Pinned Right Analytics Column (No overflow clipping so all card borders & shadows render cleanly on all 4 sides) */}
+              <div className="lg:col-span-5 xl:col-span-6 lg:col-start-8 xl:col-start-7 lg:row-start-1 lg:row-span-2 lg:sticky lg:top-4 flex flex-col gap-4 min-w-0">
+
               {/* --- QUICK STATS: COMPACT 1-LINE ROW (All visible stats fit cleanly in 1 Line even on iPhone 16) --- */}
               {(() => {
                 const visibleCards = [
@@ -1168,7 +1259,7 @@ export default function Profile() {
                     style={{ gridTemplateColumns: `repeat(${visibleCards.length}, minmax(0, 1fr))` }}
                   >
                     {visibleCards.map((card, idx) => (
-                      <div key={idx} className="py-2 px-1.5 sm:py-3 sm:px-3.5 rounded-[14px] sm:rounded-2xl bg-white dark:bg-[#1E1E1E] figma-card-shadow hover:-translate-y-0.5 transition-all flex flex-col justify-between min-w-0">
+                      <div key={idx} className="py-2 px-1.5 sm:py-3 sm:px-3.5 rounded-[14px] sm:rounded-[18px] bg-white dark:bg-[#1A1A1E] border border-slate-200/75 dark:border-white/[0.08] shadow-[0_2px_12px_rgba(15,23,42,0.045)] dark:shadow-none hover:-translate-y-0.5 transition-all flex flex-col justify-between min-w-0">
                         <div className="flex flex-col-reverse min-[440px]:flex-row min-[440px]:items-center justify-between gap-1 mb-1 sm:mb-1.5">
                           <span className="text-[8px] sm:text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-tight sm:tracking-wider truncate">
                             <span className="sm:hidden">{card.shortTitle}</span>
@@ -1187,15 +1278,28 @@ export default function Profile() {
                 );
               })()}
 
-              {/* --- TRADING PERFORMANCE CARD (Compact; visible if enabled in Settings) --- */}
+              {/* --- TRADING PERFORMANCE CARD (Compact & Real-Time; controlled by Settings) --- */}
               {privacySettings.show_performance !== false && (
-                <div className="bg-white dark:bg-[#1E1E1E] p-3.5 sm:p-4 rounded-[18px] sm:rounded-[20px] figma-card-shadow flex flex-col gap-3">
-                  <div className="flex items-center justify-between">
+                <div className="bg-white dark:bg-[#1A1A1E] p-3.5 sm:p-4 rounded-[18px] sm:rounded-[20px] border border-slate-200/75 dark:border-white/[0.08] shadow-[0_2px_12px_rgba(15,23,42,0.045)] dark:shadow-none flex flex-col gap-3">
+                  <div className="flex items-center justify-between gap-2">
                     <h3 className="text-[11px] sm:text-[12px] font-bold text-slate-900 dark:text-white uppercase tracking-wider">Trading Performance</h3>
 
-                    <span className="text-[10px] font-bold text-slate-700 dark:text-slate-200 bg-[#F4F5F7] dark:bg-[#2A2A2A] px-2.5 py-1 rounded-full border border-slate-200/60 dark:border-white/10 shadow-xs cursor-pointer flex items-center gap-1 select-none active:scale-95 transition-all">
-                      All Time <ArrowRight size={9} className="rotate-90 text-slate-500" />
-                    </span>
+                    <div className="inline-flex items-center p-0.5 rounded-full bg-[#F4F5F7] dark:bg-[#2A2A2A] border border-slate-200/60 dark:border-white/10">
+                      {(["All", "1M", "7D", "1D"] as const).map((range) => (
+                        <button
+                          key={range}
+                          type="button"
+                          onClick={() => setPerfRange(range)}
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold transition-all cursor-pointer select-none ${
+                            perfRange === range
+                              ? "bg-white dark:bg-[#1A1A1E] text-slate-900 dark:text-white shadow-xs"
+                              : "text-slate-400 hover:text-slate-700 dark:hover:text-white"
+                          }`}
+                        >
+                          {range === "All" ? "All Time" : range}
+                        </button>
+                      ))}
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-12 gap-3 items-center">
@@ -1203,7 +1307,7 @@ export default function Profile() {
                     {/* Left part: Total PnL Label & compact Line Chart */}
                     <div className="col-span-5 flex flex-col">
                       <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider leading-none">Total PnL</span>
-                      <span className={`text-lg sm:text-xl font-extrabold tracking-tight leading-none mt-1.5 font-sans ${advMetrics.totalPnlPercent.startsWith('-') ? 'text-rose-500' : 'text-emerald-500'}`}>
+                      <span className={`text-lg sm:text-xl font-extrabold tracking-tight leading-none mt-1.5 font-sans tabular-nums ${advMetrics.totalPnlPercent.startsWith('-') ? 'text-rose-500' : 'text-emerald-500'}`}>
                         {advMetrics.totalPnlPercent}
                       </span>
 
@@ -1250,7 +1354,7 @@ export default function Profile() {
                               {stat.showInfo && <Info size={10} className="text-slate-400 hover:text-slate-600 cursor-pointer shrink-0" />}
                             </span>
                           </span>
-                          <span className={`font-bold tracking-tight font-sans shrink-0 ${stat.highlighted ? 'text-rose-500' : 'text-slate-900 dark:text-[#EEE]'}`}>{stat.value}</span>
+                          <span className={`font-bold tracking-tight font-sans tabular-nums shrink-0 ${stat.highlighted ? 'text-rose-500' : 'text-slate-900 dark:text-[#EEE]'}`}>{stat.value}</span>
                         </div>
                       ))}
                     </div>
@@ -1259,13 +1363,13 @@ export default function Profile() {
                 </div>
               )}
 
-              {/* --- TRADING STREAK & CALENDAR ROW (Compact; controlled by Settings) --- */}
+              {/* --- TRADING STREAK & CALENDAR ROW (Right below Trading Performance on desktop & mobile!) --- */}
               {(privacySettings.show_streak !== false || privacySettings.show_calendar !== false) && (
-                <div className={`grid grid-cols-1 ${(privacySettings.show_streak !== false && privacySettings.show_calendar !== false) ? 'sm:grid-cols-2' : ''} gap-3 w-full`}>
+                <div className={`grid grid-cols-1 ${(privacySettings.show_streak !== false && privacySettings.show_calendar !== false) ? 'sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2' : ''} gap-3.5 w-full`}>
 
                   {/* Trading Streak Widget — Real Data */}
                   {privacySettings.show_streak !== false && (
-                    <div className="p-3.5 sm:p-4 rounded-[18px] sm:rounded-[20px] bg-white dark:bg-[#1E1E1E] figma-card-shadow flex flex-col justify-between gap-2.5">
+                    <div className="p-3.5 sm:p-4 rounded-[18px] sm:rounded-[20px] bg-white dark:bg-[#1A1A1E] border border-slate-200/75 dark:border-white/[0.08] shadow-[0_2px_12px_rgba(15,23,42,0.045)] dark:shadow-none flex flex-col justify-between gap-2.5">
                       <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-white/5">
                         <h3 className="text-[11px] sm:text-[12px] font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
                           <span className="p-1 rounded-md bg-orange-500/10 text-orange-500">
@@ -1307,7 +1411,7 @@ export default function Profile() {
 
                   {/* Performance Calendar Widget — Real Data */}
                   {privacySettings.show_calendar !== false && (
-                    <div className="p-3.5 sm:p-4 rounded-[18px] sm:rounded-[20px] bg-white dark:bg-[#1E1E1E] figma-card-shadow flex flex-col justify-between gap-2.5">
+                    <div className="p-3.5 sm:p-4 rounded-[18px] sm:rounded-[20px] bg-white dark:bg-[#1A1A1E] border border-slate-200/75 dark:border-white/[0.08] shadow-[0_2px_12px_rgba(15,23,42,0.045)] dark:shadow-none flex flex-col justify-between gap-2.5">
                       <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-white/5">
                         <h3 className="text-[11px] sm:text-[12px] font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
                           <span className="p-1 rounded-md bg-blue-500/10 text-blue-500">
@@ -1411,34 +1515,38 @@ export default function Profile() {
                 </div>
               )}
 
-              {/* --- BIG FULL-WIDTH SYSTEMIC TABS BAR (Matching Reference Pic 2) --- */}
-              <div className="flex items-center w-full border-b border-slate-200 dark:border-white/10 pt-2 relative z-10 overflow-x-auto no-scrollbar">
+              </div>
+
+              {/* ITEM 3: Unified Sculpted Card for Tabs Bar + Posts / Trades / Strategies Feed */}
+              <div className="lg:col-span-7 xl:col-span-6 lg:col-start-1 lg:row-start-2 min-w-0 bg-white dark:bg-[#1A1A1E] rounded-[24px] border border-slate-200/75 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.045)] dark:shadow-none overflow-hidden">
+
+              {/* --- SYSTEMIC TABS BAR --- */}
+              <div className="flex items-center w-full border-b border-slate-200/85 dark:border-white/[0.08] px-2 pt-1 relative z-10 overflow-x-auto no-scrollbar bg-white dark:bg-[#1A1A1E]">
                 {["All", "Posts", "Replies", "Trades", "Strategies", ...(profile?.achievements && (profile.achievements as any).length > 0 ? ["Achievements"] : [])].map((tab) => (
                   <button
                     key={tab}
                     type="button"
                     onClick={() => setActiveTab(tab)}
-                    className={`flex-1 min-w-[74px] flex items-center justify-center pb-3.5 pt-2.5 text-[15px] sm:text-[16px] tracking-tight cursor-pointer transition-all relative select-none shrink-0 ${activeTab === tab
+                    className={`flex-1 min-w-[74px] flex items-center justify-center pb-3 pt-2.5 text-[14px] sm:text-[15px] tracking-tight cursor-pointer transition-colors relative select-none shrink-0 ${activeTab === tab
                         ? "font-bold text-slate-900 dark:text-white"
-                        : "font-semibold text-slate-500 hover:text-slate-800 dark:text-neutral-400 dark:hover:text-white"
+                        : "font-semibold text-slate-400 hover:text-slate-700 dark:text-neutral-500 dark:hover:text-white"
                       }`}
                   >
                     {tab}
                     {activeTab === tab && (
-                      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-14 sm:w-16 h-[3.5px] bg-gradient-to-r from-blue-600 to-blue-500 rounded-full" />
+                      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 sm:w-14 h-[3px] bg-[#2563EB] rounded-full" />
                     )}
                   </button>
                 ))}
               </div>
 
-              {/* --- BOTTOM GRID: POSTS FEED vs PINNED LIVE STREAM --- */}
-              {/* Outer boxes fully adjusted to tactile rounded-3xl outer cards for absolute layout symmetry */}
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+              {/* --- SEAMLESS FEED LIST INSIDE UNIFIED CARD --- */}
+              <div className="w-full">
 
-                {/* Feed Posts List */}
-                <div className="md:col-span-12 max-w-4xl mx-auto w-full space-y-4">
+                {/* Feed Posts List (Zero grey gaps between posts, clean hairline dividers like Home) */}
+                <div className="w-full">
                   {activeTab === "Trades" ? (
-                    <div className="p-6 rounded-[20px] border border-slate-200 dark:border-white/5 bg-white dark:bg-[#1E1E1E] shadow-sm">
+                    <div className="p-5 sm:p-6">
                       <div className="flex items-center justify-between mb-4">
                         <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Synchronized Execution Ledger</h3>
                       </div>
@@ -1447,7 +1555,7 @@ export default function Profile() {
                       </JournalSettingsProvider>
                     </div>
                   ) : activeTab === "Achievements" ? (
-                    <div className="p-6 rounded-[20px] border border-slate-200 dark:border-white/5 bg-white dark:bg-[#1E1E1E] shadow-sm space-y-6">
+                    <div className="p-5 sm:p-6 space-y-6">
                       <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/5">
                         <h3 className="text-[13px] font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
                           <WrappedTrophy size={18} className="text-blue-500 shrink-0" />
@@ -1537,8 +1645,8 @@ export default function Profile() {
                     </div>
                   ) : activeTab === "Saved" ? (
                     savedPosts.length === 0 ? (
-                      <div className="p-6 rounded-[20px] border border-slate-200 dark:border-white/5 bg-white dark:bg-[#1E1E1E] shadow-sm text-center py-12 flex flex-col items-center justify-center">
-                        <p className="text-slate-500 dark:text-[#999] text-sm font-bold">No Saved Posts Available</p>
+                      <div className="p-6 text-center py-14 flex flex-col items-center justify-center">
+                        <p className="text-slate-400 dark:text-neutral-500 text-[13.5px] font-semibold">No Saved Posts Available</p>
                       </div>
                     ) : (
                       <>
@@ -1561,15 +1669,16 @@ export default function Profile() {
                           );
                         })}
                         {savedPosts.length > 0 && (
-                          <div className="flex justify-center mt-6 mb-8">
+                          <div className="flex justify-center py-5">
                             <button
+                              type="button"
                               onClick={() => {
                                 const nextPage = bookmarksPage + 1;
                                 setBookmarksPage(nextPage);
                                 fetchBookmarksData(nextPage);
                               }}
                               disabled={loadingBookmarks}
-                              className="px-6 py-2.5 rounded-full text-sm font-bold bg-white dark:bg-[#1E1E1E] border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#2A2A2A] transition-all shadow-sm disabled:opacity-50"
+                              className="px-5 py-2 rounded-full text-[13px] font-semibold bg-slate-50 dark:bg-white/[0.06] border border-slate-200/80 dark:border-white/10 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/[0.1] transition-all disabled:opacity-50 cursor-pointer"
                             >
                               {loadingBookmarks ? "Loading..." : "Load More Saved Posts"}
                             </button>
@@ -1578,8 +1687,8 @@ export default function Profile() {
                       </>
                     )
                   ) : filteredPosts.length === 0 ? (
-                    <div className="p-6 rounded-[20px] border border-slate-200 dark:border-white/5 bg-white dark:bg-[#1E1E1E] shadow-sm text-center py-12 flex flex-col items-center justify-center">
-                      <p className="text-slate-500 dark:text-[#999] text-sm font-bold">No Posts Available</p>
+                    <div className="p-6 text-center py-14 flex flex-col items-center justify-center">
+                      <p className="text-slate-400 dark:text-neutral-500 text-[13.5px] font-semibold">No Posts Available</p>
                     </div>
                   ) : (
                     filteredPosts.map((post: any) => {
@@ -1603,15 +1712,16 @@ export default function Profile() {
                   )}
                   
                   {filteredPosts.length > 0 && activeTab !== "Trades" && activeTab !== "Achievements" && activeTab !== "Saved" && (
-                    <div className="flex justify-center mt-6 mb-8">
+                    <div className="flex justify-center py-5">
                       <button
+                        type="button"
                         onClick={() => {
                           const nextPage = postsPage + 1;
                           setPostsPage(nextPage);
                           fetchPostsData(nextPage);
                         }}
                         disabled={loadingPosts}
-                        className="px-6 py-2.5 rounded-full text-sm font-bold bg-white dark:bg-[#1E1E1E] border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#2A2A2A] transition-all shadow-sm disabled:opacity-50"
+                        className="px-5 py-2 rounded-full text-[13px] font-semibold bg-slate-50 dark:bg-white/[0.06] border border-slate-200/80 dark:border-white/10 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/[0.1] transition-all disabled:opacity-50 cursor-pointer"
                       >
                         {loadingPosts ? "Loading..." : "Load More Posts"}
                       </button>
@@ -1619,6 +1729,7 @@ export default function Profile() {
                   )}
                 </div>
 
+              </div>
               </div>
 
             </div>

@@ -225,28 +225,28 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
   return (
     <div className="fixed inset-0 z-[99999] bg-[#08080A] text-white flex flex-col overflow-y-auto selection:bg-blue-600/30">
       {/* ── TOP HEADER BAR ── */}
-      <header className="w-full h-16 px-6 sm:px-10 flex items-center justify-between shrink-0 bg-[#08080A]/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="flex items-center gap-3">
+      <header className="w-full h-14 sm:h-16 px-5 sm:px-10 flex items-center justify-between shrink-0 bg-[#08080A]/90 backdrop-blur-md sticky top-0 z-50 border-b border-white/[0.05] md:border-b-0">
+        <div className="flex items-center gap-2.5 sm:gap-3">
           <img 
             src="/tf-logo.png" 
             alt="TradiFive Icon" 
-            className="w-[34px] h-[34px] sm:w-[38px] sm:h-[38px] object-contain shrink-0" 
+            className="w-[28px] h-[28px] sm:w-[36px] sm:h-[36px] object-contain shrink-0" 
           />
           <img 
             src="/Dark mode logo with white.png" 
             alt="TradiFive" 
-            className="h-[28px] sm:h-[33px] w-auto object-contain shrink-0" 
+            className="h-[22px] sm:h-[31px] w-auto object-contain shrink-0" 
           />
         </div>
 
-        <div className="flex items-center gap-5 text-xs">
+        <div className="flex items-center gap-4 text-xs">
           <span className="text-zinc-500 hidden sm:inline-block truncate max-w-[180px]">
             {user.email}
           </span>
           <button
             type="button"
             onClick={handleFinalSave}
-            className="text-zinc-400 hover:text-white transition-colors font-medium px-2 py-1 rounded hover:bg-white/5"
+            className="text-zinc-400 hover:text-white transition-colors font-medium px-2.5 py-1 rounded-full hover:bg-white/[0.07] cursor-pointer"
           >
             Skip
           </button>
@@ -254,10 +254,44 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
       </header>
 
       {/* ── MAIN CONTENT WORKSPACE ── */}
-      <div className="flex-1 w-full max-w-7xl mx-auto flex flex-col md:flex-row px-8 sm:px-12 md:px-16 py-6 md:py-10 gap-10 md:gap-12 lg:gap-16">
-        {/* ── LEFT SIDEBAR ── */}
-        <aside className="w-full md:w-60 shrink-0 flex flex-col pb-6 md:pb-0 md:pr-6 pt-6 md:pt-28 lg:pt-32">
-          <div className="flex flex-row md:flex-col gap-0 overflow-x-auto md:overflow-x-visible pb-2 md:pb-0 scrollbar-none">
+      <div className="flex-1 w-full max-w-7xl mx-auto flex flex-col md:flex-row px-5 sm:px-10 md:px-16 pt-4 pb-8 md:py-10 gap-5 md:gap-12 lg:gap-16">
+        {/* ── MOBILE SYSTEMIC STEP PROGRESS BAR (< md) ── */}
+        <div className="md:hidden w-full space-y-2.5 shrink-0">
+          <div className="flex items-center justify-between text-[11px]">
+            <span className="font-semibold text-zinc-400 tabular-nums">
+              Step {currentStepIndex + 1} of {STEPS_ORDER.length}
+            </span>
+            <span className="font-bold tracking-[0.14em] uppercase text-white">
+              {currentStep}
+            </span>
+          </div>
+          <div className="grid grid-cols-8 gap-1.5 w-full">
+            {STEPS_ORDER.map((s, idx) => {
+              const isCurrent = idx === currentStepIndex;
+              const isPassed = idx < currentStepIndex;
+              return (
+                <button
+                  key={s}
+                  type="button"
+                  disabled={!isPassed}
+                  onClick={() => isPassed && setCurrentStepIndex(idx)}
+                  aria-label={s}
+                  className={`h-[3.5px] rounded-full transition-all duration-300 ${
+                    isCurrent
+                      ? "bg-[#2563EB] shadow-[0_0_8px_rgba(37,99,235,0.7)]"
+                      : isPassed
+                      ? "bg-white/75 cursor-pointer"
+                      : "bg-white/12"
+                  }`}
+                />
+              );
+            })}
+          </div>
+        </div>
+
+        {/* ── DESKTOP LEFT SIDEBAR (md+) ── */}
+        <aside className="hidden md:flex w-60 shrink-0 flex-col pr-6 pt-28 lg:pt-32">
+          <div className="flex flex-col gap-0">
             {/* Dynamic Steps */}
             {STEPS_ORDER.map((s, idx) => {
               const isCurrent = idx === currentStepIndex;
@@ -312,10 +346,10 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
         </aside>
 
         {/* ── CENTER QUESTION CANVAS ── */}
-        <div className="flex-1 flex items-center justify-center py-4 md:py-8">
+        <div className="flex-1 flex items-start md:items-center justify-center pt-4 pb-6 md:py-8">
           <main className="w-full max-w-xl flex flex-col justify-center">
             {/* Back button */}
-            <div className="h-8 mb-2 flex items-center">
+            <div className="h-7 md:h-8 mb-2 flex items-center">
               {currentStepIndex > 0 && (
                 <button
                   type="button"
@@ -329,7 +363,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
             </div>
 
             {/* Current Step Label */}
-            <div className="text-[11px] font-sans font-bold tracking-[0.18em] text-zinc-400 uppercase mb-3">
+            <div className="text-[11px] font-sans font-bold tracking-[0.18em] text-[#60A5FA] md:text-zinc-400 uppercase mb-2.5 md:mb-3">
               {currentStep}
             </div>
 
@@ -344,7 +378,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
                   transition={{ duration: 0.2 }}
                   className="flex flex-col"
                 >
-                  <h1 className="text-4xl sm:text-5xl font-extrabold text-white tracking-tight mb-8">
+                  <h1 className="text-[28px] sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-[1.12] mb-6 sm:mb-8">
                     What should we call you?
                   </h1>
 
@@ -356,10 +390,10 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
                       onChange={(e) => setName(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && isContinueEnabled() && handleNext()}
                       placeholder="Your name"
-                      className="w-full bg-transparent border-b border-zinc-800 focus:border-zinc-500 text-2xl sm:text-3xl text-white placeholder-zinc-600 py-3 outline-none transition-colors"
+                      className="w-full bg-transparent border-b border-zinc-800 focus:border-[#2563EB] text-[22px] sm:text-3xl text-white placeholder-zinc-600 py-2.5 sm:py-3 outline-none transition-colors"
                     />
                   </div>
-                  <p className="text-xs sm:text-sm text-zinc-500 mb-8">
+                  <p className="text-[12.5px] sm:text-sm text-zinc-500 leading-relaxed mb-7 sm:mb-8">
                     Your display name across the TradiFive ecosystem — journal, AI coach, community, and leaderboards.
                   </p>
                 </motion.div>
@@ -375,12 +409,12 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
                   transition={{ duration: 0.2 }}
                   className="flex flex-col"
                 >
-                  <h1 className="text-4xl sm:text-5xl font-extrabold text-white tracking-tight mb-8">
+                  <h1 className="text-[28px] sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-[1.12] mb-6 sm:mb-8">
                     Claim your handle.
                   </h1>
 
-                  <div className="mb-2 relative flex items-center border-b border-zinc-800 focus-within:border-zinc-500 transition-colors">
-                    <span className="text-2xl sm:text-3xl text-zinc-600 font-bold mr-1">@</span>
+                  <div className="mb-2 relative flex items-center border-b border-zinc-800 focus-within:border-[#2563EB] transition-colors">
+                    <span className="text-[22px] sm:text-3xl text-zinc-600 font-bold mr-1">@</span>
                     <input
                       type="text"
                       autoFocus
@@ -388,7 +422,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
                       onChange={handleHandleChange}
                       onKeyDown={(e) => e.key === 'Enter' && isContinueEnabled() && handleNext()}
                       placeholder="yourhandle"
-                      className="w-full bg-transparent text-2xl sm:text-3xl text-white placeholder-zinc-600 py-3 outline-none transition-colors"
+                      className="w-full bg-transparent text-[22px] sm:text-3xl text-white placeholder-zinc-600 py-2.5 sm:py-3 outline-none transition-colors"
                     />
                     {isCheckingHandle && (
                       <div className="absolute right-2 text-zinc-400">
@@ -427,7 +461,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
                 transition={{ duration: 0.2 }}
                 className="flex flex-col"
               >
-                <h1 className="text-4xl sm:text-5xl font-extrabold text-white tracking-tight mb-8">
+                <h1 className="text-[28px] sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-[1.12] mb-6 sm:mb-8">
                   How do you trade?
                 </h1>
 
@@ -470,7 +504,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
                 transition={{ duration: 0.2 }}
                 className="flex flex-col"
               >
-                <h1 className="text-4xl sm:text-5xl font-extrabold text-white tracking-tight mb-8">
+                <h1 className="text-[28px] sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-[1.12] mb-6 sm:mb-8">
                   What do you trade?
                 </h1>
 
@@ -515,7 +549,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
                 transition={{ duration: 0.2 }}
                 className="flex flex-col"
               >
-                <h1 className="text-4xl sm:text-5xl font-extrabold text-white tracking-tight mb-8">
+                <h1 className="text-[28px] sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-[1.12] mb-6 sm:mb-8">
                   What's your edge?
                 </h1>
 
@@ -562,7 +596,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
                 transition={{ duration: 0.2 }}
                 className="flex flex-col"
               >
-                <h1 className="text-4xl sm:text-5xl font-extrabold text-white tracking-tight mb-8">
+                <h1 className="text-[28px] sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-[1.12] mb-6 sm:mb-8">
                   What are you here to do?
                 </h1>
 
@@ -609,7 +643,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
                 transition={{ duration: 0.2 }}
                 className="flex flex-col"
               >
-                <h1 className="text-4xl sm:text-5xl font-extrabold text-white tracking-tight mb-8">
+                <h1 className="text-[28px] sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-[1.12] mb-6 sm:mb-8">
                   Where did you hear about us?
                 </h1>
 
@@ -648,7 +682,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
                 transition={{ duration: 0.2 }}
                 className="flex flex-col"
               >
-                <h1 className="text-4xl sm:text-5xl font-extrabold text-white tracking-tight mb-4">
+                <h1 className="text-[28px] sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-[1.12] mb-3 sm:mb-4">
                   You're all set!
                 </h1>
                 <p className="text-sm text-zinc-400 mb-8">
@@ -682,14 +716,14 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
           </AnimatePresence>
 
           {/* ── ACTION BUTTONS ── */}
-          <div className="flex items-center gap-4 mt-2">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mt-2">
             <button
               type="button"
               disabled={!isContinueEnabled() || isSaving}
               onClick={handleNext}
-              className={`group h-11 px-7 rounded-full text-sm font-bold tracking-wide transition-all duration-200 inline-flex items-center justify-center gap-2 border-0 outline-none select-none ${
+              className={`group w-full sm:w-auto h-12 sm:h-11 px-7 rounded-2xl sm:rounded-full text-sm font-bold tracking-wide transition-all duration-200 inline-flex items-center justify-center gap-2 border-0 outline-none select-none ${
                 isContinueEnabled() && !isSaving
-                  ? "bg-gradient-to-br from-[#1e293b] to-[#0f172a] hover:from-[#253347] hover:to-[#131c33] text-[#60a5fa] hover:text-[#93c5fd] shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_2px_6px_rgba(0,0,0,0.3)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.985] cursor-pointer"
+                  ? "bg-[#2563EB] hover:bg-blue-500 text-white shadow-[0_6px_20px_rgba(37,99,235,0.32)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.985] cursor-pointer"
                   : "bg-[#141a24] text-[#60a5fa]/40 shadow-none cursor-not-allowed opacity-50"
               }`}
             >

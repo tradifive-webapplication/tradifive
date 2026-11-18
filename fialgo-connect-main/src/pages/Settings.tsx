@@ -36,22 +36,39 @@ import { User, Category, Notification, Star, Swap, TicketStar, Wallet, Chat, Inf
 import { useAICoachData } from '@/hooks/useAICoachData';
 
 const TAB_TITLES: Record<string, string> = {
-   account: "My Account",
+   account: "Account & Security",
    general: "General Details",
-   profile: "Edit Profile & Privacy",
+   profile: "Profile",
    security: "Account & Security",
    privacy: "Privacy & Community",
    appearance: "Theme & Display",
    notifications: "Notifications",
    trading_preferences: "Trading & Risk Config",
-   ai: "AI Assistant",
-   trading: "Broker & Integrations",
+   ai: "AI Coach",
+   trading: "Accounts & Brokers",
    subscription: "Subscription",
    channel: "Channel Settings",
    creator: "Creator Account",
    help: "Help Center",
    report: "Report a Problem",
    terms: "Terms & Policies"
+};
+
+const TAB_SUBTITLES: Record<string, string> = {
+   profile: "Your card, bio, avatar, banner and privacy preferences",
+   account: "Manage email, password, sessions, standing and data export",
+   security: "Protect your account with password and session controls",
+   privacy: "Control profile visibility and community privacy",
+   notifications: "Choose which trade alerts and activity pings you receive",
+   trading_preferences: "Break-even range, risk circuit breaker and symbol preferences",
+   trading: "Connect MetaTrader 5 and Indian broker accounts",
+   ai: "Customize your TradiFive AI Coach persona and guardrails",
+   subscription: "Manage your active plan, perks and billing history",
+   appearance: "Switch light or dark theme and display preferences",
+   channel: "Configure your community channel and messaging settings",
+   creator: "Manage creator monetization, payouts and subscriber perks",
+   help: "Guides, FAQs and direct TradiFive support",
+   report: "Share bugs or issues directly with our engineering team",
 };
 
 const PushableButton = ({ children, onClick, type = 'primary', className = '', ...props }: any) => {
@@ -161,7 +178,7 @@ export default function Settings() {
    const { activeMarket } = useMarket();
 
    const normalizeTab = (rawTab: string | null) => {
-      if (!rawTab) return 'account';
+      if (!rawTab) return 'profile';
       if (rawTab === 'plan') return 'subscription';
       if (rawTab === 'profiles') return 'profile';
       if (rawTab === 'File Setup') return 'trading';
@@ -181,6 +198,9 @@ export default function Settings() {
          }
          setActiveTab(normalizeTab(rawTab));
          setMobileShowDetails(true);
+         if (rawTab === 'profiles') {
+            setIsDesktopEditingProfile(true);
+         }
       } else {
          setMobileShowDetails(false);
       }
@@ -207,6 +227,7 @@ export default function Settings() {
    
    // Modals State
    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+   const [isDesktopEditingProfile, setIsDesktopEditingProfile] = useState(false);
    const [showSmsModal, setShowSmsModal] = useState(false);
    const [isConnectingBroker, setIsConnectingBroker] = useState(false);
    const [selectedBrokerToConnect, setSelectedBrokerToConnect] = useState('');
@@ -953,15 +974,16 @@ export default function Settings() {
       setReportDescription('');
    };
 
-   // Define structural settings categories for left sidebar
+   // Define structural settings categories for left sidebar (grouped like ACCOUNT / TRADING / APP)
    const sidebarSections = [
       {
-         title: "My Account",
+         title: "Account",
          items: [
+            { id: "profile", label: "Profile", icon: User },
             { 
                id: "account", 
-               label: "Account", 
-               icon: User,
+               label: "Account & Security", 
+               icon: ShieldDone,
                children: [
                   { id: "account-info", label: "Account Info" },
                   { id: "password-security", label: "Password & Security" },
@@ -971,40 +993,25 @@ export default function Settings() {
                   { id: "data-export", label: "Export & Privacy" },
                   { id: "danger-zone", label: "Danger Zone" }
                ]
-            }
-         ]
-      },
-      {
-         title: "Personalization",
-         items: [
-            { id: "appearance", label: "Theme & Display", icon: Category },
+            },
             { id: "notifications", label: "Notifications", icon: Notification }
          ]
       },
       {
-         title: "AI & Trading Tools",
+         title: "Trading",
          items: [
             { id: "trading_preferences", label: "Trading & Risk Config", icon: Sliders },
-            { id: "ai", label: "AI Coach", icon: Sparkles },
-            { id: "trading", label: "Broker & Integrations", icon: Swap }
+            { id: "trading", label: "Accounts & Brokers", icon: Wallet },
+            { id: "ai", label: "AI Coach", icon: Sparkles }
          ]
       },
       {
-         title: "Billing",
+         title: "App",
          items: [
-            { id: "subscription", label: "Subscription", icon: Wallet }
-         ]
-      },
-      {
-         title: "Community & Channels",
-         items: [
+            { id: "appearance", label: "Preferences", icon: Category },
+            { id: "subscription", label: "Subscription", icon: TicketStar },
             { id: "channel", label: "Channel Settings", icon: Chat },
-            { id: "creator", label: "Creator Account", icon: TicketStar }
-         ]
-      },
-      {
-         title: "Support",
-         items: [
+            { id: "creator", label: "Creator Account", icon: Star },
             { id: "help", label: "Help Center", icon: InfoCircle },
             { id: "report", label: "Report a Problem", icon: Danger },
             { id: "logout", label: "Log Out", icon: Logout }
@@ -1084,7 +1091,60 @@ export default function Settings() {
          <div className="absolute inset-0 hidden sm:block" onClick={handleCloseSettings} />
 
          {/* Centered Settings Dialog Modal Box */}
-         <div className="relative w-full h-full sm:h-[88vh] sm:max-h-[880px] max-w-[1440px] rounded-none sm:rounded-[16px] bg-white dark:bg-[#121212] text-slate-800 dark:text-[#dbdee1] flex overflow-hidden shadow-2xl border-0 sm:border sm:border-slate-200/60 dark:sm:border-white/5 z-10 pb-16 md:pb-0">
+         <div className="relative w-full h-full sm:h-[88vh] sm:max-h-[860px] max-w-[1160px] rounded-none sm:rounded-[24px] bg-white dark:bg-[#141417] text-slate-800 dark:text-[#dbdee1] flex flex-col overflow-hidden shadow-[0_24px_80px_rgba(15,23,42,0.22)] border-0 sm:border sm:border-slate-200/70 dark:sm:border-white/[0.08] z-10 pb-16 md:pb-0">
+            
+            {/* ── DESKTOP TOP BANNER HERO (md+ web user app) ── */}
+            <div className="hidden md:block relative shrink-0 select-none">
+               <div className="relative h-[132px] w-full overflow-hidden bg-slate-100 dark:bg-neutral-900">
+                  <img
+                     src={profile.bannerUrl || profile.avatarUrl || "/nikil_avatar.jpg"}
+                     alt="Profile banner"
+                     className="w-full h-full object-cover object-center"
+                     onError={(e) => { (e.target as HTMLImageElement).src = "/default-cover.png"; }}
+                  />
+                  {/* Smooth fade melting cover cleanly into white/dark surface */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-white via-white/55 to-transparent dark:from-[#141417] dark:via-[#141417]/55" />
+
+                  {/* Top-Right Translucent Close Circle */}
+                  <button
+                     type="button"
+                     onClick={handleCloseSettings}
+                     className="absolute top-4 right-4 w-8 h-8 rounded-full bg-black/45 hover:bg-black/65 backdrop-blur-sm text-white flex items-center justify-center active:scale-95 transition-all cursor-pointer"
+                     title="Close Settings"
+                     aria-label="Close Settings"
+                  >
+                     <X size={15} strokeWidth={2.2} />
+                  </button>
+               </div>
+
+               {/* Overlapping Avatar + Identity Row */}
+               <div className="relative z-10 -mt-12 px-7 pb-3 flex items-end gap-3.5">
+                  <button
+                     type="button"
+                     onClick={() => setActiveTab('profile')}
+                     className="w-[74px] h-[74px] rounded-full ring-4 ring-white dark:ring-[#141417] shadow-md overflow-hidden bg-slate-100 dark:bg-neutral-800 shrink-0 cursor-pointer active:scale-95 transition-transform"
+                     aria-label="View profile settings"
+                  >
+                     <img
+                        src={profile.avatarUrl || defaultAvatar}
+                        alt={displayName}
+                        className="w-full h-full object-cover"
+                        onError={(e) => { (e.target as HTMLImageElement).src = defaultAvatar; }}
+                     />
+                  </button>
+                  <div className="min-w-0 pb-1">
+                     <h2 className="text-[18px] font-bold text-slate-900 dark:text-white tracking-tight leading-tight truncate">
+                        {displayName}
+                     </h2>
+                     <p className="text-[12.5px] text-slate-400 dark:text-neutral-500 mt-0.5 truncate">
+                        @{profile.username || "trader"} · <span className="capitalize">{activePlan}</span>
+                     </p>
+                  </div>
+               </div>
+            </div>
+
+            {/* ── MAIN MODAL BODY (Mobile list/detail OR Desktop 2-column sidebar + content) ── */}
+            <div className="flex flex-1 min-h-0 overflow-hidden">
             
              {/* ── MOBILE SETTINGS NAVIGATION (Matching Reference Picture 2) ── */}
              <div className={`${mobileShowDetails ? 'hidden' : 'flex md:hidden'} w-full bg-[#F4F5F7] dark:bg-[#121215] flex-col h-full min-h-0 overflow-y-auto amazing-scrollbar select-none`}>
@@ -1443,123 +1503,109 @@ export default function Settings() {
                 </div>
              </div>
 
-             {/* ── DESKTOP SIDEBAR PANEL (Preserved completely for Web User App) ── */}
-             <div className="hidden md:flex w-64 bg-[#f2f3f5] dark:bg-[#1E1E1E] flex-col h-full min-h-0 border-r border-slate-200/60 dark:border-white/5 shrink-0">
+             {/* ── DESKTOP SIDEBAR PANEL (Clean White Rail with Elevated Active Pill) ── */}
+             <div className="hidden md:flex w-[256px] bg-white dark:bg-[#141417] flex-col h-full min-h-0 shrink-0">
 
-               <div className="py-6 px-4 flex flex-col gap-4 flex-1 min-h-0 overflow-y-auto scrollbar-hide">
-                            {/* Mini Profile Display */}
-                  <div 
-                     onClick={() => {
-                        setActiveTab('profile');
-                        setMobileShowDetails(true);
-                     }}
-                     className="group bg-slate-200/50 dark:bg-[#121212] p-3 rounded-[16px] flex items-center gap-3 shadow-sm border border-slate-300/30 dark:border-transparent cursor-pointer hover:bg-slate-300/30 dark:hover:bg-[#292929]/50 transition-all"
-                  >
-                     <div className="w-10 h-10 rounded-full overflow-hidden shrink-0 bg-slate-300 dark:bg-[#1E1E1E] shadow-inner">
-                        <img 
-                           src={profile.avatarUrl || defaultAvatar} 
-                           alt="Avatar" 
-                           className="w-full h-full object-cover" 
-                           onError={(e) => { (e.target as HTMLImageElement).src = defaultAvatar; }}
-                        />
-                     </div>
-                     <div className="min-w-0 flex-1 text-left">
-                        <p className="text-[12px] font-semibold text-slate-800 dark:text-white truncate leading-tight">
-                           {displayName}
-                        </p>
-                        <div className="flex items-center gap-1.5 mt-0.5">
-                           <span className="text-[11px] text-blue-500 dark:text-blue-400 font-bold tracking-wide group-hover:text-blue-600 dark:group-hover:text-blue-300 transition-colors">
-                              edit profile
-                           </span>
-                           <Edit stroke="bold" set="curved" size={12} className="text-blue-500 dark:text-blue-400 group-hover:text-blue-600 dark:group-hover:text-blue-300 transition-colors" />
-                        </div>
-                     </div>
-                     <div className="text-slate-500 dark:text-slate-400 p-1">
-                        <User stroke="bold" set="curved" size={18} />
-                     </div>
-                  </div>
-
-                  {/* Navigation Search Input */}
+               <div className="pt-1 pb-5 px-5 flex flex-col gap-4 flex-1 min-h-0 overflow-y-auto scrollbar-hide">
+                  {/* Search Settings Pill */}
                   <div className="relative">
-                     <Search stroke="bold" set="curved" className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-[#949ba4]" size={14} />
-                     <input 
-                        type="text" 
-                        placeholder="Search settings..." 
+                     <Search stroke="bold" set="curved" className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-neutral-500" size={14} />
+                     <input
+                        type="text"
+                        placeholder="Search settings"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-8 pr-3 py-1.5 rounded-md bg-[#e3e5e8] dark:bg-[#121212] border border-transparent text-[12px] placeholder:text-slate-500 text-slate-800 dark:text-slate-200 outline-none focus:bg-slate-100 dark:focus:bg-[#000000] transition-colors"
+                        className="w-full pl-9 pr-8 py-2 rounded-[11px] bg-[#F2F3F6] dark:bg-white/[0.06] border border-transparent focus:border-slate-300 dark:focus:border-white/15 focus:bg-white dark:focus:bg-[#1C1C21] text-[12.5px] placeholder:text-slate-400 text-slate-800 dark:text-slate-100 outline-none transition-all"
                      />
                      {searchQuery && (
-                        <button onClick={() => setSearchQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 hover:text-slate-655 dark:hover:text-slate-200">
+                        <button
+                           type="button"
+                           onClick={() => setSearchQuery('')}
+                           className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10.5px] font-medium text-slate-400 hover:text-slate-700 dark:hover:text-white cursor-pointer"
+                        >
                            Clear
                         </button>
                      )}
                   </div>
 
-                  {/* Sections Iterations */}
-                  <div className="space-y-4">
+                  {/* Grouped Sections (ACCOUNT / TRADING / APP) */}
+                  <div className="space-y-5">
                      {filteredSections.map((section, idx) => (
                         <div key={idx}>
-                           <h3 className="text-[12px] font-bold text-slate-550 dark:text-[#949ba4] uppercase tracking-wider mb-2 px-2">
+                           <h3 className="text-[10.5px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-[0.08em] mb-1.5 px-2.5">
                               {section.title}
                            </h3>
-                           <div className="space-y-0.5">
+                           <div className="space-y-1">
                               {section.items.map((item: any) => {
                                  const isActive = activeTab === item.id;
+                                 const isLogout = item.id === 'logout';
                                  return (
                                     <div key={item.id} className="flex flex-col">
                                        <button
-                                          onClick={async () => { 
-                                             if (item.id === 'logout') {
+                                          type="button"
+                                          onClick={async () => {
+                                             if (isLogout) {
                                                 setShowLogoutConfirm(true);
                                              } else {
-                                                setActiveTab(item.id); 
+                                                setActiveTab(item.id);
                                                 setMobileShowDetails(true);
-                                                if(item.children) setActiveSubTab(item.children[0].id); 
+                                                if (item.children) setActiveSubTab(item.children[0].id);
                                              }
                                           }}
-                                          className={`w-full flex items-center gap-3 px-3 py-1.5 rounded-md text-[15px] font-medium transition-all duration-150 text-left ${
-                                             item.id === 'logout'
-                                             ? 'text-rose-500 hover:bg-rose-500/10 dark:hover:bg-rose-500/10'
-                                             : isActive 
-                                             ? 'bg-[#e3e5e8] dark:bg-[#3F4147]/60 text-slate-800 dark:text-white shadow-sm font-semibold' 
-                                             : 'text-slate-600 dark:text-[#B5BAC1] hover:bg-[#e3e5e8]/60 dark:hover:bg-[#3F4147]/40 hover:text-slate-800 dark:hover:text-[#DBDEE1]'
+                                          className={`w-full flex items-center gap-2.5 px-2 py-1.5 rounded-[12px] text-[13.5px] transition-all duration-150 text-left cursor-pointer ${
+                                             isLogout
+                                                ? 'text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10'
+                                                : isActive
+                                                ? 'bg-white dark:bg-[#1E1E24] text-slate-900 dark:text-white font-semibold shadow-[0_2px_10px_rgba(15,23,42,0.07),0_0_0_1px_rgba(15,23,42,0.06)] dark:shadow-none dark:border dark:border-white/10'
+                                                : 'text-slate-600 dark:text-neutral-400 hover:bg-slate-100/75 dark:hover:bg-white/[0.04] hover:text-slate-900 dark:hover:text-white font-medium'
                                           }`}
                                        >
-                                          {item.icon === Sparkles || item.icon === Sliders ? (
-                                             <item.icon size={20} className={item.id === 'logout' ? 'text-rose-500' : isActive ? 'text-indigo-650 dark:text-white' : ''} strokeWidth={isActive ? 2.5 : 1.5} />
-                                          ) : (
-                                             <item.icon 
-                                                stroke={isActive ? "bold" : "regular"} 
-                                                set="curved" 
-                                                size={20} 
-                                                className={item.id === 'logout' ? 'text-rose-500' : isActive ? 'text-indigo-650 dark:text-white' : ''} 
-                                             />
-                                          )}
-                                          <span className={isActive ? "font-bold" : "font-medium"}>{item.label}</span>
+                                          <span
+                                             className={`w-7 h-7 rounded-[8px] flex items-center justify-center shrink-0 transition-colors ${
+                                                isLogout
+                                                   ? 'text-rose-500'
+                                                   : isActive
+                                                   ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-xs'
+                                                   : 'text-slate-500 dark:text-neutral-400'
+                                             }`}
+                                          >
+                                             {item.icon === Sparkles || item.icon === Sliders ? (
+                                                <item.icon size={15} strokeWidth={2.1} />
+                                             ) : (
+                                                <item.icon
+                                                   stroke="bold"
+                                                   set="curved"
+                                                   size={16}
+                                                   primaryColor="currentColor"
+                                                />
+                                             )}
+                                          </span>
+                                          <span className="truncate">{item.label}</span>
                                        </button>
+
                                        {item.children && isActive && (
-                                          <div className="mt-1.5 ml-4 pl-3.5 border-l border-slate-300 dark:border-white/5 flex flex-col gap-1.5 relative py-1">
+                                          <div className="mt-1.5 ml-5 pl-3.5 border-l border-slate-200 dark:border-white/10 flex flex-col gap-1 relative py-0.5">
                                              {item.children.map((child: any) => (
                                                 <button
                                                    key={child.id}
+                                                   type="button"
                                                    onClick={() => {
                                                       setActiveSubTab(child.id);
                                                       setMobileShowDetails(true);
                                                       const el = document.getElementById(child.id);
                                                       const container = document.getElementById('settings-scroll-container');
                                                       if (el && container) {
-                                                         container.scrollTo({ top: el.offsetTop - 100, behavior: 'smooth' });
+                                                         container.scrollTo({ top: el.offsetTop - 90, behavior: 'smooth' });
                                                       }
                                                    }}
-                                                   className={`relative text-left text-[14px] font-medium transition-colors py-1 ${
-                                                      activeSubTab === child.id 
-                                                      ? 'text-slate-800 dark:text-white' 
-                                                      : 'text-slate-500 dark:text-[#B5BAC1] hover:text-slate-700 dark:hover:text-[#DBDEE1]'
+                                                   className={`relative text-left text-[12.5px] font-medium transition-colors py-1 cursor-pointer ${
+                                                      activeSubTab === child.id
+                                                         ? 'text-slate-900 dark:text-white font-semibold'
+                                                         : 'text-slate-400 dark:text-neutral-500 hover:text-slate-700 dark:hover:text-neutral-200'
                                                    }`}
                                                 >
                                                    {activeSubTab === child.id && (
-                                                      <div className="absolute left-[-16px] top-1/2 -translate-y-1/2 w-[2px] h-3.5 bg-slate-800 dark:bg-white rounded-r-full" />
+                                                      <div className="absolute left-[-15px] top-1/2 -translate-y-1/2 w-[2px] h-3.5 bg-slate-900 dark:bg-white rounded-r-full" />
                                                    )}
                                                    {child.label}
                                                 </button>
@@ -1570,57 +1616,47 @@ export default function Settings() {
                                  );
                               })}
                            </div>
-                           {idx < filteredSections.length - 1 && section.title !== "Support" && (
-                              <div className="h-[1px] bg-slate-300/40 dark:bg-white/5 my-3.5 mx-1.5" />
-                           )}
                         </div>
                      ))}
                   </div>
 
-                  <div className="mt-auto pt-4 pb-4 px-4 select-none border-t border-slate-150 dark:border-zinc-800/40">
-                     <div className="flex items-center justify-between mb-3.5">
-                        <span className="text-[10px] font-mono tracking-wider text-slate-400 dark:text-zinc-400 uppercase">v2.0.0 Stable</span>
-                        <span className="flex items-center gap-1.5 text-[10px] text-slate-500 dark:text-zinc-400 font-medium">
-                           <span className="flex h-1.5 w-1.5 relative">
-                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
-                           </span>
+                  {/* Subtle Footer Links */}
+                  <div className="mt-auto pt-4 px-2 select-none border-t border-slate-100 dark:border-white/[0.06]">
+                     <div className="flex items-center justify-between mb-2.5">
+                        <span className="text-[10px] font-mono tracking-wider text-slate-400 uppercase">v2.0.0</span>
+                        <span className="flex items-center gap-1.5 text-[10px] text-slate-400 font-medium">
+                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                            Connected
                         </span>
                      </div>
-                     <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-[10px] font-medium text-slate-400 dark:text-zinc-400">
-                        <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="hover:text-slate-800 dark:hover:text-zinc-300 hover:underline transition-colors">Privacy Policy</a>
-                        <a href="/risk-disclosure" target="_blank" rel="noopener noreferrer" className="hover:text-slate-800 dark:hover:text-zinc-300 hover:underline transition-colors">Risk Disclosure</a>
-                        <a href="/terms-of-service" target="_blank" rel="noopener noreferrer" className="hover:text-slate-800 dark:hover:text-zinc-300 hover:underline transition-colors">Terms of Service</a>
-                        <a href="/cookie-policy" target="_blank" rel="noopener noreferrer" className="hover:text-slate-800 dark:hover:text-zinc-300 hover:underline transition-colors">Cookie Policy</a>
-                        <a href="/refund-policy" target="_blank" rel="noopener noreferrer" className="hover:text-slate-800 dark:hover:text-zinc-300 hover:underline transition-colors">Refund Policy</a>
-                        <a href="/aml-kyc-policy" target="_blank" rel="noopener noreferrer" className="hover:text-slate-800 dark:hover:text-zinc-300 hover:underline transition-colors">AML & KYC</a>
+                     <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[10px] font-medium text-slate-400">
+                        <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="hover:text-slate-700 dark:hover:text-neutral-200 transition-colors">Privacy Policy</a>
+                        <a href="/terms-of-service" target="_blank" rel="noopener noreferrer" className="hover:text-slate-700 dark:hover:text-neutral-200 transition-colors">Terms</a>
+                        <a href="/risk-disclosure" target="_blank" rel="noopener noreferrer" className="hover:text-slate-700 dark:hover:text-neutral-200 transition-colors">Risk Disclosure</a>
+                        <a href="/refund-policy" target="_blank" rel="noopener noreferrer" className="hover:text-slate-700 dark:hover:text-neutral-200 transition-colors">Refund Policy</a>
                      </div>
                   </div>
                </div>
-            </div>
+             </div>
 
             {/* RIGHT CONTENT PANEL inside Modal */}
-            <div className={`${mobileShowDetails ? 'flex' : 'hidden md:flex'} flex-1 min-w-0 bg-[#F4F5F7] dark:bg-[#121215] md:bg-white md:dark:bg-[#121212] h-full min-h-0 overflow-hidden relative flex flex-col`}>
+            <div className={`${mobileShowDetails ? 'flex' : 'hidden md:flex'} flex-1 min-w-0 bg-[#F4F5F7] dark:bg-[#121215] md:bg-white md:dark:bg-[#141417] h-full min-h-0 overflow-hidden relative flex flex-col`}>
                
-               {/* Fixed Header outside the scrollable container at the top */}
-               <div className="bg-white dark:bg-[#1A1A1E] px-4 sm:px-6 md:px-8 py-3 border-b border-slate-200/60 dark:border-white/5 flex items-center justify-between shrink-0 sticky top-0 z-20">
+               {/* Mobile-only Sticky Back Header (Desktop uses Hero close + clean section title) */}
+               <div className="flex md:hidden bg-white dark:bg-[#1A1A1E] px-4 py-3 border-b border-slate-200/60 dark:border-white/5 items-center justify-between shrink-0 sticky top-0 z-20">
                   <div className="flex items-center gap-2 min-w-0">
-                     {/* Mobile Back Button to return to Settings Sidebar */}
                      <button
                         type="button"
                         onClick={() => setMobileShowDetails(false)}
-                        className="flex md:hidden items-center gap-1 text-[14px] font-medium text-slate-800 dark:text-neutral-200 py-1 px-1 -ml-1 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 transition-colors shrink-0"
+                        className="flex items-center gap-1 text-[14px] font-medium text-slate-800 dark:text-neutral-200 py-1 px-1 -ml-1 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 transition-colors shrink-0"
                      >
                         <ChevronLeft size={18} />
                         <span>Settings</span>
                      </button>
-                     <h1 className="hidden md:block text-[13px] font-extrabold text-slate-900 dark:text-white uppercase tracking-wider truncate">
-                        {headerTitle}
-                     </h1>
                   </div>
                   
                   <button
+                      type="button"
                       onClick={handleCloseSettings}
                       className="w-7 h-7 rounded-full bg-slate-100 dark:bg-white/10 flex items-center justify-center text-slate-500 hover:text-slate-800 dark:text-neutral-400 dark:hover:text-white active:scale-90 transition-transform cursor-pointer shrink-0"
                       title="Close Settings"
@@ -1633,7 +1669,19 @@ export default function Settings() {
                <div id="settings-scroll-container" className="w-full flex-1 min-h-0 overflow-y-auto amazing-scrollbar scroll-smooth overscroll-contain">
 
                   {/* Scrollable Content wrapper with padding */}
-                  <div className="w-full mx-auto pt-2 sm:pt-10 px-3 sm:px-10 pb-3 sm:pb-12 space-y-5">
+                  <div className="w-full mx-auto pt-2 md:pt-1 px-3 sm:px-6 md:px-8 pb-6 md:pb-12 space-y-5">
+                     {/* Desktop Clean Section Heading & Subtitle */}
+                     <div className="hidden md:block mb-5 max-w-[820px]">
+                        <h1 className="text-[22px] font-bold text-slate-900 dark:text-white tracking-tight leading-tight">
+                           {headerTitle}
+                        </h1>
+                        {TAB_SUBTITLES[activeTab] && (
+                           <p className="text-[13px] text-slate-400 dark:text-neutral-500 mt-1">
+                              {TAB_SUBTITLES[activeTab]}
+                           </p>
+                        )}
+                     </div>
+
                      <AnimatePresence mode="wait">
 
                      {/* TAB 0: ACCOUNT SETTINGS */}
@@ -1664,23 +1712,171 @@ export default function Settings() {
                            animate={{ opacity: 1, y: 0 }}
                            exit={{ opacity: 0, y: -10 }}
                            transition={{ duration: 0.2 }}
-                           className="space-y-6 w-full max-w-[1100px] mx-auto"
+                           className="space-y-5 w-full max-w-[820px]"
                         >
+                           {/* Desktop Profile Overview (Showcase Card + Details Card) when NOT in edit mode */}
+                           {!isDesktopEditingProfile && (
+                              <div className="hidden md:block space-y-5">
+                                 {/* Card 1: Profile Showcase Card (Banner + Fade + Avatar + Name + Edit Profile) */}
+                                 <div className="rounded-[22px] bg-white dark:bg-[#1B1B20] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_4px_22px_rgba(15,23,42,0.05)] dark:shadow-none overflow-hidden">
+                                    <div className="relative h-[185px] w-full overflow-hidden bg-slate-100 dark:bg-neutral-800">
+                                       <img
+                                          src={profile.bannerUrl || profile.avatarUrl || "/nikil_avatar.jpg"}
+                                          alt="Profile cover"
+                                          className="w-full h-full object-cover object-center"
+                                          onError={(e) => { (e.target as HTMLImageElement).src = "/default-cover.png"; }}
+                                       />
+                                       <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-white via-white/60 to-transparent dark:from-[#1B1B20] dark:via-[#1B1B20]/60" />
+                                    </div>
 
+                                    <div className="px-6 pb-6">
+                                       <div className="relative z-10 -mt-12 mb-3">
+                                          <div className="w-[74px] h-[74px] rounded-full ring-4 ring-white dark:ring-[#1B1B20] shadow-md overflow-hidden bg-slate-100 dark:bg-neutral-800">
+                                             <img
+                                                src={profile.avatarUrl || defaultAvatar}
+                                                alt={displayName}
+                                                className="w-full h-full object-cover"
+                                                onError={(e) => { (e.target as HTMLImageElement).src = defaultAvatar; }}
+                                             />
+                                          </div>
+                                       </div>
 
-                           <ProfileTab 
-                              profile={profile} 
-                              setProfile={setProfile} 
-                              privacySettings={privacySettings} 
-                              setPrivacySettings={setPrivacySettings} 
-                              avatarUploadRef={avatarUploadRef} 
-                              bannerUploadRef={bannerUploadRef} 
-                              isInitialLoading={isInitialLoading}
-                              onSave={() => handleUpdateProfile()}
-                              onCancel={() => setMobileShowDetails(false)}
-                              loading={loading}
-                              setActiveTab={setActiveTab}
-                           />
+                                       <h2 className="text-[18px] font-bold text-slate-900 dark:text-white tracking-tight leading-tight">
+                                          {displayName}
+                                       </h2>
+                                       <p className="text-[13px] text-slate-400 dark:text-neutral-500 mt-0.5">
+                                          @{profile.username || "trader"}
+                                       </p>
+
+                                       <div className="mt-4">
+                                          <TactileBoxButton
+                                             onClick={() => {
+                                                triggerHaptic("selection");
+                                                setIsDesktopEditingProfile(true);
+                                             }}
+                                             className="h-9 px-4"
+                                          >
+                                             <Pencil size={13.5} strokeWidth={2.2} className="text-slate-800 dark:text-white" />
+                                             <span>Edit profile</span>
+                                          </TactileBoxButton>
+                                       </div>
+                                    </div>
+                                 </div>
+
+                                 {/* Card 2: Account & Profile Summary Card */}
+                                 <div className="rounded-[22px] bg-white dark:bg-[#1B1B20] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.04)] dark:shadow-none p-5 space-y-4">
+                                    <div>
+                                       <h3 className="text-[14px] font-bold text-slate-900 dark:text-white tracking-tight">
+                                          Profile Details
+                                       </h3>
+                                       <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5">
+                                          Public identity, contact email, and workspace plan linked to your account.
+                                       </p>
+                                    </div>
+
+                                    <div className="divide-y divide-slate-100 dark:divide-white/[0.06]">
+                                       <div className="py-3 flex items-center justify-between gap-4">
+                                          <div>
+                                             <p className="text-[12px] font-semibold text-slate-800 dark:text-neutral-200">Email</p>
+                                             <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5">
+                                                {profile.email || "Not set"}
+                                             </p>
+                                          </div>
+                                          <button
+                                             type="button"
+                                             onClick={() => setActiveTab("account")}
+                                             className="text-[12px] font-semibold text-[#2563EB] dark:text-blue-400 hover:underline cursor-pointer"
+                                          >
+                                             Manage
+                                          </button>
+                                       </div>
+
+                                       <div className="py-3 flex items-center justify-between gap-4">
+                                          <div className="min-w-0">
+                                             <p className="text-[12px] font-semibold text-slate-800 dark:text-neutral-200">Public Link</p>
+                                             <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5 truncate">
+                                                tradifive.in/{profile.username || "trader"}
+                                             </p>
+                                          </div>
+                                          <button
+                                             type="button"
+                                             onClick={() => setIsDesktopEditingProfile(true)}
+                                             className="text-[12px] font-semibold text-[#2563EB] dark:text-blue-400 hover:underline cursor-pointer shrink-0"
+                                          >
+                                             Edit
+                                          </button>
+                                       </div>
+
+                                       <div className="py-3 flex items-center justify-between gap-4">
+                                          <div className="min-w-0">
+                                             <p className="text-[12px] font-semibold text-slate-800 dark:text-neutral-200">Bio</p>
+                                             <p className="text-[12px] text-slate-500 dark:text-neutral-400 mt-0.5 line-clamp-2">
+                                                {profile.bio?.trim() || "No bio added yet."}
+                                             </p>
+                                          </div>
+                                          <button
+                                             type="button"
+                                             onClick={() => setIsDesktopEditingProfile(true)}
+                                             className="text-[12px] font-semibold text-[#2563EB] dark:text-blue-400 hover:underline cursor-pointer shrink-0"
+                                          >
+                                             Edit
+                                          </button>
+                                       </div>
+
+                                       <div className="pt-3 flex items-center justify-between gap-4">
+                                          <div>
+                                             <p className="text-[12px] font-semibold text-slate-800 dark:text-neutral-200">Workspace Plan</p>
+                                             <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5 capitalize">
+                                                {activePlan} Plan · {profile.isPrivate ? "Private profile" : "Public profile"}
+                                             </p>
+                                          </div>
+                                          <button
+                                             type="button"
+                                             onClick={() => setActiveTab("subscription")}
+                                             className="text-[12px] font-semibold text-[#2563EB] dark:text-blue-400 hover:underline cursor-pointer"
+                                          >
+                                             View plan
+                                          </button>
+                                       </div>
+                                    </div>
+                                 </div>
+                              </div>
+                           )}
+
+                           {/* Mobile ALWAYS renders ProfileTab; Desktop renders full ProfileTab editor when Edit profile is clicked */}
+                           <div id="settings-profile-editor" className={isDesktopEditingProfile ? "block" : "md:hidden"}>
+                              {isDesktopEditingProfile && (
+                                 <div className="hidden md:flex items-center justify-between mb-4">
+                                    <button
+                                       type="button"
+                                       onClick={() => setIsDesktopEditingProfile(false)}
+                                       className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white transition-colors cursor-pointer"
+                                    >
+                                       <ChevronLeft size={15} />
+                                       <span>Back to profile card</span>
+                                    </button>
+                                 </div>
+                              )}
+                              <ProfileTab 
+                                 profile={profile} 
+                                 setProfile={setProfile} 
+                                 privacySettings={privacySettings} 
+                                 setPrivacySettings={setPrivacySettings} 
+                                 avatarUploadRef={avatarUploadRef} 
+                                 bannerUploadRef={bannerUploadRef} 
+                                 isInitialLoading={isInitialLoading}
+                                 onSave={async () => {
+                                    await handleUpdateProfile();
+                                    setIsDesktopEditingProfile(false);
+                                 }}
+                                 onCancel={() => {
+                                    setIsDesktopEditingProfile(false);
+                                    setMobileShowDetails(false);
+                                 }}
+                                 loading={loading}
+                                 setActiveTab={setActiveTab}
+                              />
+                           </div>
 
                            {/* Hidden inputs triggers */}
                            <input type="file" ref={avatarUploadRef} accept="image/*" className="hidden" onChange={async (e) => {
@@ -1705,17 +1901,6 @@ export default function Settings() {
                                  }
                               }
                            }} />
-
-                           <div className="hidden md:flex justify-end items-center pt-6 pb-4 border-t border-slate-200/60 dark:border-slate-800">
-                              <button 
-                                 type="button"
-                                 onClick={() => handleUpdateProfile()}
-                                 disabled={loading}
-                                 className="px-6 py-2.5 rounded-full bg-blue-600 hover:bg-blue-700 text-white text-[13px] font-bold shadow-sm hover:shadow-md transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
-                              >
-                                 {loading ? 'Saving...' : 'Save Profile Changes'}
-                              </button>
-                           </div>
 
                         </motion.div>
                      )}
@@ -2771,6 +2956,8 @@ export default function Settings() {
                   </div>
 
                </div>
+            </div>
+
             </div>
 
          </div>

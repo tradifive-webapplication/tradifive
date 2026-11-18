@@ -1397,7 +1397,7 @@ export default function Home() {
 
     return (
         <>
-            <CommunityPageWrapper breadcrumbs={[{ label: "Home", path: "/home" }]} headerActions={headerActions} noScroll={true} noPadding={true}>
+            <CommunityPageWrapper breadcrumbs={[{ label: "Home", path: "/home" }]} headerActions={null} noScroll={true} noPadding={true}>
                 <div className="w-full min-h-full flex flex-col px-0 sm:px-4 lg:px-6 xl:px-8 pt-0 pb-0 select-none font-sans text-slate-800 dark:text-slate-100">
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 lg:gap-5 relative items-start min-h-full">
 
