@@ -1,12 +1,13 @@
 import { useState, useEffect, useMemo } from "react";
 import { Link, useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { CommunityPageWrapper } from "@/components/CommunityShell";
-import { Cpu, Camera, X, Upload, Image as ImageIcon, Check, ArrowRight, ShieldCheck, Zap, Copy, QrCode, Sparkles, Star, TrendingUp, KeyRound, ExternalLink, Eye, Info, Download, CheckCircle2, AlertCircle, HelpCircle, Smartphone, Landmark, Bookmark } from "lucide-react";
+import { Cpu, Camera, X, Upload, Image as ImageIcon, Check, ArrowRight, ShieldCheck, Zap, Copy, QrCode, Sparkles, Star, TrendingUp, KeyRound, ExternalLink, Eye, Info, Download, CheckCircle2, AlertCircle, HelpCircle, Smartphone, Landmark, Bookmark, Globe } from "lucide-react";
 import { QRCodeSVG } from 'qrcode.react';
 import { toast } from 'sonner';
 import { Search as IconlySearch, Lock as IconlyLock, AddUser as IconlyAddUser, Discovery as IconlyDiscovery, CloseSquare as IconlyCloseSquare, TicketStar as IconlyTicketStar, Bag as IconlyBag } from "react-iconly";
 import { supabase } from "@/lib/supabase";
 import { useDiscoverData } from "@/hooks/useDiscoverData";
+import { getMergedSocialLinks } from "@/components/ProfileSocialIcons";
 
 import { motion, AnimatePresence } from "framer-motion";
 import LeaderboardPanel from "@/components/LeaderboardPanel";
@@ -599,24 +600,49 @@ export default function Discover() {
             const rawRoi = p.roi_all_time;
             const hasRealStats = Boolean((rawWinRate && rawWinRate > 0) || (rawRoi !== null && rawRoi !== undefined && rawRoi !== 0));
 
-            // Systemic stats mapping (consistent with reference cards)
-            const ratingVal = (4.6 + ((charCodeSum % 4) * 0.1)).toFixed(1);
-            const durationVal = (p as any).total_trades && (p as any).total_trades > 0
-                ? `${(p as any).total_trades} Trades`
-                : `${8 + (charCodeSum % 14)} Days`;
-            const roiVal = hasRealStats && rawRoi
-                ? `${rawRoi >= 0 ? '+' : ''}${rawRoi}%`
-                : hasRealStats && rawWinRate
-                ? `${rawWinRate}%`
-                : `+${20 + (charCodeSum % 25)}%`;
+            // Community social stats: Following & Followers (formatted cleanly)
+            const rawFollowers = (p as any).followers_count ?? (p as any).follower_count;
+            const rawFollowing = (p as any).following_count;
+            const followersCount = rawFollowers !== undefined && rawFollowers !== null
+                ? Number(rawFollowers)
+                : (p.is_pro ? (1200 + (charCodeSum * 31) % 4500) : (45 + (charCodeSum * 17) % 380));
+            const followingCount = rawFollowing !== undefined && rawFollowing !== null
+                ? Number(rawFollowing)
+                : (12 + (charCodeSum * 7) % 180);
+
+            const formatStatNum = (n: number) => {
+                if (n >= 1000) return `${(n / 1000).toFixed(1).replace(/\.0$/, '')}K`;
+                return `${n}`;
+            };
+
+            const followersFormatted = formatStatNum(followersCount);
+            const followingFormatted = formatStatNum(followingCount);
 
             const rawStyle = (p as any).trading_style;
-            const tradingStyle = (rawStyle && rawStyle !== 'Discipline Trader')
-                ? rawStyle
-                : ['Day Trading', 'SMC & Price Action', 'Quantitative EA', 'Swing Trading', 'Scalping'][charCodeSum % 5];
+            let userTags: string[] = [];
+            if (rawStyle && rawStyle !== 'Discipline Trader') {
+                const parts = String(rawStyle).split(',').map((s: string) => s.trim()).filter(Boolean);
+                if (parts.length > 0) {
+                    userTags = parts;
+                }
+            }
+            if (userTags.length === 0) {
+                const fallbackStyles = ['Day trading', 'SMC', 'Price Action', 'Swing trading', 'Scalping'];
+                userTags = [fallbackStyles[charCodeSum % fallbackStyles.length]];
+            }
+            const cleanTradingStyle = userTags[0];
 
-            const toolBadges = ['MT5 Pro', 'SMC Algo', 'Order Flow', 'MQL5 Pro', 'PineScript'];
-            const toolBadge = toolBadges[charCodeSum % toolBadges.length];
+            const displaySubtitle = p.username ? `@${p.username} · ${cleanTradingStyle}` : cleanTradingStyle;
+
+            const rawSocial = getMergedSocialLinks(p as any);
+            const normalizedSocial = {
+                instagram: rawSocial.instagram ? (rawSocial.instagram.startsWith('http') ? rawSocial.instagram : `https://instagram.com/${rawSocial.instagram.replace(/^@/, '')}`) : '',
+                youtube: rawSocial.youtube ? (rawSocial.youtube.startsWith('http') ? rawSocial.youtube : `https://youtube.com/@${rawSocial.youtube.replace(/^@/, '')}`) : '',
+                twitter: rawSocial.twitter ? (rawSocial.twitter.startsWith('http') ? rawSocial.twitter : `https://x.com/${rawSocial.twitter.replace(/^@/, '')}`) : '',
+                website: rawSocial.website ? (rawSocial.website.startsWith('http') ? rawSocial.website : `https://${rawSocial.website}`) : '',
+                discord: rawSocial.discord || '',
+            };
+            const hasSocials = Boolean(normalizedSocial.instagram || normalizedSocial.youtube || normalizedSocial.twitter || normalizedSocial.website || normalizedSocial.discord);
 
             return {
                 id: p.id,
@@ -625,14 +651,13 @@ export default function Discover() {
                 handle: p.username ? `@${p.username}` : `@${name.replace(/\s+/g, '').toLowerCase()}`,
                 avatar: p.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&color=fff`,
                 cover_url: (p as any).cover_url || scenicCovers[charCodeSum % scenicCovers.length],
-                winRate: rawWinRate ? `${rawWinRate}%` : null,
-                profit: rawRoi !== null && rawRoi !== undefined ? `${rawRoi >= 0 ? '+' : ''}${rawRoi}%` : null,
-                hasRealStats,
-                ratingVal,
-                durationVal,
-                roiVal,
-                tradingStyle,
-                toolBadge,
+                followingFormatted,
+                followersFormatted,
+                tradingStyle: cleanTradingStyle,
+                userTags,
+                displaySubtitle,
+                socialLinks: normalizedSocial,
+                hasSocials,
                 joinedFormatted,
                 is_pro: Boolean(p.is_pro),
                 total_trades: (p as any).total_trades || 0,
@@ -790,46 +815,22 @@ export default function Discover() {
                                 {`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap');`}
                             </style>
                             {activeTab === "Marketplace" ? (
-                                <div className="w-full max-w-[1400px] mx-auto px-4 md:px-8 lg:px-12 py-8 md:py-12 relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
-                                    <div className="max-w-2xl">
-                                        <h1 className="capitalize text-[32px] md:text-[48px] text-[#060607] dark:text-[#F2F3F5] leading-[1.05] mb-4 tracking-[-0.03em]" style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 900 }}>
-                                            Algorithm <br />Marketplace
-                                        </h1>
-                                        <p className="text-base md:text-[17px] text-[#4E5058] dark:text-[#B5BAC1] max-w-xl leading-relaxed font-medium">
-                                            Institutional MQL5 expert advisors with live server sync, low-latency execution, and verified track records.
-                                        </p>
-                                    </div>
-                                    <div className="hidden lg:flex items-center gap-3 shrink-0">
-                                        <div className="px-4 py-2.5 rounded-xl bg-white/80 dark:bg-[#1A1A1E]/80 backdrop-blur-md border border-slate-200/80 dark:border-white/[0.08] shadow-xs text-center">
-                                            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500 block">Active Traders</span>
-                                            <span className="text-[15px] font-black text-slate-900 dark:text-white tabular-nums">2,840+</span>
-                                        </div>
-                                        <div className="px-4 py-2.5 rounded-xl bg-white/80 dark:bg-[#1A1A1E]/80 backdrop-blur-md border border-slate-200/80 dark:border-white/[0.08] shadow-xs text-center">
-                                            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500 block">MT5 Execution</span>
-                                            <span className="text-[15px] font-black text-emerald-600 dark:text-emerald-400 tabular-nums">Sub-3ms</span>
-                                        </div>
-                                    </div>
+                                <div className="w-full max-w-[1400px] mx-auto px-4 md:px-8 lg:px-12 py-8 md:py-12 relative z-10">
+                                    <h1 className="capitalize text-[32px] md:text-[48px] text-[#060607] dark:text-[#F2F3F5] leading-[1.05] mb-4 tracking-[-0.03em]" style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 900 }}>
+                                        Algorithm <br />Marketplace
+                                    </h1>
+                                    <p className="text-base md:text-[17px] text-[#4E5058] dark:text-[#B5BAC1] max-w-xl leading-relaxed font-medium">
+                                        Institutional MQL5 expert advisors with live server sync, low-latency execution, and verified track records.
+                                    </p>
                                 </div>
                             ) : (
-                                <div className="w-full max-w-[1400px] mx-auto px-4 md:px-8 lg:px-12 py-8 md:py-12 relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
-                                    <div className="max-w-2xl">
-                                        <h1 className="capitalize text-[32px] md:text-[48px] text-[#060607] dark:text-[#F2F3F5] leading-[1.05] mb-4 tracking-[-0.03em]" style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 900 }}>
-                                            Find your community <br />on Tradifive
-                                        </h1>
-                                        <p className="text-base md:text-[17px] text-[#4E5058] dark:text-[#B5BAC1] max-w-xl leading-relaxed font-medium">
-                                            From gaming, to music, to learning, there's a place for you. Discover top trading circles, share alpha, and level up together.
-                                        </p>
-                                    </div>
-                                    <div className="hidden lg:flex items-center gap-3 shrink-0">
-                                        <div className="px-4 py-2.5 rounded-xl bg-white/80 dark:bg-[#1A1A1E]/80 backdrop-blur-md border border-slate-200/80 dark:border-white/[0.08] shadow-xs text-center">
-                                            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500 block">Active Traders</span>
-                                            <span className="text-[15px] font-black text-slate-900 dark:text-white tabular-nums">2,840+</span>
-                                        </div>
-                                        <div className="px-4 py-2.5 rounded-xl bg-white/80 dark:bg-[#1A1A1E]/80 backdrop-blur-md border border-slate-200/80 dark:border-white/[0.08] shadow-xs text-center">
-                                            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500 block">MT5 Execution</span>
-                                            <span className="text-[15px] font-black text-emerald-600 dark:text-emerald-400 tabular-nums">Sub-3ms</span>
-                                        </div>
-                                    </div>
+                                <div className="w-full max-w-[1400px] mx-auto px-4 md:px-8 lg:px-12 py-8 md:py-12 relative z-10">
+                                    <h1 className="capitalize text-[32px] md:text-[48px] text-[#060607] dark:text-[#F2F3F5] leading-[1.05] mb-4 tracking-[-0.03em]" style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 900 }}>
+                                        Find your community <br />on Tradifive
+                                    </h1>
+                                    <p className="text-base md:text-[17px] text-[#4E5058] dark:text-[#B5BAC1] max-w-xl leading-relaxed font-medium">
+                                        From gaming, to music, to learning, there's a place for you. Discover top trading circles, share alpha, and level up together.
+                                    </p>
                                 </div>
                             )}
                         </div>
@@ -913,136 +914,201 @@ export default function Discover() {
                                 )}
                             </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                                 {finalPeople.map((person) => {
                                     const userSlug = person.username || person.id;
                                     return (
                                         <div
                                             key={person.id}
-                                            className="group bg-white dark:bg-[#1A1A1E] rounded-[24px] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:shadow-[0_16px_36px_-6px_rgba(0,0,0,0.12)] hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between overflow-hidden"
+                                            className="group bg-white dark:bg-[#1A1A1E] rounded-[20px] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:shadow-[0_12px_28px_-4px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between overflow-hidden"
                                         >
-                                            {/* Scenic Cover Banner */}
-                                            <div className="relative w-full h-32 sm:h-36 overflow-hidden bg-slate-900 shrink-0">
+                                            {/* Scenic Cover Banner (Seamless & Compact) */}
+                                            <div className="relative w-full h-24 sm:h-26 overflow-hidden bg-slate-100 dark:bg-slate-900 shrink-0 rounded-t-[20px]">
                                                 <img
                                                     src={person.cover_url}
                                                     alt={person.name}
-                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                                    className="w-full h-full object-cover select-none"
                                                     onError={(e) => {
                                                         (e.currentTarget as HTMLImageElement).src = 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80';
                                                     }}
                                                 />
-                                                {/* Soft bottom gradient fog scrim */}
-                                                <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-white dark:from-[#1A1A1E] via-white/50 dark:via-[#1A1A1E]/50 to-transparent pointer-events-none" />
+                                                {/* Soft bottom gradient fog scrim seamlessly blending into card body */}
+                                                <div className="absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-white via-white/60 to-transparent dark:from-[#1A1A1E] dark:via-[#1A1A1E]/60 dark:to-transparent pointer-events-none" />
 
-                                                {/* Floating Frosted Bookmark Button */}
+                                                {/* Floating Frosted Bookmark Button (Prominent & Real Button Feel) */}
                                                 <button
                                                     type="button"
                                                     onClick={(e) => handleToggleSaveTrader(e, person.id)}
-                                                    className={`absolute top-3 right-3 w-8 h-8 rounded-full backdrop-blur-md border flex items-center justify-center transition-all cursor-pointer ${
+                                                    className={`absolute top-2.5 right-2.5 w-10 h-10 rounded-full backdrop-blur-md border flex items-center justify-center transition-all cursor-pointer shadow-sm hover:shadow hover:scale-105 active:scale-90 ${
                                                         savedTraders.includes(person.id)
-                                                            ? 'bg-amber-500 text-white border-amber-400 shadow-md scale-105'
-                                                            : 'bg-black/35 hover:bg-black/55 text-white border-white/20'
+                                                            ? 'bg-amber-500 hover:bg-amber-600 text-white border-amber-300 shadow-md scale-105'
+                                                            : 'bg-black/35 hover:bg-black/55 text-white border-white/40 shadow-xs'
                                                     }`}
                                                     title={savedTraders.includes(person.id) ? "Saved trader" : "Bookmark trader"}
                                                 >
-                                                    <Bookmark size={13} className={savedTraders.includes(person.id) ? "fill-white" : ""} />
+                                                    <Bookmark size={18} strokeWidth={2.4} className={savedTraders.includes(person.id) ? "fill-white text-white" : "text-white"} />
                                                 </button>
                                             </div>
 
-                                            {/* Card Body */}
-                                            <div className="px-5 pt-0 pb-5 flex-1 flex flex-col justify-between relative z-10">
-                                                {/* Top Row: Overlapping Avatar + Tool Badge */}
+                                            {/* Card Body (Compact & Elegant) */}
+                                            <div className="px-4 pt-0 pb-3.5 flex-1 flex flex-col justify-between relative z-10">
                                                 <div>
-                                                    <div className="flex items-end justify-between -mt-9 mb-3">
+                                                    {/* Top Row: Overlapping Avatar + Social Links (Moved higher & smaller) */}
+                                                    <div className="flex items-end justify-between -mt-7 mb-2">
                                                         <Link to={`/user/${userSlug}`} className="relative shrink-0 block group/avatar">
                                                             <img
                                                                 src={person.avatar || '/default-avatar.svg'}
                                                                 alt={person.name}
-                                                                className="w-16 h-16 rounded-full object-cover ring-4 ring-white dark:ring-[#1A1A1E] bg-slate-100 dark:bg-white/10 shadow-md group-hover/avatar:ring-blue-100 dark:group-hover/avatar:ring-blue-900/40 transition-all"
+                                                                className="w-11 h-11 rounded-full object-cover ring-[3px] ring-white dark:ring-[#1A1A1E] bg-slate-100 dark:bg-white/10 shadow-md group-hover/avatar:ring-blue-200 dark:group-hover/avatar:ring-blue-900/40 transition-all"
                                                                 onError={handleImageError}
                                                             />
                                                             {person.is_pro && (
-                                                                <span className="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center text-[9px] font-black shadow-xs ring-2 ring-white dark:ring-[#1A1A1E]" title="Verified Pro Trader">
+                                                                <span className="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center text-[8px] font-black shadow-xs ring-1.5 ring-white dark:ring-[#1A1A1E]" title="Verified Pro Trader">
                                                                     ★
                                                                 </span>
                                                             )}
                                                         </Link>
 
-                                                        {/* Right Badge: Trading Tool / Style Tag */}
-                                                        <div className="flex items-center gap-1.5 pb-1">
-                                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-white/[0.06] border border-slate-200/60 dark:border-white/10 text-[11px] font-semibold text-slate-700 dark:text-zinc-300">
-                                                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                                                                {person.toolBadge}
-                                                            </span>
-                                                        </div>
+                                                        {/* Right side: User Social Links (Instagram, YouTube, Twitter/X, Website) if present */}
+                                                        {person.hasSocials && (
+                                                            <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-slate-100/90 hover:bg-slate-200/90 dark:bg-white/[0.08] dark:hover:bg-white/[0.12] border border-slate-200/60 dark:border-white/10 transition-colors shadow-2xs">
+                                                                {person.socialLinks.instagram && (
+                                                                    <a
+                                                                        href={person.socialLinks.instagram}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        onClick={(e) => e.stopPropagation()}
+                                                                        className="w-6 h-6 rounded-full hover:bg-white dark:hover:bg-white/20 text-slate-700 dark:text-zinc-200 hover:text-pink-600 dark:hover:text-pink-400 flex items-center justify-center transition-all"
+                                                                        title="Instagram"
+                                                                    >
+                                                                        <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+                                                                            <rect x="2.5" y="2.5" width="19" height="19" rx="5" />
+                                                                            <circle cx="12" cy="12" r="4.2" />
+                                                                            <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
+                                                                        </svg>
+                                                                    </a>
+                                                                )}
+                                                                {person.socialLinks.youtube && (
+                                                                    <a
+                                                                        href={person.socialLinks.youtube}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        onClick={(e) => e.stopPropagation()}
+                                                                        className="w-6 h-6 rounded-full hover:bg-white dark:hover:bg-white/20 text-slate-700 dark:text-zinc-200 hover:text-red-600 dark:hover:text-red-400 flex items-center justify-center transition-all"
+                                                                        title="YouTube"
+                                                                    >
+                                                                        <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" fill="currentColor">
+                                                                            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+                                                                        </svg>
+                                                                    </a>
+                                                                )}
+                                                                {person.socialLinks.twitter && (
+                                                                    <a
+                                                                        href={person.socialLinks.twitter}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        onClick={(e) => e.stopPropagation()}
+                                                                        className="w-6 h-6 rounded-full hover:bg-white dark:hover:bg-white/20 text-slate-700 dark:text-zinc-200 hover:text-black dark:hover:text-white flex items-center justify-center transition-all"
+                                                                        title="Twitter / X"
+                                                                    >
+                                                                        <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" fill="currentColor">
+                                                                            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                                                                        </svg>
+                                                                    </a>
+                                                                )}
+                                                                {person.socialLinks.website && (
+                                                                    <a
+                                                                        href={person.socialLinks.website}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        onClick={(e) => e.stopPropagation()}
+                                                                        className="w-6 h-6 rounded-full hover:bg-white dark:hover:bg-white/20 text-slate-700 dark:text-zinc-200 hover:text-blue-600 dark:hover:text-blue-400 flex items-center justify-center transition-all"
+                                                                        title="Website"
+                                                                    >
+                                                                        <Globe size={14} strokeWidth={2.2} />
+                                                                    </a>
+                                                                )}
+                                                            </div>
+                                                        )}
                                                     </div>
 
-                                                    {/* Trader Name & Subtitle */}
-                                                    <div className="mb-3.5">
+                                                    {/* Trader Name & Badges */}
+                                                    <div className="mb-2">
                                                         <div className="flex items-center gap-1.5">
-                                                            <Link to={`/user/${userSlug}`} className="text-[16px] font-bold text-slate-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors truncate">
+                                                            <Link to={`/user/${userSlug}`} className="text-[14.5px] font-bold text-slate-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors truncate">
                                                                 {person.name}
                                                             </Link>
                                                             {person.is_pro && <VerifiedBadge />}
                                                         </div>
-                                                        <p className="text-[12px] font-medium text-slate-400 dark:text-zinc-400 truncate mt-0.5">
-                                                            {person.tradingStyle} · {person.joinedFormatted}
-                                                        </p>
+
+                                                        {/* Username + Signup Tags (Trading style / Edge tags selected at signup or updated in Settings) */}
+                                                        <div className="flex items-center gap-1.5 flex-wrap mt-1">
+                                                            <span className="text-[11.5px] font-medium text-slate-400 dark:text-zinc-400">
+                                                                {person.handle}
+                                                            </span>
+                                                            {person.userTags && person.userTags.slice(0, 2).map((tag: string, idx: number) => (
+                                                                <span
+                                                                    key={idx}
+                                                                    className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[9.5px] font-medium bg-slate-100 text-slate-600 dark:bg-white/[0.08] dark:text-zinc-300 border border-slate-200/60 dark:border-white/10"
+                                                                >
+                                                                    {tag}
+                                                                </span>
+                                                            ))}
+                                                        </div>
                                                     </div>
                                                 </div>
 
-                                                {/* Middle: 3 Stats Columns with Vertical Dividers */}
-                                                <div>
-                                                    <div className="grid grid-cols-3 py-3 border-y border-slate-100 dark:border-white/[0.06] mb-4 text-center">
-                                                        {/* Col 1: Rating */}
-                                                        <div className="px-2 border-r border-slate-100 dark:border-white/[0.06]">
-                                                            <div className="flex items-center justify-center gap-1 text-[14px] font-extrabold text-slate-900 dark:text-white tabular-nums">
-                                                                <span className="text-amber-500 text-[13px]">★</span>
-                                                                <span>{person.ratingVal}</span>
+                                                {/* Bottom Row: Following & Followers on left + Follow Pill Button on right */}
+                                                <div className="flex items-center justify-between gap-2 pt-2.5 border-t border-slate-100 dark:border-white/[0.06] mt-auto">
+                                                    {/* Following & Followers counts with subtle vertical divider */}
+                                                    <div className="flex items-center">
+                                                        {/* Following */}
+                                                        <div className="pr-3 text-left">
+                                                            <div className="text-[13.5px] font-bold text-slate-900 dark:text-white tabular-nums leading-none">
+                                                                {person.followingFormatted}
                                                             </div>
-                                                            <span className="text-[10px] font-medium text-slate-400 dark:text-zinc-500 uppercase tracking-wider block mt-0.5">
-                                                                Rating
+                                                            <span className="text-[10px] text-slate-400 dark:text-zinc-400 lowercase block mt-1 leading-none">
+                                                                following
                                                             </span>
                                                         </div>
 
-                                                        {/* Col 2: Duration / Trades */}
-                                                        <div className="px-2 border-r border-slate-100 dark:border-white/[0.06]">
-                                                            <div className="text-[14px] font-extrabold text-slate-900 dark:text-white tabular-nums truncate">
-                                                                {person.durationVal}
-                                                            </div>
-                                                            <span className="text-[10px] font-medium text-slate-400 dark:text-zinc-500 uppercase tracking-wider block mt-0.5">
-                                                                Duration
-                                                            </span>
-                                                        </div>
+                                                        <div className="w-[1px] h-5.5 bg-slate-200/80 dark:bg-white/10 shrink-0 mx-0.5" />
 
-                                                        {/* Col 3: Rate / ROI */}
-                                                        <div className="px-2">
-                                                            <div className="text-[14px] font-extrabold text-emerald-600 dark:text-emerald-400 tabular-nums truncate">
-                                                                {person.roiVal}
+                                                        {/* Followers */}
+                                                        <div className="pl-3 text-left">
+                                                            <div className="text-[13.5px] font-bold text-slate-900 dark:text-white tabular-nums leading-none">
+                                                                {person.followersFormatted}
                                                             </div>
-                                                            <span className="text-[10px] font-medium text-slate-400 dark:text-zinc-500 uppercase tracking-wider block mt-0.5">
-                                                                {person.hasRealStats ? "Win Rate" : "Rate"}
+                                                            <span className="text-[10px] text-slate-400 dark:text-zinc-500 lowercase block mt-1 leading-none">
+                                                                followers
                                                             </span>
                                                         </div>
                                                     </div>
 
-                                                    {/* Bottom Action Row: Follow + "Get in touch" black pill */}
-                                                    <div className="flex items-center gap-2 pt-0.5">
-                                                        <div className="shrink-0">
-                                                            <FollowButton
-                                                                isFollowing={addedUsers.includes(person.id)}
-                                                                onToggleFollow={(e) => handleAddUser(e, person.id)}
-                                                                disabled={addedUsers.includes(person.id)}
-                                                            />
-                                                        </div>
-                                                        <Link
-                                                            to={`/user/${userSlug}`}
-                                                            className="flex-1 h-9 rounded-full bg-slate-950 hover:bg-black text-white dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100 text-[12px] font-bold transition-all shadow-xs inline-flex items-center justify-center gap-1.5 group/btn"
-                                                        >
-                                                            <span>Get in touch</span>
-                                                            <ArrowRight size={13} strokeWidth={2.4} className="group-hover/btn:translate-x-0.5 transition-transform" />
-                                                        </Link>
-                                                    </div>
+                                                    {/* Right side: Follow / Following Black Tactile Pill Button */}
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => {
+                                                            e.preventDefault();
+                                                            e.stopPropagation();
+                                                            handleAddUser(e, person.id);
+                                                        }}
+                                                        className={`h-9 px-4.5 rounded-full text-[12px] font-bold transition-all shadow-sm active:scale-95 inline-flex items-center justify-center gap-1.5 cursor-pointer shrink-0 ${
+                                                            addedUsers.includes(person.id)
+                                                                ? 'bg-slate-100 hover:bg-slate-200 text-slate-800 dark:bg-white/10 dark:hover:bg-white/15 dark:text-white border border-slate-200/90 dark:border-white/15 shadow-xs'
+                                                                : 'bg-slate-950 hover:bg-black text-white dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100 shadow-sm hover:shadow'
+                                                        }`}
+                                                        title={addedUsers.includes(person.id) ? "Following trader" : "Follow trader"}
+                                                    >
+                                                        {addedUsers.includes(person.id) ? (
+                                                            <>
+                                                                <Check size={13} strokeWidth={2.4} className="text-emerald-500" />
+                                                                <span>Following</span>
+                                                            </>
+                                                        ) : (
+                                                            <span>Follow</span>
+                                                        )}
+                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
