@@ -16,19 +16,18 @@ export function useDiscoverData(userId: string, searchQuery: string) {
   const [searching, setSearching] = useState(false);
 
   const fetchAll = async () => {
-    if (!userId) return;
     setLoading(true);
-    setLoading(true);
-    
 
     try {
       // 1. Mentors (is_pro = true)
-      const { data: mentorData, error: mentorErr } = await supabase
+      let mentorQuery = supabase
         .from('profiles')
         .select('*')
         .eq('is_pro', true)
-        .neq('id', userId)
-        .limit(4);
+        .order('created_at', { ascending: false })
+        .limit(12);
+      if (userId) mentorQuery = mentorQuery.neq('id', userId);
+      const { data: mentorData, error: mentorErr } = await mentorQuery;
 
       if (mentorErr) console.error('Discover mentors fetch error:', mentorErr);
       setMentors(mentorData ?? []);
@@ -37,7 +36,8 @@ export function useDiscoverData(userId: string, searchQuery: string) {
       const { data: chanData, error: chanErr } = await supabase
         .from('channels')
         .select('*, channel_members(count)')
-        .limit(6);
+        .order('created_at', { ascending: false })
+        .limit(12);
 
       if (chanErr) console.error('Discover channels fetch error:', chanErr);
 
@@ -46,29 +46,32 @@ export function useDiscoverData(userId: string, searchQuery: string) {
         // @ts-ignore - Supabase returns this as an array with count
         memberCount: ch.channel_members?.[0]?.count || 0
       }));
-      const allChannels = channelsWithCount;
-      setChannels(allChannels as any);
-      // 3. Top Traders (ordered by win_rate descending)
-      const { data: traderData, error: traderErr } = await supabase
+      setChannels(channelsWithCount as any);
+
+      // 3. Top Traders (ordered by win_rate descending, then newest)
+      let traderQuery = supabase
         .from('profiles')
         .select('*')
-        .neq('id', userId)
-        .order('win_rate', { ascending: false })
-        .limit(4);
+        .order('win_rate', { ascending: false, nullsFirst: false })
+        .order('created_at', { ascending: false })
+        .limit(12);
+      if (userId) traderQuery = traderQuery.neq('id', userId);
+      const { data: traderData, error: traderErr } = await traderQuery;
 
       if (traderErr) console.error('Discover traders fetch error:', traderErr);
       setTraders(traderData ?? []);
 
-      // 4. People (other active users)
-      const { data: peopleData, error: peopleErr } = await supabase
+      // 4. People (newest registered users first so new users always appear immediately)
+      let peopleQuery = supabase
         .from('profiles')
         .select('*')
-        .neq('id', userId)
-        .limit(6);
+        .order('created_at', { ascending: false })
+        .limit(50);
+      if (userId) peopleQuery = peopleQuery.neq('id', userId);
+      const { data: peopleData, error: peopleErr } = await peopleQuery;
 
       if (peopleErr) console.error('Discover people fetch error:', peopleErr);
-      const allPeople = peopleData ?? [];
-      setPeople(allPeople);
+      setPeople(peopleData ?? []);
     } catch (err) {
       console.error('Discover page loading failed:', err);
     } finally {
@@ -82,7 +85,8 @@ export function useDiscoverData(userId: string, searchQuery: string) {
 
   // Handle Search Input Query changes
   useEffect(() => {
-    if (!searchQuery.trim()) {
+    const cleanQ = searchQuery.trim().replace(/^@+/, '');
+    if (!cleanQ) {
       setSearchResults([]);
       return;
     }
@@ -90,14 +94,13 @@ export function useDiscoverData(userId: string, searchQuery: string) {
     const triggerSearch = async () => {
       setSearching(true);
 
-
       try {
         const { data, error } = await supabase
           .from('profiles')
           .select('*')
-          .neq('id', userId)
-          .or(`full_name.ilike.%${searchQuery}%,username.ilike.%${searchQuery}%`)
-          .limit(10);
+          .or(`full_name.ilike.%${cleanQ}%,display_name.ilike.%${cleanQ}%,username.ilike.%${cleanQ}%`)
+          .order('created_at', { ascending: false })
+          .limit(25);
 
         if (error) console.error('Profile search error:', error);
         setSearchResults(data ?? []);
@@ -110,7 +113,7 @@ export function useDiscoverData(userId: string, searchQuery: string) {
 
     const delayDebounce = setTimeout(() => {
       triggerSearch();
-    }, 300);
+    }, 250);
 
     return () => clearTimeout(delayDebounce);
   }, [searchQuery, userId]);

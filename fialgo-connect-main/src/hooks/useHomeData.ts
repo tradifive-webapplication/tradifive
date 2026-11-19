@@ -17,12 +17,14 @@ export type CalendarEvent = Database['public']['Tables']['economic_calendar']['R
 export type ProfileShort = {
   id: string;
   full_name: string | null;
+  display_name?: string | null;
   username: string | null;
   avatar_url: string | null;
   location: string | null;
   streak_days: number | null;
   win_rate: number | null;
   total_trades: number | null;
+  created_at?: string | null;
 };
 
 export function useHomeData(userId: string) {
@@ -91,9 +93,9 @@ export function useHomeData(userId: string) {
         userId ? supabase.from('feed_watchlist').select('*').eq('user_id', userId).order('sort_order', { ascending: true }).limit(20) : Promise.resolve({ data: [] } as any),
         supabase.from('economic_calendar').select('*').ilike('impact', '%high%').order('event_time', { ascending: true }).limit(30),
         userId ? supabase.from('social_follows').select('follower_id, profiles!social_follows_follower_id_fkey(avatar_url)', { count: 'exact' }).eq('following_id', userId).limit(5) : Promise.resolve({ data: [], count: 0 } as any),
-        supabase.from('profiles').select('id, full_name, username, avatar_url, location, streak_days, win_rate, total_trades').neq('id', userId).limit(5),
-        supabase.from('profiles').select('id, full_name, username, avatar_url, location, streak_days, win_rate, total_trades').order('streak_days', { ascending: false }).limit(3),
-        supabase.from('profiles').select('id, full_name, username, avatar_url, location, streak_days, win_rate, total_trades').order('win_rate', { ascending: false }).limit(3)
+        supabase.from('profiles').select('id, full_name, display_name, username, avatar_url, location, streak_days, win_rate, total_trades, created_at').neq('id', userId).order('created_at', { ascending: false }).limit(15),
+        supabase.from('profiles').select('id, full_name, display_name, username, avatar_url, location, streak_days, win_rate, total_trades').order('streak_days', { ascending: false, nullsFirst: false }).limit(3),
+        supabase.from('profiles').select('id, full_name, display_name, username, avatar_url, location, streak_days, win_rate, total_trades').order('win_rate', { ascending: false, nullsFirst: false }).limit(3)
       ]);
 
       // Batch enrich posts with profiles to avoid missing foreign key relation errors

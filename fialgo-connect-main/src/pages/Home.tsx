@@ -405,7 +405,42 @@ export default function Home() {
     }, [user?.id]);
 
     const [feedSearchQuery, setFeedSearchQuery] = useState("");
+    const [searchedTraders, setSearchedTraders] = useState<any[]>([]);
+    const [searchingTraders, setSearchingTraders] = useState(false);
     const [isRefreshingFeed, setIsRefreshingFeed] = useState(false);
+
+    // Live debounced trader search for the Home top search bar so ANY user (even with 0 posts) is searchable
+    useEffect(() => {
+        const cleanQ = feedSearchQuery.trim().replace(/^@+/, "");
+        if (!cleanQ || cleanQ.startsWith("$") || cleanQ.startsWith("#")) {
+            setSearchedTraders([]);
+            setSearchingTraders(false);
+            return;
+        }
+        let cancelled = false;
+        const timer = setTimeout(async () => {
+            setSearchingTraders(true);
+            try {
+                const { data, error } = await supabase
+                    .from("profiles")
+                    .select("id, full_name, display_name, username, avatar_url, trading_style, xp_level")
+                    .or(`full_name.ilike.%${cleanQ}%,display_name.ilike.%${cleanQ}%,username.ilike.%${cleanQ}%`)
+                    .order("created_at", { ascending: false })
+                    .limit(6);
+                if (!cancelled) {
+                    setSearchedTraders(!error && Array.isArray(data) ? data : []);
+                }
+            } catch {
+                if (!cancelled) setSearchedTraders([]);
+            } finally {
+                if (!cancelled) setSearchingTraders(false);
+            }
+        }, 220);
+        return () => {
+            cancelled = true;
+            clearTimeout(timer);
+        };
+    }, [feedSearchQuery]);
 
     const scrollToTop = () => {
         const scroller = inShell ? scrollContainerRef.current : middleColumnRef.current;
@@ -573,14 +608,15 @@ export default function Home() {
 
     // Placeholder names to exclude from suggestions
     const PLACEHOLDER_NAMES = useMemo(() => ['new trader', 'guest trader', 'demo trader', 'trader', 'guest'], []);
-    // Include all suggestions from the database except the current user and placeholders
+    // Include newest real users from the database (checks display_name, full_name, or username)
     const finalSuggestions = useMemo(() => {
-        return suggestions.filter(
-            sug => sug.id !== user?.id &&
-                sug.full_name &&
-                sug.full_name.trim().length > 0 &&
-                !PLACEHOLDER_NAMES.includes(sug.full_name.trim().toLowerCase())
-        );
+        return suggestions
+            .filter((sug: any) => {
+                if (sug.id === user?.id) return false;
+                const label = (sug.display_name || sug.full_name || sug.username || '').trim();
+                return label.length > 0 && !PLACEHOLDER_NAMES.includes(label.toLowerCase());
+            })
+            .slice(0, 5);
     }, [suggestions, user?.id, PLACEHOLDER_NAMES]);
 
     // Filter streak users (100% Real Database states)
@@ -1855,7 +1891,7 @@ export default function Home() {
                                             Home
                                         </h1>
 
-                                        <div className="flex-1 flex items-center gap-2.5 h-10 px-4 rounded-full bg-slate-100/90 dark:bg-white/[0.06] border border-transparent focus-within:border-slate-300/80 dark:focus-within:border-white/15 transition-colors">
+                                        <div className="flex-1 flex items-center gap-2.5 h-10 px-4 rounded-full bg-slate-100/90 dark:bg-white/[0.06] border border-transparent focus-within:border-slate-300/80 dark:focus-within:border-white/15 transition-colors relative">
                                             <Search size={16} strokeWidth={2} className="text-slate-400 dark:text-neutral-500 shrink-0" />
                                             <input
                                                 type="text"
@@ -1867,12 +1903,68 @@ export default function Home() {
                                             {feedSearchQuery && (
                                                 <button
                                                     type="button"
-                                                    onClick={() => setFeedSearchQuery("")}
+                                                    onClick={() => {
+                                                        setFeedSearchQuery("");
+                                                        setSearchedTraders([]);
+                                                    }}
                                                     className="w-5 h-5 rounded-full bg-slate-200/80 hover:bg-slate-300/80 dark:bg-white/10 dark:hover:bg-white/20 text-slate-600 dark:text-neutral-300 flex items-center justify-center shrink-0 cursor-pointer"
                                                     aria-label="Clear search"
                                                 >
                                                     <X size={11} strokeWidth={2.5} />
                                                 </button>
+                                            )}
+
+                                            {/* Live Search Popup when typing a trader or query */}
+                                            {feedSearchQuery.trim() && !feedSearchQuery.startsWith("$") && !feedSearchQuery.startsWith("#") && (
+                                                <div className="absolute left-0 right-0 top-12 z-50 p-2 bg-white dark:bg-[#1A1A1E] rounded-2xl border border-slate-200/80 dark:border-white/10 shadow-[0_12px_36px_rgba(15,23,42,0.14)] dark:shadow-none animate-in fade-in duration-150">
+                                                    <div className="px-2.5 py-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+                                                        <span>Matching Traders</span>
+                                                        {searchingTraders && <Loader2 size={12} className="animate-spin text-slate-400" />}
+                                                    </div>
+                                                    {searchedTraders.length > 0 ? (
+                                                        <div className="space-y-1 mt-1">
+                                                            {searchedTraders.map((t) => {
+                                                                const displaySlug = t.username || t.id;
+                                                                const displayName = t.display_name || t.full_name || t.username || "Trader";
+                                                                return (
+                                                                    <div
+                                                                        key={t.id}
+                                                                        onClick={() => {
+                                                                            navigate(`/user/${displaySlug}`);
+                                                                            setFeedSearchQuery("");
+                                                                            setSearchedTraders([]);
+                                                                        }}
+                                                                        className="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-white/[0.06] transition-colors cursor-pointer group"
+                                                                    >
+                                                                        <div className="flex items-center gap-2.5 min-w-0">
+                                                                            <img
+                                                                                src={t.avatar_url || "/default-avatar.svg"}
+                                                                                alt={displayName}
+                                                                                className="w-8 h-8 rounded-full object-cover bg-slate-200 dark:bg-neutral-800 shrink-0 border border-slate-200/50 dark:border-white/10"
+                                                                                onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.svg"; }}
+                                                                            />
+                                                                            <div className="min-w-0">
+                                                                                <p className="text-[13px] font-bold text-slate-900 dark:text-white truncate group-hover:text-blue-500 transition-colors">
+                                                                                    {displayName}
+                                                                                </p>
+                                                                                <p className="text-[11px] text-slate-400 truncate">
+                                                                                    @{displaySlug}
+                                                                                </p>
+                                                                            </div>
+                                                                        </div>
+                                                                        <span className="text-[11px] font-semibold text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white flex items-center gap-1 shrink-0">
+                                                                            View profile →
+                                                                        </span>
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    ) : !searchingTraders ? (
+                                                        <p className="px-2.5 py-2 text-[12px] text-slate-400">
+                                                            No traders found matching &ldquo;{feedSearchQuery.trim()}&rdquo;
+                                                        </p>
+                                                    ) : null}
+                                                </div>
                                             )}
                                         </div>
 

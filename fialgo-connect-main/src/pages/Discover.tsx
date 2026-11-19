@@ -439,15 +439,16 @@ export default function Discover() {
 
     const finalTraders = useMemo(() => traders
         .filter(t => {
-            const name = (t.full_name || t.username || '').trim().toLowerCase();
+            const name = ((t as any).display_name || t.full_name || t.username || '').trim().toLowerCase();
             return name.length > 0 && !PLACEHOLDER_NAMES.includes(name);
         })
         .map((t, idx) => {
-            const name = t.full_name || t.username || "Active Trader";
+            const name = (t as any).display_name || t.full_name || t.username || "Active Trader";
             const charCodeSum = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
             return {
                 id: t.id,
                 name: name,
+                username: t.username || t.id,
                 avatar: t.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&color=fff`,
                 winRate: t.win_rate ? `${t.win_rate}%` : "-",
                 profit: t.roi_all_time ? `${t.roi_all_time >= 0 ? '+' : ''}${t.roi_all_time}%` : "-",
@@ -459,11 +460,11 @@ export default function Discover() {
 
     const finalPeople = useMemo(() => people
         .filter(p => {
-            const name = (p.full_name || p.username || '').trim().toLowerCase();
+            const name = ((p as any).display_name || p.full_name || p.username || '').trim().toLowerCase();
             return name.length > 0 && !PLACEHOLDER_NAMES.includes(name);
         })
         .map((p) => {
-            const name = p.full_name || p.username || "Active User";
+            const name = (p as any).display_name || p.full_name || p.username || "Active User";
             const charCodeSum = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
 
             const fallbackCovers = [
@@ -478,8 +479,8 @@ export default function Discover() {
             return {
                 id: p.id,
                 name: name,
-                username: p.username || name.replace(/\s+/g, '').toLowerCase(),
-                handle: p.username ? `@${p.username}` : "@user",
+                username: p.username || p.id,
+                handle: p.username ? `@${p.username}` : `@${name.replace(/\s+/g, '').toLowerCase()}`,
                 avatar: p.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&color=fff`,
                 cover_url: (p as any).cover_url || fallbackCovers[charCodeSum % fallbackCovers.length],
                 winRate: p.win_rate ? `${p.win_rate}%` : "-",
@@ -681,14 +682,15 @@ export default function Discover() {
                                     ) : (
                                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6">
                                             {searchResults.map(profile => {
-                                                const displayName = profile.full_name || profile.username || "Active User";
-                                                const displaySlug = profile.username || "user";
+                                                const displayName = (profile as any).display_name || profile.full_name || profile.username || "Active User";
+                                                const displaySlug = profile.username || profile.id;
+                                                const displayHandle = profile.username ? `@${profile.username}` : displayName;
                                                 return (
                                                     <Link key={profile.id} to={`/user/${displaySlug}`} className="bg-white dark:bg-[#1E1E1E] p-4 rounded-xl border border-slate-200 dark:border-white/5 hover:shadow-md transition-all flex items-center gap-3 group">
-                                                        <img src={profile.avatar_url || "/default-avatar.svg"} alt={displayName} className="w-12 h-12 rounded-full object-cover" />
-                                                        <div>
-                                                            <h3 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-blue-500 transition-colors">{displayName}</h3>
-                                                            <p className="text-xs text-slate-500">@{displaySlug}</p>
+                                                        <img src={profile.avatar_url || "/default-avatar.svg"} alt={displayName} className="w-12 h-12 rounded-full object-cover" onError={handleImageError} />
+                                                        <div className="min-w-0">
+                                                            <h3 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-blue-500 transition-colors truncate">{displayName}</h3>
+                                                            <p className="text-xs text-slate-500 truncate">{displayHandle}</p>
                                                         </div>
                                                     </Link>
                                                 );

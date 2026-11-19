@@ -9,6 +9,12 @@ import {
   Star, BarChart2, FileText, Shield, Info, Target, Scale,
   Crown, ArrowRight, ChevronDown, ChevronLeft, Radio, Play, UserPlus, UserCheck, Mail, Lock, Clock, Camera
 } from 'lucide-react';
+import {
+  Edit as IconlyEdit,
+  Graph as IconlyGraph,
+  ShieldDone as IconlyShieldDone,
+  Activity as IconlyActivity,
+} from "react-iconly";
 import { supabase } from "@/lib/supabase";
 import FeedCard from "@/components/FeedCard";
 import { toast } from "sonner";
@@ -134,10 +140,34 @@ export default function UserProfilePublic() {
   const [streakDots, setStreakDots] = useState<{ date: string; status: 'green' | 'red' | 'gray' }[]>([]);
   const [calendarDayMap, setCalendarDayMap] = useState<Record<string, 'green' | 'red'>>({});
   const [calendarMonth, setCalendarMonth] = useState(() => new Date());
-
-
+  const [perfRange, setPerfRange] = useState<"All" | "1M" | "7D" | "1D">("All");
+  const [accountBalance, setAccountBalance] = useState<number>(10000);
 
   const [advMetrics, setAdvMetrics] = useState<any>(calculateTradingMetrics([]));
+
+  // Recompute Trading Performance in real time whenever trades, balance, or timeframe changes
+  useEffect(() => {
+    if (!publicTrades) return;
+    const now = Date.now();
+    const cutoff =
+      perfRange === "1D"
+        ? now - 24 * 60 * 60 * 1000
+        : perfRange === "7D"
+        ? now - 7 * 24 * 60 * 60 * 1000
+        : perfRange === "1M"
+        ? now - 30 * 24 * 60 * 60 * 1000
+        : 0;
+    const scoped =
+      cutoff > 0
+        ? publicTrades.filter((t) => {
+            const ts = new Date(t.closed_at || t.created_at || 0).getTime();
+            return !isNaN(ts) && ts >= cutoff;
+          })
+        : publicTrades;
+    const computed = calculateTradingMetrics(scoped, accountBalance || 10000);
+    setAdvMetrics(computed);
+    if (computed?.avgRR) setAvgRRVal(computed.avgRR);
+  }, [publicTrades, accountBalance, perfRange]);
 
   // Privacy Settings state
   const [privacySettings, setPrivacySettings] = useState<Record<string, any>>({
@@ -466,10 +496,13 @@ export default function UserProfilePublic() {
             .maybeSingle();
 
           const balance = mt5Data?.balance || 10000;
+          setAccountBalance(balance);
           const roiPercent = balance > 0 ? (pnlSum / balance) * 100 : 0;
           setRoiVal((pnlSum >= 0 ? "+" : "") + roiPercent.toFixed(2) + "%");
           setPublicTrades(tradesData);
-          setAdvMetrics(calculateTradingMetrics(tradesData, balance));
+          const computed = calculateTradingMetrics(tradesData, balance);
+          setAdvMetrics(computed);
+          if (computed?.avgRR) setAvgRRVal(computed.avgRR);
         } else {
           setTotalTradesCount(0);
           setWinRateVal("0%");
@@ -896,18 +929,18 @@ export default function UserProfilePublic() {
   } : advMetrics;
 
   return (
-    <DashboardLayout breadcrumbs={[{ label: "Home", path: "/home" }, { label: `@${username || "user"}`, path: `/user/${username || "user"}` }]} headerActions={headerActions} noScroll={true} noPadding={true}>
-      <div className="w-full h-full flex flex-col min-h-0 px-3 sm:px-6 lg:px-10 pt-4 sm:pt-6 pb-24 md:pb-10 overflow-y-auto amazing-scrollbar select-none font-sans text-slate-800 dark:text-slate-100 bg-[#F8FAFC] dark:bg-[#000000]">
-        <div className="max-w-4xl mx-auto w-full space-y-5">
+    <DashboardLayout breadcrumbs={[{ label: "Home", path: "/home" }, { label: `@${username || "user"}`, path: `/user/${username || "user"}` }]} headerActions={headerActions} noPadding={true}>
+      <div className="w-full min-h-screen flex flex-col px-3 sm:px-6 lg:px-8 pt-4 sm:pt-6 pb-28 md:pb-10 select-none font-sans text-slate-800 dark:text-slate-100 bg-[#F7F8FA] dark:bg-[#141416]">
+        <div className="max-w-4xl lg:max-w-[1440px] mx-auto w-full space-y-5">
 
-          {/* --- UNIFIED PROFILE CONTENT --- */}
-          <div className="space-y-5">
+          {/* --- UNIFIED 2-COLUMN BENTO: Left scrolls (Profile Header + Tabs/Posts), Right stays pinned/sticky (Stats + Performance + Streak + Calendar) --- */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
 
-            {/* Header Card (Matching Reference Image 1 Layout) */}
-            <div className="bg-white dark:bg-[#1A1A1E] rounded-[28px] overflow-hidden border border-slate-200/80 dark:border-white/10 shadow-sm relative">
+            {/* ITEM 1: Profile Header Card (Left column row 1 on desktop; #1 on mobile) */}
+            <div className="lg:col-span-7 xl:col-span-6 lg:col-start-1 lg:row-start-1 bg-white dark:bg-[#1A1A1E] rounded-[24px] border border-slate-200/75 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.045)] dark:shadow-none overflow-hidden relative flex flex-col">
               {/* Cover Banner */}
               <div className="h-44 sm:h-56 w-full relative bg-slate-200 dark:bg-[#1A1A1E] overflow-hidden">
-                {/* Top-Left Back Button Overlay (Matching Reference Pic) */}
+                {/* Top-Left Back Button Overlay */}
                 <button
                   type="button"
                   onClick={() => navigate(-1)}
@@ -918,7 +951,7 @@ export default function UserProfilePublic() {
                   <ChevronLeft size={20} strokeWidth={2.4} />
                 </button>
 
-                {/* Top-Right Social Link Circles + 3-Dot More Button Overlay (Matching Reference Pic 2) */}
+                {/* Top-Right Social Link Circles + 3-Dot More Button Overlay */}
                 <div className="absolute top-3.5 right-3.5 z-20 flex items-center gap-2">
                   <ProfileSocialIcons profile={profile} />
                   <button
@@ -937,9 +970,7 @@ export default function UserProfilePublic() {
                 ) : (
                   <div className="w-full h-full relative">
                     {(!profile?.banner_url || profile.banner_url === "/default-cover.png") ? (
-                      <div className="w-full h-full bg-[#1A1A1A] flex items-center justify-center text-slate-600 dark:text-slate-700 relative">
-                        <Camera size={32} className="opacity-20" />
-                      </div>
+                      <div className="w-full h-full bg-gradient-to-r from-slate-800 to-slate-900 relative" />
                     ) : (
                       <img
                         src={profile.banner_url}
@@ -969,7 +1000,7 @@ export default function UserProfilePublic() {
 
               {/* Profile Details Area */}
               <div className="px-4 sm:px-8 pb-5 sm:pb-6 relative pt-2.5 sm:pt-3">
-                {/* Top Row: Avatar on left overlapping banner, Action buttons on right (Always 1 line even on iPhone 16) */}
+                {/* Top Row: Avatar on left overlapping banner, Action buttons on right */}
                 <div className="flex items-end justify-between gap-2 sm:gap-4">
                   {/* Left: Avatar container overlapping cover */}
                   <div className="relative -mt-11 sm:-mt-16 shrink-0 z-20">
@@ -987,65 +1018,80 @@ export default function UserProfilePublic() {
                     </div>
                   </div>
 
-                  {/* Right: Action Buttons (Consistent Black Tactile Pill Style — always side-by-side on 1 line) */}
+                  {/* Right: Action Buttons */}
                   <div className="flex items-center gap-1.5 sm:gap-2.5 pb-0.5 sm:pb-1 flex-nowrap justify-end shrink-0">
-                    {/* Follow button */}
-                    <button
-                      type="button"
-                      onClick={() => profile?.id && toggleFollowUser(profile.id, profile.display_name)}
-                      className={`flex items-center justify-center gap-1 sm:gap-1.5 px-4 sm:px-6 py-1.5 sm:py-2 rounded-full text-[12.5px] sm:text-[13.5px] font-bold whitespace-nowrap cursor-pointer select-none ${
-                        followedUsers[profile?.id]
-                          ? "tactile-white-pill"
-                          : "tactile-black-pill"
-                      }`}
-                    >
-                      {followedUsers[profile?.id] ? <><UserCheck size={13} strokeWidth={2.4} /> Following</> : (hasRequested ? <><Clock size={13} strokeWidth={2.4} /> Requested</> : "Follow")}
-                    </button>
+                    {currentUserId && profile?.id && currentUserId === profile.id ? (
+                      <button
+                        type="button"
+                        onClick={() => navigate('/settings?tab=profiles')}
+                        className="flex items-center justify-center gap-1.5 px-4 sm:px-5 py-1.5 sm:py-2 rounded-full text-[12.5px] sm:text-[13.5px] font-bold whitespace-nowrap tactile-white-pill cursor-pointer select-none"
+                      >
+                        <IconlyEdit set="curved" primaryColor="currentColor" size={14} stroke="bold" strokeWidth={2} /> Edit profile
+                      </button>
+                    ) : (
+                      <>
+                        {/* Follow button */}
+                        <button
+                          type="button"
+                          onClick={() => profile?.id && toggleFollowUser(profile.id, profile.display_name)}
+                          className={`flex items-center justify-center gap-1 sm:gap-1.5 px-4 sm:px-6 py-1.5 sm:py-2 rounded-full text-[12.5px] sm:text-[13.5px] font-bold whitespace-nowrap cursor-pointer select-none ${
+                            followedUsers[profile?.id]
+                              ? "tactile-white-pill"
+                              : "tactile-black-pill"
+                          }`}
+                        >
+                          {followedUsers[profile?.id] ? <><UserCheck size={13} strokeWidth={2.4} /> Following</> : (hasRequested ? <><Clock size={13} strokeWidth={2.4} /> Requested</> : "Follow")}
+                        </button>
 
-                    {/* Message button */}
-                    <button
-                      type="button"
-                      onClick={handleStartConversation}
-                      className="flex items-center justify-center gap-1 sm:gap-1.5 px-3.5 sm:px-5 py-1.5 sm:py-2 rounded-full tactile-black-pill text-[12.5px] sm:text-[13.5px] font-bold whitespace-nowrap cursor-pointer select-none"
-                    >
-                      <MessageSquare size={13} strokeWidth={2.4} /> Message
-                    </button>
+                        {/* Message button */}
+                        <button
+                          type="button"
+                          onClick={handleStartConversation}
+                          className="flex items-center justify-center gap-1 sm:gap-1.5 px-3.5 sm:px-5 py-1.5 sm:py-2 rounded-full tactile-black-pill text-[12.5px] sm:text-[13.5px] font-bold whitespace-nowrap cursor-pointer select-none"
+                        >
+                          <MessageSquare size={13} strokeWidth={2.4} /> Message
+                        </button>
 
-                    {/* Channel button (conditional) */}
-                    {userChannel && (
-                      <Link to={`/channel/${userChannel.id}`} className="hidden sm:flex items-center justify-center gap-1.5 px-4 py-2 rounded-full tactile-white-pill text-[13px] font-bold whitespace-nowrap select-none">
-                        <Radio size={14} /> Channel
-                      </Link>
+                        {/* Channel button (conditional) */}
+                        {userChannel && (
+                          <Link to={`/channel/${userChannel.id}`} className="hidden sm:flex items-center justify-center gap-1.5 px-4 py-2 rounded-full tactile-white-pill text-[13px] font-bold whitespace-nowrap select-none">
+                            <Radio size={14} /> Channel
+                          </Link>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>
 
-                {/* Profile Identity & Info (Exact typography and metadata alignment from Reference Image 1) */}
+                {/* Profile Identity & Info */}
                 <div className="mt-3 text-left">
-                  <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white flex items-center gap-2 leading-tight tracking-tight">
-                    {loading ? (
-                      <div className="h-8 w-48 bg-slate-200 dark:bg-slate-700 animate-pulse rounded-lg" />
-                    ) : (
-                      <>
-                        {profile?.display_name || profile?.full_name || (!isUUID(username || '') ? username : "Anonymous Trader")}
-                        {profile?.account_type === 'creator' && (
-                          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-purple-100 dark:bg-purple-500/20 border border-purple-200 dark:border-purple-500/30">
-                            <Crown size={12} className="text-purple-600 dark:text-purple-400" />
-                            <span className="text-[11px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider">Creator</span>
-                          </div>
-                        )}
-                      </>
-                    )}
-                  </h1>
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white leading-tight tracking-tight">
+                      {loading ? (
+                        <div className="h-8 w-48 bg-slate-200 dark:bg-slate-700 animate-pulse rounded-lg" />
+                      ) : (
+                        profile?.display_name || profile?.full_name || (!isUUID(username || '') ? username : "Anonymous Trader")
+                      )}
+                    </h1>
+                    <span className="bg-slate-100 dark:bg-white/10 text-slate-800 dark:text-slate-100 text-[10.5px] font-extrabold px-2.5 py-0.5 rounded-lg border border-slate-200/80 dark:border-white/10 flex items-center gap-1 shrink-0">
+                      <Crown size={11} className="text-amber-500 fill-amber-500/20" /> Lvl {levelVal}
+                    </span>
+                  </div>
 
-                  {/* Handle & Joined Date on same line (Reference Image 1: @alphonso · Joined Oct 2026) */}
+                  {/* Handle & Joined Date */}
                   <div className="text-[13.5px] font-medium text-slate-500 dark:text-neutral-400 mt-1 flex items-center gap-2 flex-wrap">
                     <span>@{profile?.username || (!isUUID(username || '') ? username : "trader")}</span>
                     <span>·</span>
-                    <span>Joined {profile?.created_at ? new Date(profile.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'Oct 2026'}</span>
+                    <span>Joined {profile?.created_at ? new Date(profile.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'Nov 2026'}</span>
+                    {profile?.location && (
+                      <>
+                        <span>·</span>
+                        <span>{profile.location}</span>
+                      </>
+                    )}
                   </div>
 
-                  {/* Following & Followers counts (Reference Image 1: 4 following  2 followers) */}
+                  {/* Following & Followers counts */}
                   <div className="flex items-center gap-4 text-[13.5px] text-slate-500 dark:text-neutral-400 mt-2 select-none">
                     <span onClick={() => handleFollowStatClick('following')} className="cursor-pointer hover:underline">
                       <strong className="text-slate-900 dark:text-white font-extrabold">{Math.max(0, followingCount)}</strong> following
@@ -1057,21 +1103,34 @@ export default function UserProfilePublic() {
 
                   {/* Bio */}
                   {profile?.bio && (
-                    <div className="text-[14px] text-slate-800 dark:text-slate-200 font-medium leading-relaxed mt-3 max-w-2xl whitespace-pre-wrap">
+                    <p className="text-[14px] text-slate-800 dark:text-slate-200 font-medium leading-relaxed mt-3 max-w-2xl whitespace-pre-wrap">
                       {profile.bio}
+                    </p>
+                  )}
+
+                  {/* Trading Style Badges (e.g. "☆ My own" as in user screenshot) */}
+                  {profile?.trading_style && (
+                    <div className="flex flex-wrap items-center gap-2 mt-3.5">
+                      {profile.trading_style.split(',').map((tag: string, idx: number) => (
+                        <span key={idx} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-100 dark:bg-white/[0.08] text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-white/10">
+                          {idx % 2 === 0 ? <Star size={11} className="text-slate-500 dark:text-slate-400" /> : <Shield size={11} className="text-slate-500 dark:text-slate-400" />} {tag.trim()}
+                        </span>
+                      ))}
                     </div>
                   )}
                 </div>
               </div>
             </div>
 
-            <div className="space-y-5">
-              {/* --- QUICK STATS: COMPACT 1-LINE ROW (All 5 fit cleanly in 1 Line even on iPhone 16) --- */}
+            {/* ITEM 2: Pinned Right Analytics Column (Right column on desktop; sticky) */}
+            <div className="lg:col-span-5 xl:col-span-6 lg:col-start-8 xl:col-start-7 lg:row-start-1 lg:row-span-2 lg:sticky lg:top-4 flex flex-col gap-4 min-w-0">
+
+              {/* --- QUICK STATS: COMPACT 1-LINE ROW --- */}
               {(() => {
                 const visibleCards = [
-                  { title: "Trades", shortTitle: "Trades", value: safeTradesCount.toLocaleString(), isHidden: (!privacySettings.show_trades || isLocked), icon: <BarChart2 size={12} className="text-blue-500" />, color: "bg-blue-500/10 text-blue-600" },
-                  { title: "Win Rate", shortTitle: "Win Rate", value: safeWinRate, isHidden: (!privacySettings.show_winrate || isLocked), icon: <CheckCircle2 size={12} className="text-emerald-500" />, color: "bg-emerald-500/10 text-emerald-600" },
-                  { title: "ROI (All Time)", shortTitle: "ROI", value: safeRoi, isHidden: (!privacySettings.show_roi || isLocked), icon: <TrendingUp size={12} className="text-emerald-500" />, color: "bg-emerald-500/10 text-emerald-600", highlighted: true },
+                  { title: "Trades", shortTitle: "Trades", value: safeTradesCount.toLocaleString(), isHidden: (!privacySettings.show_trades || isLocked), icon: <IconlyGraph set="curved" primaryColor="currentColor" size={12} stroke="bold" strokeWidth={2} className="text-blue-500" />, color: "bg-blue-500/10 text-blue-600" },
+                  { title: "Win Rate", shortTitle: "Win Rate", value: safeWinRate, isHidden: (!privacySettings.show_winrate || isLocked), icon: <IconlyShieldDone set="curved" primaryColor="currentColor" size={12} stroke="bold" strokeWidth={2} className="text-emerald-500" />, color: "bg-emerald-500/10 text-emerald-600" },
+                  { title: "ROI (All Time)", shortTitle: "ROI", value: safeRoi, isHidden: (!privacySettings.show_roi || isLocked), icon: <IconlyActivity set="curved" primaryColor="currentColor" size={12} stroke="bold" strokeWidth={2} className="text-emerald-500" />, color: "bg-emerald-500/10 text-emerald-600", highlighted: true },
                   { title: "Avg RR", shortTitle: "Avg RR", value: safeAvgRR, isHidden: (!privacySettings.show_avg_rr || isLocked), icon: <Target size={12} className="text-purple-500" />, color: "bg-purple-500/10 text-purple-600" },
                   { title: "Streak", shortTitle: "Streak", value: safeStreak, isHidden: (!privacySettings.show_streak || isLocked), icon: <Flame size={12} className="text-orange-500" />, color: "bg-orange-500/10 text-orange-600" }
                 ].filter(card => !card.isHidden);
@@ -1086,7 +1145,7 @@ export default function UserProfilePublic() {
                     {visibleCards.map((card, idx) => (
                       <div
                         key={idx}
-                        className="py-2 px-1.5 sm:py-3 sm:px-3.5 rounded-[14px] sm:rounded-2xl bg-white dark:bg-[#1E1E1E] figma-card-shadow flex flex-col justify-between min-w-0 transition-all hover:-translate-y-0.5"
+                        className="py-2 px-1.5 sm:py-3 sm:px-3.5 rounded-[14px] sm:rounded-[18px] bg-white dark:bg-[#1A1A1E] border border-slate-200/75 dark:border-white/[0.08] shadow-[0_2px_12px_rgba(15,23,42,0.045)] dark:shadow-none hover:-translate-y-0.5 transition-all flex flex-col justify-between min-w-0"
                       >
                         <div className="flex flex-col-reverse min-[440px]:flex-row min-[440px]:items-center justify-between gap-1 mb-1 sm:mb-1.5">
                           <span className="text-[8px] sm:text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-tight sm:tracking-wider truncate">
@@ -1106,87 +1165,98 @@ export default function UserProfilePublic() {
                 );
               })()}
 
-              {/* --- TRADING PERFORMANCE CARD (Compact; visible if enabled in Settings) --- */}
+              {/* --- TRADING PERFORMANCE CARD --- */}
               {!isLocked && privacySettings.show_performance !== false && (
-                <div className="bg-white dark:bg-[#1E1E1E] p-3.5 sm:p-4 rounded-[18px] sm:rounded-[20px] figma-card-shadow relative overflow-hidden">
-                  <div className="flex flex-col gap-3">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-[11px] sm:text-[12px] font-bold text-slate-900 dark:text-white uppercase tracking-wider">Trading Performance</h3>
+                <div className="bg-white dark:bg-[#1A1A1E] p-3.5 sm:p-4 rounded-[18px] sm:rounded-[20px] border border-slate-200/75 dark:border-white/[0.08] shadow-[0_2px_12px_rgba(15,23,42,0.045)] dark:shadow-none flex flex-col gap-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <h3 className="text-[11px] sm:text-[12px] font-bold text-slate-900 dark:text-white uppercase tracking-wider">Trading Performance</h3>
 
-                      <span className="text-[10px] font-bold text-slate-700 dark:text-slate-200 bg-[#F4F5F7] dark:bg-[#2A2A2A] px-2.5 py-1 rounded-full border border-slate-200/60 dark:border-white/10 shadow-xs cursor-pointer flex items-center gap-1 select-none active:scale-95 transition-all">
-                        All Time <ArrowRight size={9} className="rotate-90 text-slate-500" />
+                    <div className="inline-flex items-center p-0.5 rounded-full bg-[#F4F5F7] dark:bg-[#2A2A2A] border border-slate-200/60 dark:border-white/10">
+                      {(["All", "1M", "7D", "1D"] as const).map((range) => (
+                        <button
+                          key={range}
+                          type="button"
+                          onClick={() => setPerfRange(range)}
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold transition-all cursor-pointer select-none ${
+                            perfRange === range
+                              ? "bg-white dark:bg-[#1A1A1E] text-slate-900 dark:text-white shadow-xs"
+                              : "text-slate-400 hover:text-slate-700 dark:hover:text-white"
+                          }`}
+                        >
+                          {range === "All" ? "All Time" : range}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-12 gap-3 items-center">
+
+                    {/* Left part: Total PnL Label & compact Line Chart */}
+                    <div className="col-span-5 flex flex-col">
+                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider leading-none">Total PnL</span>
+                      <span className={`text-lg sm:text-xl font-extrabold tracking-tight leading-none mt-1.5 font-sans tabular-nums ${safeAdvMetrics.totalPnlPercent.startsWith('-') ? 'text-rose-500' : 'text-emerald-500'}`}>
+                        {safeAdvMetrics.totalPnlPercent}
                       </span>
+
+                      <div className="h-12 sm:h-14 w-full mt-2 relative">
+                        <svg className={`w-full h-full filter ${safeAdvMetrics.totalPnlPercent.startsWith('-') ? 'drop-shadow-[0_3px_6px_rgba(244,63,94,0.2)]' : 'drop-shadow-[0_3px_6px_rgba(59,130,246,0.2)]'}`} viewBox="0 0 100 40" preserveAspectRatio="none">
+                          <defs>
+                            <linearGradient id="pnlGradPub" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor={safeAdvMetrics.totalPnlPercent.startsWith('-') ? "#f43f5e" : "#3b82f6"} stopOpacity="0.4" />
+                              <stop offset="100%" stopColor={safeAdvMetrics.totalPnlPercent.startsWith('-') ? "#f43f5e" : "#3b82f6"} stopOpacity="0" />
+                            </linearGradient>
+                          </defs>
+                          <path
+                            d={safeAdvMetrics.chartPath}
+                            fill="none"
+                            stroke={safeAdvMetrics.totalPnlPercent.startsWith('-') ? "#f43f5e" : "#3b82f6"}
+                            strokeWidth="2.5"
+                            strokeLinecap="round"
+                          />
+                          <path
+                            d={`${safeAdvMetrics.chartPath} L100,40 L0,40 Z`}
+                            fill="url(#pnlGradPub)"
+                          />
+                          <circle cx="100" cy={safeAdvMetrics.chartPath.split(',').pop() || 3} r="3" fill={safeAdvMetrics.totalPnlPercent.startsWith('-') ? "#f43f5e" : "#3b82f6"} className="animate-ping" />
+                          <circle cx="100" cy={safeAdvMetrics.chartPath.split(',').pop() || 3} r="2" fill={safeAdvMetrics.totalPnlPercent.startsWith('-') ? "#f43f5e" : "#3b82f6"} />
+                        </svg>
+                      </div>
                     </div>
 
-                    <div className="grid grid-cols-12 gap-3 items-center">
-
-                      {/* Left part: Total PnL Label & compact Line Chart */}
-                      <div className="col-span-5 flex flex-col">
-                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider leading-none">Total PnL</span>
-                        <span className={`text-lg sm:text-xl font-extrabold tracking-tight leading-none mt-1.5 font-sans ${safeAdvMetrics.totalPnlPercent.startsWith('-') ? 'text-rose-500' : 'text-emerald-500'}`}>
-                          {safeAdvMetrics.totalPnlPercent}
-                        </span>
-
-                        <div className="h-12 sm:h-14 w-full mt-2 relative">
-                          <svg className={`w-full h-full filter ${safeAdvMetrics.totalPnlPercent.startsWith('-') ? 'drop-shadow-[0_3px_6px_rgba(244,63,94,0.2)]' : 'drop-shadow-[0_3px_6px_rgba(59,130,246,0.2)]'}`} viewBox="0 0 100 40" preserveAspectRatio="none">
-                            <defs>
-                              <linearGradient id="pnlGrad" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stopColor={safeAdvMetrics.totalPnlPercent.startsWith('-') ? "#f43f5e" : "#3b82f6"} stopOpacity="0.4" />
-                                <stop offset="100%" stopColor={safeAdvMetrics.totalPnlPercent.startsWith('-') ? "#f43f5e" : "#3b82f6"} stopOpacity="0" />
-                              </linearGradient>
-                            </defs>
-                            <path
-                              d={safeAdvMetrics.chartPath}
-                              fill="none"
-                              stroke={safeAdvMetrics.totalPnlPercent.startsWith('-') ? "#f43f5e" : "#3b82f6"}
-                              strokeWidth="2.5"
-                              strokeLinecap="round"
-                            />
-                            <path
-                              d={`${safeAdvMetrics.chartPath} L100,40 L0,40 Z`}
-                              fill="url(#pnlGrad)"
-                            />
-                            <circle cx="100" cy={safeAdvMetrics.chartPath.split(',').pop() || 3} r="3" fill={safeAdvMetrics.totalPnlPercent.startsWith('-') ? "#f43f5e" : "#3b82f6"} className="animate-ping" />
-                            <circle cx="100" cy={safeAdvMetrics.chartPath.split(',').pop() || 3} r="2" fill={safeAdvMetrics.totalPnlPercent.startsWith('-') ? "#f43f5e" : "#3b82f6"} />
-                          </svg>
-                        </div>
-                      </div>
-
-                      {/* Right part: compact stats list */}
-                      <div className="col-span-7 space-y-1.5 pl-3 sm:pl-4 border-l border-slate-200/80 dark:border-white/5">
-                        {[
-                          { label: "Profit Factor", value: safeAdvMetrics.profitFactor, color: "text-blue-500", icon: <BarChart2 size={11} className="text-blue-500" /> },
-                          { label: "Expectancy", value: safeAdvMetrics.expectancy, color: safeAdvMetrics.expectancy.startsWith('-') ? "text-rose-500" : "text-emerald-500", icon: <TrendingUp size={11} className={safeAdvMetrics.expectancy.startsWith('-') ? "text-rose-500" : "text-emerald-500"} /> },
-                          { label: "Max Drawdown", value: safeAdvMetrics.maxDrawdown, color: "text-rose-500", highlighted: true, icon: <Scale size={11} className="text-rose-500" /> },
-                          { label: "Consistency", value: `${safeAdvMetrics.consistencyScore}%`, color: "text-blue-500", icon: <CheckCircle2 size={11} className="text-blue-500" />, showInfo: true }
-                        ].map((stat, i) => (
-                          <div key={i} className="flex justify-between items-center text-[10.5px] sm:text-[11.5px] gap-1">
-                            <span className="font-bold text-slate-500 dark:text-[#999] flex items-center gap-1.5 min-w-0">
-                              <div className="p-1 rounded-md bg-slate-100 dark:bg-white/5 shrink-0">
-                                {stat.icon}
-                              </div>
-                              <span className="flex items-center gap-1 font-semibold truncate">
-                                {stat.label}
-                                {stat.showInfo && <Info size={10} className="text-slate-400 hover:text-slate-600 cursor-pointer shrink-0" />}
-                              </span>
+                    {/* Right part: compact stats list */}
+                    <div className="col-span-7 space-y-1.5 pl-3 sm:pl-4 border-l border-slate-200/80 dark:border-white/5">
+                      {[
+                        { label: "Profit Factor", value: safeAdvMetrics.profitFactor, color: "text-blue-500", icon: <BarChart2 size={11} className="text-blue-500" /> },
+                        { label: "Expectancy", value: safeAdvMetrics.expectancy, color: safeAdvMetrics.expectancy.startsWith('-') ? "text-rose-500" : "text-emerald-500", icon: <TrendingUp size={11} className={safeAdvMetrics.expectancy.startsWith('-') ? "text-rose-500" : "text-emerald-500"} /> },
+                        { label: "Max Drawdown", value: safeAdvMetrics.maxDrawdown, color: "text-rose-500", highlighted: true, icon: <Scale size={11} className="text-rose-500" /> },
+                        { label: "Consistency", value: `${safeAdvMetrics.consistencyScore}%`, color: "text-blue-500", icon: <CheckCircle2 size={11} className="text-blue-500" />, showInfo: true }
+                      ].map((stat, i) => (
+                        <div key={i} className="flex justify-between items-center text-[10.5px] sm:text-[11.5px] gap-1">
+                          <span className="font-bold text-slate-500 dark:text-[#999] flex items-center gap-1.5 min-w-0">
+                            <div className="p-1 rounded-md bg-slate-100 dark:bg-white/5 shrink-0">
+                              {stat.icon}
+                            </div>
+                            <span className="flex items-center gap-1 font-semibold truncate">
+                              {stat.label}
+                              {stat.showInfo && <Info size={10} className="text-slate-400 hover:text-slate-600 cursor-pointer shrink-0" />}
                             </span>
-                            <span className={`font-bold tracking-tight font-sans shrink-0 ${stat.highlighted ? 'text-rose-500' : 'text-slate-900 dark:text-[#EEE]'}`}>{stat.value}</span>
-                          </div>
-                        ))}
-                      </div>
-
+                          </span>
+                          <span className={`font-bold tracking-tight font-sans tabular-nums shrink-0 ${stat.highlighted ? 'text-rose-500' : 'text-slate-900 dark:text-[#EEE]'}`}>{stat.value}</span>
+                        </div>
+                      ))}
                     </div>
+
                   </div>
                 </div>
               )}
 
-              {/* --- TRADING STREAK & CALENDAR ROW (Compact; controlled by Settings) --- */}
+              {/* --- TRADING STREAK & CALENDAR ROW --- */}
               {!isLocked && (privacySettings.show_streak !== false || privacySettings.show_calendar !== false) && (
-                <div className={`grid grid-cols-1 ${(privacySettings.show_streak !== false && privacySettings.show_calendar !== false) ? 'sm:grid-cols-2' : ''} gap-3 w-full`}>
+                <div className={`grid grid-cols-1 ${(privacySettings.show_streak !== false && privacySettings.show_calendar !== false) ? 'sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2' : ''} gap-3.5 w-full`}>
 
                   {/* Trading Streak Card */}
                   {privacySettings.show_streak !== false && (
-                    <div className="p-3.5 sm:p-4 rounded-[18px] sm:rounded-[20px] bg-white dark:bg-[#1E1E1E] figma-card-shadow flex flex-col justify-between gap-2.5">
+                    <div className="p-3.5 sm:p-4 rounded-[18px] sm:rounded-[20px] bg-white dark:bg-[#1A1A1E] border border-slate-200/75 dark:border-white/[0.08] shadow-[0_2px_12px_rgba(15,23,42,0.045)] dark:shadow-none flex flex-col justify-between gap-2.5">
                       <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-white/5">
                         <h3 className="text-[11px] sm:text-[12px] font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
                           <span className="p-1 rounded-md bg-orange-500/10 text-orange-500">
@@ -1202,7 +1272,7 @@ export default function UserProfilePublic() {
                         <span>Best: <strong className="text-slate-900 dark:text-white font-extrabold">{Math.max(bestStreak, profile?.best_streak || 0)} Day{Math.max(bestStreak, profile?.best_streak || 0) !== 1 ? 's' : ''}</strong></span>
                       </div>
 
-                      {/* Last 15 Days Dot Indicators */}
+                      {/* Day Dot Indicators */}
                       <div className="flex items-center justify-between gap-1 py-0.5">
                         {(streakDots.length > 0 ? streakDots : Array.from({ length: 15 }, () => ({ date: '', status: 'gray' as const }))).map((dot, idx) => (
                           <span
@@ -1235,7 +1305,7 @@ export default function UserProfilePublic() {
 
                   {/* Performance Calendar Card */}
                   {privacySettings.show_calendar !== false && (
-                    <div className="p-3.5 sm:p-4 rounded-[18px] sm:rounded-[20px] bg-white dark:bg-[#1E1E1E] figma-card-shadow flex flex-col justify-between gap-2.5">
+                    <div className="p-3.5 sm:p-4 rounded-[18px] sm:rounded-[20px] bg-white dark:bg-[#1A1A1E] border border-slate-200/75 dark:border-white/[0.08] shadow-[0_2px_12px_rgba(15,23,42,0.045)] dark:shadow-none flex flex-col justify-between gap-2.5">
                       <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-white/5">
                         <h3 className="text-[11px] sm:text-[12px] font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
                           <span className="p-1 rounded-md bg-blue-500/10 text-blue-500">
@@ -1268,7 +1338,7 @@ export default function UserProfilePublic() {
                         </div>
                       </div>
 
-                      {/* Dynamic Real-Data Heatmap Grid */}
+                      {/* Dynamic Heatmap Grid */}
                       <div className="space-y-1">
                         <div className="grid grid-cols-7 gap-1 text-center text-[9px] font-bold text-slate-400 uppercase tracking-widest">
                           {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(d => <span key={d}>{d.substring(0, 1)}</span>)}
@@ -1341,8 +1411,13 @@ export default function UserProfilePublic() {
                 </div>
               )}
 
-              {/* --- BIG FULL-WIDTH SYSTEMIC TABS BAR (Matching Reference Pic 2) --- */}
-              <div className="flex items-center w-full border-b border-slate-200 dark:border-white/10 pt-2 relative z-10 overflow-x-auto no-scrollbar">
+            </div>
+
+            {/* ITEM 3: Unified Sculpted Card for Tabs Bar + Posts / Trades / Strategies Feed (Left column row 2) */}
+            <div className="lg:col-span-7 xl:col-span-6 lg:col-start-1 lg:row-start-2 min-w-0 bg-white dark:bg-[#1A1A1E] rounded-[24px] border border-slate-200/75 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.045)] dark:shadow-none overflow-hidden">
+
+              {/* --- SYSTEMIC TABS BAR --- */}
+              <div className="flex items-center w-full border-b border-slate-200/85 dark:border-white/[0.08] px-2 pt-1 relative z-10 overflow-x-auto no-scrollbar bg-white dark:bg-[#1A1A1E]">
                 {isLocked ? (
                   <div className="py-3.5 text-slate-500 dark:text-[#999] text-sm font-bold w-full text-center">
                     <ShieldCheck size={20} className="inline-block mr-2 text-slate-400" />
@@ -1354,187 +1429,103 @@ export default function UserProfilePublic() {
                       key={tab}
                       type="button"
                       onClick={() => setActiveTab(tab)}
-                      className={`flex-1 min-w-[74px] flex items-center justify-center pb-3.5 pt-2.5 text-[15px] sm:text-[16px] tracking-tight cursor-pointer transition-all relative select-none shrink-0 ${
+                      className={`flex-1 min-w-[74px] flex items-center justify-center pb-3 pt-2.5 text-[14px] sm:text-[15px] tracking-tight cursor-pointer transition-colors relative select-none shrink-0 ${
                         activeTab === tab
                           ? "font-bold text-slate-900 dark:text-white"
-                          : "font-semibold text-slate-500 hover:text-slate-800 dark:text-neutral-400 dark:hover:text-white"
+                          : "font-semibold text-slate-400 hover:text-slate-700 dark:text-neutral-500 dark:hover:text-white"
                       }`}
                     >
                       {tab}
                       {activeTab === tab && (
-                        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-14 sm:w-16 h-[3.5px] bg-gradient-to-r from-blue-600 to-blue-500 rounded-full" />
+                        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 sm:w-14 h-[3px] bg-[#2563EB] rounded-full" />
                       )}
                     </button>
                   ))
                 )}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-
-                {/* Feed Posts List */}
-                <div className="md:col-span-12 max-w-4xl mx-auto w-full space-y-6">
-                  <div className="pt-2 min-h-[300px] flex flex-col space-y-3">
-                    {isLocked ? (
-                      <div className="flex flex-col items-center justify-center py-20 text-center opacity-80">
-                        <ShieldCheck size={48} className="text-slate-300 dark:text-slate-400 mb-4" />
-                        <h3 className="text-lg font-bold text-slate-800 dark:text-[#EEE]">Account is Private</h3>
-                        <p className="text-xs text-slate-500 mt-1 max-w-sm">Follow this user to view their complete timeline and trading history.</p>
-                      </div>
-                    ) : activeTab === "Achievements" ? (
-                      <div className="p-6 rounded-3xl border-2 border-white dark:border-white/5 bg-gradient-to-b from-[#FAFBFD] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.06),_0_0_0_2px_#E7E7E7] dark:shadow-none space-y-6">
-                        <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/5">
-                          <h3 className="text-[13px] font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
-                            <Trophy size={16} className="text-blue-500" />
-                            <span>Trader Badges & Level Progress</span>
-                          </h3>
-                          <span className="bg-gradient-to-r from-blue-500/15 to-indigo-500/15 text-blue-600 dark:text-blue-400 text-[10px] font-extrabold px-3 py-1.5 rounded-full border border-blue-500/20 shadow-sm uppercase tracking-wider">
-                            Rank: Vanguard
-                          </span>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {/* Active Level Widget */}
-                          <div className="p-5 rounded-2xl bg-white dark:bg-[#1E1E1E]/40 border border-slate-150 dark:border-white/5 shadow-sm flex flex-col justify-between h-[120px]">
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <span className="text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider block">Progression Level</span>
-                                <span className="text-2xl font-extrabold text-slate-900 dark:text-white mt-1 block">Level {levelVal}</span>
-                              </div>
-                              <Crown size={22} className="text-amber-500 fill-amber-500/20" />
-                            </div>
-                            <div className="space-y-1.5">
-                              <div className="flex justify-between text-[10px] font-bold text-slate-455">
-                                <span>XP: {xpVal} / {xpRequiredVal}</span>
-                                <span>{Math.round((xpVal / xpRequiredVal) * 100)}%</span>
-                              </div>
-                              <div className="w-full h-2 bg-slate-100 dark:bg-[#1E1E1E] rounded-full overflow-hidden border border-slate-200/50 dark:border-slate-850">
-                                <div className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full" style={{ width: `${(xpVal / xpRequiredVal) * 100}%` }} />
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Discipline Level Modifier */}
-                          <div className="p-5 rounded-2xl bg-white dark:bg-[#1E1E1E]/40 border border-slate-150 dark:border-white/5 shadow-sm flex flex-col justify-between h-[120px]">
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <span className="text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider block">Discipline Score</span>
-                                <span className="text-2xl font-extrabold text-emerald-500 mt-1 block">{profile?.discipline_score || '0'}%</span>
-                              </div>
-                              <ShieldCheck size={22} className="text-emerald-500" />
-                            </div>
-                            <div className="text-[10.5px] text-slate-500 dark:text-[#999] font-semibold leading-relaxed">
-                              User rank status is stable. Maintain &gt;75% score to preserve premium badge benefits.
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="space-y-4 pt-2">
-                          <h4 className="text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider">Achievements Ledger ({(profile?.achievements || []).length} Unlocked)</h4>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            {profile?.achievements && profile.achievements.length > 0 ? (
-                              profile.achievements.map((badge: any, idx: number) => (
-                                <div
-                                  key={idx}
-                                  className={`p-4 rounded-2xl border transition-all duration-300 flex items-start gap-3.5 bg-white dark:bg-[#1E1E1E]/30 border-slate-150 dark:border-white/5 hover:border-[#444]`}
-                                >
-                                  <div className="p-2.5 rounded-xl shrink-0 bg-blue-500/10 text-blue-500">
-                                    <Trophy size={18} />
-                                  </div>
-                                  <div className="space-y-1 min-w-0">
-                                    <div className="flex justify-between items-center gap-2">
-                                      <h5 className="text-[12.5px] font-bold text-slate-900 dark:text-white truncate">{badge.name}</h5>
-                                      <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-500">
-                                        COMPLETED
-                                      </span>
-                                    </div>
-                                    <p className="text-[10.5px] text-slate-500 dark:text-[#999] leading-snug font-medium">{badge.description || "Achievement Unlocked"}</p>
-                                  </div>
-                                </div>
-                              ))
-                            ) : (
-                              <div className="col-span-1 sm:col-span-2 py-10 text-center text-slate-400 dark:text-slate-400 text-xs font-semibold border-2 border-dashed border-slate-200 dark:border-white/5 rounded-2xl">
-                                No achievements unlocked yet in the ledger.
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ) : activeTab === "Trades" ? (
-                      !privacySettings.show_trades ? (
-                        <div className="p-12 rounded-3xl border-2 border-white dark:border-white/5 bg-gradient-to-b from-[#FAFBFD] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.06),_0_0_0_2px_#E7E7E7] dark:shadow-none flex flex-col items-center justify-center gap-4 text-center">
-                          <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-[#1E1E1E] border-2 border-white dark:border-white/5 shadow-md flex items-center justify-center text-slate-400 dark:text-slate-400 animate-pulse">
-                            <Shield size={28} />
-                          </div>
-                          <div className="space-y-1">
-                            <h4 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Trading Ledger is Private</h4>
-                            <p className="text-xs text-slate-500 dark:text-[#999] max-w-sm font-medium">This trader has disabled public visibility for their verified execution ledger.</p>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="p-6 rounded-3xl border-2 border-white dark:border-white/5 bg-gradient-to-b from-[#FAFBFD] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.06),_0_0_0_2px_#E7E7E7] dark:shadow-none">
-                          <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Synchronized Execution Ledger</h3>
-                            <span className="text-[11px] font-bold text-[#393939] dark:text-[#E2E8F0] bg-white dark:bg-[#1E1E1E] px-3.5 py-1.5 rounded-full border-2 border-white dark:border-white/5 shadow-sm select-none">
-                              Verified Execution
-                            </span>
-                          </div>
-
-                          <div className="overflow-x-auto amazing-scrollbar">
-                            <table className="w-full text-left border-collapse">
-                              <thead>
-                                <tr className="border-b border-slate-100 dark:border-white/5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                                  <th className="pb-3 pl-2">Ticket</th>
-                                  <th className="pb-3">Symbol</th>
-                                  <th className="pb-3">Type</th>
-                                  <th className="pb-3 text-right">Size</th>
-                                  <th className="pb-3 text-right">Profit</th>
-                                  <th className="pb-3 text-right pr-2">Date</th>
-                                </tr>
-                              </thead>
-                              <tbody className="divide-y divide-slate-100/50 dark:divide-slate-800/40 text-xs font-bold">
-                                {publicTrades.map((trade) => {
-                                  const isWin = Number(trade.profit) > 0;
-                                  return (
-                                    <tr key={trade.id} className="hover:bg-slate-50/50 dark:hover:bg-[#1C2335]/30 transition-colors">
-                                      <td className="py-3.5 pl-2 font-mono text-slate-500">#{trade.ticket}</td>
-                                      <td className="py-3.5 flex items-center gap-1.5">
-                                        <span>{trade.symbol.includes("XAU") ? "🇺🇸" : (trade.symbol.includes("BTC") ? "🪙" : "🇪🇺")}</span>
-                                        <span className="text-slate-900 dark:text-white">{trade.symbol}</span>
-                                      </td>
-                                      <td className="py-3.5">
-                                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${trade.trade_type === 0 ? 'bg-blue-500/10 text-blue-500' : 'bg-rose-500/10 text-rose-500'}`}>
-                                          {trade.trade_type === 0 ? 'BUY' : 'SELL'}
-                                        </span>
-                                      </td>
-                                      <td className="py-3.5 text-right font-mono text-slate-655 dark:text-[#CCC]">{Number(trade.lot_size).toFixed(2)}</td>
-                                      <td className={`py-3.5 text-right font-mono ${isWin ? 'text-emerald-500' : 'text-rose-500'}`}>
-                                        {isWin ? '+' : ''}${Number(trade.profit).toFixed(2)}
-                                      </td>
-                                      <td className="py-3.5 text-right font-mono text-slate-400 pr-2">
-                                        {new Date(trade.closed_at || trade.created_at).toLocaleDateString()}
-                                      </td>
-                                    </tr>
-                                  );
-                                })}
-                              </tbody>
-                            </table>
-                          </div>
-                        </div>
-                      )
-                    ) : activeTab === "Saved" ? (
-                      savedFeedsRender
-                    ) : posts.length === 0 ? (
-                      <div className="p-6 rounded-3xl border-2 border-white dark:border-white/5 bg-gradient-to-b from-[#FAFBFD] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.06),_0_0_0_2px_#E7E7E7] dark:shadow-none text-center py-12 flex flex-col items-center justify-center">
-                        <p className="text-slate-500 dark:text-[#999] text-sm font-bold">No Posts Available</p>
-                      </div>
-                    ) : (
-                      userFeedsRender
-                    )}
+              {/* --- SEAMLESS FEED LIST --- */}
+              <div className="w-full">
+                {isLocked ? (
+                  <div className="flex flex-col items-center justify-center py-20 text-center opacity-80">
+                    <ShieldCheck size={48} className="text-slate-300 dark:text-slate-400 mb-4" />
+                    <h3 className="text-lg font-bold text-slate-800 dark:text-[#EEE]">Account is Private</h3>
+                    <p className="text-xs text-slate-500 mt-1 max-w-sm">Follow this user to view their complete timeline and trading history.</p>
                   </div>
-                </div>
-              </div>
+                ) : activeTab === "Trades" ? (
+                  !privacySettings.show_trades ? (
+                    <div className="p-12 flex flex-col items-center justify-center gap-4 text-center">
+                      <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-[#1E1E1E] border-2 border-white dark:border-white/5 shadow-md flex items-center justify-center text-slate-400 dark:text-slate-400 animate-pulse">
+                        <Shield size={28} />
+                      </div>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Trading Ledger is Private</h4>
+                        <p className="text-xs text-slate-500 dark:text-[#999] max-w-sm font-medium">This trader has disabled public visibility for their verified execution ledger.</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-5 sm:p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Synchronized Execution Ledger</h3>
+                        <span className="text-[11px] font-bold text-[#393939] dark:text-[#E2E8F0] bg-slate-100 dark:bg-white/[0.06] px-3.5 py-1.5 rounded-full select-none">
+                          Verified Execution
+                        </span>
+                      </div>
 
+                      <div className="overflow-x-auto amazing-scrollbar">
+                        <table className="w-full text-left border-collapse">
+                          <thead>
+                            <tr className="border-b border-slate-100 dark:border-white/5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                              <th className="pb-3 pl-2">Ticket</th>
+                              <th className="pb-3">Symbol</th>
+                              <th className="pb-3">Type</th>
+                              <th className="pb-3 text-right">Size</th>
+                              <th className="pb-3 text-right">Profit</th>
+                              <th className="pb-3 text-right pr-2">Date</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100/50 dark:divide-slate-800/40 text-xs font-bold">
+                            {publicTrades.map((trade) => {
+                              const isWin = Number(trade.profit) > 0;
+                              return (
+                                <tr key={trade.id} className="hover:bg-slate-50/50 dark:hover:bg-[#1C2335]/30 transition-colors">
+                                  <td className="py-3.5 pl-2 font-mono text-slate-500">#{trade.ticket}</td>
+                                  <td className="py-3.5 flex items-center gap-1.5">
+                                    <span>{trade.symbol.includes("XAU") ? "🇺🇸" : (trade.symbol.includes("BTC") ? "🪙" : "🇪🇺")}</span>
+                                    <span className="text-slate-900 dark:text-white">{trade.symbol}</span>
+                                  </td>
+                                  <td className="py-3.5">
+                                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${trade.trade_type === 0 ? 'bg-blue-500/10 text-blue-500' : 'bg-rose-500/10 text-rose-500'}`}>
+                                      {trade.trade_type === 0 ? 'BUY' : 'SELL'}
+                                    </span>
+                                  </td>
+                                  <td className="py-3.5 text-right font-mono text-slate-655 dark:text-[#CCC]">{Number(trade.lot_size).toFixed(2)}</td>
+                                  <td className={`py-3.5 text-right font-mono ${isWin ? 'text-emerald-500' : 'text-rose-500'}`}>
+                                    {isWin ? '+' : ''}${Number(trade.profit).toFixed(2)}
+                                  </td>
+                                  <td className="py-3.5 text-right font-mono text-slate-400 pr-2">
+                                    {new Date(trade.closed_at || trade.created_at).toLocaleDateString()}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )
+                ) : activeTab === "Saved" ? (
+                  savedFeedsRender
+                ) : posts.length === 0 ? (
+                  <div className="p-8 text-center py-16 flex flex-col items-center justify-center">
+                    <p className="text-slate-400 dark:text-neutral-500 text-sm font-semibold">No Posts Available</p>
+                  </div>
+                ) : (
+                  userFeedsRender
+                )}
+              </div>
             </div>
+
           </div>
         </div>
       </div>
