@@ -145,30 +145,6 @@ export default function UserProfilePublic() {
 
   const [advMetrics, setAdvMetrics] = useState<any>(calculateTradingMetrics([]));
 
-  // Recompute Trading Performance in real time whenever trades, balance, or timeframe changes
-  useEffect(() => {
-    if (!publicTrades) return;
-    const now = Date.now();
-    const cutoff =
-      perfRange === "1D"
-        ? now - 24 * 60 * 60 * 1000
-        : perfRange === "7D"
-        ? now - 7 * 24 * 60 * 60 * 1000
-        : perfRange === "1M"
-        ? now - 30 * 24 * 60 * 60 * 1000
-        : 0;
-    const scoped =
-      cutoff > 0
-        ? publicTrades.filter((t) => {
-            const ts = new Date(t.closed_at || t.created_at || 0).getTime();
-            return !isNaN(ts) && ts >= cutoff;
-          })
-        : publicTrades;
-    const computed = calculateTradingMetrics(scoped, accountBalance || 10000);
-    setAdvMetrics(computed);
-    if (computed?.avgRR) setAvgRRVal(computed.avgRR);
-  }, [publicTrades, accountBalance, perfRange]);
-
   // Privacy Settings state
   const [privacySettings, setPrivacySettings] = useState<Record<string, any>>({
     show_location: true,
@@ -197,8 +173,33 @@ export default function UserProfilePublic() {
   const [savedPosts, setSavedPosts] = useState<any[]>([]);
   const [likesOffsets, setLikesOffsets] = useState<Record<string, number>>({});
   const [hasRequested, setHasRequested] = useState<boolean>(false);
+
   // Helper to check if string is a UUID
   const isUUID = (str: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+
+  // Recompute Trading Performance in real time whenever trades, balance, or timeframe changes
+  useEffect(() => {
+    if (!publicTrades) return;
+    const now = Date.now();
+    const cutoff =
+      perfRange === "1D"
+        ? now - 24 * 60 * 60 * 1000
+        : perfRange === "7D"
+        ? now - 7 * 24 * 60 * 60 * 1000
+        : perfRange === "1M"
+        ? now - 30 * 24 * 60 * 60 * 1000
+        : 0;
+    const scoped =
+      cutoff > 0
+        ? publicTrades.filter((t) => {
+            const ts = new Date(t.closed_at || t.created_at || 0).getTime();
+            return !isNaN(ts) && ts >= cutoff;
+          })
+        : publicTrades;
+    const computed = calculateTradingMetrics(scoped, accountBalance || 10000);
+    setAdvMetrics(computed);
+    if (computed?.avgRR) setAvgRRVal(computed.avgRR);
+  }, [publicTrades, accountBalance, perfRange]);
 
   useEffect(() => {
     fetchProfileAndData();
