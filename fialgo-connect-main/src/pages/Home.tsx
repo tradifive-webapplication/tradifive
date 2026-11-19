@@ -378,6 +378,12 @@ export default function Home() {
     const [user, setUser] = useState<any>(null);
     const [authChecked, setAuthChecked] = useState(false);
 
+    // Supabase Live Data Fetching
+    const { feeds, watchlist, calendar, followers, suggestions, profileViews = [], winningStreaks, topDisciplined, loading, refetch, removePost } = useHomeData(user?.id ?? "");
+
+    // User social follow state
+    const [followedUsers, setFollowedUsers] = useState<Record<string, boolean>>({});
+
     const { inShell, scrollContainerRef } = useCommunityShell();
     const [newPostsCount, setNewPostsCount] = useState(0);
     const middleColumnRef = useRef<HTMLDivElement>(null);
@@ -613,9 +619,6 @@ export default function Home() {
 
     const { activeMarket } = useMarket();
 
-    // Supabase Live Data Fetching
-    const { feeds, watchlist, calendar, followers, suggestions, profileViews = [], winningStreaks, topDisciplined, loading, refetch, removePost } = useHomeData(user?.id ?? "");
-
     // User-dismissed suggestions state persisted in localStorage
     const [dismissedSuggestions, setDismissedSuggestions] = useState<Set<string>>(() => {
         try {
@@ -755,7 +758,6 @@ export default function Home() {
     const [showQuickEmoji, setShowQuickEmoji] = useState(false);
     const [showInlineNotifications, setShowInlineNotifications] = useState(false);
     const [unreadNotifCount, setUnreadNotifCount] = useState(0);
-    const [followedUsers, setFollowedUsers] = useState<Record<string, boolean>>({});
 
     // Fetch unread notification count for the Home header bell badge
     useEffect(() => {
@@ -1349,34 +1351,17 @@ export default function Home() {
                     key={sug.id}
                     className="group relative p-3 rounded-2xl bg-slate-50/70 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/[0.06] hover:border-slate-300 dark:hover:border-white/10 transition-all duration-200"
                 >
-                    {/* Top Row: Context Reason Pill + Dismiss Action */}
-                    <div className="flex items-center justify-between mb-2">
-                        {sug.reason === 'profile_view' ? (
+                    {/* Context Pill ONLY if someone viewed your profile */}
+                    {sug.reason === 'profile_view' && (
+                        <div className="flex items-center justify-between mb-2">
                             <span className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 px-2 py-0.5 rounded-full border border-indigo-200/50 dark:border-indigo-500/20">
                                 <Eye size={11} strokeWidth={2.4} />
                                 <span>Viewed your profile</span>
                             </span>
-                        ) : (
-                            <span className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-200/50 dark:border-emerald-500/20">
-                                <Sparkles size={11} strokeWidth={2.4} />
-                                <span>New to Tradifive</span>
-                            </span>
-                        )}
+                        </div>
+                    )}
 
-                        <button
-                            type="button"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                handleDismissSuggestion(sug.id);
-                            }}
-                            title="Dismiss suggestion"
-                            className="text-slate-400 hover:text-slate-700 dark:hover:text-white p-1 rounded-full hover:bg-slate-200/60 dark:hover:bg-white/10 transition-colors cursor-pointer opacity-70 group-hover:opacity-100"
-                        >
-                            <X size={12} strokeWidth={2.2} />
-                        </button>
-                    </div>
-
-                    {/* Main Row: Avatar + Name/Handle + Tactile Follow Pill */}
+                    {/* Main Row: Avatar + Name/Handle + Tactile Follow Pill + Dismiss */}
                     <div className="flex items-center justify-between gap-2.5">
                         <Link to={`/user/${displaySlug}`} className="flex items-center gap-2.5 min-w-0 flex-1 group/user">
                             <img
@@ -1398,27 +1383,41 @@ export default function Home() {
                             </div>
                         </Link>
 
-                        <button
-                            type="button"
-                            onClick={() => toggleFollowUser(sug.id, displayName)}
-                            className={`h-7 px-3 rounded-full text-[11.5px] font-semibold flex items-center gap-1 cursor-pointer transition-all shrink-0 select-none ${
-                                followedUsers[sug.id]
-                                    ? "tactile-white-pill text-emerald-600 dark:text-emerald-400"
-                                    : "tactile-black-pill"
-                            }`}
-                        >
-                            {followedUsers[sug.id] ? (
-                                <>
-                                    <Check size={11} strokeWidth={2.6} className="text-emerald-500" />
-                                    <span>Following</span>
-                                </>
-                            ) : (
-                                <>
-                                    <UserPlus size={11} strokeWidth={2.4} />
-                                    <span>Follow</span>
-                                </>
-                            )}
-                        </button>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                            <button
+                                type="button"
+                                onClick={() => toggleFollowUser(sug.id, displayName)}
+                                className={`h-7 px-3 rounded-full text-[11.5px] font-semibold flex items-center gap-1 cursor-pointer transition-all shrink-0 select-none ${
+                                    followedUsers[sug.id]
+                                        ? "tactile-white-pill text-emerald-600 dark:text-emerald-400"
+                                        : "tactile-black-pill"
+                                }`}
+                            >
+                                {followedUsers[sug.id] ? (
+                                    <>
+                                        <Check size={11} strokeWidth={2.6} className="text-emerald-500" />
+                                        <span>Following</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <UserPlus size={11} strokeWidth={2.4} />
+                                        <span>Follow</span>
+                                    </>
+                                )}
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDismissSuggestion(sug.id);
+                                }}
+                                title="Dismiss suggestion"
+                                className="text-slate-400 hover:text-slate-700 dark:hover:text-white p-1 rounded-full hover:bg-slate-200/60 dark:hover:bg-white/10 transition-colors cursor-pointer opacity-60 group-hover:opacity-100"
+                            >
+                                <X size={12} strokeWidth={2.2} />
+                            </button>
+                        </div>
                     </div>
                 </div>
             );

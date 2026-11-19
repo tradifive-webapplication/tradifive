@@ -454,8 +454,14 @@ function FeedCard({
                 await navigator.clipboard.writeText(shareData.url);
                 toast.success("Link copied to clipboard!");
             }
-        } catch (err) {
-            console.error("Error sharing:", err);
+        } catch (err: any) {
+            if (err?.name === 'AbortError') return;
+            try {
+                await navigator.clipboard.writeText(shareData.url);
+                toast.success("Link copied to clipboard!");
+            } catch (_) {
+                console.error("Error sharing:", err);
+            }
         }
     };
 
