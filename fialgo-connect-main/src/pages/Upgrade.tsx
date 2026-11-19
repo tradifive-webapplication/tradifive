@@ -27,6 +27,7 @@ export default function Upgrade() {
     }
     return "pro";
   });
+
   const selectedPlanLabel = selectedPlan === 'starter' ? 'Standard' : selectedPlan === 'pro' ? 'Pro' : 'Elite';
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -44,14 +45,18 @@ export default function Upgrade() {
         // Also cache locally so settings page reads it immediately
         localStorage.setItem('tradifive_selected_plan', selectedPlan);
         localStorage.setItem('tradifive_cached_plan', selectedPlan);
+        const limits = { starter: 20, pro: 100, elite: 350, institutional: 1000 };
+        const newMax = limits[selectedPlan as keyof typeof limits] || 20;
+        localStorage.setItem(`tradifive_ai_credits_${user.id}`, String(newMax));
         window.dispatchEvent(new Event('tradifive_profile_update'));
       }
       setSubscription(selectedPlan as any, selectedPlan === "starter" ? "demo" : "real");
       toast.success(`${selectedPlanLabel} Plan activated!`, {
         description: selectedPlan === 'elite'
           ? 'Go to Settings → Creator Account to enable Creator Mode.'
-          : 'Your new plan is live.',
+          : 'Your new plan is active.',
       });
+      setShowPaymentModal(false);
       navigate(selectedPlan === 'elite' ? '/settings?tab=creator' : '/settings?tab=subscription');
     } catch (err) {
       console.error(err);
@@ -68,7 +73,7 @@ export default function Upgrade() {
       return;
     }
 
-    const price = selectedPlan === 'pro' ? 499 : 999;
+    const price = selectedPlan === 'pro' ? 1399 : 2799;
     const amountInPaise = price * 100;
 
     setIsProcessing(true);
@@ -107,31 +112,32 @@ export default function Upgrade() {
   };
 
   return (
-    <div className="h-screen bg-[#050505] font-sans overflow-x-hidden overflow-y-auto no-scrollbar relative flex flex-col items-center pt-24 pb-48">
-      {/* Background gradients similar to Landing page */}
-      <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-purple-900/20 blur-[120px] rounded-full pointer-events-none z-0" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-blue-900/10 blur-[120px] rounded-full pointer-events-none z-0" />
-
+    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0B0C0E] font-sans overflow-x-hidden overflow-y-auto no-scrollbar relative flex flex-col items-center pt-12 pb-32">
       {/* BACK BUTTON */}
-      <div className="absolute top-8 right-8 z-[50]">
+      <div className="absolute top-6 right-6 sm:top-8 sm:right-8 z-[50]">
         <button
           onClick={() => navigate(-1)}
-          className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-slate-300 hover:text-white transition-all text-[12px] font-bold shadow-md"
+          className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-[#161618] hover:bg-slate-50 dark:hover:bg-[#1E1E22] border border-slate-200 dark:border-white/10 rounded-full text-slate-700 dark:text-slate-200 transition-all text-xs font-bold shadow-sm"
         >
-          <X size={16} />
+          <X size={15} />
           Back
         </button>
       </div>
 
-      <div className="text-center mb-16 relative z-10">
-        <h1 className="text-[28px] md:text-4xl font-black text-white tracking-tight mb-4 leading-tight">
-          Stop Losing Trades.<br />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">Start Trading Like a Professional.</span>
+      {/* Header section */}
+      <div className="text-center mb-12 relative z-10 max-w-2xl px-4 mt-4">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200/60 dark:border-indigo-800/50 text-indigo-700 dark:text-indigo-300 text-xs font-bold uppercase tracking-wider mb-3">
+          Transparent & Simple Pricing
+        </div>
+        <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-3">
+          Predictable plans for serious traders
         </h1>
-
+        <p className="text-base text-slate-500 dark:text-slate-400">
+          Switch, upgrade or downgrade anytime. Zero setup fees. Instant activation with secure Razorpay checkout.
+        </p>
       </div>
 
-      <div className="relative z-10 w-full px-6">
+      <div className="relative z-10 w-full px-4 sm:px-6">
         <PricingCards
           selectedPlan={selectedPlan}
           onSelectPlan={setSelectedPlan}
@@ -139,15 +145,20 @@ export default function Upgrade() {
             setSelectedPlan(plan);
             setShowPaymentModal(true);
           }}
+          onDowngradeClick={(plan) => {
+            setSelectedPlan(plan);
+            setShowPaymentModal(true);
+          }}
           isStandalone={true}
           activePlan={activePlan}
-          showCheckoutBar={true}
+          showCheckoutBar={false}
         />
 
         {/* Compare Plans Section */}
-        <div className="max-w-4xl mx-auto mt-12 mb-10">
-          <div className="mb-6">
-            <h2 className="text-[24px] font-bold text-[#e7e9ea]">Compare tiers & features</h2>
+        <div className="max-w-5xl mx-auto mt-16 mb-12">
+          <div className="mb-6 text-center">
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Compare Plan Features</h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Detailed feature breakdown across all membership tiers</p>
           </div>
 
           <div className="space-y-6">
@@ -155,101 +166,108 @@ export default function Upgrade() {
               {
                 category: "Trading Core",
                 features: [
-                  { name: "Broker Connections", starter: "1", pro: "Up to 6", elite: "Unlimited", enterprise: "Custom" },
-                  { name: "Executions/day", starter: "5/day", pro: "Unlimited", elite: "Unlimited", enterprise: "Custom limits" },
-                  { name: "Trading Journal", starter: "Basic", pro: "Full + Calendar", elite: "Full + Analytics", enterprise: "Full + Analytics" },
-                  { name: "Automated Trading", tooltip: "Automation assists execution. No guaranteed profits.", starter: false, pro: false, elite: "Coming Soon", enterprise: "Custom APIs" },
+                  { name: "Broker Connections", starter: "1", pro: "Up to 6", elite: "Unlimited" },
+                  { name: "Executions/day", starter: "5/day", pro: "Unlimited", elite: "Unlimited" },
+                  { name: "Trading Journal", starter: "Basic", pro: "Full + Calendar", elite: "Full + Behavioral Analytics" },
+                  { name: "Automated Trading", tooltip: "Automation assists execution bots.", starter: false, pro: false, elite: "Early Access" },
                 ]
               },
               {
                 category: "AI & Intelligence",
                 features: [
-                  { name: "AI Coach Credits", starter: "10/day", pro: "50/day", elite: "100/day", enterprise: "Custom pool" },
-                  { name: "AI Trade Feedback", starter: "Post-trade score", pro: "Real-time feedback", elite: "Strategy-level analysis", enterprise: "Strategy-level analysis" },
+                  { name: "AI Coach Credits", starter: "10/day", pro: "50/day", elite: "100/day" },
+                  { name: "AI Trade Feedback", starter: "Post-trade score", pro: "Real-time feedback", elite: "Strategy-level analysis" },
                 ]
               },
               {
                 category: "Risk Management",
                 features: [
-                  { name: "Risk Guard", starter: "Core limits", pro: "Advanced controls", elite: "Strategy-level controls", enterprise: "Bespoke Kill-Switches" },
-                  { name: "Revenge-trade Protection", starter: false, pro: true, elite: true, enterprise: true },
+                  { name: "Risk Guard Killswitch", starter: "Core limits", pro: "Advanced controls", elite: "Strategy-level controls" },
+                  { name: "Revenge-trade Protection", starter: false, pro: true, elite: true },
                 ]
               },
               {
                 category: "Community & Privacy",
                 features: [
-                  { name: "Trading Competitions", starter: false, pro: "1/month", elite: "2/month", enterprise: "Private pools" },
-                  { name: "Balance Hiding (Privacy)", starter: false, pro: true, elite: true, enterprise: true },
-                  { name: "Private Channels", starter: false, pro: true, elite: true, enterprise: true },
+                  { name: "Trading Competitions", starter: false, pro: "1/month", elite: "2/month" },
+                  { name: "Balance Hiding (Privacy Mode)", starter: false, pro: true, elite: true },
+                  { name: "Private Channels", starter: false, pro: true, elite: true },
                 ]
               },
               {
                 category: "Elite Mentorship",
                 features: [
-                  { name: "Mentor account monitoring access", starter: false, pro: true, elite: true, enterprise: true },
-                  { name: "Shared trading workspace", starter: false, pro: false, elite: true, enterprise: true },
-                  { name: "Performance Reviews", starter: false, pro: false, elite: "Personalized", enterprise: "Dedicated Analyst" },
-                  { name: "Support & Profile", starter: "Community", pro: "Priority", elite: "Premium + Badge", enterprise: "SLA / Account Manager" },
+                  { name: "Mentor account monitoring access", starter: false, pro: true, elite: true },
+                  { name: "Shared trading workspace", starter: false, pro: false, elite: true },
+                  { name: "Performance Reviews", starter: false, pro: false, elite: "Personalized" },
+                  { name: "Customer Support", starter: "Community", pro: "Priority Support", elite: "24/7 VIP Dedicated" },
                 ]
               }
             ].map((section, idx) => (
-              <div key={idx} className="bg-[#16181c] rounded-2xl overflow-x-auto">
-                <table className="w-full text-left border-collapse min-w-[640px]">
+              <div key={idx} className="bg-white dark:bg-[#161618] rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm overflow-hidden overflow-x-auto">
+                <table className="w-full text-left border-collapse min-w-[600px]">
                   <thead>
-                    <tr>
-                      <th className="py-4 px-6 text-[15px] font-bold text-[#e7e9ea] w-[40%]">{section.category}</th>
-                      <th className="py-4 px-6 text-[15px] font-bold text-[#e7e9ea] text-center w-[20%]">Standard</th>
-                      <th className="py-4 px-6 text-[15px] font-bold text-[#e7e9ea] text-center w-[20%]">Pro</th>
-                      <th className="py-4 px-6 text-[15px] font-bold text-[#e7e9ea] text-center w-[20%]">Elite</th>
-                    </tr>
-                    <tr>
-                      <th colSpan={4} className="p-0">
-                        <div className="h-[1px] w-[92%] mx-auto bg-gradient-to-r from-transparent via-[#2f3336] to-transparent"></div>
-                      </th>
+                    <tr className="bg-slate-50 dark:bg-white/[0.02] border-b border-slate-200 dark:border-white/10">
+                      <th className="py-3.5 px-6 text-sm font-bold text-slate-900 dark:text-white w-[40%]">{section.category}</th>
+                      <th className="py-3.5 px-6 text-sm font-bold text-slate-900 dark:text-white text-center w-[20%]">Standard</th>
+                      <th className="py-3.5 px-6 text-sm font-bold text-indigo-600 dark:text-indigo-400 text-center w-[20%]">Pro</th>
+                      <th className="py-3.5 px-6 text-sm font-bold text-purple-600 dark:text-purple-400 text-center w-[20%]">Elite</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-slate-100 dark:divide-white/5">
                     {section.features.map((row, i) => (
-                      <Fragment key={i}>
-                        <tr className="hover:bg-white/[0.01] transition-colors">
-                          <td className="py-4 px-6 text-[14px] font-bold text-[#e7e9ea] flex items-center">
-                            {row.name}
-                            {row.tooltip && (
-                              <span className="group relative inline-block ml-2">
-                                <Info size={14} className="text-[#71767b] hover:text-[#e7e9ea] cursor-help inline align-text-bottom" />
-                                <span className="absolute bottom-full left-0 mb-2 hidden w-max max-w-[220px] bg-slate-800 text-white text-[10px] px-3 py-2 rounded-lg shadow-xl group-hover:block z-[9999] text-center font-normal">
-                                  {row.tooltip}
-                                </span>
+                      <tr key={i} className="hover:bg-slate-50/50 dark:hover:bg-white/[0.01] transition-colors">
+                        <td className="py-3.5 px-6 text-sm font-semibold text-slate-800 dark:text-slate-200 flex items-center">
+                          {row.name}
+                          {row.tooltip && (
+                            <span className="group relative inline-block ml-2">
+                              <Info size={13} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-help inline align-middle" />
+                              <span className="absolute bottom-full left-0 mb-2 hidden w-max max-w-[220px] bg-slate-900 text-white text-[11px] px-2.5 py-1.5 rounded-lg shadow-xl group-hover:block z-50 text-center font-normal">
+                                {row.tooltip}
                               </span>
-                            )}
-                          </td>
-                          <td className="py-4 px-6 text-center">
-                            {typeof row.starter === 'boolean'
-                              ? (row.starter ? <Check size={18} strokeWidth={2.5} className="text-[#e7e9ea] mx-auto" /> : <X size={18} strokeWidth={2} className="text-[#71767b] mx-auto" />)
-                              : <span className="text-[14px] font-medium text-[#e7e9ea]">{row.starter}</span>
-                            }
-                          </td>
-                          <td className="py-4 px-6 text-center">
-                            {typeof row.pro === 'boolean'
-                              ? (row.pro ? <Check size={18} strokeWidth={2.5} className="text-[#e7e9ea] mx-auto" /> : <X size={18} strokeWidth={2} className="text-[#71767b] mx-auto" />)
-                              : <span className="text-[14px] font-medium text-[#e7e9ea]">{row.pro}</span>
-                            }
-                          </td>
-                          <td className="py-4 px-6 text-center">
-                            {typeof row.elite === 'boolean'
-                              ? (row.elite ? <Check size={18} strokeWidth={2.5} className="text-[#e7e9ea] mx-auto" /> : <X size={18} strokeWidth={2} className="text-[#71767b] mx-auto" />)
-                              : <span className="text-[14px] font-medium text-[#e7e9ea]">{row.elite}</span>
-                            }
-                          </td>
-                        </tr>
-                        {i !== section.features.length - 1 && (
-                          <tr>
-                            <td colSpan={4} className="p-0">
-                              <div className="h-[1px] w-[92%] mx-auto bg-gradient-to-r from-transparent via-[#2f3336] to-transparent"></div>
-                            </td>
-                          </tr>
-                        )}
-                      </Fragment>
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-3.5 px-6 text-center">
+                          {typeof row.starter === 'boolean' ? (
+                            row.starter ? (
+                              <div className="w-5 h-5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto">
+                                <Check size={13} strokeWidth={3} />
+                              </div>
+                            ) : (
+                              <Minus size={16} className="text-slate-300 dark:text-slate-600 mx-auto" />
+                            )
+                          ) : (
+                            <span className="text-sm font-medium text-slate-600 dark:text-slate-400">{row.starter}</span>
+                          )}
+                        </td>
+                        <td className="py-3.5 px-6 text-center">
+                          {typeof row.pro === 'boolean' ? (
+                            row.pro ? (
+                              <div className="w-5 h-5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto">
+                                <Check size={13} strokeWidth={3} />
+                              </div>
+                            ) : (
+                              <Minus size={16} className="text-slate-300 dark:text-slate-600 mx-auto" />
+                            )
+                          ) : (
+                            <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">{row.pro}</span>
+                          )}
+                        </td>
+                        <td className="py-3.5 px-6 text-center">
+                          {typeof row.elite === 'boolean' ? (
+                            row.elite ? (
+                              <div className="w-5 h-5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto">
+                                <Check size={13} strokeWidth={3} />
+                              </div>
+                            ) : (
+                              <Minus size={16} className="text-slate-300 dark:text-slate-600 mx-auto" />
+                            )
+                          ) : (
+                            <span className="text-sm font-semibold text-purple-600 dark:text-purple-400">{row.elite}</span>
+                          )}
+                        </td>
+                      </tr>
                     ))}
                   </tbody>
                 </table>
@@ -259,7 +277,7 @@ export default function Upgrade() {
         </div>
       </div>
 
-      {/* Payment modal */}
+      {/* Payment confirmation modal */}
       <AnimatePresence>
         {showPaymentModal && (
           <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
@@ -268,33 +286,37 @@ export default function Upgrade() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => !isProcessing && setShowPaymentModal(false)}
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+              className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
             />
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-md bg-[#121214] border border-[#2B2B2F] rounded-3xl p-8 shadow-2xl overflow-hidden"
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              className="relative w-full max-w-md bg-white dark:bg-[#161618] border border-slate-200 dark:border-white/10 rounded-3xl p-8 shadow-2xl overflow-hidden text-slate-900 dark:text-white"
             >
               <button
                 onClick={() => !isProcessing && setShowPaymentModal(false)}
-                className="absolute top-4 right-4 p-2 bg-white/5 hover:bg-white/10 rounded-full text-white/50 hover:text-white transition-colors disabled:opacity-50"
+                className="absolute top-4 right-4 p-2 bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/15 rounded-full text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition-colors disabled:opacity-50"
                 disabled={isProcessing}
               >
                 <X size={16} />
               </button>
 
               <div className="text-center mb-8">
-                <div className="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <Shield size={32} className="text-blue-500" />
+                <div className="w-14 h-14 bg-indigo-50 dark:bg-indigo-950/50 rounded-2xl flex items-center justify-center mx-auto mb-4 text-indigo-600 dark:text-indigo-400">
+                  <Shield size={28} />
                 </div>
-                <h3 className="text-2xl font-bold text-white mb-2">Initialize Subscription</h3>
-                <p className="text-[#B5BAC1] text-[13px]">
-                  You are upgrading to <span className="font-bold text-white">{selectedPlanLabel}</span> plan.
+                <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
+                  {selectedPlan === 'starter' ? 'Downgrade to Standard' : `Upgrade to ${selectedPlanLabel}`}
+                </h3>
+                <p className="text-slate-500 dark:text-slate-400 text-sm">
+                  {selectedPlan === 'starter'
+                    ? 'Confirm switching your account back to the Standard (Free) tier.'
+                    : `You are subscribing to the ${selectedPlanLabel} membership.`}
                 </p>
                 {selectedPlan !== 'starter' && (
-                  <div className="mt-3 inline-block px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-white font-mono text-sm">
-                    ₹{selectedPlan === 'pro' ? '499' : '999'} <span className="text-xs text-slate-400">/ month</span>
+                  <div className="mt-4 inline-block px-4 py-1.5 rounded-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white font-mono text-sm font-bold">
+                    ₹{selectedPlan === 'pro' ? '1,399' : '2,799'} <span className="text-xs text-slate-500">/ month</span>
                   </div>
                 )}
               </div>
@@ -302,7 +324,7 @@ export default function Upgrade() {
               <button
                 onClick={handlePayment}
                 disabled={isProcessing}
-                className="w-full py-3.5 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:opacity-60 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+                className="w-full py-3.5 bg-slate-900 hover:bg-slate-800 dark:bg-indigo-600 dark:hover:bg-indigo-700 disabled:opacity-60 text-white font-bold rounded-xl shadow-lg transition-all active:scale-[0.98] flex items-center justify-center gap-2"
               >
                 {isProcessing ? (
                   <>
@@ -313,16 +335,15 @@ export default function Upgrade() {
                   <>
                     <Zap size={16} />
                     {selectedPlan === 'starter'
-                      ? 'Activate Standard Plan (Free)'
-                      : `Pay ₹${selectedPlan === 'pro' ? '499' : '999'} with Razorpay`}
+                      ? 'Confirm Standard Plan (Free)'
+                      : `Pay ₹${selectedPlan === 'pro' ? '1,399' : '2,799'} with Razorpay`}
                   </>
                 )}
               </button>
-              <p className="text-[11px] text-gray-400 text-center mt-4 leading-relaxed flex items-center justify-center gap-1.5">
+              <p className="text-[11px] text-slate-400 text-center mt-4 leading-relaxed flex items-center justify-center gap-1.5 font-medium">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span>
-                Secured by Razorpay Standard Checkout · 256-bit encryption
+                Secured by Razorpay Standard Checkout · 256-bit SSL
               </p>
-
             </motion.div>
           </div>
         )}

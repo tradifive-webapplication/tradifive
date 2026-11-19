@@ -90,7 +90,7 @@ function PricingCard({ tier, price, description, features, popular = false }: {
       <div className="text-sm font-semibold text-[#818cf8] mb-2">{tier}</div>
       <div className="text-4xl font-extrabold mb-1 flex items-end gap-1">
         {price}
-        {price !== "Custom" && <span className="text-sm font-medium text-slate-500 mb-1">/month</span>}
+        {price !== "Custom" && price !== "Free" && <span className="text-sm font-medium text-slate-500 mb-1">/month</span>}
       </div>
       <p className="text-sm text-slate-400 mb-6">{description}</p>
       <ul className="space-y-3 mb-8">
@@ -473,7 +473,7 @@ export default function LandingPro() {
             <Reveal delay={0.1}>
               <PricingCard
                 tier="Pro"
-                price="$14.99"
+                price="₹1,399"
                 description="Designed to make traders consistent, not lucky."
                 features={[
                   "Up to 6 Broker Connections",
@@ -491,7 +491,7 @@ export default function LandingPro() {
             <Reveal delay={0.2}>
               <PricingCard
                 tier="Elite"
-                price="$29.99"
+                price="₹2,799"
                 description="For serious traders, mentors & automation users."
                 features={[
                   "Unlimited Broker Connections",
