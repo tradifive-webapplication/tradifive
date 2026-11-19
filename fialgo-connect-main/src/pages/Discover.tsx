@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Link, useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { CommunityPageWrapper } from "@/components/CommunityShell";
-import { Cpu, Camera, X, Upload, Image as ImageIcon, Check, ArrowRight, ShieldCheck, Zap, Copy, QrCode, Sparkles, Star, TrendingUp, KeyRound, ExternalLink, Eye, Info, Download, CheckCircle2, AlertCircle, HelpCircle, Smartphone, Landmark, Bookmark, Globe } from "lucide-react";
+import { Cpu, Camera, X, Upload, Image as ImageIcon, Check, ArrowRight, ShieldCheck, Zap, Copy, QrCode, Sparkles, Star, TrendingUp, KeyRound, ExternalLink, Eye, Info, Download, CheckCircle2, AlertCircle, HelpCircle, Smartphone, Landmark, Bookmark, Globe, UserPlus } from "lucide-react";
 import { QRCodeSVG } from 'qrcode.react';
 import { toast } from 'sonner';
 import { Search as IconlySearch, Lock as IconlyLock, AddUser as IconlyAddUser, Discovery as IconlyDiscovery, CloseSquare as IconlyCloseSquare, TicketStar as IconlyTicketStar, Bag as IconlyBag } from "react-iconly";
@@ -935,18 +935,18 @@ export default function Discover() {
                                                 {/* Soft bottom gradient fog scrim seamlessly blending into card body */}
                                                 <div className="absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-white via-white/60 to-transparent dark:from-[#1A1A1E] dark:via-[#1A1A1E]/60 dark:to-transparent pointer-events-none" />
 
-                                                {/* Floating Frosted Bookmark Button (Prominent & Real Button Feel) */}
+                                                {/* Floating Frosted Bookmark Button (Slightly smaller, refined & tactile) */}
                                                 <button
                                                     type="button"
                                                     onClick={(e) => handleToggleSaveTrader(e, person.id)}
-                                                    className={`absolute top-2.5 right-2.5 w-10 h-10 rounded-full backdrop-blur-md border flex items-center justify-center transition-all cursor-pointer shadow-sm hover:shadow hover:scale-105 active:scale-90 ${
+                                                    className={`absolute top-2.5 right-2.5 w-[34px] h-[34px] rounded-full backdrop-blur-md border flex items-center justify-center transition-all cursor-pointer shadow-xs hover:shadow hover:scale-105 active:scale-90 ${
                                                         savedTraders.includes(person.id)
                                                             ? 'bg-amber-500 hover:bg-amber-600 text-white border-amber-300 shadow-md scale-105'
-                                                            : 'bg-black/35 hover:bg-black/55 text-white border-white/40 shadow-xs'
+                                                            : 'bg-black/35 hover:bg-black/55 text-white border-white/40'
                                                     }`}
                                                     title={savedTraders.includes(person.id) ? "Saved trader" : "Bookmark trader"}
                                                 >
-                                                    <Bookmark size={18} strokeWidth={2.4} className={savedTraders.includes(person.id) ? "fill-white text-white" : "text-white"} />
+                                                    <Bookmark size={15} strokeWidth={2.2} className={savedTraders.includes(person.id) ? "fill-white text-white" : "text-white"} />
                                                 </button>
                                             </div>
 
@@ -1061,31 +1061,31 @@ export default function Discover() {
                                                 {/* Bottom Row: Following & Followers on left + Follow Pill Button on right */}
                                                 <div className="flex items-center justify-between gap-2 pt-2.5 border-t border-slate-100 dark:border-white/[0.06] mt-auto">
                                                     {/* Following & Followers counts with subtle vertical divider */}
-                                                    <div className="flex items-center">
+                                                    <div className="flex items-center gap-2.5 shrink-0">
                                                         {/* Following */}
-                                                        <div className="pr-3 text-left">
-                                                            <div className="text-[13.5px] font-bold text-slate-900 dark:text-white tabular-nums leading-none">
+                                                        <div className="text-left">
+                                                            <div className="text-[13px] font-bold text-slate-900 dark:text-white tabular-nums leading-none">
                                                                 {person.followingFormatted}
                                                             </div>
-                                                            <span className="text-[10px] text-slate-400 dark:text-zinc-400 lowercase block mt-1 leading-none">
+                                                            <span className="text-[9.5px] text-slate-400 dark:text-zinc-400 lowercase block mt-1 leading-none">
                                                                 following
                                                             </span>
                                                         </div>
 
-                                                        <div className="w-[1px] h-5.5 bg-slate-200/80 dark:bg-white/10 shrink-0 mx-0.5" />
+                                                        <div className="w-[1px] h-4.5 bg-slate-200/80 dark:bg-white/10 shrink-0 mx-0.5" />
 
                                                         {/* Followers */}
-                                                        <div className="pl-3 text-left">
-                                                            <div className="text-[13.5px] font-bold text-slate-900 dark:text-white tabular-nums leading-none">
+                                                        <div className="text-left">
+                                                            <div className="text-[13px] font-bold text-slate-900 dark:text-white tabular-nums leading-none">
                                                                 {person.followersFormatted}
                                                             </div>
-                                                            <span className="text-[10px] text-slate-400 dark:text-zinc-500 lowercase block mt-1 leading-none">
+                                                            <span className="text-[9.5px] text-slate-400 dark:text-zinc-500 lowercase block mt-1 leading-none">
                                                                 followers
                                                             </span>
                                                         </div>
                                                     </div>
 
-                                                    {/* Right side: Follow / Following Black Tactile Pill Button */}
+                                                    {/* Right side: Follow / Following Black Tactile Pill Button (Matching user design) */}
                                                     <button
                                                         type="button"
                                                         onClick={(e) => {
@@ -1093,20 +1093,23 @@ export default function Discover() {
                                                             e.stopPropagation();
                                                             handleAddUser(e, person.id);
                                                         }}
-                                                        className={`h-9 px-4.5 rounded-full text-[12px] font-bold transition-all shadow-sm active:scale-95 inline-flex items-center justify-center gap-1.5 cursor-pointer shrink-0 ${
+                                                        className={`h-8 px-3.5 rounded-full text-[12px] font-bold transition-all inline-flex items-center justify-center gap-1.5 cursor-pointer shrink-0 whitespace-nowrap active:scale-95 ${
                                                             addedUsers.includes(person.id)
-                                                                ? 'bg-slate-100 hover:bg-slate-200 text-slate-800 dark:bg-white/10 dark:hover:bg-white/15 dark:text-white border border-slate-200/90 dark:border-white/15 shadow-xs'
-                                                                : 'bg-slate-950 hover:bg-black text-white dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100 shadow-sm hover:shadow'
+                                                                ? 'bg-slate-100 hover:bg-slate-200 text-slate-800 dark:bg-white/10 dark:hover:bg-white/15 dark:text-white border border-slate-200/90 dark:border-white/15 shadow-2xs'
+                                                                : 'bg-[#121214] hover:bg-black text-white dark:bg-white dark:text-[#121214] dark:hover:bg-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.25)] border border-white/10 dark:border-transparent'
                                                         }`}
                                                         title={addedUsers.includes(person.id) ? "Following trader" : "Follow trader"}
                                                     >
                                                         {addedUsers.includes(person.id) ? (
                                                             <>
-                                                                <Check size={13} strokeWidth={2.4} className="text-emerald-500" />
+                                                                <Check size={13} strokeWidth={2.4} className="text-emerald-500 shrink-0" />
                                                                 <span>Following</span>
                                                             </>
                                                         ) : (
-                                                            <span>Follow</span>
+                                                            <>
+                                                                <UserPlus size={13} strokeWidth={2.4} className="shrink-0" />
+                                                                <span>Follow</span>
+                                                            </>
                                                         )}
                                                     </button>
                                                 </div>
