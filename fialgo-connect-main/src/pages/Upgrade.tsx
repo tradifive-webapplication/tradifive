@@ -12,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 import { useTrading } from "@/contexts/TradingContext";
 import { supabase } from "@/lib/supabase";
 import { PricingCards } from "@/components/PricingCards";
+import { initiateRazorpayCheckout } from "@/lib/razorpay";
 import { toast } from "sonner";
 
 export default function Upgrade() {
@@ -60,9 +61,49 @@ export default function Upgrade() {
     }
   };
 
-  // Payment bypassed — will integrate Razorpay later
+  // Razorpay Standard Web Checkout Integration
   const handlePayment = async () => {
-    await finalizeConnection();
+    if (selectedPlan === 'starter') {
+      await finalizeConnection();
+      return;
+    }
+
+    const price = selectedPlan === 'pro' ? 499 : 999;
+    const amountInPaise = price * 100;
+
+    setIsProcessing(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+
+      await initiateRazorpayCheckout({
+        amount: amountInPaise,
+        currency: 'INR',
+        name: 'TradiFive',
+        description: `${selectedPlanLabel} Plan Subscription`,
+        receipt: `upg_${selectedPlan}_${Date.now()}`,
+        notes: {
+          plan: selectedPlan,
+          userId: user?.id || 'guest',
+        },
+        prefill: {
+          email: user?.email || undefined,
+          name: user?.user_metadata?.full_name || user?.user_metadata?.name || undefined,
+        },
+        onSuccess: async () => {
+          await finalizeConnection();
+        },
+        onError: () => {
+          setIsProcessing(false);
+        },
+        onDismiss: () => {
+          setIsProcessing(false);
+        },
+      });
+    } catch (err: any) {
+      console.error("Payment error:", err);
+      toast.error(err.message || "Failed to start payment.");
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -247,10 +288,15 @@ export default function Upgrade() {
                 <div className="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
                   <Shield size={32} className="text-blue-500" />
                 </div>
-                <h3 className="text-2xl font-bold text-white mb-2">Initialize Connection</h3>
+                <h3 className="text-2xl font-bold text-white mb-2">Initialize Subscription</h3>
                 <p className="text-[#B5BAC1] text-[13px]">
-                  You are selecting the <span className="font-bold text-white">{selectedPlanLabel}</span> protocol.
+                  You are upgrading to <span className="font-bold text-white">{selectedPlanLabel}</span> plan.
                 </p>
+                {selectedPlan !== 'starter' && (
+                  <div className="mt-3 inline-block px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-white font-mono text-sm">
+                    ₹{selectedPlan === 'pro' ? '499' : '999'} <span className="text-xs text-slate-400">/ month</span>
+                  </div>
+                )}
               </div>
 
               <button
@@ -261,15 +307,22 @@ export default function Upgrade() {
                 {isProcessing ? (
                   <>
                     <span className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                    Activating...
+                    Opening Checkout...
                   </>
                 ) : (
-                  <><Zap size={16} /> Activate {selectedPlanLabel} Plan</>
+                  <>
+                    <Zap size={16} />
+                    {selectedPlan === 'starter'
+                      ? 'Activate Standard Plan (Free)'
+                      : `Pay ₹${selectedPlan === 'pro' ? '499' : '999'} with Razorpay`}
+                  </>
                 )}
               </button>
-              <p className="text-[10px] text-gray-400 text-center mt-4 leading-relaxed">
-                Payment integration coming soon · Plan activates instantly
+              <p className="text-[11px] text-gray-400 text-center mt-4 leading-relaxed flex items-center justify-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span>
+                Secured by Razorpay Standard Checkout · 256-bit encryption
               </p>
+
             </motion.div>
           </div>
         )}

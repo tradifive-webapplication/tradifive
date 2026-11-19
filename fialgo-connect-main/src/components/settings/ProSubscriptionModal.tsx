@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
 import { X, Crown, CheckCircle2, ShieldCheck, CreditCard, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { initiateRazorpayCheckout } from '@/lib/razorpay';
+import { supabase } from '@/lib/supabase';
 
 interface ProSubscriptionModalProps {
   isOpen: boolean;
@@ -15,15 +17,43 @@ export default function ProSubscriptionModal({ isOpen, onClose, onSuccess }: Pro
 
   if (!isOpen) return null;
 
-  const handleSubscribe = () => {
+  const handleSubscribe = async () => {
     setIsProcessing(true);
-    // Simulate payment processing
-    setTimeout(() => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+
+      await initiateRazorpayCheckout({
+        amount: 99900, // ₹999.00
+        currency: 'INR',
+        name: 'TradiFive',
+        description: 'Creator Pro Monthly Membership',
+        receipt: `creator_pro_${Date.now()}`,
+        notes: {
+          plan: 'creator_pro',
+          userId: user?.id || 'guest',
+        },
+        prefill: {
+          email: user?.email || undefined,
+          name: user?.user_metadata?.full_name || undefined,
+        },
+        onSuccess: async () => {
+          setIsProcessing(false);
+          toast.success("Payment verified! Welcome to Creator Pro.");
+          onSuccess();
+          onClose();
+        },
+        onError: () => {
+          setIsProcessing(false);
+        },
+        onDismiss: () => {
+          setIsProcessing(false);
+        },
+      });
+    } catch (err: any) {
+      console.error("Subscription payment error:", err);
+      toast.error(err.message || "Failed to initiate payment.");
       setIsProcessing(false);
-      toast.success("Payment successful! Welcome to Creator Pro.");
-      onSuccess();
-      onClose();
-    }, 2000);
+    }
   };
 
   return createPortal(
@@ -87,7 +117,7 @@ export default function ProSubscriptionModal({ isOpen, onClose, onSuccess }: Pro
                   <div className="text-xs text-slate-500 mt-0.5">Cancel anytime</div>
                 </div>
                 <div className="text-right">
-                  <div className="text-xl font-black text-slate-900 dark:text-white tabular-nums">$14.99</div>
+                  <div className="text-xl font-black text-slate-900 dark:text-white tabular-nums">₹999</div>
                   <div className="text-[10px] uppercase font-bold text-slate-400">/ month</div>
                 </div>
               </div>
@@ -99,18 +129,19 @@ export default function ProSubscriptionModal({ isOpen, onClose, onSuccess }: Pro
               >
                 {isProcessing ? (
                   <>
-                    <Loader2 size={18} className="animate-spin" /> Processing Payment...
+                    <Loader2 size={18} className="animate-spin" /> Connecting Razorpay...
                   </>
                 ) : (
                   <>
-                    <CreditCard size={18} /> Subscribe Now
+                    <CreditCard size={18} /> Pay ₹999 with Razorpay
                   </>
                 )}
               </button>
 
               <div className="flex items-center justify-center gap-2 mt-4 text-[11px] text-slate-400 font-medium">
-                <ShieldCheck size={14} className="text-emerald-500" /> Secure encrypted payment processing
+                <ShieldCheck size={14} className="text-emerald-500" /> Secured with Razorpay Standard Checkout
               </div>
+
             </div>
           </motion.div>
         </div>

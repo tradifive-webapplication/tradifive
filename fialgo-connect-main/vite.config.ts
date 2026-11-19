@@ -1,9 +1,53 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
+import dotenv from "dotenv";
 import { componentTagger } from "lovable-tagger";
 import electron from "vite-plugin-electron";
 import renderer from "vite-plugin-electron-renderer";
+
+dotenv.config();
+dotenv.config({ path: ".env.local" });
+
+function razorpayDevApiPlugin() {
+  return {
+    name: "razorpay-dev-api-middleware",
+    configureServer(server: any) {
+      server.middlewares.use((req: any, res: any, next: any) => {
+        const url = req.url?.split("?")[0];
+        if (url === "/api/create-order" || url === "/api/verify-payment") {
+          let bodyStr = "";
+          req.on("data", (chunk: any) => {
+            bodyStr += chunk;
+          });
+          req.on("end", async () => {
+            try {
+              req.body = bodyStr ? JSON.parse(bodyStr) : {};
+            } catch {
+              req.body = {};
+            }
+            try {
+              if (url === "/api/create-order") {
+                const handler = (await import("./api/create-order.ts")).default;
+                await handler(req, res);
+              } else if (url === "/api/verify-payment") {
+                const handler = (await import("./api/verify-payment.ts")).default;
+                await handler(req, res);
+              }
+            } catch (err: any) {
+              console.error("[Razorpay Dev Middleware Error]:", err);
+              res.statusCode = 500;
+              res.setHeader("Content-Type", "application/json");
+              res.end(JSON.stringify({ error: err?.message || "Internal Server Error" }));
+            }
+          });
+          return;
+        }
+        next();
+      });
+    },
+  };
+}
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -43,6 +87,7 @@ export default defineConfig(({ mode }) => {
     force: true,
   },
   plugins: [
+    razorpayDevApiPlugin(),
     react(), 
     {
       name: "tradifive-version-json",
