@@ -207,7 +207,9 @@ export default function UserProfilePublic() {
   const fetchProfileAndData = async () => {
     setLoading(true);
     try {
-      const lowerUsername = username?.toLowerCase() || "";
+      const rawParam = (username || '').trim();
+      const cleanUsername = rawParam.replace(/^@+/, '');
+      const lowerUsername = cleanUsername.toLowerCase();
 
       let loadedPrivacy: any = {
         show_location: true,
@@ -225,7 +227,7 @@ export default function UserProfilePublic() {
       };
 
       // Try loading privacy settings from localStorage
-      const storedPrivacyStr = localStorage.getItem(`tradifive_privacy_user_${lowerUsername}`);
+      const storedPrivacyStr = localStorage.getItem(`tradifive_privacy_user_${lowerUsername}`) || localStorage.getItem(`tradifive_privacy_user_${rawParam.toLowerCase()}`);
       if (storedPrivacyStr) {
         try {
           loadedPrivacy = { ...loadedPrivacy, ...JSON.parse(storedPrivacyStr) };
@@ -234,17 +236,29 @@ export default function UserProfilePublic() {
 
       let profileId = "";
 
-      // ALWAYS query Supabase first for real profile data
-      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(lowerUsername);
+      // Check if string is UUID
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(rawParam) || /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(lowerUsername);
 
       let query = supabase.from('profiles').select('*');
       if (isUUID) {
-        query = query.eq('id', lowerUsername);
+        const targetId = rawParam.includes('-') ? rawParam : lowerUsername;
+        query = query.eq('id', targetId);
       } else {
-        query = query.ilike('username', lowerUsername);
+        query = query.or(`username.ilike.${lowerUsername},username.ilike.@${lowerUsername}`);
       }
 
-      const { data: profileData } = await query.maybeSingle();
+      let { data: profileData } = await query.maybeSingle();
+
+      if (!profileData && rawParam) {
+        // Fallback lookup by id or display_name
+        const { data: fallbackById } = await supabase.from('profiles').select('*').eq('id', rawParam).maybeSingle();
+        if (fallbackById) {
+          profileData = fallbackById;
+        } else {
+          const { data: fallbackByName } = await supabase.from('profiles').select('*').ilike('display_name', cleanUsername).maybeSingle();
+          if (fallbackByName) profileData = fallbackByName;
+        }
+      }
 
       if (profileData) {
         // Real profile found in database

@@ -579,18 +579,6 @@ export default function Discover() {
             const name = isPlaceholder ? (p.username || "Trader " + p.id.slice(0, 4)) : rawName;
             const charCodeSum = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
 
-            // Breathtaking scenic landscape photography (dramatic mountain highways, fjords, alpine peaks, green auroras)
-            const scenicCovers = [
-                'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80', // Valley & mountain peaks
-                'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=800&q=80', // Moody alpine peak & clouds
-                'https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&w=800&q=80', // Icelandic mountain & highway
-                'https://images.unsplash.com/photo-1517411032315-54ef2cb783bb?auto=format&fit=crop&w=800&q=80', // Emerald aurora sky
-                'https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?auto=format&fit=crop&w=800&q=80', // Swiss alpine glow
-                'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80', // Scenic fjord
-                'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=800&q=80', // Misty pine forest
-                'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=800&q=80'  // Open mountain road
-            ];
-
             const joinedDate = p.created_at ? new Date(p.created_at) : null;
             const joinedFormatted = joinedDate
                 ? `Joined ${joinedDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}`
@@ -644,13 +632,16 @@ export default function Discover() {
             };
             const hasSocials = Boolean(normalizedSocial.instagram || normalizedSocial.youtube || normalizedSocial.twitter || normalizedSocial.website || normalizedSocial.discord);
 
+            const cleanSlug = (p.username ? String(p.username).trim().replace(/^@+/, '') : '') || p.id;
+
             return {
                 id: p.id,
                 name: name,
                 username: p.username || p.id,
+                userSlug: cleanSlug,
                 handle: p.username ? `@${p.username}` : `@${name.replace(/\s+/g, '').toLowerCase()}`,
                 avatar: p.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&color=fff`,
-                cover_url: (p as any).cover_url || scenicCovers[charCodeSum % scenicCovers.length],
+                cover_url: p.banner_url || (p as any).cover_url || '',
                 followingFormatted,
                 followersFormatted,
                 tradingStyle: cleanTradingStyle,
@@ -916,24 +907,30 @@ export default function Discover() {
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                                 {finalPeople.map((person) => {
-                                    const userSlug = person.username || person.id;
+                                    const userSlug = person.userSlug || person.username || person.id;
                                     return (
                                         <div
                                             key={person.id}
-                                            className="group bg-white dark:bg-[#1A1A1E] rounded-[20px] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:shadow-[0_12px_28px_-4px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between overflow-hidden"
+                                            onClick={() => navigate(`/user/${userSlug}`)}
+                                            className="group bg-white dark:bg-[#1A1A1E] rounded-[20px] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:shadow-[0_12px_28px_-4px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between overflow-hidden cursor-pointer"
                                         >
-                                            {/* Scenic Cover Banner (Seamless & Compact) */}
-                                            <div className="relative w-full h-24 sm:h-26 overflow-hidden bg-slate-100 dark:bg-slate-900 shrink-0 rounded-t-[20px]">
-                                                <img
-                                                    src={person.cover_url}
-                                                    alt={person.name}
-                                                    className="w-full h-full object-cover select-none"
-                                                    onError={(e) => {
-                                                        (e.currentTarget as HTMLImageElement).src = 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80';
-                                                    }}
-                                                />
-                                                {/* Soft bottom gradient fog scrim seamlessly blending into card body */}
-                                                <div className="absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-white via-white/60 to-transparent dark:from-[#1A1A1E] dark:via-[#1A1A1E]/60 dark:to-transparent pointer-events-none" />
+                                            {/* Cover Banner (User-uploaded cover photo only, or clean empty surface) */}
+                                            <div className={`relative w-full h-24 sm:h-26 overflow-hidden shrink-0 rounded-t-[20px] ${
+                                                person.cover_url
+                                                    ? 'bg-slate-900'
+                                                    : 'bg-slate-100/90 dark:bg-white/[0.04] border-b border-slate-200/50 dark:border-white/[0.05]'
+                                            }`}>
+                                                {person.cover_url && (
+                                                    <>
+                                                        <img
+                                                            src={person.cover_url}
+                                                            alt={person.name}
+                                                            className="w-full h-full object-cover select-none"
+                                                        />
+                                                        {/* Soft bottom gradient fog scrim seamlessly blending into card body */}
+                                                        <div className="absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-white via-white/60 to-transparent dark:from-[#1A1A1E] dark:via-[#1A1A1E]/60 dark:to-transparent pointer-events-none" />
+                                                    </>
+                                                )}
 
                                                 {/* Floating Frosted Bookmark Button (Slightly smaller, refined & tactile) */}
                                                 <button
@@ -942,11 +939,23 @@ export default function Discover() {
                                                     className={`absolute top-2.5 right-2.5 w-[34px] h-[34px] rounded-full backdrop-blur-md border flex items-center justify-center transition-all cursor-pointer shadow-xs hover:shadow hover:scale-105 active:scale-90 ${
                                                         savedTraders.includes(person.id)
                                                             ? 'bg-amber-500 hover:bg-amber-600 text-white border-amber-300 shadow-md scale-105'
-                                                            : 'bg-black/35 hover:bg-black/55 text-white border-white/40'
+                                                            : person.cover_url
+                                                            ? 'bg-black/35 hover:bg-black/55 text-white border-white/40'
+                                                            : 'bg-white/80 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 text-slate-700 dark:text-zinc-200 border-slate-200/80 dark:border-white/10'
                                                     }`}
                                                     title={savedTraders.includes(person.id) ? "Saved trader" : "Bookmark trader"}
                                                 >
-                                                    <Bookmark size={15} strokeWidth={2.2} className={savedTraders.includes(person.id) ? "fill-white text-white" : "text-white"} />
+                                                    <Bookmark
+                                                        size={15}
+                                                        strokeWidth={2.2}
+                                                        className={
+                                                            savedTraders.includes(person.id)
+                                                                ? "fill-white text-white"
+                                                                : person.cover_url
+                                                                ? "fill-transparent text-white"
+                                                                : "fill-transparent text-slate-600 dark:text-zinc-300"
+                                                        }
+                                                    />
                                                 </button>
                                             </div>
 
