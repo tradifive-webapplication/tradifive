@@ -964,7 +964,7 @@ export default function Discover() {
                                                 <div>
                                                     {/* Top Row: Overlapping Avatar + Social Links (Moved higher & smaller) */}
                                                     <div className="flex items-end justify-between -mt-7 mb-2">
-                                                        <Link to={`/user/${userSlug}`} className="relative shrink-0 block group/avatar">
+                                                        <div className="relative shrink-0 block group/avatar">
                                                             <img
                                                                 src={person.avatar || '/default-avatar.svg'}
                                                                 alt={person.name}
@@ -976,7 +976,7 @@ export default function Discover() {
                                                                     ★
                                                                 </span>
                                                             )}
-                                                        </Link>
+                                                        </div>
 
                                                         {/* Right side: User Social Links (Instagram, YouTube, Twitter/X, Website) if present */}
                                                         {person.hasSocials && (
@@ -1044,9 +1044,9 @@ export default function Discover() {
                                                     {/* Trader Name & Badges */}
                                                     <div className="mb-2">
                                                         <div className="flex items-center gap-1.5">
-                                                            <Link to={`/user/${userSlug}`} className="text-[14.5px] font-bold text-slate-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors truncate">
+                                                            <div className="text-[14.5px] font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate">
                                                                 {person.name}
-                                                            </Link>
+                                                            </div>
                                                             {person.is_pro && <VerifiedBadge />}
                                                         </div>
 

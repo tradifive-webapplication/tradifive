@@ -236,27 +236,37 @@ export default function UserProfilePublic() {
 
       let profileId = "";
 
-      // Check if string is UUID
-      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(rawParam) || /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(lowerUsername);
+      const isParamUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(rawParam) || /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanUsername);
 
-      let query = supabase.from('profiles').select('*');
-      if (isUUID) {
-        const targetId = rawParam.includes('-') ? rawParam : lowerUsername;
-        query = query.eq('id', targetId);
-      } else {
-        query = query.or(`username.ilike.${lowerUsername},username.ilike.@${lowerUsername}`);
+      let profileData: any = null;
+
+      if (isParamUUID) {
+        const targetId = rawParam.includes('-') ? rawParam : cleanUsername;
+        const { data } = await supabase.from('profiles').select('*').eq('id', targetId).maybeSingle();
+        if (data) profileData = data;
       }
 
-      let { data: profileData } = await query.maybeSingle();
-
-      if (!profileData && rawParam) {
-        // Fallback lookup by id or display_name
-        const { data: fallbackById } = await supabase.from('profiles').select('*').eq('id', rawParam).maybeSingle();
-        if (fallbackById) {
-          profileData = fallbackById;
+      if (!profileData && cleanUsername) {
+        // 1. Case-insensitive lookup by username without @
+        const { data: byUser } = await supabase.from('profiles').select('*').ilike('username', cleanUsername).maybeSingle();
+        if (byUser) {
+          profileData = byUser;
         } else {
-          const { data: fallbackByName } = await supabase.from('profiles').select('*').ilike('display_name', cleanUsername).maybeSingle();
-          if (fallbackByName) profileData = fallbackByName;
+          // 2. Lookup by username with @ prefix
+          const { data: byAtUser } = await supabase.from('profiles').select('*').ilike('username', `@${cleanUsername}`).maybeSingle();
+          if (byAtUser) {
+            profileData = byAtUser;
+          } else {
+            // 3. Fallback lookup by display_name
+            const { data: byName } = await supabase.from('profiles').select('*').ilike('display_name', cleanUsername).maybeSingle();
+            if (byName) {
+              profileData = byName;
+            } else if (!isParamUUID && rawParam) {
+              // 4. Fallback lookup by raw id
+              const { data: byId } = await supabase.from('profiles').select('*').eq('id', rawParam).maybeSingle();
+              if (byId) profileData = byId;
+            }
+          }
         }
       }
 
@@ -343,8 +353,8 @@ export default function UserProfilePublic() {
         // User not found in database — show generic placeholder profile
         const placeholderProfile = {
           id: 'not-found',
-          display_name: isUUID ? "Unknown Trader" : (username ? username.charAt(0).toUpperCase() + username.slice(1) : "Unknown Trader"),
-          username: isUUID ? "unknown" : (username || "unknown"),
+          display_name: isUUID(cleanUsername) ? "Unknown Trader" : (cleanUsername ? cleanUsername.charAt(0).toUpperCase() + cleanUsername.slice(1) : "Unknown Trader"),
+          username: isUUID(cleanUsername) ? "unknown" : (cleanUsername || "unknown"),
           bio: "This trader hasn't set up their profile yet.",
           avatar_url: "/default-avatar.svg",
           banner_url: "/default-cover.png",
@@ -569,7 +579,10 @@ export default function UserProfilePublic() {
           .eq('id', currentUserId)
           .maybeSingle();
 
-        const isSelf = currentProfile?.username?.toLowerCase() === username.toLowerCase();
+        const isSelf = Boolean(
+          (currentUserId && profileId && currentUserId === profileId) ||
+          (currentProfile?.username && cleanUsername && currentProfile.username.toLowerCase() === cleanUsername.toLowerCase())
+        );
         if (isSelf) {
           const selfGam = localStorage.getItem("tradifive_gamification_state");
           if (selfGam) {
@@ -582,7 +595,7 @@ export default function UserProfilePublic() {
           }
         } else {
           // Fallback level for other public profiles
-          const seed = username.length;
+          const seed = (cleanUsername || username || '').length;
           const userLevel = 10 + (seed % 15);
           setLevelVal(userLevel);
           setXpVal(Math.floor(500 * Math.pow(userLevel, 1.1) * 0.4));
