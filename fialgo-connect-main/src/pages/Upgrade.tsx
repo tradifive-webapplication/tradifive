@@ -28,7 +28,7 @@ export default function Upgrade() {
     return "pro";
   });
 
-  const selectedPlanLabel = selectedPlan === 'starter' ? 'Standard' : selectedPlan === 'pro' ? 'Pro' : 'Elite';
+  const selectedPlanLabel = selectedPlan === 'starter' ? 'Free' : selectedPlan === 'pro' ? 'Pro' : 'Elite';
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const activePlan = localStorage.getItem('tradifive_cached_plan') || 'starter';
@@ -49,6 +49,23 @@ export default function Upgrade() {
         const newMax = limits[selectedPlan as keyof typeof limits] || 20;
         localStorage.setItem(`tradifive_ai_credits_${user.id}`, String(newMax));
         window.dispatchEvent(new Event('tradifive_profile_update'));
+
+        if (selectedPlan !== 'starter') {
+          try {
+            await supabase.from('billing_history').insert({
+              user_id: user.id,
+              plan: selectedPlan,
+              amount: selectedPlan === 'pro' ? 1399 : 2799,
+              currency: 'INR',
+              status: 'paid',
+              created_at: new Date().toISOString(),
+              period_start: new Date().toISOString(),
+              period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+            });
+          } catch (e) {
+            console.warn("Could not insert billing history:", e);
+          }
+        }
       }
       setSubscription(selectedPlan as any, selectedPlan === "starter" ? "demo" : "real");
       toast.success(`${selectedPlanLabel} Plan activated!`, {
@@ -307,11 +324,11 @@ export default function Upgrade() {
                   <Shield size={28} />
                 </div>
                 <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
-                  {selectedPlan === 'starter' ? 'Downgrade to Standard' : `Upgrade to ${selectedPlanLabel}`}
+                  {selectedPlan === 'starter' ? 'Downgrade to Free' : `Upgrade to ${selectedPlanLabel}`}
                 </h3>
                 <p className="text-slate-500 dark:text-slate-400 text-sm">
                   {selectedPlan === 'starter'
-                    ? 'Confirm switching your account back to the Standard (Free) tier.'
+                    ? 'Confirm switching your account back to the Free tier.'
                     : `You are subscribing to the ${selectedPlanLabel} membership.`}
                 </p>
                 {selectedPlan !== 'starter' && (
@@ -335,7 +352,7 @@ export default function Upgrade() {
                   <>
                     <Zap size={16} />
                     {selectedPlan === 'starter'
-                      ? 'Confirm Standard Plan (Free)'
+                      ? 'Confirm Free Plan'
                       : `Pay ₹${selectedPlan === 'pro' ? '1,399' : '2,799'} with Razorpay`}
                   </>
                 )}

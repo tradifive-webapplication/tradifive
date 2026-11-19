@@ -2745,298 +2745,345 @@ export default function Settings() {
 
 
                      {/* TAB 10: SUBSCRIPTION MANAGEMENT */}
-                     {activeTab === 'subscription' && (
-                        <motion.div
-                           key="subscription"
-                           initial={{ opacity: 0, y: 10 }}
-                           animate={{ opacity: 1, y: 0 }}
-                           exit={{ opacity: 0, y: -10 }}
-                           transition={{ duration: 0.2 }}
-                           className="space-y-4 w-full max-w-[760px] mx-auto pb-16"
-                        >
-                           {/* Page Title */}
-                           <div className="mb-6">
-                              <h2 className="text-[26px] font-bold text-slate-900 dark:text-white tracking-tight">Subscription</h2>
-                              <p className="text-[13px] text-slate-500 dark:text-slate-400 mt-0.5">Manage your current plan</p>
-                           </div>
+                     {activeTab === 'subscription' && (() => {
+      const normalizePlan = (p: string | null | undefined): 'starter' | 'pro' | 'elite' => {
+         if (!p) return 'starter';
+         const lower = p.toLowerCase();
+         if (lower === 'pro' || lower === 'intermediate') return 'pro';
+         if (lower === 'elite' || lower === 'advanced' || lower === 'institutional') return 'elite';
+         return 'starter';
+      };
+      const currentTier = normalizePlan(activePlan);
 
-                           {/* Card 1: Active Subscription Overview */}
-                           <div className="bg-white dark:bg-[#161618] rounded-2xl border border-slate-200/80 dark:border-white/10 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] space-y-3.5">
-                              <div className="flex items-center justify-between">
-                                 <span className="text-xs font-bold text-slate-900 dark:text-white">
-                                    {activePlan === 'starter' ? 'Standard Plan' : activePlan === 'pro' ? 'Pro Plan' : 'Elite Plan'}
-                                 </span>
-                                 <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-white/5 px-2.5 py-0.5 rounded-full border border-slate-200/50 dark:border-white/10">
-                                    {activePlan === 'starter' ? 'Free tier active' : `${activePlan.toUpperCase()} active`}
-                                 </span>
-                              </div>
+      const nextBillingDate = (() => {
+         if (billingHistory && billingHistory.length > 0 && billingHistory[0]?.period_end) {
+            try {
+               return new Date(billingHistory[0].period_end).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+            } catch (_) {}
+         }
+         const d = new Date();
+         d.setDate(d.getDate() + 30);
+         return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+      })();
 
-                              <div className="space-y-2.5 pt-1">
-                                 <div className="flex items-center justify-between text-xs py-1.5 border-t border-slate-100 dark:border-white/5">
-                                    <span className="text-slate-500 dark:text-slate-400">Plan status</span>
-                                    <span className="font-semibold text-slate-900 dark:text-white">
-                                       {activePlan === 'starter' ? 'Active (Free)' : 'Active (Paid monthly)'}
-                                    </span>
-                                 </div>
-                                 <div className="flex items-center justify-between text-xs py-1.5 border-t border-slate-100 dark:border-white/5">
-                                    <span className="text-slate-500 dark:text-slate-400">Current rate</span>
-                                    <span className="font-semibold text-slate-900 dark:text-white tabular-nums">
-                                       {activePlan === 'starter' ? '₹0 / forever' : activePlan === 'pro' ? '₹1,399 / month' : '₹2,799 / month'}
-                                    </span>
-                                 </div>
-                                 <div className="flex items-center justify-between text-xs py-1.5 border-t border-slate-100 dark:border-white/5">
-                                    <span className="text-slate-500 dark:text-slate-400">Next payment</span>
-                                    <span className="font-semibold text-slate-900 dark:text-white">
-                                       {activePlan === 'starter' ? 'No charges scheduled' : activePlan === 'pro' ? '28 Nov · ₹1,399' : '28 Nov · ₹2,799'}
-                                    </span>
-                                 </div>
-                              </div>
+      const memberSinceDate = (() => {
+         if (profile?.createdAt) {
+            try {
+               return new Date(profile.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+            } catch (_) {}
+         }
+         return new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+      })();
 
-                              <div className="pt-2 border-t border-slate-100 dark:border-white/5">
-                                 <p className="text-[11.5px] text-slate-500 dark:text-slate-400 mb-2">
-                                    Have a code? Add it before your next billing cycle and it counts on your next payment.
-                                 </p>
-                                 <div className="flex items-center gap-2">
-                                    <input
-                                       type="text"
-                                       placeholder="Discount code"
-                                       value={discountCodeInput}
-                                       onChange={(e) => setDiscountCodeInput(e.target.value)}
-                                       className="flex-1 h-9 px-3.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#1E1E22] text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-400"
-                                    />
-                                    <TactileBoxButton
-                                       onClick={() => {
-                                          if (!discountCodeInput.trim()) return toast.error("Please enter a discount code");
-                                          setAppliedDiscount(discountCodeInput.trim().toUpperCase());
-                                          toast.success(`Discount code "${discountCodeInput.trim().toUpperCase()}" applied!`);
-                                          setDiscountCodeInput('');
-                                       }}
-                                       className="h-9 px-5 text-xs font-bold"
-                                    >
-                                       Add
-                                    </TactileBoxButton>
-                                 </div>
-                                 {appliedDiscount && (
-                                    <div className="mt-2 text-[11px] font-semibold text-emerald-600 flex items-center gap-1">
-                                       <Check size={12} /> Code {appliedDiscount} applied
-                                    </div>
-                                 )}
-                              </div>
-                           </div>
+      return (
+         <motion.div
+            key="subscription"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            className="space-y-4 w-full max-w-[760px] mx-auto pb-16"
+         >
+            {/* Page Title */}
+            <div className="mb-6">
+               <h2 className="text-[26px] font-bold text-slate-900 dark:text-white tracking-tight">Subscription</h2>
+               <p className="text-[13px] text-slate-500 dark:text-slate-400 mt-0.5">Manage your current plan</p>
+            </div>
 
-                           {/* Card 2: Billing Summary */}
-                           <div className="bg-white dark:bg-[#161618] rounded-2xl border border-slate-200/80 dark:border-white/10 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] space-y-3">
-                              <div className="flex items-center justify-between">
-                                 <span className="text-xs font-bold text-slate-900 dark:text-white">Billing</span>
-                                 <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-white/5 px-2.5 py-0.5 rounded-full border border-slate-200/50 dark:border-white/10">
-                                    {activePlan === 'starter' ? 'Free tier' : 'Active'}
-                                 </span>
-                              </div>
+            {/* Card 1: Active Subscription Overview */}
+            <div className="bg-white dark:bg-[#161618] rounded-2xl border border-slate-200/80 dark:border-white/10 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] space-y-3.5">
+               <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-900 dark:text-white">
+                     {currentTier === 'starter' ? 'Free Plan' : currentTier === 'pro' ? 'Pro Plan' : 'Elite Plan'}
+                  </span>
+                  <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-white/5 px-2.5 py-0.5 rounded-full border border-slate-200/50 dark:border-white/10">
+                     {currentTier === 'starter' ? 'Free tier active' : `${currentTier.toUpperCase()} active`}
+                  </span>
+               </div>
 
-                              <div className="space-y-2 pt-1 text-xs">
-                                 <div className="flex items-center justify-between py-1.5 border-t border-slate-100 dark:border-white/5">
-                                    <span className="text-slate-500 dark:text-slate-400">Plan</span>
-                                    <span className="font-semibold text-slate-900 dark:text-white">
-                                       {activePlan === 'starter' ? 'Standard · ₹0 a month' : activePlan === 'pro' ? 'Pro · ₹1,399 a month' : 'Elite · ₹2,799 a month'}
-                                    </span>
-                                 </div>
-                                 <div className="flex items-center justify-between py-1.5 border-t border-slate-100 dark:border-white/5">
-                                    <span className="text-slate-500 dark:text-slate-400">First payment</span>
-                                    <span className="font-semibold text-slate-900 dark:text-white">18 Nov 2026</span>
-                                 </div>
-                                 <div className="flex items-center justify-between py-1.5 border-t border-slate-100 dark:border-white/5">
-                                    <span className="text-slate-500 dark:text-slate-400">Next payment</span>
-                                    <span className="font-semibold text-slate-900 dark:text-white">
-                                       {activePlan === 'starter' ? 'Free plan' : activePlan === 'pro' ? '28 Nov 2026 · ₹1,399' : '28 Nov 2026 · ₹2,799'}
-                                    </span>
-                                 </div>
-                                 <div className="flex items-center justify-between py-1.5 border-t border-slate-100 dark:border-white/5">
-                                    <span className="text-slate-500 dark:text-slate-400">Card / Payment</span>
-                                    <span className="font-semibold text-slate-900 dark:text-white flex items-center gap-1.5">
-                                       <CreditCard size={13} className="text-slate-500" /> Razorpay UPI & Cards
-                                    </span>
-                                 </div>
-                              </div>
+               <div className="space-y-2.5 pt-1">
+                  <div className="flex items-center justify-between text-xs py-1.5 border-t border-slate-100 dark:border-white/5">
+                     <span className="text-slate-500 dark:text-slate-400">Plan status</span>
+                     <span className="font-semibold text-slate-900 dark:text-white">
+                        {currentTier === 'starter' ? 'Active (Free tier)' : 'Active (Paid monthly)'}
+                     </span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs py-1.5 border-t border-slate-100 dark:border-white/5">
+                     <span className="text-slate-500 dark:text-slate-400">Current rate</span>
+                     <span className="font-semibold text-slate-900 dark:text-white tabular-nums">
+                        {currentTier === 'starter' ? '₹0 / forever' : currentTier === 'pro' ? (billingInterval === 'monthly' ? '₹1,399 / month' : '₹1,119 / month (billed annually)') : (billingInterval === 'monthly' ? '₹2,799 / month' : '₹2,239 / month (billed annually)')}
+                     </span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs py-1.5 border-t border-slate-100 dark:border-white/5">
+                     <span className="text-slate-500 dark:text-slate-400">Next payment</span>
+                     <span className="font-semibold text-slate-900 dark:text-white">
+                        {currentTier === 'starter' ? 'No charges scheduled' : `${nextBillingDate} · ${currentTier === 'pro' ? (billingInterval === 'monthly' ? '₹1,399' : '₹1,119') : (billingInterval === 'monthly' ? '₹2,799' : '₹2,239')}`}
+                     </span>
+                  </div>
+               </div>
 
-                              <div className="pt-2 border-t border-slate-100 dark:border-white/5 text-[11.5px] text-slate-500 flex items-center gap-1.5">
-                                 <ArrowUpRight size={13} className="text-slate-400" /> Change card, switch tiers, or cancel plan below
-                              </div>
-                           </div>
+               <div className="pt-2 border-t border-slate-100 dark:border-white/5">
+                  <p className="text-[11.5px] text-slate-500 dark:text-slate-400 mb-2">
+                     Have a code? Add it before your next billing cycle and it counts on your next payment.
+                  </p>
+                  <div className="flex items-center gap-2">
+                     <input
+                        type="text"
+                        placeholder="Discount code"
+                        value={discountCodeInput}
+                        onChange={(e) => setDiscountCodeInput(e.target.value)}
+                        className="flex-1 h-9 px-3.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#1E1E22] text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-400"
+                     />
+                     <TactileBoxButton
+                        onClick={() => {
+                           if (!discountCodeInput.trim()) return toast.error("Please enter a discount code");
+                           setAppliedDiscount(discountCodeInput.trim().toUpperCase());
+                           toast.success(`Discount code "${discountCodeInput.trim().toUpperCase()}" applied!`);
+                           setDiscountCodeInput('');
+                        }}
+                        className="h-9 px-5 text-xs font-bold"
+                     >
+                        Add
+                     </TactileBoxButton>
+                  </div>
+                  {appliedDiscount && (
+                     <div className="mt-2 text-[11px] font-semibold text-emerald-600 flex items-center gap-1">
+                        <Check size={12} /> Code {appliedDiscount} applied
+                     </div>
+                  )}
+               </div>
+            </div>
 
-                           {/* Card 3: Payments / Invoices */}
-                           <div className="bg-white dark:bg-[#161618] rounded-2xl border border-slate-200/80 dark:border-white/10 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
-                              <div className="text-xs font-bold text-slate-900 dark:text-white mb-3">Payments</div>
-                              <div className="flex items-center justify-between text-xs py-1">
-                                 <span className="text-slate-500">18 Nov 2026</span>
-                                 <span className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-                                    {activePlan === 'starter' ? '₹0.00' : activePlan === 'pro' ? '₹1,399.00' : '₹2,799.00'}
-                                    <span className="text-slate-400 font-normal cursor-pointer hover:underline" onClick={() => toast.info("Invoice receipt downloaded")}>Invoice</span>
-                                 </span>
-                              </div>
-                           </div>
+            {/* Card 2: Billing Summary */}
+            <div className="bg-white dark:bg-[#161618] rounded-2xl border border-slate-200/80 dark:border-white/10 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] space-y-3">
+               <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-900 dark:text-white">Billing</span>
+                  <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-white/5 px-2.5 py-0.5 rounded-full border border-slate-200/50 dark:border-white/10">
+                     {currentTier === 'starter' ? 'Free tier' : 'Active'}
+                  </span>
+               </div>
 
-                           {/* Card 4: Billing Cycle Switcher */}
-                           <div className="bg-white dark:bg-[#161618] rounded-2xl border border-slate-200/80 dark:border-white/10 p-4 shadow-[0_1px_2px_rgba(0,0,0,0.03)] flex items-center justify-between">
-                              <div>
-                                 <div className="text-xs font-bold text-slate-900 dark:text-white">Billing cycle</div>
-                                 <p className="text-[11.5px] text-slate-500 dark:text-slate-400 mt-0.5">Switch to annual for a lower monthly rate</p>
-                              </div>
-                              <div className="bg-slate-100 dark:bg-white/5 p-1 rounded-full inline-flex items-center gap-1 border border-slate-200/80 dark:border-white/10">
-                                 <button
-                                    onClick={() => setBillingInterval('monthly')}
-                                    className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
-                                       billingInterval === 'monthly'
-                                          ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm'
-                                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                                    }`}
-                                 >
-                                    Monthly
-                                 </button>
-                                 <button
-                                    onClick={() => setBillingInterval('annually')}
-                                    className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
-                                       billingInterval === 'annually'
-                                          ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm'
-                                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                                    }`}
-                                 >
-                                    Annual
-                                 </button>
-                              </div>
-                           </div>
+               <div className="space-y-2 pt-1 text-xs">
+                  <div className="flex items-center justify-between py-1.5 border-t border-slate-100 dark:border-white/5">
+                     <span className="text-slate-500 dark:text-slate-400">Plan</span>
+                     <span className="font-semibold text-slate-900 dark:text-white">
+                        {currentTier === 'starter' ? 'Free · ₹0 a month' : currentTier === 'pro' ? 'Pro · ₹1,399 a month' : 'Elite · ₹2,799 a month'}
+                     </span>
+                  </div>
+                  <div className="flex items-center justify-between py-1.5 border-t border-slate-100 dark:border-white/5">
+                     <span className="text-slate-500 dark:text-slate-400">Member since</span>
+                     <span className="font-semibold text-slate-900 dark:text-white">{memberSinceDate}</span>
+                  </div>
+                  <div className="flex items-center justify-between py-1.5 border-t border-slate-100 dark:border-white/5">
+                     <span className="text-slate-500 dark:text-slate-400">Next renewal</span>
+                     <span className="font-semibold text-slate-900 dark:text-white">
+                        {currentTier === 'starter' ? 'None (Free plan)' : `${nextBillingDate} · ₹${currentTier === 'pro' ? (billingInterval === 'monthly' ? '1,399' : '1,119') : (billingInterval === 'monthly' ? '2,799' : '2,239')}`}
+                     </span>
+                  </div>
+                  <div className="flex items-center justify-between py-1.5 border-t border-slate-100 dark:border-white/5">
+                     <span className="text-slate-500 dark:text-slate-400">Payment method</span>
+                     <span className="font-semibold text-slate-900 dark:text-white flex items-center gap-1.5">
+                        <CreditCard size={13} className="text-slate-500" />
+                        {currentTier === 'starter' ? 'None required' : 'Razorpay Secure Checkout'}
+                     </span>
+                  </div>
+               </div>
 
-                           {/* Card 5: Standard Plan (Essential Plan) */}
-                           <div className="bg-white dark:bg-[#161618] rounded-2xl border border-slate-200/80 dark:border-white/10 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                              <div>
-                                 <div className="text-sm font-bold text-slate-900 dark:text-white">Essential Plan</div>
-                                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">The journal, the desk and the news calendar</p>
-                              </div>
-                              <div className="flex items-center gap-4 self-end sm:self-auto">
-                                 <span className="text-sm font-bold text-slate-900 dark:text-white">₹0</span>
-                                 {activePlan === 'starter' ? (
-                                    <span className="text-xs font-semibold text-slate-400 px-3 py-1 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-200/60 dark:border-white/5">
-                                       Current
-                                    </span>
-                                 ) : (
-                                    <TactileBoxButton
-                                       onClick={() => handleSettingsDowngrade('starter')}
-                                       className="h-8 px-4 text-xs font-semibold rounded-xl"
-                                    >
-                                       Switch
-                                    </TactileBoxButton>
-                                 )}
-                              </div>
-                           </div>
+               <div className="pt-2 border-t border-slate-100 dark:border-white/5 text-[11.5px] text-slate-500 flex items-center gap-1.5">
+                  <ArrowUpRight size={13} className="text-slate-400" /> Change plan or manage subscription below
+               </div>
+            </div>
 
-                           {/* Card 6: Plan 1 — Pro Plan (Prestige Plan in screenshot: ₹1,399/mo) */}
-                           <div className="bg-white dark:bg-[#161618] rounded-2xl border border-slate-200/80 dark:border-white/10 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                              <div>
-                                 <div className="text-sm font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
-                                    Prestige Plan
-                                 </div>
-                                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                                    Analytics, the P&L calendar, loss cooldown & 50 AI coach credits/day
-                                 </p>
-                              </div>
-                              <div className="flex items-center gap-4 self-end sm:self-auto">
-                                 <div className="text-right">
-                                    <span className="text-sm font-bold text-slate-900 dark:text-white tabular-nums">
-                                       {billingInterval === 'monthly' ? '₹1,399' : '₹1,119'} <span className="text-xs text-slate-400 font-normal">/mo</span>
-                                    </span>
-                                    {billingInterval === 'annually' && (
-                                       <div className="text-[10px] text-slate-400">Billed annually</div>
-                                    )}
-                                 </div>
-                                 {activePlan === 'pro' ? (
-                                    <button
-                                       disabled
-                                       className="h-8 px-4 text-xs font-bold bg-[#1C1335] text-white rounded-xl shadow-sm cursor-default"
-                                    >
-                                       Manage
-                                    </button>
-                                 ) : activePlan === 'elite' ? (
-                                    <TactileBoxButton
-                                       onClick={() => handleSettingsDowngrade('pro')}
-                                       className="h-8 px-4 text-xs font-semibold rounded-xl"
-                                    >
-                                       Switch
-                                    </TactileBoxButton>
-                                 ) : (
-                                    <TactileBoxButton
-                                       onClick={() => handleSettingsUpgrade('pro')}
-                                       className="h-8 px-4 text-xs font-semibold rounded-xl"
-                                    >
-                                       Switch
-                                    </TactileBoxButton>
-                                 )}
-                              </div>
-                           </div>
-
-                           {/* Card 7: Plan 2 — Elite Plan (Apex Plan in screenshot: ₹2,799/mo + TOP badge) */}
-                           <div className="bg-white dark:bg-[#161618] rounded-2xl border border-slate-200/80 dark:border-white/10 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                              <div>
-                                 <div className="text-sm font-bold text-purple-600 dark:text-purple-400 flex items-center gap-1.5">
-                                    Apex Plan
-                                    <span className="bg-[#7c3aed] text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
-                                       TOP
-                                    </span>
-                                 </div>
-                                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                                    Automated trading, shared workspace & 100 AI credits a month
-                                 </p>
-                              </div>
-                              <div className="flex items-center gap-4 self-end sm:self-auto">
-                                 <div className="text-right">
-                                    <span className="text-sm font-bold text-purple-600 dark:text-purple-400 tabular-nums">
-                                       {billingInterval === 'monthly' ? '₹2,799' : '₹2,239'} <span className="text-xs text-slate-400 font-normal">/mo</span>
-                                    </span>
-                                    {billingInterval === 'annually' && (
-                                       <div className="text-[10px] text-slate-400">Billed annually</div>
-                                    )}
-                                 </div>
-                                 {activePlan === 'elite' ? (
-                                    <button
-                                       disabled
-                                       className="h-8 px-4 text-xs font-bold bg-[#1C1335] text-white rounded-xl shadow-sm cursor-default"
-                                    >
-                                       Manage
-                                    </button>
-                                 ) : (
-                                    <TactileBoxButton
-                                       onClick={() => handleSettingsUpgrade('elite')}
-                                       className="h-8 px-4 text-xs font-semibold rounded-xl"
-                                    >
-                                       Switch
-                                    </TactileBoxButton>
-                                 )}
-                              </div>
-                           </div>
-
-                           {/* Card 8: Refund & Cancellation */}
-                           <div className="bg-white dark:bg-[#161618] rounded-2xl border border-slate-200/80 dark:border-white/10 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                              <div>
-                                 <div className="text-xs font-bold text-slate-900 dark:text-white">Refund</div>
-                                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                                    This sends a message to us, it does not refund automatically. Your plan stays active until the refund is issued.
-                                 </p>
-                              </div>
-                              <TactileBoxButton
-                                 onClick={() => {
-                                    toast.success("Refund request submitted", {
-                                       description: "Our billing support team will review your account within 24 hours."
-                                    });
-                                 }}
-                                 className="h-9 px-4 text-xs font-semibold rounded-xl flex items-center gap-1.5 self-end sm:self-auto shrink-0"
+            {/* Card 3: Payments / Invoices */}
+            <div className="bg-white dark:bg-[#161618] rounded-2xl border border-slate-200/80 dark:border-white/10 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+               <div className="text-xs font-bold text-slate-900 dark:text-white mb-3">Payments</div>
+               {billingHistory && billingHistory.length > 0 ? (
+                  <div className="space-y-2">
+                     {billingHistory.map((inv: any) => (
+                        <div key={inv.id || Math.random()} className="flex items-center justify-between text-xs py-1.5 border-b border-slate-100 dark:border-white/5 last:border-b-0">
+                           <span className="text-slate-500">
+                              {inv.created_at ? new Date(inv.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Recent'}
+                           </span>
+                           <span className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                              ₹{Number(inv.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                              <span
+                                 className="text-slate-400 hover:text-slate-700 dark:hover:text-white font-normal cursor-pointer hover:underline text-xs"
+                                 onClick={() => toast.info(`Invoice receipt #${String(inv.id || '').slice(0, 8)} generated`)}
                               >
-                                 <HelpCircle size={14} className="text-slate-400" />
-                                 Request
-                              </TactileBoxButton>
-                           </div>
-                        </motion.div>
+                                 Invoice
+                              </span>
+                           </span>
+                        </div>
+                     ))}
+                  </div>
+               ) : (
+                  <div className="py-3 text-center">
+                     <p className="text-xs text-slate-500 dark:text-slate-400">No payment invoices yet</p>
+                     <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
+                        {currentTier === 'starter'
+                           ? 'You are currently on the Free tier. Upgrade below to activate pro features.'
+                           : 'Receipts and tax invoices will automatically appear here.'}
+                     </p>
+                  </div>
+               )}
+            </div>
+
+            {/* Card 4: Billing Cycle Switcher */}
+            <div className="bg-white dark:bg-[#161618] rounded-2xl border border-slate-200/80 dark:border-white/10 p-4 shadow-[0_1px_2px_rgba(0,0,0,0.03)] flex items-center justify-between">
+               <div>
+                  <div className="text-xs font-bold text-slate-900 dark:text-white">Billing cycle</div>
+                  <p className="text-[11.5px] text-slate-500 dark:text-slate-400 mt-0.5">Switch to annual for a lower monthly rate</p>
+               </div>
+               <div className="bg-slate-100 dark:bg-white/5 p-1 rounded-full inline-flex items-center gap-1 border border-slate-200/80 dark:border-white/10">
+                  <button
+                     onClick={() => setBillingInterval('monthly')}
+                     className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
+                        billingInterval === 'monthly'
+                           ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm'
+                           : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                     }`}
+                  >
+                     Monthly
+                  </button>
+                  <button
+                     onClick={() => setBillingInterval('annually')}
+                     className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
+                        billingInterval === 'annually'
+                           ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm'
+                           : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                     }`}
+                  >
+                     Annual
+                  </button>
+               </div>
+            </div>
+
+            {/* Card 5: Free Plan */}
+            <div className="bg-white dark:bg-[#161618] rounded-2xl border border-slate-200/80 dark:border-white/10 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+               <div>
+                  <div className="text-sm font-bold text-slate-900 dark:text-white">Free Plan</div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">1 broker connection, basic trading journal & core risk guard</p>
+               </div>
+               <div className="flex items-center gap-4 self-end sm:self-auto">
+                  <span className="text-sm font-bold text-slate-900 dark:text-white">₹0</span>
+                  {currentTier === 'starter' ? (
+                     <span className="text-xs font-semibold text-slate-400 px-3 py-1 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-200/60 dark:border-white/5">
+                        Current
+                     </span>
+                  ) : (
+                     <TactileBoxButton
+                        onClick={() => handleSettingsDowngrade('starter')}
+                        className="h-8 px-4 text-xs font-semibold rounded-xl"
+                     >
+                        Switch
+                     </TactileBoxButton>
+                  )}
+               </div>
+            </div>
+
+            {/* Card 6: Pro Plan — ₹1,399/mo */}
+            <div className="bg-white dark:bg-[#161618] rounded-2xl border border-slate-200/80 dark:border-white/10 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+               <div>
+                  <div className="text-sm font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
+                     Pro Plan
+                  </div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                     Up to 6 broker connections, loss cooldown & 50 AI coach credits/day
+                  </p>
+               </div>
+               <div className="flex items-center gap-4 self-end sm:self-auto">
+                  <div className="text-right">
+                     <span className="text-sm font-bold text-slate-900 dark:text-white tabular-nums">
+                        {billingInterval === 'monthly' ? '₹1,399' : '₹1,119'} <span className="text-xs text-slate-400 font-normal">/mo</span>
+                     </span>
+                     {billingInterval === 'annually' && (
+                        <div className="text-[10px] text-slate-400">Billed annually</div>
                      )}
+                  </div>
+                  {currentTier === 'pro' ? (
+                     <span className="text-xs font-semibold text-slate-400 px-3 py-1 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-200/60 dark:border-white/5">
+                        Current
+                     </span>
+                  ) : currentTier === 'elite' ? (
+                     <TactileBoxButton
+                        onClick={() => handleSettingsDowngrade('pro')}
+                        className="h-8 px-4 text-xs font-semibold rounded-xl"
+                     >
+                        Switch
+                     </TactileBoxButton>
+                  ) : (
+                     <TactileBoxButton
+                        onClick={() => handleSettingsUpgrade('pro')}
+                        className="h-8 px-4 text-xs font-semibold rounded-xl"
+                     >
+                        Switch
+                     </TactileBoxButton>
+                  )}
+               </div>
+            </div>
 
+            {/* Card 7: Elite Plan — ₹2,799/mo + TOP badge */}
+            <div className="bg-white dark:bg-[#161618] rounded-2xl border border-slate-200/80 dark:border-white/10 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+               <div>
+                  <div className="text-sm font-bold text-purple-600 dark:text-purple-400 flex items-center gap-1.5">
+                     Elite Plan
+                     <span className="bg-[#7c3aed] text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
+                        TOP
+                     </span>
+                  </div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                     Unlimited broker connections, automated trading & 100 AI credits/day
+                  </p>
+               </div>
+               <div className="flex items-center gap-4 self-end sm:self-auto">
+                  <div className="text-right">
+                     <span className="text-sm font-bold text-purple-600 dark:text-purple-400 tabular-nums">
+                        {billingInterval === 'monthly' ? '₹2,799' : '₹2,239'} <span className="text-xs text-slate-400 font-normal">/mo</span>
+                     </span>
+                     {billingInterval === 'annually' && (
+                        <div className="text-[10px] text-slate-400">Billed annually</div>
+                     )}
+                  </div>
+                  {currentTier === 'elite' ? (
+                     <span className="text-xs font-semibold text-slate-400 px-3 py-1 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-200/60 dark:border-white/5">
+                        Current
+                     </span>
+                  ) : (
+                     <TactileBoxButton
+                        onClick={() => handleSettingsUpgrade('elite')}
+                        className="h-8 px-4 text-xs font-semibold rounded-xl"
+                     >
+                        Switch
+                     </TactileBoxButton>
+                  )}
+               </div>
+            </div>
 
-                     {/* TAB 11: CHANNEL SETTINGS */}
+            {/* Card 8: Refund & Cancellation */}
+            <div className="bg-white dark:bg-[#161618] rounded-2xl border border-slate-200/80 dark:border-white/10 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+               <div>
+                  <div className="text-xs font-bold text-slate-900 dark:text-white">Refund</div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                     This sends a message to us, it does not refund automatically. Your plan stays active until the refund is issued.
+                  </p>
+               </div>
+               <TactileBoxButton
+                  onClick={() => {
+                     toast.success("Refund request submitted", {
+                        description: "Our billing support team will review your account within 24 hours."
+                     });
+                  }}
+                  className="h-9 px-4 text-xs font-semibold rounded-xl flex items-center gap-1.5 self-end sm:self-auto shrink-0"
+               >
+                  <HelpCircle size={14} className="text-slate-400" />
+                  Request
+               </TactileBoxButton>
+            </div>
+         </motion.div>
+      );
+   })()}
+
+   {/* TAB 11: CHANNEL SETTINGS */}
                      {activeTab === 'channel' && (
                         <motion.div
                            key="channel"
@@ -3339,12 +3386,12 @@ export default function Settings() {
                  <AlertCircle size={24} />
                </div>
                <DialogTitle className="text-xl font-bold text-slate-900 dark:text-white">
-                 Downgrade to {downgradeModalPlan === 'starter' ? 'Essential Plan (Free)' : 'Prestige Plan (₹1,399/mo)'}?
+                 Downgrade to {downgradeModalPlan === 'starter' ? 'Free Plan (₹0)' : 'Pro Plan (₹1,399/mo)'}?
                </DialogTitle>
                <DialogDescription className="text-slate-500 dark:text-slate-400 mt-2 text-sm leading-relaxed">
                  {downgradeModalPlan === 'starter'
-                   ? 'By switching to the Essential Free plan, your broker connections will be limited to 1, daily AI credits will revert to 20/day, and automated execution features will be paused.'
-                   : 'By downgrading to Prestige (₹1,399/mo), broker connections will be set to 6 and AI credits will be 100/day.'}
+                   ? 'By switching to the Free plan, your broker connections will be limited to 1, daily AI credits will revert to 20/day, and automated execution features will be paused.'
+                   : 'By downgrading to Pro (₹1,399/mo), broker connections will be set to 6 and AI credits will be 100/day.'}
                </DialogDescription>
              </DialogHeader>
              <DialogFooter className="mt-6 flex flex-col sm:flex-row gap-2.5 sm:justify-end">

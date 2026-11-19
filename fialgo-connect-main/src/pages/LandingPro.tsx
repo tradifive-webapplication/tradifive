@@ -457,7 +457,7 @@ export default function LandingPro() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Reveal delay={0}>
               <PricingCard
-                tier="Standard"
+                tier="Free"
                 price="Free"
                 description="For beginners learning discipline & journaling."
                 features={[

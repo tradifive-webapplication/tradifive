@@ -26,7 +26,7 @@ const starterFeatures: FeatureItem[] = [
   { type: 'feature', text: 'Core Risk Guard (max daily loss)', included: true },
   { type: 'header', text: 'Limitations' },
   { type: 'feature', text: 'No automated execution bots', included: false, isLimitation: true },
-  { type: 'feature', text: 'Standard support', included: false, isLimitation: true },
+  { type: 'feature', text: 'Community support only', included: false, isLimitation: true },
   { type: 'feature', text: 'No mentor monitoring access', included: false, isLimitation: true }
 ];
 
@@ -101,7 +101,13 @@ export function PricingCards({
     }
   };
 
-  const isCurrentPlan = (plan: string) => activePlan === plan;
+  const normalizeTier = (p: string) => {
+    const l = (p || '').toLowerCase();
+    if (l === 'pro' || l === 'intermediate') return 'pro';
+    if (l === 'elite' || l === 'advanced' || l === 'institutional') return 'elite';
+    return 'starter';
+  };
+  const isCurrentPlan = (plan: string) => normalizeTier(activePlan) === normalizeTier(plan);
 
   const planRank: Record<string, number> = {
     starter: 0,
@@ -148,7 +154,7 @@ export function PricingCards({
 
     if (targetRank < currentRank) {
       return {
-        label: plan === 'starter' ? 'Downgrade to Standard' : `Downgrade to ${plan.charAt(0).toUpperCase() + plan.slice(1)}`,
+        label: plan === 'starter' ? 'Downgrade to Free' : 'Downgrade to Pro',
         disabled: false,
         className: 'bg-white hover:bg-slate-50 dark:bg-[#1E1E22] dark:hover:bg-[#25252A] text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-white/15 font-bold shadow-sm'
       };
@@ -300,7 +306,7 @@ export function PricingCards({
         >
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white">Standard</h3>
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white">Free</h3>
               {isCurrentPlan('starter') && (
                 <span className="text-[10px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 px-2.5 py-1 rounded-full border border-slate-200 dark:border-white/10">
                   Active Plan
@@ -309,7 +315,7 @@ export function PricingCards({
             </div>
 
             <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 min-h-[40px] leading-relaxed">
-              Essential execution & journaling for beginner traders learning discipline.
+              Smart execution & journaling for beginner traders learning discipline.
             </p>
 
             <div className="flex items-baseline gap-1.5 mb-2">
