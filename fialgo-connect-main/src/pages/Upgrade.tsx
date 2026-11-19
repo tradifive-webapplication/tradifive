@@ -1,3 +1,4 @@
+import { RunningNumber } from '@/components/ui/RunningNumber';
 import { useState, Fragment } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -333,7 +334,7 @@ export default function Upgrade() {
                 </p>
                 {selectedPlan !== 'starter' && (
                   <div className="mt-4 inline-block px-4 py-1.5 rounded-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white font-mono text-sm font-bold">
-                    ₹{selectedPlan === 'pro' ? '1,399' : '2,799'} <span className="text-xs text-slate-500">/ month</span>
+                    <RunningNumber value={selectedPlan === 'pro' ? 1399 : 2799} prefix="₹" /> <span className="text-xs text-slate-500">/ month</span>
                   </div>
                 )}
               </div>

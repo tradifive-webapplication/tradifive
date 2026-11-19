@@ -1,3 +1,4 @@
+import { RunningNumber } from '@/components/ui/RunningNumber';
 import React, { useState } from 'react';
 import { Check, CheckCircle2, Sparkles, X, Info } from 'lucide-react';
 import { toast } from 'sonner';
@@ -319,7 +320,7 @@ export function PricingCards({
             </p>
 
             <div className="flex items-baseline gap-1.5 mb-2">
-              <span className="text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">₹0</span>
+              <RunningNumber value={0} prefix="₹" className="text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight" />
               <span className="text-sm font-medium text-slate-500 dark:text-slate-400">forever</span>
             </div>
             <div className="text-xs text-slate-400 dark:text-slate-500 mb-6 font-medium">
@@ -372,13 +373,21 @@ export function PricingCards({
             </p>
 
             <div className="flex items-baseline gap-1.5 mb-2">
-              <span className="text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight tabular-nums">
-                {prices.pro.display}
-              </span>
+              <RunningNumber
+                value={billingInterval === 'monthly' ? 1399 : 1119}
+                prefix="₹"
+                className="text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight tabular-nums"
+              />
               <span className="text-sm font-medium text-slate-500 dark:text-slate-400">{prices.pro.period}</span>
             </div>
-            <div className="text-xs text-indigo-600 dark:text-indigo-400 mb-6 font-semibold">
-              {prices.pro.sub}
+            <div className="text-xs text-indigo-600 dark:text-indigo-400 mb-6 font-semibold flex items-center gap-1">
+              {billingInterval === 'monthly' ? (
+                <span>Billed monthly</span>
+              ) : (
+                <span>
+                  Billed annually (<RunningNumber value={13428} prefix="₹" /> / year)
+                </span>
+              )}
             </div>
 
             <button
@@ -424,13 +433,21 @@ export function PricingCards({
             </p>
 
             <div className="flex items-baseline gap-1.5 mb-2">
-              <span className="text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight tabular-nums">
-                {prices.elite.display}
-              </span>
+              <RunningNumber
+                value={billingInterval === 'monthly' ? 2799 : 2239}
+                prefix="₹"
+                className="text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight tabular-nums"
+              />
               <span className="text-sm font-medium text-slate-500 dark:text-slate-400">{prices.elite.period}</span>
             </div>
-            <div className="text-xs text-purple-600 dark:text-purple-400 mb-6 font-semibold">
-              {prices.elite.sub}
+            <div className="text-xs text-purple-600 dark:text-purple-400 mb-6 font-semibold flex items-center gap-1">
+              {billingInterval === 'monthly' ? (
+                <span>Billed monthly</span>
+              ) : (
+                <span>
+                  Billed annually (<RunningNumber value={26868} prefix="₹" /> / year)
+                </span>
+              )}
             </div>
 
             <button

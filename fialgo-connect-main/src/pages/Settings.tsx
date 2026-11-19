@@ -1,3 +1,4 @@
+import { RunningNumber } from '@/components/ui/RunningNumber';
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -2810,8 +2811,22 @@ export default function Settings() {
                   </div>
                   <div className="flex items-center justify-between text-xs py-1.5 border-t border-slate-100 dark:border-white/5">
                      <span className="text-slate-500 dark:text-slate-400">Current rate</span>
-                     <span className="font-semibold text-slate-900 dark:text-white tabular-nums">
-                        {currentTier === 'starter' ? '₹0 / forever' : currentTier === 'pro' ? (billingInterval === 'monthly' ? '₹1,399 / month' : '₹1,119 / month (billed annually)') : (billingInterval === 'monthly' ? '₹2,799 / month' : '₹2,239 / month (billed annually)')}
+                     <span className="font-semibold text-slate-900 dark:text-white tabular-nums flex items-center gap-1">
+                        {currentTier === 'starter' ? (
+                           <>
+                              <RunningNumber value={0} prefix="₹" /> <span>/ forever</span>
+                           </>
+                        ) : currentTier === 'pro' ? (
+                           <>
+                              <RunningNumber value={billingInterval === 'monthly' ? 1399 : 1119} prefix="₹" />
+                              <span>{billingInterval === 'monthly' ? '/ month' : '/ month (billed annually)'}</span>
+                           </>
+                        ) : (
+                           <>
+                              <RunningNumber value={billingInterval === 'monthly' ? 2799 : 2239} prefix="₹" />
+                              <span>{billingInterval === 'monthly' ? '/ month' : '/ month (billed annually)'}</span>
+                           </>
+                        )}
                      </span>
                   </div>
                   <div className="flex items-center justify-between text-xs py-1.5 border-t border-slate-100 dark:border-white/5">
@@ -2965,7 +2980,7 @@ export default function Settings() {
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">1 broker connection, basic trading journal & core risk guard</p>
                </div>
                <div className="flex items-center gap-4 self-end sm:self-auto">
-                  <span className="text-sm font-bold text-slate-900 dark:text-white">₹0</span>
+                  <RunningNumber value={0} prefix="₹" className="text-sm font-bold text-slate-900 dark:text-white" />
                   {currentTier === 'starter' ? (
                      <span className="text-xs font-semibold text-slate-400 px-3 py-1 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-200/60 dark:border-white/5">
                         Current
@@ -2993,8 +3008,9 @@ export default function Settings() {
                </div>
                <div className="flex items-center gap-4 self-end sm:self-auto">
                   <div className="text-right">
-                     <span className="text-sm font-bold text-slate-900 dark:text-white tabular-nums">
-                        {billingInterval === 'monthly' ? '₹1,399' : '₹1,119'} <span className="text-xs text-slate-400 font-normal">/mo</span>
+                     <span className="text-sm font-bold text-slate-900 dark:text-white tabular-nums flex items-baseline justify-end gap-0.5">
+                        <RunningNumber value={billingInterval === 'monthly' ? 1399 : 1119} prefix="₹" />
+                        <span className="text-xs text-slate-400 font-normal">/mo</span>
                      </span>
                      {billingInterval === 'annually' && (
                         <div className="text-[10px] text-slate-400">Billed annually</div>
@@ -3037,8 +3053,9 @@ export default function Settings() {
                </div>
                <div className="flex items-center gap-4 self-end sm:self-auto">
                   <div className="text-right">
-                     <span className="text-sm font-bold text-purple-600 dark:text-purple-400 tabular-nums">
-                        {billingInterval === 'monthly' ? '₹2,799' : '₹2,239'} <span className="text-xs text-slate-400 font-normal">/mo</span>
+                     <span className="text-sm font-bold text-purple-600 dark:text-purple-400 tabular-nums flex items-baseline justify-end gap-0.5">
+                        <RunningNumber value={billingInterval === 'monthly' ? 2799 : 2239} prefix="₹" />
+                        <span className="text-xs text-slate-400 font-normal">/mo</span>
                      </span>
                      {billingInterval === 'annually' && (
                         <div className="text-[10px] text-slate-400">Billed annually</div>
