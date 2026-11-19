@@ -398,6 +398,30 @@ export default function UserProfilePublic() {
             } else {
               setHasRequested(false);
             }
+
+            // Record profile visit for Big-Tech "Suggestions for You" (profile visitor tracking)
+            try {
+              const vKey = `tradifive_profile_views_${profileId}`;
+              const prev = JSON.parse(localStorage.getItem(vKey) || '[]');
+              const filtered = Array.isArray(prev) ? prev.filter((p: any) => p && p.viewer_id !== currentUser.id) : [];
+              filtered.unshift({
+                viewer_id: currentUser.id,
+                viewed_at: new Date().toISOString()
+              });
+              localStorage.setItem(vKey, JSON.stringify(filtered.slice(0, 30)));
+            } catch (_) {}
+
+            // Send profile view notification to target user
+            supabase.from('notifications').insert({
+              user_id: profileId,
+              type: 'profile_view',
+              title: 'Profile Visitor',
+              message: 'viewed your profile',
+              metadata: {
+                viewer_id: currentUser.id,
+                viewed_at: new Date().toISOString()
+              }
+            }).then(() => {}).catch(() => {});
           }
 
           // Fetch Liked Posts
@@ -1040,14 +1064,14 @@ export default function UserProfilePublic() {
                               : "tactile-black-pill"
                           }`}
                         >
-                          {followedUsers[profile?.id] ? <><UserCheck size={13} strokeWidth={2.4} /> Following</> : (hasRequested ? <><Clock size={13} strokeWidth={2.4} /> Requested</> : "Follow")}
+                          {followedUsers[profile?.id] ? <><UserCheck size={13} strokeWidth={2.4} className="text-emerald-500" /> Following</> : (hasRequested ? <><Clock size={13} strokeWidth={2.4} /> Requested</> : <><UserPlus size={13} strokeWidth={2.4} /> Follow</>)}
                         </button>
 
                         {/* Message button */}
                         <button
                           type="button"
                           onClick={handleStartConversation}
-                          className="flex items-center justify-center gap-1 sm:gap-1.5 px-3.5 sm:px-5 py-1.5 sm:py-2 rounded-full tactile-black-pill text-[12.5px] sm:text-[13.5px] font-bold whitespace-nowrap cursor-pointer select-none"
+                          className="flex items-center justify-center gap-1 sm:gap-1.5 px-3.5 sm:px-5 py-1.5 sm:py-2 rounded-full tactile-white-pill text-[12.5px] sm:text-[13.5px] font-bold whitespace-nowrap cursor-pointer select-none"
                         >
                           <MessageSquare size={13} strokeWidth={2.4} /> Message
                         </button>

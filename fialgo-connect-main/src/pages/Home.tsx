@@ -1,4 +1,4 @@
-﻿import { Search, Plus, X, MoreHorizontal, Heart, MessageCircle, MessageSquare, Bookmark, UserPlus, UserCheck, Flame, ShieldCheck, TrendingUp, Layers, Eye, Calendar, Sliders, Trash2, Check, ArrowUp, RotateCw, Globe, Home as HomeIcon, Compass, Radio, Bell, Users, Smile, ImagePlus, Video as VideoIcon, Loader2, Folder } from "lucide-react";
+﻿import { Search, Plus, X, MoreHorizontal, Heart, MessageCircle, MessageSquare, Bookmark, UserPlus, UserCheck, Flame, ShieldCheck, TrendingUp, Layers, Eye, Calendar, Sliders, Trash2, Check, ArrowUp, RotateCw, Globe, Home as HomeIcon, Compass, Radio, Bell, Users, Smile, ImagePlus, Video as VideoIcon, Loader2, Folder, Sparkles } from "lucide-react";
 import { CommunityPageWrapper, useCommunityShell } from "@/components/CommunityShell";
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { createPortal } from "react-dom";
@@ -421,12 +421,22 @@ export default function Home() {
         const timer = setTimeout(async () => {
             setSearchingTraders(true);
             try {
+                const words = cleanQ.split(/\s+/).filter(Boolean);
+                const orFilter = [
+                    `full_name.ilike.%${cleanQ}%`,
+                    `display_name.ilike.%${cleanQ}%`,
+                    `username.ilike.%${cleanQ}%`,
+                    `first_name.ilike.%${cleanQ}%`,
+                    `last_name.ilike.%${cleanQ}%`,
+                    ...(words.length > 1 ? [`first_name.ilike.%${words[0]}%`, `last_name.ilike.%${words[words.length - 1]}%`] : [])
+                ].join(',');
+
                 const { data, error } = await supabase
                     .from("profiles")
-                    .select("id, full_name, display_name, username, avatar_url, trading_style, xp_level")
-                    .or(`full_name.ilike.%${cleanQ}%,display_name.ilike.%${cleanQ}%,username.ilike.%${cleanQ}%`)
+                    .select("id, full_name, display_name, first_name, last_name, username, avatar_url, trading_style, xp_level")
+                    .or(orFilter)
                     .order("created_at", { ascending: false })
-                    .limit(6);
+                    .limit(8);
                 if (!cancelled) {
                     setSearchedTraders(!error && Array.isArray(data) ? data : []);
                 }
@@ -604,20 +614,77 @@ export default function Home() {
     const { activeMarket } = useMarket();
 
     // Supabase Live Data Fetching
-    const { feeds, watchlist, calendar, followers, suggestions, winningStreaks, topDisciplined, loading, refetch, removePost } = useHomeData(user?.id ?? "");
+    const { feeds, watchlist, calendar, followers, suggestions, profileViews = [], winningStreaks, topDisciplined, loading, refetch, removePost } = useHomeData(user?.id ?? "");
 
-    // Placeholder names to exclude from suggestions
+    // User-dismissed suggestions state persisted in localStorage
+    const [dismissedSuggestions, setDismissedSuggestions] = useState<Set<string>>(() => {
+        try {
+            const raw = localStorage.getItem('tradifive_dismissed_suggestions');
+            return raw ? new Set(JSON.parse(raw)) : new Set();
+        } catch (_) {
+            return new Set();
+        }
+    });
+
+    const handleDismissSuggestion = useCallback((idToDismiss: string) => {
+        setDismissedSuggestions(prev => {
+            const next = new Set(prev);
+            next.add(idToDismiss);
+            try {
+                localStorage.setItem('tradifive_dismissed_suggestions', JSON.stringify(Array.from(next)));
+            } catch (_) {}
+            return next;
+        });
+    }, []);
+
+    // Placeholder names to exclude
     const PLACEHOLDER_NAMES = useMemo(() => ['new trader', 'guest trader', 'demo trader', 'trader', 'guest'], []);
-    // Include newest real users from the database (checks display_name, full_name, or username)
+
+    // Big-Tech "Suggestions for You": STRICTLY Profile Visitors + New Members (No random DB users)
     const finalSuggestions = useMemo(() => {
-        return suggestions
-            .filter((sug: any) => {
-                if (sug.id === user?.id) return false;
-                const label = (sug.display_name || sug.full_name || sug.username || '').trim();
-                return label.length > 0 && !PLACEHOLDER_NAMES.includes(label.toLowerCase());
-            })
-            .slice(0, 5);
-    }, [suggestions, user?.id, PLACEHOLDER_NAMES]);
+        const visitorSet = new Set((profileViews || []).map((pv: any) => pv.viewer_id).filter(Boolean));
+
+        const qualified: (any & { reason: 'profile_view' | 'new_user' })[] = [];
+
+        (suggestions || []).forEach((sug: any) => {
+            if (!sug || !sug.id) return;
+            if (sug.id === user?.id) return; // Never suggest self
+            if (followedUsers[sug.id]) return; // Never suggest users already followed (big-tech standard)
+            if (dismissedSuggestions.has(sug.id)) return; // User dismissed this suggestion
+
+            const isVisitor = visitorSet.has(sug.id);
+
+            // New trader: joined recently (within last 45 days) or trade count is 0/null
+            const isNewTrader = Boolean(sug.created_at) && (
+                (Date.now() - new Date(sug.created_at).getTime() < 45 * 24 * 60 * 60 * 1000) ||
+                (sug.total_trades === 0 || sug.total_trades === null)
+            );
+
+            // STRICT RULE: Only include profile visitors OR new users
+            if (isVisitor) {
+                qualified.push({
+                    ...sug,
+                    reason: 'profile_view'
+                });
+            } else if (isNewTrader) {
+                qualified.push({
+                    ...sug,
+                    reason: 'new_user'
+                });
+            }
+        });
+
+        // Priority sort: Profile visitors first (high intent social trigger), then new users
+        qualified.sort((a, b) => {
+            if (a.reason === 'profile_view' && b.reason !== 'profile_view') return -1;
+            if (b.reason === 'profile_view' && a.reason !== 'profile_view') return 1;
+            const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
+            const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
+            return timeB - timeA;
+        });
+
+        return qualified.slice(0, 4);
+    }, [suggestions, profileViews, user?.id, followedUsers, dismissedSuggestions]);
 
     // Filter streak users (100% Real Database states)
     const finalStreaks = useMemo(() => {
@@ -1271,37 +1338,92 @@ export default function Home() {
     const suggestionsRender = useMemo(() => {
         const source = finalSuggestions;
         return source.map((sug: any) => {
-            const displayName = sug.display_name || sug.full_name || sug.username || sug.name || "Trader";
+            const rawName = (sug.display_name || sug.full_name || (sug.first_name ? `${sug.first_name} ${sug.last_name || ''}`.trim() : null) || '').trim();
+            const displayName = rawName || sug.username || `Trader ${sug.id.slice(0, 4)}`;
             const displaySlug = sug.username || sug.id || "user";
             const displayAvatar = sug.avatar_url || sug.avatar || "/default-avatar.svg";
             const displayHandle = `@${displaySlug}`;
 
             return (
-                <div key={sug.id} className="flex items-center justify-between group">
-                    <div className="flex items-center gap-3">
-                        <Link to={`/user/${displaySlug}`} className="shrink-0 hover:opacity-85 transition-opacity">
-                            <img src={displayAvatar} alt={displayName} className="w-10 h-10 rounded-full bg-slate-200 object-cover border border-slate-100 dark:border-[#33]" onError={(e) => { e.currentTarget.src = "/default-avatar.svg"; }} />
-                        </Link>
-                        <div>
-                            <Link to={`/user/${displaySlug}`} className="text-[13px] font-bold text-slate-900 dark:text-white mb-0.5 leading-none hover:text-blue-500 transition-colors block">
-                                {displayName}
-                            </Link>
-                            <p className="text-[11px] font-medium text-slate-455 dark:text-slate-400 leading-none mt-0.5">{displayHandle}</p>
-                        </div>
+                <div
+                    key={sug.id}
+                    className="group relative p-3 rounded-2xl bg-slate-50/70 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/[0.06] hover:border-slate-300 dark:hover:border-white/10 transition-all duration-200"
+                >
+                    {/* Top Row: Context Reason Pill + Dismiss Action */}
+                    <div className="flex items-center justify-between mb-2">
+                        {sug.reason === 'profile_view' ? (
+                            <span className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 px-2 py-0.5 rounded-full border border-indigo-200/50 dark:border-indigo-500/20">
+                                <Eye size={11} strokeWidth={2.4} />
+                                <span>Viewed your profile</span>
+                            </span>
+                        ) : (
+                            <span className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-200/50 dark:border-emerald-500/20">
+                                <Sparkles size={11} strokeWidth={2.4} />
+                                <span>New to Tradifive</span>
+                            </span>
+                        )}
+
+                        <button
+                            type="button"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleDismissSuggestion(sug.id);
+                            }}
+                            title="Dismiss suggestion"
+                            className="text-slate-400 hover:text-slate-700 dark:hover:text-white p-1 rounded-full hover:bg-slate-200/60 dark:hover:bg-white/10 transition-colors cursor-pointer opacity-70 group-hover:opacity-100"
+                        >
+                            <X size={12} strokeWidth={2.2} />
+                        </button>
                     </div>
-                    <button
-                        onClick={() => toggleFollowUser(sug.id, displayName)}
-                        className={`p-2 rounded-full transition-colors ${followedUsers[sug.id]
-                            ? "text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-500/10"
-                            : "text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10"
+
+                    {/* Main Row: Avatar + Name/Handle + Tactile Follow Pill */}
+                    <div className="flex items-center justify-between gap-2.5">
+                        <Link to={`/user/${displaySlug}`} className="flex items-center gap-2.5 min-w-0 flex-1 group/user">
+                            <img
+                                src={displayAvatar}
+                                alt={displayName}
+                                className="w-9 h-9 rounded-full bg-slate-200 dark:bg-white/10 object-cover border border-slate-200/80 dark:border-white/10 shrink-0 group-hover/user:scale-105 transition-transform"
+                                onError={(e) => { e.currentTarget.src = "/default-avatar.svg"; }}
+                            />
+                            <div className="min-w-0">
+                                <div className="flex items-center gap-1">
+                                    <span className="text-[13px] font-bold text-slate-900 dark:text-white truncate group-hover/user:text-blue-500 transition-colors">
+                                        {displayName}
+                                    </span>
+                                    {sug.is_pro && (
+                                        <span className="text-amber-500 text-[10px]" title="Pro Trader">★</span>
+                                    )}
+                                </div>
+                                <p className="text-[11px] text-slate-400 truncate mt-0.5">{displayHandle}</p>
+                            </div>
+                        </Link>
+
+                        <button
+                            type="button"
+                            onClick={() => toggleFollowUser(sug.id, displayName)}
+                            className={`h-7 px-3 rounded-full text-[11.5px] font-semibold flex items-center gap-1 cursor-pointer transition-all shrink-0 select-none ${
+                                followedUsers[sug.id]
+                                    ? "tactile-white-pill text-emerald-600 dark:text-emerald-400"
+                                    : "tactile-black-pill"
                             }`}
-                    >
-                        {followedUsers[sug.id] ? <IconlyAddUser size={16} set="bold" primaryColor="currentColor" /> : <IconlyAddUser size={16} set="curved" primaryColor="currentColor" />}
-                    </button>
+                        >
+                            {followedUsers[sug.id] ? (
+                                <>
+                                    <Check size={11} strokeWidth={2.6} className="text-emerald-500" />
+                                    <span>Following</span>
+                                </>
+                            ) : (
+                                <>
+                                    <UserPlus size={11} strokeWidth={2.4} />
+                                    <span>Follow</span>
+                                </>
+                            )}
+                        </button>
+                    </div>
                 </div>
             );
         });
-    }, [finalSuggestions, followedUsers, toggleFollowUser]);
+    }, [finalSuggestions, followedUsers, toggleFollowUser, handleDismissSuggestion]);
 
     const streaksRender = useMemo(() => {
         const source = finalStreaks;
@@ -2282,8 +2404,12 @@ export default function Home() {
                                         <div className="space-y-3">
                                             {suggestionsRender}
                                             {finalSuggestions.length === 0 && (
-                                                <div className="text-center py-4">
-                                                    <p className="text-[12px] font-medium text-slate-400">No suggestions right now</p>
+                                                <div className="py-5 text-center px-4 rounded-2xl bg-slate-50/50 dark:bg-white/[0.02] border border-dashed border-slate-200/80 dark:border-white/[0.06]">
+                                                    <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-white/[0.06] flex items-center justify-center mx-auto mb-2 text-slate-400">
+                                                        <UserCheck size={15} strokeWidth={2.2} />
+                                                    </div>
+                                                    <p className="text-[12.5px] font-semibold text-slate-700 dark:text-slate-300">All caught up</p>
+                                                    <p className="text-[11px] text-slate-400 mt-0.5">New signups and profile visitors will appear here.</p>
                                                 </div>
                                             )}
                                         </div>

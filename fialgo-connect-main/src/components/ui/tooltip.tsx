@@ -3,7 +3,30 @@ import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 
 import { cn } from "@/lib/utils";
 
-const TooltipProvider = TooltipPrimitive.Provider;
+class SafeTooltipProvider extends React.Component<
+  React.ComponentProps<typeof TooltipPrimitive.Provider>,
+  { hasError: boolean }
+> {
+  state = { hasError: false };
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: any) {
+    console.warn("SafeTooltipProvider caught tooltip error, falling back to children:", error);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.children;
+    }
+    const Provider = TooltipPrimitive.Provider;
+    return <Provider {...this.props}>{this.props.children}</Provider>;
+  }
+}
+
+const TooltipProvider = SafeTooltipProvider;
 
 const Tooltip = TooltipPrimitive.Root;
 

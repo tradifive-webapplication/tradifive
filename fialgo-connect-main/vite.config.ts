@@ -38,7 +38,10 @@ export default defineConfig(({ mode }) => {
       },
     },
   },
-  optimizeDeps: { force: true },
+  optimizeDeps: {
+    include: ["react", "react-dom", "@radix-ui/react-tooltip", "@tanstack/react-query"],
+    force: true,
+  },
   plugins: [
     react(), 
     {
@@ -62,7 +65,10 @@ export default defineConfig(({ mode }) => {
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "react": path.resolve(__dirname, "./node_modules/react"),
+      "react-dom": path.resolve(__dirname, "./node_modules/react-dom"),
     },
+    dedupe: ["react", "react-dom"],
   },
   esbuild: {
     drop: mode === "production" ? ["console", "debugger"] : [],

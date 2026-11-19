@@ -98,7 +98,7 @@ export function useDiscoverData(userId: string, searchQuery: string) {
         const { data, error } = await supabase
           .from('profiles')
           .select('*')
-          .or(`full_name.ilike.%${cleanQ}%,display_name.ilike.%${cleanQ}%,username.ilike.%${cleanQ}%`)
+          .or(`full_name.ilike.%${cleanQ}%,display_name.ilike.%${cleanQ}%,username.ilike.%${cleanQ}%,first_name.ilike.%${cleanQ}%,last_name.ilike.%${cleanQ}%`)
           .order('created_at', { ascending: false })
           .limit(25);
 

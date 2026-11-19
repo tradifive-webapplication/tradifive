@@ -69,6 +69,93 @@ export const EXISTING_OFFICIAL_ALGOS: MarketplaceProduct[] = [
             "Sub-3ms execution speed with zero-lag socket streaming",
             "₹10,000 one-time setup fee + Daily 50/50% profit share"
         ]
+    },
+    {
+        id: "algo-alpha-momentum",
+        name: "Alpha Momentum Pro",
+        category: "Algo",
+        badge: "Quantitative EA",
+        version: "v2.1.0",
+        timeframe: "15 Min (M15)",
+        pairs: ["BTC/USD", "ETH/USD"],
+        winRate: "68%",
+        drawdown: "4.1%",
+        monthlyReturn: "+14–28%",
+        description: "Institutional trend-following and volatility expansion algorithm. Uses multi-timeframe ATR trailing stops and order-book liquidity sweeps. Fully automated risk management and trade execution for MT5.",
+        price: 8500,
+        currency: "₹",
+        thumbnailUrl: "",
+        creatorId: "tradifive-quant",
+        creatorName: "Tradifive Research",
+        isOfficial: true,
+        rating: 4.89,
+        reviewsCount: 310,
+        activeTraders: 1420,
+        features: [
+            "Dynamic ATR volatility band expansion logic",
+            "Multi-timeframe liquidity sweep confirmation",
+            "Proprietary dynamic position sizing engine",
+            "Pre-configured for major crypto and index pairs",
+            "Sub-second socket execution with MT5 integration"
+        ]
+    },
+    {
+        id: "strategy-london-breakout",
+        name: "London Breakout Master",
+        category: "Strategy",
+        badge: "Forex Strategy",
+        version: "v3.0.1",
+        timeframe: "5 Min (M5)",
+        pairs: ["GBP/USD", "EUR/USD"],
+        winRate: "71%",
+        drawdown: "2.8%",
+        monthlyReturn: "+12–24%",
+        description: "Systematic session breakout strategy targeting the Frankfurt and London open volatility windows. Incorporates Asian session high/low liquidity captures and automated news risk protection.",
+        price: 7500,
+        currency: "₹",
+        thumbnailUrl: "",
+        creatorId: "tradifive-forex",
+        creatorName: "Institutional FX",
+        isOfficial: true,
+        rating: 4.92,
+        reviewsCount: 440,
+        activeTraders: 1980,
+        features: [
+            "Asian session range auto-detection & bracket orders",
+            "Institutional session volume profiling",
+            "Hard stop-loss with dynamic breakeven triggers",
+            "Automatic news blackout during major central bank events",
+            "Full parameter customization for MT4 & MT5"
+        ]
+    },
+    {
+        id: "strategy-smc-suite",
+        name: "Institutional SMC Suite",
+        category: "Strategy",
+        badge: "Smart Money",
+        version: "v1.8.2",
+        timeframe: "Multi-TF (M15–H4)",
+        pairs: ["Indices", "Crypto", "Forex"],
+        winRate: "76%",
+        drawdown: "3.5%",
+        monthlyReturn: "+16–34%",
+        description: "Complete Smart Money Concepts institutional toolkit. Features automated Fair Value Gap (FVG) detection, Change of Character (CHoCH) alerts, premium/discount array mapping, and order flow mitigation.",
+        price: 6000,
+        currency: "₹",
+        thumbnailUrl: "",
+        creatorId: "tradifive-smc",
+        creatorName: "TradiFive Core",
+        isOfficial: true,
+        rating: 4.97,
+        reviewsCount: 680,
+        activeTraders: 3200,
+        features: [
+            "Automated Fair Value Gap (FVG) & mitigation tracker",
+            "Real-time Break of Structure (BOS) & CHoCH mapping",
+            "Institutional Order Block imbalance detection",
+            "Equilibrium & Premium/Discount fibonacci zones",
+            "Instant Discord and Telegram webhook alerts"
+        ]
     }
 ];
 
@@ -459,12 +546,11 @@ export default function Discover() {
         }), [traders]);
 
     const finalPeople = useMemo(() => people
-        .filter(p => {
-            const name = ((p as any).display_name || p.full_name || p.username || '').trim().toLowerCase();
-            return name.length > 0 && !PLACEHOLDER_NAMES.includes(name);
-        })
+        .filter(p => p && p.id)
         .map((p) => {
-            const name = (p as any).display_name || p.full_name || p.username || "Active User";
+            const rawName = ((p as any).display_name || p.full_name || (p.first_name ? `${p.first_name} ${p.last_name || ''}`.trim() : null) || '').trim();
+            const isPlaceholder = !rawName || PLACEHOLDER_NAMES.includes(rawName.toLowerCase());
+            const name = isPlaceholder ? (p.username || "Trader " + p.id.slice(0, 4)) : rawName;
             const charCodeSum = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
 
             const fallbackCovers = [
@@ -476,6 +562,15 @@ export default function Discover() {
                 'https://images.unsplash.com/photo-1526628953301-3e589a6a8b74'
             ];
 
+            const joinedDate = p.created_at ? new Date(p.created_at) : null;
+            const joinedFormatted = joinedDate
+                ? `Joined ${joinedDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}`
+                : 'Community Trader';
+
+            const rawWinRate = p.win_rate;
+            const rawRoi = p.roi_all_time;
+            const hasRealStats = Boolean((rawWinRate && rawWinRate > 0) || (rawRoi !== null && rawRoi !== undefined && rawRoi !== 0));
+
             return {
                 id: p.id,
                 name: name,
@@ -483,8 +578,13 @@ export default function Discover() {
                 handle: p.username ? `@${p.username}` : `@${name.replace(/\s+/g, '').toLowerCase()}`,
                 avatar: p.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&color=fff`,
                 cover_url: (p as any).cover_url || fallbackCovers[charCodeSum % fallbackCovers.length],
-                winRate: p.win_rate ? `${p.win_rate}%` : "-",
-                profit: p.roi_all_time ? `${p.roi_all_time >= 0 ? '+' : ''}${p.roi_all_time}%` : "-",
+                winRate: rawWinRate ? `${rawWinRate}%` : null,
+                profit: rawRoi !== null && rawRoi !== undefined ? `${rawRoi >= 0 ? '+' : ''}${rawRoi}%` : null,
+                hasRealStats,
+                trading_style: (p as any).trading_style || 'Discipline Trader',
+                joinedFormatted,
+                is_pro: Boolean(p.is_pro),
+                total_trades: (p as any).total_trades || 0,
                 onlineCount: (charCodeSum * 19) % 200 + 1,
                 memberCount: 0,
                 mutual: (charCodeSum * 7) % 15
@@ -619,47 +719,44 @@ export default function Discover() {
                     </div>
                 </div>
 
-                {/* Unified Gradient Wrapper for Hero */}
-                <div className="w-full bg-gradient-to-br from-[#ECEDF2] to-[#E2E4FB] dark:bg-none dark:bg-[#1E1E1E] relative overflow-hidden">
-                    {/* Faded Discord Blurple Blobs (Unified) */}
-                    <div
-                        className="absolute inset-0 pointer-events-none z-0"
-                        style={{
-                            backgroundImage: `
-                                radial-gradient(circle at 10% 0%, rgba(88, 101, 242, 0.08), transparent 60%), 
-                                radial-gradient(circle at 90% 0%, rgba(88, 101, 242, 0.08), transparent 60%)
-                            `
-                        }}
-                    />
+                {/* Elevated Quiet Hero Banner */}
+                {!searchQuery && (
+                    <div className="w-full border-b border-slate-200/70 dark:border-white/[0.06] bg-[#F7F8FA] dark:bg-[#141416] relative overflow-hidden select-none">
+                        <div className="w-full max-w-[1400px] mx-auto px-4 md:px-8 lg:px-12 py-8 md:py-10">
+                            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                                <div className="space-y-2 max-w-2xl">
+                                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white dark:bg-white/[0.05] border border-slate-200/80 dark:border-white/10 shadow-xs">
+                                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                                        <span className="text-[11px] font-semibold text-slate-700 dark:text-zinc-300">
+                                            {activeTab === "Marketplace" ? "MetaTrader 5 Verified Systems" : "Tradifive Community & Algos"}
+                                        </span>
+                                    </div>
+                                    <h1 className="text-[28px] sm:text-[36px] md:text-[40px] font-bold text-slate-900 dark:text-white leading-[1.1] tracking-tight">
+                                        {activeTab === "Marketplace"
+                                            ? "Algorithms & Strategies Marketplace"
+                                            : "Discover Traders, Algos & Strategies"}
+                                    </h1>
+                                    <p className="text-[14px] sm:text-[15px] text-slate-500 dark:text-zinc-400 leading-relaxed font-normal">
+                                        {activeTab === "Marketplace"
+                                            ? "Institutional MQL5 expert advisors and systematic strategies with live execution and verified track records."
+                                            : "Explore verified traders, automated trading algorithms, systematic strategies, and market alpha."}
+                                    </p>
+                                </div>
 
-                    {/* Search Bar & Hero */}
-                    {!searchQuery && (
-                        <div className="w-full flex justify-center relative select-none">
-                            <style>
-                                {``}
-                            </style>
-                            {activeTab === "Marketplace" ? (
-                                <div className="w-full max-w-[1400px] mx-auto px-4 md:px-8 lg:px-12 py-8 md:py-12 relative z-10">
-                                    <h1 className="capitalize text-[32px] md:text-[48px] text-[#060607] dark:text-[#F2F3F5] leading-[1.05] mb-4 tracking-[-0.03em]" style={{ fontWeight: 900 }}>
-                                        Algorithm <br />Marketplace
-                                    </h1>
-                                    <p className="text-base md:text-[17px] text-[#4E5058] dark:text-[#B5BAC1] max-w-xl leading-relaxed font-medium">
-                                        Institutional MQL5 expert advisors with live server sync, low-latency execution, and verified track records.
-                                    </p>
+                                <div className="hidden lg:flex items-center gap-3 shrink-0">
+                                    <div className="px-4 py-2.5 rounded-xl bg-white dark:bg-[#1A1A1E] border border-slate-200/80 dark:border-white/[0.08] shadow-xs text-center">
+                                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500 block">Active Traders</span>
+                                        <span className="text-[15px] font-black text-slate-900 dark:text-white tabular-nums">2,840+</span>
+                                    </div>
+                                    <div className="px-4 py-2.5 rounded-xl bg-white dark:bg-[#1A1A1E] border border-slate-200/80 dark:border-white/[0.08] shadow-xs text-center">
+                                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500 block">MT5 Execution</span>
+                                        <span className="text-[15px] font-black text-emerald-600 dark:text-emerald-400 tabular-nums">Sub-3ms</span>
+                                    </div>
                                 </div>
-                            ) : (
-                                <div className="w-full max-w-[1400px] mx-auto px-4 md:px-8 lg:px-12 py-8 md:py-12 relative z-10">
-                                    <h1 className="capitalize text-[32px] md:text-[48px] text-[#060607] dark:text-[#F2F3F5] leading-[1.05] mb-4 tracking-[-0.03em]" style={{ fontWeight: 900 }}>
-                                        Find your community <br />on Tradifive
-                                    </h1>
-                                    <p className="text-base md:text-[17px] text-[#4E5058] dark:text-[#B5BAC1] max-w-xl leading-relaxed font-medium">
-                                        Discover top trading circles. Share alpha, debate market trends, and level up your financial journey together.
-                                    </p>
-                                </div>
-                            )}
+                            </div>
                         </div>
-                    )}
-                </div>
+                    </div>
+                )}
 
                 {/* Main Content Area */}
                 <div className="w-full max-w-[1400px] mx-auto px-4 md:px-8 lg:px-12 mt-4 space-y-8">
@@ -717,36 +814,64 @@ export default function Discover() {
                     {/* People */}
                     {(activeTab === "All" || activeTab === "People") && !searchQuery && (
                         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
-                            <h2 className="text-xl font-bold text-[#060607] dark:text-[#F2F3F5]">
-                                People
-                            </h2>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                                {finalPeople.map((person, index) => {
-                                    const userSlug = person.username;
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <h2 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
+                                        People
+                                    </h2>
+                                    <p className="text-xs text-slate-500 dark:text-zinc-400">
+                                        Active traders and community members across Tradifive
+                                    </p>
+                                </div>
+                                {activeTab === "All" && (
+                                    <button
+                                        type="button"
+                                        onClick={() => handleTabChange("People")}
+                                        className="h-8 px-3.5 rounded-full tactile-white-pill text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer"
+                                    >
+                                        <span>View all people</span>
+                                        <ArrowRight size={13} strokeWidth={2.2} />
+                                    </button>
+                                )}
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                                {finalPeople.map((person) => {
+                                    const userSlug = person.username || person.id;
                                     return (
                                         <div
                                             key={person.id}
-                                            className="relative group bg-[#FFFFFF] dark:bg-[#1E1E1E] rounded-2xl p-4 border border-slate-200/60 dark:border-white/5 shadow-[0_2px_4px_rgba(0,0,0,0.02)] hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex flex-col justify-between h-[136px]"
+                                            className="group bg-white dark:bg-[#1A1A1E] rounded-2xl p-4.5 border border-slate-200/80 dark:border-white/[0.08] shadow-[0_1px_3px_rgba(0,0,0,0.03)] hover:shadow-[0_12px_24px_-4px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 transition-all duration-200 flex flex-col justify-between"
                                         >
                                             {/* Top Row: Avatar + Name + Follow Button */}
-                                            <div className="flex items-center gap-3 w-full z-10">
-                                                <div className="w-10 h-10 rounded-full overflow-hidden bg-white border border-slate-100 dark:border-slate-800 shadow-sm shrink-0">
-                                                    <img
-                                                        src={person.avatar || '/default-avatar.svg'}
-                                                        alt={person.name}
-                                                        className="w-full h-full object-cover"
-                                                        onError={handleImageError}
-                                                    />
-                                                </div>
-                                                <div className="flex-grow min-w-0">
-                                                    <span className="text-sm font-extrabold text-[#060607] dark:text-[#F2F3F5] leading-tight line-clamp-1 group-hover:text-blue-500 transition-colors">
-                                                        {person.name}
-                                                    </span>
-                                                    <p className="text-[11px] font-semibold text-[#4E5058] dark:text-[#B5BAC1] truncate">
-                                                        {person.handle}
-                                                    </p>
-                                                </div>
-                                                <div className="shrink-0">
+                                            <div className="flex items-start justify-between gap-3 w-full">
+                                                <Link to={`/user/${userSlug}`} className="flex items-center gap-3 min-w-0 flex-1 group/user">
+                                                    <div className="relative shrink-0">
+                                                        <img
+                                                            src={person.avatar || '/default-avatar.svg'}
+                                                            alt={person.name}
+                                                            className="w-11 h-11 rounded-full object-cover bg-slate-100 dark:bg-white/10 ring-2 ring-slate-100 dark:ring-white/10 group-hover/user:ring-slate-300 dark:group-hover/user:ring-white/25 transition-all"
+                                                            onError={handleImageError}
+                                                        />
+                                                        {person.is_pro && (
+                                                            <span className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center text-[9px] font-black shadow-xs" title="Pro Trader">
+                                                                ★
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <div className="min-w-0 flex-1">
+                                                        <div className="flex items-center gap-1.5">
+                                                            <span className="text-[13.5px] font-bold text-slate-900 dark:text-white leading-tight truncate group-hover/user:text-blue-600 dark:group-hover/user:text-blue-400 transition-colors">
+                                                                {person.name}
+                                                            </span>
+                                                            {person.is_pro && <VerifiedBadge />}
+                                                        </div>
+                                                        <p className="text-[11.5px] font-medium text-slate-400 dark:text-zinc-400 truncate mt-0.5">
+                                                            {person.handle}
+                                                        </p>
+                                                    </div>
+                                                </Link>
+                                                <div className="shrink-0 pt-0.5">
                                                     <FollowButton
                                                         isFollowing={addedUsers.includes(person.id)}
                                                         onToggleFollow={(e) => handleAddUser(e, person.id)}
@@ -755,21 +880,31 @@ export default function Discover() {
                                                 </div>
                                             </div>
 
-                                            {/* Bottom Row: Stats & Mutual Connections */}
-                                            <div className="space-y-1.5 z-10">
-                                                {/* Stats grid */}
-                                                <div className="grid grid-cols-2 gap-2 text-xs font-semibold text-[#4E5058] dark:text-[#B5BAC1]">
-                                                    <div className="bg-slate-50 dark:bg-white/5 rounded-lg px-2.5 py-1 border border-slate-100 dark:border-white/5 flex justify-between items-center">
-                                                        <span className="text-[10px] uppercase text-slate-400 dark:text-slate-500 font-bold">Win Rate</span>
-                                                        <span className="text-emerald-500 dark:text-emerald-400 font-bold">{person.winRate}</span>
+                                            {/* Bottom Row: Stats or Trading Profile */}
+                                            <div className="mt-3 pt-3 border-t border-slate-100 dark:border-white/[0.06] flex items-center justify-between text-[11px]">
+                                                {person.hasRealStats ? (
+                                                    <div className="grid grid-cols-2 gap-2 w-full">
+                                                        <div className="flex items-center justify-between px-2.5 py-1 rounded-lg bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/5">
+                                                            <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-zinc-500">Win Rate</span>
+                                                            <span className="font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">{person.winRate}</span>
+                                                        </div>
+                                                        <div className="flex items-center justify-between px-2.5 py-1 rounded-lg bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/5">
+                                                            <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-zinc-500">ROI</span>
+                                                            <span className="font-bold text-slate-900 dark:text-white tabular-nums">{person.profit}</span>
+                                                        </div>
                                                     </div>
-                                                    <div className="bg-slate-50 dark:bg-white/5 rounded-lg px-2.5 py-1 border border-slate-100 dark:border-white/5 flex justify-between items-center">
-                                                        <span className="text-[10px] uppercase text-slate-400 dark:text-slate-500 font-bold">Est. ROI</span>
-                                                        <span className="text-indigo-500 dark:text-indigo-400 font-bold">{person.profit}</span>
+                                                ) : (
+                                                    <div className="flex items-center justify-between w-full">
+                                                        <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-600 dark:text-zinc-300">
+                                                            <span className="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-zinc-500" />
+                                                            {person.trading_style}
+                                                        </span>
+                                                        <span className="text-[10.5px] text-slate-400 dark:text-zinc-500">
+                                                            {person.joinedFormatted}
+                                                        </span>
                                                     </div>
-                                                </div>
+                                                )}
                                             </div>
-                                            <Link to={`/user/${userSlug}`} className="absolute inset-0 z-0" />
                                         </div>
                                     );
                                 })}
@@ -777,29 +912,30 @@ export default function Discover() {
                         </motion.div>
                     )}
 
-                    {/* Featured Trading Algorithms (Preview on All tab) */}
+                    {/* Featured Trading Algorithms & Strategies (Preview on All tab) */}
                     {(activeTab === "All") && !searchQuery && (
-                        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-4 pt-2">
+                        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-4 pt-4">
                             <div className="flex items-center justify-between">
                                 <div>
                                     <div className="flex items-center gap-2 mb-1">
-                                        <span className="text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
-                                            Institutional Algos
+                                        <span className="text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-white/[0.06] text-slate-700 dark:text-zinc-300 border border-slate-200/80 dark:border-white/10">
+                                            Institutional Algos & Strategies
                                         </span>
-                                        <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500">
+                                        <span className="text-[10px] font-semibold text-slate-400 dark:text-zinc-500">
                                             MT5 Compatible · Lifetime License
                                         </span>
                                     </div>
-                                    <h2 className="text-xl font-bold text-slate-900 dark:text-[#F2F3F5] tracking-tight">
-                                        Featured Trading Algorithms
+                                    <h2 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
+                                        Featured Trading Algorithms & Strategies
                                     </h2>
                                 </div>
                                 <button
+                                    type="button"
                                     onClick={() => handleTabChange("Marketplace")}
-                                    className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 flex items-center gap-1.5 transition-colors group cursor-pointer"
+                                    className="h-8 px-3.5 rounded-full tactile-white-pill text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer"
                                 >
                                     <span>Browse Marketplace</span>
-                                    <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
+                                    <ArrowRight size={13} strokeWidth={2.2} />
                                 </button>
                             </div>
 
@@ -810,25 +946,25 @@ export default function Discover() {
                                     return (
                                         <div
                                             key={algo.id}
-                                            className="rounded-2xl p-5 flex flex-col justify-between transition-all duration-300 relative group min-h-[410px] bg-white dark:bg-[#1E1E22] border border-slate-200/80 dark:border-white/10 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05),0_1px_2px_rgba(0,0,0,0.03)] hover:shadow-[0_16px_32px_-8px_rgba(0,0,0,0.12),0_4px_12px_-2px_rgba(0,0,0,0.05)] hover:-translate-y-1"
+                                            className="rounded-2xl p-5 flex flex-col justify-between transition-all duration-300 relative group min-h-[420px] bg-white dark:bg-[#1A1A1E] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_16px_36px_-6px_rgba(0,0,0,0.12)] hover:-translate-y-1"
                                         >
                                             <div>
                                                 {/* Top Row: Refined Single Flagship Badge & Star Rating */}
                                                 <div className="flex items-center justify-between gap-2 mb-3.5">
                                                     <div className="flex items-center gap-1.5">
                                                         {isFlagship ? (
-                                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10.5px] font-bold bg-blue-600 text-white shadow-xs">
-                                                                <Sparkles size={11} className="text-amber-300 fill-amber-300" />
+                                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10.5px] font-bold bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs">
+                                                                <Sparkles size={11} className="text-amber-400 fill-amber-400" />
                                                                 Flagship EA
                                                             </span>
                                                         ) : (
-                                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10.5px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-white/10">
-                                                                {algo.category}
+                                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10.5px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-white/[0.06] text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-white/10">
+                                                                {algo.badge || algo.category}
                                                             </span>
                                                         )}
                                                     </div>
                                                     {algo.rating && (
-                                                        <div className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-white/5 px-2 py-0.5 rounded-full border border-slate-200/70 dark:border-white/10">
+                                                        <div className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-white/[0.04] px-2 py-0.5 rounded-full border border-slate-200/70 dark:border-white/10">
                                                             <Star size={11} className="text-amber-400 fill-amber-400" />
                                                             <span className="font-bold text-slate-900 dark:text-white">{algo.rating}</span>
                                                             {algo.reviewsCount && (
@@ -841,12 +977,12 @@ export default function Discover() {
                                                 {/* Product Box Art & Title */}
                                                 <div className="flex items-center gap-3 mb-3.5">
                                                     {(algo.thumbnailUrl || algo.name.includes("FiAlgo")) ? (
-                                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-50 to-slate-100 dark:from-white/10 dark:to-white/5 border border-slate-200/80 dark:border-white/10 p-1 flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform duration-200">
+                                                        <div className="w-12 h-12 rounded-xl bg-slate-50 dark:bg-white/[0.06] border border-slate-200/80 dark:border-white/10 p-1 flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform duration-200">
                                                             <img src={algo.thumbnailUrl || "/fialgo-v1-box.png"} alt={algo.name} className="w-full h-full object-contain drop-shadow" />
                                                         </div>
                                                     ) : (
-                                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white shrink-0 shadow-sm group-hover:scale-105 transition-transform duration-200">
-                                                            <Cpu size={22} strokeWidth={2.2} />
+                                                        <div className="w-12 h-12 rounded-xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform duration-200">
+                                                            {algo.category === "Strategy" ? <TrendingUp size={20} strokeWidth={2.2} /> : <Cpu size={20} strokeWidth={2.2} />}
                                                         </div>
                                                     )}
                                                     <div className="min-w-0">
@@ -890,21 +1026,21 @@ export default function Discover() {
                                                     </div>
                                                     <div className="py-1 px-1 border-x border-slate-200/60 dark:border-white/5">
                                                         <div className="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-0.5">AVG RETURN</div>
-                                                        <div className="text-sm font-black text-blue-600 dark:text-blue-400">{algo.monthlyReturn}</div>
+                                                        <div className="text-sm font-black text-slate-900 dark:text-white">{algo.monthlyReturn}</div>
                                                     </div>
                                                     <div className="py-1 px-1">
                                                         <div className="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-0.5">MAX DD</div>
-                                                        <div className="text-sm font-black text-slate-700 dark:text-slate-200">{algo.drawdown}</div>
+                                                        <div className="text-sm font-black text-slate-700 dark:text-slate-300">{algo.drawdown}</div>
                                                     </div>
                                                 </div>
 
-                                                <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed mb-4">
+                                                <p className="text-xs text-slate-500 dark:text-zinc-400 line-clamp-2 leading-relaxed mb-4">
                                                     {algo.description}
                                                 </p>
                                             </div>
 
                                             {/* Price & Action Footer */}
-                                            <div className="pt-3.5 border-t border-slate-100 dark:border-white/5 flex items-center justify-between mt-auto">
+                                            <div className="pt-3.5 border-t border-slate-100 dark:border-white/[0.06] flex items-center justify-between mt-auto">
                                                 <div>
                                                     <span className="text-[9.5px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block leading-none mb-1">
                                                         Lifetime License
@@ -915,25 +1051,37 @@ export default function Discover() {
                                                     </div>
                                                 </div>
 
-                                                {isPurchased ? (
+                                                <div className="flex items-center gap-2">
                                                     <button
                                                         type="button"
-                                                        onClick={() => navigate('/order-history')}
-                                                        className="px-3.5 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-semibold hover:bg-emerald-500/20 transition-all active:scale-95 cursor-pointer flex items-center gap-1.5 shadow-xs"
+                                                        onClick={() => setDetailsModalProduct(algo)}
+                                                        className="h-8 px-3 rounded-full tactile-white-pill text-xs font-semibold inline-flex items-center gap-1 cursor-pointer"
+                                                        title="Inspect details"
                                                     >
-                                                        <Check size={13} strokeWidth={2.5} />
-                                                        <span>Active EA</span>
+                                                        <Eye size={12} />
+                                                        <span>Details</span>
                                                     </button>
-                                                ) : (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => handlePurchase(algo)}
-                                                        className="px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-sm shadow-blue-500/25 transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer border-none"
-                                                    >
-                                                        <span>Buy</span>
-                                                        <ArrowRight size={13} strokeWidth={2.2} />
-                                                    </button>
-                                                )}
+
+                                                    {isPurchased ? (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => navigate('/order-history')}
+                                                            className="h-8 px-3.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-semibold hover:bg-emerald-500/20 transition-all active:scale-95 cursor-pointer flex items-center gap-1.5"
+                                                        >
+                                                            <Check size={13} strokeWidth={2.5} />
+                                                            <span>Active</span>
+                                                        </button>
+                                                    ) : (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handlePurchase(algo)}
+                                                            className="h-8 px-3.5 rounded-full bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:hover:bg-slate-100 dark:text-slate-900 text-xs font-semibold shadow-xs transition-all active:scale-95 flex items-center gap-1 cursor-pointer border border-slate-900 dark:border-white"
+                                                        >
+                                                            <span>Buy</span>
+                                                            <ArrowRight size={13} strokeWidth={2.2} />
+                                                        </button>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
                                     );
@@ -944,32 +1092,49 @@ export default function Discover() {
 
                     {/* Featured Channels heading / Mentors */}
                     {(activeTab === "All" || activeTab === "Mentors") && !searchQuery && finalMentors.length > 0 && (
-                        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-3 pt-6">
-                            <h2 className="text-xl font-bold text-[#060607] dark:text-[#F2F3F5]">
-                                Featured Mentors
-                            </h2>
+                        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-4 pt-4">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <h2 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
+                                        Featured Mentors
+                                    </h2>
+                                    <p className="text-xs text-slate-500 dark:text-zinc-400">
+                                        Verified trading educators and top signal providers
+                                    </p>
+                                </div>
+                                {activeTab === "All" && (
+                                    <button
+                                        type="button"
+                                        onClick={() => handleTabChange("Mentors")}
+                                        className="h-8 px-3.5 rounded-full tactile-white-pill text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer"
+                                    >
+                                        <span>View all mentors</span>
+                                        <ArrowRight size={13} strokeWidth={2.2} />
+                                    </button>
+                                )}
+                            </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                                {finalMentors.slice(0, 8).map((mentor, index) => {
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+                                {finalMentors.slice(0, 8).map((mentor) => {
                                     const userSlug = mentor.username;
                                     return (
                                         <div
                                             key={mentor.id}
-                                            className="relative group bg-[#FFFFFF] dark:bg-[#1E1E1E] rounded-2xl overflow-hidden border border-slate-200/60 dark:border-white/5 shadow-[0_2px_4px_rgba(0,0,0,0.04)] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 flex flex-col h-[340px]"
+                                            className="group bg-white dark:bg-[#1A1A1E] rounded-2xl overflow-hidden border border-slate-200/80 dark:border-white/[0.08] shadow-[0_1px_3px_rgba(0,0,0,0.03)] hover:shadow-[0_12px_28px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 transition-all duration-200 flex flex-col h-[320px] relative"
                                         >
                                             {(!mentor.cover_url || mentor.cover_url === '/default-cover.png') ? (
-                                                <div className="h-[143px] w-full relative shrink-0 bg-slate-100 dark:bg-[#1A1A1A] flex items-center justify-center text-slate-400 dark:text-slate-700 border-b border-slate-200 dark:border-white/5">
-                                                    <Camera size={28} className="opacity-40" />
+                                                <div className="h-[110px] w-full relative shrink-0 bg-slate-100 dark:bg-white/[0.04] flex items-center justify-center text-slate-400 dark:text-zinc-500 border-b border-slate-200/70 dark:border-white/[0.06]">
+                                                    <Camera size={24} className="opacity-40" />
                                                 </div>
                                             ) : (
                                                 <div
-                                                    className="h-[143px] w-full relative shrink-0"
+                                                    className="h-[110px] w-full relative shrink-0 border-b border-slate-200/70 dark:border-white/[0.06]"
                                                     style={{ background: `url(${mentor.cover_url}) center/cover no-repeat` }}
-                                                ></div>
+                                                />
                                             )}
 
                                             {/* Circular Overlapping Avatar */}
-                                            <div className="absolute left-4 top-[115px] w-12 h-12 rounded-full overflow-hidden bg-white border-[4px] border-white dark:border-[#1E1E1E] shadow-sm z-20">
+                                            <div className="absolute left-4 top-[86px] w-12 h-12 rounded-full overflow-hidden bg-white dark:bg-[#1A1A1E] ring-4 ring-white dark:ring-[#1A1A1E] shadow-xs z-20">
                                                 <img
                                                     src={mentor.avatar || '/default-avatar.svg'}
                                                     alt={mentor.name}
@@ -981,19 +1146,19 @@ export default function Discover() {
                                             {/* Card Content body */}
                                             <div className="pt-8 px-4 pb-4 flex flex-col flex-grow justify-between relative z-10">
                                                 <div>
-                                                    <div className="flex items-center gap-1.5 mb-1.5">
-                                                        <span className="text-sm font-extrabold text-[#060607] dark:text-[#F2F3F5] leading-tight line-clamp-1 group-hover:text-blue-500 transition-colors">
+                                                    <div className="flex items-center gap-1.5 mb-1">
+                                                        <span className="text-[13.5px] font-bold text-slate-900 dark:text-white leading-tight line-clamp-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                                                             {mentor.name}
                                                         </span>
                                                         {mentor.verified && <VerifiedBadge />}
                                                     </div>
-                                                    <p className="text-xs font-semibold text-[#4E5058] dark:text-[#B5BAC1] line-clamp-2 leading-relaxed">
+                                                    <p className="text-xs text-slate-500 dark:text-zinc-400 line-clamp-2 leading-relaxed">
                                                         {mentor.title}
                                                     </p>
                                                 </div>
 
                                                 {/* Stats Footer Row */}
-                                                <div className="flex items-center justify-end pt-3 border-t border-slate-100 dark:border-slate-800">
+                                                <div className="flex items-center justify-end pt-3 border-t border-slate-100 dark:border-white/[0.06]">
                                                     <FollowButton
                                                         isFollowing={addedUsers.includes(mentor.id)}
                                                         onToggleFollow={(e) => handleAddUser(e, mentor.id)}
@@ -1019,16 +1184,24 @@ export default function Discover() {
                             <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-2">
                                 {['All', 'Algo', 'Strategy', 'Indicator', 'Mentorship'].map(cat => {
                                     const count = cat === 'All' ? storeListings.length : storeListings.filter(l => l.category === cat).length;
+                                    const isSel = marketplaceFilter === cat;
                                     return (
                                         <button
                                             key={cat}
+                                            type="button"
                                             onClick={() => setMarketplaceFilter(cat)}
-                                            className={`px-4 py-1.5 rounded-full text-xs font-extrabold transition-all shrink-0 border ${marketplaceFilter === cat
-                                                    ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-slate-900 dark:border-white shadow-sm'
-                                                    : 'bg-white dark:bg-[#1E1E1E] text-slate-600 dark:text-[#B5BAC1] border-slate-200/80 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20'
-                                                }`}
+                                            className={`h-8 px-4 rounded-full text-xs font-semibold select-none inline-flex items-center gap-1.5 transition-all shrink-0 cursor-pointer ${
+                                                isSel
+                                                    ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border border-slate-900 dark:border-white shadow-xs'
+                                                    : 'tactile-white-pill'
+                                            }`}
                                         >
-                                            {cat} {count > 0 ? `(${count})` : ''}
+                                            <span>{cat}</span>
+                                            {count > 0 && (
+                                                <span className={`text-[10.5px] ${isSel ? 'text-slate-300 dark:text-zinc-600' : 'text-slate-400 dark:text-zinc-500'}`}>
+                                                    ({count})
+                                                </span>
+                                            )}
                                         </button>
                                     );
                                 })}
@@ -1043,34 +1216,25 @@ export default function Discover() {
                                     return (
                                         <div
                                             key={product.id}
-                                            className={`rounded-2xl p-5 flex flex-col justify-between transition-all duration-300 relative group min-h-[410px] bg-white dark:bg-[#1E1E22] ${
-                                                isFlagship
-                                                    ? 'border border-blue-500/30 dark:border-blue-400/30 shadow-[0_2px_12px_-2px_rgba(37,99,235,0.08),0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_16px_32px_-8px_rgba(37,99,235,0.16)] hover:-translate-y-1'
-                                                    : 'border border-slate-200/80 dark:border-white/10 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05),0_1px_2px_rgba(0,0,0,0.03)] hover:shadow-[0_16px_32px_-8px_rgba(0,0,0,0.10)] hover:-translate-y-1'
-                                            }`}
+                                            className="rounded-2xl p-5 flex flex-col justify-between transition-all duration-300 relative group min-h-[420px] bg-white dark:bg-[#1A1A1E] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_16px_36px_-6px_rgba(0,0,0,0.12)] hover:-translate-y-1"
                                         >
                                             <div>
                                                 {/* Top Row: Refined Single Flagship Badge & Star Rating */}
                                                 <div className="flex items-center justify-between gap-2 mb-3.5">
                                                     <div className="flex items-center gap-1.5">
                                                         {isFlagship ? (
-                                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10.5px] font-bold bg-blue-600 text-white shadow-xs">
-                                                                <Sparkles size={11} className="text-amber-300 fill-amber-300" />
+                                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10.5px] font-bold bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs">
+                                                                <Sparkles size={11} className="text-amber-400 fill-amber-400" />
                                                                 Flagship EA
                                                             </span>
                                                         ) : (
-                                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10.5px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-white/10">
-                                                                {product.category}
-                                                            </span>
-                                                        )}
-                                                        {product.badge && product.badge !== "Flagship EA" && (
-                                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-50 dark:bg-white/5 text-slate-600 dark:text-slate-400 border border-slate-200/60 dark:border-white/10">
-                                                                {product.badge}
+                                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10.5px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-white/[0.06] text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-white/10">
+                                                                {product.badge || product.category}
                                                             </span>
                                                         )}
                                                     </div>
                                                     {product.rating && (
-                                                        <div className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-white/5 px-2 py-0.5 rounded-full border border-slate-200/70 dark:border-white/10">
+                                                        <div className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-white/[0.04] px-2 py-0.5 rounded-full border border-slate-200/70 dark:border-white/10">
                                                             <Star size={11} className="text-amber-400 fill-amber-400" />
                                                             <span className="font-bold text-slate-900 dark:text-white">{product.rating}</span>
                                                             {product.reviewsCount && (
@@ -1083,12 +1247,12 @@ export default function Discover() {
                                                 {/* Product Box Art & Title */}
                                                 <div className="flex items-center gap-3 mb-3.5">
                                                     {(product.thumbnailUrl || product.name.includes("FiAlgo")) ? (
-                                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-50 to-slate-100 dark:from-white/10 dark:to-white/5 border border-slate-200/80 dark:border-white/10 p-1 flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform duration-200">
+                                                        <div className="w-12 h-12 rounded-xl bg-slate-50 dark:bg-white/[0.06] border border-slate-200/80 dark:border-white/10 p-1 flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform duration-200">
                                                             <img src={product.thumbnailUrl || "/fialgo-v1-box.png"} alt={product.name} className="w-full h-full object-contain drop-shadow" />
                                                         </div>
                                                     ) : (
-                                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white shrink-0 shadow-sm group-hover:scale-105 transition-transform duration-200">
-                                                            <Cpu size={22} strokeWidth={2.2} />
+                                                        <div className="w-12 h-12 rounded-xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform duration-200">
+                                                            {product.category === "Strategy" ? <TrendingUp size={20} strokeWidth={2.2} /> : <Cpu size={20} strokeWidth={2.2} />}
                                                         </div>
                                                     )}
                                                     <div className="min-w-0">
@@ -1142,13 +1306,13 @@ export default function Discover() {
                                                     </div>
                                                 )}
 
-                                                <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed mb-4">
+                                                <p className="text-xs text-slate-500 dark:text-zinc-400 line-clamp-2 leading-relaxed mb-4">
                                                     {product.description}
                                                 </p>
                                             </div>
 
                                             {/* Price & Action Footer */}
-                                            <div className="pt-3.5 border-t border-slate-100 dark:border-white/5 flex items-center justify-between mt-auto">
+                                            <div className="pt-3.5 border-t border-slate-100 dark:border-white/[0.06] flex items-center justify-between mt-auto">
                                                 <div>
                                                     <span className="text-[9.5px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block leading-none mb-1">
                                                         Lifetime License
@@ -1161,15 +1325,18 @@ export default function Discover() {
 
                                                 <div className="flex items-center gap-2">
                                                     <button
+                                                        type="button"
                                                         onClick={() => setDetailsModalProduct(product)}
-                                                        className="px-3.5 py-1.5 rounded-lg border border-slate-200/80 dark:border-white/10 bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 text-xs font-semibold transition-all active:scale-95 cursor-pointer flex items-center gap-1.5"
+                                                        className="h-8 px-3 rounded-full tactile-white-pill text-xs font-semibold inline-flex items-center gap-1 cursor-pointer"
+                                                        title="Inspect details"
                                                     >
-                                                        <Eye size={13} />
+                                                        <Eye size={12} />
                                                         <span>Details</span>
                                                     </button>
 
                                                     {isPurchased ? (
                                                         <button
+                                                            type="button"
                                                             onClick={() => {
                                                                 setPurchaseModalProduct(product);
                                                                 setPurchaseStep("activated");
@@ -1178,18 +1345,19 @@ export default function Discover() {
                                                                 const randomHex = Math.random().toString(36).substring(2, 6).toUpperCase();
                                                                 setGeneratedLicenseKey(isFiAlgo ? `FIALGO-V1-${randomHex}-${Date.now().toString().slice(-4)}` : `TRDF-${prefix}-${randomHex}-${Date.now().toString().slice(-4)}`);
                                                             }}
-                                                            className="px-3.5 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-semibold hover:bg-emerald-500/20 transition-all active:scale-95 cursor-pointer flex items-center gap-1.5"
+                                                            className="h-8 px-3.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-semibold hover:bg-emerald-500/20 transition-all active:scale-95 cursor-pointer flex items-center gap-1.5"
                                                         >
                                                             <Check size={13} strokeWidth={2.5} />
                                                             <span>Active</span>
                                                         </button>
                                                     ) : (
                                                         <button
+                                                            type="button"
                                                             onClick={() => handlePurchase(product)}
-                                                            className="px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-xs transition-all active:scale-95 flex items-center gap-1 cursor-pointer border-none"
+                                                            className="h-8 px-3.5 rounded-full bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:hover:bg-slate-100 dark:text-slate-900 text-xs font-semibold shadow-xs transition-all active:scale-95 flex items-center gap-1 cursor-pointer border border-slate-900 dark:border-white"
                                                         >
                                                             <span>Buy</span>
-                                                            <ArrowRight size={13} strokeWidth={2.5} />
+                                                            <ArrowRight size={13} strokeWidth={2.2} />
                                                         </button>
                                                     )}
                                                 </div>

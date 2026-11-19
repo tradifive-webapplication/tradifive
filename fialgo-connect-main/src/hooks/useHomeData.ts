@@ -18,6 +18,8 @@ export type ProfileShort = {
   id: string;
   full_name: string | null;
   display_name?: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
   username: string | null;
   avatar_url: string | null;
   location: string | null;
@@ -25,6 +27,13 @@ export type ProfileShort = {
   win_rate: number | null;
   total_trades: number | null;
   created_at?: string | null;
+  is_pro?: boolean | null;
+  trading_style?: string | null;
+};
+
+export type ProfileViewEvent = {
+  viewer_id: string;
+  viewed_at?: string;
 };
 
 export function useHomeData(userId: string) {
@@ -65,6 +74,7 @@ export function useHomeData(userId: string) {
   });
   const [followers, setFollowers] = useState<{ count: number; avatars: string[] }>(() => getCache('home_cache_followers', { count: 0, avatars: [] }));
   const [suggestions, setSuggestions] = useState<ProfileShort[]>(() => getCache('home_cache_suggestions', []));
+  const [profileViews, setProfileViews] = useState<ProfileViewEvent[]>(() => getCache('home_cache_profile_views', []));
   const [winningStreaks, setWinningStreaks] = useState<ProfileShort[]>(() => getCache('home_cache_winningStreaks', []));
   const [topDisciplined, setTopDisciplined] = useState<ProfileShort[]>(() => getCache('home_cache_topDisciplined', []));
 
@@ -93,10 +103,63 @@ export function useHomeData(userId: string) {
         userId ? supabase.from('feed_watchlist').select('*').eq('user_id', userId).order('sort_order', { ascending: true }).limit(20) : Promise.resolve({ data: [] } as any),
         supabase.from('economic_calendar').select('*').ilike('impact', '%high%').order('event_time', { ascending: true }).limit(30),
         userId ? supabase.from('social_follows').select('follower_id, profiles!social_follows_follower_id_fkey(avatar_url)', { count: 'exact' }).eq('following_id', userId).limit(5) : Promise.resolve({ data: [], count: 0 } as any),
-        supabase.from('profiles').select('id, full_name, display_name, username, avatar_url, location, streak_days, win_rate, total_trades, created_at').neq('id', userId).order('created_at', { ascending: false }).limit(15),
-        supabase.from('profiles').select('id, full_name, display_name, username, avatar_url, location, streak_days, win_rate, total_trades').order('streak_days', { ascending: false, nullsFirst: false }).limit(3),
-        supabase.from('profiles').select('id, full_name, display_name, username, avatar_url, location, streak_days, win_rate, total_trades').order('win_rate', { ascending: false, nullsFirst: false }).limit(3)
+        supabase.from('profiles').select('id, full_name, display_name, first_name, last_name, username, avatar_url, location, streak_days, win_rate, total_trades, created_at, is_pro, trading_style').neq('id', userId).order('created_at', { ascending: false }).limit(25),
+        supabase.from('profiles').select('id, full_name, display_name, first_name, last_name, username, avatar_url, location, streak_days, win_rate, total_trades').order('streak_days', { ascending: false, nullsFirst: false }).limit(3),
+        supabase.from('profiles').select('id, full_name, display_name, first_name, last_name, username, avatar_url, location, streak_days, win_rate, total_trades').order('win_rate', { ascending: false, nullsFirst: false }).limit(3)
       ]);
+
+      // Fetch Profile Visitors (who viewed current user's profile)
+      let resolvedViews: ProfileViewEvent[] = [];
+      let extraVisitorProfiles: ProfileShort[] = [];
+      if (userId) {
+        try {
+          const { data: viewNotifs } = await supabase
+            .from('notifications')
+            .select('*')
+            .eq('user_id', userId)
+            .eq('type', 'profile_view')
+            .order('created_at', { ascending: false })
+            .limit(15);
+          if (viewNotifs && viewNotifs.length > 0) {
+            viewNotifs.forEach((n: any) => {
+              const vId = n.metadata?.viewer_id;
+              if (vId && vId !== userId && !resolvedViews.some(rv => rv.viewer_id === vId)) {
+                resolvedViews.push({ viewer_id: vId, viewed_at: n.created_at || new Date().toISOString() });
+              }
+            });
+          }
+        } catch (_) {}
+
+        // Combine with localStorage instant local visitor entries
+        try {
+          const localViews = JSON.parse(localStorage.getItem(`tradifive_profile_views_${userId}`) || '[]');
+          if (Array.isArray(localViews)) {
+            localViews.forEach((lv: any) => {
+              if (lv.viewer_id && lv.viewer_id !== userId && !resolvedViews.some(rv => rv.viewer_id === lv.viewer_id)) {
+                resolvedViews.push({ viewer_id: lv.viewer_id, viewed_at: lv.viewed_at || new Date().toISOString() });
+              }
+            });
+          }
+        } catch (_) {}
+
+        // If any visitor profile is not present in sugData, fetch them directly
+        const existingIds = new Set((sugData || []).map((p: any) => p.id));
+        const missingViewerIds = resolvedViews.map(v => v.viewer_id).filter(vId => !existingIds.has(vId));
+        if (missingViewerIds.length > 0) {
+          try {
+            const { data: vProfs } = await supabase
+              .from('profiles')
+              .select('id, full_name, display_name, first_name, last_name, username, avatar_url, location, streak_days, win_rate, total_trades, created_at, is_pro, trading_style')
+              .in('id', missingViewerIds);
+            if (vProfs && vProfs.length > 0) {
+              extraVisitorProfiles = vProfs as ProfileShort[];
+            }
+          } catch (_) {}
+        }
+      }
+
+      setProfileViews(resolvedViews);
+      localStorage.setItem('home_cache_profile_views', JSON.stringify(resolvedViews));
 
       // Batch enrich posts with profiles to avoid missing foreign key relation errors
       let feedData: any[] = [];
@@ -128,8 +191,9 @@ export function useHomeData(userId: string) {
       setFollowers(newFollowers);
       localStorage.setItem('home_cache_followers', JSON.stringify(newFollowers));
 
-      setSuggestions((sugData as ProfileShort[]) || []);
-      localStorage.setItem('home_cache_suggestions', JSON.stringify(sugData || []));
+      const combinedSuggestions = [...extraVisitorProfiles, ...((sugData as ProfileShort[]) || [])];
+      setSuggestions(combinedSuggestions);
+      localStorage.setItem('home_cache_suggestions', JSON.stringify(combinedSuggestions));
 
       setWinningStreaks((streakData as ProfileShort[]) || []);
       localStorage.setItem('home_cache_winningStreaks', JSON.stringify(streakData || []));
@@ -666,6 +730,7 @@ export function useHomeData(userId: string) {
     calendar,
     followers,
     suggestions,
+    profileViews,
     winningStreaks,
     topDisciplined,
     loading,
