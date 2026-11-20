@@ -109,7 +109,7 @@ const INITIAL_ACHIEVEMENTS: Achievement[] = [
   { id: "mentor_share", category: "habit", title: "Ecosystem Builder", description: "Refer 2 active verified Forex traders who connect MT5 accounts.", icon: "👥", xpReward: 1000, currentProgress: 2, maxProgress: 2, isUnlocked: true, unlockedDate: "Nov 15, 2026" },
 ];
 
-const CURVE_DATA = {
+const CURVE_DATA: Record<string, { date: string; score: number; label: string }[]> = {
   "7D": [
     { date: "Nov 14", score: 91, label: "London Open" },
     { date: "Nov 15", score: 94, label: "NY Reversal" },
@@ -129,6 +129,16 @@ const CURVE_DATA = {
     { date: "Nov 17", score: 88, label: "FOMC Cooldown" },
     { date: "Nov 18", score: 95, label: "Asian Scalp" },
     { date: "Nov 19", score: 94, label: "London Trend" },
+    { date: "Nov 20", score: 96, label: "NY Overlap" },
+  ],
+  "30D": [
+    { date: "Oct 25", score: 78, label: "Initial Phase" },
+    { date: "Oct 29", score: 81, label: "Range Scalp" },
+    { date: "Nov 2",  score: 83, label: "SL Calibration" },
+    { date: "Nov 6",  score: 86, label: "Discipline Check" },
+    { date: "Nov 10", score: 89, label: "Trend Continuation" },
+    { date: "Nov 14", score: 91, label: "London Open" },
+    { date: "Nov 17", score: 88, label: "FOMC Cooldown" },
     { date: "Nov 20", score: 96, label: "NY Overlap" },
   ],
   "All": [
@@ -328,7 +338,7 @@ export default function Rewards() {
   const initialTab = (searchParams.get("tab") as "discipline" | "streak" | "achievements" | "vault") || "discipline";
 
   const [activeTab, setActiveTab] = useState<"discipline" | "streak" | "achievements" | "vault">(initialTab);
-  const [chartTimeframe, setChartTimeframe] = useState<"7D" | "14D" | "All">("14D");
+  const [chartTimeframe, setChartTimeframe] = useState<"7D" | "14D" | "30D" | "All">("14D");
   const [chartView, setChartView] = useState<"curve" | "activity">("curve");
   const [gamState, setGamState] = useState<GamificationState>(getGamificationState);
   const [disciplineState, setDisciplineState] = useState<ForexDisciplineState>(getForexDisciplineState);
@@ -492,95 +502,59 @@ export default function Rewards() {
           </div>
 
           <div className="flex items-center gap-2.5 shrink-0">
-            <div className="hidden sm:flex items-center gap-3 bg-white dark:bg-[#17171A] rounded-full pl-3.5 pr-1.5 py-1.5 border border-slate-200/75 dark:border-white/[0.08] shadow-[0_2px_10px_rgba(15,23,42,0.04)] dark:shadow-none">
-              <div className="flex items-center gap-2 text-[12px]">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-                <span className="font-semibold text-slate-800 dark:text-slate-100 whitespace-nowrap">
-                  MT5 Server · Live
-                </span>
-                <span className="text-slate-400 dark:text-neutral-500 tabular-nums whitespace-nowrap">
-                  · Streak <span className="font-bold text-orange-500">{streakCount}d</span>
-                </span>
-              </div>
-              <div className="h-4 w-px bg-slate-200/80 dark:bg-white/10" />
-              <button
-                type="button"
-                onClick={handleWrapUpSession}
-                className="tactile-black-pill rounded-full px-3 py-1 text-[11.5px] font-semibold cursor-pointer whitespace-nowrap flex items-center gap-1.5"
-              >
-                <span>🏁</span>
-                <span>{disciplineState.isSessionWrapped ? "Session Wrapped" : "Wrap Session"}</span>
-              </button>
+            <div className="hidden sm:flex items-center gap-2.5 bg-white dark:bg-[#17171A] rounded-full px-3.5 py-1.5 border border-slate-200/75 dark:border-white/[0.08] shadow-[0_2px_10px_rgba(15,23,42,0.04)] dark:shadow-none text-[12px]">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+              <span className="font-semibold text-slate-800 dark:text-slate-100 whitespace-nowrap">
+                MT5 Server · Live
+              </span>
+              <span className="text-slate-400 dark:text-neutral-500 tabular-nums whitespace-nowrap">
+                · Streak <span className="font-bold text-orange-500">{streakCount}d</span>
+              </span>
             </div>
           </div>
         </div>
 
         {/* ══════════════════════════════════════════════════════════
-            2. HERO BENTO: Open Discipline Hero (Left) + 3-Stat Cards & Plan Banner (Right)
+            2. HERO BENTO: Forex Discipline Score (Left) + Discipline & Consistency Curve (Right)
         ══════════════════════════════════════════════════════════ */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 items-stretch">
 
-          {/* LEFT HERO CARD: Discipline Score + Arc Ring + User Identity */}
-          <div className={`lg:col-span-6 ${CARD} p-5 flex flex-col justify-between gap-4`}>
-            {/* Top Bar: Timeframe Range Pills + Live Badge */}
-            <div className="flex items-center justify-between gap-2">
-              <div className="inline-flex items-center p-0.5 rounded-[10px] bg-slate-200/70 dark:bg-white/[0.07]">
-                {(["All", "1D", "7D", "1M"] as const).map((tab) => {
-                  const active = rangeTab === tab;
-                  return (
-                    <button
-                      key={tab}
-                      type="button"
-                      onClick={() => setRangeTab(tab)}
-                      className={`relative px-2.5 py-1 rounded-[8px] text-[11.5px] font-semibold transition-colors cursor-pointer ${
-                        active
-                          ? "text-slate-900 dark:text-white"
-                          : "text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-white"
-                      }`}
-                    >
-                      {active && (
-                        <motion.span
-                          layoutId="rewards-range-pill"
-                          transition={{ type: "spring", stiffness: 480, damping: 34 }}
-                          className="absolute inset-0 bg-white dark:bg-[#26262B] rounded-[8px] shadow-[0_1px_4px_rgba(15,23,42,0.09)]"
-                        />
-                      )}
-                      <span className="relative z-10">{tab}</span>
-                    </button>
-                  );
-                })}
-              </div>
-
-              <span className="text-[10px] font-semibold text-[#2563EB] dark:text-blue-400 bg-blue-50 dark:bg-blue-500/15 border border-blue-200/60 dark:border-blue-500/20 px-2.5 py-0.5 rounded-full">
-                GRADE {disciplineState.grade} · Top 4%
+          {/* LEFT HERO CARD: Forex Discipline Score + Arc Gauge + Insight + User Row + Session Button */}
+          <div className={`lg:col-span-6 ${CARD} p-4 sm:p-5 flex flex-col justify-between gap-3.5`}>
+            {/* Top Bar: FOREX DISCIPLINE SCORE + LIVE pill + More options */}
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold tracking-wider uppercase text-slate-400 dark:text-neutral-500">
+                FOREX DISCIPLINE SCORE
               </span>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold text-[#2563EB] dark:text-blue-400 bg-blue-50 dark:bg-blue-500/15 border border-blue-200/60 dark:border-blue-500/20 px-2 py-0.5 rounded-full tracking-wide">
+                  LIVE
+                </span>
+                <MoreHorizontal size={14} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer" />
+              </div>
             </div>
 
-            {/* Score Number + Semicircle Arc Gauge */}
-            <div className="flex items-center justify-between gap-4">
+            {/* Semicircle Arc Gauge (centered) with 96/100 and dot needle */}
+            <div className="flex flex-col items-center justify-center -my-1">
+              <DisciplineArcGauge score={disciplineState.score} grade={disciplineState.grade} />
+            </div>
+
+            {/* Insight Card: Excellent Discipline, Needs Refinement */}
+            <div className={`${INNER_BOX} p-3 sm:p-3.5 flex items-start gap-3`}>
+              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center shrink-0 text-xs shadow-xs shadow-blue-500/20">
+                ✦
+              </div>
               <div className="min-w-0">
-                <p className="text-[11.5px] font-semibold text-slate-400 dark:text-neutral-500">
-                  Forex Discipline Rating · All time
+                <p className="text-[12.5px] font-bold text-slate-900 dark:text-white leading-tight">
+                  Excellent Discipline, Needs Refinement
                 </p>
-                <div className="mt-1 text-[38px] sm:text-[44px] font-bold tracking-tight leading-none tabular-nums text-[#2563EB] dark:text-blue-400">
-                  <AnimatedNumber
-                    value={disciplineState.score}
-                    duration={1000}
-                    delay={80}
-                    format={(v) => `${Math.round(v)}/100`}
-                  />
-                </div>
-                <p className="text-[11.5px] text-slate-500 dark:text-neutral-400 mt-1">
-                  16 closed MT5 sessions · 0 revenge violations
+                <p className="text-[11px] text-slate-500 dark:text-neutral-400 mt-0.5 leading-snug">
+                  Psychology score is rising. Tighten lot sizing &amp; maintain streak for Grade S.
                 </p>
-              </div>
-
-              <div className="shrink-0 flex items-center justify-center">
-                <DisciplineArcGauge score={disciplineState.score} grade={disciplineState.grade} />
               </div>
             </div>
 
-            {/* User identity & Level row */}
+            {/* User Profile Card: Avatar, Name, Level, and Streak */}
             <div className={`${INNER_BOX} p-3 flex items-center justify-between gap-3`}>
               <div className="flex items-center gap-2.5 min-w-0">
                 {userAvatar ? (
@@ -614,115 +588,101 @@ export default function Rewards() {
                 </span>
               </div>
             </div>
-          </div>
 
-          {/* RIGHT 3 STAT CARDS + PRE-MARKET RISK BANNER */}
-          <div className="lg:col-span-6 flex flex-col justify-between gap-3">
-            {/* 3 Telemetry Cards */}
-            <div className="grid grid-cols-3 gap-2.5 sm:gap-3 flex-1">
-              {/* Card 1: Trading Streak */}
-              <div className={`${CARD} p-3.5 sm:p-4 flex flex-col justify-between`}>
-                <div className="flex items-center justify-between text-[11px] font-semibold text-slate-400 dark:text-neutral-500">
-                  <span>Trading Streak</span>
-                  <Flame size={13} className="text-orange-500 fill-orange-500" />
-                </div>
-                <div className="my-1 text-[20px] sm:text-[23px] font-bold text-slate-900 dark:text-white tabular-nums tracking-tight">
-                  {streakCount} Days
-                </div>
-                <span className="text-[10.5px] text-slate-400 dark:text-neutral-500 truncate">
-                  Next: 21-Day Gold Shield
-                </span>
-              </div>
-
-              {/* Card 2: Trader Rank */}
-              <div className={`${CARD} p-3.5 sm:p-4 flex flex-col justify-between`}>
-                <div className="flex items-center justify-between text-[11px] font-semibold text-slate-400 dark:text-neutral-500">
-                  <span>Trader Rank</span>
-                  <Star size={13} className="text-violet-500" />
-                </div>
-                <div className="my-1 text-[20px] sm:text-[23px] font-bold text-slate-900 dark:text-white tabular-nums tracking-tight">
-                  Level {userLevel}
-                </div>
-                <div className="space-y-1">
-                  <div className="w-full bg-slate-200/70 dark:bg-white/10 h-1 rounded-full overflow-hidden">
-                    <div className="bg-[#2563EB] h-full rounded-full transition-all" style={{ width: `${levelProgressPct}%` }} />
-                  </div>
-                  <span className="text-[10px] text-slate-400 dark:text-neutral-500 block truncate">
-                    {userXpRequired - userXp} XP to Level {userLevel + 1}
-                  </span>
-                </div>
-              </div>
-
-              {/* Card 3: TradiCoins */}
-              <div className={`${CARD} p-3.5 sm:p-4 flex flex-col justify-between`}>
-                <div className="flex items-center justify-between text-[11px] font-semibold text-slate-400 dark:text-neutral-500">
-                  <span>TradiCoins</span>
-                  <Coins size={13} className="text-amber-500" />
-                </div>
-                <div className="my-1 text-[20px] sm:text-[23px] font-bold text-slate-900 dark:text-white tabular-nums tracking-tight">
-                  {(gamState.bounty_balance || 150).toLocaleString()} 🪙
-                </div>
-                <span
-                  onClick={() => setActiveTab("vault")}
-                  className="text-[10.5px] text-[#2563EB] dark:text-blue-400 font-semibold cursor-pointer hover:underline truncate block"
-                >
-                  Redeem Perks →
-                </span>
-              </div>
-            </div>
-
-            {/* Pre-Market Risk Plan Prompt Banner (matches Dashboard blue banner!) */}
-            <div className={`${CARD} px-4 py-3 flex items-center justify-between gap-3 bg-gradient-to-r from-blue-50/60 to-indigo-50/60 dark:from-blue-950/20 dark:to-indigo-950/20 border-blue-200/60 dark:border-blue-500/20`}>
-              <div className="flex items-center gap-2 text-[12px] font-medium text-slate-700 dark:text-slate-200 min-w-0">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#2563EB] animate-pulse shrink-0" />
-                <span className="truncate">
-                  <strong className="text-slate-900 dark:text-white font-bold">Start today's pre-market plan:</strong> Strict 1% risk limit &amp; mandatory Stop-Loss verified.
-                </span>
-              </div>
+            {/* Session Wrapped / Wrap Session Button */}
+            <div className="space-y-1">
               <button
                 type="button"
+                disabled={isWrapping || disciplineState.isSessionWrapped}
                 onClick={handleWrapUpSession}
-                className="text-[11.5px] font-bold text-[#2563EB] dark:text-blue-400 hover:underline flex items-center gap-1 shrink-0 cursor-pointer"
+                className={`w-full py-2.5 rounded-[12px] text-[12px] font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                  disciplineState.isSessionWrapped
+                    ? "bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-neutral-400 cursor-default border border-slate-200/60 dark:border-white/5"
+                    : "tactile-black-pill hover:scale-[1.008] shadow-xs active:scale-[0.99]"
+                }`}
               >
-                {disciplineState.isSessionWrapped ? "Session Wrapped ✅" : "Wrap Session →"}
+                {disciplineState.isSessionWrapped ? (
+                  <>
+                    <CheckCircle2 size={14} className="text-emerald-500" />
+                    <span>Session Finalized for Today</span>
+                  </>
+                ) : (
+                  <>
+                    <span>🏁</span>
+                    <span>Wrap Up Today's Session</span>
+                  </>
+                )}
               </button>
+              <p className="text-center text-[10px] text-slate-400 dark:text-neutral-500 font-medium">
+                Forex runs 24/5 Mon–Fri · Auto-locks at 00:00 MT5
+              </p>
             </div>
           </div>
-        </div>
 
-        {/* ══════════════════════════════════════════════════════════
-            3. 3-GRAPH ANALYTICS BAND (Matching Dashboard Exactly)
-               Graph 1: Cumulative Discipline Curve
-               Graph 2: Activity & Volume Breakdown (TrafficCard)
-               Graph 3: TRADIFIVE SCORE 5-Axis Radar
-        ══════════════════════════════════════════════════════════ */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 lg:gap-6 items-stretch">
-
-          {/* Graph 1: Cumulative Discipline Curve */}
-          <div className={`${CARD} p-4 sm:p-5 flex flex-col justify-between gap-3`}>
+          {/* RIGHT HERO CARD: Discipline & Consistency Curve */}
+          <div className={`lg:col-span-6 ${CARD} p-4 sm:p-5 flex flex-col justify-between gap-3`}>
+            {/* Header: Title + Timeframe Pills */}
             <div className="flex items-start justify-between gap-2">
               <div>
                 <div className="flex items-center gap-1.5">
                   <TrendingUp size={14} className="text-[#2563EB] dark:text-blue-400" />
                   <h3 className="text-[13px] font-bold text-slate-900 dark:text-white tracking-tight">
-                    Cumulative Discipline
+                    Discipline &amp; Consistency Curve
                   </h3>
                 </div>
                 <p className="text-[11px] text-slate-400 dark:text-neutral-500 mt-0.5">
-                  Closed trade equity curve · All time
+                  Psychology equity curve across your Forex sessions
                 </p>
               </div>
 
-              <div className="text-right">
-                <span className="text-[15px] font-bold text-[#2563EB] dark:text-blue-400 tabular-nums">
+              {/* Timeframe selector */}
+              <div className="inline-flex items-center p-0.5 rounded-[8px] bg-slate-200/70 dark:bg-white/[0.07]">
+                {(["7D", "14D", "30D", "All"] as const).map((tab) => {
+                  const active = chartTimeframe === tab;
+                  return (
+                    <button
+                      key={tab}
+                      type="button"
+                      onClick={() => setChartTimeframe(tab)}
+                      className={`relative px-2 py-0.5 rounded-[6px] text-[11px] font-semibold transition-colors cursor-pointer ${
+                        active
+                          ? "text-slate-900 dark:text-white"
+                          : "text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-white"
+                      }`}
+                    >
+                      {active && (
+                        <motion.span
+                          layoutId="rewards-curve-pill"
+                          transition={{ type: "spring", stiffness: 480, damping: 34 }}
+                          className="absolute inset-0 bg-white dark:bg-[#26262B] rounded-[6px] shadow-[0_1px_3px_rgba(15,23,42,0.08)]"
+                        />
+                      )}
+                      <span className="relative z-10">{tab}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Headline Score & Coins */}
+            <div className="flex items-center justify-between gap-2 pt-1">
+              <div className="flex items-baseline gap-2">
+                <span className="text-[28px] sm:text-[32px] font-bold text-slate-900 dark:text-white tabular-nums tracking-tight leading-none">
                   +96.0%
                 </span>
-                <span className="text-[10px] text-slate-400 block font-medium">SCORE</span>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-500/20">
+                  <ArrowUpRight size={11} /> +4.8% this week
+                </span>
+              </div>
+
+              <div className="flex items-center gap-1.5 text-[12px] font-bold text-slate-700 dark:text-slate-200 bg-slate-100/70 dark:bg-white/[0.05] px-2.5 py-1 rounded-full">
+                <span>🪙</span>
+                <span>{(gamState.bounty_balance || 150).toLocaleString()} Coins</span>
               </div>
             </div>
 
             {/* Recharts Area Chart */}
-            <div className="w-full h-[155px]">
+            <div className="w-full h-[145px] sm:h-[155px]">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
                   data={CURVE_DATA[chartTimeframe] || CURVE_DATA["14D"]}
@@ -730,7 +690,7 @@ export default function Rewards() {
                 >
                   <defs>
                     <linearGradient id="areaFillRewards" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#2563EB" stopOpacity={0.18} />
+                      <stop offset="0%" stopColor="#2563EB" stopOpacity={0.22} />
                       <stop offset="100%" stopColor="#2563EB" stopOpacity={0.0} />
                     </linearGradient>
                   </defs>
@@ -785,28 +745,109 @@ export default function Rewards() {
               </ResponsiveContainer>
             </div>
 
-            {/* Footer metrics */}
-            <div className="flex items-center justify-between text-[11px] pt-1 border-t border-slate-100 dark:border-white/[0.05]">
-              <span className="font-semibold text-emerald-600 dark:text-emerald-400">
-                Stop Loss: 100% Verified
-              </span>
-              <span className="text-slate-400 dark:text-neutral-500 font-medium tabular-nums">
-                16 closed sessions
+            {/* 4 Telemetry Stats */}
+            <div className="grid grid-cols-4 gap-2 pt-2 border-t border-slate-100 dark:border-white/[0.05] text-center">
+              <div>
+                <div className="text-[9.5px] font-semibold uppercase tracking-wider text-slate-400">STOP LOSS</div>
+                <div className="text-[12px] font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">100% Verified</div>
+              </div>
+              <div>
+                <div className="text-[9.5px] font-semibold uppercase tracking-wider text-slate-400">AVG R:R</div>
+                <div className="text-[12px] font-bold text-slate-900 dark:text-white mt-0.5">1 : 2.4</div>
+              </div>
+              <div>
+                <div className="text-[9.5px] font-semibold uppercase tracking-wider text-slate-400">VIOLATIONS</div>
+                <div className="text-[12px] font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">0 Violations</div>
+              </div>
+              <div>
+                <div className="text-[9.5px] font-semibold uppercase tracking-wider text-slate-400">TOTAL XP</div>
+                <div className="text-[12px] font-bold text-[#2563EB] dark:text-blue-400 mt-0.5">+170 XP</div>
+              </div>
+            </div>
+
+            {/* Bottom alert pill */}
+            <div className={`${INNER_BOX} px-3 py-2 flex items-center gap-2 text-[11px] text-slate-600 dark:text-neutral-300`}>
+              <span>🔥</span>
+              <span className="truncate">
+                Your trading psychology trended up <strong className="text-emerald-600 dark:text-emerald-400 font-semibold">+4.8% this week</strong> with <strong className="text-emerald-600 dark:text-emerald-400 font-semibold">0 revenge violations</strong>.
               </span>
             </div>
           </div>
+        </div>
 
-          {/* Graph 2: Activity & Volume Breakdown (TrafficCard) */}
+        {/* ══════════════════════════════════════════════════════════
+            3. COMPACT TELEMETRY CARDS (Trading Streak, Trader Rank, TradiCoins)
+        ══════════════════════════════════════════════════════════ */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {/* Card 1: Trading Streak */}
+          <div className={`${CARD} p-3.5 flex flex-col justify-between h-[96px]`}>
+            <div className="flex items-center justify-between text-[11px] font-semibold text-slate-400 dark:text-neutral-500">
+              <span>Trading Streak</span>
+              <Flame size={13} className="text-orange-500 fill-orange-500" />
+            </div>
+            <div className="text-[22px] font-bold text-slate-900 dark:text-white tabular-nums tracking-tight leading-none">
+              {streakCount} Days
+            </div>
+            <div className="flex items-center justify-between text-[10.5px] text-slate-400 dark:text-neutral-500">
+              <span>Active Streak</span>
+              <span className="font-semibold text-orange-500">21-Day Gold Shield →</span>
+            </div>
+          </div>
+
+          {/* Card 2: Trader Rank */}
+          <div className={`${CARD} p-3.5 flex flex-col justify-between h-[96px]`}>
+            <div className="flex items-center justify-between text-[11px] font-semibold text-slate-400 dark:text-neutral-500">
+              <span>Trader Rank</span>
+              <Star size={13} className="text-violet-500" />
+            </div>
+            <div className="text-[22px] font-bold text-slate-900 dark:text-white tabular-nums tracking-tight leading-none">
+              Level {userLevel} Pro
+            </div>
+            <div className="space-y-1">
+              <div className="w-full bg-slate-200/70 dark:bg-white/10 h-1 rounded-full overflow-hidden">
+                <div className="bg-[#2563EB] h-full rounded-full transition-all" style={{ width: `${levelProgressPct}%` }} />
+              </div>
+              <div className="flex items-center justify-between text-[10px] text-slate-400 dark:text-neutral-500">
+                <span>Tier {userLevel}</span>
+                <span className="tabular-nums">{userXpRequired - userXp} XP to Lv {userLevel + 1}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 3: TradiCoins Vault */}
+          <div className={`${CARD} p-3.5 flex flex-col justify-between h-[96px]`}>
+            <div className="flex items-center justify-between text-[11px] font-semibold text-slate-400 dark:text-neutral-500">
+              <span>TradiCoins Vault</span>
+              <Coins size={13} className="text-amber-500" />
+            </div>
+            <div className="text-[22px] font-bold text-slate-900 dark:text-white tabular-nums tracking-tight leading-none">
+              {(gamState.bounty_balance || 150).toLocaleString()} <span className="text-[17px]">🪙</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setActiveTab("vault")}
+              className="text-left text-[10.5px] text-[#2563EB] dark:text-blue-400 font-semibold cursor-pointer hover:underline block"
+            >
+              Redeem Perks &amp; Store →
+            </button>
+          </div>
+        </div>
+
+        {/* ══════════════════════════════════════════════════════════
+            4. DEEP ANALYTICS: TrafficCard + TRADIFIVE SCORE 5-Axis Radar
+        ══════════════════════════════════════════════════════════ */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 items-stretch">
+          {/* Card 1: TrafficCard Activity & Volume Breakdown */}
           <div className={`${CARD} p-4 sm:p-5 flex flex-col justify-between gap-2`}>
             <TrafficCard
               ranges={TRAFFIC_RANGES}
               channels={TRAFFIC_CHANNELS}
-              defaultRange={chartTimeframe}
+              defaultRange={chartTimeframe === "30D" ? "All" : chartTimeframe}
               onRangeChange={(id) => setChartTimeframe(id as "7D" | "14D" | "All")}
               title="Activity Breakdown"
               unit="pts"
               format={(n) => (n >= 1000 ? `${(n / 1000).toFixed(1)}K` : String(Math.round(n)))}
-              height={140}
+              height={150}
               animated
               className="border-0 shadow-none p-0 ring-0 !rounded-none"
             />
@@ -818,32 +859,9 @@ export default function Rewards() {
             </div>
           </div>
 
-          {/* Graph 3: TRADIFIVE SCORE 5-Axis Radar */}
+          {/* Card 2: TRADIFIVE SCORE 5-Axis Radar (Native Frameless, NO DUPLICATE HEADER) */}
           <div className={`${CARD} p-4 sm:p-5 flex flex-col justify-between gap-2 overflow-hidden`}>
-            <div className="flex items-start justify-between">
-              <div>
-                <h3 className="text-[13px] font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-1.5">
-                  <span>TRADIFIVE SCORE</span>
-                  <Info size={12} className="text-slate-400" />
-                </h3>
-                <p className="text-[11px] text-slate-400 dark:text-neutral-500">
-                  All time: 16 closed trades
-                </p>
-              </div>
-
-              <div className="text-right">
-                <span className="text-[26px] font-bold text-slate-900 dark:text-white tabular-nums leading-none">
-                  92
-                </span>
-                <span className="text-[10px] text-emerald-500 font-semibold block">
-                  Grade A+ · Top 4%
-                </span>
-              </div>
-            </div>
-
-            <div className="w-full flex items-center justify-center -my-2 overflow-hidden">
-              <ChartRadarDefault demoTrades={demoData.allTrades} frameless />
-            </div>
+            <ChartRadarDefault demoTrades={demoData.allTrades} frameless />
           </div>
         </div>
 
