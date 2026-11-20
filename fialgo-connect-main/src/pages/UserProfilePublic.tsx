@@ -1092,7 +1092,7 @@ export default function UserProfilePublic() {
                               : "tactile-black-pill"
                           }`}
                         >
-                          {followedUsers[profile?.id] ? <><UserCheck size={13} strokeWidth={2.4} className="text-emerald-500" /> Following</> : (hasRequested ? <><Clock size={13} strokeWidth={2.4} /> Requested</> : <><UserPlus size={13} strokeWidth={2.4} /> Follow</>)}
+                          {followedUsers[profile?.id] ? <><UserCheck size={13} strokeWidth={2.4} className="text-emerald-500" /> Following</> : (hasRequested ? <><Clock size={13} strokeWidth={2.4} /> Requested</> : "Follow")}
                         </button>
 
                         {/* Message button */}

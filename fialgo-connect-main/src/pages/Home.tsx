@@ -1392,23 +1392,13 @@ export default function Home() {
                         <button
                             type="button"
                             onClick={() => toggleFollowUser(sug.id, displayName)}
-                            className={`h-7 px-3.5 rounded-full text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-all shrink-0 select-none ${
+                            className={`h-[29px] px-4 rounded-full text-[12px] font-bold flex items-center justify-center cursor-pointer transition-all shrink-0 select-none ${
                                 followedUsers[sug.id]
-                                    ? "bg-slate-100 hover:bg-slate-200/80 dark:bg-white/10 dark:hover:bg-white/15 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-white/10"
-                                    : "bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 shadow-sm active:scale-95"
+                                    ? "tactile-white-pill text-emerald-600 dark:text-emerald-400"
+                                    : "tactile-black-pill"
                             }`}
                         >
-                            {followedUsers[sug.id] ? (
-                                <>
-                                    <Check size={11} strokeWidth={2.6} className="text-emerald-500" />
-                                    <span>Following</span>
-                                </>
-                            ) : (
-                                <>
-                                    <UserPlus size={11} strokeWidth={2.4} />
-                                    <span>Follow</span>
-                                </>
-                            )}
+                            {followedUsers[sug.id] ? "Following" : "Follow"}
                         </button>
 
                         <button
