@@ -206,6 +206,7 @@ export default function Discover() {
     });
     const [addedUsers, setAddedUsers] = useState<string[]>([]);
     const [joinedChannels, setJoinedChannels] = useState<string[]>([]);
+    const [followDeltas, setFollowDeltas] = useState<Record<string, number>>({});
     const [showInlineNotifications, setShowInlineNotifications] = useState(false);
     const [savedTraders, setSavedTraders] = useState<string[]>(() => {
         try {
@@ -484,10 +485,44 @@ export default function Discover() {
     const handleAddUser = async (e: React.MouseEvent, id: string) => {
         e.preventDefault();
         e.stopPropagation();
-        if (!addedUsers.includes(id)) {
+        if (!user?.id) {
+            toast.error("Please log in to follow traders");
+            return;
+        }
+
+        const isCurrentlyFollowing = addedUsers.includes(id);
+
+        if (isCurrentlyFollowing) {
+            // Unfollow
+            setAddedUsers(prev => prev.filter(uId => uId !== id));
+            setFollowDeltas(prev => ({
+                ...prev,
+                [id]: (prev[id] || 0) - 1,
+            }));
+            const { error } = await supabase
+                .from('social_follows')
+                .delete()
+                .eq('follower_id', user.id)
+                .eq('following_id', id);
+            if (error) {
+                console.error("Unfollow error:", error);
+            } else {
+                toast.info("Unfollowed trader");
+            }
+        } else {
+            // Follow
             setAddedUsers(prev => [...prev, id]);
-            if (user?.id) {
-                await supabase.from('social_follows').insert([{ follower_id: user.id, following_id: id }]);
+            setFollowDeltas(prev => ({
+                ...prev,
+                [id]: (prev[id] || 0) + 1,
+            }));
+            const { error } = await supabase
+                .from('social_follows')
+                .insert([{ follower_id: user.id, following_id: id }]);
+            if (error) {
+                console.error("Follow error:", error);
+            } else {
+                toast.success("Following trader");
             }
         }
     };
@@ -588,15 +623,12 @@ export default function Discover() {
             const rawRoi = p.roi_all_time;
             const hasRealStats = Boolean((rawWinRate && rawWinRate > 0) || (rawRoi !== null && rawRoi !== undefined && rawRoi !== 0));
 
-            // Community social stats: Following & Followers (formatted cleanly)
-            const rawFollowers = (p as any).followers_count ?? (p as any).follower_count;
-            const rawFollowing = (p as any).following_count;
-            const followersCount = rawFollowers !== undefined && rawFollowers !== null
-                ? Number(rawFollowers)
-                : (p.is_pro ? (1200 + (charCodeSum * 31) % 4500) : (45 + (charCodeSum * 17) % 380));
-            const followingCount = rawFollowing !== undefined && rawFollowing !== null
-                ? Number(rawFollowing)
-                : (12 + (charCodeSum * 7) % 180);
+            // Community social stats: Following & Followers (real DB counts from social_follows)
+            const baseFollowers = Number((p as any).followers_count ?? 0);
+            const baseFollowing = Number((p as any).following_count ?? 0);
+            const delta = followDeltas[p.id] || 0;
+            const followersCount = Math.max(0, baseFollowers + delta);
+            const followingCount = Math.max(0, baseFollowing);
 
             const formatStatNum = (n: number) => {
                 if (n >= 1000) return `${(n / 1000).toFixed(1).replace(/\.0$/, '')}K`;
@@ -656,7 +688,7 @@ export default function Discover() {
                 memberCount: 0,
                 mutual: (charCodeSum * 7) % 15
             };
-        }), [people]);
+        }), [people, followDeltas]);
 
     function DiscoverSkeleton() {
         return (
@@ -1380,7 +1412,6 @@ export default function Discover() {
                                                     <FollowButton
                                                         isFollowing={addedUsers.includes(mentor.id)}
                                                         onToggleFollow={(e) => handleAddUser(e, mentor.id)}
-                                                        disabled={addedUsers.includes(mentor.id)}
                                                         className="relative z-30"
                                                     />
                                                 </div>

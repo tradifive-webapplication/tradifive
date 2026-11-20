@@ -10,6 +10,7 @@ import { addXP } from "@/utils/gamification";
 import { supabase } from "@/lib/supabase";
 import ReactMarkdown from "react-markdown";
 import { UserHoverCard } from "@/components/UserHoverCard";
+import PostActionBar from "@/components/PostActionBar";
 
 import {
   Chat as IconlyChat,
@@ -1131,139 +1132,21 @@ function FeedCard({
 
 
 
-                    {/* Cute Curved Iconly 6-Action Row: Comment, Repost, Like, Bookmark, Views, Share */}
-                    <div className="flex items-center justify-between pt-2.5 text-slate-500 dark:text-neutral-400">
-                        {/* Comment — navigates to /post/:postId keeping upper & bottom navigation intact */}
-                        <button
-                            type="button"
-                            onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                navigate(`/post/${feed.id}`, {
-                                    state: {
-                                        post: feed,
-                                        currentUserId,
-                                        isLiked,
-                                        likes,
-                                        isReposted,
-                                        repostCount: localRepostCount,
-                                        viewCount: localViewCount,
-                                        isBookmarked,
-                                        isFollowing: Boolean(authorId && followedUsers[authorId]),
-                                    },
-                                });
-                            }}
-                            className="flex items-center gap-1.5 transition-colors group cursor-pointer p-1.5 -ml-1.5 rounded-full hover:text-[#2563EB] dark:hover:text-blue-400"
-                            title="Reply"
-                        >
-                            <span className="inline-flex transition-transform duration-150 group-hover:scale-110 group-active:scale-90">
-                                <IconlyChat set="curved" stroke="bold" primaryColor="currentColor" size={19} />
-                            </span>
-                            {localCommentsCount > 0 && (
-                                <span className="text-[12.5px] font-medium tabular-nums">
-                                    <AnimatedCounter value={localCommentsCount} />
-                                </span>
-                            )}
-                        </button>
-
-                        {/* Repost */}
-                        <button
-                            type="button"
-                            onClick={handleRepost}
-                            className={`flex items-center gap-1.5 transition-colors group cursor-pointer p-1.5 rounded-full ${
-                                isReposted ? "text-emerald-500" : "hover:text-emerald-500"
-                            }`}
-                            title={isReposted ? "Undo Repost" : "Repost"}
-                        >
-                            <span className="inline-flex transition-transform duration-200 group-hover:scale-110 group-active:scale-90">
-                                <IconlySwap set="curved" stroke="bold" primaryColor="currentColor" size={19} />
-                            </span>
-                            {localRepostCount > 0 && (
-                                <span className="text-[12.5px] font-medium tabular-nums">
-                                    <AnimatedCounter value={localRepostCount} />
-                                </span>
-                            )}
-                        </button>
-
-                        {/* Like */}
-                        <button
-                            type="button"
-                            onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                if (!isLiked) {
-                                    setShowLikeBurst(true);
-                                    setTimeout(() => setShowLikeBurst(false), 800);
-                                }
-                                onLike(feed.id);
-                            }}
-                            className={`flex items-center gap-1.5 transition-colors group cursor-pointer p-1.5 rounded-full ${
-                                isLiked ? "text-rose-500" : "hover:text-rose-500"
-                            }`}
-                            title="Like"
-                        >
-                            <div className="relative flex items-center justify-center">
-                                <AnimatePresence>
-                                    {showLikeBurst && <LikeBurst />}
-                                </AnimatePresence>
-                                <span className="inline-flex transition-transform duration-150 group-hover:scale-110 group-active:scale-90">
-                                    <IconlyHeart
-                                        set={isLiked ? "bold" : "curved"}
-                                        stroke="bold"
-                                        primaryColor="currentColor"
-                                        size={19}
-                                    />
-                                </span>
-                            </div>
-                            {likes > 0 && (
-                                <span className="text-[12.5px] font-medium tabular-nums">
-                                    <AnimatedCounter value={likes} />
-                                </span>
-                            )}
-                        </button>
-
-                        {/* Bookmark */}
-                        <button
-                            type="button"
-                            onClick={handleBookmark}
-                            className={`flex items-center transition-colors group cursor-pointer p-1.5 rounded-full ${
-                                isBookmarked ? "text-[#2563EB] dark:text-blue-400" : "hover:text-[#2563EB] dark:hover:text-blue-400"
-                            }`}
-                            title="Bookmark"
-                        >
-                            <span className="inline-flex transition-transform duration-150 group-hover:scale-110 group-active:scale-90">
-                                <IconlyBookmark
-                                    set={isBookmarked ? "bold" : "curved"}
-                                    stroke="bold"
-                                    primaryColor="currentColor"
-                                    size={19}
-                                />
-                            </span>
-                        </button>
-
-                        {/* Views (Iconly Chart + Count) */}
-                        <div
-                            className="flex items-center gap-1.5 text-slate-500 dark:text-neutral-400 select-none px-1"
-                            title={`${localViewCount.toLocaleString()} ${localViewCount === 1 ? "view" : "views"}`}
-                        >
-                            <IconlyChart set="curved" stroke="bold" primaryColor="currentColor" size={18} />
-                            <span className="text-[12.5px] font-medium tabular-nums">
-                                {formatCompactViews(localViewCount)}
-                            </span>
-                        </div>
-
-                        {/* Share */}
-                        <button
-                            type="button"
-                            onClick={handleShare}
-                            className="flex items-center text-slate-500 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white transition-colors group cursor-pointer p-1.5 -mr-1.5 rounded-full"
-                            title="Share"
-                        >
-                            <span className="inline-flex transition-transform duration-150 group-hover:scale-110 group-active:scale-90">
-                                <IconlySend set="curved" stroke="bold" primaryColor="currentColor" size={18} />
-                            </span>
-                        </button>
-                    </div>
+                    {/* Redesigned Real-time Action Bar */}
+                    <PostActionBar
+                        postId={feed.id}
+                        post={feed}
+                        currentUserId={currentUserId}
+                        initialLiked={isLiked}
+                        initialLikes={likes}
+                        initialComments={localCommentsCount}
+                        initialReposted={isReposted}
+                        initialReposts={localRepostCount}
+                        initialBookmarked={isBookmarked}
+                        initialViews={localViewCount}
+                        onLike={onLike}
+                        className="pt-2.5"
+                    />
                 </div>
             </div>
 

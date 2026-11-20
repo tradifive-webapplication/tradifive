@@ -123,11 +123,10 @@ interface Props {
 
 
 
-// ── Consistent Card Box & KPI Box Styles (Shared with AI Journal & RiskGuard) ──
+// ── Consistent Card Box & KPI Box Styles (Shared with Dashboard & Journal) ──
+const kpiBoxStyle = "bg-white dark:bg-[#17171A] rounded-[18px] border border-slate-200/70 dark:border-white/[0.07] shadow-[0_2px_10px_rgba(15,23,42,0.04),0_10px_26px_-10px_rgba(15,23,42,0.07)] dark:shadow-none min-h-[126px] p-4 sm:p-5 flex flex-col justify-between transition-all";
 
-const kpiBoxStyle = "min-h-[126px] p-4 sm:px-5 sm:py-4 rounded-[22px] border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] flex flex-col justify-between transition-all duration-300 dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:shadow-none hover:scale-[1.01] hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#D0D0D5] dark:hover:shadow-none overflow-hidden";
-
-const cardBoxStyle = "p-5 sm:p-6 rounded-[22px] border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:shadow-none transition-all";
+const cardBoxStyle = "bg-white dark:bg-[#17171A] rounded-[18px] border border-slate-200/70 dark:border-white/[0.07] shadow-[0_2px_10px_rgba(15,23,42,0.04),0_10px_26px_-10px_rgba(15,23,42,0.07)] dark:shadow-none p-5 sm:p-6 transition-all";
 
 
 
@@ -2284,27 +2283,17 @@ Kindly review and process our weekly 50/50 profit clearance.`;
 
 
           {/* Telemetry Refresh Button - 36px Fixed */}
-
           <button
-
             onClick={handleManualRefresh}
-
             disabled={isRefreshing}
-
-            className="w-[36px] h-[36px] shrink-0 rounded-[14px] border-2 border-white dark:border-white/5 bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:shadow-none text-slate-500 dark:text-slate-400 flex items-center justify-center hover:text-slate-800 dark:hover:text-white hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#D0D0D5] dark:hover:shadow-none transition-all disabled:opacity-50 cursor-pointer"
-
+            className="w-[36px] h-[36px] shrink-0 rounded-[12px] border border-slate-200/70 dark:border-white/[0.07] bg-white dark:bg-[#17171A] shadow-xs text-slate-500 dark:text-slate-400 flex items-center justify-center hover:text-slate-900 dark:hover:text-white transition-all disabled:opacity-50 cursor-pointer"
             title="Refresh Telemetry"
-
           >
-
             <RefreshCw size={13} className={isRefreshing ? "animate-spin text-sky-600" : ""} />
-
           </button>
 
-
-
           {/* USC ⇄ INR Currency Converter Toggle (1 USC = ₹0.9368) */}
-          <div className="h-[36px] px-1.5 rounded-[14px] border-2 border-white dark:border-white/5 bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:shadow-none flex items-center gap-1 select-none">
+          <div className="h-[36px] px-1.5 rounded-[12px] border border-slate-200/70 dark:border-white/[0.07] bg-white dark:bg-[#17171A] shadow-xs flex items-center gap-1 select-none">
             <button
               type="button"
               onClick={() => {
@@ -2312,7 +2301,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
                 try { localStorage.setItem("tradifive_view_currency", "USC"); } catch (e) {}
                 toast.info("Dashboard display currency set to USC (Cent)");
               }}
-              className={`h-[28px] px-2.5 rounded-[10px] text-[11px] font-bold transition-all cursor-pointer flex items-center gap-1 ${
+              className={`h-[28px] px-2.5 rounded-[8px] text-[11px] font-bold transition-all cursor-pointer flex items-center gap-1 ${
                 viewCurrency === "USC"
                   ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-xs"
                   : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
@@ -2328,7 +2317,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
                 try { localStorage.setItem("tradifive_view_currency", "INR"); } catch (e) {}
                 toast.success("Dashboard converted to INR (₹) at 1 USC = ₹0.9368");
               }}
-              className={`h-[28px] px-2.5 rounded-[10px] text-[11px] font-bold transition-all cursor-pointer flex items-center gap-1 ${
+              className={`h-[28px] px-2.5 rounded-[8px] text-[11px] font-bold transition-all cursor-pointer flex items-center gap-1 ${
                 viewCurrency === "INR"
                   ? "bg-emerald-600 text-white shadow-xs font-black"
                   : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
@@ -2349,7 +2338,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
 
           {/* Plan Badge: Adapts to ₹1,00,000 Lifetime Plan vs Weekly 50/50% Split */}
           {isLifetimePlan ? (
-            <div className="h-[36px] px-3 shrink-0 rounded-[14px] border-2 border-white dark:border-white/5 bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:shadow-none flex items-center gap-2 select-none">
+            <div className="h-[36px] px-3 shrink-0 rounded-[12px] border border-slate-200/70 dark:border-white/[0.07] bg-white dark:bg-[#17171A] shadow-xs flex items-center gap-2 select-none">
               <ShieldCheck size={14} className="text-emerald-500 shrink-0" />
               <span className="text-[11px] font-bold text-slate-800 dark:text-slate-200">
                 ₹1,00,000 Lifetime Plan · 0% Profit Share
@@ -2362,7 +2351,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
               </span>
             </div>
           ) : (
-            <div className="h-[36px] px-3 shrink-0 rounded-[14px] border-2 border-white dark:border-white/5 bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:shadow-none flex items-center gap-2 select-none">
+            <div className="h-[36px] px-3 shrink-0 rounded-[12px] border border-slate-200/70 dark:border-white/[0.07] bg-white dark:bg-[#17171A] shadow-xs flex items-center gap-2 select-none">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
               <span className="text-[11px] font-bold text-slate-800 dark:text-slate-200">
                 Weekly 50/50% Profit Share
@@ -2405,7 +2394,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35 }}
-          className="mb-6 p-4 md:p-5 rounded-[22px] border-2 border-white bg-gradient-to-r from-[#ECFDF5] via-emerald-50/50 to-[#F8FAFC] shadow-[0_4px_12px_-5px_rgba(16,185,129,0.25),0_0_0_2px_#A7F3D0] dark:bg-none dark:bg-[#132A20] dark:border-[1px] dark:border-emerald-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+          className="mb-6 p-4 md:p-5 rounded-[18px] border border-emerald-200/80 dark:border-emerald-500/20 bg-emerald-50/60 dark:bg-emerald-950/20 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4"
         >
           <div className="flex items-start sm:items-center gap-3.5">
             <div className="w-10 h-10 rounded-2xl flex-shrink-0 bg-emerald-500 text-white flex items-center justify-center shadow-lg shadow-emerald-500/30">
@@ -2832,7 +2821,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
 
 
       {/* ── Official Notice from Admin Desk ── */}
-      <div className="w-full mb-6 p-4 rounded-[20px] border-2 border-white dark:border-white/5 bg-gradient-to-r from-blue-50/70 via-indigo-50/40 to-white dark:bg-none dark:bg-[#161B26] shadow-[0_4px_10px_-5px_rgba(37,99,235,0.1),0_0_0_2px_#DBEAFE] dark:shadow-none flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="w-full mb-6 p-4 rounded-[18px] border border-blue-200/80 dark:border-blue-500/20 bg-blue-50/50 dark:bg-blue-950/20 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-start sm:items-center gap-3.5">
           <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-blue-500/20">
             <Megaphone size={16} />
@@ -3098,7 +3087,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
 
               <div className="space-y-3">
                 {/* Client Share Card */}
-                <div className="p-3.5 rounded-[18px] border-2 border-white bg-gradient-to-b from-[#ECFDF5] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.08),0_0_0_2px_#A7F3D0] dark:bg-none dark:bg-[#132A20] dark:border-[1px] dark:border-emerald-500/30">
+                <div className="p-3.5 rounded-[16px] border border-emerald-200/80 dark:border-emerald-500/20 bg-emerald-50/50 dark:bg-emerald-950/20 shadow-xs">
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-[11px] font-extrabold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider flex items-center gap-1.5">
                       <CheckCircle2 size={13} className="text-emerald-600 dark:text-emerald-400" /> Client Share (100%)
@@ -3114,7 +3103,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
                 </div>
 
                 {/* Platform Share Card */}
-                <div className="p-3.5 rounded-[18px] border-2 border-white bg-gradient-to-b from-[#F8FAFC] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.08),0_0_0_2px_#E2E8F0] dark:bg-none dark:bg-white/5 dark:border-[1px] dark:border-white/10">
+                <div className="p-3.5 rounded-[16px] border border-slate-200/70 dark:border-white/[0.07] bg-slate-50/60 dark:bg-white/[0.03] shadow-xs">
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
                       <Lock size={13} className="text-slate-500" /> Platform Fee (0%)
@@ -3132,7 +3121,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
                 </div>
 
                 {/* Exemption Notice */}
-                <div className="p-3.5 rounded-[18px] border-2 border-white bg-gradient-to-b from-[#F8FAFC] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.08),0_0_0_2px_#E2E8F0] dark:bg-none dark:bg-[#1A1F2C] dark:border-[1px] dark:border-white/10">
+                <div className="p-3.5 rounded-[16px] border border-slate-200/70 dark:border-white/[0.07] bg-slate-50/60 dark:bg-white/[0.03] shadow-xs">
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
                       <ShieldCheck size={13} className="text-emerald-500" /> Weekly Settlement Status
@@ -3187,7 +3176,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
 
               <div className="space-y-3">
                 {/* Client Share Card */}
-                <div className="p-3.5 rounded-[18px] border-2 border-white bg-gradient-to-b from-[#ECFDF5] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.08),0_0_0_2px_#A7F3D0] dark:bg-none dark:bg-[#132A20] dark:border-[1px] dark:border-emerald-500/30">
+                <div className="p-3.5 rounded-[16px] border border-emerald-200/80 dark:border-emerald-500/20 bg-emerald-50/50 dark:bg-emerald-950/20 shadow-xs">
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-[11px] font-extrabold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider flex items-center gap-1.5">
                       <CheckCircle2 size={13} className="text-emerald-600 dark:text-emerald-400" /> Client Share (50%)
@@ -3203,7 +3192,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
                 </div>
 
                 {/* Platform Share Card */}
-                <div className="p-3.5 rounded-[18px] border-2 border-white bg-gradient-to-b from-[#EFF6FF] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.08),0_0_0_2px_#BFDBFE] dark:bg-none dark:bg-[#1A2332] dark:border-[1px] dark:border-blue-500/30">
+                <div className="p-3.5 rounded-[16px] border border-blue-200/80 dark:border-blue-500/20 bg-blue-50/50 dark:bg-blue-950/20 shadow-xs">
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-[11px] font-extrabold text-blue-900 dark:text-blue-300 uppercase tracking-wider flex items-center gap-1.5">
                       <QrCode size={13} className="text-blue-600 dark:text-blue-400" /> Platform Share (50%)
@@ -3221,7 +3210,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
                 </div>
 
                 {/* Cohort Schedule Card */}
-                <div className="p-3.5 rounded-[18px] border-2 border-white bg-gradient-to-b from-[#F8FAFC] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.08),0_0_0_2px_#E2E8F0] dark:bg-none dark:bg-[#1A1F2C] dark:border-[1px] dark:border-white/10">
+                <div className="p-3.5 rounded-[16px] border border-slate-200/70 dark:border-white/[0.07] bg-slate-50/60 dark:bg-white/[0.03] shadow-xs">
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
                       <Calendar size={13} className="text-blue-500" /> Weekly Settlement Schedule
@@ -3428,7 +3417,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
 
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
 
-              className="relative w-full max-w-[520px] rounded-[24px] border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] p-4 sm:p-5 shadow-[0_20px_60px_rgba(0,0,0,0.18),0_0_0_2px_#E2E8F0] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/10 text-slate-800 dark:text-white max-h-[96vh] overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+              className="relative w-full max-w-[520px] rounded-[24px] border border-slate-200/70 bg-white p-4 sm:p-5 shadow-2xl dark:bg-[#17171A] dark:border-white/10 text-slate-800 dark:text-white max-h-[96vh] overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
 
             >
 

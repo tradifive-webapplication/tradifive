@@ -14,6 +14,7 @@ import HomeProfileCard from "@/components/HomeProfileCard";
 import CommunityHeaderBar from "@/components/CommunityHeaderBar";
 import InlineNotificationsPanel from "@/components/InlineNotificationsPanel";
 import { triggerHaptic } from "@/utils/haptics";
+import { playSound } from "@/utils/soundEffects";
 import {
     Star as IconlyStar,
     Discovery as IconlyDiscovery,
@@ -375,8 +376,34 @@ export default function Home() {
     const [searchParams] = useSearchParams();
     const currentTab = searchParams.get('tab') || 'feed';
     const navigate = useNavigate();
-    const [user, setUser] = useState<any>(null);
-    const [authChecked, setAuthChecked] = useState(false);
+    const [user, setUser] = useState<any>(() => {
+        try {
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('sb-') && key.endsWith('-auth-token')) {
+                    const session = JSON.parse(localStorage.getItem(key) || '{}');
+                    if (session && session.user && session.user.id) {
+                        return session.user;
+                    }
+                }
+            }
+        } catch (_) {}
+        return null;
+    });
+    const [authChecked, setAuthChecked] = useState<boolean>(() => {
+        try {
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('sb-') && key.endsWith('-auth-token')) {
+                    const session = JSON.parse(localStorage.getItem(key) || '{}');
+                    if (session && session.user && session.user.id) {
+                        return true;
+                    }
+                }
+            }
+        } catch (_) {}
+        return false;
+    });
 
     // Supabase Live Data Fetching
     const { feeds, watchlist, calendar, followers, suggestions, profileViews = [], winningStreaks, topDisciplined, loading, refetch, removePost } = useHomeData(user?.id ?? "");
@@ -832,6 +859,7 @@ export default function Home() {
         const postIdStr = String(postId);
 
         // 1. Immediately remove from state & optimistic UI
+        playSound('delete');
         removePost(postId);
 
         // 2. Permanently clean from all local storage caches
@@ -839,10 +867,7 @@ export default function Home() {
             const localPosts = JSON.parse(localStorage.getItem('fialgo_local_posts') || '[]');
             const updatedLocal = localPosts.filter((p: any) => String(p.id) !== postIdStr);
             localStorage.setItem('fialgo_local_posts', JSON.stringify(updatedLocal));
-
-            const cachedFeeds = JSON.parse(localStorage.getItem('home_cache_feeds') || '[]');
-            const updatedCache = cachedFeeds.filter((p: any) => String(p.id) !== postIdStr);
-            localStorage.setItem('home_cache_feeds', JSON.stringify(updatedCache));
+            localStorage.removeItem('home_cache_feeds');
 
             for (let i = 0; i < localStorage.length; i++) {
                 const k = localStorage.key(i);

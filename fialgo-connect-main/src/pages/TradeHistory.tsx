@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { EXISTING_OFFICIAL_ALGOS } from "@/pages/Discover";
 import { toast } from "sonner";
 
-const cardBoxStyle = "bg-[#1E1E1E] border border-white/5 rounded-lg p-5 space-y-3.5 hover:border-white/10 transition-none";
+const cardBoxStyle = "bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] rounded-[18px] p-5 sm:p-6 space-y-3.5 shadow-[0_2px_10px_rgba(15,23,42,0.04)] dark:shadow-none transition-all";
 
 // ── 1. Data Interfaces ────────────────────────────────────────────────────────
 interface PurchasedAlgo {
@@ -439,22 +439,21 @@ export default function TradeHistory() {
     <DashboardLayout>
       <div className="space-y-4 pb-20 select-none px-4 sm:px-6 md:px-8 py-3 max-w-[1500px] mx-auto w-full">
 
-        {/* ── Top Header (Admin App Style: Clean, No Pill Badges) ── */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-white/5">
+        {/* ── Top Header (Clean, Consistency with Dashboard & Journal) ── */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-200/70 dark:border-white/5">
           <div className="flex items-center gap-3">
             <div 
-              className="w-9 h-9 rounded-lg bg-black/30 border border-white/5 flex items-center justify-center text-blue-400 shrink-0" 
-              style={{ borderColor: "#3b82f620" }}
+              className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-500/10 border border-blue-200/70 dark:border-blue-500/20 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0" 
             >
               <FileText size={16} />
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-lg sm:text-xl font-bold tracking-wider text-white uppercase">
+                <h1 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-white">
                   Order History &amp; Execution Audit
                 </h1>
               </div>
-              <p className="text-neutral-500 text-[9px] font-bold uppercase tracking-[0.15em] mt-0.5">
+              <p className="text-slate-400 dark:text-neutral-500 text-[10px] font-bold uppercase tracking-[0.12em] mt-0.5">
                 Purchased Algorithms, MT5 Execution Orders &amp; Terminal Audit Ledger
               </p>
             </div>
@@ -465,82 +464,84 @@ export default function TradeHistory() {
               type="button"
               onClick={handleRefresh}
               disabled={isRefreshing}
-              className="h-9 px-3.5 bg-[#1E1E1E] hover:bg-white/[0.05] border border-white/5 hover:border-white/10 rounded-lg text-xs font-semibold text-neutral-300 transition-none flex items-center gap-1.5 cursor-pointer"
+              className="h-9 px-3.5 bg-white dark:bg-[#1E1E1E] hover:bg-slate-50 dark:hover:bg-white/[0.05] border border-slate-200/70 dark:border-white/10 rounded-xl text-xs font-semibold text-slate-700 dark:text-neutral-300 shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
             >
-              <RefreshCw size={13} className={isRefreshing ? "animate-spin text-white" : "text-neutral-400"} />
+              <RefreshCw size={13} className={isRefreshing ? "animate-spin text-slate-900 dark:text-white" : "text-slate-400 dark:text-neutral-400"} />
               <span>Sync Data</span>
             </button>
 
             <button
               type="button"
               onClick={handleExportCSV}
-              className="h-9 px-3.5 bg-[#1E1E1E] hover:bg-white/[0.05] border border-white/5 hover:border-white/10 rounded-lg text-xs font-semibold text-neutral-300 transition-none flex items-center gap-1.5 cursor-pointer"
+              className="h-9 px-3.5 bg-white dark:bg-[#1E1E1E] hover:bg-slate-50 dark:hover:bg-white/[0.05] border border-slate-200/70 dark:border-white/10 rounded-xl text-xs font-semibold text-slate-700 dark:text-neutral-300 shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
             >
-              <Download size={13} className="text-blue-400" />
+              <Download size={13} className="text-blue-600 dark:text-blue-400" />
               <span>Export CSV</span>
             </button>
           </div>
         </div>
 
-        {/* ── 4 Metric Cards Grid (Clean Admin App Style: No Cluttered Icon Circles or Corner Badges) ── */}
+        {/* ── 4 Metric Cards Grid (Consistent with Dashboard & Journal Cards) ── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {/* Card 1: Purchased Algos */}
-          <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-4">
-            <div className="text-2xl font-bold font-mono text-white tracking-tight">
+          <div className="bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] rounded-[18px] p-4 sm:p-5 shadow-[0_2px_10px_rgba(15,23,42,0.04)] dark:shadow-none transition-all">
+            <div className="text-2xl font-bold font-mono text-slate-900 dark:text-white tracking-tight">
               {totalPurchases}
             </div>
-            <div className="text-[9px] font-bold text-neutral-500 uppercase tracking-[0.15em] mt-1">
+            <div className="text-[10px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-[0.12em] mt-1">
               PURCHASED ALGOS
             </div>
           </div>
 
           {/* Card 2: Realized Net P&L */}
-          <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-4">
-            <div className={`text-2xl font-bold font-mono tracking-tight ${totalProfit > 0 ? "text-emerald-400" : totalProfit < 0 ? "text-rose-400" : "text-white"}`}>
+          <div className="bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] rounded-[18px] p-4 sm:p-5 shadow-[0_2px_10px_rgba(15,23,42,0.04)] dark:shadow-none transition-all">
+            <div className={`text-2xl font-bold font-mono tracking-tight ${totalProfit > 0 ? "text-emerald-600 dark:text-emerald-400" : totalProfit < 0 ? "text-rose-600 dark:text-rose-400" : "text-slate-900 dark:text-white"}`}>
               {totalProfit >= 0 ? "+" : ""}${totalProfit.toFixed(2)}
             </div>
-            <div className="text-[9px] font-bold text-neutral-500 uppercase tracking-[0.15em] mt-1">
+            <div className="text-[10px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-[0.12em] mt-1">
               REALIZED NET P&amp;L
             </div>
           </div>
 
           {/* Card 3: Trade Win % */}
-          <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-4">
-            <div className="text-2xl font-bold font-mono text-white tracking-tight">
+          <div className="bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] rounded-[18px] p-4 sm:p-5 shadow-[0_2px_10px_rgba(15,23,42,0.04)] dark:shadow-none transition-all">
+            <div className="text-2xl font-bold font-mono text-slate-900 dark:text-white tracking-tight">
               {winRate}%
             </div>
-            <div className="text-[9px] font-bold text-neutral-500 uppercase tracking-[0.15em] mt-1">
+            <div className="text-[10px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-[0.12em] mt-1">
               TRADE WIN RATE
             </div>
           </div>
 
           {/* Card 4: VPS Latency */}
-          <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-4">
-            <div className="flex items-center gap-1.5 text-2xl font-bold font-mono text-white tracking-tight">
-              <div className={`w-2 h-2 rounded-full ${isConnected ? "bg-emerald-500 animate-pulse" : "bg-neutral-600"}`} />
+          <div className="bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] rounded-[18px] p-4 sm:p-5 shadow-[0_2px_10px_rgba(15,23,42,0.04)] dark:shadow-none transition-all">
+            <div className="flex items-center gap-1.5 text-2xl font-bold font-mono text-slate-900 dark:text-white tracking-tight">
+              <div className={`w-2 h-2 rounded-full ${isConnected ? "bg-emerald-500 animate-pulse" : "bg-slate-400 dark:bg-neutral-600"}`} />
               <span>{isConnected ? "2.1ms" : "Offline"}</span>
             </div>
-            <div className="text-[9px] font-bold text-neutral-500 uppercase tracking-[0.15em] mt-1">
+            <div className="text-[10px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-[0.12em] mt-1">
               VPS LATENCY
             </div>
           </div>
         </div>
 
-        {/* ── Top Navigation Tabs & Search (Pill styling matching Admin App) ── */}
+        {/* ── Top Navigation Tabs & Search ── */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
           <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
             <button
               type="button"
               onClick={() => { setActiveModule("purchases"); setSearchQuery(""); }}
-              className={`whitespace-nowrap px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-none flex items-center gap-2 cursor-pointer ${
+              className={`whitespace-nowrap px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer ${
                 activeModule === "purchases"
-                  ? "bg-[#1E1E1E] text-white border border-white/10 shadow-xs"
-                  : "text-neutral-400 hover:text-white border border-transparent"
+                  ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs"
+                  : "bg-white dark:bg-[#17171A] text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white border border-slate-200/70 dark:border-white/5"
               }`}
             >
               <Bot size={13} className={activeModule === "purchases" ? "text-blue-400" : ""} />
               <span>Purchased Algos</span>
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-black/40 text-neutral-400 font-mono font-bold">
+              <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono font-bold ${
+                activeModule === "purchases" ? "bg-white/20 text-white dark:bg-black/20 dark:text-slate-900" : "bg-slate-100 dark:bg-black/40 text-slate-500 dark:text-neutral-400"
+              }`}>
                 {totalPurchases}
               </span>
             </button>
@@ -548,15 +549,17 @@ export default function TradeHistory() {
             <button
               type="button"
               onClick={() => { setActiveModule("trades"); setSearchQuery(""); }}
-              className={`whitespace-nowrap px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-none flex items-center gap-2 cursor-pointer ${
+              className={`whitespace-nowrap px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer ${
                 activeModule === "trades"
-                  ? "bg-[#1E1E1E] text-white border border-white/10 shadow-xs"
-                  : "text-neutral-400 hover:text-white border border-transparent"
+                  ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs"
+                  : "bg-white dark:bg-[#17171A] text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white border border-slate-200/70 dark:border-white/5"
               }`}
             >
               <Activity size={13} className={activeModule === "trades" ? "text-emerald-400" : ""} />
               <span>Executed Trades</span>
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-black/40 text-emerald-400 font-mono font-bold">
+              <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono font-bold ${
+                activeModule === "trades" ? "bg-white/20 text-white dark:bg-black/20 dark:text-slate-900" : "bg-slate-100 dark:bg-black/40 text-emerald-600 dark:text-emerald-400"
+              }`}>
                 {orders.length}
               </span>
             </button>
@@ -564,15 +567,17 @@ export default function TradeHistory() {
             <button
               type="button"
               onClick={() => { setActiveModule("terminal"); setSearchQuery(""); }}
-              className={`whitespace-nowrap px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-none flex items-center gap-2 cursor-pointer ${
+              className={`whitespace-nowrap px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer ${
                 activeModule === "terminal"
-                  ? "bg-[#1E1E1E] text-white border border-white/10 shadow-xs"
-                  : "text-neutral-400 hover:text-white border border-transparent"
+                  ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs"
+                  : "bg-white dark:bg-[#17171A] text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white border border-slate-200/70 dark:border-white/5"
               }`}
             >
               <Terminal size={13} className={activeModule === "terminal" ? "text-purple-400" : ""} />
               <span>MT5 Execution Logs</span>
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-black/40 text-purple-400 font-mono font-bold">
+              <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono font-bold ${
+                activeModule === "terminal" ? "bg-white/20 text-white dark:bg-black/20 dark:text-slate-900" : "bg-slate-100 dark:bg-black/40 text-purple-600 dark:text-purple-400"
+              }`}>
                 {terminalLogs.length}
               </span>
             </button>
@@ -580,13 +585,13 @@ export default function TradeHistory() {
 
           {/* Search Box matching Admin Input Style */}
           <div className="relative min-w-[240px]">
-            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
+            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-neutral-500" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={`Search ${activeModule}...`}
-              className="w-full h-9 bg-black/30 border border-white/5 focus:border-white/20 rounded pl-8 pr-3 text-xs font-mono text-white focus:outline-none placeholder-neutral-500 transition-none"
+              className="w-full h-9 bg-white dark:bg-black/30 border border-slate-200/70 dark:border-white/10 focus:border-slate-400 dark:focus:border-white/20 rounded-xl pl-8 pr-3 text-xs font-mono text-slate-900 dark:text-white focus:outline-none placeholder-slate-400 dark:placeholder-neutral-500 shadow-xs transition-colors"
             />
           </div>
         </div>
@@ -597,14 +602,14 @@ export default function TradeHistory() {
         {activeModule === "purchases" && (
           <div>
             {filteredPurchases.length === 0 ? (
-              <div className="p-12 text-center font-mono bg-[#1E1E1E] border border-white/5 rounded-lg">
-                <div className="w-10 h-10 rounded-lg bg-white/5 border border-white/5 flex items-center justify-center text-neutral-400 mx-auto mb-3">
+              <div className="p-12 text-center font-mono bg-white dark:bg-[#1E1E1E] border border-slate-200/70 dark:border-white/5 rounded-[18px] shadow-[0_2px_10px_rgba(15,23,42,0.04)] dark:shadow-none">
+                <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 flex items-center justify-center text-slate-500 dark:text-neutral-400 mx-auto mb-3">
                   <Bot size={18} />
                 </div>
-                <div className="text-xs text-white font-bold uppercase tracking-wider mb-1">
+                <div className="text-xs text-slate-900 dark:text-white font-bold uppercase tracking-wider mb-1">
                   No Purchased Algorithms On Record
                 </div>
-                <p className="text-[11px] text-neutral-500 max-w-sm mx-auto mb-4">
+                <p className="text-[11px] text-slate-400 dark:text-neutral-500 max-w-sm mx-auto mb-4">
                   You haven't provisioned any automated trading algorithms or EA licenses yet.
                 </p>
                 <div className="flex items-center justify-center gap-2">
@@ -619,7 +624,7 @@ export default function TradeHistory() {
                   <button
                     type="button"
                     onClick={() => navigate("/auto-trade/builder")}
-                    className="h-8 px-4 rounded-lg bg-white/5 hover:bg-white/10 text-xs font-mono font-bold text-neutral-300 border border-white/10 transition-none cursor-pointer"
+                    className="h-8 px-4 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-xs font-mono font-bold text-slate-700 dark:text-neutral-300 border border-slate-200 dark:border-white/10 transition-colors cursor-pointer"
                   >
                     Request Custom Build
                   </button>
@@ -633,22 +638,22 @@ export default function TradeHistory() {
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="text-[9px] font-bold uppercase tracking-widest text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">
+                          <span className="text-[9px] font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 px-2 py-0.5 rounded border border-blue-200 dark:border-blue-500/20">
                             {algo.category}
                           </span>
-                          <span className="text-[10px] font-mono text-neutral-500">
+                          <span className="text-[10px] font-mono text-slate-400 dark:text-neutral-500">
                             #{algo.orderId}
                           </span>
                         </div>
-                        <h4 className="text-sm font-bold text-white uppercase tracking-wider mt-1.5">
+                        <h4 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mt-1.5">
                           {algo.name}
                         </h4>
                       </div>
 
                       <span className={`text-[9px] font-mono font-bold px-2 py-0.5 rounded uppercase tracking-wider shrink-0 flex items-center gap-1 ${
                         algo.status === "active"
-                          ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                          : "bg-white/5 text-neutral-400 border border-white/10"
+                          ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20"
+                          : "bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-neutral-400 border border-slate-200 dark:border-white/10"
                       }`}>
                         {algo.status === "active" && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />}
                         {algo.status.toUpperCase()}
@@ -656,24 +661,24 @@ export default function TradeHistory() {
                     </div>
 
                     {/* 3 Spec Tiles (Clean, high-signal) */}
-                    <div className="grid grid-cols-3 gap-2 p-3 bg-black/30 border border-white/5 rounded-lg font-mono text-xs">
+                    <div className="grid grid-cols-3 gap-2 p-3 bg-slate-50 dark:bg-black/30 border border-slate-200/70 dark:border-white/5 rounded-xl font-mono text-xs">
                       {/* License Key */}
                       <div>
-                        <span className="text-[9px] font-bold text-neutral-500 uppercase tracking-widest block mb-0.5">
+                        <span className="text-[9px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-widest block mb-0.5">
                           License Key
                         </span>
                         <div className="flex items-center justify-between">
-                          <span className="font-mono text-xs font-bold text-white truncate max-w-[90px]">
+                          <span className="font-mono text-xs font-bold text-slate-900 dark:text-white truncate max-w-[90px]">
                             {algo.licenseKey}
                           </span>
                           <button
                             type="button"
                             onClick={(e) => handleCopy(e, algo.licenseKey, "License Key")}
-                            className="text-neutral-400 hover:text-white"
+                            className="text-slate-400 hover:text-slate-600 dark:text-neutral-400 dark:hover:text-white"
                             title="Copy key"
                           >
                             {copiedKey === algo.licenseKey ? (
-                              <Check size={12} className="text-emerald-400" />
+                              <Check size={12} className="text-emerald-500" />
                             ) : (
                               <Copy size={12} />
                             )}
@@ -683,31 +688,31 @@ export default function TradeHistory() {
 
                       {/* Bound MT5 */}
                       <div>
-                        <span className="text-[9px] font-bold text-neutral-500 uppercase tracking-widest block mb-0.5">
+                        <span className="text-[9px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-widest block mb-0.5">
                           Bound MT5
                         </span>
-                        <span className="font-mono text-xs font-bold text-emerald-400 truncate block">
+                        <span className="font-mono text-xs font-bold text-emerald-600 dark:text-emerald-400 truncate block">
                           #{algo.mt5Account}
                         </span>
                       </div>
 
                       {/* Supported Pairs */}
                       <div>
-                        <span className="text-[9px] font-bold text-neutral-500 uppercase tracking-widest block mb-0.5">
+                        <span className="text-[9px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-widest block mb-0.5">
                           Pairs
                         </span>
-                        <span className="text-xs font-mono font-bold text-neutral-300 truncate block">
+                        <span className="text-xs font-mono font-bold text-slate-700 dark:text-neutral-300 truncate block">
                           {algo.pairs.join(", ")}
                         </span>
                       </div>
                     </div>
 
                     {/* Bottom Action Footer */}
-                    <div className="flex items-center justify-between pt-3 border-t border-white/5">
-                      <div className="text-[11px] font-mono text-neutral-400">
-                        <span>Status: <strong className="text-neutral-300 font-bold">{algo.purchaseDate}</strong></span>
+                    <div className="flex items-center justify-between pt-3 border-t border-slate-200/70 dark:border-white/5">
+                      <div className="text-[11px] font-mono text-slate-500 dark:text-neutral-400">
+                        <span>Status: <strong className="text-slate-800 dark:text-neutral-300 font-bold">{algo.purchaseDate}</strong></span>
                         <span className="mx-1.5">·</span>
-                        <span className="font-bold text-white">{algo.price}</span>
+                        <span className="font-bold text-slate-900 dark:text-white">{algo.price}</span>
                       </div>
 
                       <div className="flex items-center gap-2">
@@ -723,7 +728,7 @@ export default function TradeHistory() {
                         <button
                           type="button"
                           onClick={() => navigate("/auto-trade/active-bots")}
-                          className="h-7 px-2.5 rounded bg-black/30 hover:bg-white/[0.08] border border-white/10 text-[10px] font-mono font-bold text-blue-400 transition-none cursor-pointer flex items-center gap-1"
+                          className="h-7 px-2.5 rounded-lg bg-slate-100 dark:bg-black/30 hover:bg-slate-200 dark:hover:bg-white/[0.08] border border-slate-200/70 dark:border-white/10 text-[10px] font-mono font-bold text-blue-600 dark:text-blue-400 transition-colors cursor-pointer flex items-center gap-1"
                         >
                           <span>View Bot</span>
                           <ArrowUpRight size={11} />
@@ -748,10 +753,10 @@ export default function TradeHistory() {
                 <button
                   type="button"
                   onClick={() => setTradeFilter("all")}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-none cursor-pointer ${
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
                     tradeFilter === "all"
-                      ? "bg-white/10 text-white border border-white/15"
-                      : "text-neutral-400 hover:text-white border border-transparent"
+                      ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs"
+                      : "bg-white dark:bg-[#17171A] text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white border border-slate-200/70 dark:border-white/5"
                   }`}
                 >
                   All ({orders.length})
@@ -759,10 +764,10 @@ export default function TradeHistory() {
                 <button
                   type="button"
                   onClick={() => setTradeFilter("wins")}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-none cursor-pointer ${
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
                     tradeFilter === "wins"
-                      ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
-                      : "text-neutral-400 hover:text-white border border-transparent"
+                      ? "bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-500/30"
+                      : "bg-white dark:bg-[#17171A] text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white border border-slate-200/70 dark:border-white/5"
                   }`}
                 >
                   Winning ({winCount})
@@ -770,10 +775,10 @@ export default function TradeHistory() {
                 <button
                   type="button"
                   onClick={() => setTradeFilter("losses")}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-none cursor-pointer ${
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
                     tradeFilter === "losses"
-                      ? "bg-rose-500/20 text-rose-400 border border-rose-500/30"
-                      : "text-neutral-400 hover:text-white border border-transparent"
+                      ? "bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-500/20 dark:text-rose-400 dark:border-rose-500/30"
+                      : "bg-white dark:bg-[#17171A] text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white border border-slate-200/70 dark:border-white/5"
                   }`}
                 >
                   Losing ({orders.length - winCount})
@@ -785,7 +790,7 @@ export default function TradeHistory() {
                 <select
                   value={selectedAlgo}
                   onChange={(e) => setSelectedAlgo(e.target.value)}
-                  className="h-8 px-2.5 rounded-lg bg-black/30 border border-white/5 text-xs font-mono font-bold text-neutral-200 focus:outline-none cursor-pointer"
+                  className="h-8 px-2.5 rounded-xl bg-white dark:bg-black/30 border border-slate-200/70 dark:border-white/10 text-xs font-mono font-bold text-slate-800 dark:text-neutral-200 focus:outline-none cursor-pointer shadow-xs"
                 >
                   <option value="ALL">Algo: All Bots</option>
                   {algoStats.map(algo => (
@@ -799,7 +804,7 @@ export default function TradeHistory() {
                 <select
                   value={selectedPair}
                   onChange={(e) => setSelectedPair(e.target.value)}
-                  className="h-8 px-2.5 rounded-lg bg-black/30 border border-white/5 text-xs font-mono font-bold text-neutral-200 focus:outline-none cursor-pointer"
+                  className="h-8 px-2.5 rounded-xl bg-white dark:bg-black/30 border border-slate-200/70 dark:border-white/10 text-xs font-mono font-bold text-slate-800 dark:text-neutral-200 focus:outline-none cursor-pointer shadow-xs"
                 >
                   <option value="ALL">Pair: All Assets</option>
                   <option value="EURUSD">EUR/USD</option>
@@ -818,17 +823,17 @@ export default function TradeHistory() {
                   <div 
                     key={stat.name}
                     onClick={() => setSelectedAlgo(selectedAlgo === stat.name ? "ALL" : stat.name)}
-                    className={`p-2.5 rounded-lg border cursor-pointer transition-none flex items-center justify-between ${
+                    className={`p-2.5 rounded-xl border cursor-pointer transition-all flex items-center justify-between ${
                       selectedAlgo === stat.name 
-                        ? "bg-blue-600/15 border-blue-500/40 text-white shadow-xs" 
-                        : "bg-[#1E1E1E] border-white/5 text-neutral-400 hover:border-white/10"
+                        ? "bg-blue-50 dark:bg-blue-600/15 border-blue-200 dark:border-blue-500/40 text-blue-900 dark:text-white shadow-xs" 
+                        : "bg-white dark:bg-[#1E1E1E] border-slate-200/70 dark:border-white/5 text-slate-600 dark:text-neutral-400 hover:border-slate-300 dark:hover:border-white/10 shadow-xs"
                     }`}
                   >
                     <div className="truncate mr-2">
-                      <span className="font-bold block text-white truncate text-xs">{stat.name}</span>
-                      <span className="text-[10px] text-neutral-500">{stat.tradesCount} trades taken</span>
+                      <span className="font-bold block text-slate-900 dark:text-white truncate text-xs">{stat.name}</span>
+                      <span className="text-[10px] text-slate-400 dark:text-neutral-500">{stat.tradesCount} trades taken</span>
                     </div>
-                    <span className={`text-xs font-bold ${stat.pnl >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                    <span className={`text-xs font-bold ${stat.pnl >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
                       {stat.pnl >= 0 ? "+" : ""}${stat.pnl.toFixed(2)}
                     </span>
                   </div>
@@ -837,29 +842,29 @@ export default function TradeHistory() {
             )}
 
             {filteredTrades.length === 0 ? (
-              <div className="p-12 text-center font-mono bg-[#1E1E1E] border border-white/5 rounded-lg">
-                <div className="w-10 h-10 rounded-lg bg-white/5 border border-white/5 flex items-center justify-center text-neutral-400 mx-auto mb-3">
+              <div className="p-12 text-center font-mono bg-white dark:bg-[#1E1E1E] border border-slate-200/70 dark:border-white/5 rounded-[18px] shadow-[0_2px_10px_rgba(15,23,42,0.04)] dark:shadow-none">
+                <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 flex items-center justify-center text-slate-500 dark:text-neutral-400 mx-auto mb-3">
                   <Activity size={18} />
                 </div>
-                <div className="text-xs text-white font-bold uppercase tracking-wider mb-1">
+                <div className="text-xs text-slate-900 dark:text-white font-bold uppercase tracking-wider mb-1">
                   No Executed Trades On Record
                 </div>
-                <p className="text-[11px] text-neutral-500 max-w-sm mx-auto">
+                <p className="text-[11px] text-slate-400 dark:text-neutral-500 max-w-sm mx-auto">
                   No trades have been executed yet. Realtime MT5 orders and audit telemetry will appear here once your trading bot begins execution.
                 </p>
               </div>
             ) : (
-              <div className="bg-[#1E1E1E] border border-white/5 rounded-lg overflow-hidden">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3.5 border-b border-white/5 bg-black/10">
+              <div className="bg-white dark:bg-[#1E1E1E] border border-slate-200/70 dark:border-white/5 rounded-[18px] shadow-[0_2px_10px_rgba(15,23,42,0.04)] dark:shadow-none overflow-hidden">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-4 border-b border-slate-200/70 dark:border-white/5 bg-slate-50/70 dark:bg-black/10">
                   <div className="flex items-center gap-2">
-                    <Activity size={14} className="text-emerald-400" />
-                    <span className="text-xs font-bold text-white uppercase tracking-wider">
+                    <Activity size={14} className="text-emerald-500 dark:text-emerald-400" />
+                    <span className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
                       EXECUTED TRADE ORDERS ({filteredTrades.length})
                     </span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    <span className="text-[10px] font-mono text-neutral-400">
+                    <span className="text-[10px] font-mono text-slate-500 dark:text-neutral-400">
                       Realtime MT5 execution telemetry &amp; slippage audit
                     </span>
                   </div>
@@ -868,7 +873,7 @@ export default function TradeHistory() {
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse min-w-[850px]">
                     <thead>
-                      <tr className="border-b border-white/5 text-[9px] font-bold text-neutral-500 uppercase tracking-widest bg-black/20">
+                      <tr className="border-b border-slate-200/70 dark:border-white/5 text-[10px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-widest bg-slate-50/90 dark:bg-black/20">
                         <th className="p-3.5">TICKET ID</th>
                         <th className="p-3.5">ASSET &amp; ORDER</th>
                         <th className="p-3.5">STRATEGY ENGINE</th>
@@ -878,7 +883,7 @@ export default function TradeHistory() {
                         <th className="p-3.5 text-right">DETAILS</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-white/5 font-mono text-xs">
+                    <tbody className="divide-y divide-slate-100 dark:divide-white/5 font-mono text-xs">
                       {filteredTrades.map((order) => {
                         const isExpanded = expandedId === order.id;
                         const isWin = order.status === "win";
@@ -887,55 +892,55 @@ export default function TradeHistory() {
                           <Fragment key={order.id}>
                             <tr
                               onClick={() => setExpandedId(isExpanded ? null : order.id)}
-                              className={`hover:bg-white/[0.02] transition-none cursor-pointer ${
-                                isExpanded ? "bg-white/[0.03]" : ""
+                              className={`hover:bg-slate-50/70 dark:hover:bg-white/[0.02] transition-colors cursor-pointer ${
+                                isExpanded ? "bg-slate-50 dark:bg-white/[0.03]" : ""
                               }`}
                             >
-                              <td className="p-3.5 font-bold text-white">
+                              <td className="p-3.5 font-bold text-slate-900 dark:text-white">
                                 #{order.id}
                               </td>
 
                               <td className="p-3.5">
                                 <div className="flex items-center gap-2">
-                                  <span className="font-bold text-white font-sans">
+                                  <span className="font-bold text-slate-900 dark:text-white font-sans">
                                     {order.pair}
                                   </span>
                                   <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
                                     order.type === "BUY"
-                                      ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                                      : "bg-rose-500/10 text-rose-400 border border-rose-500/20"
+                                      ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20"
+                                      : "bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-500/20"
                                   }`}>
                                     {order.type} {order.lot}
                                   </span>
                                 </div>
                               </td>
 
-                              <td className="p-3.5 text-neutral-300">
+                              <td className="p-3.5 text-slate-700 dark:text-neutral-300">
                                 <span className="inline-flex items-center gap-1.5">
-                                  <Bot size={13} className="text-blue-400" />
+                                  <Bot size={13} className="text-blue-500 dark:text-blue-400" />
                                   <span>{order.strategy}</span>
                                 </span>
                               </td>
 
-                              <td className="p-3.5 text-neutral-300">
+                              <td className="p-3.5 text-slate-700 dark:text-neutral-300">
                                 <span>{order.openPrice}</span>
-                                <span className="text-neutral-500 mx-1">→</span>
-                                <span className="font-bold text-white">{order.closePrice}</span>
+                                <span className="text-slate-400 dark:text-neutral-500 mx-1">→</span>
+                                <span className="font-bold text-slate-900 dark:text-white">{order.closePrice}</span>
                               </td>
 
-                              <td className="p-3.5 text-neutral-400 text-[11px]">
+                              <td className="p-3.5 text-slate-500 dark:text-neutral-400 text-[11px]">
                                 <div>{order.closeTime}</div>
-                                <div className="text-[10px] text-neutral-500 flex items-center gap-1 mt-0.5">
+                                <div className="text-[10px] text-slate-400 dark:text-neutral-500 flex items-center gap-1 mt-0.5">
                                   <Clock size={10} />
                                   <span>{order.duration}</span>
                                 </div>
                               </td>
 
                               <td className="p-3.5">
-                                <div className={`font-bold ${isWin ? "text-emerald-400" : "text-rose-400"}`}>
+                                <div className={`font-bold ${isWin ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
                                   {order.pnl >= 0 ? "+" : ""}${order.pnl.toFixed(2)}
                                 </div>
-                                <div className={`text-[10px] ${isWin ? "text-emerald-500" : "text-rose-500"}`}>
+                                <div className={`text-[10px] ${isWin ? "text-emerald-600 dark:text-emerald-500" : "text-rose-600 dark:text-rose-500"}`}>
                                   {order.returnPct}
                                 </div>
                               </td>
@@ -943,7 +948,7 @@ export default function TradeHistory() {
                               <td className="p-3.5 text-right">
                                 <button
                                   type="button"
-                                  className="text-neutral-400 hover:text-white"
+                                  className="text-slate-400 hover:text-slate-600 dark:text-neutral-400 dark:hover:text-white"
                                 >
                                   {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                                 </button>
@@ -954,41 +959,41 @@ export default function TradeHistory() {
                             {isExpanded && (
                               <tr>
                                 <td colSpan={7} className="p-0 border-t-0">
-                                  <div className="bg-black/30 px-5 py-4 border-b border-white/5 space-y-3 font-mono text-xs">
-                                    <div className="flex items-center justify-between pb-2 border-b border-white/5">
-                                      <h4 className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 flex items-center gap-1.5">
-                                        <Sliders size={12} className="text-blue-400" />
+                                  <div className="bg-slate-50/90 dark:bg-black/30 px-5 py-4 border-b border-slate-200/70 dark:border-white/5 space-y-3 font-mono text-xs">
+                                    <div className="flex items-center justify-between pb-2 border-b border-slate-200/70 dark:border-white/5">
+                                      <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-neutral-400 flex items-center gap-1.5">
+                                        <Sliders size={12} className="text-blue-500 dark:text-blue-400" />
                                         <span>MT5 Execution Telemetry (Ticket #{order.id})</span>
                                       </h4>
-                                      <span className="text-[10px] text-neutral-500">
+                                      <span className="text-[10px] text-slate-400 dark:text-neutral-500">
                                         Magic: {order.magic}
                                       </span>
                                     </div>
 
                                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
                                       <div>
-                                        <span className="text-[9px] font-bold uppercase tracking-widest text-neutral-500 block mb-0.5">Stop Loss</span>
-                                        <span className="font-bold text-white">{order.sl}</span>
+                                        <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 dark:text-neutral-500 block mb-0.5">Stop Loss</span>
+                                        <span className="font-bold text-slate-900 dark:text-white">{order.sl}</span>
                                       </div>
                                       <div>
-                                        <span className="text-[9px] font-bold uppercase tracking-widest text-neutral-500 block mb-0.5">Take Profit</span>
-                                        <span className="font-bold text-white">{order.tp}</span>
+                                        <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 dark:text-neutral-500 block mb-0.5">Take Profit</span>
+                                        <span className="font-bold text-slate-900 dark:text-white">{order.tp}</span>
                                       </div>
                                       <div>
-                                        <span className="text-[9px] font-bold uppercase tracking-widest text-neutral-500 block mb-0.5">Commission</span>
-                                        <span className="font-bold text-white">${order.commission.toFixed(2)}</span>
+                                        <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 dark:text-neutral-500 block mb-0.5">Commission</span>
+                                        <span className="font-bold text-slate-900 dark:text-white">${order.commission.toFixed(2)}</span>
                                       </div>
                                       <div>
-                                        <span className="text-[9px] font-bold uppercase tracking-widest text-neutral-500 block mb-0.5">Swap Fee</span>
-                                        <span className="font-bold text-white">${order.swap.toFixed(2)}</span>
+                                        <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 dark:text-neutral-500 block mb-0.5">Swap Fee</span>
+                                        <span className="font-bold text-slate-900 dark:text-white">${order.swap.toFixed(2)}</span>
                                       </div>
                                       <div>
-                                        <span className="text-[9px] font-bold uppercase tracking-widest text-neutral-500 block mb-0.5">Execution Latency</span>
-                                        <span className="font-bold text-emerald-400">1.8ms (VPS)</span>
+                                        <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 dark:text-neutral-500 block mb-0.5">Execution Latency</span>
+                                        <span className="font-bold text-emerald-600 dark:text-emerald-400">1.8ms (VPS)</span>
                                       </div>
                                       <div>
-                                        <span className="text-[9px] font-bold uppercase tracking-widest text-neutral-500 block mb-0.5">Fill Quality</span>
-                                        <span className="font-bold text-white">Zero Slippage</span>
+                                        <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 dark:text-neutral-500 block mb-0.5">Fill Quality</span>
+                                        <span className="font-bold text-slate-900 dark:text-white">Zero Slippage</span>
                                       </div>
                                     </div>
                                   </div>
@@ -1013,24 +1018,24 @@ export default function TradeHistory() {
           <div className="space-y-4">
             <div className={cardBoxStyle}>
               {/* Header Row */}
-              <div className="flex items-center justify-between pb-3.5 border-b border-white/5">
+              <div className="flex items-center justify-between pb-3.5 border-b border-slate-200/70 dark:border-white/5">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
                     <Terminal size={15} />
                   </div>
                   <div>
-                    <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+                    <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
                       MT5 Terminal &amp; Bot Execution Logs
                     </h3>
-                    <p className="text-[9px] font-bold text-neutral-500 uppercase tracking-[0.15em] mt-0.5">
+                    <p className="text-[10px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-[0.12em] mt-0.5">
                       Live timeline of Bot activations, pauses, trades &amp; pings
                     </p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-1.5">
-                  <div className={`w-1.5 h-1.5 rounded-full ${isConnected ? "bg-emerald-500 animate-pulse" : "bg-neutral-600"}`} />
-                  <span className={`text-[10px] font-mono font-bold uppercase tracking-wider ${isConnected ? "text-emerald-400" : "text-neutral-500"}`}>
+                  <div className={`w-1.5 h-1.5 rounded-full ${isConnected ? "bg-emerald-500 animate-pulse" : "bg-slate-400 dark:bg-neutral-600"}`} />
+                  <span className={`text-[10px] font-mono font-bold uppercase tracking-wider ${isConnected ? "text-emerald-600 dark:text-emerald-400" : "text-slate-400 dark:text-neutral-500"}`}>
                     {isConnected ? "LIVE TELEMETRY" : "STANDBY"}
                   </span>
                 </div>
@@ -1038,22 +1043,22 @@ export default function TradeHistory() {
 
               {/* Terminal Dark Console Box */}
               {filteredTerminalLogs.length === 0 ? (
-                <div className="p-12 text-center font-mono bg-black/40 rounded-lg border border-white/5">
-                  <div className="w-10 h-10 rounded-lg bg-white/5 border border-white/5 flex items-center justify-center text-neutral-400 mx-auto mb-3">
+                <div className="p-12 text-center font-mono bg-slate-50 dark:bg-black/40 rounded-xl border border-slate-200/70 dark:border-white/5">
+                  <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 flex items-center justify-center text-slate-400 dark:text-neutral-400 mx-auto mb-3">
                     <Terminal size={18} />
                   </div>
-                  <div className="text-xs text-white font-bold uppercase tracking-wider mb-1">
+                  <div className="text-xs text-slate-900 dark:text-white font-bold uppercase tracking-wider mb-1">
                     No Terminal Execution Logs
                   </div>
-                  <p className="text-[11px] text-neutral-500 max-w-sm mx-auto">
+                  <p className="text-[11px] text-slate-400 dark:text-neutral-500 max-w-sm mx-auto">
                     Live MT5 bot execution events, license heartbeats, and order routing logs will stream here during market hours.
                   </p>
                 </div>
               ) : (
-                <div className="bg-black/40 rounded-lg border border-white/5 p-4 max-h-[380px] overflow-y-auto space-y-2 font-mono text-xs">
+                <div className="bg-slate-950 dark:bg-black/40 rounded-xl border border-slate-800 dark:border-white/5 p-4 max-h-[380px] overflow-y-auto space-y-2 font-mono text-xs shadow-inner">
                   {filteredTerminalLogs.map(log => (
-                    <div key={log.id} className="flex items-start gap-2.5 py-1.5 border-b border-white/[0.04] last:border-0">
-                      <span className="text-neutral-500 text-[10px] shrink-0 tabular-nums">
+                    <div key={log.id} className="flex items-start gap-2.5 py-1.5 border-b border-slate-800/80 dark:border-white/[0.04] last:border-0">
+                      <span className="text-slate-400 dark:text-neutral-500 text-[10px] shrink-0 tabular-nums">
                         [{log.time}]
                       </span>
                       <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0 uppercase tracking-wider ${
@@ -1067,7 +1072,7 @@ export default function TradeHistory() {
                       }`}>
                         {log.event}
                       </span>
-                      <span className="text-neutral-300 text-xs min-w-0 flex-1 leading-snug">
+                      <span className="text-slate-200 dark:text-neutral-300 text-xs min-w-0 flex-1 leading-snug">
                         {log.details}
                       </span>
                     </div>
@@ -1076,7 +1081,7 @@ export default function TradeHistory() {
               )}
 
               {/* Terminal Footer */}
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 text-xs text-neutral-400 border-t border-white/5 font-mono">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 text-xs text-slate-500 dark:text-neutral-400 border-t border-slate-200/70 dark:border-white/5 font-mono">
                 <span className="text-[11px]">
                   VPS Gateway: 185.220.101.44 · Latency: {isConnected ? "2.1ms" : "Offline"}
                 </span>
@@ -1084,7 +1089,7 @@ export default function TradeHistory() {
                   <button
                     type="button"
                     onClick={handleDownloadTerminalLog}
-                    className="h-8 px-3 rounded-lg bg-black/30 hover:bg-white/[0.08] border border-white/10 text-xs font-mono font-bold text-neutral-300 transition-none cursor-pointer flex items-center gap-1.5"
+                    className="h-8 px-3 rounded-xl bg-white dark:bg-black/30 hover:bg-slate-50 dark:hover:bg-white/[0.08] border border-slate-200/70 dark:border-white/10 text-xs font-mono font-bold text-slate-700 dark:text-neutral-300 shadow-xs transition-colors cursor-pointer flex items-center gap-1.5"
                   >
                     <Download size={12} />
                     <span>Download Log</span>

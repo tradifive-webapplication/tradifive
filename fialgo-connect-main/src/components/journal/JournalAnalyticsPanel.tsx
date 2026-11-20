@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import { useTradingTheme } from "@/hooks/useTradingTheme";
 import {
   BarChart,
   Bar,
@@ -177,6 +178,9 @@ export const JournalAnalyticsPanel: React.FC<JournalAnalyticsPanelProps> = ({
   }, [closedTrades]);
 
   const blurClass = hidePnl ? "blur-[5.5px] select-none opacity-80" : "";
+  const { config: tradingTheme } = useTradingTheme();
+  const profitColor = isDark ? tradingTheme.profitHexDark : tradingTheme.profitHex;
+  const lossColor = isDark ? tradingTheme.lossHexDark : tradingTheme.lossHex;
   const maxSymbolAbs = Math.max(...symbolStats.map((s) => Math.abs(s.pnl)), 1);
 
   return (
@@ -243,8 +247,8 @@ export const JournalAnalyticsPanel: React.FC<JournalAnalyticsPanelProps> = ({
                         <p
                           className={`text-[13.5px] font-semibold tabular-nums mt-0.5 ${
                             pt.pnl >= 0
-                              ? "text-[#2563EB] dark:text-blue-400"
-                              : "text-rose-600 dark:text-rose-400"
+                              ? tradingTheme.profitText
+                              : tradingTheme.lossText
                           }`}
                         >
                           {formatMoney(pt.pnl, currSym, true)}
@@ -260,7 +264,7 @@ export const JournalAnalyticsPanel: React.FC<JournalAnalyticsPanelProps> = ({
                   {dailySeries.map((entry, idx) => (
                     <Cell
                       key={idx}
-                      fill={entry.pnl >= 0 ? "#2563EB" : "#E11D48"}
+                      fill={entry.pnl >= 0 ? profitColor : lossColor}
                       fillOpacity={0.88}
                     />
                   ))}
@@ -282,7 +286,7 @@ export const JournalAnalyticsPanel: React.FC<JournalAnalyticsPanelProps> = ({
         <div className={`${SURFACE_CARD} p-3.5`}>
           <p className="text-[11px] font-medium text-slate-400">Best trade</p>
           <p
-            className={`mt-1 text-[17px] font-bold text-[#2563EB] dark:text-blue-400 tabular-nums transition-[filter,opacity] duration-200 ${blurClass}`}
+            className={`mt-1 text-[17px] font-bold ${tradingTheme.profitText} tabular-nums transition-[filter,opacity] duration-200 ${blurClass}`}
           >
             {formatMoney(extremes.best, currSym, extremes.best > 0)}
           </p>
@@ -350,8 +354,8 @@ export const JournalAnalyticsPanel: React.FC<JournalAnalyticsPanelProps> = ({
                       <span
                         className={`font-semibold tabular-nums transition-[filter,opacity] duration-200 ${blurClass} ${
                           item.pnl >= 0
-                            ? "text-[#2563EB] dark:text-blue-400"
-                            : "text-rose-600 dark:text-rose-400"
+                            ? tradingTheme.profitText
+                            : tradingTheme.lossText
                         }`}
                       >
                         {formatMoney(item.pnl, currSym, true)}
@@ -360,9 +364,7 @@ export const JournalAnalyticsPanel: React.FC<JournalAnalyticsPanelProps> = ({
                     <div className="w-full h-1.5 rounded-full bg-slate-100 dark:bg-white/[0.06] overflow-hidden">
                       <div
                         style={{ width: `${widthPct}%` }}
-                        className={`h-full rounded-full ${
-                          item.pnl >= 0 ? "bg-[#2563EB]" : "bg-rose-500"
-                        }`}
+                        className="h-full rounded-full" style={{ backgroundColor: item.pnl >= 0 ? profitColor : lossColor }}
                       />
                     </div>
                   </div>
@@ -395,8 +397,8 @@ export const JournalAnalyticsPanel: React.FC<JournalAnalyticsPanelProps> = ({
                     <p
                       className={`mt-1 text-[16px] font-bold tabular-nums transition-[filter,opacity] duration-200 ${blurClass} ${
                         data.pnl < 0
-                          ? "text-rose-600 dark:text-rose-400"
-                          : "text-[#2563EB] dark:text-blue-400"
+                          ? tradingTheme.lossText
+                          : tradingTheme.profitText
                       }`}
                     >
                       {formatMoney(data.pnl, currSym, data.pnl !== 0)}
@@ -438,8 +440,8 @@ export const JournalAnalyticsPanel: React.FC<JournalAnalyticsPanelProps> = ({
                       <span
                         className={`font-semibold tabular-nums shrink-0 transition-[filter,opacity] duration-200 ${blurClass} ${
                           st.pnl < 0
-                            ? "text-rose-600 dark:text-rose-400"
-                            : "text-[#2563EB] dark:text-blue-400"
+                            ? tradingTheme.lossText
+                            : tradingTheme.profitText
                         }`}
                       >
                         {formatMoney(st.pnl, currSym, true)}

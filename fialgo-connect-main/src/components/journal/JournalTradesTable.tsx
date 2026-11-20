@@ -7,6 +7,7 @@ import {
 } from "react-iconly";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useJournalSettings } from "@/contexts/JournalSettingsContext";
+import { useTradingTheme } from "@/hooks/useTradingTheme";
 import { useMarket } from "@/contexts/MarketContext";
 import { toast } from "sonner";
 
@@ -110,6 +111,7 @@ export default function JournalTradesTable({
     isSettingsLoading,
   } = useJournalSettings();
   const { activeMarket } = useMarket();
+  const { config: tradingTheme } = useTradingTheme();
   const isLoading = demoData ? isSettingsLoading : isDataLoading || isSettingsLoading;
 
   useEffect(() => {
@@ -361,8 +363,8 @@ export default function JournalTradesTable({
             <span
               className={`text-[13px] font-semibold tabular-nums ${
                 profitAndLoss < 0
-                  ? "text-rose-600 dark:text-rose-400"
-                  : "text-[#2563EB] dark:text-blue-400"
+                  ? tradingTheme.lossText
+                  : tradingTheme.profitText
               }`}
             >
               {formatPnl(profitAndLoss)}
@@ -685,7 +687,7 @@ export default function JournalTradesTable({
                       <span
                         className={`px-1.5 py-0.5 rounded-md text-[10px] font-bold ${
                           side === "BUY"
-                            ? "bg-blue-50 text-[#2563EB] dark:bg-blue-500/15 dark:text-blue-400"
+                            ? tradingTheme.profitBadge
                             : "bg-rose-50 text-rose-600 dark:bg-rose-500/15 dark:text-rose-400"
                         }`}
                       >
@@ -731,8 +733,8 @@ export default function JournalTradesTable({
                     <td
                       className={`px-3 py-3 text-[12.5px] font-semibold tabular-nums text-right ${
                         grossPnl < 0
-                          ? "text-rose-600 dark:text-rose-400"
-                          : "text-[#2563EB] dark:text-blue-400"
+                          ? tradingTheme.lossText
+                          : tradingTheme.profitText
                       }`}
                     >
                       {formatPnl(grossPnl)}
@@ -740,8 +742,8 @@ export default function JournalTradesTable({
                     <td
                       className={`px-3 py-3 text-[12.5px] font-bold tabular-nums text-right ${
                         profit < 0
-                          ? "text-rose-600 dark:text-rose-400"
-                          : "text-[#2563EB] dark:text-blue-400"
+                          ? tradingTheme.lossText
+                          : tradingTheme.profitText
                       }`}
                     >
                       {formatPnl(profit)}

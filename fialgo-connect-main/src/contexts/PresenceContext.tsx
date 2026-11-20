@@ -11,44 +11,61 @@ export const PresenceProvider = ({ children }: { children: React.ReactNode }) =>
   const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    let channel: any;
-    
+    let isCancelled = false;
+    let channel: any = null;
+
     const initPresence = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user || isCancelled) return;
 
-      // Ensure single connection channel for all users across the platform
-      channel = supabase.channel('global_presence', {
-        config: {
-          presence: {
-            key: user.id,
+        const existingChannels = supabase.getChannels().filter((c: any) => c.topic === 'realtime:global_presence');
+        for (const c of existingChannels) {
+          try {
+            await supabase.removeChannel(c);
+          } catch (_) {}
+        }
+        if (isCancelled) return;
+
+        channel = supabase.channel('global_presence', {
+          config: {
+            presence: {
+              key: user.id,
+            },
           },
-        },
-      });
-      
-      channel.on('presence', { event: 'sync' }, () => {
-        const state = channel.presenceState();
-        const activeIds = new Set<string>();
-        for (const id of Object.keys(state)) {
-           activeIds.add(id);
-        }
-        setOnlineUsers(activeIds);
-      });
+        });
 
-      channel.subscribe(async (status: string) => {
-        if (status === 'SUBSCRIBED') {
-          // Track this user as online
-          await channel.track({ online_at: new Date().toISOString() });
-        }
-      });
+        channel.on('presence', { event: 'sync' }, () => {
+          if (isCancelled) return;
+          const state = channel.presenceState();
+          const activeIds = new Set<string>();
+          for (const id of Object.keys(state)) {
+            activeIds.add(id);
+          }
+          setOnlineUsers(activeIds);
+        });
+
+        channel.subscribe(async (status: string) => {
+          if (status === 'SUBSCRIBED' && !isCancelled) {
+            try {
+              await channel.track({ online_at: new Date().toISOString() });
+            } catch (_) {}
+          }
+        });
+      } catch (err) {
+        console.warn("Global presence init error:", err);
+      }
     };
 
     initPresence();
 
     return () => {
+      isCancelled = true;
       if (channel) {
-        channel.untrack();
-        supabase.removeChannel(channel);
+        try {
+          channel.untrack().catch(() => {});
+          supabase.removeChannel(channel).catch(() => {});
+        } catch (_) {}
       }
     };
   }, []);

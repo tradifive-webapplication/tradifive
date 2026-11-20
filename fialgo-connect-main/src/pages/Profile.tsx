@@ -42,6 +42,7 @@ import JournalTradesTable from "@/components/journal/JournalTradesTable";
 import { JournalSettingsProvider } from "@/contexts/JournalSettingsContext";
 import { getGamificationState } from "@/utils/gamification";
 import { calculateTradingMetrics } from "@/utils/tradeMetrics";
+import { useMarket } from "@/contexts/MarketContext";
 import { FollowListModal } from "@/components/FollowListModal";
 import { validateUsername } from "@/utils/usernameValidation";
 import ShareProfileModal from "@/components/ShareProfileModal";
@@ -171,6 +172,8 @@ const getActiveUserId = () => {
 export default function Profile() {
   const navigate = useNavigate();
   const userIdSync = getActiveUserId();
+  const { activeMarket } = useMarket();
+  const currencySymbol = activeMarket === "indian" ? "₹" : "$";
 
   const [profile, setProfile] = useState<any>(() => {
     const cached = localStorage.getItem(`prof_cache_data_${userIdSync}`);
@@ -270,14 +273,14 @@ export default function Profile() {
             return !isNaN(ts) && ts >= cutoff;
           })
         : rawTrades;
-    const computed = calculateTradingMetrics(scoped, accountBalance || 10000);
+    const computed = calculateTradingMetrics(scoped, accountBalance || 10000, currencySymbol);
     setAdvMetrics(computed);
     if (perfRange === "All") {
       try {
         localStorage.setItem(`prof_cache_adv_metrics_${userIdSync}`, JSON.stringify(computed));
       } catch (_) {}
     }
-  }, [rawTrades, accountBalance, perfRange, userIdSync]);
+  }, [rawTrades, accountBalance, perfRange, userIdSync, currencySymbol]);
 
   // Interaction States
   const [likedPosts, setLikedPosts] = useState<Record<string, boolean>>({});
@@ -305,9 +308,7 @@ export default function Profile() {
       const updatedLocal = localPosts.filter((p: any) => String(p.id) !== postIdStr);
       localStorage.setItem('fialgo_local_posts', JSON.stringify(updatedLocal));
 
-      const cachedFeeds = JSON.parse(localStorage.getItem('home_cache_feeds') || '[]');
-      const updatedCache = cachedFeeds.filter((p: any) => String(p.id) !== postIdStr);
-      localStorage.setItem('home_cache_feeds', JSON.stringify(updatedCache));
+      localStorage.removeItem('home_cache_feeds');
 
       for (let i = 0; i < localStorage.length; i++) {
         const k = localStorage.key(i);
@@ -664,35 +665,76 @@ export default function Profile() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { setLoadingTrades(false); return; }
 
-      const [tradesRes, mt5Res] = await Promise.all([
-        supabase.from('trades').select('id, profit, created_at, closed_at, risk_reward_ratio, rr, type, volume').eq('user_id', user.id),
-        supabase.from('mt5_accounts').select('balance').eq('user_id', user.id).maybeSingle()
+      // 1. Fetch trades, broker accounts, and risk limits in parallel (directly matching Dashboard & Risk Guard)
+      const [tradesRes, mt5Res, indianRes, brokerRes, riskRes] = await Promise.all([
+        supabase
+          .from('trades')
+          .select('id, ticket, profit, created_at, closed_at, risk_reward_ratio, rr, type, volume, symbol')
+          .eq('user_id', user.id)
+          .order('closed_at', { ascending: false }),
+        supabase.from('mt5_accounts').select('balance, algo_status').eq('user_id', user.id).maybeSingle(),
+        supabase.from('indian_broker_accounts').select('balance, equity').eq('user_id', user.id).maybeSingle(),
+        supabase.from('broker_connections').select('balance').eq('user_id', user.id).eq('connection_status', 'active').maybeSingle(),
+        supabase.from('user_risk_configs').select('target_capital').eq('user_id', user.id).maybeSingle()
       ]);
 
-      const balance = Number(mt5Res.data?.balance) || 10000;
-      setAccountBalance(balance);
+      // Determine real broker balance across Indian and Forex/Global accounts
+      const isIndian = activeMarket === 'indian';
+      let detectedBalance = 0;
 
-      const tradesData = tradesRes.data || [];
-      setRawTrades(tradesData);
+      if (isIndian) {
+        detectedBalance = Number(indianRes.data?.balance) || Number((brokerRes.data as any)?.balance) || 0;
+      } else {
+        detectedBalance = Number(mt5Res.data?.balance) || 0;
+      }
 
-      if (tradesData.length > 0) {
-        const total = tradesData.length;
-        const winTrades = tradesData.filter((t) => Number(t.profit) > 0);
-        const lossTrades = tradesData.filter((t) => Number(t.profit) < 0);
+      // Safe fallback priority: Target Capital from Risk Guard -> other broker table -> sensible market default
+      if (detectedBalance < 50) {
+        if (Number(riskRes.data?.target_capital) >= 50) {
+          detectedBalance = Number(riskRes.data?.target_capital);
+        } else if (Number(mt5Res.data?.balance) >= 50) {
+          detectedBalance = Number(mt5Res.data?.balance);
+        } else if (Number(indianRes.data?.balance) >= 50) {
+          detectedBalance = Number(indianRes.data?.balance);
+        } else {
+          detectedBalance = isIndian ? 100000 : 10000;
+        }
+      }
+
+      // Never allow divisor to be < 100 to prevent division-by-zero / +100000% glitches
+      const safeBalance = Math.max(100, detectedBalance);
+      setAccountBalance(safeBalance);
+
+      // Deduplicate trades based on MT5 ticket or Supabase ID (identically to useDashboardData)
+      const rawData = tradesRes.data || [];
+      const uniqueMap = new Map();
+      rawData.forEach((t: any) => {
+        const key = t.ticket || t.id;
+        if (!uniqueMap.has(key)) {
+          uniqueMap.set(key, t);
+        }
+      });
+      const uniqueTrades = Array.from(uniqueMap.values());
+      setRawTrades(uniqueTrades);
+
+      if (uniqueTrades.length > 0) {
+        const total = uniqueTrades.length;
+        const winTrades = uniqueTrades.filter((t: any) => Number(t.profit) > 0);
+        const lossTrades = uniqueTrades.filter((t: any) => Number(t.profit) < 0);
         const wins = winTrades.length;
         const wr = total > 0 ? Math.round((wins / total) * 100) : 0;
-        const pnlSum = tradesData.reduce((acc, t) => acc + Number(t.profit || 0), 0);
+        const pnlSum = uniqueTrades.reduce((acc: number, t: any) => acc + Number(t.profit || 0), 0);
 
-        const avgWin = wins > 0 ? winTrades.reduce((s, t) => s + Number(t.profit || 0), 0) / wins : 0;
-        const avgLoss = lossTrades.length > 0 ? lossTrades.reduce((s, t) => s + Math.abs(Number(t.profit || 0)), 0) / lossTrades.length : 0;
-        const rrVal = avgLoss > 0 ? `${(avgWin / avgLoss).toFixed(2)}R` : avgWin > 0 ? "1.00R" : "0";
+        // Compute metrics with enhanced calculateTradingMetrics
+        const computed = calculateTradingMetrics(uniqueTrades, safeBalance, currencySymbol);
+        setAdvMetrics(computed);
 
         setTotalTradesCount(total);
         setWinRateVal(`${wr}%`);
-        setAvgRRVal(rrVal);
+        setAvgRRVal(computed.avgRR || "1.00R");
 
         let currentStreak = 0;
-        const sortedTrades = [...tradesData].sort((a, b) => new Date(b.closed_at || b.created_at).getTime() - new Date(a.closed_at || a.created_at).getTime());
+        const sortedTrades = [...uniqueTrades].sort((a: any, b: any) => new Date(b.closed_at || b.created_at).getTime() - new Date(a.closed_at || a.created_at).getTime());
         for (const t of sortedTrades) {
           if (Number(t.profit) > 0) { currentStreak++; } else { break; }
         }
@@ -700,7 +742,7 @@ export default function Profile() {
 
         let best = 0;
         let runLen = 0;
-        const chronoTrades = [...tradesData].sort((a, b) => new Date(a.closed_at || a.created_at).getTime() - new Date(b.closed_at || b.created_at).getTime());
+        const chronoTrades = [...uniqueTrades].sort((a: any, b: any) => new Date(a.closed_at || a.created_at).getTime() - new Date(b.closed_at || b.created_at).getTime());
         for (const t of chronoTrades) {
           if (Number(t.profit) > 0) { runLen++; if (runLen > best) best = runLen; } else { runLen = 0; }
         }
@@ -709,7 +751,7 @@ export default function Profile() {
         const today = new Date();
         const dots = [];
         const dailyPnl: Record<string, number> = {};
-        for (const t of tradesData) {
+        for (const t of uniqueTrades) {
           const d = new Date(t.closed_at || t.created_at);
           const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
           dailyPnl[key] = (dailyPnl[key] || 0) + Number(t.profit || 0);
@@ -724,7 +766,7 @@ export default function Profile() {
             dots.push({ date: key, status: 'gray' });
           }
         }
-        setStreakDots(dots);
+        setStreakDots(dots as any);
 
         const calMap: Record<string, 'green' | 'red' | 'gray'> = {};
         for (const [key, pnl] of Object.entries(dailyPnl)) {
@@ -732,9 +774,18 @@ export default function Profile() {
         }
         setCalendarDayMap(calMap);
 
-        const roiPercent = balance > 0 ? (pnlSum / balance) * 100 : 0;
+        const roiPercent = safeBalance > 0 ? (pnlSum / safeBalance) * 100 : 0;
         const calculatedRoi = (pnlSum >= 0 ? "+" : "") + roiPercent.toFixed(2) + "%";
         setRoiVal(calculatedRoi);
+
+        // Synchronize with database profiles table so public profiles match
+        supabase.from('profiles').update({
+          total_trades: total,
+          win_rate: wr,
+          roi_all_time: Number(roiPercent.toFixed(2)),
+          avg_rr: Number(parseFloat(computed.avgRR)) || 1.0,
+          streak_days: currentStreak
+        }).eq('id', user.id).then();
 
         try {
           localStorage.setItem(
@@ -751,12 +802,13 @@ export default function Profile() {
       } else {
         setTotalTradesCount(0);
         setWinRateVal("0%");
-        setAvgRRVal("0");
+        setAvgRRVal("0.00R");
         setRoiVal("0.00%");
         setStreakVal("0 Days");
         setBestStreak(0);
         setStreakDots([]);
         setCalendarDayMap({});
+        setAdvMetrics(calculateTradingMetrics([], safeBalance, currencySymbol));
       }
     } catch (err) {
       console.error(err);
@@ -1307,22 +1359,27 @@ export default function Profile() {
                     {/* Left part: Total PnL Label & compact Line Chart */}
                     <div className="col-span-5 flex flex-col">
                       <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider leading-none">Total PnL</span>
-                      <span className={`text-lg sm:text-xl font-extrabold tracking-tight leading-none mt-1.5 font-sans tabular-nums ${advMetrics.totalPnlPercent.startsWith('-') ? 'text-rose-500' : 'text-emerald-500'}`}>
-                        {advMetrics.totalPnlPercent}
-                      </span>
+                      <div className="flex items-baseline gap-1 mt-1.5 flex-wrap">
+                        <span className={`text-base sm:text-lg font-extrabold tracking-tight leading-none font-sans tabular-nums ${advMetrics.totalPnl >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                          {advMetrics.formattedPnl || advMetrics.totalPnlPercent}
+                        </span>
+                        <span className={`text-[10px] font-bold tabular-nums ${advMetrics.totalPnl >= 0 ? 'text-emerald-500/80' : 'text-rose-500/80'}`}>
+                          ({advMetrics.totalPnlPercent})
+                        </span>
+                      </div>
 
                       <div className="h-12 sm:h-14 w-full mt-2 relative">
-                        <svg className={`w-full h-full filter ${advMetrics.totalPnlPercent.startsWith('-') ? 'drop-shadow-[0_3px_6px_rgba(244,63,94,0.2)]' : 'drop-shadow-[0_3px_6px_rgba(59,130,246,0.2)]'}`} viewBox="0 0 100 40" preserveAspectRatio="none">
+                        <svg className={`w-full h-full filter ${advMetrics.totalPnl >= 0 ? 'drop-shadow-[0_3px_6px_rgba(59,130,246,0.2)]' : 'drop-shadow-[0_3px_6px_rgba(244,63,94,0.2)]'}`} viewBox="0 0 100 40" preserveAspectRatio="none">
                           <defs>
                             <linearGradient id="pnlGradOwn" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="0%" stopColor={advMetrics.totalPnlPercent.startsWith('-') ? "#f43f5e" : "#3b82f6"} stopOpacity="0.4" />
-                              <stop offset="100%" stopColor={advMetrics.totalPnlPercent.startsWith('-') ? "#f43f5e" : "#3b82f6"} stopOpacity="0" />
+                              <stop offset="0%" stopColor={advMetrics.totalPnl >= 0 ? "#3b82f6" : "#f43f5e"} stopOpacity="0.4" />
+                              <stop offset="100%" stopColor={advMetrics.totalPnl >= 0 ? "#3b82f6" : "#f43f5e"} stopOpacity="0" />
                             </linearGradient>
                           </defs>
                           <path
                             d={advMetrics.chartPath}
                             fill="none"
-                            stroke={advMetrics.totalPnlPercent.startsWith('-') ? "#f43f5e" : "#3b82f6"}
+                            stroke={advMetrics.totalPnl >= 0 ? "#3b82f6" : "#f43f5e"}
                             strokeWidth="2.5"
                             strokeLinecap="round"
                           />
@@ -1330,8 +1387,8 @@ export default function Profile() {
                             d={`${advMetrics.chartPath} L100,40 L0,40 Z`}
                             fill="url(#pnlGradOwn)"
                           />
-                          <circle cx="100" cy={advMetrics.chartPath.split(',').pop() || 3} r="3" fill={advMetrics.totalPnlPercent.startsWith('-') ? "#f43f5e" : "#3b82f6"} className="animate-ping" />
-                          <circle cx="100" cy={advMetrics.chartPath.split(',').pop() || 3} r="2" fill={advMetrics.totalPnlPercent.startsWith('-') ? "#f43f5e" : "#3b82f6"} />
+                          <circle cx="100" cy={advMetrics.chartPath.split(',').pop() || 3} r="3" fill={advMetrics.totalPnl >= 0 ? "#3b82f6" : "#f43f5e"} className="animate-ping" />
+                          <circle cx="100" cy={advMetrics.chartPath.split(',').pop() || 3} r="2" fill={advMetrics.totalPnl >= 0 ? "#3b82f6" : "#f43f5e"} />
                         </svg>
                       </div>
                     </div>
@@ -1342,7 +1399,7 @@ export default function Profile() {
                         { label: "Profit Factor", value: advMetrics.profitFactor, color: "text-blue-500", icon: <BarChart2 size={11} className="text-blue-500" /> },
                         { label: "Expectancy", value: advMetrics.expectancy, color: advMetrics.expectancy.startsWith('-') ? "text-rose-500" : "text-emerald-500", icon: <TrendingUp size={11} className={advMetrics.expectancy.startsWith('-') ? "text-rose-500" : "text-emerald-500"} /> },
                         { label: "Max Drawdown", value: advMetrics.maxDrawdown, color: "text-rose-500", highlighted: true, icon: <Scale size={11} className="text-rose-500" /> },
-                        { label: "Consistency", value: `${advMetrics.consistencyScore}%`, color: "text-blue-500", icon: <CheckCircle2 size={11} className="text-blue-500" />, showInfo: true }
+                        { label: "Consistency", value: advMetrics.consistencyDisplay || `${advMetrics.consistencyScore}%`, color: "text-blue-500", icon: <CheckCircle2 size={11} className="text-blue-500" />, showInfo: true }
                       ].map((stat, i) => (
                         <div key={i} className="flex justify-between items-center text-[10.5px] sm:text-[11.5px] gap-1">
                           <span className="font-bold text-slate-500 dark:text-[#999] flex items-center gap-1.5 min-w-0">

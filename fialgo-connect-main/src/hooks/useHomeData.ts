@@ -36,18 +36,42 @@ export type ProfileViewEvent = {
   viewed_at?: string;
 };
 
-export function useHomeData(userId: string) {
-  const getCache = (key: string, fallback: any) => {
-    try { const val = localStorage.getItem(key); return val ? JSON.parse(val) : fallback; } catch (e) { return fallback; }
-  };
+// In-memory session cache — ensures instant tab transitions during the active session
+// while eliminating the stale localStorage "before data" flash on initial load.
+let sessionCachedFeeds: FeedPost[] | null = null;
+let sessionCachedWatchlist: WatchItem[] | null = null;
+let sessionCachedCalendar: CalendarEvent[] | null = null;
+let sessionCachedFollowers: { count: number; avatars: string[] } | null = null;
+let sessionCachedSuggestions: ProfileShort[] | null = null;
+let sessionCachedProfileViews: ProfileViewEvent[] | null = null;
+let sessionCachedWinningStreaks: ProfileShort[] | null = null;
+let sessionCachedTopDisciplined: ProfileShort[] | null = null;
 
-  // One-time cleanup: aggressively clear ALL old mock data caches
+// Purge all legacy stale localStorage caches immediately on module load
+try {
+  localStorage.removeItem('home_cache_feeds');
+  localStorage.removeItem('home_cache_suggestions');
+  localStorage.removeItem('home_cache_winningStreaks');
+  localStorage.removeItem('home_cache_topDisciplined');
+  localStorage.removeItem('home_cache_watchlist');
+  localStorage.removeItem('home_cache_calendar');
+  localStorage.removeItem('home_cache_followers');
+  localStorage.removeItem('home_cache_profile_views');
+} catch (_) {}
+
+export function useHomeData(userId: string) {
+  // Purge any legacy stale localStorage caches permanently
   useEffect(() => {
     try {
       localStorage.removeItem('home_cache_feeds');
       localStorage.removeItem('home_cache_suggestions');
       localStorage.removeItem('home_cache_winningStreaks');
       localStorage.removeItem('home_cache_topDisciplined');
+      localStorage.removeItem('home_cache_watchlist');
+      localStorage.removeItem('home_cache_calendar');
+      localStorage.removeItem('home_cache_followers');
+      localStorage.removeItem('home_cache_profile_views');
+      
       const localPosts = JSON.parse(localStorage.getItem('fialgo_local_posts') || '[]');
       const cleaned = localPosts.filter((p: any) => !p.media_url || !String(p.media_url).startsWith('blob:') && !String(p.id).startsWith('demo-'));
       if (cleaned.length !== localPosts.length) {
@@ -56,35 +80,21 @@ export function useHomeData(userId: string) {
     } catch (_) {}
   }, []);
 
-  const [feeds, setFeeds] = useState<FeedPost[]>(() => {
-    const cached = getCache('home_cache_feeds', []);
-    try {
-      const deletedArr = JSON.parse(localStorage.getItem('tradifive_deleted_post_ids') || '[]');
-      const deletedSet = new Set(deletedArr.map(String));
-      return (cached || []).filter((p: any) => p && p.id && !deletedSet.has(String(p.id)));
-    } catch (_) {
-      return cached;
-    }
-  });
-
-  const [watchlist, setWatchlist] = useState<WatchItem[]>(() => getCache('home_cache_watchlist', []));
-  const [calendar, setCalendar] = useState<CalendarEvent[]>(() => {
-    const cached = getCache('home_cache_calendar', []);
-    return Array.isArray(cached) ? cached : [];
-  });
-  const [followers, setFollowers] = useState<{ count: number; avatars: string[] }>(() => getCache('home_cache_followers', { count: 0, avatars: [] }));
-  const [suggestions, setSuggestions] = useState<ProfileShort[]>(() => getCache('home_cache_suggestions', []));
-  const [profileViews, setProfileViews] = useState<ProfileViewEvent[]>(() => getCache('home_cache_profile_views', []));
-  const [winningStreaks, setWinningStreaks] = useState<ProfileShort[]>(() => getCache('home_cache_winningStreaks', []));
-  const [topDisciplined, setTopDisciplined] = useState<ProfileShort[]>(() => getCache('home_cache_topDisciplined', []));
+  const [feeds, setFeeds] = useState<FeedPost[]>(() => sessionCachedFeeds || []);
+  const [watchlist, setWatchlist] = useState<WatchItem[]>(() => sessionCachedWatchlist || []);
+  const [calendar, setCalendar] = useState<CalendarEvent[]>(() => sessionCachedCalendar || []);
+  const [followers, setFollowers] = useState<{ count: number; avatars: string[] }>(
+    () => sessionCachedFollowers || { count: 0, avatars: [] }
+  );
+  const [suggestions, setSuggestions] = useState<ProfileShort[]>(() => sessionCachedSuggestions || []);
+  const [profileViews, setProfileViews] = useState<ProfileViewEvent[]>(() => sessionCachedProfileViews || []);
+  const [winningStreaks, setWinningStreaks] = useState<ProfileShort[]>(() => sessionCachedWinningStreaks || []);
+  const [topDisciplined, setTopDisciplined] = useState<ProfileShort[]>(() => sessionCachedTopDisciplined || []);
 
   const [livePrices, setLivePrices] = useState<Record<string, { price: string; change: string; is_positive: boolean }>>({});
 
-  // Only show loading state if we have absolutely no cached feeds
-  const [loading, setLoading] = useState(() => {
-    const cached = getCache('home_cache_feeds', []);
-    return cached.length === 0;
-  });
+  // Show clean skeleton loader until real Supabase data arrives (eliminates stale "before data" flash)
+  const [loading, setLoading] = useState<boolean>(() => sessionCachedFeeds === null);
 
   const { activeMarket, finishSwitching, isSwitching } = useMarket();
 
@@ -158,8 +168,8 @@ export function useHomeData(userId: string) {
         }
       }
 
+      sessionCachedProfileViews = resolvedViews;
       setProfileViews(resolvedViews);
-      localStorage.setItem('home_cache_profile_views', JSON.stringify(resolvedViews));
 
       // Batch enrich posts with profiles to avoid missing foreign key relation errors
       let feedData: any[] = [];
@@ -186,20 +196,20 @@ export function useHomeData(userId: string) {
         avatars: followData?.map((f: any) => f.profiles?.avatar_url).filter(Boolean) || []
       };
 
-
-
+      sessionCachedFollowers = newFollowers;
       setFollowers(newFollowers);
-      localStorage.setItem('home_cache_followers', JSON.stringify(newFollowers));
 
       const combinedSuggestions = [...extraVisitorProfiles, ...((sugData as ProfileShort[]) || [])];
+      sessionCachedSuggestions = combinedSuggestions;
       setSuggestions(combinedSuggestions);
-      localStorage.setItem('home_cache_suggestions', JSON.stringify(combinedSuggestions));
 
-      setWinningStreaks((streakData as ProfileShort[]) || []);
-      localStorage.setItem('home_cache_winningStreaks', JSON.stringify(streakData || []));
+      const streaks = (streakData as ProfileShort[]) || [];
+      sessionCachedWinningStreaks = streaks;
+      setWinningStreaks(streaks);
 
-      setTopDisciplined((discData as ProfileShort[]) || []);
-      localStorage.setItem('home_cache_topDisciplined', JSON.stringify(discData || []));
+      const disciplined = (discData as ProfileShort[]) || [];
+      sessionCachedTopDisciplined = disciplined;
+      setTopDisciplined(disciplined);
 
       let deletedPostIds = new Set<string>();
       try {
@@ -223,9 +233,12 @@ export function useHomeData(userId: string) {
           localStorage.setItem('fialgo_local_posts', JSON.stringify(unresolvedLocalPosts));
         }
 
+        const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
         unresolvedLocalPosts = unresolvedLocalPosts.filter((p: any) => {
           if (deletedPostIds.has(String(p.id))) return false;
           if (p.user_id && p.user_id !== userId) return false;
+          const postTime = p.created_at ? new Date(p.created_at).getTime() : 0;
+          if (postTime && postTime < oneDayAgo) return false;
           if (p.profiles && (!p.profiles.avatar_url || p.profiles.avatar_url.includes('dicebear'))) {
             p.profiles.avatar_url = '/nikil_avatar.jpg';
           }
@@ -244,8 +257,8 @@ export function useHomeData(userId: string) {
         return isNaN(timeB) || isNaN(timeA) ? 0 : timeB - timeA;
       });
 
+      sessionCachedFeeds = combinedFeeds;
       setFeeds(combinedFeeds);
-      localStorage.setItem('home_cache_feeds', JSON.stringify(combinedFeeds));
 
       // 1. Filter Watchlist by activeMarket (keep all relevant asset classes visible)
       let finalWatch: WatchItem[] = [];
@@ -256,8 +269,8 @@ export function useHomeData(userId: string) {
         finalWatch = rawWatch.filter(item => item.symbol_type === 'crypto' || item.symbol_type === 'forex' || item.symbol_type === 'commodity' || item.symbol_type === 'index' || item.symbol_type === 'equity');
       }
 
+      sessionCachedWatchlist = finalWatch;
       setWatchlist(finalWatch);
-      localStorage.setItem('home_cache_watchlist', JSON.stringify(finalWatch));
 
       // 2. Fetch Real Live Economic News from Forex Factory (official nfs.faireconomy.media feed, with 15m rate-limit-safe cache)
       let finalCal: any[] = [];
@@ -272,8 +285,8 @@ export function useHomeData(userId: string) {
       }
 
       try {
-        const cachedCal = getCache('home_cache_calendar', []);
-        const lastFfFetch = Number(localStorage.getItem('home_ff_last_fetch_time') || '0');
+        const cachedCal = sessionCachedCalendar;
+        const lastFfFetch = Number(sessionStorage.getItem('home_ff_last_fetch_time') || '0');
         const cacheFresh = Array.isArray(cachedCal) && cachedCal.length > 0 && (Date.now() - lastFfFetch) < 15 * 60 * 1000;
 
         if (cacheFresh && cachedCal[0]?.source === 'ForexFactory') {
@@ -325,7 +338,7 @@ export function useHomeData(userId: string) {
 
             if (fetchedLive.length > 0) {
               finalCal = fetchedLive;
-              localStorage.setItem('home_ff_last_fetch_time', String(Date.now()));
+              sessionStorage.setItem('home_ff_last_fetch_time', String(Date.now()));
             }
           } else if (Array.isArray(cachedCal) && cachedCal.length > 0 && cachedCal[0]?.source === 'ForexFactory') {
             // Preserve valid cached Forex Factory data if temporarily rate-limited
@@ -340,8 +353,8 @@ export function useHomeData(userId: string) {
         finalCal = rawCal;
       }
 
+      sessionCachedCalendar = finalCal;
       setCalendar(finalCal);
-      localStorage.setItem('home_cache_calendar', JSON.stringify(finalCal));
       localStorage.setItem('home_last_fetch_time', String(Date.now()));
 
     } catch (err) {
@@ -699,13 +712,8 @@ export function useHomeData(userId: string) {
 
   const removePost = (postId: string) => {
     const postIdStr = String(postId);
-    setFeeds(prev => {
-      const updated = prev.filter(f => String(f.id) !== postIdStr);
-      try {
-        localStorage.setItem('home_cache_feeds', JSON.stringify(updated));
-      } catch (_) {}
-      return updated;
-    });
+    sessionCachedFeeds = (sessionCachedFeeds || []).filter(f => String(f.id) !== postIdStr);
+    setFeeds(prev => prev.filter(f => String(f.id) !== postIdStr));
 
     // Permanently remove from fialgo_local_posts
     try {

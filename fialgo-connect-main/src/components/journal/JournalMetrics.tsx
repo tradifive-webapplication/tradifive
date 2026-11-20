@@ -31,6 +31,7 @@ import { useDashboardData } from "@/hooks/useDashboardData";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useJournalSettings, CURRENCIES, CurrencyCode } from "@/contexts/JournalSettingsContext";
 import { usePlan } from "@/hooks/usePlan";
+import { useTradingTheme } from "@/hooks/useTradingTheme";
 import { useMarket } from "@/contexts/MarketContext";
 
 const CARD_SURFACE =
@@ -66,10 +67,16 @@ function WinRateGauge({
   wins,
   even,
   losses,
+  isDark,
+  profitColor,
+  tradingTheme,
 }: {
   wins: number;
   even: number;
   losses: number;
+  isDark?: boolean;
+  profitColor?: string;
+  tradingTheme?: any;
 }) {
   const r = 24;
   const c = 2 * Math.PI * r;
@@ -96,7 +103,7 @@ function WinRateGauge({
               cy="32"
               r={r}
               fill="none"
-              stroke="#2563EB"
+              stroke={profitColor || "#10B981"}
               strokeWidth="5.5"
               strokeLinecap="round"
               initial={{ strokeDasharray: `0 ${c}`, strokeDashoffset: 0 }}
@@ -142,7 +149,7 @@ function WinRateGauge({
         className="absolute inset-0 flex flex-col items-center justify-center leading-none"
         style={{ gap: "1px" }}
       >
-        <span className="text-[9px] font-bold text-[#2563EB] dark:text-blue-400 tabular-nums">
+        <span className={`text-[9px] font-bold tabular-nums ${tradingTheme ? tradingTheme.profitText : "text-emerald-600 dark:text-emerald-400"}`}>
           <AnimatedNumber value={wins} duration={850} delay={100} />
         </span>
         <span className="text-[7.5px] text-slate-400 font-semibold tabular-nums">
@@ -157,11 +164,11 @@ function WinRateGauge({
 }
 
 // --- Circular Gauge (Profit Factor) ---
-function CircularGauge({ value, max = 3 }: { value: number; max?: number }) {
+function CircularGauge({ value, max = 3, colorOverride }: { value: number; max?: number; colorOverride?: string }) {
   const r = 22;
   const c = 2 * Math.PI * r;
   const pct = Math.min(Math.max(value, 0) / max, 1);
-  const color = value >= 1 || value === 0 ? "#2563EB" : "#E11D48";
+  const color = colorOverride || (value >= 1 || value === 0 ? "#10B981" : "#E11D48");
   return (
     <div className="relative w-[48px] h-[48px] sm:w-[54px] sm:h-[54px] shrink-0">
       <svg viewBox="0 0 56 56" className="w-full h-full -rotate-90">
@@ -204,7 +211,17 @@ function CircularGauge({ value, max = 3 }: { value: number; max?: number }) {
 }
 
 // --- Horizontal bar for avg win/loss ---
-function WinLossBar({ avgWin, avgLoss }: { avgWin: number; avgLoss: number }) {
+function WinLossBar({
+  avgWin,
+  avgLoss,
+  profitColor,
+  tradingTheme,
+}: {
+  avgWin: number;
+  avgLoss: number;
+  profitColor?: string;
+  tradingTheme?: any;
+}) {
   const { formatMoney, hideBalance, percentageOnly } = useJournalSettings();
   const total = avgWin + Math.abs(avgLoss);
   const winW = total > 0 ? (avgWin / total) * 100 : 50;
@@ -214,7 +231,7 @@ function WinLossBar({ avgWin, avgLoss }: { avgWin: number; avgLoss: number }) {
     <div className="space-y-1.5 w-full max-w-[88px] sm:max-w-[108px] shrink-0">
       <div className="flex h-[5px] rounded-full overflow-hidden bg-slate-100 dark:bg-white/[0.08]">
         <motion.div
-          className="rounded-l-full bg-[#2563EB]"
+          className="rounded-l-full" style={{ backgroundColor: profitColor || "#10B981" }}
           initial={{ width: 0 }}
           animate={{ width: `${winW}%` }}
           transition={{ duration: 0.95, delay: 0.14, ease: EXPO_OUT }}
@@ -228,7 +245,7 @@ function WinLossBar({ avgWin, avgLoss }: { avgWin: number; avgLoss: number }) {
       </div>
       <div className="flex justify-between text-[8.5px] sm:text-[9px] font-semibold tabular-nums">
         <span
-          className={`text-[#2563EB] dark:text-blue-400 transition-[filter,opacity] duration-200 ${
+          className={`${tradingTheme ? tradingTheme.profitText : "text-emerald-600 dark:text-emerald-400"} transition-[filter,opacity] duration-200 ${
             hideBalance || percentageOnly ? "blur-[4px] select-none opacity-60" : ""
           }`}
         >
@@ -267,7 +284,7 @@ function StreakPill({
 }) {
   const cls =
     variant === "blue"
-      ? "bg-blue-50 text-[#2563EB] dark:bg-blue-500/15 dark:text-blue-400"
+      ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20"
       : variant === "rose"
       ? "bg-rose-50 text-rose-600 dark:bg-rose-500/15 dark:text-rose-400"
       : "bg-slate-100 text-slate-600 dark:bg-white/[0.08] dark:text-neutral-300";
@@ -364,6 +381,10 @@ export default function JournalMetrics({
   const lastImportTime = demoData ? demoData.lastImportTime : rawLastImportTime;
 
   const { isStarter } = usePlan();
+  const { config: tradingTheme } = useTradingTheme();
+  const isDark = typeof document !== "undefined" && document.documentElement.classList.contains("dark");
+  const profitColor = isDark ? tradingTheme.profitHexDark : tradingTheme.profitHex;
+  const lossColor = isDark ? tradingTheme.lossHexDark : tradingTheme.lossHex;
   const {
     formatMoney,
     hideBalance,
@@ -503,8 +524,8 @@ export default function JournalMetrics({
                 hideBalance ? "blur-[5px] select-none opacity-75" : ""
               } ${
                 totalProfit < 0
-                  ? "text-rose-600 dark:text-rose-400"
-                  : "text-[#2563EB] dark:text-blue-400"
+                  ? tradingTheme.lossText
+                  : tradingTheme.profitText
               }`}
             >
               {percentageOnly ? (
@@ -558,7 +579,14 @@ export default function JournalMetrics({
               format={(v) => `${Math.round(v)}%`}
             />
           </h3>
-          <WinRateGauge wins={totalWins} even={totalEvens} losses={totalLosses} />
+          <WinRateGauge
+            wins={totalWins}
+            even={totalEvens}
+            losses={totalLosses}
+            isDark={isDark}
+            profitColor={profitColor}
+            tradingTheme={tradingTheme}
+          />
         </div>
       </>
     ),
@@ -651,7 +679,12 @@ export default function JournalMetrics({
               format={(v) => v.toFixed(2)}
             />
           </h3>
-          <WinLossBar avgWin={avgWin} avgLoss={avgLoss} />
+          <WinLossBar
+            avgWin={avgWin}
+            avgLoss={avgLoss}
+            profitColor={profitColor}
+            tradingTheme={tradingTheme}
+          />
         </div>
       </>
     ),
@@ -686,7 +719,7 @@ export default function JournalMetrics({
               format={(v) => v.toFixed(2)}
             />
           </h3>
-          <CircularGauge value={profitFactor > 0 ? profitFactor : 0} />
+          <CircularGauge value={profitFactor > 0 ? profitFactor : 0} colorOverride={profitFactor >= 1 ? profitColor : lossColor} />
         </div>
       </>
     ),

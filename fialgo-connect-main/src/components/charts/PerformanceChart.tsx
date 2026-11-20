@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import { useTradingTheme } from "@/hooks/useTradingTheme";
 import {
   Area,
   AreaChart,
@@ -122,15 +123,16 @@ export default function PerformanceChart({
     return { data: series, domain: scale.domain, ticks: scale.ticks };
   }, [trades]);
 
+  const { config: tradingTheme } = useTradingTheme();
   const finalProfit = data.length > 0 ? data[data.length - 1].profit : 0;
   const strokeColor =
     finalProfit < 0
       ? isDark
-        ? "#F87171"
-        : "#DC2626"
+        ? tradingTheme.lossHexDark
+        : tradingTheme.lossHex
       : isDark
-      ? "#60A5FA"
-      : "#2563EB";
+      ? tradingTheme.profitHexDark
+      : tradingTheme.profitHex;
   const gradientId =
     finalProfit < 0 ? "tfEquityLoss" : "tfEquityProfit";
 
@@ -155,8 +157,8 @@ export default function PerformanceChart({
             <span
               className={
                 pt.delta >= 0
-                  ? "text-emerald-600 dark:text-emerald-400 font-medium"
-                  : "text-rose-600 dark:text-rose-400 font-medium"
+                  ? `${tradingTheme.profitText} font-medium`
+                  : `${tradingTheme.lossText} font-medium`
               }
             >
               {formatTooltipCurrency(pt.delta, currencySymbol)}
@@ -168,11 +170,12 @@ export default function PerformanceChart({
   };
 
   return (
-    <div className="w-full h-full min-h-[235px] flex-1">
+    <div className="w-full h-full min-h-[235px] flex-1 select-none outline-none focus:outline-none focus:ring-0">
       <ResponsiveContainer width="100%" height="100%" minHeight={235}>
         <AreaChart
           data={data}
           margin={{ top: 8, right: 8, left: -12, bottom: 0 }}
+          accessibilityLayer={false}
         >
           <defs>
             <linearGradient id="tfEquityProfit" x1="0" y1="0" x2="0" y2="1">

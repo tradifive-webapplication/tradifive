@@ -184,31 +184,31 @@ export default function WeeklySettlements() {
       <DashboardLayout>
         <div className="space-y-6 pb-20 select-none px-4 sm:px-6 md:px-8 py-4 max-w-[1400px] mx-auto w-full">
           {/* Top Bar */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/70 dark:border-white/5">
             <div className="flex items-center gap-3">
               <div 
-                className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0 shadow-sm"
+                className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0 shadow-sm"
               >
                 <Lock size={18} />
               </div>
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h1 className="text-lg sm:text-xl font-bold tracking-wider text-white uppercase">
+                  <h1 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-white uppercase font-sans">
                     Weekly Profit Settlement
                   </h1>
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
-                    <ShieldCheck size={11} className="text-emerald-400" />
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
+                    <ShieldCheck size={11} className="text-emerald-500" />
                     Locked · 0% Profit Share
                   </span>
                 </div>
-                <p className="text-neutral-500 text-[10px] font-bold uppercase tracking-[0.15em] mt-0.5">
+                <p className="text-slate-400 text-[10px] font-bold uppercase tracking-[0.15em] mt-0.5">
                   Institutional Lifetime Exemption · Zero Platform Deductions
                 </p>
               </div>
             </div>
 
             <div className="flex items-center gap-2 shrink-0">
-              <div className="h-9 px-3.5 bg-[#1E1E1E] border border-white/5 rounded-lg flex items-center gap-2 text-xs font-mono font-bold text-neutral-300">
+              <div className="h-9 px-3.5 bg-white dark:bg-[#1E1E1E] border border-slate-200/70 dark:border-white/5 rounded-xl shadow-xs flex items-center gap-2 text-xs font-mono font-bold text-slate-700 dark:text-neutral-300">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                 <span>MT5 #{accountNumber ? accountNumber : "36946803"}</span>
               </div>
@@ -219,98 +219,98 @@ export default function WeeklySettlements() {
                   toast.success("Telemetry and institutional standing verified.");
                 }}
                 disabled={isRefreshing}
-                className="h-9 px-3.5 bg-[#1E1E1E] hover:bg-white/[0.05] border border-white/5 hover:border-white/10 rounded-lg text-xs font-semibold text-neutral-300 flex items-center gap-1.5 cursor-pointer"
+                className="h-9 px-3.5 bg-slate-100 hover:bg-slate-200 dark:bg-[#1E1E1E] dark:hover:bg-white/[0.05] border border-slate-200/70 dark:border-white/5 rounded-xl text-xs font-semibold text-slate-700 dark:text-neutral-300 flex items-center gap-1.5 cursor-pointer transition-colors"
               >
-                <RefreshCw size={13} className={isRefreshing ? "animate-spin text-white" : "text-neutral-400"} />
+                <RefreshCw size={13} className={isRefreshing ? "animate-spin text-slate-900 dark:text-white" : "text-slate-400"} />
                 <span>Sync</span>
               </button>
             </div>
           </div>
 
           {/* Institutional Exemption Hero Card */}
-          <div className="relative overflow-hidden rounded-2xl border border-emerald-500/20 bg-gradient-to-br from-emerald-950/20 via-[#141416] to-[#0D0D0E] p-6 sm:p-8 shadow-2xl">
+          <div className="relative overflow-hidden rounded-[18px] border border-emerald-200/80 dark:border-emerald-500/20 bg-gradient-to-br from-emerald-50/70 via-white to-slate-50 dark:from-emerald-950/20 dark:via-[#141416] dark:to-[#0D0D0E] p-6 sm:p-8 shadow-sm">
             {/* Ambient Glow */}
             <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
 
             <div className="relative z-10 space-y-6">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0 shadow-inner">
+                  <div className="w-12 h-12 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0 shadow-inner">
                     <ShieldCheck size={26} />
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-mono font-extrabold uppercase tracking-widest text-emerald-400">
+                      <span className="text-xs font-mono font-extrabold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
                         ₹1,00,000 Institutional Lifetime Plan
                       </span>
-                      <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                      <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
                         100% Profits Yours
                       </span>
                     </div>
-                    <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mt-1">
+                    <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight mt-1">
                       Weekly Settlements Locked & Exempt
                     </h2>
                   </div>
                 </div>
 
-                <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-300 text-xs font-mono font-bold self-start md:self-auto">
-                  <Lock size={14} className="text-emerald-400 shrink-0" />
+                <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-700 dark:text-emerald-300 text-xs font-mono font-bold self-start md:self-auto">
+                  <Lock size={14} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
                   <span>Platform Profit Share: 0.00%</span>
                 </div>
               </div>
 
-              <p className="text-sm sm:text-base text-neutral-300 leading-relaxed max-w-4xl">
-                Your MT5 trading account is active under the <strong className="text-white font-semibold">Tradifive ₹1,00,000 Lifetime Plan</strong>. Because your license was acquired with full upfront enterprise clearance, you retain <strong className="text-emerald-400 font-semibold">100% of all algorithmic trading profits</strong>. You are completely exempt from weekly 50/50 profit clearance invoices, profit splits, and settlement remittances.
+              <p className="text-sm sm:text-base text-slate-600 dark:text-neutral-300 leading-relaxed max-w-4xl">
+                Your MT5 trading account is active under the <strong className="text-slate-900 dark:text-white font-semibold">Tradifive ₹1,00,000 Lifetime Plan</strong>. Because your license was acquired with full upfront enterprise clearance, you retain <strong className="text-emerald-600 dark:text-emerald-400 font-semibold">100% of all algorithmic trading profits</strong>. You are completely exempt from weekly 50/50 profit clearance invoices, profit splits, and settlement remittances.
               </p>
 
               {/* 3 Pillar Summary Cards */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
-                <div className="bg-[#1A1A1D]/80 border border-white/5 rounded-xl p-4 space-y-2">
-                  <div className="flex items-center justify-between text-neutral-400">
+                <div className="bg-white dark:bg-[#1A1A1D]/80 border border-slate-200/70 dark:border-white/5 rounded-xl p-4 space-y-2 shadow-xs">
+                  <div className="flex items-center justify-between text-slate-400 dark:text-neutral-400">
                     <span className="text-[10px] font-extrabold uppercase tracking-wider">Trading Profit Split</span>
-                    <Sparkles size={14} className="text-emerald-400" />
+                    <Sparkles size={14} className="text-emerald-500 dark:text-emerald-400" />
                   </div>
-                  <div className="text-2xl font-mono font-black text-emerald-400">
+                  <div className="text-2xl font-mono font-black text-emerald-600 dark:text-emerald-400">
                     100% Client
                   </div>
-                  <p className="text-xs text-neutral-400 leading-normal">
+                  <p className="text-xs text-slate-500 dark:text-neutral-400 leading-normal">
                     0% platform cut. All gains remain directly inside your broker wallet.
                   </p>
                 </div>
 
-                <div className="bg-[#1A1A1D]/80 border border-white/5 rounded-xl p-4 space-y-2">
-                  <div className="flex items-center justify-between text-neutral-400">
+                <div className="bg-white dark:bg-[#1A1A1D]/80 border border-slate-200/70 dark:border-white/5 rounded-xl p-4 space-y-2 shadow-xs">
+                  <div className="flex items-center justify-between text-slate-400 dark:text-neutral-400">
                     <span className="text-[10px] font-extrabold uppercase tracking-wider">Settlement Dues</span>
-                    <CheckCircle2 size={14} className="text-emerald-400" />
+                    <CheckCircle2 size={14} className="text-emerald-500 dark:text-emerald-400" />
                   </div>
-                  <div className="text-2xl font-mono font-black text-white">
+                  <div className="text-2xl font-mono font-black text-slate-900 dark:text-white">
                     ₹0.00 / Zero
                   </div>
-                  <p className="text-xs text-neutral-400 leading-normal">
+                  <p className="text-xs text-slate-500 dark:text-neutral-400 leading-normal">
                     Account is in permanent good standing. No invoices will be generated.
                   </p>
                 </div>
 
-                <div className="bg-[#1A1A1D]/80 border border-white/5 rounded-xl p-4 space-y-2">
-                  <div className="flex items-center justify-between text-neutral-400">
+                <div className="bg-white dark:bg-[#1A1A1D]/80 border border-slate-200/70 dark:border-white/5 rounded-xl p-4 space-y-2 shadow-xs">
+                  <div className="flex items-center justify-between text-slate-400 dark:text-neutral-400">
                     <span className="text-[10px] font-extrabold uppercase tracking-wider">Broker Integration</span>
-                    <Zap size={14} className="text-blue-400" />
+                    <Zap size={14} className="text-blue-500 dark:text-blue-400" />
                   </div>
-                  <div className="text-2xl font-mono font-black text-blue-400">
+                  <div className="text-2xl font-mono font-black text-blue-600 dark:text-blue-400">
                     Direct MT5
                   </div>
-                  <p className="text-xs text-neutral-400 leading-normal">
-                    Live balance & equity stream directly to your FiAlgo modern dashboard.
+                  <p className="text-xs text-slate-500 dark:text-neutral-400 leading-normal">
+                    Zero lockups. Withdrawals processed normally via broker portal.
                   </p>
                 </div>
               </div>
 
               {/* Action Buttons */}
-              <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-white/5">
+              <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-slate-200/70 dark:border-white/5">
                 <button
                   type="button"
                   onClick={() => navigate("/auto-trade/dashboard")}
-                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-lg shadow-blue-500/20 transition-all cursor-pointer"
+                  className="px-5 py-2.5 rounded-xl bg-slate-900 text-white hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-sm transition-all cursor-pointer"
                 >
                   <Activity size={14} />
                   <span>Open FiAlgo Modern Dashboard</span>
@@ -320,18 +320,18 @@ export default function WeeklySettlements() {
                 <button
                   type="button"
                   onClick={() => navigate("/auto-trade/history")}
-                  className="px-4 py-2.5 rounded-xl bg-[#1E1E22] hover:bg-white/[0.06] border border-white/10 text-neutral-200 font-semibold text-xs uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer"
+                  className="px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 dark:bg-[#1E1E22] dark:hover:bg-white/[0.06] border border-slate-200/70 dark:border-white/10 text-slate-700 dark:text-neutral-200 font-semibold text-xs uppercase tracking-wider flex items-center gap-2 shadow-xs transition-all cursor-pointer"
                 >
-                  <Receipt size={14} className="text-neutral-400" />
+                  <Receipt size={14} className="text-slate-400 dark:text-neutral-400" />
                   <span>Audit MT5 Order History</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => navigate("/auto-trade/license")}
-                  className="px-4 py-2.5 rounded-xl bg-[#1E1E22] hover:bg-white/[0.06] border border-white/10 text-neutral-200 font-semibold text-xs uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer"
+                  className="px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 dark:bg-[#1E1E22] dark:hover:bg-white/[0.06] border border-slate-200/70 dark:border-white/10 text-slate-700 dark:text-neutral-200 font-semibold text-xs uppercase tracking-wider flex items-center gap-2 shadow-xs transition-all cursor-pointer"
                 >
-                  <ShieldCheck size={14} className="text-neutral-400" />
+                  <ShieldCheck size={14} className="text-slate-400 dark:text-neutral-400" />
                   <span>License & Hardware Binding</span>
                 </button>
               </div>
@@ -357,18 +357,18 @@ export default function WeeklySettlements() {
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-lg sm:text-xl font-bold tracking-wider text-white uppercase">
+                <h1 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-white uppercase font-sans">
                   Weekly Profit Settlement
                 </h1>
               </div>
-              <p className="text-neutral-500 text-[9px] font-bold uppercase tracking-[0.15em] mt-0.5">
+              <p className="text-slate-400 text-[10px] font-semibold uppercase tracking-[0.15em] mt-0.5">
                 Transparent weekly performance settlements · Zero deductions from your MT5 account
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <div className="h-9 px-3 bg-[#1E1E1E] border border-white/5 rounded-lg flex items-center gap-2 text-xs font-mono font-bold text-neutral-300">
+            <div className="h-9 px-3 bg-white dark:bg-[#1E1E1E] border border-slate-200/70 dark:border-white/5 rounded-xl shadow-xs flex items-center gap-2 text-xs font-mono font-bold text-slate-700 dark:text-neutral-300">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               <span>MT5 #{accountNumber ? `••••${accountNumber.slice(-4)}` : "Connected"}</span>
             </div>
@@ -377,65 +377,65 @@ export default function WeeklySettlements() {
               type="button"
               onClick={() => loadSettlementData(true)}
               disabled={isRefreshing}
-              className="h-9 px-3.5 bg-[#1E1E1E] hover:bg-white/[0.05] border border-white/5 hover:border-white/10 rounded-lg text-xs font-semibold text-neutral-300 transition-none flex items-center gap-1.5 cursor-pointer"
+              className="h-9 px-3.5 bg-slate-100 hover:bg-slate-200 dark:bg-[#1E1E1E] dark:hover:bg-white/[0.05] border border-slate-200/70 dark:border-white/5 rounded-xl text-xs font-semibold text-slate-700 dark:text-neutral-300 transition-colors flex items-center gap-1.5 cursor-pointer"
               title="Refresh Settlements"
             >
-              <RefreshCw size={13} className={isRefreshing ? "animate-spin text-white" : "text-neutral-400"} />
+              <RefreshCw size={13} className={isRefreshing ? "animate-spin text-slate-900 dark:text-white" : "text-slate-400"} />
               <span>Sync</span>
             </button>
           </div>
         </div>
 
-        {/* ── 4 Metric Cards Grid (Clean Admin App Style: No Cluttered Icon Circles or Corner Badges) ── */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {/* ── 4 Metric Cards Grid (Consistent Dashboard Box Styling) ── */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
           {/* Card 1: Total Trading Profit */}
-          <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-4">
-            <div className={`text-2xl font-bold font-mono tracking-tight ${summary.totalTradingProfit > 0 ? "text-emerald-400" : summary.totalTradingProfit < 0 ? "text-rose-400" : "text-white"}`}>
+          <div className="bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] rounded-[18px] p-4 sm:p-5 shadow-[0_2px_10px_rgba(15,23,42,0.04)] dark:shadow-none">
+            <div className={`text-2xl font-bold font-mono tracking-tight ${summary.totalTradingProfit > 0 ? "text-emerald-600 dark:text-emerald-400" : summary.totalTradingProfit < 0 ? "text-rose-600 dark:text-rose-400" : "text-slate-900 dark:text-white"}`}>
               {summary.totalTradingProfit >= 0 ? "+" : ""}{curr}{summary.totalTradingProfit.toLocaleString(undefined, { minimumFractionDigits: 2 })}
             </div>
-            <div className="text-[9px] font-bold text-neutral-500 uppercase tracking-[0.15em] mt-1">
+            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">
               TOTAL TRADING PROFIT
             </div>
           </div>
 
           {/* Card 2: Tradifive Share (50%) */}
-          <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-4">
-            <div className="text-2xl font-bold font-mono text-white tracking-tight">
+          <div className="bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] rounded-[18px] p-4 sm:p-5 shadow-[0_2px_10px_rgba(15,23,42,0.04)] dark:shadow-none">
+            <div className="text-2xl font-bold font-mono text-slate-900 dark:text-white tracking-tight">
               {curr}{summary.tradifiveShare.toLocaleString(undefined, { minimumFractionDigits: 2 })}
             </div>
-            <div className="text-[9px] font-bold text-neutral-500 uppercase tracking-[0.15em] mt-1">
+            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">
               TRADIFIVE SHARE (50%)
             </div>
           </div>
 
           {/* Card 3: Your Share (50%) */}
-          <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-4">
-            <div className={`text-2xl font-bold font-mono tracking-tight ${summary.yourShare > 0 ? "text-emerald-400" : "text-white"}`}>
+          <div className="bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] rounded-[18px] p-4 sm:p-5 shadow-[0_2px_10px_rgba(15,23,42,0.04)] dark:shadow-none">
+            <div className={`text-2xl font-bold font-mono tracking-tight ${summary.yourShare > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-slate-900 dark:text-white"}`}>
               {summary.yourShare >= 0 ? "+" : ""}{curr}{summary.yourShare.toLocaleString(undefined, { minimumFractionDigits: 2 })}
             </div>
-            <div className="text-[9px] font-bold text-neutral-500 uppercase tracking-[0.15em] mt-1">
+            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">
               YOUR SHARE (50%)
             </div>
           </div>
 
           {/* Card 4: Pending Payment */}
-          <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-4">
-            <div className={`text-2xl font-bold font-mono tracking-tight ${summary.pendingPayment > 0 ? "text-amber-400" : "text-white"}`}>
+          <div className="bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] rounded-[18px] p-4 sm:p-5 shadow-[0_2px_10px_rgba(15,23,42,0.04)] dark:shadow-none">
+            <div className={`text-2xl font-bold font-mono tracking-tight ${summary.pendingPayment > 0 ? "text-amber-600 dark:text-amber-400" : "text-slate-900 dark:text-white"}`}>
               {curr}{summary.pendingPayment.toLocaleString(undefined, { minimumFractionDigits: 2 })}
             </div>
-            <div className="text-[9px] font-bold text-neutral-500 uppercase tracking-[0.15em] mt-1">
+            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">
               PENDING PAYMENT
             </div>
           </div>
         </div>
 
-        {/* ── 2. CURRENT ACTIVE SETTLEMENT CARD (Clean Admin Card) ── */}
+        {/* ── 2. CURRENT ACTIVE SETTLEMENT CARD ── */}
         {currentSettlement && (
-          <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-5 space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/5">
+          <div className="bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] rounded-[18px] p-5 sm:p-6 shadow-[0_2px_10px_rgba(15,23,42,0.04)] dark:shadow-none space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-white/5">
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h2 className="text-xs font-bold text-white uppercase tracking-wider">
+                  <h2 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
                     Current Settlement Cycle: {currentSettlement.week_label}
                   </h2>
                   <span className={`text-[9px] font-mono font-bold px-2 py-0.5 rounded uppercase tracking-wider ${
@@ -459,7 +459,7 @@ export default function WeeklySettlements() {
                 <button
                   type="button"
                   onClick={() => downloadSettlementInvoicePdf(currentSettlement, userProfile)}
-                  className="h-8 px-3 rounded-lg bg-black/30 hover:bg-white/[0.08] border border-white/10 text-xs font-mono font-bold text-neutral-300 transition-none cursor-pointer flex items-center gap-1.5"
+                  className="h-8 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.08] border border-slate-200/70 dark:border-white/10 text-xs font-mono font-bold text-slate-700 dark:text-neutral-300 transition-colors cursor-pointer flex items-center gap-1.5"
                 >
                   <Download size={12} />
                   <span>Invoice</span>
@@ -468,7 +468,7 @@ export default function WeeklySettlements() {
                 <button
                   type="button"
                   onClick={() => handleOpenDetails(currentSettlement)}
-                  className="h-8 px-3 rounded-lg bg-black/30 hover:bg-white/[0.08] border border-white/10 text-xs font-mono font-bold text-neutral-300 transition-none cursor-pointer flex items-center gap-1.5"
+                  className="h-8 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.08] border border-slate-200/70 dark:border-white/10 text-xs font-mono font-bold text-slate-700 dark:text-neutral-300 transition-colors cursor-pointer flex items-center gap-1.5"
                 >
                   <span>View Details</span>
                   <ChevronRight size={13} />
@@ -478,35 +478,35 @@ export default function WeeklySettlements() {
 
             {/* Financial Parameters Grid (Clean Monospace Tiles) */}
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 font-mono text-xs">
-              <div className="p-3 rounded-lg bg-black/30 border border-white/5">
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/5">
                 <span className="text-[9px] font-bold text-neutral-500 uppercase tracking-widest block mb-0.5">Starting Balance</span>
                 <span className="font-bold text-white block">
                   {curr}{currentSettlement.starting_balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </span>
               </div>
 
-              <div className="p-3 rounded-lg bg-black/30 border border-white/5">
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/5">
                 <span className="text-[9px] font-bold text-neutral-500 uppercase tracking-widest block mb-0.5">Ending Balance</span>
                 <span className="font-bold text-white block">
                   {curr}{currentSettlement.ending_balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </span>
               </div>
 
-              <div className="p-3 rounded-lg bg-black/30 border border-white/5">
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/5">
                 <span className="text-[9px] font-bold text-neutral-500 uppercase tracking-widest block mb-0.5">Gross Realised</span>
                 <span className="font-bold text-emerald-400 block">
                   +{curr}{currentSettlement.gross_profit.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </span>
               </div>
 
-              <div className="p-3 rounded-lg bg-black/30 border border-white/5">
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/5">
                 <span className="text-[9px] font-bold text-neutral-500 uppercase tracking-widest block mb-0.5">Trading Costs</span>
                 <span className="font-bold text-neutral-400 block">
                   -{curr}{(currentSettlement.commissions + currentSettlement.swaps).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </span>
               </div>
 
-              <div className="p-3 rounded-lg bg-black/30 border border-white/5">
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/5">
                 <span className="text-[9px] font-bold text-neutral-500 uppercase tracking-widest block mb-0.5">Loss Carry-Forward</span>
                 <span className="font-bold text-neutral-400 block">
                   -{curr}{currentSettlement.previous_loss_carried.toLocaleString(undefined, { minimumFractionDigits: 2 })}
@@ -588,19 +588,19 @@ export default function WeeklySettlements() {
           </div>
         )}
 
-        {/* ── 3. WEEKLY SETTLEMENT HISTORY (Admin Table Styling) ── */}
-        <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-5 space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-white/5">
+        {/* ── 3. WEEKLY SETTLEMENT HISTORY ── */}
+        <div className="bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] rounded-[18px] p-5 sm:p-6 shadow-[0_2px_10px_rgba(15,23,42,0.04)] dark:shadow-none space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-100 dark:border-white/5">
             <div>
-              <h2 className="text-xs font-bold text-white uppercase tracking-wider">
+              <h2 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
                 Weekly Settlement History
               </h2>
-              <p className="text-[9px] font-bold text-neutral-500 uppercase tracking-[0.15em] mt-0.5">
+              <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mt-0.5">
                 Chronological ledger of verified weekly profit sharing cycles and payment clearance receipts
               </p>
             </div>
 
-            {/* Filter Pills matching Admin App */}
+            {/* Filter Pills */}
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none]">
               {[
                 { id: "all", label: "All Settlements" },
@@ -612,10 +612,10 @@ export default function WeeklySettlements() {
                 <button
                   key={f.id}
                   onClick={() => setSelectedStatusFilter(f.id)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-none cursor-pointer whitespace-nowrap ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer whitespace-nowrap ${
                     selectedStatusFilter === f.id
-                      ? "bg-white/10 text-white border border-white/15"
-                      : "text-neutral-400 hover:text-white border border-transparent"
+                      ? "bg-slate-900 text-white dark:bg-white/10 dark:text-white border border-slate-900 dark:border-white/15 shadow-xs"
+                      : "text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white border border-transparent"
                   }`}
                 >
                   {f.label}
@@ -628,7 +628,7 @@ export default function WeeklySettlements() {
           <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-white/5 text-[9px] font-bold text-neutral-500 uppercase tracking-widest bg-black/20">
+                <tr className="border-b border-slate-100 dark:border-white/5 text-[10px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50/50 dark:bg-black/20">
                   <th className="p-3">WEEK</th>
                   <th className="p-3 text-right">NET PROFIT</th>
                   <th className="p-3 text-right">TRADIFIVE SHARE</th>
@@ -637,7 +637,7 @@ export default function WeeklySettlements() {
                   <th className="p-3 text-right">ACTION</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5 font-mono text-xs">
+              <tbody className="divide-y divide-slate-100 dark:divide-white/5 font-mono text-xs">
                 {filteredSettlements.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="py-8 text-center text-neutral-500 text-xs">
@@ -652,23 +652,23 @@ export default function WeeklySettlements() {
                     const isLoss = s.status === "loss_week" || s.status === "cleared";
 
                     return (
-                      <tr key={s.id} className="hover:bg-white/[0.02] transition-none">
+                      <tr key={s.id} className="hover:bg-slate-50/60 dark:hover:bg-white/[0.02] transition-colors">
                         <td className="p-3">
-                          <div className="font-bold text-white font-sans text-xs">{s.week_label}</div>
-                          <div className="text-[10px] font-mono text-neutral-500">{s.settlement_number}</div>
+                          <div className="font-bold text-slate-900 dark:text-white font-sans text-xs">{s.week_label}</div>
+                          <div className="text-[10px] font-mono text-slate-400 dark:text-neutral-500">{s.settlement_number}</div>
                         </td>
 
                         <td className="p-3 text-right font-bold">
-                          <span className={s.net_realised_profit >= 0 ? "text-emerald-400" : "text-rose-400"}>
+                          <span className={s.net_realised_profit >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}>
                             {s.net_realised_profit >= 0 ? "+" : ""}{curr}{s.net_realised_profit.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                           </span>
                         </td>
 
-                        <td className="p-3 text-right font-bold text-blue-400">
+                        <td className="p-3 text-right font-bold text-blue-600 dark:text-blue-400">
                           {isLoss ? "—" : `${curr}${s.tradifive_share.toLocaleString(undefined, { minimumFractionDigits: 2 })}`}
                         </td>
 
-                        <td className="p-3 text-right font-bold text-white">
+                        <td className="p-3 text-right font-bold text-slate-900 dark:text-white">
                           {isLoss ? "—" : `+${curr}${s.customer_share.toLocaleString(undefined, { minimumFractionDigits: 2 })}`}
                         </td>
 
@@ -690,7 +690,7 @@ export default function WeeklySettlements() {
                           <button
                             type="button"
                             onClick={() => handleOpenDetails(s)}
-                            className="h-7 px-3 rounded bg-black/30 hover:bg-white/[0.08] border border-white/10 text-xs font-mono font-bold text-neutral-300 transition-none cursor-pointer"
+                            className="h-7 px-3 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.08] border border-slate-200/70 dark:border-white/10 text-xs font-mono font-bold text-slate-700 dark:text-neutral-300 transition-colors cursor-pointer"
                           >
                             View
                           </button>
@@ -729,7 +729,7 @@ export default function WeeklySettlements() {
                 return (
                   <div
                     key={s.id}
-                    className="p-3.5 rounded-lg bg-black/30 border border-white/5 space-y-2 font-mono text-xs"
+                    className="p-3.5 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/5 space-y-2 font-mono text-xs"
                   >
                     <div className="flex items-center justify-between">
                       <div>

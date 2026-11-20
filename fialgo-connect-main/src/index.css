@@ -112,6 +112,35 @@
     -webkit-text-size-adjust: 100%;
   }
 
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Custom sleek cursor styling */
+  @media (pointer: fine) and (hover: hover) {
+    /* Hide native cursor only when custom cursor is actively enabled and not set to system */
+    html.custom-cursor-active:not(.cursor-style-system),
+    html.custom-cursor-active:not(.cursor-style-system) body,
+    html.custom-cursor-active:not(.cursor-style-system) a,
+    html.custom-cursor-active:not(.cursor-style-system) button,
+    html.custom-cursor-active:not(.cursor-style-system) [role="button"],
+    html.custom-cursor-active:not(.cursor-style-system) .cursor-pointer,
+    html.custom-cursor-active:not(.cursor-style-system) [onclick] {
+      cursor: none !important;
+    }
+
+    /* Native text cursor on inputs */
+    html.custom-cursor-active input[type="text"],
+    html.custom-cursor-active input[type="password"],
+    html.custom-cursor-active input[type="email"],
+    html.custom-cursor-active input[type="search"],
+    html.custom-cursor-active input[type="number"],
+    html.custom-cursor-active textarea,
+    html.custom-cursor-active [contenteditable="true"] {
+      cursor: text !important;
+    }
+  }
+
   body {
     @apply bg-background text-foreground font-sans antialiased tabular-nums;
   }
@@ -453,13 +482,13 @@
     white-space: nowrap !important;
   }
 
-  /* 5. FiAlgo Workspace Signature Electric Navy & Dark Glass Pills (Exact match to reference pic) */
+  /* 5. FiAlgo Workspace Buttons (Consistent with Dashboard & Journal) */
   .btn-fialgo-primary {
     border-radius: 100px !important;
-    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
-    color: #60a5fa !important;
+    background: #0f172a !important;
+    color: #ffffff !important;
     border: none !important;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12), 0 1px 2px rgba(15, 23, 42, 0.08) !important;
     font-weight: 700 !important;
     font-size: 13.5px !important;
     padding: 10px 22px !important;
@@ -474,11 +503,19 @@
     transition: all 0.2s ease !important;
     -webkit-tap-highlight-color: transparent !important;
   }
+  .dark .btn-fialgo-primary {
+    background: #ffffff !important;
+    color: #0f172a !important;
+  }
   .btn-fialgo-primary:hover {
-    background: linear-gradient(135deg, #253347 0%, #131c33 100%) !important;
-    color: #93c5fd !important;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+    background: #1e293b !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.18) !important;
     transform: translateY(-1px) !important;
+  }
+  .dark .btn-fialgo-primary:hover {
+    background: #f1f5f9 !important;
+    color: #0f172a !important;
   }
   .btn-fialgo-primary:active {
     transform: translateY(0) scale(0.985) !important;
@@ -491,10 +528,10 @@
 
   .btn-fialgo-secondary {
     border-radius: 100px !important;
-    background: #171717 !important;
-    color: rgba(255, 255, 255, 0.9) !important;
-    border: none !important;
-    box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.12), 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+    background: #ffffff !important;
+    color: #1e293b !important;
+    border: 1px solid rgba(226, 232, 240, 0.9) !important;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05) !important;
     font-weight: 600 !important;
     font-size: 13.5px !important;
     padding: 10px 20px !important;
@@ -509,11 +546,20 @@
     transition: all 0.2s ease !important;
     -webkit-tap-highlight-color: transparent !important;
   }
-  .btn-fialgo-secondary:hover {
-    background: #1e1e1e !important;
+  .dark .btn-fialgo-secondary {
+    background: rgba(255, 255, 255, 0.06) !important;
     color: #ffffff !important;
-    box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.16), 0 0 0 1px rgba(255, 255, 255, 0.18), 0 2px 4px rgba(0, 0, 0, 0.25) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  }
+  .btn-fialgo-secondary:hover {
+    background: #f8fafc !important;
+    color: #0f172a !important;
+    border-color: rgba(203, 213, 225, 0.9) !important;
     transform: translateY(-1px) !important;
+  }
+  .dark .btn-fialgo-secondary:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
   }
   .btn-fialgo-secondary:active {
     transform: translateY(0) scale(0.985) !important;
@@ -1228,6 +1274,35 @@ button:active:not(:disabled) {
 /* ══════ BOTTOM SHEET BACKGROUND OVERFLOW LOCK ══════ */
 body.tf-sheet-open {
   overflow: hidden !important;
+}
+
+/* ══════ RECHARTS FOCUS OUTLINE & TEXT SELECTION FIX ══════ */
+.recharts-wrapper,
+.recharts-wrapper *,
+.recharts-wrapper:focus,
+.recharts-wrapper:focus-visible,
+.recharts-surface,
+.recharts-surface:focus,
+.recharts-surface:focus-visible,
+.recharts-responsive-container,
+.recharts-responsive-container:focus,
+.recharts-responsive-container:focus-visible,
+svg.recharts-surface,
+svg.recharts-surface:focus,
+svg.recharts-surface:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+
+.recharts-text,
+.recharts-cartesian-axis-tick-value,
+.recharts-cartesian-axis text {
+  user-select: none !important;
+  -webkit-user-select: none !important;
 }
 
 /* ══════ ADMIN APP EXACT THEME STYLES (MATCHING ADMIN APP CACHED & HIGH-END DESIGN) ══════ */

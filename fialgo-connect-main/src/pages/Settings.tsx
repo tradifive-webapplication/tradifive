@@ -31,11 +31,13 @@ import {
    ArrowUpRight, ShieldCheck, Terminal, Volume2, Calendar, LockKeyhole, Sparkles,
    CircleUserRound, Languages, BellRing, MessageCircle, AlertCircle, Inbox, MoreVertical, ArrowRight, Plus, Minus, Download,
    AlertTriangle, Palette, Mail, Link2, Info, Crown, CreditCard, MessageSquare, LogOut,
-   ChevronLeft, Sliders, Copy, Pencil, HelpCircle } from 'lucide-react';
+   ChevronLeft, Sliders, Copy, Pencil, HelpCircle, MousePointer } from 'lucide-react';
 import { triggerHaptic } from '@/utils/haptics';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { User, Category, Notification, Star, Swap, TicketStar, Wallet, Chat, InfoCircle, Danger, Logout, Edit, Search, ChevronRight, Activity, ShieldDone, Document, Setting } from 'react-iconly';
 import { useAICoachData } from '@/hooks/useAICoachData';
+import { useTradingTheme } from '@/hooks/useTradingTheme';
+import { TradingThemeId } from '@/utils/tradingTheme';
 
 const TAB_TITLES: Record<string, string> = {
    account: "Account & Security",
@@ -390,6 +392,25 @@ export default function Settings() {
    const [layoutDensity, setLayoutDensity] = useState('comfortable');
    const [terminalLogging, setTerminalLogging] = useState(false);
    const [fullScreenLayout, setFullScreenLayout] = useState(() => localStorage.getItem('fialgo_full_screen') === 'true');
+   const { themeId: pnlTheme, changeTheme: changePnlTheme, THEMES: PNL_THEMES } = useTradingTheme();
+   const [cursorStyle, setCursorStyle] = useState<"3d" | "dot" | "system">(() => {
+     if (typeof window === "undefined") return "3d";
+     return (localStorage.getItem('tradifive_cursor_style') as "3d" | "dot" | "system") || "3d";
+   });
+
+   const handleCursorStyleChange = (style: "3d" | "dot" | "system") => {
+     setCursorStyle(style);
+     try {
+       localStorage.setItem('tradifive_cursor_style', style);
+       window.dispatchEvent(new CustomEvent('tradifive_cursor_change', { detail: style }));
+     } catch (_) {}
+     const names: Record<string, string> = {
+       "3d": "3D Glossy Arrow",
+       "dot": "Minimal Precision Dot",
+       "system": "Classic System Default",
+     };
+     toast.success(`${names[style]} cursor selected`);
+   };
 
    // New Tab States
    const [language, setLanguage] = useState('en');
@@ -2220,44 +2241,186 @@ export default function Settings() {
                               </div>
                            </div>
 
-                           {/* Chart Candlestick Color Theme */}
-                           <div className="bg-slate-50 dark:bg-[#151515] p-5 rounded-2xl border border-slate-200 dark:border-[#2a2a2a] shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 mt-4">
-                              <div className="flex gap-4">
-                                 <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0 text-emerald-500">
-                                    <TrendingUp size={18} />
-                                 </div>
-                                 <div className="space-y-1">
-                                    <h3 className="text-[16px] font-bold text-slate-900 dark:text-white mb-1">Chart Candlestick Theme</h3>
-                                    <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1] max-w-md">
-                                       Choose color dynamics for bull/bear candlestick bars on the live terminal.
-                                    </p>
+                           {/* Trading & P&L Colors Palette */}
+                           <div className="bg-slate-50 dark:bg-[#151515] p-5 rounded-2xl border border-slate-200 dark:border-[#2a2a2a] shadow-sm mt-4">
+                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+                                 <div className="flex gap-4">
+                                    <div className="w-10 h-10 rounded-full bg-emerald-500/10 dark:bg-emerald-500/15 flex items-center justify-center shrink-0 text-emerald-600 dark:text-emerald-400">
+                                       <TrendingUp size={18} />
+                                    </div>
+                                    <div className="space-y-1">
+                                       <div className="flex items-center gap-2">
+                                          <h3 className="text-[16px] font-bold text-slate-900 dark:text-white">
+                                             Trading &amp; P&amp;L Colors
+                                          </h3>
+                                          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                                             Dashboard &amp; Journal
+                                          </span>
+                                       </div>
+                                       <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1] max-w-xl">
+                                          Choose how profit, loss, equity curves, win rate rings, and trade logs are colored. Classic Green &amp; Red is the primary recommended preset.
+                                       </p>
+                                    </div>
                                  </div>
                               </div>
-                              <div className="flex items-center gap-2">
-                                 <button
-                                    type="button"
-                                    onClick={() => {
-                                       localStorage.setItem('tradifive_chart_theme', 'classic');
-                                       toast.success('Classic Green / Red chart theme applied');
-                                    }}
-                                    className="px-3.5 py-1.5 rounded-xl text-xs font-bold border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 transition-all"
-                                 >
-                                    Classic Green/Red
-                                 </button>
-                                 <button
-                                    type="button"
-                                    onClick={() => {
-                                       localStorage.setItem('tradifive_chart_theme', 'cyber');
-                                       toast.success('Cyber Cyan / Neon Pink chart theme applied');
-                                    }}
-                                    className="px-3.5 py-1.5 rounded-xl text-xs font-bold border border-cyan-500/30 bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 hover:bg-cyan-500/20 transition-all"
-                                 >
-                                    Cyber Cyan/Pink
-                                 </button>
+
+                              {/* 3 Selectable Theme Cards */}
+                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                                 {(Object.keys(PNL_THEMES) as TradingThemeId[]).map((id) => {
+                                    const t = PNL_THEMES[id];
+                                    const isSelected = pnlTheme === id;
+                                    return (
+                                       <button
+                                          key={id}
+                                          type="button"
+                                          onClick={() => {
+                                             changePnlTheme(id);
+                                             localStorage.setItem('tradifive_chart_theme', id === 'monochrome' ? 'classic' : id);
+                                             toast.success(`Applied ${t.label} palette across Dashboard & Journal`);
+                                          }}
+                                          className={`text-left p-4 rounded-xl border transition-all relative flex flex-col justify-between cursor-pointer ${
+                                             isSelected
+                                                ? "border-emerald-500/80 bg-white dark:bg-[#1E1E22] shadow-[0_4px_16px_rgba(16,185,129,0.12)] ring-2 ring-emerald-500/25"
+                                                : "border-slate-200 dark:border-[#262626] bg-white/70 dark:bg-[#18181A] hover:border-slate-300 dark:hover:border-neutral-700 hover:bg-white dark:hover:bg-[#1E1E22]"
+                                          }`}
+                                       >
+                                          <div>
+                                             <div className="flex items-center justify-between gap-1 mb-1.5">
+                                                <span className="text-[13px] font-bold text-slate-900 dark:text-white">
+                                                   {t.label}
+                                                </span>
+                                                {t.badge ? (
+                                                   <span className="text-[9.5px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                                                      {t.badge}
+                                                   </span>
+                                                ) : isSelected ? (
+                                                   <span className="w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0">
+                                                      <Check size={10} strokeWidth={3} />
+                                                   </span>
+                                                ) : null}
+                                             </div>
+                                             <p className="text-[11px] text-slate-500 dark:text-neutral-400 line-clamp-2 leading-relaxed mb-3">
+                                                {t.subLabel}
+                                             </p>
+                                          </div>
+
+                                          {/* Live Swatch Preview */}
+                                          <div className="flex items-center gap-2 pt-2.5 border-t border-slate-100 dark:border-white/[0.06] text-[11px] font-bold tabular-nums">
+                                             <span className={`px-2 py-0.5 rounded-md text-[11px] ${t.profitBadge}`}>
+                                                {t.previewProfit}
+                                             </span>
+                                             <span className={`px-2 py-0.5 rounded-md text-[11px] ${t.lossBadge}`}>
+                                                {t.previewLoss}
+                                             </span>
+                                          </div>
+                                       </button>
+                                    );
+                                 })}
                               </div>
                            </div>
 
-                        </motion.div>
+                        
+                            {/* Mouse Pointer & Cursor Selection */}
+                            <div className="bg-slate-50 dark:bg-[#151515] p-5 rounded-2xl border border-slate-200 dark:border-[#2a2a2a] shadow-sm mt-4">
+                               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+                                  <div className="flex gap-4">
+                                     <div className="w-10 h-10 rounded-full bg-blue-500/10 dark:bg-blue-500/15 flex items-center justify-center shrink-0 text-blue-600 dark:text-blue-400">
+                                        <MousePointer size={18} />
+                                     </div>
+                                     <div className="space-y-1">
+                                        <div className="flex items-center gap-2">
+                                           <h3 className="text-[16px] font-bold text-slate-900 dark:text-white">
+                                              Mouse Pointer &amp; Cursor
+                                           </h3>
+                                           <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                                              Tactile Feedback
+                                           </span>
+                                        </div>
+                                        <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1] max-w-xl">
+                                           Choose your desktop mouse pointer style. Includes tactile spring physics and luxury expanding click circles.
+                                        </p>
+                                     </div>
+                                  </div>
+                               </div>
+
+                               {/* 3 Selectable Cursor Cards */}
+                               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                                  {[
+                                     {
+                                        id: '3d' as const,
+                                        title: '3D Glossy Arrow',
+                                        badge: 'Recommended',
+                                        desc: 'Sleek beveled black arrow with specular reflection, softer shadow & click circles.',
+                                        preview: (
+                                           <div className="w-full h-14 rounded-lg bg-slate-100 dark:bg-black/30 flex items-center justify-center relative overflow-hidden">
+                                              <div className="absolute w-8 h-8 rounded-full border border-slate-900/30 dark:border-white/50 bg-slate-900/[0.04] dark:bg-white/[0.08] animate-ping" />
+                                              <img src="/custom-cursor.png" alt="3D Arrow" className="w-6 h-6 object-contain drop-shadow-[0_1.5px_3px_rgba(0,0,0,0.20)] relative z-10" />
+                                           </div>
+                                        ),
+                                     },
+                                     {
+                                        id: 'dot' as const,
+                                        title: 'Precision Dot',
+                                        badge: 'Modern',
+                                        desc: 'Minimalist circle dot with active dynamic hover expansion and click ripple.',
+                                        preview: (
+                                           <div className="w-full h-14 rounded-lg bg-slate-100 dark:bg-black/30 flex items-center justify-center relative overflow-hidden">
+                                              <div className="w-3.5 h-3.5 rounded-full bg-slate-900 dark:bg-white shadow-sm ring-4 ring-blue-500/20" />
+                                           </div>
+                                        ),
+                                     },
+                                     {
+                                        id: 'system' as const,
+                                        title: 'System Default',
+                                        badge: 'Classic',
+                                        desc: 'Standard native operating system cursor with normal OS mouse behavior.',
+                                        preview: (
+                                           <div className="w-full h-14 rounded-lg bg-slate-100 dark:bg-black/30 flex items-center justify-center relative overflow-hidden">
+                                              <MousePointer size={20} className="text-slate-700 dark:text-neutral-300" />
+                                           </div>
+                                        ),
+                                     },
+                                  ].map((opt) => {
+                                     const isSelected = cursorStyle === opt.id;
+                                     return (
+                                        <button
+                                           key={opt.id}
+                                           type="button"
+                                           onClick={() => handleCursorStyleChange(opt.id)}
+                                           className={`text-left p-4 rounded-xl border transition-all relative flex flex-col justify-between cursor-pointer ${
+                                              isSelected
+                                                 ? "border-blue-500/80 bg-white dark:bg-[#1E1E22] shadow-[0_4px_16px_rgba(59,130,246,0.12)] ring-2 ring-blue-500/25"
+                                                 : "border-slate-200 dark:border-[#262626] bg-white/70 dark:bg-[#18181A] hover:border-slate-300 dark:hover:border-neutral-700 hover:bg-white dark:hover:bg-[#1E1E22]"
+                                           }`}
+                                        >
+                                           <div>
+                                              <div className="flex items-center justify-between gap-1 mb-1.5">
+                                                 <span className="text-[13px] font-bold text-slate-900 dark:text-white">
+                                                    {opt.title}
+                                                 </span>
+                                                 {isSelected ? (
+                                                    <span className="w-4 h-4 rounded-full bg-blue-600 text-white flex items-center justify-center shrink-0">
+                                                       <Check size={10} strokeWidth={3} />
+                                                    </span>
+                                                 ) : (
+                                                    <span className="text-[9.5px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-slate-200/60 dark:bg-white/10 text-slate-600 dark:text-neutral-400">
+                                                       {opt.badge}
+                                                    </span>
+                                                 )}
+                                              </div>
+                                              <p className="text-[11px] text-slate-500 dark:text-neutral-400 leading-relaxed mb-3">
+                                                 {opt.desc}
+                                              </p>
+                                           </div>
+
+                                           {opt.preview}
+                                        </button>
+                                     );
+                                  })}
+                               </div>
+                            </div>
+
+</motion.div>
                      )}
 
 

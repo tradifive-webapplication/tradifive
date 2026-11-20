@@ -4,6 +4,7 @@ import { useDashboardData } from "@/hooks/useDashboardData";
 import { Skeleton } from "@/components/ui/skeleton";
 import DailyJournalModal from "./DailyJournalModal";
 import { useJournalSettings } from "@/contexts/JournalSettingsContext";
+import { useTradingTheme } from "@/hooks/useTradingTheme";
 
 export default function JournalCalendar({
   loading,
@@ -21,6 +22,10 @@ export default function JournalCalendar({
   const [showSettings, setShowSettings] = useState(false);
   const { formatMoney, hideBalance, percentageOnly, isSettingsLoading } =
     useJournalSettings();
+  const { config: tradingTheme } = useTradingTheme();
+  const isDark = typeof document !== "undefined" && document.documentElement.classList.contains("dark");
+  const profitColor = isDark ? tradingTheme.profitHexDark : tradingTheme.profitHex;
+  const lossColor = isDark ? tradingTheme.lossHexDark : tradingTheme.lossHex;
 
   const isPageLoading = loading || isSettingsLoading;
 
@@ -208,11 +213,10 @@ export default function JournalCalendar({
               <Skeleton className="h-4 w-16 bg-slate-200 dark:bg-white/10 rounded" />
             ) : (
               <span
-                className={`text-[13px] font-bold tracking-tight tabular-nums ${
-                  monthlyTotal < 0
-                    ? "text-rose-600 dark:text-rose-400"
-                    : "text-[#2563EB] dark:text-blue-400"
-                }`}
+                className={`text-[13px] font-bold tracking-tight tabular-nums ${monthlyTotal < 0
+                    ? tradingTheme.lossText
+                    : tradingTheme.profitText
+                  }`}
               >
                 {formatPnl(monthlyTotal)}
               </span>
@@ -225,11 +229,10 @@ export default function JournalCalendar({
             <button
               type="button"
               onClick={() => setShowSettings(!showSettings)}
-              className={`w-7 h-7 rounded-lg border flex items-center justify-center transition-colors cursor-pointer ${
-                showSettings
-                  ? "border-[#2563EB]/30 bg-blue-50 text-[#2563EB] dark:bg-blue-500/15 dark:text-blue-400"
+              className={`w-7 h-7 rounded-lg border flex items-center justify-center transition-colors cursor-pointer ${showSettings
+                  ? `${tradingTheme.profitBadge}`
                   : "border-slate-200/80 dark:border-white/10 bg-white dark:bg-white/[0.04] text-slate-400 hover:text-slate-700 dark:hover:text-white"
-              }`}
+                }`}
               title="Monthly Insights & Legend"
             >
               <SlidersHorizontal size={13} />
@@ -260,83 +263,82 @@ export default function JournalCalendar({
           <div className="flex flex-col gap-1.5">
             {isPageLoading
               ? Array.from({ length: 5 }).map((_, wIdx) => (
+                <div
+                  key={wIdx}
+                  className="grid grid-cols-7 sm:grid-cols-[repeat(7,1fr)_96px] gap-1.5 animate-pulse"
+                >
+                  {Array.from({ length: 7 }).map((_, dIdx) => (
+                    <div
+                      key={dIdx}
+                      className="min-h-[54px] sm:min-h-[86px] rounded-[12px] bg-white/80 dark:bg-white/[0.03] border border-slate-100 dark:border-white/[0.04]"
+                    />
+                  ))}
+                  <div className="hidden sm:flex rounded-[12px] bg-white/80 dark:bg-white/[0.03] border border-slate-100 dark:border-white/[0.04]" />
+                </div>
+              ))
+              : weeks.map((week, wIdx) => {
+                const ws = weeklyData[wIdx] ?? { pnl: 0, active: 0 };
+                return (
                   <div
                     key={wIdx}
-                    className="grid grid-cols-7 sm:grid-cols-[repeat(7,1fr)_96px] gap-1.5 animate-pulse"
+                    className="grid grid-cols-7 sm:grid-cols-[repeat(7,1fr)_96px] gap-1.5"
                   >
-                    {Array.from({ length: 7 }).map((_, dIdx) => (
-                      <div
-                        key={dIdx}
-                        className="min-h-[54px] sm:min-h-[86px] rounded-[12px] bg-white/80 dark:bg-white/[0.03] border border-slate-100 dark:border-white/[0.04]"
-                      />
-                    ))}
-                    <div className="hidden sm:flex rounded-[12px] bg-white/80 dark:bg-white/[0.03] border border-slate-100 dark:border-white/[0.04]" />
-                  </div>
-                ))
-              : weeks.map((week, wIdx) => {
-                  const ws = weeklyData[wIdx] ?? { pnl: 0, active: 0 };
-                  return (
-                    <div
-                      key={wIdx}
-                      className="grid grid-cols-7 sm:grid-cols-[repeat(7,1fr)_96px] gap-1.5"
-                    >
-                      {week.map((day, dIdx) => {
-                        const dayData = day ? tradesByDate.get(day) : undefined;
-                        const isToday =
-                          day === today.getDate() &&
-                          currentDate.getMonth() === today.getMonth() &&
-                          currentDate.getFullYear() === today.getFullYear();
+                    {week.map((day, dIdx) => {
+                      const dayData = day ? tradesByDate.get(day) : undefined;
+                      const isToday =
+                        day === today.getDate() &&
+                        currentDate.getMonth() === today.getMonth() &&
+                        currentDate.getFullYear() === today.getFullYear();
 
-                        return (
-                          <TactileCalendarCell
-                            key={dIdx}
-                            day={day}
-                            pnl={dayData?.pnl}
-                            formattedPnl={
-                              dayData?.pnl !== undefined
-                                ? formatPnl(dayData.pnl)
-                                : undefined
+                      return (
+                        <TactileCalendarCell
+                          key={dIdx}
+                          day={day}
+                          pnl={dayData?.pnl}
+                          formattedPnl={
+                            dayData?.pnl !== undefined
+                              ? formatPnl(dayData.pnl)
+                              : undefined
+                          }
+                          trades={dayData?.trades}
+                          isToday={isToday}
+                          onClick={() => {
+                            if (day) {
+                              setSelectedDateObj(
+                                new Date(
+                                  currentDate.getFullYear(),
+                                  currentDate.getMonth(),
+                                  day
+                                )
+                              );
                             }
-                            trades={dayData?.trades}
-                            isToday={isToday}
-                            onClick={() => {
-                              if (day) {
-                                setSelectedDateObj(
-                                  new Date(
-                                    currentDate.getFullYear(),
-                                    currentDate.getMonth(),
-                                    day
-                                  )
-                                );
-                              }
-                            }}
-                          />
-                        );
-                      })}
+                          }}
+                        />
+                      );
+                    })}
 
-                      {/* Desktop Weekly Summary Tile */}
-                      <div className="hidden sm:flex flex-col items-center justify-center text-center px-2 py-2 rounded-[12px] bg-gradient-to-b from-white to-[#F4F6FA] dark:from-[#1E1E22] dark:to-[#18181B] border border-slate-200/80 dark:border-white/[0.07] shadow-[0_2px_0_rgba(148,163,184,0.22),inset_0_1px_0_rgba(255,255,255,0.9)] dark:shadow-none">
-                        <span className="text-[9.5px] font-semibold text-slate-400 uppercase tracking-wider">
-                          Week {wIdx + 1}
-                        </span>
-                        <span
-                          className={`text-[12px] font-bold tracking-tight tabular-nums mt-0.5 ${
-                            ws.pnl < 0
-                              ? "text-rose-600 dark:text-rose-400"
-                              : ws.pnl > 0
+                    {/* Desktop Weekly Summary Tile */}
+                    <div className="hidden sm:flex flex-col items-center justify-center text-center px-2 py-2 rounded-[12px] bg-gradient-to-b from-white to-[#F4F6FA] dark:from-[#1E1E22] dark:to-[#18181B] border border-slate-200/80 dark:border-white/[0.07] shadow-[0_2px_0_rgba(148,163,184,0.22),inset_0_1px_0_rgba(255,255,255,0.9)] dark:shadow-none">
+                      <span className="text-[9.5px] font-semibold text-slate-400 uppercase tracking-wider">
+                        Week {wIdx + 1}
+                      </span>
+                      <span
+                        className={`text-[12px] font-bold tracking-tight tabular-nums mt-0.5 ${ws.pnl < 0
+                            ? "text-rose-600 dark:text-rose-400"
+                            : ws.pnl > 0
                               ? "text-[#2563EB] dark:text-blue-400"
                               : "text-slate-400"
                           }`}
-                        >
-                          {ws.pnl !== 0 ? formatPnl(ws.pnl) : formatPnl(0)}
-                        </span>
-                        <span className="text-[9px] font-medium text-slate-400 mt-0.5">
-                          {ws.active} {ws.active === 1 ? "day" : "days"}
-                        </span>
-                      </div>
+                      >
+                        {ws.pnl !== 0 ? formatPnl(ws.pnl) : formatPnl(0)}
+                      </span>
+                      <span className="text-[9px] font-medium text-slate-400 mt-0.5">
+                        {ws.active} {ws.active === 1 ? "day" : "days"}
+                      </span>
                     </div>
-                  );
-                })}
+                  </div>
+                );
+              })}
           </div>
         </div>
 
@@ -354,13 +356,12 @@ export default function JournalCalendar({
                 W{idx + 1}:
               </span>
               <span
-                className={`text-[10px] font-bold tabular-nums ${
-                  ws.pnl < 0
+                className={`text-[10px] font-bold tabular-nums ${ws.pnl < 0
                     ? "text-rose-600 dark:text-rose-400"
                     : ws.pnl > 0
-                    ? "text-[#2563EB] dark:text-blue-400"
-                    : "text-slate-400"
-                }`}
+                      ? "text-[#2563EB] dark:text-blue-400"
+                      : "text-slate-400"
+                  }`}
               >
                 {ws.pnl !== 0 ? formatPnl(ws.pnl) : formatPnl(0)}
               </span>
@@ -388,11 +389,11 @@ export default function JournalCalendar({
 
           <div className="grid grid-cols-2 gap-1.5 text-[11px] font-medium text-slate-600 dark:text-neutral-300">
             <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-blue-50/80 dark:bg-blue-500/10 border border-blue-200/60 dark:border-blue-500/20">
-              <span className="w-2 h-2 rounded-full bg-[#2563EB]" />
+              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: profitColor }} />
               <span>Profitable</span>
             </div>
             <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-rose-50/80 dark:bg-rose-500/10 border border-rose-200/60 dark:border-rose-500/20">
-              <span className="w-2 h-2 rounded-full bg-rose-500" />
+              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: lossColor }} />
               <span>Losing</span>
             </div>
           </div>
@@ -404,11 +405,11 @@ export default function JournalCalendar({
             {monthlyStats ? (
               <div className="space-y-2.5">
                 <div className="grid grid-cols-2 gap-2">
-                  <div className="p-2.5 rounded-xl border border-blue-200/60 dark:border-blue-500/20 bg-blue-50/50 dark:bg-blue-500/10">
-                    <span className="text-[9.5px] font-semibold uppercase text-[#2563EB] dark:text-blue-400">
+                  <div className={`p-2.5 rounded-xl border ${tradingTheme.profitBorder} ${tradingTheme.profitBg}`}>
+                    <span className={`text-[9.5px] font-semibold uppercase ${tradingTheme.profitText}`}>
                       Best Day
                     </span>
-                    <p className="text-[13.5px] font-bold text-[#2563EB] dark:text-blue-400 tabular-nums mt-0.5">
+                    <p className={`text-[13.5px] font-bold ${tradingTheme.profitText} tabular-nums mt-0.5`}>
                       {formatPnl(monthlyStats.bestDay.pnl)}
                     </p>
                     <p className="text-[9.5px] text-slate-400 mt-0.5">
@@ -432,11 +433,10 @@ export default function JournalCalendar({
                   <div className="flex justify-between">
                     <span className="text-slate-400">Avg Daily P&amp;L</span>
                     <span
-                      className={`font-semibold tabular-nums ${
-                        monthlyStats.avgPnl < 0
+                      className={`font-semibold tabular-nums ${monthlyStats.avgPnl < 0
                           ? "text-rose-600 dark:text-rose-400"
                           : "text-[#2563EB] dark:text-blue-400"
-                      }`}
+                        }`}
                     >
                       {formatPnl(monthlyStats.avgPnl)}
                     </span>
@@ -501,6 +501,8 @@ function TactileCalendarCell({
   isToday: boolean;
   onClick?: () => void;
 }) {
+  const { config: tradingTheme } = useTradingTheme();
+
   if (!day) {
     return (
       <div className="min-h-[54px] sm:min-h-[86px] rounded-[12px] pointer-events-none" />
@@ -510,41 +512,50 @@ function TactileCalendarCell({
   const isWin = pnl !== undefined && pnl > 0;
   const isLoss = pnl !== undefined && pnl < 0;
 
+  const winBg =
+    tradingTheme.id === "classic"
+      ? "bg-gradient-to-b from-[#F5FDF8] to-[#E6F7EE] dark:from-emerald-500/15 dark:to-emerald-500/5 border-emerald-200/80 dark:border-emerald-500/25 shadow-[0_2px_0_rgba(16,185,129,0.18),inset_0_1px_0_rgba(255,255,255,0.85)] dark:shadow-none"
+      : tradingTheme.id === "monochrome"
+      ? "bg-gradient-to-b from-slate-100 to-slate-200/80 dark:from-white/15 dark:to-white/5 border-slate-300 dark:border-white/20 shadow-[0_2px_0_rgba(15,23,42,0.15)] dark:shadow-none"
+      : "bg-gradient-to-b from-[#EFF6FF] to-[#DBEAFE]/80 dark:from-blue-500/15 dark:to-blue-500/5 border-blue-200/80 dark:border-blue-500/25 shadow-[0_2px_0_rgba(37,99,235,0.18),inset_0_1px_0_rgba(255,255,255,0.85)] dark:shadow-none";
+
+  const lossBg =
+    tradingTheme.id === "monochrome"
+      ? "bg-gradient-to-b from-slate-50 to-slate-100 dark:from-white/5 dark:to-white/[0.02] border-slate-200 dark:border-white/10 shadow-[0_2px_0_rgba(100,116,139,0.15)] dark:shadow-none"
+      : "bg-gradient-to-b from-[#FFF1F2] to-[#FFE4E6]/80 dark:from-rose-500/15 dark:to-rose-500/5 border-rose-200/80 dark:border-rose-500/25 shadow-[0_2px_0_rgba(225,29,72,0.16),inset_0_1px_0_rgba(255,255,255,0.85)] dark:shadow-none";
+
   const tileClasses = isWin
-    ? "bg-gradient-to-b from-[#EFF6FF] to-[#DBEAFE]/80 dark:from-blue-500/15 dark:to-blue-500/5 border-blue-200/80 dark:border-blue-500/25 shadow-[0_2px_0_rgba(37,99,235,0.18),inset_0_1px_0_rgba(255,255,255,0.85)] dark:shadow-none"
+    ? winBg
     : isLoss
-    ? "bg-gradient-to-b from-[#FFF1F2] to-[#FFE4E6]/80 dark:from-rose-500/15 dark:to-rose-500/5 border-rose-200/80 dark:border-rose-500/25 shadow-[0_2px_0_rgba(225,29,72,0.16),inset_0_1px_0_rgba(255,255,255,0.85)] dark:shadow-none"
-    : "bg-gradient-to-b from-white to-[#F4F6FA] dark:from-[#1F1F23] dark:to-[#18181B] border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_0_rgba(148,163,184,0.22),inset_0_1px_0_rgba(255,255,255,0.95)] dark:shadow-none";
+      ? lossBg
+      : "bg-gradient-to-b from-white to-[#F4F6FA] dark:from-[#1F1F23] dark:to-[#18181B] border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_0_rgba(148,163,184,0.22),inset_0_1px_0_rgba(255,255,255,0.95)] dark:shadow-none";
 
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`min-h-[54px] sm:min-h-[86px] p-1.5 sm:p-2.5 rounded-[12px] border text-left flex flex-col justify-between transition-all duration-150 cursor-pointer active:translate-y-[1px] active:shadow-none hover:brightness-[0.98] ${tileClasses} ${
-        isToday
+      className={`min-h-[54px] sm:min-h-[86px] p-1.5 sm:p-2.5 rounded-[12px] border text-left flex flex-col justify-between transition-all duration-150 cursor-pointer active:translate-y-[1px] active:shadow-none hover:brightness-[0.98] ${tileClasses} ${isToday
           ? "ring-[1.5px] ring-slate-900 dark:ring-white/80"
           : ""
-      }`}
+        }`}
     >
       <div className="flex items-start justify-between gap-1 w-full">
         <span
-          className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] sm:text-[11px] font-bold shrink-0 tabular-nums ${
-            isToday
+          className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] sm:text-[11px] font-bold shrink-0 tabular-nums ${isToday
               ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900"
               : "text-slate-600 dark:text-neutral-300"
-          }`}
+            }`}
         >
           {day}
         </span>
         {trades !== undefined && trades > 0 && (
           <span
-            className={`text-[8px] sm:text-[9px] font-semibold px-1 py-0.5 rounded leading-none shrink-0 tabular-nums ${
-              isWin
-                ? "bg-[#2563EB]/12 text-[#2563EB] dark:text-blue-400"
+            className={`text-[8px] sm:text-[9px] font-semibold px-1 py-0.5 rounded leading-none shrink-0 tabular-nums ${isWin
+                ? `${tradingTheme.profitBg} ${tradingTheme.profitText}`
                 : isLoss
-                ? "bg-rose-500/12 text-rose-600 dark:text-rose-400"
-                : "bg-slate-200/70 text-slate-500 dark:bg-white/10 dark:text-neutral-400"
-            }`}
+                  ? "bg-rose-500/12 text-rose-600 dark:text-rose-400"
+                  : "bg-slate-200/70 text-slate-500 dark:bg-white/10 dark:text-neutral-400"
+              }`}
           >
             {trades}t
           </span>
@@ -553,11 +564,10 @@ function TactileCalendarCell({
       {pnl !== undefined && (
         <div className="mt-auto pt-1 w-full">
           <p
-            className={`text-[9.5px] sm:text-[12px] font-bold tracking-tight leading-none tabular-nums truncate ${
-              pnl < 0
-                ? "text-rose-600 dark:text-rose-400"
-                : "text-[#2563EB] dark:text-blue-400"
-            }`}
+            className={`text-[9.5px] sm:text-[12px] font-bold tracking-tight leading-none tabular-nums truncate ${pnl < 0
+                ? tradingTheme.lossText
+                : tradingTheme.profitText
+              }`}
           >
             {formattedPnl}
           </p>

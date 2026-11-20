@@ -22,6 +22,7 @@ import Reports from "./dashboard/Reports";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { useMarket } from "@/contexts/MarketContext";
 import { supabase } from "@/lib/supabase";
+import { useTradingTheme } from "@/hooks/useTradingTheme";
 import PerformanceChart from "@/components/charts/PerformanceChart";
 import ShareProfileModal from "@/components/ShareProfileModal";
 import DashboardNewsCard from "@/components/dashboard/DashboardNewsCard";
@@ -187,7 +188,13 @@ const Dashboard = () => {
   const currSym = activeMarket === "indian" ? "₹" : "$";
 
   const [pnlRange, setPnlRange] = useState<PnlRange>("all");
-  const [demoMode, setDemoMode] = useState<boolean>(true);
+  const [demoMode, setDemoMode] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem("tf_dashboard_demo_mode") === "true";
+    } catch {
+      return false;
+    }
+  });
   const [hidePnl, setHidePnl] = useState<boolean>(() => {
     try {
       return localStorage.getItem("tf_dashboard_hide_pnl") === "true";
@@ -256,12 +263,12 @@ const Dashboard = () => {
 
   const effectiveBalance = demoData ? demoData.balance : balance;
   const effectiveEquity = demoData ? demoData.equity : equity;
-  const effectiveConnected = demoData ? true : isConnected;
-  const effectiveBroker = demoData
-    ? activeMarket === "indian"
-      ? "Zerodha Kite"
-      : "FTMO MT5"
-    : accountMetrics?.broker;
+  const effectiveConnected = isConnected;
+  const effectiveBroker = isConnected && accountMetrics
+    ? (accountMetrics.server || accountMetrics.broker_server || accountMetrics.broker || (activeMarket === "indian" ? "Broker API" : "MT5 Server"))
+    : demoData
+    ? "Demo Account"
+    : null;
   const effectiveDiscipline = demoData ? 92 : avgDisciplineScore;
   const effectiveDailyXp = demoData ? 140 : dailyXpEarned;
   const effectiveStreak = demoData ? 9 : gamification.streak;
@@ -410,14 +417,25 @@ const Dashboard = () => {
   const dashOffset =
     circumference - (Math.min(100, Math.max(0, metrics.winRatePct)) / 100) * circumference;
 
-  const pnlColorClass =
-    metrics.total < 0
-      ? "text-rose-600 dark:text-rose-400"
-      : "text-[#2563EB] dark:text-blue-400";
+  const { themeId, config: tradingTheme } = useTradingTheme();
 
   const isDark =
     typeof document !== "undefined" &&
     document.documentElement.classList.contains("dark");
+
+  const pnlColorClass =
+    metrics.total < 0
+      ? tradingTheme.lossText
+      : tradingTheme.profitText;
+
+  const winRingStroke =
+    metrics.winRatePct < 50
+      ? isDark
+        ? tradingTheme.lossHexDark
+        : tradingTheme.lossHex
+      : isDark
+      ? tradingTheme.profitHexDark
+      : tradingTheme.profitHex;
 
   const openLogModal = (tab: "manual" | "import") => {
     setLogModalTab(tab);
@@ -447,7 +465,15 @@ const Dashboard = () => {
                   </h1>
                   <button
                     type="button"
-                    onClick={() => setDemoMode((v) => !v)}
+                    onClick={() => {
+                      setDemoMode((v) => {
+                        const next = !v;
+                        try {
+                          localStorage.setItem("tf_dashboard_demo_mode", String(next));
+                        } catch {}
+                        return next;
+                      });
+                    }}
                     className={`px-2 py-0.5 rounded-full text-[10px] font-semibold transition-colors cursor-pointer ${
                       demoMode
                         ? "bg-blue-50 text-[#2563EB] dark:bg-blue-500/15 dark:text-blue-400"
@@ -465,20 +491,26 @@ const Dashboard = () => {
 
               <div className="flex items-center gap-2.5 shrink-0">
                 {/* Desktop Web App (md+): Compact Account Action Pill right beside Share Profile */}
-                {activeTrades.length > 0 && (
+                {(activeTrades.length > 0 || isConnected) && (
                   <div className="hidden md:flex items-center gap-3 bg-white dark:bg-[#17171A] rounded-full pl-3.5 pr-1.5 py-1.5 border border-slate-200/75 dark:border-white/[0.08] shadow-[0_2px_10px_rgba(15,23,42,0.04)] dark:shadow-none">
                     <div className="flex items-center gap-2 text-[12px]">
                       <span
                         className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                          effectiveConnected ? "bg-emerald-500" : "bg-blue-500"
+                          isConnected
+                            ? "bg-emerald-500"
+                            : demoMode
+                            ? "bg-amber-500"
+                            : "bg-slate-400"
                         }`}
                       />
                       <span className="font-semibold text-slate-800 dark:text-slate-100 whitespace-nowrap">
-                        {effectiveConnected && effectiveBroker
+                        {isConnected && effectiveBroker
                           ? `${effectiveBroker} · Live`
-                          : "TradiFive Journal"}
+                          : demoMode
+                          ? "Demo Account · Sample Data"
+                          : "No Broker Connected"}
                       </span>
-                      {effectiveConnected && effectiveEquity > 0 && (
+                      {isConnected && effectiveEquity > 0 && (
                         <span className="text-slate-400 dark:text-neutral-500 tabular-nums whitespace-nowrap">
                           · Equity{" "}
                           <span
@@ -517,12 +549,12 @@ const Dashboard = () => {
                       >
                         Import
                       </motion.button>
-                      {!effectiveConnected && (
+                      {!isConnected && (
                         <motion.button
                           whileTap={{ scale: 0.96 }}
                           type="button"
                           onClick={() => navigate("/settings?tab=trading")}
-                          className="tactile-white-pill rounded-full px-3 py-1 text-[11.5px] font-semibold cursor-pointer whitespace-nowrap"
+                          className="tactile-black-pill rounded-full px-3 py-1 text-[11.5px] font-semibold cursor-pointer whitespace-nowrap"
                         >
                           Connect
                         </motion.button>
@@ -607,15 +639,21 @@ const Dashboard = () => {
                   <div className="flex items-center gap-2 text-[12px]">
                     <span
                       className={`w-1.5 h-1.5 rounded-full ${
-                        effectiveConnected ? "bg-emerald-500" : "bg-blue-500"
+                        isConnected
+                          ? "bg-emerald-500"
+                          : demoMode
+                          ? "bg-amber-500"
+                          : "bg-slate-400"
                       }`}
                     />
                     <span className="font-semibold text-slate-800 dark:text-slate-100">
-                      {effectiveConnected && effectiveBroker
+                      {isConnected && effectiveBroker
                         ? `${effectiveBroker} · Live`
-                        : "TradiFive Journal"}
+                        : demoMode
+                        ? "Demo Account · Sample Data"
+                        : "No Broker Connected"}
                     </span>
-                    {effectiveConnected && effectiveEquity > 0 && (
+                    {isConnected && effectiveEquity > 0 && (
                       <span className="text-slate-400 dark:text-neutral-500 tabular-nums">
                         · Equity{" "}
                         <span
@@ -652,12 +690,12 @@ const Dashboard = () => {
                     >
                       Import
                     </motion.button>
-                    {!effectiveConnected && (
+                    {!isConnected && (
                       <motion.button
                         whileTap={{ scale: 0.96 }}
                         type="button"
                         onClick={() => navigate("/settings?tab=trading")}
-                        className="tactile-white-pill rounded-full px-3 py-1 text-[11.5px] font-semibold cursor-pointer"
+                        className="tactile-black-pill rounded-full px-3 py-1 text-[11.5px] font-semibold cursor-pointer"
                       >
                         Connect
                       </motion.button>
@@ -783,7 +821,7 @@ const Dashboard = () => {
                             cy={donutSize / 2}
                             r={radius}
                             fill="none"
-                            stroke="#2563EB"
+                            stroke={winRingStroke}
                             strokeWidth={strokeWidth}
                             strokeLinecap="round"
                             strokeDasharray={circumference}
@@ -893,7 +931,7 @@ const Dashboard = () => {
                     <span className="flex items-center gap-2 font-semibold text-slate-700 dark:text-neutral-200">
                       {todayPlan ? (
                         <>
-                          <span className="w-4 h-4 rounded-full bg-blue-500/15 text-[#2563EB] dark:text-blue-400 flex items-center justify-center">
+                          <span className={`w-4 h-4 rounded-full ${tradingTheme.profitBg} ${tradingTheme.profitText} flex items-center justify-center`}>
                             <Check size={10} strokeWidth={3} />
                           </span>
                           <span>
@@ -905,8 +943,11 @@ const Dashboard = () => {
                         </>
                       ) : (
                         <>
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#2563EB]" />
-                          <span className="text-[#2563EB] dark:text-blue-400">
+                          <span
+                            className="w-1.5 h-1.5 rounded-full shrink-0"
+                            style={{ backgroundColor: isDark ? tradingTheme.profitHexDark : tradingTheme.profitHex }}
+                          />
+                          <span className={tradingTheme.profitText}>
                             Start today&apos;s pre-market plan
                           </span>
                         </>
@@ -927,7 +968,7 @@ const Dashboard = () => {
                 <div className="flex items-start justify-between gap-2 mb-3 min-h-[42px]">
                   <div className="min-w-0">
                     <h3 className="text-[13.5px] font-semibold text-slate-900 dark:text-white tracking-tight leading-tight flex items-center gap-1.5">
-                      <TrendingUp size={13.5} className="text-[#2563EB] dark:text-blue-400 shrink-0" />
+                      <TrendingUp size={13.5} className={`${metrics.total < 0 ? tradingTheme.lossText : tradingTheme.profitText} shrink-0`} />
                       <span>Cumulative P&amp;L</span>
                     </h3>
                     <p className="text-[11px] text-slate-400 mt-1">
@@ -966,7 +1007,7 @@ const Dashboard = () => {
                     }`}
                   >
                     <PerformanceChart
-                      key={`${pnlRange}-${demoMode}`}
+                      key={`${pnlRange}-${demoMode}-${themeId}`}
                       trades={scopedTrades}
                       isDark={isDark}
                       currencySymbol={currSym}

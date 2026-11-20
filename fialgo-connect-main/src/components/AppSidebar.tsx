@@ -47,6 +47,7 @@ import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { playSound } from "@/utils/soundEffects";
 
 import { Badge } from "@/components/ui/badge";
 
@@ -253,13 +254,13 @@ const discoverMenu = [
 
 const getAutoTradeMenu = (isLifetimePlan = false) => {
   return [
-    { path: "/fialgo", icon: WrappedIconly(Category), label: "Dashboard" },
+    { path: "/auto-trade/setup", icon: wrapLucide(Cpu), label: "Algo Engine Dashboard" },
     { path: "/weekly-settlements", icon: wrapLucide(ReceiptText), label: "Weekly Profit Settlement", isLocked: isLifetimePlan, lockedBadge: isLifetimePlan ? "0% Share" : undefined },
-    { path: "/auto-trade/active-bots", icon: WrappedIconly(Activity), label: "Active Bots", isLocked: true },
+    { path: "/auto-trade/active-bots", icon: WrappedIconly(Activity), label: "Active Bots" },
     { path: "/auto-trade/marketplace", icon: WrappedIconly(Bag), label: "Algo Marketplace" },
-    { path: "/strategy-builder", icon: WrappedIconly(Setting), label: "Strategy Builder", isLocked: true },
-    { path: "/auto-trade/history", icon: WrappedIconly(Document), label: "Order History", isLocked: true },
-    { path: "/auto-trade/license", icon: WrappedIconly(ShieldDone), label: "License & Activation", isLocked: true },
+    { path: "/strategy-builder", icon: WrappedIconly(Setting), label: "Strategy Builder" },
+    { path: "/auto-trade/history", icon: WrappedIconly(Document), label: "Order History" },
+    { path: "/auto-trade/license", icon: WrappedIconly(ShieldDone), label: "EA License & Keys" },
   ];
 };
 
@@ -379,25 +380,19 @@ const creatorHubMenu = [
 
 
 
-const getPillars = (isCreator: boolean, isFiAlgo: boolean = false) => {
-  if (isFiAlgo) {
-    return [
-      { id: "autoTrade", icon: WrappedIconly(Activity), tooltip: "Auto Trade Dashboard", defaultPath: "/fialgo", isLive: true },
-      { id: "strategyBuilder", icon: WrappedIconly(Setting), tooltip: "Strategy Builder", defaultPath: "/strategy-builder", isLive: true },
-      { id: "activeBots", icon: WrappedIconly(Activity), tooltip: "Active Bots", defaultPath: "/auto-trade/active-bots", isLive: true },
-      { id: "marketplace", icon: WrappedIconly(Bag), tooltip: "Algo Marketplace", defaultPath: "/auto-trade/marketplace", isLive: true },
-      { id: "history", icon: WrappedIconly(Document), tooltip: "Order History", defaultPath: "/auto-trade/history", isLive: true },
-      { id: "license", icon: WrappedIconly(ShieldDone), tooltip: "License & Activation", defaultPath: "/auto-trade/license", isLive: true },
-    ];
-  }
+const rewardsMenu = [
+  { path: "/rewards", icon: WrappedIconly(TicketStar), label: "Rewards Hub" },
+  { path: "/referrals", icon: WrappedIconly(AddUser), label: "Refer & Earn" },
+];
 
-  // TradiFive Workspace Pillars (Desktop web app: Discover & Channels live under Home Feed secondary nav)
+const getPillars = (isCreator: boolean, isFiAlgo: boolean = false) => {
   return [
     { id: "home", icon: WrappedIconly(Home), tooltip: "Home Feed", defaultPath: "/home", isLive: true },
     { id: "dashboard", icon: WrappedIconly(Category), tooltip: "Trading Dashboard", defaultPath: "/dashboard", isLive: true },
     { id: "journal", icon: WrappedIconly(Document), tooltip: "Smart Trade Journal", defaultPath: "/journal", isLive: true },
     { id: "riskGuard", icon: WrappedIconly(ShieldDone), tooltip: "Risk Guard Protection", defaultPath: "/risk-guard", isLive: true },
     { id: "aiCoach", icon: WrappedSparkles, tooltip: "AI Coach & Copilot", defaultPath: "/ai-coach", isLive: true },
+    { id: "autoTrade", icon: WrappedIconly(Activity), tooltip: "AutoTrade (FiAlgo)", defaultPath: "/auto-trade/setup", isLive: true },
     ...(isCreator ? [{ id: "creatorHub", icon: WrappedIconly(Star), tooltip: "Creator Hub", defaultPath: "/creator/analytics", isLive: true }] : []),
   ];
 };
@@ -554,6 +549,15 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
   const { activeMarket, setActiveMarket } = useMarket();
   const { isFiAlgo, isTradiFive, switchWorkspace } = useWorkspace();
+
+  useEffect(() => {
+    const handleOpenModal = () => {
+      setActivePillar("autoTrade");
+      navigate("/auto-trade/setup");
+    };
+    window.addEventListener("open-autotrade-confirm", handleOpenModal);
+    return () => window.removeEventListener("open-autotrade-confirm", handleOpenModal);
+  }, [navigate]);
 
 
 
@@ -1344,14 +1348,10 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
 
 
-  const mobilePillars = isFiAlgo ? [
-    { id: "autoTrade", label: "Auto Trade", icon: WrappedIconly(Activity), isLive: true },
-    { id: "strategyBuilder", label: "Strategy", icon: WrappedIconly(Setting), isLive: true },
-    { id: "activeBots", label: "Bots", icon: WrappedIconly(Activity), isLive: true },
-    { id: "history", label: "History", icon: WrappedIconly(Document), isLive: true },
-  ] : [
+  const mobilePillars = [
     { id: "home", label: "Home Feed", icon: WrappedIconly(Home), isLive: true },
     { id: "dashboard", label: "Dashboard", icon: WrappedIconly(Category), isLive: true },
+    { id: "autoTrade", label: "AutoTrade", icon: WrappedIconly(Activity), isLive: true },
     { id: "community", label: "Channels", icon: WrappedIconly(Chat), isLive: true },
     { id: "journal", label: "Journal", icon: WrappedIconly(Document), isLive: true },
     { id: "riskGuard", label: "Risk Guard", icon: WrappedIconly(ShieldDone), isLive: true },
@@ -1783,7 +1783,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
           : `fixed left-0 top-0 z-40 flex h-screen flex-row bg-transparent dark:bg-transparent ${isMounted ? "transition-[width] duration-300" : ""
 
-          } ${isCollapsed ? "w-[90px]" : isFiAlgo ? "w-[260px] xl:w-[274px]" : "w-[340px]"}`
+          } ${isCollapsed ? "w-[90px]" : "w-[340px]"}`
 
           }`}
 
@@ -1791,172 +1791,120 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
       >
 
-        {!isMobile && !isFiAlgo && (
+        {!isMobile && (
 
           <div className="w-[74px] h-[calc(100vh-24px)] flex flex-col items-center justify-between py-2 m-3 mr-0 shrink-0 z-50 relative gap-2">
 
 
 
             {/* Top Outer Pill */}
-
             <div className="w-full flex-1 flex flex-col items-center py-2 bg-white dark:bg-[#1E1E1E] rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.04)] border-none">
-
-              {/* Top Dark Pill - Navigation Icons */}
-
-              <div className="w-[58px] rounded-[29px] bg-[#f4f7fb] dark:bg-[#1A1A1C] flex flex-col items-center py-5 pb-5 shadow-[inset_0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-[inset_0_2px_4px_rgba(255,255,255,0.08),0_8px_20px_rgba(0,0,0,0.4)] border-none gap-3.5 relative">
-
-
-
+              {/* Top Dark Pill - Navigation Icons Only */}
+              <div className="w-[58px] rounded-[29px] bg-[#f4f7fb] dark:bg-[#1A1A1C] flex flex-col items-center py-3.5 pb-3.5 shadow-[inset_0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-[inset_0_2px_4px_rgba(255,255,255,0.08),0_8px_20px_rgba(0,0,0,0.4)] border-none gap-3 relative">
                 {/* Asterisk / Logo */}
-
                 <div onClick={toggleCollapse} title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"} className="w-12 h-12 flex items-center justify-center cursor-pointer transition-opacity hover:opacity-80 mb-0">
-
                   <img src="/tf-logo.png" alt="Logo" className="w-10 h-10 object-contain" />
-
                 </div>
 
-
-
                 {/* Divider */}
-
-                <div className="w-6 h-[1px] bg-slate-200 dark:bg-white/10 mb-2 mt-[-4px]" />
-
-
+                <div className="w-6 h-[1px] bg-slate-200 dark:bg-white/10 mb-0.5 mt-[-4px]" />
 
                 {/* Pillars */}
-
                 {getPillars(isCreator, isFiAlgo).map((pillar) => {
-
                   const isActive = activePillar === pillar.id;
 
                   return (
-
-                    <Tooltip delayDuration={0}>
-
+                    <Tooltip delayDuration={0} key={pillar.id}>
                       <TooltipTrigger asChild>
-
-                    <div
-
-                      key={pillar.id}
-
-                      
-
-                      onClick={() => {
-
-                        setActivePillar(pillar.id);
-
-                        if (pillar.defaultPath) {
-
-                          React.startTransition(() => navigate(pillar.defaultPath));
-
-                        }
-
-                        if (scrollContainerRef.current) scrollContainerRef.current.scrollTop = 0;
-
-                      }}
-
-                      className={`relative overflow-hidden w-[42px] h-[42px] rounded-[14px] flex items-center justify-center cursor-pointer transition-all ${isActive
-
-                        ? 'bg-white dark:bg-white/10 text-slate-800 dark:text-white shadow-sm border border-slate-200/50 dark:border-white/10'
-
-                        : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100 dark:text-white/40 dark:hover:text-white dark:hover:bg-white/5'
-
-                        }`}
-
-                    >
-
-                      <pillar.icon size={18} set="curved" stroke="bold" primaryColor="currentColor" strokeWidth={isActive ? 2.5 : 2} className="relative z-10" />
-
-                      {isActive && (
-
-                        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[3px] h-[20px] bg-blue-600 rounded-l-full shadow-[0_0_8px_rgba(37,99,235,0.4)]" />
-
-                      )}
-
-                    </div>
-
+                        <div
+                          onClick={() => {
+                            playSound('tab');
+                            setActivePillar(pillar.id);
+                            if (pillar.defaultPath) {
+                              React.startTransition(() => navigate(pillar.defaultPath));
+                            }
+                            if (scrollContainerRef.current) scrollContainerRef.current.scrollTop = 0;
+                          }}
+                          className={`relative overflow-hidden w-[42px] h-[42px] rounded-[14px] flex items-center justify-center cursor-pointer transition-all ${isActive
+                            ? 'bg-white dark:bg-white/10 text-slate-800 dark:text-white shadow-sm border border-slate-200/50 dark:border-white/10'
+                            : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100 dark:text-white/40 dark:hover:text-white dark:hover:bg-white/5'
+                            }`}
+                        >
+                          <pillar.icon size={18} set="curved" stroke="bold" primaryColor="currentColor" strokeWidth={isActive ? 2.5 : 2} className="relative z-10" />
+                          {isActive && (
+                            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[3px] h-[20px] bg-blue-600 rounded-l-full shadow-[0_0_8px_rgba(37,99,235,0.4)]" />
+                          )}
+                        </div>
                       </TooltipTrigger>
-
                       <TooltipContent side="right" sideOffset={20} className="bg-[#2B2B2F] border border-white/10 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg shadow-xl">{pillar.tooltip}</TooltipContent>
-
-                                          </Tooltip>
-
-                    );
-
-                  })}
-
-                  </div>
-
-
-
-                  {/* App Version */}
-
-                  <div className="flex-1 w-full flex items-center justify-center min-h-[120px] mb-4">
-
-                    <span className="text-[10px] font-extrabold tracking-[0.2em] text-slate-400 dark:text-[#8C8C8E]/80 rotate-[-90deg] whitespace-nowrap uppercase">
-
-                      TRADIFIVE v1.2
-
-                    </span>
-
-                  </div>
-
-
-
-
-
-            </div>
-
-
-
-            {/* Bottom Rewards & Referrals Pill */}
-
-            <div className="w-full flex-shrink-0 flex flex-col items-center p-2 bg-white dark:bg-[#1E1E1E] rounded-[37px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border-none relative mt-auto">
-
-              {/* Inner Grey Pill */}
-
-              <div className="w-[58px] rounded-[29px] bg-[#f4f7fb] dark:bg-[#1A1A1C] flex flex-col items-center py-3 shadow-[inset_0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-[inset_0_2px_4px_rgba(255,255,255,0.08),0_8px_20px_rgba(0,0,0,0.4)] border-none gap-2 relative">
-
-                 <Tooltip delayDuration={0}>
-
-                    <TooltipTrigger asChild>
-
-                      <div onClick={() => navigate('/rewards')} className={`relative overflow-hidden w-[42px] h-[42px] rounded-[14px] flex items-center justify-center cursor-pointer transition-all ${window.location.pathname.startsWith('/rewards') ? 'bg-white dark:bg-white/10 text-slate-800 dark:text-white shadow-sm border border-slate-200/50 dark:border-white/10' : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100 dark:text-white/40 dark:hover:text-white dark:hover:bg-white/5'}`}>
-
-                        <TicketStar size={18} primaryColor="currentColor" set="curved" stroke="bold" className="relative z-10" />
-
-                        {window.location.pathname.startsWith('/rewards') && <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[3px] h-[20px] bg-blue-600 rounded-l-full shadow-[0_0_8px_rgba(37,99,235,0.4)]" />}
-
-                      </div>
-
-                    </TooltipTrigger>
-
-                    <TooltipContent side="right" sideOffset={20} className="bg-[#2B2B2F] border border-white/10 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg shadow-xl">Rewards Hub</TooltipContent>
-
-                 </Tooltip>
-
-
-
-                 <Tooltip delayDuration={0}>
-
-                    <TooltipTrigger asChild>
-
-                      <div onClick={() => navigate('/referrals')} className={`relative overflow-hidden w-[42px] h-[42px] rounded-[14px] flex items-center justify-center cursor-pointer transition-all ${window.location.pathname.startsWith('/referrals') ? 'bg-white dark:bg-white/10 text-slate-800 dark:text-white shadow-sm border border-slate-200/50 dark:border-white/10' : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100 dark:text-white/40 dark:hover:text-white dark:hover:bg-white/5'}`}>
-
-                        <AddUser size={18} primaryColor="currentColor" set="curved" stroke="bold" className="relative z-10" />
-
-                        {window.location.pathname.startsWith('/referrals') && <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[3px] h-[20px] bg-blue-600 rounded-l-full shadow-[0_0_8px_rgba(37,99,235,0.4)]" />}
-
-                      </div>
-
-                    </TooltipTrigger>
-
-                    <TooltipContent side="right" sideOffset={20} className="bg-[#2B2B2F] border border-white/10 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg shadow-xl">Referrals</TooltipContent>
-
-                 </Tooltip>
-
+                    </Tooltip>
+                  );
+                })}
               </div>
 
+              {/* First Layer Vertical Text: TRADIFIVE v1.2 */}
+              <div 
+                onClick={() => {
+                  if (isFiAlgo) {
+                    switchWorkspace("tradifive");
+                    setActivePillar("dashboard");
+                    navigate("/dashboard");
+                  }
+                }}
+                className={`flex-1 w-full flex items-center justify-center min-h-[90px] mb-3 select-none ${isFiAlgo ? 'cursor-pointer group' : ''}`}
+              >
+                <span className="text-[10px] font-extrabold tracking-[0.2em] text-slate-400 dark:text-[#8C8C8E]/80 group-hover:text-slate-700 dark:group-hover:text-white rotate-[-90deg] whitespace-nowrap uppercase">
+                  TRADIFIVE v1.2
+                </span>
+              </div>
+            </div>
+
+            {/* Bottom Rewards & Referrals Capsule (Restored like before) */}
+            <div className="w-full flex-shrink-0 flex flex-col items-center p-2 bg-white dark:bg-[#1E1E1E] rounded-[37px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border-none relative mt-auto">
+              {/* Inner Grey Pill */}
+              <div className="w-[58px] rounded-[29px] bg-[#f4f7fb] dark:bg-[#1A1A1C] flex flex-col items-center py-2 shadow-[inset_0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-[inset_0_2px_4px_rgba(255,255,255,0.08),0_8px_20px_rgba(0,0,0,0.4)] border-none relative space-y-2">
+                 <Tooltip delayDuration={0}>
+                    <TooltipTrigger asChild>
+                      <div 
+                        onClick={() => {
+                          setActivePillar("rewards");
+                          React.startTransition(() => navigate('/rewards'));
+                          if (scrollContainerRef.current) scrollContainerRef.current.scrollTop = 0;
+                        }} 
+                        className={`relative overflow-hidden w-[42px] h-[42px] rounded-[14px] flex items-center justify-center cursor-pointer transition-all ${
+                          location.pathname.startsWith('/rewards') 
+                            ? 'bg-white dark:bg-white/10 text-slate-800 dark:text-white shadow-sm border border-slate-200/50 dark:border-white/10' 
+                            : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100 dark:text-white/40 dark:hover:text-white dark:hover:bg-white/5'
+                        }`}
+                      >
+                        <TicketStar size={18} primaryColor="currentColor" set="curved" stroke="bold" className="relative z-10" />
+                        {location.pathname.startsWith('/rewards') && <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[3px] h-[20px] bg-blue-600 rounded-l-full shadow-[0_0_8px_rgba(37,99,235,0.4)]" />}
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="right" sideOffset={20} className="bg-[#2B2B2F] border border-white/10 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg shadow-xl">Rewards Hub</TooltipContent>
+                 </Tooltip>
+
+                 <Tooltip delayDuration={0}>
+                    <TooltipTrigger asChild>
+                      <div 
+                        onClick={() => {
+                          setActivePillar("rewards");
+                          React.startTransition(() => navigate('/referrals'));
+                          if (scrollContainerRef.current) scrollContainerRef.current.scrollTop = 0;
+                        }} 
+                        className={`relative overflow-hidden w-[42px] h-[42px] rounded-[14px] flex items-center justify-center cursor-pointer transition-all ${
+                          location.pathname.startsWith('/referrals') 
+                            ? 'bg-white dark:bg-white/10 text-slate-800 dark:text-white shadow-sm border border-slate-200/50 dark:border-white/10' 
+                            : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100 dark:text-white/40 dark:hover:text-white dark:hover:bg-white/5'
+                        }`}
+                      >
+                        <AddUser size={18} primaryColor="currentColor" set="curved" stroke="bold" className="relative z-10" />
+                        {location.pathname.startsWith('/referrals') && <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[3px] h-[20px] bg-blue-600 rounded-l-full shadow-[0_0_8px_rgba(37,99,235,0.4)]" />}
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="right" sideOffset={20} className="bg-[#2B2B2F] border border-white/10 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg shadow-xl">Refer & Earn</TooltipContent>
+                 </Tooltip>
+              </div>
             </div>
 
 
@@ -1971,9 +1919,9 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
         {/* SECONDARY SIDEBAR */}
 
-        <div className={`flex flex-col h-full bg-transparent border-transparent transition-all duration-[400ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] ${isMobile ? 'w-full' : isCollapsed ? 'w-0 overflow-hidden opacity-0 pointer-events-none' : isFiAlgo ? 'w-[260px] xl:w-[274px] opacity-100' : 'w-[274px] opacity-100'} shrink-0 relative`}>
+        <div className={`flex flex-col h-full bg-transparent border-transparent transition-all duration-[400ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] ${isMobile ? 'w-full' : isCollapsed ? 'w-0 overflow-hidden opacity-0 pointer-events-none' : 'w-[274px] opacity-100'} shrink-0 relative`}>
 
-          <div className={`flex flex-col h-full shrink-0 transition-transform duration-[400ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] ${isMobile ? 'w-full' : isFiAlgo ? 'w-[260px] xl:w-[274px]' : 'w-[274px]'} ${isCollapsed && !isMobile ? '-translate-x-12' : 'translate-x-0'}`}>
+          <div className={`flex flex-col h-full shrink-0 transition-transform duration-[400ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] ${isMobile ? 'w-full' : 'w-[274px]'} ${isCollapsed && !isMobile ? '-translate-x-12' : 'translate-x-0'}`}>
 
 
 
@@ -1989,7 +1937,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
             {/* Logo & Workspace Switcher */}
 
-            <div className={`transition-all duration-300 flex items-center justify-between h-[54px] ${isMobile ? 'mt-0.5 pl-1 pr-12' : isFiAlgo ? 'mt-3.5 px-0.5' : 'mt-[48px] pr-2'} ${isCollapsed ? "max-w-0 opacity-0 overflow-hidden" : "max-w-full opacity-100"}`}>
+            <div className={`transition-all duration-300 flex items-center justify-between h-[54px] ${isMobile ? 'mt-0.5 pl-1 pr-12' : 'mt-[48px] pr-2'} ${isCollapsed ? "max-w-0 opacity-0 overflow-hidden" : "max-w-full opacity-100"}`}>
 
               <div className="flex items-center gap-2 min-w-0 flex-1">
 
@@ -2374,7 +2322,6 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
               <>
 
                 {/* COMMUNICATION SECTION */}
-
                 <div className={isCollapsed ? "mx-2 border-t border-slate-200 dark:border-white/5" : "mx-6 border-t border-slate-200 dark:border-white/5"} />
 
                 <div className="pb-3 pt-3">
@@ -2405,7 +2352,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
                     <h3 className="text-slate-400 dark:text-neutral-400 text-[10px] font-extrabold uppercase tracking-[0.15em] px-6 font-sans whitespace-nowrap">
 
-                      {isFiAlgo ? "FIALGO ALGO ENGINE" : (getPillars(isCreator, isFiAlgo).find(p => p.id === activePillar)?.tooltip || "Menu")}
+                      {activePillar === "autoTrade" ? "FIALGO AUTOTRADE" : activePillar === "rewards" ? "REWARDS & REFERRALS" : (getPillars(isCreator).find(p => p.id === activePillar)?.tooltip || "Menu")}
 
                     </h3>
 
@@ -2414,7 +2361,8 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
                   <div className="flex flex-col gap-1">
 
                     {
-                      isFiAlgo ? getAutoTradeMenu(isLifetimePlan).filter(m => m.label.toLowerCase().includes(navSearchQuery.toLowerCase())).map(renderMenuItem) :
+                      activePillar === "autoTrade" ? getAutoTradeMenu(isLifetimePlan).filter(m => m.label.toLowerCase().includes(navSearchQuery.toLowerCase())).map(renderMenuItem) :
+                      activePillar === "rewards" ? rewardsMenu.filter(m => m.label.toLowerCase().includes(navSearchQuery.toLowerCase())).map(renderMenuItem) :
                       activePillar === "home" ? homeMenu.filter(m => m.label.toLowerCase().includes(navSearchQuery.toLowerCase())).map(renderMenuItem) :
 
                         activePillar === "dashboard" ? dashboardMenu.filter(m => m.label.toLowerCase().includes(navSearchQuery.toLowerCase())).map(renderMenuItem) :
@@ -2424,8 +2372,6 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
                             activePillar === "riskGuard" ? riskGuardMenu.filter(m => m.label.toLowerCase().includes(navSearchQuery.toLowerCase())).map(renderMenuItem) :
 
                               activePillar === "aiCoach" ? aiCoachMenu.filter(m => m.label.toLowerCase().includes(navSearchQuery.toLowerCase())).map(renderMenuItem) :
-
-                                activePillar === "autoTrade" ? getAutoTradeMenu(isLifetimePlan).filter(m => m.label.toLowerCase().includes(navSearchQuery.toLowerCase())).map(renderMenuItem) :
 
                                   activePillar === "discover" ? discoverMenu.filter(m => m.label.toLowerCase().includes(navSearchQuery.toLowerCase())).map(renderMenuItem) :
 
@@ -2446,8 +2392,6 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
             )}
 
           </div>
-
-
 
           {/* UPGRADE CARDS */}
 
@@ -3022,31 +2966,14 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
                         </div>
 
                         <div className="relative h-[16px] w-full overflow-hidden mt-0.5 select-none">
-
-                          {isFiAlgo ? (
-                            <span className="text-[12px] text-purple-600 dark:text-purple-400 font-bold truncate block font-sans">
-                              {mt5Acc ? `MT5 #${mt5Acc} · Live` : "FiAlgo Engine Active"}
-                            </span>
-                          ) : (
-                            <>
-                              <span className={`absolute inset-0 text-[12px] text-slate-450 dark:text-slate-400 font-semibold truncate transition-all duration-300 ease-out transform font-sans ${isHoveredProfile ? "opacity-0 -translate-y-2.5 pointer-events-none" : "opacity-100 translate-y-0"
-
-                                }`}>
-
-                                {userStatus}
-
-                              </span>
-
-                              <span className={`absolute inset-0 text-[12px] text-slate-450 dark:text-slate-400 font-semibold truncate transition-all duration-300 ease-out transform font-sans ${isHoveredProfile ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2.5 pointer-events-none"
-
-                                }`}>
-
-                                @{username || "alextrades"}
-
-                              </span>
-                            </>
-                          )}
-
+                          <span className={`absolute inset-0 text-[12px] text-slate-450 dark:text-slate-400 font-semibold truncate transition-all duration-300 ease-out transform font-sans ${isHoveredProfile ? "opacity-0 -translate-y-2.5 pointer-events-none" : "opacity-100 translate-y-0"
+                            }`}>
+                            {userStatus}
+                          </span>
+                          <span className={`absolute inset-0 text-[12px] text-slate-450 dark:text-slate-400 font-semibold truncate transition-all duration-300 ease-out transform font-sans ${isHoveredProfile ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2.5 pointer-events-none"
+                            }`}>
+                            @{username || "alextrades"}
+                          </span>
                         </div>
 
                       </div>
@@ -3066,118 +2993,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
               </DropdownMenuTrigger>
 
               <DropdownMenuContent align="start" side="top" sideOffset={12} className="w-[325px] rounded-[18px] p-0 bg-white dark:bg-[#1E1E1E] border border-slate-200/80 dark:border-white/5 shadow-[0_12px_40px_rgba(0,0,0,0.06),0_1px_4px_rgba(0,0,0,0.02)] overflow-visible font-sans relative">
-
-                {isFiAlgo ? (
-                  <div className="p-3 select-none font-sans space-y-2">
-                    {/* MT5 Account & Algo Status Header */}
-                    <div className="p-2.5 rounded-xl bg-purple-500/10 dark:bg-purple-500/15 border border-purple-500/20 flex items-center justify-between">
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="w-8 h-8 rounded-lg bg-purple-600/20 border border-purple-500/30 flex items-center justify-center shrink-0">
-                          <Cpu size={16} className="text-purple-400" />
-                        </div>
-                        <div className="flex flex-col min-w-0">
-                          <span className="text-[13px] font-bold text-slate-900 dark:text-white truncate">
-                            {mt5Acc ? `MT5 #${mt5Acc}` : "FiAlgo V1 Engine"}
-                          </span>
-                          <span className="text-[10px] font-medium text-emerald-500 flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                            Bridge Socket Active
-                          </span>
-                        </div>
-                      </div>
-                      <span className="px-1.5 py-0.5 rounded text-[8.5px] font-black uppercase tracking-wider bg-purple-500/20 text-purple-400 border border-purple-500/30">
-                        LIVE
-                      </span>
-                    </div>
-
-                    {/* AutoTrade Menu Items */}
-                    <div className="space-y-0.5 pt-1">
-                      <button
-                        onClick={() => { navigate("/auto-trade/license"); }}
-                        className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer text-left text-slate-700 dark:text-slate-200"
-                      >
-                        <ShieldCheck size={16} className="text-slate-400 shrink-0" />
-                        <span className="text-[13px] font-semibold flex-1 truncate">EA License & Activation</span>
-                      </button>
-
-                      <button
-                        onClick={() => { navigate("/auto-trade/active-bots"); }}
-                        className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer text-left text-slate-700 dark:text-slate-200"
-                      >
-                        <Activity size={16} className="text-slate-400 shrink-0" />
-                        <span className="text-[13px] font-semibold flex-1 truncate">Active Execution Bots</span>
-                      </button>
-
-                      <button
-                        onClick={() => { navigate("/strategy-builder"); }}
-                        className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer text-left text-slate-700 dark:text-slate-200"
-                      >
-                        <Setting size={16} className="text-slate-400 shrink-0" />
-                        <span className="text-[13px] font-semibold flex-1 truncate">Strategy Builder</span>
-                      </button>
-
-                      <button
-                        onClick={() => {
-                          if (isLifetimePlan) {
-                            toast.info("Weekly Settlements are locked for ₹1,00,000 Lifetime Plan members.", {
-                              description: "You have 0% profit share—100% of all profits remain directly in your broker account!"
-                            });
-                            return;
-                          }
-                          navigate("/weekly-settlements");
-                        }}
-                        className={`w-full flex items-center justify-between gap-2.5 px-2.5 py-2 rounded-xl transition-colors text-left ${
-                          isLifetimePlan 
-                            ? "opacity-60 cursor-not-allowed text-slate-400 dark:text-neutral-500" 
-                            : "hover:bg-slate-100 dark:hover:bg-white/5 cursor-pointer text-slate-700 dark:text-slate-200"
-                        }`}
-                      >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <ReceiptText size={16} className="text-slate-400 shrink-0" />
-                          <span className="text-[13px] font-semibold flex-1 truncate">Weekly Profit Settlement</span>
-                        </div>
-                        {isLifetimePlan && (
-                          <span className="flex items-center gap-1 text-[9px] font-black uppercase text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded-full border border-emerald-500/30">
-                            <Lock size={9} /> 0% Share
-                          </span>
-                        )}
-                      </button>
-
-                      <button
-                        onClick={() => { navigate("/auto-trade/history"); }}
-                        className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer text-left text-slate-700 dark:text-slate-200"
-                      >
-                        <Document size={16} className="text-slate-400 shrink-0" />
-                        <span className="text-[13px] font-semibold flex-1 truncate">Order Audit History</span>
-                      </button>
-
-                      <div className="my-1.5 border-t border-slate-100 dark:border-white/10" />
-
-                      {/* Switch to TradiFive Workspace */}
-                      <button
-                        onClick={() => { switchWorkspace("tradifive"); }}
-                        className="w-full flex items-center justify-between gap-2.5 px-2.5 py-2 rounded-xl hover:bg-blue-50/80 dark:hover:bg-blue-500/10 text-blue-600 dark:text-blue-400 transition-colors cursor-pointer text-left"
-                      >
-                        <div className="flex items-center gap-2 min-w-0">
-                          <img src="/tf-logo.png" alt="TradiFive" className="w-4 h-4 object-contain shrink-0" />
-                          <span className="text-[13px] font-bold truncate">Switch to TradiFive Workspace</span>
-                        </div>
-                        <ArrowRight size={14} className="shrink-0" />
-                      </button>
-
-                      {/* Sign Out */}
-                      <button
-                        onClick={handleLogoutClick}
-                        className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-500/10 text-rose-600 dark:text-rose-400 transition-colors cursor-pointer text-left"
-                      >
-                        <LogOut size={16} className="shrink-0" />
-                        <span className="text-[13px] font-semibold truncate">Sign Out</span>
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    {/* Cover Banner (Discord style with smooth bottom fade) */}
+                {/* Cover Banner (Discord style with smooth bottom fade) */}
 
                 {bannerUrl ? (
 
@@ -3723,9 +3539,6 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
                   </DropdownMenuItem>
 
                 </div>
-
-                  </>
-                )}
 
               </DropdownMenuContent>
 

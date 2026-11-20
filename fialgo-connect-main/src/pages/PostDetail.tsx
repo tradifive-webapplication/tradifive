@@ -20,6 +20,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import DashboardLayout from "@/components/DashboardLayout";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import PostActionBar from "@/components/PostActionBar";
 import {
   Heart as IconlyHeart,
   Chat as IconlyChat,
@@ -963,102 +964,21 @@ export default function PostDetail() {
                         </div>
                       )}
 
-                      {/* Cute Curved Iconly 6-Action Bar: Comment, Repost, Like, Bookmark, Views, Share */}
-                      <div className="flex items-center justify-between pt-3 mt-2 text-slate-500 dark:text-neutral-400">
-                        <button
-                          type="button"
-                          onClick={() => openReplyComposer(null, authorName, authorHandle)}
-                          className="flex items-center gap-1.5 hover:text-[#2563EB] dark:hover:text-blue-400 transition-colors group p-1.5 -ml-1.5 rounded-full cursor-pointer"
-                          title="Reply"
-                        >
-                          <span className="inline-flex transition-transform duration-150 group-hover:scale-110 group-active:scale-90">
-                            <IconlyChat set="curved" stroke="bold" primaryColor="currentColor" size={19} />
-                          </span>
-                          {comments.length > 0 && (
-                            <span className="text-[12.5px] font-medium tabular-nums">
-                              {comments.length}
-                            </span>
-                          )}
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={handleRepost}
-                          className={`flex items-center gap-1.5 transition-colors group p-1.5 rounded-full cursor-pointer ${
-                            isReposted ? "text-emerald-500" : "hover:text-emerald-500"
-                          }`}
-                          title="Repost"
-                        >
-                          <span className="inline-flex transition-transform duration-200 group-hover:scale-110 group-active:scale-90">
-                            <IconlySwap set="curved" stroke="bold" primaryColor="currentColor" size={19} />
-                          </span>
-                          {repostCount > 0 && (
-                            <span className="text-[12.5px] font-medium tabular-nums">
-                              {repostCount}
-                            </span>
-                          )}
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={handleToggleLike}
-                          className={`flex items-center gap-1.5 transition-colors group p-1.5 rounded-full cursor-pointer ${
-                            isLiked ? "text-rose-500" : "hover:text-rose-500"
-                          }`}
-                          title="Like"
-                        >
-                          <span className="inline-flex transition-transform duration-150 group-hover:scale-110 group-active:scale-90">
-                            <IconlyHeart
-                              set={isLiked ? "bold" : "curved"}
-                              stroke="bold"
-                              primaryColor="currentColor"
-                              size={19}
-                            />
-                          </span>
-                          {likes > 0 && (
-                            <span className="text-[12.5px] font-medium tabular-nums">{likes}</span>
-                          )}
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={handleBookmark}
-                          className={`p-1.5 rounded-full transition-colors group cursor-pointer ${
-                            isBookmarked ? "text-[#2563EB] dark:text-blue-400" : "hover:text-[#2563EB] dark:hover:text-blue-400"
-                          }`}
-                          title="Bookmark"
-                        >
-                          <span className="inline-flex transition-transform duration-150 group-hover:scale-110 group-active:scale-90">
-                            <IconlyBookmark
-                              set={isBookmarked ? "bold" : "curved"}
-                              stroke="bold"
-                              primaryColor="currentColor"
-                              size={19}
-                            />
-                          </span>
-                        </button>
-
-                        <div
-                          className="flex items-center gap-1.5 text-slate-500 dark:text-neutral-400 select-none px-1"
-                          title={`${viewCount.toLocaleString()} views`}
-                        >
-                          <IconlyChart set="curved" stroke="bold" primaryColor="currentColor" size={18} />
-                          <span className="text-[12.5px] font-medium tabular-nums">
-                            {formatCompactCount(viewCount)}
-                          </span>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={handleShare}
-                          className="p-1.5 -mr-1.5 rounded-full hover:text-slate-900 dark:hover:text-white transition-colors group cursor-pointer"
-                          title="Share"
-                        >
-                          <span className="inline-flex transition-transform duration-150 group-hover:scale-110 group-active:scale-90">
-                            <IconlyUpload set="curved" stroke="bold" primaryColor="currentColor" size={18} />
-                          </span>
-                        </button>
-                      </div>
+                      {/* Redesigned Real-time Action Bar */}
+                      <PostActionBar
+                        postId={postId}
+                        post={post}
+                        currentUserId={currentUserId}
+                        initialLiked={isLiked}
+                        initialLikes={likes}
+                        initialComments={comments.length}
+                        initialReposted={isReposted}
+                        initialReposts={repostCount}
+                        initialBookmarked={isBookmarked}
+                        initialViews={viewCount}
+                        onCommentClick={() => openReplyComposer(null, authorName, authorHandle)}
+                        className="pt-3 mt-2"
+                      />
                     </div>
                   </div>
                 </div>

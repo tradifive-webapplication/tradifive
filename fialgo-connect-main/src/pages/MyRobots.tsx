@@ -115,21 +115,21 @@ export default function MyRobots() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6 max-w-[1500px] mx-auto w-full font-sans select-none text-[#E5E5E5] px-4 sm:px-6 md:px-8 py-4">
-        {/* ── Top Header Bar (Admin App Exact Style) ── */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-white/5">
+      <div className="space-y-6 max-w-[1500px] mx-auto w-full font-sans select-none text-slate-800 dark:text-slate-200 px-4 sm:px-6 md:px-8 py-4">
+        {/* ── Top Header Bar ── */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/70 dark:border-white/5">
           <div>
-            <h1 className="text-lg sm:text-xl font-bold tracking-widest text-white uppercase font-sans">
+            <h1 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-white uppercase font-sans">
               ACTIVE BOTS ENGINE
             </h1>
-            <p className="text-neutral-500 text-[9px] font-bold uppercase tracking-[0.2em] mt-0.5">
-              REAL-TIME ALGORITHMIC FLEET &amp; TELEMETRY
+            <p className="text-slate-400 text-[10px] font-semibold uppercase tracking-wider mt-0.5">
+              Real-Time Algorithmic Fleet &amp; Telemetry
             </p>
           </div>
 
           <div className="flex items-center gap-2.5">
             {currentTime && (
-              <div className="hidden sm:flex items-center px-3 py-1.5 rounded-lg bg-[#161618] border border-white/5 text-[11px] font-mono text-neutral-400">
+              <div className="hidden sm:flex items-center px-3 py-1.5 rounded-xl bg-white dark:bg-[#161618] border border-slate-200/70 dark:border-white/5 shadow-xs text-[11px] font-mono text-slate-500 dark:text-neutral-400">
                 {currentTime}
               </div>
             )}
@@ -137,10 +137,10 @@ export default function MyRobots() {
             {/* Master Toggle */}
             <button
               onClick={toggleGlobalState}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer border ${
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer border ${
                 isMasterRunning
-                  ? "bg-amber-500/10 hover:bg-amber-500/20 border-amber-500/30 text-amber-300"
-                  : "bg-emerald-500/10 hover:bg-emerald-500/20 border-emerald-500/30 text-emerald-300"
+                  ? "bg-amber-500/10 hover:bg-amber-500/20 border-amber-500/30 text-amber-600 dark:text-amber-300"
+                  : "bg-emerald-500/10 hover:bg-emerald-500/20 border-emerald-500/30 text-emerald-600 dark:text-emerald-300"
               }`}
             >
               {isMasterRunning ? <Pause size={13} /> : <Play size={13} />}
@@ -151,7 +151,7 @@ export default function MyRobots() {
             {!isAutoTradeSetup ? (
               <button
                 onClick={() => navigate("/auto-trade/setup")}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 text-[10px] font-bold uppercase tracking-wider text-blue-300 transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 border border-blue-200/60 dark:border-blue-500/30 text-xs font-semibold text-blue-700 dark:text-blue-300 transition-colors cursor-pointer"
               >
                 <Plus size={12} />
                 <span>Setup &amp; Activate</span>
@@ -159,7 +159,7 @@ export default function MyRobots() {
             ) : (
               <button
                 onClick={() => navigate("/strategy-builder")}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 text-[10px] font-bold uppercase tracking-wider text-purple-300 transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 dark:bg-purple-500/10 dark:hover:bg-purple-500/20 border border-purple-200/60 dark:border-purple-500/30 text-xs font-semibold text-purple-700 dark:text-purple-300 transition-colors cursor-pointer"
               >
                 <Plus size={12} />
                 <span>Strategy Builder</span>
@@ -168,14 +168,14 @@ export default function MyRobots() {
           </div>
         </div>
 
-        {/* ── Metric Boxes Row (Admin App 5-Box Grid) ── */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3">
+        {/* ── Metric Boxes Row (Dashboard Card Styling) ── */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-3.5">
           {stats.map((s) => (
             <div
               key={s.label}
-              className="bg-[#1E1E1E] border border-white/5 rounded-xl p-3.5 sm:p-4 hover:border-white/10 transition-colors"
+              className="bg-white dark:bg-[#17171A] rounded-[18px] border border-slate-200/70 dark:border-white/[0.07] shadow-[0_2px_10px_rgba(15,23,42,0.04)] dark:shadow-none p-3.5 sm:p-4 hover:border-slate-300 dark:hover:border-white/10 transition-colors"
             >
-              <p className="text-[9px] text-neutral-500 font-bold uppercase tracking-widest mb-1">
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">
                 {s.label}
               </p>
               <p className={`text-base sm:text-lg font-bold font-mono uppercase tracking-tight ${s.color}`}>
@@ -185,25 +185,25 @@ export default function MyRobots() {
           ))}
         </div>
 
-        {/* ── Active Strategy Execution Fleet (Admin App Box Table) ── */}
-        <div className="bg-[#1E1E1E] border border-white/5 rounded-xl overflow-hidden shadow-xl">
-          <div className="p-3.5 sm:p-4 border-b border-white/5 bg-white/[0.02] flex items-center justify-between">
+        {/* ── Active Strategy Execution Fleet (Dashboard Table Box) ── */}
+        <div className="bg-white dark:bg-[#17171A] rounded-[18px] border border-slate-200/70 dark:border-white/[0.07] shadow-[0_2px_10px_rgba(15,23,42,0.04)] dark:shadow-none overflow-hidden">
+          <div className="p-4 sm:p-5 border-b border-slate-100 dark:border-white/5 flex items-center justify-between">
             <div>
-              <h2 className="text-[10px] font-bold text-neutral-300 uppercase tracking-widest">
+              <h2 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
                 ACTIVE STRATEGY EXECUTION FLEET
               </h2>
-              <p className="text-[9px] text-neutral-500 uppercase tracking-wider mt-0.5">
+              <p className="text-[11px] text-slate-400 mt-0.5">
                 Live automated algorithmic agents executing on MT5
               </p>
             </div>
 
             <button
               onClick={() => navigate("/auto-trade/dashboard")}
-              className="flex items-center gap-1.5 text-xs font-semibold text-neutral-400 hover:text-white transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white transition-colors cursor-pointer"
             >
-              <Terminal size={12} className="text-neutral-400" />
+              <Terminal size={12} className="text-slate-400" />
               <span>Open Bot Live Terminal</span>
-              <ExternalLink size={11} className="text-neutral-500" />
+              <ExternalLink size={11} className="text-slate-400" />
             </button>
           </div>
 
@@ -212,7 +212,7 @@ export default function MyRobots() {
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="border-b border-white/5 text-[9px] font-bold text-neutral-500 uppercase tracking-widest bg-white/[0.01]">
+                  <tr className="border-b border-slate-100 dark:border-white/5 text-[10px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50/50 dark:bg-white/[0.01]">
                     <th className="py-3 px-4">Bot Name</th>
                     <th className="py-3 px-4">Instrument</th>
                     <th className="py-3 px-4">Strategy</th>
@@ -223,9 +223,9 @@ export default function MyRobots() {
                     <th className="py-3 px-4 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/5 font-sans">
-                  <tr className="hover:bg-white/[0.02] transition-colors">
-                    <td className="py-4 px-4 font-bold text-white">
+                <tbody className="divide-y divide-slate-100 dark:divide-white/5 font-sans">
+                  <tr className="hover:bg-slate-50/60 dark:hover:bg-white/[0.02] transition-colors">
+                    <td className="py-4 px-4 font-bold text-slate-900 dark:text-white">
                       <div className="flex items-center gap-2.5">
                         <div
                           className={`w-6 h-6 rounded flex items-center justify-center text-[10px] font-bold text-white ${activeBot.color}`}
@@ -235,30 +235,30 @@ export default function MyRobots() {
                         <div>
                           <div className="flex items-center gap-1.5">
                             <span>{activeBot.name}</span>
-                            <span className="text-[8.5px] px-1.5 py-0.2 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20 font-mono uppercase">
+                            <span className="text-[8.5px] px-1.5 py-0.2 rounded bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 font-mono uppercase">
                               {activeBot.tag}
                             </span>
                           </div>
                         </div>
                       </div>
                     </td>
-                    <td className="py-4 px-4 font-mono font-semibold text-neutral-300">
+                    <td className="py-4 px-4 font-mono font-semibold text-slate-700 dark:text-neutral-300">
                       {activeBot.instrument}
                     </td>
-                    <td className="py-4 px-4 text-neutral-400">{activeBot.strategy}</td>
-                    <td className="py-4 px-4 font-mono text-neutral-300">{activeBot.lot}</td>
-                    <td className="py-4 px-4 font-mono font-bold text-emerald-400">
+                    <td className="py-4 px-4 text-slate-500 dark:text-neutral-400">{activeBot.strategy}</td>
+                    <td className="py-4 px-4 font-mono text-slate-700 dark:text-neutral-300">{activeBot.lot}</td>
+                    <td className="py-4 px-4 font-mono font-bold text-emerald-600 dark:text-emerald-400">
                       {activeBot.pnl}
                     </td>
-                    <td className="py-4 px-4 font-mono text-neutral-300">{activeBot.winRate}</td>
+                    <td className="py-4 px-4 font-mono text-slate-700 dark:text-neutral-300">{activeBot.winRate}</td>
                     <td className="py-4 px-4">
                       {activeBot.status === "LIVE" ? (
-                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                           LIVE
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-200/60 dark:border-amber-500/20">
                           PAUSED
                         </span>
                       )}
@@ -266,7 +266,7 @@ export default function MyRobots() {
                     <td className="py-4 px-4 text-right">
                       <button
                         onClick={toggleGlobalState}
-                        className="p-1.5 rounded hover:bg-white/10 text-neutral-400 hover:text-white transition-colors cursor-pointer"
+                        className="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-white/10 text-slate-400 hover:text-slate-800 dark:hover:text-white transition-colors cursor-pointer"
                         title={activeBot.status === "LIVE" ? "Pause Algo" : "Start Algo"}
                       >
                         {activeBot.status === "LIVE" ? <Pause size={13} /> : <Play size={13} />}
@@ -278,18 +278,18 @@ export default function MyRobots() {
             </div>
           ) : (
             <div className="p-8 sm:p-12 text-center flex flex-col items-center justify-center">
-              <div className="w-12 h-12 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center mb-3 text-neutral-400">
+              <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-white/[0.04] border border-slate-200/70 dark:border-white/10 flex items-center justify-center mb-3 text-slate-400">
                 <Bot size={22} />
               </div>
-              <h3 className="text-sm font-bold uppercase tracking-widest text-white mb-1">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-white mb-1">
                 No Active Algorithm Deployed
               </h3>
-              <p className="text-xs text-neutral-400 max-w-sm mx-auto mb-5 leading-relaxed">
+              <p className="text-xs text-slate-500 dark:text-neutral-400 max-w-sm mx-auto mb-5 leading-relaxed">
                 You haven&apos;t activated your FiAlgo V1 EA license yet. Complete the 4-step setup process to link MT5 and begin automated trading.
               </p>
               <button
                 onClick={() => navigate("/auto-trade/setup")}
-                className="btn-fialgo-primary h-9 px-5 text-xs font-semibold uppercase tracking-wider inline-flex items-center gap-2 cursor-pointer shadow-sm"
+                className="bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 h-9 px-5 rounded-xl text-xs font-semibold uppercase tracking-wider inline-flex items-center gap-2 cursor-pointer shadow-sm transition-colors"
               >
                 <span>Setup &amp; Activate FiAlgo V1</span>
                 <ArrowRight size={13} />

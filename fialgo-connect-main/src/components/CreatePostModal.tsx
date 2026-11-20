@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import EmojiPicker from "emoji-picker-react";
+import { playSound } from "@/utils/soundEffects";
 
 interface CreatePostModalProps {
   isOpen: boolean;
@@ -818,8 +819,10 @@ export default function CreatePostModal({
         safeSetLocalPosts(localPosts);
         
         if (isScheduled) {
+          playSound('success');
           toast.success(`Post scheduled successfully for ${scheduleDate} at ${scheduleTime}!`);
         } else {
+          playSound('success');
           toast.success("Post published successfully!");
         }
       } else {

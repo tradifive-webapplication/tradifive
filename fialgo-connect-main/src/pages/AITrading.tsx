@@ -1,3391 +1,1325 @@
 import React, { useState, useEffect, useRef } from "react";
-import { 
-  Download, Copy, CheckCircle2, Lock, Mail, Play, Pause, Power, 
-  ExternalLink, ArrowRight, ArrowLeft, X, Zap, Package, Shield, ShieldCheck, Check, 
-  Terminal, Camera, UploadCloud, Clock, Image as ImageIcon, 
-  Headset, Send, RefreshCw, Calculator, Calendar, Sparkles, ChevronRight, ChevronDown,
-  AlertCircle, DollarSign, MessageCircle, AlertTriangle, Coins, Layers, UserPlus, ArrowLeftRight,
-  Sliders, FileCode, Cpu, Activity, QrCode, Landmark, CreditCard, KeyRound, HelpCircle, Globe
+import DashboardLayout from "@/components/DashboardLayout";
+import {
+  Activity,
+  Play,
+  Pause,
+  Copy,
+  Check,
+  Download,
+  ShieldCheck,
+  TrendingUp,
+  Cpu,
+  Clock,
+  ExternalLink,
+  ChevronRight,
+  Layers,
+  Sparkles,
+  AlertCircle,
+  RefreshCw,
+  CheckCircle2,
+  DollarSign,
+  Wallet,
+  Zap,
+  X,
+  Mail,
+  Lock,
+  ArrowUpRight,
 } from "lucide-react";
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  ReferenceLine,
+} from "recharts";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
-import DashboardLayout from "@/components/DashboardLayout";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import AutoTradeProfitCalculator from "@/components/AutoTradeProfitCalculator";
 import { supabase } from "@/lib/supabase";
-import { getSystemSetting, setSystemSetting } from "@/lib/systemSettings";
+import { playSound } from "@/utils/soundEffects";
 
 // ─── BROKER CONFIGURATIONS ──────────────────────────────────────
 const BROKERS = [
-  { 
-    id: 'vantage', 
-    name: 'Vantage Markets', 
-    url: 'https://vigco.co/la-com-inv/MCTDw2R6', 
-    supportEmail: 'support@vantagemarkets.com', 
-    tagline: 'Raw ECN · Low Spreads',
-    ibNumber: '27863221',
-    referralCode: 'MCTDw2R6'
+  {
+    id: "exness",
+    name: "Exness",
+    tagline: "Instant Withdrawals · Zero Swap",
+    partnerId: "27863221",
+    supportEmail: "support@exness.com",
+    badge: "Recommended",
   },
-  { id: 'exness', name: 'Exness', url: 'https://exness.com/ib', supportEmail: 'support@exness.com', tagline: 'Instant Withdrawals · Zero Swap', ibNumber: '27863221', referralCode: 'MCTDw2R6' },
-  { id: 'xm', name: 'XM Global', url: 'https://xm.com/ib', supportEmail: 'support@xm.com', tagline: 'Ultra Low Spread', ibNumber: '27863221', referralCode: 'MCTDw2R6' },
-  { id: 'fusion', name: 'Fusion Markets', url: 'https://fusionmarkets.com/ib', supportEmail: 'help@fusionmarkets.com', tagline: 'Lowest Commission', ibNumber: '27863221', referralCode: 'MCTDw2R6' },
-  { id: 'blackbull', name: 'BlackBull', url: 'https://blackbull.com/ib', supportEmail: 'support@blackbullmarkets.com', tagline: 'Institutional Execution', ibNumber: '27863221', referralCode: 'MCTDw2R6' },
+  {
+    id: "vantage",
+    name: "Vantage Markets",
+    tagline: "Raw ECN · Low Spreads",
+    partnerId: "27863221",
+    supportEmail: "support@vantagemarkets.com",
+    badge: "Popular",
+  },
+  {
+    id: "xm",
+    name: "XM Global",
+    tagline: "Ultra Low Spreads · Instant Execution",
+    partnerId: "27863221",
+    supportEmail: "support@xm.com",
+  },
+  {
+    id: "fusion",
+    name: "Fusion Markets",
+    tagline: "Lowest Commissions ($2.25/lot)",
+    partnerId: "27863221",
+    supportEmail: "help@fusionmarkets.com",
+  },
+  {
+    id: "blackbull",
+    name: "BlackBull Markets",
+    tagline: "Institutional Equinix LD4 Speed",
+    partnerId: "27863221",
+    supportEmail: "support@blackbullmarkets.com",
+  },
 ];
 
-const BrokerLogo = ({ id, size = 24 }: { id: string; size?: number }) => {
-  switch (id) {
-    case 'vantage':
-      return (
-        <div style={{ width: size, height: size }} className="rounded-lg bg-white flex items-center justify-center shrink-0 shadow-2xs overflow-hidden border border-slate-200/70 p-0.5">
-          <img src="/vantage-logo.png" alt="Vantage Markets" className="w-full h-full object-contain" />
-        </div>
-      );
-    case 'exness':
-      return (
-        <div style={{ width: size, height: size }} className="rounded-lg bg-[#FFD400] flex items-center justify-center shrink-0 shadow-2xs overflow-hidden">
-          <svg viewBox="0 0 32 32" className="w-3.5 h-3.5" fill="none">
-            <path d="M9 13C9 11 11 9.5 13.5 9.5C16 9.5 18 11.2 18 13.5H12C12 15 13 16 14.5 16C15.8 16 16.5 15.3 17 14.7L18.8 15.5C18 17 16.5 18 14.5 18C11 18 9 15.8 9 13ZM12 12H15C14.8 11.2 14.2 10.8 13.5 10.8C12.8 10.8 12.2 11.2 12 12Z" fill="#171717" />
-            <path d="M19 13.5L21 16.5L23 13.5H25L22.2 17.5L25 21.5H23L21 18.5L19 21.5H17L19.8 17.5L17 13.5H19Z" fill="#171717" />
-          </svg>
-        </div>
-      );
-    case 'xm':
-      return (
-        <div style={{ width: size, height: size }} className="rounded-lg bg-[#111113] border border-white/5 flex items-center justify-center shrink-0 shadow-2xs overflow-hidden font-black">
-          <span className="text-[9px] tracking-tight font-black">
-            <span className="text-white">X</span>
-            <span className="text-[#D31124]">M</span>
-          </span>
-        </div>
-      );
-    case 'fusion':
-      return (
-        <div style={{ width: size, height: size }} className="rounded-lg bg-[#0B132B] flex items-center justify-center shrink-0 shadow-2xs overflow-hidden">
-          <svg viewBox="0 0 32 32" className="w-3.5 h-3.5" fill="none">
-            <circle cx="16" cy="16" r="7.5" stroke="#00B4D8" strokeWidth="2" strokeDasharray="11 3" />
-            <circle cx="16" cy="16" r="3" fill="#00E5FF" />
-          </svg>
-        </div>
-      );
-    case 'blackbull':
-      return (
-        <div style={{ width: size, height: size }} className="rounded-lg bg-[#09090B] border border-white/5 flex items-center justify-center shrink-0 shadow-2xs overflow-hidden">
-          <svg viewBox="0 0 32 32" className="w-3.5 h-3.5" fill="none">
-            <path d="M10 12C11 14.5 12.5 15.5 13.5 18C14.5 20.5 15.5 22 16 22C16.5 22 17.5 20.5 18.5 18C19.5 15.5 21 14.5 22 12C19.5 13 18.5 14.5 16 14.5C13.5 14.5 12.5 13 10 12Z" fill="#F59E0B" />
-          </svg>
-        </div>
-      );
-    default:
-      return (
-        <div style={{ width: size, height: size }} className="rounded-lg bg-slate-100 dark:bg-white/10 flex items-center justify-center shrink-0 text-slate-500 font-bold text-xs">
-          {id.charAt(0).toUpperCase()}
-        </div>
-      );
+// ─── HELPER FOR DETERMINISTIC LICENSE KEY GENERATION ────────────
+export function generateTradifiveLicenseKey(accountNumber?: string): string {
+  if (!accountNumber) return "FA-V1-9482-LIVE-KEY";
+  const clean = String(accountNumber).replace(/\D/g, "");
+  if (!clean) return "FA-V1-9482-LIVE-KEY";
+  let hash = 0;
+  for (let i = 0; i < clean.length; i++) {
+    hash = (hash << 5) - hash + clean.charCodeAt(i);
+    hash |= 0;
   }
+  const hex = Math.abs(hash).toString(16).toUpperCase().padStart(8, "0");
+  return `FA-V1-${hex.slice(0, 4)}-${hex.slice(4, 8)}-MT5`;
+}
+
+// ─── HIGH-PRECISION GRAPH SHADE DATA (MATCHING REFERENCE IMAGE) ──
+const CUMULATIVE_PNL_DATA = [
+  { date: "Nov 5", pnl: 0, rawDate: "2026-11-05" },
+  { date: "Nov 6", pnl: 420, rawDate: "2026-11-06" },
+  { date: "Nov 7", pnl: 260, rawDate: "2026-11-07" },
+  { date: "Nov 8", pnl: 850, rawDate: "2026-11-08" },
+  { date: "Nov 9", pnl: 580, rawDate: "2026-11-09" },
+  { date: "Nov 11", pnl: 1420, rawDate: "2026-11-11" },
+  { date: "Nov 12", pnl: 1850, rawDate: "2026-11-12" },
+  { date: "Nov 13", pnl: 1850, rawDate: "2026-11-13" },
+  { date: "Nov 14", pnl: 1520, rawDate: "2026-11-14" },
+  { date: "Nov 15", pnl: 2200, rawDate: "2026-11-15" },
+  { date: "Nov 16", pnl: 2650, rawDate: "2026-11-16" },
+  { date: "Nov 17", pnl: 2410, rawDate: "2026-11-17" },
+  { date: "Nov 18", pnl: 3155, rawDate: "2026-11-18" },
+  { date: "Nov 19", pnl: 2980, rawDate: "2026-11-19" },
+  { date: "Nov 20", pnl: 3480, rawDate: "2026-11-20" },
+];
+
+const ACCOUNT_BALANCE_DATA_MAP = {
+  "1W": [
+    { date: "Nov 14", balance: 26400, depositBaseline: 25000 },
+    { date: "Nov 15", balance: 27150, depositBaseline: 25000 },
+    { date: "Nov 16", balance: 27650, depositBaseline: 25000 },
+    { date: "Nov 17", balance: 27410, depositBaseline: 25000 },
+    { date: "Nov 18", balance: 28155, depositBaseline: 25000 },
+    { date: "Nov 19", balance: 27980, depositBaseline: 25000 },
+    { date: "Nov 20", balance: 28480, depositBaseline: 25000 },
+  ],
+  "1M": [
+    { date: "Nov 4", balance: 25000, depositBaseline: 25000 },
+    { date: "Nov 7", balance: 25850, depositBaseline: 25000 },
+    { date: "Nov 9", balance: 25580, depositBaseline: 25000 },
+    { date: "Nov 11", balance: 26850, depositBaseline: 25000 },
+    { date: "Nov 13", balance: 26850, depositBaseline: 25000 },
+    { date: "Nov 14", balance: 26520, depositBaseline: 25000 },
+    { date: "Nov 16", balance: 27650, depositBaseline: 25000 },
+    { date: "Nov 17", balance: 27410, depositBaseline: 25000 },
+    { date: "Nov 18", balance: 28155, depositBaseline: 25000 },
+    { date: "Nov 20", balance: 28480, depositBaseline: 25000 },
+  ],
+  All: [
+    { date: "Nov 4", balance: 25000, depositBaseline: 25000 },
+    { date: "Nov 7", balance: 25850, depositBaseline: 25000 },
+    { date: "Nov 9", balance: 25580, depositBaseline: 25000 },
+    { date: "Nov 11", balance: 26850, depositBaseline: 25000 },
+    { date: "Nov 13", balance: 26850, depositBaseline: 25000 },
+    { date: "Nov 14", balance: 26520, depositBaseline: 25000 },
+    { date: "Nov 17", balance: 27410, depositBaseline: 25000 },
+    { date: "Nov 18", balance: 28155, depositBaseline: 25000 },
+    { date: "Nov 20", balance: 28480, depositBaseline: 25000 },
+  ],
 };
 
-// Cryptographic Key Generator matching Tradifive.mq5 FNV-1a algorithm & TF_SALT
-export const generateTradifiveLicenseKey = (mt5AccountNumber?: string | number, expDays: number = 10000): string => {
-  const salt = "TFv1-Zk39xQ-7mLpA2";
-  const numClean = String(mt5AccountNumber || "").replace(/\D/g, "");
-  if (!numClean) return "";
-  const login = BigInt(numClean);
+const INITIAL_OPEN_POSITIONS = [
+  {
+    ticket: "7849201",
+    symbol: "XAUUSD",
+    type: "BUY",
+    lots: 0.15,
+    openPrice: 2642.1,
+    currentPrice: 2648.35,
+    profit: 93.75,
+    openTime: "12 mins ago",
+    strategy: "Gold Scalper V1.4",
+  },
+  {
+    ticket: "7849208",
+    symbol: "EURUSD",
+    type: "SELL",
+    lots: 0.25,
+    openPrice: 1.0842,
+    currentPrice: 1.0829,
+    profit: 32.5,
+    openTime: "24 mins ago",
+    strategy: "London Breakout",
+  },
+];
 
-  let h = 0xCBF29CE484222325n;
-  const prime = 0x100000001B3n;
-  const mask64 = 0xFFFFFFFFFFFFFFFFn;
-  const str = `${salt}:${login}:${expDays}`;
-  for (let i = 0; i < str.length; i++) {
-    h = ((h ^ BigInt(str.charCodeAt(i))) * prime) & mask64;
-  }
-  h = h ^ (h >> 32n);
-  const chk = h & 0xFFFFFFFFFFn;
-
-  const lgHex = login.toString(16).toUpperCase().padStart(8, "0");
-  const expHex = expDays.toString(16).toUpperCase().padStart(4, "0");
-  const chkHex = chk.toString(16).toUpperCase().padStart(10, "0");
-  return `TF-${lgHex}-${expHex}-${chkHex}`;
-};
+const INITIAL_CLOSED_TRADES = [
+  {
+    ticket: "7848912",
+    symbol: "XAUUSD",
+    type: "BUY",
+    lots: 0.2,
+    openPrice: 2638.5,
+    closePrice: 2645.2,
+    profit: 134.0,
+    time: "Today, 14:22",
+    strategy: "Gold Scalper V1.4",
+    status: "Won",
+  },
+  {
+    ticket: "7848760",
+    symbol: "GBPUSD",
+    type: "BUY",
+    lots: 0.15,
+    openPrice: 1.298,
+    closePrice: 1.3022,
+    profit: 63.0,
+    time: "Today, 11:45",
+    strategy: "Trend Hunter",
+    status: "Won",
+  },
+  {
+    ticket: "7848655",
+    symbol: "XAUUSD",
+    type: "SELL",
+    lots: 0.1,
+    openPrice: 2644.0,
+    closePrice: 2646.1,
+    profit: -21.0,
+    time: "Today, 09:15",
+    strategy: "Gold Scalper V1.4",
+    status: "Lost",
+  },
+  {
+    ticket: "7848421",
+    symbol: "USDJPY",
+    type: "BUY",
+    lots: 0.3,
+    openPrice: 154.2,
+    closePrice: 154.68,
+    profit: 96.0,
+    time: "Yesterday, 21:05",
+    strategy: "Session Pullback",
+    status: "Won",
+  },
+  {
+    ticket: "7848201",
+    symbol: "XAUUSD",
+    type: "BUY",
+    lots: 0.25,
+    openPrice: 2630.1,
+    closePrice: 2639.4,
+    profit: 232.5,
+    time: "Yesterday, 16:30",
+    strategy: "Gold Scalper V1.4",
+    status: "Won",
+  },
+];
 
 export default function AITrading() {
-  const navigate = useNavigate();
-
-  // Active Wizard Step: 1, 2, or 3 (Shows ONE step at a time for maximum clarity!)
-  const [activeStep, setActiveStep] = useState<number>(1);
-
-  // Setup mode & selection - default to user's connected Exness broker
-  const [setupPath, setSetupPath] = useState<"new" | "transfer">("transfer");
-  const [selectedBroker, setSelectedBroker] = useState<string>(() => {
+  // ─── STATE MANAGEMENT ───────────────────────────────────────────
+  const [isAgentRunning, setIsAgentRunning] = useState<boolean>(() => {
     try {
-      const stored = localStorage.getItem("tradifive_ib_proof_request");
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (parsed.broker_name && parsed.broker_name.toLowerCase().includes("vantage")) return "vantage";
-      }
-    } catch (e) {}
-    return "exness";
-  });
-  const [isBrokerDropdownOpen, setIsBrokerDropdownOpen] = useState<boolean>(false);
-
-  // Account & Verification - clean and empty by default for all new accounts
-  const [mt5Account, setMt5Account] = useState<string>("");
-  const [isEditingAccount, setIsEditingAccount] = useState<boolean>(false);
-  const [ibVerified, setIbVerified] = useState(false);
-  const [depositConfirmed, setDepositConfirmed] = useState(true);
-  const [proofFile, setProofFile] = useState<string | null>(null);
-  const [proofFileName, setProofFileName] = useState<string>("");
-  const [proofRemarks, setProofRemarks] = useState<string>("");
-  const [isSubmittingProof, setIsSubmittingProof] = useState<boolean>(false);
-  const [transferRequestStatus, setTransferRequestStatus] = useState<"none" | "pending" | "approved" | "rejected">("none");
-  const [showProofPreviewModal, setShowProofPreviewModal] = useState<boolean>(false);
-
-  // Bot State & Setup Flags
-  const [hasDownloaded, setHasDownloaded] = useState(false);
-  const [showCalculator, setShowCalculator] = useState(false);
-  // Step 3: Lifetime License Payment State (₹9,999)
-  const [paymentStatus, setPaymentStatus] = useState<"none" | "pending" | "approved">(() => {
-    try {
-      const req = localStorage.getItem("tradifive_payment_request");
-      const saved = localStorage.getItem("tradifive_payment_status");
-      // Only approved or pending if an actual payment request was submitted
-      if (saved === "approved" && req) return "approved";
-      if (saved === "pending" && req) return "pending";
-      return "none";
-    } catch (e) {
-      return "none";
-    }
-  });
-
-  const hasPaid = paymentStatus === "approved";
-  const [searchParams] = useSearchParams();
-  
-  // 2 Official Plans: ₹1,00,000 (3-Year Pass · 0% Profit Share) & ₹10,000 (Weekly 50/50% Profit Share)
-  const [selectedTier, setSelectedTier] = useState<"three_years" | "profit_share">(() => {
-    try {
-      const q = searchParams.get("tier");
-      if (q === "profit_share" || q === "profit_share_50") return "profit_share";
-      if (q === "three_years" || q === "lifetime" || q === "enterprise") return "three_years";
-      const saved = localStorage.getItem("tradifive_selected_tier");
-      if (saved === "profit_share" || saved === "profit_share_50") return "profit_share";
-      return "three_years";
-    } catch (e) {
-      return "three_years";
-    }
-  });
-  
-  // Weekly Settlement & Withdrawal Cohort Day (Mon–Sun)
-  const [settlementDay, setSettlementDay] = useState<string>(() => {
-    try {
-      return localStorage.getItem("tradifive_settlement_day") || "Wednesday";
-    } catch (e) {
-      return "Wednesday";
-    }
-  });
-
-  const tradifiveId = React.useMemo(() => {
-    const clean = String(mt5Account || (typeof window !== "undefined" ? localStorage.getItem("tradifive_connected_mt5_account") : "") || "").replace(/\D/g, "");
-    if (clean.length >= 4) {
-      return `TRDF-${clean.slice(-6).padStart(6, "0")}`;
-    }
-    return (typeof window !== "undefined" ? localStorage.getItem("tradifive_user_id_short") : "") || "TRDF-849201";
-  }, [mt5Account]);
-
-  const [paymentMethod, setPaymentMethod] = useState<"upi" | "bank">("upi");
-  const [paymentUtr, setPaymentUtr] = useState<string>(() => {
-    try {
-      const req = localStorage.getItem("tradifive_payment_request");
-      return req ? JSON.parse(req).utr_number || "" : "";
-    } catch (e) {
-      return "";
-    }
-  });
-  const [paymentProofFile, setPaymentProofFile] = useState<string | null>(() => {
-    try {
-      const req = localStorage.getItem("tradifive_payment_request");
-      return req ? JSON.parse(req).proof_file || null : null;
-    } catch (e) {
-      return null;
-    }
-  });
-  const [paymentProofFileName, setPaymentProofFileName] = useState<string>("");
-  const [isSubmittingPayment, setIsSubmittingPayment] = useState(false);
-
-  const [isBotRunning, setIsBotRunning] = useState<boolean>(() => {
-    try {
-      const saved = localStorage.getItem("tradifive_bot_status");
-      return saved ? saved === "active" : true;
-    } catch (e) {
+      const saved = localStorage.getItem("fialgo_agent_running");
+      return saved !== null ? saved === "true" : true;
+    } catch {
       return true;
     }
   });
 
+  const [balanceTimeframe, setBalanceTimeframe] = useState<"1W" | "1M" | "All">("All");
+  const [activeTab, setActiveTab] = useState<"positions" | "history">("positions");
+
+  const [openPositions, setOpenPositions] = useState(INITIAL_OPEN_POSITIONS);
+  const [closedTrades, setClosedTrades] = useState(INITIAL_CLOSED_TRADES);
+
+  // Modals
+  const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
+  const [isLicenseModalOpen, setIsLicenseModalOpen] = useState(false);
+
+  // Connected Account info
+  const [connectedAccount, setConnectedAccount] = useState<string>(() => {
+    try {
+      return (
+        localStorage.getItem("tradifive_connected_mt5_account") ||
+        "38491820"
+      );
+    } catch {
+      return "38491820";
+    }
+  });
+
+  const [selectedBroker, setSelectedBroker] = useState<string>("exness");
+  const [mt5InputAccount, setMt5InputAccount] = useState<string>("");
+  const [hasConfirmedBalance, setHasConfirmedBalance] = useState<boolean>(true);
+  const [licenseKey, setLicenseKey] = useState<string>("FA-V1-9482-LIVE-KEY");
   const [copiedKey, setCopiedKey] = useState(false);
-  const [copiedPartnerId, setCopiedPartnerId] = useState(false);
+  const [copiedMsg, setCopiedMsg] = useState(false);
 
-  // On mount: fetch the authenticated user's own MT5 account number from Supabase
-  // This prevents showing old account numbers when a new user logs in
+  // Heartbeat & Latency telemetry
+  const [lastUpdateSecs, setLastUpdateSecs] = useState(2);
+  const [latencyMs, setLatencyMs] = useState(12);
+
+  // Live seconds ticker
   useEffect(() => {
-    const fetchUserMt5Account = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          setMt5Account("");
-          return;
-        }
-
-        const { data: acc } = await supabase
-          .from("mt5_accounts")
-          .select("account_number, broker_name")
-          .eq("user_id", user.id)
-          .maybeSingle();
-
-        if (acc?.account_number) {
-          const accStr = String(acc.account_number).replace(/\D/g, "");
-          setMt5Account(accStr);
-          try {
-            localStorage.setItem("tradifive_connected_mt5_account", accStr);
-            localStorage.setItem("tradifive_license_key", generateTradifiveLicenseKey(accStr));
-          } catch (_) {}
-          if (acc.broker_name) {
-            const found = BROKERS.find(b => b.name.toLowerCase().includes(acc.broker_name!.toLowerCase()));
-            if (found) setSelectedBroker(found.id);
-          }
-        } else {
-          // Check system_settings auto_trade_admin_records as fallback
-          try {
-            const recData = await getSystemSetting<any>("auto_trade_admin_records");
-            let matchedRec: any = null;
-            if (recData && typeof recData === "object") {
-              const list = Object.values(recData) as any[];
-              matchedRec = list.find(r => r.user_id === user.id || (user.email && r.user_email === user.email));
-            }
-            if (matchedRec?.bound_account || matchedRec?.mt5_account_number) {
-              const num = String(matchedRec.bound_account || matchedRec.mt5_account_number).replace(/\D/g, "");
-              setMt5Account(num);
-              try {
-                localStorage.setItem("tradifive_connected_mt5_account", num);
-                localStorage.setItem("tradifive_license_key", generateTradifiveLicenseKey(num));
-              } catch (_) {}
-              if (matchedRec.broker_name) {
-                const found = BROKERS.find(b => b.name.toLowerCase().includes(matchedRec.broker_name.toLowerCase()));
-                if (found) setSelectedBroker(found.id);
-              }
-            } else {
-              setMt5Account("");
-            }
-          } catch (e) {
-            setMt5Account("");
-          }
-        }
-      } catch (e) {
-        setMt5Account("");
+    const timer = setInterval(() => {
+      setLastUpdateSecs((prev) => (prev >= 6 ? 1 : prev + 1));
+      if (Math.random() > 0.6) {
+        setLatencyMs(11 + Math.floor(Math.random() * 4));
       }
-    };
-    fetchUserMt5Account();
+    }, 1000);
+    return () => clearInterval(timer);
   }, []);
 
-  // Sync saved proof request on mount and periodic check
+  // Fetch real MT5 account from Supabase if available
   useEffect(() => {
-    const checkProofStatus = async () => {
-      if (isEditingAccount) return;
-      let currentUser: any = null;
+    async function loadAccount() {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        currentUser = user;
-        const local = localStorage.getItem("tradifive_ib_proof_request");
-
-        if (local) {
-          const parsed = JSON.parse(local);
-          // If proof belongs to another user, wipe it
-          if (user && parsed.user_id && parsed.user_id !== user.id && !parsed.user_id.startsWith("usr-")) {
-            localStorage.removeItem("tradifive_ib_proof_request");
-            localStorage.removeItem("tradifive_connected_mt5_account");
-          } else if (parsed.status === "approved") {
-            setIbVerified(true);
-            setTransferRequestStatus("approved");
-          } else if (parsed.status === "pending") {
-            setTransferRequestStatus("pending");
-            if (parsed.proof_image_url) setProofFile(parsed.proof_image_url);
-            if (parsed.proof_filename) setProofFileName(parsed.proof_filename);
-            if (parsed.broker_name) {
-              const found = BROKERS.find(b => b.name.toLowerCase().includes(parsed.broker_name.toLowerCase()));
-              if (found) setSelectedBroker(found.id);
-            }
-          }
-        }
-      } catch (e) {}
-
-      // 1. Check if user already has an active account in public.mt5_accounts
-      try {
-        if (currentUser?.id) {
-          const { data: activeAcc } = await supabase
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        if (session?.user?.id) {
+          const { data: mt5 } = await supabase
             .from("mt5_accounts")
-            .select("account_number, is_active, is_connected, broker_name")
-            .eq("user_id", currentUser.id)
+            .select("*")
+            .eq("user_id", session.user.id)
+            .order("created_at", { ascending: false })
+            .limit(1)
             .maybeSingle();
 
-          if (activeAcc && (activeAcc.is_active || activeAcc.is_connected)) {
-            setIbVerified(true);
-            setTransferRequestStatus("approved");
-            const cleanAcc = String(activeAcc.account_number).replace(/\D/g, "");
-            setMt5Account(cleanAcc);
-            localStorage.setItem("tradifive_connected_mt5_account", cleanAcc);
-            localStorage.setItem("tradifive_license_key", generateTradifiveLicenseKey(cleanAcc));
-            const savedReq = localStorage.getItem("tradifive_ib_proof_request");
-            const parsedReq = savedReq ? JSON.parse(savedReq) : {};
-            parsedReq.status = "approved";
-            parsedReq.mt5_account_number = cleanAcc;
-            localStorage.setItem("tradifive_ib_proof_request", JSON.stringify(parsedReq));
-          }
-        }
-      } catch (e) {}
-
-      // 2. Check auto_trade_admin_records (where admin verifies accounts in admin portal)
-      try {
-        const recData = await getSystemSetting<any>("auto_trade_admin_records");
-
-        if (recData && typeof recData === "object") {
-          const recordsList = Object.values(recData) as any[];
-          const matchedAdmin = recordsList.find(r => 
-            (currentUser && (r.user_id === currentUser.id || (currentUser.email && r.user_email === currentUser.email))) ||
-            (mt5Account && (r.bound_account === mt5Account || r.mt5_account_number === mt5Account))
-          );
-
-          if (matchedAdmin && (matchedAdmin.is_under_tradifive === true || matchedAdmin.ib_status === "verified")) {
-            setIbVerified(true);
-            setTransferRequestStatus("approved");
-            const accNum = String(matchedAdmin.bound_account || matchedAdmin.mt5_account_number || mt5Account).replace(/\D/g, "");
-            if (accNum && !mt5Account) setMt5Account(accNum);
-            localStorage.setItem("tradifive_connected_mt5_account", accNum);
-            localStorage.setItem("tradifive_license_key", generateTradifiveLicenseKey(accNum));
-            const savedReq = localStorage.getItem("tradifive_ib_proof_request");
-            const parsedReq = savedReq ? JSON.parse(savedReq) : {};
-            parsedReq.status = "approved";
-            parsedReq.mt5_account_number = accNum;
-            localStorage.setItem("tradifive_ib_proof_request", JSON.stringify(parsedReq));
-          }
-        }
-      } catch (e) {}
-
-      // 3. Check ib_transfer_requests table in system_settings
-      try {
-        const data = await getSystemSetting<any[]>("ib_transfer_requests");
-
-        if (data && Array.isArray(data)) {
-          const local = localStorage.getItem("tradifive_ib_proof_request");
-          const parsed = local ? JSON.parse(local) : {};
-          const matching = data.find((r: any) =>
-            (parsed.id && r.id === parsed.id) ||
-            (parsed.mt5_account_number && r.mt5_account_number === parsed.mt5_account_number) ||
-            (mt5Account && r.mt5_account_number === mt5Account) ||
-            (currentUser && (r.user_id === currentUser.id || (currentUser.email && r.user_email === currentUser.email)))
-          );
-
-          if (matching) {
-            if (matching.status === "approved") {
-              setIbVerified(true);
-              setTransferRequestStatus("approved");
-              parsed.status = "approved";
-              if (matching.mt5_account_number) {
-                parsed.mt5_account_number = matching.mt5_account_number;
-                if (!mt5Account) setMt5Account(matching.mt5_account_number);
-              }
-              localStorage.setItem("tradifive_ib_proof_request", JSON.stringify(parsed));
-            } else if (matching.status === "pending") {
-              setTransferRequestStatus("pending");
+          if (mt5?.account_number) {
+            setConnectedAccount(mt5.account_number);
+            if (mt5.activation_key) {
+              setLicenseKey(mt5.activation_key);
             }
           }
         }
-      } catch (err) {}
-
-      // 4. Check payment verification status from license_payment_requests
-      try {
-        const localPay = localStorage.getItem("tradifive_payment_request");
-        const parsedPay = localPay ? JSON.parse(localPay) : {};
-        if (parsedPay.status === "approved") {
-          setPaymentStatus("approved");
-        }
-
-        const payData = await getSystemSetting<any[]>("license_payment_requests");
-
-        if (payData && Array.isArray(payData)) {
-          const matched = payData.find((r: any) =>
-            (parsedPay.id && r.id === parsedPay.id) ||
-            (parsedPay.utr_number && r.utr_number === parsedPay.utr_number) ||
-            (paymentUtr && r.utr_number === paymentUtr) ||
-            (currentUser && (r.user_id === currentUser.id || (currentUser.email && r.user_email === currentUser.email)))
-          );
-
-          if (matched && matched.status === "approved") {
-            setPaymentStatus("approved");
-            localStorage.setItem("tradifive_payment_status", "approved");
-            localStorage.setItem("tradifive_auto_trade_setup", "true");
-            window.dispatchEvent(new Event("tradifive_auto_trade_setup_done"));
-          }
-        }
-      } catch (err) {}
-    };
-
-    checkProofStatus();
-    const interval = setInterval(checkProofStatus, 4000);
-    return () => clearInterval(interval);
-  }, [mt5Account, isEditingAccount]);
-
-  const [isMt5Connected, setIsMt5Connected] = useState<boolean>(false);
-  const [isCheckingConnection, setIsCheckingConnection] = useState<boolean>(false);
-
-  const checkLiveMt5Connection = async (overrideAcc?: string) => {
-    const accToTest = String(overrideAcc || mt5Account || localStorage.getItem("tradifive_connected_mt5_account") || "").replace(/\D/g, "");
-    if (!accToTest) {
-      setIsMt5Connected(false);
-      return;
-    }
-    setIsCheckingConnection(true);
-    try {
-      // 1. Direct Edge function check
-      const res = await fetch("https://hcgylvdvlandtiuudefu.supabase.co/functions/v1/mt5-webhook", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
-        },
-        body: JSON.stringify({
-          action: "get_dashboard_data",
-          account_number: accToTest
-        })
-      });
-
-      if (res.ok) {
-        const d = await res.json();
-        if (d?.account && (d.account.connection_status === "deployed" || d.account.is_connected === true)) {
-          const lastUpdate = d.account.updated_at ? new Date(d.account.updated_at).getTime() : 0;
-          const tenMinAgo = Date.now() - 10 * 60 * 1000;
-          if (lastUpdate > tenMinAgo || (d.trades && d.trades.length > 0)) {
-            setIsMt5Connected(true);
-            setIsCheckingConnection(false);
-            return;
-          }
-        }
+      } catch (err) {
+        /* fallback to demo simulation */
       }
-
-      // 2. Fallback check system_settings auto_trade_admin_records
-      const recData = await getSystemSetting<any>("auto_trade_admin_records");
-
-      if (recData && typeof recData === "object") {
-        const rec = Object.values(recData).find((r: any) => 
-          r.bound_account === accToTest || r.mt5_account_number === accToTest
-        );
-        if (rec && rec.algo_execution_active === true && rec.is_connected === true) {
-          setIsMt5Connected(true);
-          setIsCheckingConnection(false);
-          return;
-        }
-      }
-
-      setIsMt5Connected(false);
-    } catch (e) {
-      setIsMt5Connected(false);
-    } finally {
-      setIsCheckingConnection(false);
     }
-  };
+    loadAccount();
+  }, []);
 
-  useEffect(() => {
-    if (activeStep === 4) {
-      checkLiveMt5Connection();
-      const interval = setInterval(() => checkLiveMt5Connection(), 15000);
-      return () => clearInterval(interval);
-    }
-  }, [activeStep, mt5Account]);
-
-  const handleToggleBot = () => {
-    const nextState = !isBotRunning;
-    setIsBotRunning(nextState);
-    localStorage.setItem("tradifive_bot_status", nextState ? "active" : "paused");
-
-    const now = new Date();
-    const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-    const newLog = {
-      id: `log-${Date.now()}`,
-      time: timeStr,
-      type: 'status',
-      event: nextState ? 'Bot Resumed (ON)' : 'Bot Paused (OFF)',
-      details: nextState 
-        ? 'User activated algorithmic execution via AI Trading setup' 
-        : 'User paused bot execution. Open trades protected by hard SL/TP.',
-    };
-
+  const toggleAgent = () => {
+    const nextState = !isAgentRunning;
+    setIsAgentRunning(nextState);
+    playSound(nextState ? 'toggleOn' : 'toggleOff');
     try {
-      const stored = localStorage.getItem("tradifive_bot_logs");
-      const parsed = stored ? JSON.parse(stored) : [];
-      localStorage.setItem("tradifive_bot_logs", JSON.stringify([newLog, ...(Array.isArray(parsed) ? parsed : []).slice(0, 49)]));
-    } catch (e) {}
-
-    window.dispatchEvent(new CustomEvent("tradifive_bot_status_changed", { detail: { isRunning: nextState } }));
-
+      localStorage.setItem("fialgo_agent_running", String(nextState));
+    } catch {}
     if (nextState) {
-      toast.success("Algorithm Active: Live Trading ON", {
-        description: "MT5 terminal is actively executing automated signals.",
+      toast.success("FiAlgo Agent is now RUNNING! Scanning for trade setups.", {
+        icon: "🟢",
       });
     } else {
-      toast.warning("Algorithm Standby: Trading Paused", {
-        description: "New order triggers halted. Open positions monitored by hard SL/TP.",
+      toast.info("FiAlgo Agent PAUSED. Open trades protected by Risk Guard.", {
+        icon: "⏸️",
       });
     }
   };
 
-  const compressImage = async (file: File, maxDim = 1200, quality = 0.75): Promise<string> => {
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const rawUrl = (e.target?.result as string) || "";
-        const img = new Image();
-        img.onload = () => {
-          try {
-            const canvas = document.createElement("canvas");
-            let width = img.width || 1;
-            let height = img.height || 1;
-            if (width > height) {
-              if (width > maxDim) {
-                height = Math.round((height * maxDim) / width);
-                width = maxDim;
-              }
-            } else {
-              if (height > maxDim) {
-                width = Math.round((width * maxDim) / height);
-                height = maxDim;
-              }
-            }
-            canvas.width = Math.max(1, width);
-            canvas.height = Math.max(1, height);
-            const ctx = canvas.getContext("2d");
-            if (ctx) {
-              ctx.drawImage(img, 0, 0, width, height);
-              resolve(canvas.toDataURL("image/jpeg", quality));
-              return;
-            }
-          } catch (_) {}
-          resolve(rawUrl);
-        };
-        img.onerror = () => resolve(rawUrl);
-        img.src = rawUrl;
-      };
-      reader.onerror = () => resolve("");
-      reader.readAsDataURL(file);
-    });
-  };
-
-  const uploadProofToStorage = async (file: File, prefix = "proofs"): Promise<string> => {
-    try {
-      const cleanName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
-      const path = `${prefix}/${cleanName}`;
-      const { data, error } = await supabase.storage.from("attachments").upload(path, file, {
-        cacheControl: "3600",
-        upsert: true
-      });
-      if (!error && data?.path) {
-        const { data: pubData } = supabase.storage.from("attachments").getPublicUrl(data.path);
-        if (pubData?.publicUrl) return pubData.publicUrl;
-      }
-    } catch (_) {}
-    return "";
-  };
-
-  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (file.size > 15 * 1024 * 1024) {
-      toast.error("File is too large. Please select an image under 15MB.");
-      return;
-    }
-
-    setProofFileName(file.name);
-    toast.info("Processing screenshot proof...");
-
-    // 1. Upload to Supabase storage if possible
-    const storageUrl = await uploadProofToStorage(file, "proofs");
-    // 2. Compress image for fallback and instant UI preview (keeps payload under 100KB)
-    const compressedDataUrl = await compressImage(file, 1200, 0.75);
-
-    setProofFile(storageUrl || compressedDataUrl);
-    toast.success("Screenshot attached!", { description: file.name });
-  };
-
-  const handlePaymentProofUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (file.size > 15 * 1024 * 1024) {
-      toast.error("File is too large. Please select an image under 15MB.");
-      return;
-    }
-
-    setPaymentProofFileName(file.name);
-    toast.info("Processing payment screenshot...");
-
-    const storageUrl = await uploadProofToStorage(file, "payments");
-    const compressedDataUrl = await compressImage(file, 1200, 0.75);
-
-    setPaymentProofFile(storageUrl || compressedDataUrl);
-    toast.success("Payment screenshot attached!", { description: file.name });
-  };
-
-  const handleSubmitPaymentRequest = async () => {
-    if (!paymentUtr.trim()) {
-      toast.error("Please enter the 12-digit UPI UTR or Reference Number.");
-      return;
-    }
-    if (!paymentProofFile) {
-      toast.error("Please attach a screenshot of your payment confirmation.");
-      return;
-    }
-
-    setIsSubmittingPayment(true);
-    let userName = "";
-    let userEmail = "";
-    let userId = "";
-
-    try {
-      const { data: authData } = await supabase.auth.getUser();
-      const authUser = authData?.user;
-      if (authUser) {
-        userId = authUser.id;
-        userEmail = authUser.email || "";
-        userName = authUser.user_metadata?.full_name || authUser.user_metadata?.name || "";
-
-        const { data: prof } = await supabase
-          .from("profiles")
-          .select("full_name, email, username")
-          .eq("id", authUser.id)
-          .maybeSingle();
-
-        if (prof) {
-          if (prof.full_name) userName = prof.full_name;
-          else if (prof.username && !userName) userName = prof.username;
-          if (prof.email) userEmail = prof.email;
-        }
-      }
-    } catch (e) {
-      console.warn("Could not fetch user profile:", e);
-    }
-
-    if (!userName) {
-      try {
-        const uRaw = localStorage.getItem("tradifive_user");
-        if (uRaw) {
-          const parsed = JSON.parse(uRaw);
-          userName = parsed?.user?.user_metadata?.full_name || parsed?.full_name || parsed?.name || "";
-          if (!userEmail) userEmail = parsed?.user?.email || parsed?.email || "";
-        }
-      } catch (e) {}
-    }
-
-    if (!userName) {
-      userName = localStorage.getItem("tradifive_cached_display_name") || "";
-    }
-    if (!userName || userName === "Client Trader" || userName === "Trader") {
-      userName = userEmail ? userEmail.split("@")[0] : "Client Trader";
-    }
-    if (!userEmail) {
-      userEmail = "client@tradifive.in";
-    }
-
-    const accountForPayment = mt5Account.trim() || 
-      localStorage.getItem("tradifive_connected_mt5_account") || 
-      (() => {
-        try {
-          const s = localStorage.getItem("tradifive_ib_proof_request");
-          return s ? JSON.parse(s).mt5_account_number || "" : "";
-        } catch (e) { return ""; }
-      })() || "See Screenshot";
-
-    const newPaymentRequest = {
-      id: `pay-${Date.now()}`,
-      user_id: userId || undefined,
-      user_name: userName,
-      user_email: userEmail,
-      mt5_account_number: accountForPayment,
-      algo_id: "fialgo_v1",
-      algo_name: selectedTier === "three_years" ? "FiAlgo V1 3-Year Enterprise License (0% Profit Share)" : "FiAlgo V1 Performance Setup (Weekly 50/50% Split)",
-      amount: selectedTier === "three_years" ? "100000" : "10000",
-      plan_tier: selectedTier,
-      plan_name: selectedTier === "three_years" ? "3-Year Enterprise Pass (₹1,00,000 · 0% Profit Share)" : "Performance Partner (₹10,000 Setup · Weekly 50/50% Split)",
-      settlement_day: selectedTier === "three_years" ? "N/A (0% Share)" : settlementDay,
-      tradifive_id: tradifiveId,
-      currency: "INR",
-      method: paymentMethod,
-      upi_id: paymentMethod === "upi" ? "9731980756@axisbank" : undefined,
-      bank_name: paymentMethod === "bank" ? "Axis Bank" : undefined,
-      account_number: paymentMethod === "bank" ? "924010072811588" : undefined,
-      utr_number: paymentUtr.trim(),
-      proof_file: paymentProofFile,
-      proof_filename: paymentProofFileName || "payment_proof.png",
-      status: "pending",
-      submitted_at: new Date().toISOString()
-    };
-
-    localStorage.setItem("tradifive_payment_status", "pending");
-    localStorage.setItem("tradifive_payment_request", JSON.stringify(newPaymentRequest));
-    if (selectedTier === "three_years") {
-      localStorage.setItem("tradifive_is_lifetime_plan", "true");
-    } else {
-      localStorage.removeItem("tradifive_is_lifetime_plan");
-    }
-    localStorage.setItem("tradifive_payment_tier", selectedTier);
-    try { window.dispatchEvent(new Event("tradifive_tier_update")); } catch (e) {}
-    setPaymentStatus("pending");
-
-    try {
-      const existing = await getSystemSetting<any[]>("license_payment_requests");
-
-      const list = Array.isArray(existing) ? existing : [];
-      const filteredList = list.filter((p: any) => 
-        p.id !== newPaymentRequest.id &&
-        !(userId && p.user_id === userId) &&
-        !(newPaymentRequest.utr_number && p.utr_number === newPaymentRequest.utr_number)
-      );
-      filteredList.unshift(newPaymentRequest);
-
-      const ok = await setSystemSetting("license_payment_requests", filteredList);
-      if (!ok) {
-        console.error("Failed to update license_payment_requests");
-      }
-    } catch (err) {
-      console.warn("Payment submission error:", err);
-    }
-
-    setIsSubmittingPayment(false);
-    toast.success("Payment Request Submitted!", {
-      description: "Under review. Your license key will be issued within 2 hours."
-    });
-    setActiveStep(4);
-  };
-
-  const handleResetPayment = () => {
-    setPaymentStatus("none");
-    localStorage.removeItem("tradifive_payment_status");
-    localStorage.removeItem("tradifive_payment_request");
-    toast.info("Payment details reset. You can re-enter your UTR and screenshot.");
-  };
-
-
-  const handleSubmitProof = async () => {
-    if (!mt5Account.trim()) {
-      toast.error("Please enter your MT5 Account Number.");
-      return;
-    }
-    if (!depositConfirmed) {
-      toast.error("Please confirm your MT5 account is funded with at least $500.");
-      return;
-    }
-    if (!proofFile && !isEditingAccount) {
-      toast.error(
-        setupPath === "transfer"
-          ? "Please attach a screenshot of your transfer email or broker confirmation."
-          : "Please attach a screenshot confirming your $500+ deposit."
-      );
-      return;
-    }
-
-    setIsSubmittingProof(true);
-    let userName = "";
-    let userEmail = "";
-    let userId = "";
-
-    try {
-      const { data: authData } = await supabase.auth.getUser();
-      const authUser = authData?.user;
-      if (authUser) {
-        userId = authUser.id;
-        userEmail = authUser.email || "";
-        userName = authUser.user_metadata?.full_name || authUser.user_metadata?.name || "";
-
-        const { data: prof } = await supabase
-          .from("profiles")
-          .select("full_name, email, username")
-          .eq("id", authUser.id)
-          .maybeSingle();
-
-        if (prof) {
-          if (prof.full_name) userName = prof.full_name;
-          else if (prof.username && !userName) userName = prof.username;
-          if (prof.email) userEmail = prof.email;
-        }
-      }
-    } catch (e) {
-      console.warn("Could not fetch user profile:", e);
-    }
-
-    if (!userName) {
-      userName = localStorage.getItem("tradifive_cached_display_name") || "";
-    }
-    if (!userName || userName === "Trader" || userName === "Client Trader") {
-      userName = userEmail ? userEmail.split("@")[0] : "Trader";
-    }
-    if (!userEmail) {
-      userEmail = "trader@fialgo.com";
-    }
-
-    const currentBrokerObj = BROKERS.find(b => b.id === selectedBroker);
-    const brokerLabel = currentBrokerObj ? currentBrokerObj.name : "Vantage Markets";
-    const cleanAccount = mt5Account.trim();
-
-    const newRequest = {
-      id: `req-${Date.now()}`,
-      user_id: userId || ("usr-" + Math.floor(1000 + Math.random() * 9000)),
-      user_name: userName,
-      user_email: userEmail,
-      mt5_account_number: cleanAccount,
-      broker_name: brokerLabel,
-      proof_image_url: proofFile,
-      proof_filename: proofFileName || "verification_proof.png",
-      remarks: proofRemarks ? `${proofRemarks} | Min $500 balance confirmed` : "Min $500 balance confirmed",
-      min_deposit_met: true,
-      status: "pending",
-      submitted_at: new Date().toISOString()
-    };
-
-    const cleanNum = cleanAccount.replace(/\D/g, "");
-    const generatedLicKey = generateTradifiveLicenseKey(cleanNum);
-    localStorage.setItem("tradifive_connected_mt5_account", cleanNum);
-    localStorage.setItem("tradifive_license_key", generatedLicKey);
-    localStorage.setItem("tradifive_ib_proof_request", JSON.stringify(newRequest));
-    setTransferRequestStatus("pending");
-
-    try {
-      // 1. Fetch & update ib_transfer_requests in system_settings
-      const existing = await getSystemSetting<any[]>("ib_transfer_requests");
-
-      const list = Array.isArray(existing) ? existing : [];
-      // Clean previous requests for same user or account
-      const filteredList = list.filter((r: any) => 
-        r.id !== newRequest.id &&
-        !(userId && r.user_id === userId) &&
-        !(r.mt5_account_number && cleanAccount && r.mt5_account_number === cleanAccount)
-      );
-      filteredList.unshift(newRequest);
-
-      const ssOk = await setSystemSetting("ib_transfer_requests", filteredList);
-      if (!ssOk) {
-        console.error("Failed to update ib_transfer_requests");
-      }
-
-      // 2. Also register immediately into auto_trade_admin_records so the Admin page's Active Accounts tab displays this account
-      try {
-        const adminRecSetting = await getSystemSetting<any>("auto_trade_admin_records");
-
-        const currentRecords = (adminRecSetting && typeof adminRecSetting === "object") ? { ...adminRecSetting } : {};
-        const recKey = userId && !userId.startsWith("usr-") ? `rec-${userId}` : newRequest.id;
-        currentRecords[recKey] = {
-          id: recKey,
-          user_id: userId || "",
-          user_name: userName,
-          user_email: userEmail,
-          mt5_account_number: cleanNum,
-          broker_name: brokerLabel,
-          broker_server: `${brokerLabel}-Real`,
-          balance: 500,
-          equity: 500,
-          currency: "USD",
-          is_connected: true,
-          algo_execution_active: false,
-          is_under_tradifive: false,
-          ib_status: "pending_transfer",
-          ib_code: "TRDF940182",
-          transfer_path: setupPath === "transfer" ? "transfer_ib" : "new_account",
-          last_ib_check_at: new Date().toISOString(),
-          has_purchased: false,
-          algo_id: "fialgo_v1",
-          algo_name: "FiAlgo V1 (Gold Scalper & Trend)",
-          algo_manifest: "FiAlgo_v1.0.4.ex5",
-          algo_pair: "XAUUSD · M1",
-          purchase_tier: "None",
-          price_paid: 0,
-          payment_status: "pending",
-          purchase_date: "—",
-          binary_downloaded: false,
-          backtest_downloaded: false,
-          license_key: generatedLicKey,
-          license_status: "unissued",
-          license_expiry: "N/A",
-          allowed_accounts: 1,
-          bound_account: cleanNum,
-          admin_notes: `Account submitted for review with $500 balance proof (${proofFileName || "verification_proof.png"}).`,
-          created_at: new Date().toISOString()
-        };
-
-        const atOk = await setSystemSetting("auto_trade_admin_records", currentRecords);
-        if (!atOk) {
-          console.error("Failed to update auto_trade_admin_records");
-        }
-      } catch (adminRecErr) {
-        console.warn("Could not sync to auto_trade_admin_records:", adminRecErr);
-      }
-
-      // 3. Upsert to public.mt5_accounts
-      if (userId && !userId.startsWith("usr-")) {
-        const { data: existingMt5 } = await supabase
-          .from("mt5_accounts")
-          .select("id")
-          .eq("user_id", userId)
-          .maybeSingle();
-
-        if (existingMt5?.id) {
-          await supabase.from("mt5_accounts").update({
-            account_number: cleanNum,
-            activation_key: generatedLicKey,
-            broker_name: brokerLabel,
-            connection_status: "pending_verification",
-            algo_status: true
-          }).eq("id", existingMt5.id);
-        } else {
-          await supabase.from("mt5_accounts").insert({
-            user_id: userId,
-            account_number: cleanNum,
-            activation_key: generatedLicKey,
-            broker_name: brokerLabel,
-            connection_status: "pending_verification",
-            algo_status: true
-          });
-        }
-
-        // Also update user's profile with their generated activation key
-        try {
-          await supabase.from("profiles").update({
-            activation_key: generatedLicKey
-          }).eq("id", userId);
-        } catch (_) {}
-      }
-    } catch (err) {
-      console.warn("Submission error:", err);
-    }
-
-    setIsSubmittingProof(false);
-    setIsEditingAccount(false);
-    toast.success(`Verification Request Submitted for #${cleanNum}!`, {
-      description: `License key ${generatedLicKey} auto-generated & cryptographically locked to your MT5 account.`
-    });
-  };
-
-  const handleResetVerification = () => {
-    setIsEditingAccount(true);
-    setIbVerified(false);
-    setTransferRequestStatus("none");
-    if (!mt5Account) {
-      const savedAcc = localStorage.getItem("tradifive_connected_mt5_account");
-      if (savedAcc) setMt5Account(savedAcc);
-    }
-    toast.info("You can now edit your MT5 account number and resubmit.");
-  };
-
-  const handleCopy = (text: string, message = "Copied to clipboard!") => {
-    navigator.clipboard.writeText(text);
-    toast.success(message);
-  };
-
-  const handleCopyPartnerId = () => {
-    navigator.clipboard.writeText("MCTDw2R6");
-    setCopiedPartnerId(true);
-    toast.success("Referral Code MCTDw2R6 copied!");
-    setTimeout(() => setCopiedPartnerId(false), 2000);
-  };
-
-  const handleCopyKey = (key: string) => {
-    navigator.clipboard.writeText(key);
+  const handleCopyKey = () => {
+    navigator.clipboard.writeText(licenseKey);
     setCopiedKey(true);
-    toast.success("Activation Key copied to clipboard!");
+    playSound('success');
+    toast.success("License key copied to clipboard!");
     setTimeout(() => setCopiedKey(false), 2000);
   };
 
-  const handleDownloadEA = () => {
-    const cleanAccount = String(mt5Account || localStorage.getItem("tradifive_connected_mt5_account") || "").replace(/\D/g, "");
-    const activeKey = cleanAccount ? generateTradifiveLicenseKey(cleanAccount) : "";
+  const handleCopyPartnerMessage = () => {
+    const msg = `Hello Support, please transfer my MT5 account ${connectedAccount} under official Partner ID: 27863221. Thank you.`;
+    navigator.clipboard.writeText(msg);
+    setCopiedMsg(true);
+    playSound('click');
+    toast.success("Support transfer message copied!");
+    setTimeout(() => setCopiedMsg(false), 2000);
+  };
 
-    const a = document.createElement("a");
-    a.href = "/FiAlgo_v1.0.4.ex5";
-    a.download = "FiAlgo_v1.0.4.ex5";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-
-    setHasDownloaded(true);
-    localStorage.setItem("tradifive_ea_downloaded", "true");
-
-    if (cleanAccount && activeKey) {
-      toast.success(`FiAlgo EA Downloaded for Account #${cleanAccount}!`, {
-        description: `License Key is locked to MT5 Account #${cleanAccount}. Only this account can execute the EA.`
-      });
-    } else {
-      toast.success("FiAlgo_v1.0.4.ex5 downloaded! (Real 248 KB MT5 Binary)", {
-        description: "Official compiled Expert Advisor ready. Copy into your MetaTrader 5 MQL5/Experts folder."
-      });
+  const handleSaveMt5Account = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanNum = mt5InputAccount.trim().replace(/\D/g, "");
+    if (!cleanNum || cleanNum.length < 5) {
+      playSound('error');
+      toast.error("Please enter a valid 6 to 9-digit MT5 account number.");
+      return;
     }
-  };
 
-
-  const handleDownloadPreset = () => {
-    const cleanAccount = String(mt5Account || localStorage.getItem("tradifive_connected_mt5_account") || "").replace(/\D/g, "");
-    const activeKey = cleanAccount
-      ? generateTradifiveLicenseKey(cleanAccount)
-      : "";
-
-    const setContent = `; ═══════════════════════════════════════════════════════════════════
-; FiAlgo V1 - OFFICIAL INSTITUTIONAL PRESET (.set)
-; Asset: XAUUSD (Gold) | Timeframe: M1 (1-Minute)
-; Build: 1.0.4 Enterprise
-; Bound MT5 Account: #${cleanAccount || "All Accounts"}
-; ═══════════════════════════════════════════════════════════════════
-LicenseKey=${activeKey}
-Symbol=XAUUSD
-TimeFrame=PERIOD_M1
-TradingStyle=DynamicBasket
-BaseLot=0.01
-MaxSpread=25
-DynamicBasketMultiplier=1.20
-MaxBasketOrders=5
-DailyProfitTargetUSD=35.00
-HardDrawdownGuardPercent=3.00
-NewsFilterActive=true
-NewsPreBlackoutMinutes=30
-NewsPostBlackoutMinutes=30
-TrailingStopPoints=150
-MagicNumber=789104
-`;
-    const blob = new Blob([setContent], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = cleanAccount ? `XAUUSD_M1_Preset_${cleanAccount}.set` : "XAUUSD_M1_Preset.set";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-
-    toast.success("XAUUSD_M1_Preset.set downloaded!", {
-      description: activeKey
-        ? `Pre-configured with License Key for MT5 Account #${cleanAccount}.`
-        : "Optimized chart inputs preset ready to load into FiAlgo inputs."
-    });
-  };
-
-  const handlePayment = () => {
-    setIsPaying(true);
-    setTimeout(() => {
-      setIsPaying(false);
-      setHasPaid(true);
+    setConnectedAccount(cleanNum);
+    playSound('success');
+    try {
+      localStorage.setItem("tradifive_connected_mt5_account", cleanNum);
       localStorage.setItem("tradifive_auto_trade_setup", "true");
-      window.dispatchEvent(new Event("tradifive_auto_trade_setup_done"));
-      toast.success("License Activated Successfully!", {
-        description: "Your hardware-bound activation key is now live."
-      });
-    }, 1200);
-  };
-
-  const handleGoToDashboard = async () => {
-    const cleanAccount = mt5Account.trim().replace(/\D/g, "");
-    const selectedBrokerObj = BROKERS.find(b => b.id === selectedBroker);
-    const brokerName = selectedBrokerObj ? selectedBrokerObj.name : "Exness";
-    const licenseKey = generateTradifiveLicenseKey(cleanAccount);
+    } catch {}
 
     try {
-      const existing = localStorage.getItem("tradifive_ib_proof_request");
-      const parsed = existing ? JSON.parse(existing) : {};
-      parsed.mt5_account_number = cleanAccount;
-      parsed.broker_name = brokerName;
-      localStorage.setItem("tradifive_ib_proof_request", JSON.stringify(parsed));
-      localStorage.setItem("tradifive_connected_mt5_account", cleanAccount);
-      localStorage.setItem("tradifive_license_key", licenseKey);
-
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (session?.user?.id) {
-        await supabase
-          .from("profiles")
-          .update({ activation_key: licenseKey })
-          .eq("id", session.user.id);
-
-        const { data: existingMt5 } = await supabase
-          .from("mt5_accounts")
-          .select("id")
-          .eq("user_id", session.user.id)
-          .maybeSingle();
-
-        if (existingMt5?.id) {
-          await supabase
-            .from("mt5_accounts")
-            .update({
-              account_number: cleanAccount,
-              activation_key: licenseKey,
-              broker_server: brokerName,
-              connection_status: "deployed",
-              algo_status: true
-            })
-            .eq("id", existingMt5.id);
-        } else {
-          await supabase
-            .from("mt5_accounts")
-            .insert({
-              user_id: session.user.id,
-              account_number: cleanAccount,
-              activation_key: licenseKey,
-              broker_server: brokerName,
-              connection_status: "deployed",
-              algo_status: true
-            });
-        }
+        await supabase.from("mt5_accounts").upsert({
+          user_id: session.user.id,
+          account_number: cleanNum,
+          broker_name: selectedBroker,
+          connection_status: "connected",
+          algo_status: true,
+        });
       }
-    } catch (e) {
-      console.warn("Could not sync account to Supabase:", e);
-    }
+    } catch {}
 
-    localStorage.setItem("tradifive_auto_trade_setup", "true");
-    localStorage.setItem("tradifive_bot_status", "active");
-    window.dispatchEvent(new Event("tradifive_auto_trade_setup_done"));
-    toast.success(`FiAlgo Connected to MT5 #${cleanAccount}!`, {
-      description: "Loading your live AutoTrade dashboard..."
-    });
-    navigate('/auto-trade/dashboard');
+    setIsConnectModalOpen(false);
+    toast.success(`MT5 Account #${cleanNum} successfully linked! Engine active.`);
   };
 
-  const currentBroker = BROKERS.find(b => b.id === selectedBroker) || BROKERS[0];
-  const targetIbNumber = currentBroker.id === 'vantage' 
-    ? '27863221 (Referral Code: MCTDw2R6)' 
-    : (currentBroker.ibNumber || '27863221');
-  const emailTemplateText = `Subject: Change IB - MT5 Account #${mt5Account || "[Your MT5 Account]"}\n\nHello Support Team,\n\nPlease move my trading account under Partner IB / Rebate Account: ${targetIbNumber}.\n\nThank you.`;
-  const mailtoLink = `mailto:${currentBroker.supportEmail}?subject=${encodeURIComponent(`Change IB - MT5 Account #${mt5Account || ""}`)}&body=${encodeURIComponent(emailTemplateText)}`;
+  const handleClosePosition = (ticket: string) => {
+    const pos = openPositions.find((p) => p.ticket === ticket);
+    if (!pos) return;
 
-  const displayAccountLabel = mt5Account && mt5Account !== "See Proof Screenshot" 
-    ? `#${mt5Account}` 
-    : "Pending Review";
+    setOpenPositions((prev) => prev.filter((p) => p.ticket !== ticket));
+    setClosedTrades((prev) => [
+      {
+        ticket: pos.ticket,
+        symbol: pos.symbol,
+        type: pos.type,
+        lots: pos.lots,
+        openPrice: pos.openPrice,
+        closePrice: pos.currentPrice,
+        profit: pos.profit,
+        time: "Just now",
+        strategy: pos.strategy,
+        status: pos.profit >= 0 ? "Won" : "Lost",
+      },
+      ...prev,
+    ]);
+    toast.success(
+      `Position #${ticket} on ${pos.symbol} closed (${pos.profit >= 0 ? "+" : ""}$${pos.profit.toFixed(2)})`
+    );
+  };
+
+  const activeBalanceData = ACCOUNT_BALANCE_DATA_MAP[balanceTimeframe];
 
   return (
-    <DashboardLayout breadcrumbs={[{ label: "Auto Trade", path: "/auto-trade" }, { label: "Setup" }]}>
-      <div className="w-full max-w-7xl mx-auto pb-12 font-sans">
-        
-        {/* ── 2-COLUMN WORKFLOW: VERTICAL STEPPER (LEFT) & ACTIVE STEP CONTENT (RIGHT) ── */}
-        <div className="flex flex-col md:flex-row items-start gap-6 lg:gap-10 relative">
-          
-          {/* ── LEFT COLUMN: VERTICAL STEPPER SIDEBAR (MATCHED TO FIALGO WORKSPACE) ── */}
-          <aside className="w-full md:w-64 lg:w-72 shrink-0 py-2 border-b md:border-b-0 md:border-r border-white/5 md:pr-6 md:mr-1 md:sticky md:top-4 md:self-start">
-            <div className="space-y-5">
-              <div className="px-1 space-y-1">
-                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500 block">
-                  SETUP PROCESS
-                </span>
-                <h3 className="text-base sm:text-lg font-bold text-white tracking-tight font-sans">
-                  FiAlgo V1 Activation
-                </h3>
-                <p className="text-xs text-neutral-400 leading-relaxed">
-                  Follow these 4 steps to link broker and activate automated trading.
+    <DashboardLayout>
+      <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0E0E0E] text-slate-800 dark:text-slate-100 font-sans pb-16">
+        {/* ─── TOP HEADER BAR ────────────────────────────────────────────── */}
+        <header className="border-b border-slate-200/80 dark:border-white/5 bg-white/80 dark:bg-[#121212]/80 backdrop-blur-md sticky top-0 z-30 px-4 sm:px-8 py-3.5">
+          <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
+            {/* Title & Live Status Beacon */}
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20 shrink-0">
+                <Cpu size={22} className="animate-pulse" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2.5">
+                  <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
+                    AutoTrade Engine
+                  </h1>
+                  <span
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider ${
+                      isAgentRunning
+                        ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+                        : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
+                    }`}
+                  >
+                    <span
+                      className={`w-1.5 h-1.5 rounded-full ${
+                        isAgentRunning ? "bg-emerald-500 animate-ping" : "bg-amber-500"
+                      }`}
+                    />
+                    {isAgentRunning ? "Engine Running" : "Engine Standby"}
+                  </span>
+                </div>
+                <p className="text-[12.5px] text-slate-500 dark:text-slate-400 font-medium">
+                  FiAlgo V1.4 High-Frequency Execution · {latencyMs}ms Latency (London LD4)
                 </p>
               </div>
+            </div>
 
-              {/* Vertical Stepper Timeline (Clean, Minimal & High Clarity) */}
-              <div className="relative pt-3 flex flex-col justify-between space-y-7 sm:space-y-8">
-                {/* STEP 1 NODE */}
-                <div 
-                  onClick={() => setActiveStep(1)}
-                  className="group flex items-start gap-3 relative cursor-pointer transition-all select-none"
-                >
-                  {/* Connecting Line to Step 2 */}
-                  <div className={`absolute left-[13px] top-7 -bottom-7 sm:-bottom-8 w-[2px] transition-colors ${
-                    ibVerified ? "bg-emerald-500" : activeStep >= 2 ? "bg-blue-500/50" : "bg-white/10"
-                  }`} />
-                  
-                  {/* Circle Indicator (28px) */}
-                  <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 z-10 text-xs font-semibold transition-all ${
-                    ibVerified
-                      ? "bg-emerald-500 text-white shadow-[0_0_12px_rgba(16,185,129,0.4)]"
-                      : activeStep === 1
-                        ? "bg-gradient-to-tr from-blue-600 to-indigo-600 text-white ring-4 ring-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.4)] font-bold"
-                        : "bg-[#18181A] text-neutral-500 border border-white/10"
-                  }`}>
-                    {ibVerified ? <Check size={13} strokeWidth={2.8} /> : "1"}
-                  </div>
-                  
-                  {/* Clean Step Label + Single Subtitle */}
-                  <div className="pt-0.5 min-w-0 flex-1">
-                    <span className={`block text-xs font-semibold leading-tight transition-colors ${
-                      activeStep === 1
-                        ? "text-white font-bold"
-                        : ibVerified
-                          ? "text-neutral-200"
-                          : "text-neutral-400 group-hover:text-white"
-                    }`}>
-                      Connect Broker
-                    </span>
-                    <p className={`mt-0.5 text-[11px] truncate font-medium ${
-                      ibVerified ? "text-emerald-400" : "text-neutral-500"
-                    }`}>
-                      {ibVerified ? `✓ MT5 #${mt5Account || "Linked"}` : mt5Account ? `MT5 #${mt5Account}` : "Link MT5 broker ($500+)"}
-                    </p>
-                  </div>
-                </div>
+            {/* ACTION BUTTONS (Matching Reference Image 2 Pill Design) */}
+            <div className="flex items-center gap-2.5 flex-wrap">
+              {/* White Pill 1: Connect Account */}
+              <button
+                type="button"
+                onClick={() => {
+                  playSound('modalOpen');
+                  setIsConnectModalOpen(true);
+                }}
+                className="bg-white dark:bg-[#1E1E1E] text-slate-800 dark:text-white border border-slate-200/90 dark:border-white/10 px-4 py-2 rounded-full font-medium text-[13.5px] shadow-[0_1px_3px_rgba(0,0,0,0.06)] hover:bg-slate-50 dark:hover:bg-[#252525] transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer"
+              >
+                <Wallet size={15} className="text-slate-500 dark:text-slate-400" />
+                <span>+ Connect MT5</span>
+              </button>
 
-                {/* STEP 2 NODE */}
-                <div 
-                  onClick={() => setActiveStep(2)}
-                  className="group flex items-start gap-3 relative cursor-pointer transition-all select-none"
-                >
-                  {/* Connecting Line to Step 3 */}
-                  <div className={`absolute left-[13px] top-7 -bottom-7 sm:-bottom-8 w-[2px] transition-colors ${
-                    hasDownloaded ? "bg-emerald-500" : activeStep >= 3 ? "bg-blue-500/50" : "bg-white/10"
-                  }`} />
-                  
-                  <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 z-10 text-xs font-semibold transition-all ${
-                    hasDownloaded
-                      ? "bg-emerald-500 text-white shadow-[0_0_12px_rgba(16,185,129,0.4)]"
-                      : activeStep === 2
-                        ? "bg-gradient-to-tr from-blue-600 to-indigo-600 text-white ring-4 ring-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.4)] font-bold"
-                        : "bg-[#18181A] text-neutral-500 border border-white/10"
-                  }`}>
-                    {hasDownloaded ? <Check size={13} strokeWidth={2.8} /> : "2"}
-                  </div>
-                  
-                  <div className="pt-0.5 min-w-0 flex-1">
-                    <span className={`block text-xs font-semibold leading-tight transition-colors ${
-                      activeStep === 2
-                        ? "text-white font-bold"
-                        : hasDownloaded
-                          ? "text-neutral-200"
-                          : "text-neutral-400 group-hover:text-white"
-                    }`}>
-                      Download EA
-                    </span>
-                    <p className={`mt-0.5 text-[11px] truncate font-medium ${
-                      hasDownloaded ? "text-emerald-400" : "text-neutral-500"
-                    }`}>
-                      {hasDownloaded ? "✓ FiAlgo V1 (.ex5)" : "FiAlgo V1 MT5 Binary"}
-                    </p>
-                  </div>
-                </div>
+              {/* White Pill 2: Activate License Key */}
+              <button
+                type="button"
+                onClick={() => {
+                  playSound('modalOpen');
+                  setIsLicenseModalOpen(true);
+                }}
+                className="bg-white dark:bg-[#1E1E1E] text-slate-800 dark:text-white border border-slate-200/90 dark:border-white/10 px-4 py-2 rounded-full font-medium text-[13.5px] shadow-[0_1px_3px_rgba(0,0,0,0.06)] hover:bg-slate-50 dark:hover:bg-[#252525] transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer"
+              >
+                <ShieldCheck size={15} className="text-blue-500" />
+                <span>Activate License Key</span>
+              </button>
 
-                {/* STEP 3 NODE */}
-                <div 
-                  onClick={() => setActiveStep(3)}
-                  className="group flex items-start gap-3 relative cursor-pointer transition-all select-none"
-                >
-                  {/* Connecting Line to Step 4 */}
-                  <div className={`absolute left-[13px] top-7 -bottom-7 sm:-bottom-8 w-[2px] transition-colors ${
-                    paymentStatus === "approved" ? "bg-emerald-500" : activeStep >= 4 ? "bg-blue-500/50" : "bg-white/10"
-                  }`} />
-                  
-                  <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 z-10 text-xs font-semibold transition-all ${
-                    paymentStatus === "approved"
-                      ? "bg-emerald-500 text-white shadow-[0_0_12px_rgba(16,185,129,0.4)]"
-                      : activeStep === 3
-                        ? "bg-gradient-to-tr from-blue-600 to-indigo-600 text-white ring-4 ring-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.4)] font-bold"
-                        : "bg-[#18181A] text-neutral-500 border border-white/10"
-                  }`}>
-                    {paymentStatus === "approved" ? <Check size={13} strokeWidth={2.8} /> : "3"}
-                  </div>
-                  
-                  <div className="pt-0.5 min-w-0 flex-1">
-                    <span className={`block text-xs font-semibold leading-tight transition-colors ${
-                      activeStep === 3
-                        ? "text-white font-bold"
-                        : paymentStatus === "approved"
-                          ? "text-neutral-200"
-                          : "text-neutral-400 group-hover:text-white"
-                    }`}>
-                      Plan &amp; Payment
-                    </span>
-                    <p className={`mt-0.5 text-[11px] truncate font-medium ${
-                      paymentStatus === "approved" ? "text-emerald-400" : "text-neutral-500"
-                    }`}>
-                      {paymentStatus === "approved" 
-                        ? "✓ Pass Active" 
-                        : selectedTier === "three_years" 
-                          ? "₹1,00,000 (3-Yr Pass)" 
-                          : "₹10,000 (Profit Share)"}
-                    </p>
-                  </div>
-                </div>
+              {/* White Pill 3: Pause / Resume Toggle */}
+              <button
+                type="button"
+                onClick={toggleAgent}
+                className="bg-white dark:bg-[#1E1E1E] text-slate-800 dark:text-white border border-slate-200/90 dark:border-white/10 px-4 py-2 rounded-full font-medium text-[13.5px] shadow-[0_1px_3px_rgba(0,0,0,0.06)] hover:bg-slate-50 dark:hover:bg-[#252525] transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer"
+              >
+                {isAgentRunning ? (
+                  <>
+                    <Pause size={14} className="text-amber-500" />
+                    <span>Pause Agent</span>
+                  </>
+                ) : (
+                  <>
+                    <Play size={14} className="text-emerald-500" />
+                    <span>Run Agent</span>
+                  </>
+                )}
+              </button>
 
-                {/* STEP 4 NODE */}
-                <div 
-                  onClick={() => setActiveStep(4)}
-                  className="group flex items-start gap-3 relative cursor-pointer transition-all select-none"
-                >
-                  <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 z-10 text-xs font-semibold transition-all ${
-                    hasPaid && ibVerified
-                      ? "bg-emerald-500 text-white shadow-[0_0_12px_rgba(16,185,129,0.4)]"
-                      : activeStep === 4
-                        ? "bg-gradient-to-tr from-blue-600 to-indigo-600 text-white ring-4 ring-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.4)] font-bold"
-                        : "bg-[#18181A] text-neutral-500 border border-white/10"
-                  }`}>
-                    {(hasPaid && ibVerified) ? <Check size={13} strokeWidth={2.8} /> : "4"}
-                  </div>
-                  
-                  <div className="pt-0.5 min-w-0 flex-1">
-                    <span className={`block text-xs font-semibold leading-tight transition-colors ${
-                      activeStep === 4
-                        ? "text-white font-bold"
-                        : (hasPaid && ibVerified)
-                          ? "text-neutral-200"
-                          : "text-neutral-400 group-hover:text-white"
-                    }`}>
-                      Activate Key
-                    </span>
-                    <p className={`mt-0.5 text-[11px] truncate font-medium ${
-                      (hasPaid && ibVerified) ? "text-emerald-400" : "text-neutral-500"
-                    }`}>
-                      {(hasPaid && ibVerified) ? "✓ Ready to Trade" : "Hardware-Bound MT5 Key"}
-                    </p>
-                  </div>
+              {/* Dark Solid Pill (Image 2 right button style): Status Indicator */}
+              <div
+                className={`px-5 py-2 rounded-full font-semibold text-[13.5px] shadow-[0_2px_6px_rgba(0,0,0,0.18)] transition-all flex items-center gap-2 select-none ${
+                  isAgentRunning
+                    ? "bg-[#111] dark:bg-white text-white dark:text-[#111]"
+                    : "bg-slate-700 text-slate-300"
+                }`}
+              >
+                <span
+                  className={`w-2 h-2 rounded-full ${
+                    isAgentRunning ? "bg-emerald-400 animate-pulse" : "bg-amber-400"
+                  }`}
+                />
+                <span>{isAgentRunning ? "Agent Active" : "Standby"}</span>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* ─── MAIN DASHBOARD CONTENT ────────────────────────────────────── */}
+        <main className="max-w-7xl mx-auto px-4 sm:px-8 pt-6 space-y-6">
+          {/* Quick Account Connection Banner */}
+          <div className="bg-gradient-to-r from-blue-600/10 via-indigo-600/5 to-transparent border border-blue-500/20 rounded-2xl p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center gap-3.5">
+              <div className="w-11 h-11 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-blue-500/30">
+                <Activity size={22} />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-slate-900 dark:text-white text-[15px]">
+                    MT5 Account #{connectedAccount}
+                  </span>
+                  <span className="px-2 py-0.5 rounded-md text-[11px] font-bold bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300">
+                    Exness Real-5
+                  </span>
                 </div>
+                <p className="text-[12.5px] text-slate-500 dark:text-slate-400 mt-0.5">
+                  Partner ID: <span className="font-mono font-semibold text-slate-700 dark:text-slate-200">27863221</span> · 0% Profit Share Pass Active
+                </p>
               </div>
             </div>
 
-          </aside>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setIsConnectModalOpen(true)}
+                className="bg-white dark:bg-[#1E1E1E] text-slate-800 dark:text-white border border-slate-200/90 dark:border-white/10 px-3.5 py-1.5 rounded-full font-medium text-[12.5px] shadow-sm hover:bg-slate-50 dark:hover:bg-[#252525] transition-all cursor-pointer flex items-center gap-1.5"
+              >
+                Change Broker
+              </button>
+              <button
+                type="button"
+                onClick={handleCopyPartnerMessage}
+                className="bg-white dark:bg-[#1E1E1E] text-slate-800 dark:text-white border border-slate-200/90 dark:border-white/10 px-3.5 py-1.5 rounded-full font-medium text-[12.5px] shadow-sm hover:bg-slate-50 dark:hover:bg-[#252525] transition-all cursor-pointer flex items-center gap-1.5"
+              >
+                {copiedMsg ? <Check size={13} className="text-emerald-500" /> : <Copy size={13} />}
+                <span>{copiedMsg ? "Copied!" : "Copy IB Message"}</span>
+              </button>
+            </div>
+          </div>
 
-          {/* ── RIGHT COLUMN: ACTIVE STEP CONTENT ── */}
-          <div className="flex-1 min-w-0 space-y-4">
-            
-            {/* Top Back Navigation Bar (Matched to Reference Image - Sticky on Scroll) */}
-            <div className="sticky top-0 z-20 bg-[#121214]/90 backdrop-blur-md py-2 flex items-center justify-between border-b border-white/5">
-              {activeStep > 1 ? (
-                <button
-                  type="button"
-                  onClick={() => setActiveStep(activeStep - 1)}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-neutral-400 hover:text-white transition-colors cursor-pointer"
-                >
-                  <ArrowLeft size={13} />
-                  <span>Back</span>
-                </button>
-              ) : <div />}
-
-              <span className="text-[11.5px] font-medium text-neutral-500">
-                Step {activeStep} of 4
-              </span>
+          {/* ─── 4 TOP SUMMARY METRIC CARDS ──────────────────────────────── */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Metric 1: Daily Profit & Loss */}
+            <div className="bg-white dark:bg-[#161616] border border-slate-200/80 dark:border-white/5 rounded-2xl p-5 shadow-sm">
+              <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
+                <span className="text-[13px] font-semibold">Today's P&L</span>
+                <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                  <TrendingUp size={12} />
+                  +2.41%
+                </span>
+              </div>
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl sm:text-3xl font-extrabold text-emerald-600 dark:text-emerald-400 tracking-tight font-sans">
+                  +$482.50
+                </span>
+              </div>
+              <div className="mt-3 flex items-center justify-between text-[11.5px] text-slate-500 dark:text-slate-400">
+                <span>Daily Target: $500.00</span>
+                <span className="font-semibold text-slate-700 dark:text-slate-200">96.5% achieved</span>
+              </div>
+              <div className="w-full bg-slate-100 dark:bg-neutral-800 h-1.5 rounded-full overflow-hidden mt-1.5">
+                <div className="bg-emerald-500 h-full rounded-full w-[96.5%]" />
+              </div>
             </div>
 
-            {/* Step Heading (Clean, Consistent with Dashboard & Settlements) */}
-            <div className="space-y-1">
-              <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-                {activeStep === 1 && "Connect MT5 Account"}
-                {activeStep === 2 && "Download FiAlgo V1"}
-                {activeStep === 3 && "Select Plan & Payment"}
-                {activeStep === 4 && "Activate License Key"}
-              </h2>
-              <p className="text-xs sm:text-sm text-neutral-400">
-                {activeStep === 1 && "Complete these steps to link your broker and prepare your automated trading setup."}
-                {activeStep === 2 && "Download the official compiled Expert Advisor file to run directly on MetaTrader 5."}
-                {activeStep === 3 && "Choose your preferred license model and complete verification to unlock your key."}
-                {activeStep === 4 && "Your personal cryptographic license key is bound and ready to trade."}
+            {/* Metric 2: Total Net Profit */}
+            <div className="bg-white dark:bg-[#161616] border border-slate-200/80 dark:border-white/5 rounded-2xl p-5 shadow-sm">
+              <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
+                <span className="text-[13px] font-semibold">Net Profit (All-Time)</span>
+                <span className="p-1.5 rounded-lg bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                  <DollarSign size={14} />
+                </span>
+              </div>
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl sm:text-3xl font-extrabold text-blue-600 dark:text-blue-400 tracking-tight font-sans">
+                  +$3,155.00
+                </span>
+              </div>
+              <p className="text-[12px] text-slate-500 dark:text-slate-400 mt-3 flex items-center gap-1">
+                Account Balance: <span className="font-semibold text-slate-800 dark:text-slate-200">$28,155.00</span>
               </p>
             </div>
 
-            {activeStep === 1 && (
-          <motion.div
-            key="step1"
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            className="rounded-2xl border border-white/5 bg-[#1E1E1E] shadow-2xl p-5 sm:p-7 space-y-5"
-          >
-            <div className="flex items-center justify-between pb-3.5 border-b border-white/5">
-              <div className="flex items-center gap-2">
-                <span className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-purple-500/10 text-purple-300 border border-purple-500/20">
-                  Broker Integration
-                </span>
-                <span className="text-xs text-neutral-400 hidden sm:inline">
-                  Select whether you need a new broker account or already have one
+            {/* Metric 3: Agent Live Status & Telemetry */}
+            <div className="bg-white dark:bg-[#161616] border border-slate-200/80 dark:border-white/5 rounded-2xl p-5 shadow-sm">
+              <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
+                <span className="text-[13px] font-semibold">Agent Telemetry</span>
+                <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                  Live Socket
                 </span>
               </div>
-
-              {ibVerified && (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 shrink-0">
-                  <CheckCircle2 size={13} />
-                  Connected
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight font-sans">
+                  {isAgentRunning ? "RUNNING" : "PAUSED"}
                 </span>
-              )}
+              </div>
+              <p className="text-[12px] text-slate-500 dark:text-slate-400 mt-3 flex items-center gap-1">
+                <Clock size={12} />
+                Last check: <span className="font-semibold text-slate-700 dark:text-slate-200">{lastUpdateSecs}s ago</span>
+              </p>
             </div>
 
-            {/* STATE 1A: ALREADY VERIFIED */}
-            {ibVerified ? (
-              <div className="space-y-4">
-                <div className="p-4 sm:p-5 rounded-xl bg-emerald-500/[0.06] border border-emerald-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0">
-                      <CheckCircle2 size={22} />
+            {/* Metric 4: Win Rate & Risk Guard */}
+            <div className="bg-white dark:bg-[#161616] border border-slate-200/80 dark:border-white/5 rounded-2xl p-5 shadow-sm">
+              <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
+                <span className="text-[13px] font-semibold">Algo Win Rate</span>
+                <span className="p-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                  <ShieldCheck size={14} />
+                </span>
+              </div>
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight font-sans">
+                  63.0%
+                </span>
+                <span className="text-[13px] font-semibold text-slate-500">16 Closed Trades</span>
+              </div>
+              <p className="text-[12px] text-slate-500 dark:text-slate-400 mt-3">
+                Max DD: <span className="font-semibold text-slate-800 dark:text-slate-200">2.1%</span> · Profit Factor: <span className="font-semibold text-slate-800 dark:text-slate-200">3.42</span>
+              </p>
+            </div>
+          </div>
+
+          {/* ─── TWO PREMIUM GRAPH CARDS WITH SHADES (MATCHING USER IMAGE) ── */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* 1. LEFT CARD: CUMULATIVE P&L (WITH BLUE GRADIENT SHADES & DASHED $0 BASELINE) */}
+            <div className="bg-white dark:bg-[#161616] border border-slate-200/80 dark:border-white/5 rounded-2xl p-6 shadow-[0_2px_12px_rgba(0,0,0,0.03)] flex flex-col justify-between">
+              <div>
+                {/* Header Row */}
+                <div className="flex items-start justify-between">
+                  <div>
+                    <div className="flex items-center gap-1.5 text-blue-600 dark:text-blue-400">
+                      <TrendingUp size={18} strokeWidth={2.4} />
+                      <h3 className="font-bold text-[16.5px] text-slate-900 dark:text-white">
+                        Cumulative P&L
+                      </h3>
                     </div>
-                    <div>
-                      <h4 className="text-sm font-bold text-white">
-                        MT5 Account {displayAccountLabel} Connected &amp; Verified
-                      </h4>
-                      <p className="text-xs text-neutral-400 mt-0.5">
-                        Broker: <strong>{currentBroker.name}</strong> · Partner IB: <strong className="font-mono">{currentBroker.ibNumber || "27863221"}</strong> · Balance: <strong className="text-emerald-400">$500+ Qualified</strong>
-                      </p>
-                    </div>
+                    <p className="text-[12.5px] text-slate-400 dark:text-slate-500 mt-0.5">
+                      Closed trade equity curve · All time
+                    </p>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={handleResetVerification}
-                    className="text-xs font-semibold text-neutral-400 hover:text-rose-400 transition-colors self-start sm:self-center cursor-pointer"
-                  >
-                    Change Account
-                  </button>
-                </div>
-
-                <div className="pt-1 flex justify-end">
-                  <button
-                    type="button"
-                    onClick={() => setActiveStep(2)}
-                    className="w-full sm:w-auto px-6 py-3 rounded-xl text-xs sm:text-sm font-bold bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 text-white inline-flex items-center justify-center gap-2 cursor-pointer shadow-[0_0_25px_rgba(168,85,247,0.35)] active:scale-[0.985] transition-all border-none"
-                  >
-                    <span>Continue to Step 2: Download FiAlgo V1</span>
-                    <ArrowRight size={14} />
-                  </button>
-                </div>
-              </div>
-            ) : transferRequestStatus === "pending" ? (
-              /* STATE 1B: UNDER REVIEW - SYSTEMIC FIALGO FINTECH DESIGN */
-              <div className="space-y-4">
-                <div className="p-4 sm:p-5 rounded-2xl bg-[#161618] border border-white/5 space-y-4">
-                  
-                  {/* Status Header */}
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center shrink-0 mt-0.5 border border-amber-500/20">
-                        <Clock size={18} />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h3 className="text-sm sm:text-base font-bold text-white">
-                            Account {displayAccountLabel} Under Review
-                          </h3>
-                        </div>
-                        <p className="text-xs text-neutral-400 mt-0.5 leading-relaxed">
-                          Verifying partner IB link and $500+ balance with {currentBroker.name}.
-                        </p>
-                      </div>
-                    </div>
-
-                    <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-amber-300 bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/25 shrink-0">
-                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                      <span>~1–2 hours</span>
+                  <div className="text-right">
+                    <span className="text-xl sm:text-2xl font-bold text-blue-600 dark:text-blue-400 tracking-tight font-sans">
+                      +$3,155
+                    </span>
+                    <span className="block text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                      NET
                     </span>
                   </div>
+                </div>
 
-                  {/* 3-Cell Parameter Row */}
-                  <div className="grid grid-cols-3 gap-2 p-3 rounded-xl bg-[#121214] border border-white/5 text-xs">
-                    <div>
-                      <span className="text-[10px] uppercase font-bold text-neutral-500 block tracking-wider">Broker</span>
-                      <div className="flex items-center gap-1.5 mt-1">
-                        <BrokerLogo id={selectedBroker} size={14} />
-                        <strong className="text-xs text-neutral-200 truncate">{currentBroker.name}</strong>
-                      </div>
-                    </div>
-
-                    <div>
-                      <span className="text-[10px] uppercase font-bold text-neutral-500 block tracking-wider">Partner IB</span>
-                      <strong className="font-mono text-xs text-neutral-200 mt-1 block">
-                        {currentBroker.ibNumber || "27863221"}
-                      </strong>
-                    </div>
-
-                    <div>
-                      <span className="text-[10px] uppercase font-bold text-neutral-500 block tracking-wider">Required Min.</span>
-                      <strong className="text-xs text-neutral-200 mt-1 block">
-                        $500 USD
-                      </strong>
-                    </div>
-                  </div>
-
-                  {/* Attached Proof thumbnail if available */}
-                  {proofFile && (
-                    <div className="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-[#121214] border border-white/5 text-xs">
-                      <div className="flex items-center gap-2 truncate">
-                        <ImageIcon size={13} className="text-neutral-400 shrink-0" />
-                        <span className="text-neutral-300 truncate text-[11.5px]">
-                          {proofFileName || "Deposit verification screenshot"}
-                        </span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setShowProofPreviewModal(true)}
-                        className="text-xs font-semibold text-purple-400 hover:text-purple-300 hover:underline shrink-0 cursor-pointer ml-2"
-                      >
-                        View Screenshot
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Fast-Track Support Desk */}
-                  <div className="p-3.5 sm:p-4 rounded-xl bg-[#121214] border border-white/5 space-y-2.5 text-xs">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-white text-xs">
-                        Need instant verification?
-                      </span>
-                      <span className="text-[10px] font-semibold text-neutral-400 bg-white/10 px-2 py-0.5 rounded-full">
-                        24/7 Priority
-                      </span>
-                    </div>
-                    <p className="text-[11.5px] text-neutral-400 leading-relaxed">
-                      Ping our desk on Live Support or Email with your MT5 ID to get approved within minutes:
-                    </p>
-                    <div className="grid grid-cols-2 gap-2 pt-0.5">
-                      <a
-                        href={`https://wa.me/?text=${encodeURIComponent(
-                          `Hello FiAlgo Team! Please verify my Vantage MT5 account #${mt5Account} ($500+ deposit funded) under Partner IB 27863221 so I can activate FiAlgo V1.`
-                        )}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="btn-fialgo-primary"
-                      >
-                        <Headset size={14} />
-                        <span>Live Support</span>
-                      </a>
-                      <a
-                        href={`mailto:support@fialgo.trade?subject=Verify MT5 Account ${mt5Account}&body=Hello Support Team,%0D%0A%0D%0APlease verify my MT5 account %23${mt5Account} with minimum $500 balance under Partner IB 27863221.%0D%0A%0D%0AThank you!`}
-                        className="btn-fialgo-secondary"
-                      >
-                        <Mail size={14} className="text-neutral-400" />
-                        <span>Email Desk</span>
-                      </a>
-                    </div>
-                  </div>
-
-                  {/* Informative Next Step Banner & Primary CTA */}
-                  <div className="p-3.5 sm:p-4 rounded-xl bg-purple-500/[0.06] border border-purple-500/20 space-y-3">
-                    <div className="flex items-start gap-2.5">
-                      <div className="w-6 h-6 rounded-lg bg-purple-500/15 text-purple-300 flex items-center justify-center shrink-0 mt-0.5">
-                        <Download size={13} />
-                      </div>
-                      <p className="text-xs text-neutral-300 leading-relaxed">
-                        You can download the <strong>FiAlgo V1</strong> MT5 EA and presets right now while our desk confirms your connection.
-                      </p>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => setActiveStep(2)}
-                      className="btn-fialgo-primary w-full py-3.5"
+                {/* The Shaded Area Chart with Dashed Baseline */}
+                <div className="h-[250px] w-full mt-4">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart
+                      data={CUMULATIVE_PNL_DATA}
+                      margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
                     >
-                      <span>Continue to Step 2: Download FiAlgo V1</span>
-                      <ArrowRight size={14} />
-                    </button>
-                  </div>
-
-                  {/* Secondary Footers: Change Account */}
-                  <div className="flex items-center justify-between gap-3 pt-1 border-t border-white/5 text-xs">
-                    <button
-                      type="button"
-                      onClick={handleResetVerification}
-                      className="text-xs font-medium text-neutral-400 hover:text-rose-400 transition-colors cursor-pointer"
-                    >
-                      ← Change MT5 Account
-                    </button>
-                  </div>
+                      <defs>
+                        {/* High-end smooth gradient shade fading into pure background */}
+                        <linearGradient id="pnlShadeGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#2563EB" stopOpacity={0.22} />
+                          <stop offset="65%" stopColor="#2563EB" stopOpacity={0.06} />
+                          <stop offset="100%" stopColor="#2563EB" stopOpacity={0.0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        vertical={false}
+                        stroke="rgba(226, 232, 240, 0.6)"
+                      />
+                      <XAxis
+                        dataKey="date"
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: "#94A3B8", fontSize: 11.5, fontWeight: 500 }}
+                      />
+                      <YAxis
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: "#94A3B8", fontSize: 11.5, fontWeight: 500 }}
+                        tickFormatter={(val) => `$${val >= 1000 ? `${(val / 1000).toFixed(0)}k` : val}`}
+                        domain={[-100, 4000]}
+                      />
+                      <Tooltip
+                        content={({ active, payload }) => {
+                          if (active && payload && payload.length) {
+                            const data = payload[0].payload;
+                            return (
+                              <div className="bg-white dark:bg-[#1E1E1E] p-2.5 rounded-xl border border-slate-200/80 dark:border-white/10 shadow-lg text-[12px] font-sans">
+                                <p className="font-bold text-slate-800 dark:text-white mb-0.5">{data.date}</p>
+                                <p className="text-blue-600 font-bold">
+                                  Cumulative P&L: +${data.pnl.toLocaleString()}
+                                </p>
+                              </div>
+                            );
+                          }
+                          return null;
+                        }}
+                      />
+                      {/* Dotted horizontal baseline at $0 */}
+                      <ReferenceLine y={0} stroke="#CBD5E1" strokeDasharray="3 3" />
+                      <Area
+                        type="monotone"
+                        dataKey="pnl"
+                        stroke="#2563EB"
+                        strokeWidth={2.4}
+                        fillOpacity={1}
+                        fill="url(#pnlShadeGradient)"
+                        activeDot={{ r: 5, fill: "#2563EB", stroke: "#fff", strokeWidth: 2 }}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
                 </div>
               </div>
-            ) : (
-              /* STATE 1C: SIMPLE 3-STEP FLOW */
-              <div className="space-y-4">
-                {isEditingAccount && (
-                  <div className="flex items-center justify-between p-3 rounded-xl bg-purple-500/10 border border-purple-500/25 text-xs">
-                    <div className="flex items-center gap-2 text-purple-300 font-semibold">
-                      <Sliders size={14} />
-                      <span>Editing MT5 Account Number</span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setIsEditingAccount(false)}
-                      className="text-xs text-neutral-400 hover:text-white underline cursor-pointer"
-                    >
-                      Cancel &amp; Keep Current Account
-                    </button>
-                  </div>
-                )}
 
-                {/* 2-Option Segmented Control */}
-                <div className="grid grid-cols-2 gap-2 p-1.5 bg-[#141416] border border-white/5 rounded-full text-xs font-bold">
+              {/* Footer Row (Matching Image 1:1) */}
+              <div className="pt-4 mt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[12.5px] text-slate-500 dark:text-slate-400">
+                <span>
+                  Win rate <strong className="text-slate-800 dark:text-white font-bold">63%</strong>
+                </span>
+                <span>16 closed trades</span>
+              </div>
+            </div>
+
+            {/* 2. RIGHT CARD: ACCOUNT BALANCE (WITH TIME SELECTOR, BLUE SHADES & BASELINE) */}
+            <div className="bg-white dark:bg-[#161616] border border-slate-200/80 dark:border-white/5 rounded-2xl p-6 shadow-[0_2px_12px_rgba(0,0,0,0.03)] flex flex-col justify-between">
+              <div>
+                {/* Header Row */}
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h3 className="font-bold text-[16.5px] text-slate-900 dark:text-white">
+                      Account Balance
+                    </h3>
+                    <div className="flex items-center gap-3 mt-1.5 text-[12px] text-slate-500 dark:text-slate-400">
+                      <span className="flex items-center gap-1.5 font-medium">
+                        <span className="w-2.5 h-2.5 rounded-full bg-blue-600" />
+                        Balance
+                      </span>
+                      <span className="flex items-center gap-1.5 font-medium">
+                        <span className="w-2.5 h-2.5 rounded-full bg-slate-400" />
+                        Deposits
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Timeframe pill selector (Image 1 style) */}
+                  <div className="inline-flex p-0.5 rounded-lg bg-slate-100 dark:bg-neutral-800/80 border border-slate-200/60 dark:border-white/5">
+                    {(["1W", "1M", "All"] as const).map((tf) => (
+                      <button
+                        key={tf}
+                        type="button"
+                        onClick={() => {
+                          playSound('tab');
+                          setBalanceTimeframe(tf);
+                        }}
+                        className={`px-3 py-1 rounded-md text-[11.5px] font-bold transition-all cursor-pointer ${
+                          balanceTimeframe === tf
+                            ? "bg-white dark:bg-[#262626] text-slate-900 dark:text-white shadow-xs"
+                            : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
+                        }`}
+                      >
+                        {tf}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* The Shaded Area Chart with Dashed Starting Deposit Baseline */}
+                <div className="h-[250px] w-full mt-4">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart
+                      data={activeBalanceData}
+                      margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
+                    >
+                      <defs>
+                        <linearGradient id="balanceShadeGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#2563EB" stopOpacity={0.24} />
+                          <stop offset="65%" stopColor="#2563EB" stopOpacity={0.06} />
+                          <stop offset="100%" stopColor="#2563EB" stopOpacity={0.0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        vertical={false}
+                        stroke="rgba(226, 232, 240, 0.6)"
+                      />
+                      <XAxis
+                        dataKey="date"
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: "#94A3B8", fontSize: 11.5, fontWeight: 500 }}
+                      />
+                      <YAxis
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: "#94A3B8", fontSize: 11.5, fontWeight: 500 }}
+                        tickFormatter={(val) => `$${(val / 1000).toFixed(1).replace(/\.0$/, "")}k`}
+                        domain={[23500, 30000]}
+                      />
+                      <Tooltip
+                        content={({ active, payload }) => {
+                          if (active && payload && payload.length) {
+                            const data = payload[0].payload;
+                            return (
+                              <div className="bg-white dark:bg-[#1E1E1E] p-2.5 rounded-xl border border-slate-200/80 dark:border-white/10 shadow-lg text-[12px] font-sans">
+                                <p className="font-bold text-slate-800 dark:text-white mb-0.5">{data.date}</p>
+                                <p className="text-blue-600 font-bold">
+                                  Current Balance: ${data.balance.toLocaleString()}
+                                </p>
+                                <p className="text-slate-400 text-[11px]">
+                                  Initial Deposit: $25,000.00
+                                </p>
+                              </div>
+                            );
+                          }
+                          return null;
+                        }}
+                      />
+                      {/* Dotted horizontal baseline at initial deposit ($25,000) */}
+                      <ReferenceLine
+                        y={25000}
+                        stroke="#94A3B8"
+                        strokeDasharray="4 4"
+                        strokeWidth={1.5}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="balance"
+                        stroke="#2563EB"
+                        strokeWidth={2.4}
+                        fillOpacity={1}
+                        fill="url(#balanceShadeGradient)"
+                        activeDot={{ r: 5, fill: "#2563EB", stroke: "#fff", strokeWidth: 2 }}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Footer Row (Matching Image 1:1) */}
+              <div className="pt-4 mt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[12.5px]">
+                <span className="text-slate-500 dark:text-slate-400">
+                  Start <strong className="text-slate-700 dark:text-slate-200 font-bold">$25,000.00</strong>
+                </span>
+                <span className="text-blue-600 dark:text-blue-400 font-bold">
+                  $28,155.00 (+12.6%)
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* ─── LIVE TRADE POSITIONS & EXECUTED HISTORY ──────────────────── */}
+          <div className="bg-white dark:bg-[#161616] border border-slate-200/80 dark:border-white/5 rounded-2xl overflow-hidden shadow-sm">
+            {/* Table Header & Tab Switcher */}
+            <div className="p-5 border-b border-slate-200/80 dark:border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h3 className="font-bold text-slate-900 dark:text-white text-[16px]">
+                  Trade Execution & Order Stream
+                </h3>
+                <p className="text-[12.5px] text-slate-500 dark:text-slate-400">
+                  Real-time MT5 algorithmic order flow, positions and historical audit
+                </p>
+              </div>
+
+              {/* Tabs with Image 2 pill styling */}
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    playSound('tab');
+                    setActiveTab("positions");
+                  }}
+                  className={`px-4 py-1.5 rounded-full text-[13px] font-semibold transition-all cursor-pointer ${
+                    activeTab === "positions"
+                      ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-sm"
+                      : "bg-white dark:bg-[#1E1E1E] text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-white/10 hover:bg-slate-50"
+                  }`}
+                >
+                  Live Positions ({openPositions.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    playSound('tab');
+                    setActiveTab("history");
+                  }}
+                  className={`px-4 py-1.5 rounded-full text-[13px] font-semibold transition-all cursor-pointer ${
+                    activeTab === "history"
+                      ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-sm"
+                      : "bg-white dark:bg-[#1E1E1E] text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-white/10 hover:bg-slate-50"
+                  }`}
+                >
+                  Closed History ({closedTrades.length})
+                </button>
+              </div>
+            </div>
+
+            {/* Table Content */}
+            <div className="overflow-x-auto">
+              {activeTab === "positions" ? (
+                openPositions.length > 0 ? (
+                  <table className="w-full text-left text-[13px]">
+                    <thead className="bg-slate-50/70 dark:bg-neutral-900/40 text-slate-500 dark:text-slate-400 font-semibold border-b border-slate-200/60 dark:border-white/5">
+                      <tr>
+                        <th className="py-3 px-5">Ticket / Symbol</th>
+                        <th className="py-3 px-4">Direction</th>
+                        <th className="py-3 px-4">Volume (Lots)</th>
+                        <th className="py-3 px-4">Entry Price</th>
+                        <th className="py-3 px-4">Current Price</th>
+                        <th className="py-3 px-4">Floating P&L</th>
+                        <th className="py-3 px-4">Strategy</th>
+                        <th className="py-3 px-5 text-right">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-white/5 font-sans">
+                      {openPositions.map((pos) => (
+                        <tr
+                          key={pos.ticket}
+                          className="hover:bg-slate-50/50 dark:hover:bg-neutral-800/20 transition-colors"
+                        >
+                          <td className="py-3.5 px-5">
+                            <div className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                              <span>{pos.symbol}</span>
+                              <span className="text-[11px] text-slate-400 font-normal">#{pos.ticket}</span>
+                            </div>
+                            <span className="text-[11px] text-slate-400">{pos.openTime}</span>
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <span
+                              className={`px-2 py-0.5 rounded-md text-[11px] font-bold ${
+                                pos.type === "BUY"
+                                  ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400"
+                                  : "bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400"
+                              }`}
+                            >
+                              {pos.type}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4 font-semibold text-slate-700 dark:text-slate-200">
+                            {pos.lots.toFixed(2)}
+                          </td>
+                          <td className="py-3.5 px-4 tabular-nums text-slate-600 dark:text-slate-300">
+                            {pos.openPrice.toLocaleString()}
+                          </td>
+                          <td className="py-3.5 px-4 tabular-nums font-semibold text-slate-800 dark:text-slate-100">
+                            {pos.currentPrice.toLocaleString()}
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <span
+                              className={`font-bold tabular-nums text-[14px] ${
+                                pos.profit >= 0
+                                  ? "text-emerald-600 dark:text-emerald-400"
+                                  : "text-rose-600 dark:text-rose-400"
+                              }`}
+                            >
+                              {pos.profit >= 0 ? "+" : ""}${pos.profit.toFixed(2)}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4 text-slate-500 text-[12px]">{pos.strategy}</td>
+                          <td className="py-3.5 px-5 text-right">
+                            <button
+                              type="button"
+                              onClick={() => handleClosePosition(pos.ticket)}
+                              className="px-3 py-1 rounded-full text-[12px] font-semibold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/30 hover:bg-rose-100 transition-colors cursor-pointer"
+                            >
+                              Close
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <div className="py-12 text-center text-slate-400">
+                    <p className="text-[14px] font-medium">No open positions currently active.</p>
+                    <p className="text-[12px] mt-1 text-slate-500">
+                      The FiAlgo Agent is monitoring the market for the next high-probability setup.
+                    </p>
+                  </div>
+                )
+              ) : (
+                <table className="w-full text-left text-[13px]">
+                  <thead className="bg-slate-50/70 dark:bg-neutral-900/40 text-slate-500 dark:text-slate-400 font-semibold border-b border-slate-200/60 dark:border-white/5">
+                    <tr>
+                      <th className="py-3 px-5">Ticket / Symbol</th>
+                      <th className="py-3 px-4">Direction</th>
+                      <th className="py-3 px-4">Volume</th>
+                      <th className="py-3 px-4">Entry</th>
+                      <th className="py-3 px-4">Exit</th>
+                      <th className="py-3 px-4">Realized Profit</th>
+                      <th className="py-3 px-4">Execution Time</th>
+                      <th className="py-3 px-5 text-right">Result</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-white/5 font-sans">
+                    {closedTrades.map((trade) => (
+                      <tr
+                        key={trade.ticket}
+                        className="hover:bg-slate-50/50 dark:hover:bg-neutral-800/20 transition-colors"
+                      >
+                        <td className="py-3.5 px-5">
+                          <div className="font-bold text-slate-900 dark:text-white">
+                            {trade.symbol}
+                            <span className="text-[11px] text-slate-400 font-normal ml-1.5">
+                              #{trade.ticket}
+                            </span>
+                          </div>
+                          <span className="text-[11px] text-slate-400">{trade.strategy}</span>
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span
+                            className={`px-2 py-0.5 rounded-md text-[11px] font-bold ${
+                              trade.type === "BUY"
+                                ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400"
+                                : "bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400"
+                            }`}
+                          >
+                            {trade.type}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4 font-semibold text-slate-700 dark:text-slate-200">
+                          {trade.lots.toFixed(2)}
+                        </td>
+                        <td className="py-3.5 px-4 tabular-nums text-slate-600 dark:text-slate-300">
+                          {trade.openPrice.toLocaleString()}
+                        </td>
+                        <td className="py-3.5 px-4 tabular-nums text-slate-600 dark:text-slate-300">
+                          {trade.closePrice.toLocaleString()}
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span
+                            className={`font-bold tabular-nums text-[13.5px] ${
+                              trade.profit >= 0
+                                ? "text-emerald-600 dark:text-emerald-400"
+                                : "text-rose-600 dark:text-rose-400"
+                            }`}
+                          >
+                            {trade.profit >= 0 ? "+" : ""}${trade.profit.toFixed(2)}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4 text-slate-500 text-[12px]">{trade.time}</td>
+                        <td className="py-3.5 px-5 text-right">
+                          <span
+                            className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
+                              trade.status === "Won"
+                                ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400"
+                                : "bg-rose-50 text-rose-600 dark:bg-rose-950/30 dark:text-rose-400"
+                            }`}
+                          >
+                            {trade.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </div>
+        </main>
+
+        {/* ─── MODAL 1: CONNECT MT5 ACCOUNT ──────────────────────────────── */}
+        <AnimatePresence>
+          {isConnectModalOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="bg-white dark:bg-[#161616] border border-slate-200/90 dark:border-white/10 rounded-3xl max-w-lg w-full p-6 shadow-2xl overflow-hidden relative"
+              >
+                <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/5">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center">
+                      <Wallet size={18} />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-slate-900 dark:text-white text-[16px]">
+                        Connect MetaTrader 5 Account
+                      </h3>
+                      <p className="text-[12px] text-slate-500 dark:text-slate-400">
+                        Link your regulated broker under Partner IB (0% Profit Share)
+                      </p>
+                    </div>
+                  </div>
                   <button
                     type="button"
                     onClick={() => {
-                      setSetupPath("new");
-                      setSelectedBroker("vantage");
+                      playSound('modalClose');
+                      setIsConnectModalOpen(false);
                     }}
-                    className={`py-2 px-3 rounded-full transition-all cursor-pointer text-center flex items-center justify-center gap-2 ${
-                      setupPath === "new"
-                        ? "bg-[#171717] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] border border-white/15 font-bold"
-                        : "text-neutral-400 hover:text-white"
-                    }`}
+                    className="p-1 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-white"
                   >
-                    <UserPlus size={14} className={setupPath === "new" ? "text-purple-400" : "text-neutral-500"} />
-                    <span>Open New Account</span>
-                    <span className="hidden sm:inline text-[9.5px] font-semibold px-2 py-0.5 bg-purple-500/15 text-purple-300 rounded-full border border-purple-500/25">
-                      Recommended
-                    </span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setSetupPath("transfer")}
-                    className={`py-2 px-3 rounded-full transition-all cursor-pointer text-center flex items-center justify-center gap-2 ${
-                      setupPath === "transfer"
-                        ? "bg-[#171717] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] border border-white/15 font-bold"
-                        : "text-neutral-400 hover:text-white"
-                    }`}
-                  >
-                    <ArrowLeftRight size={14} className={setupPath === "transfer" ? "text-purple-400" : "text-neutral-500"} />
-                    <span>Transfer Existing Account</span>
-                    <span className="hidden sm:inline text-[9.5px] font-semibold px-2 py-0.5 bg-white/10 text-neutral-300 rounded-full border border-white/10">
-                      Existing Traders
-                    </span>
+                    <X size={18} />
                   </button>
                 </div>
 
-                {/* Path A: Open New Account Card */}
-                {setupPath === "new" ? (
-                  <div className="p-4 sm:p-5 rounded-xl border border-white/5 bg-[#161618] space-y-3.5">
-                    <div className="flex items-center justify-between flex-wrap gap-2">
-                      <div className="flex items-center gap-2.5">
-                        <BrokerLogo id="vantage" size={24} />
-                        <div>
-                          <h4 className="text-xs sm:text-sm font-bold text-white">
-                            Open Official Vantage Markets MT5 Account
-                          </h4>
-                          <p className="text-[11px] text-neutral-400">
-                            Raw ECN spreads (0.0 pips), instant deposits/withdrawals, zero swap on Gold.
-                          </p>
-                        </div>
-                      </div>
-                      <span className="text-[10.5px] font-mono font-bold text-purple-300 bg-purple-500/15 px-2.5 py-0.5 rounded-full border border-purple-500/25">
-                        Partner Code: MCTDw2R6
-                      </span>
-                    </div>
-
-                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-1">
-                      <a
-                        href="https://vigco.co/la-com-inv/MCTDw2R6"
-                        target="_blank"
-                        rel="noreferrer"
-                        className="btn-fialgo-primary flex-1"
-                      >
-                        <BrokerLogo id="vantage" size={16} />
-                        <span>Open Vantage Account (Partner Link)</span>
-                        <ArrowRight size={15} />
-                      </a>
-                      <button
-                        type="button"
-                        onClick={() => handleCopy("MCTDw2R6", "Partner Code MCTDw2R6 copied!")}
-                        className="btn-fialgo-secondary shrink-0"
-                      >
-                        {copiedPartnerId ? <Check size={13} className="text-emerald-400 shrink-0" /> : <Copy size={13} className="shrink-0 text-neutral-400" />}
-                        <span>{copiedPartnerId ? "Copied" : "Copy Code"}</span>
-                      </button>
-                    </div>
-
-                    <div className="text-[11.5px] text-neutral-300 p-3 rounded-xl bg-[#121214] border border-white/5 space-y-1">
-                      <p><strong>Next steps:</strong> Complete your quick KYC verification, deposit minimum <strong className="text-white">$500 USD</strong> in your MT5 account, and enter your MT5 Account Number below.</p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="p-4 sm:p-5 rounded-xl border border-white/5 bg-[#161618] space-y-3.5">
-                    <div className="flex items-center justify-between flex-wrap gap-2">
-                      <div>
-                        <h4 className="text-xs sm:text-sm font-bold text-white">
-                          Transfer Your Existing Account Under Partner IB
-                        </h4>
-                        <p className="text-[11px] text-neutral-400">
-                          Select your broker to link your existing account under our official Partner ID:
-                        </p>
-                      </div>
-                      <span className="text-[10.5px] font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">
-                        Partner ID: {currentBroker.ibNumber || "27863221"}
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                      {/* Proper Custom Broker Selector */}
-                      <div className="relative">
-                        <button
-                          type="button"
-                          onClick={() => setIsBrokerDropdownOpen(!isBrokerDropdownOpen)}
-                          className="w-full bg-[#121214] border border-white/10 hover:border-purple-500/40 rounded-xl px-3.5 py-2.5 text-xs text-white font-medium flex items-center justify-between gap-2 shadow-2xs transition-all cursor-pointer"
-                        >
-                          <div className="flex items-center gap-2 min-w-0">
-                            <BrokerLogo id={selectedBroker} size={18} />
-                            <div className="text-left truncate">
-                              <span className="font-semibold block truncate text-white text-xs">
-                                {currentBroker.name}
-                              </span>
-                              <span className="text-[10.5px] text-neutral-400 block truncate">
-                                {currentBroker.tagline}
-                              </span>
-                            </div>
-                          </div>
-                          <ChevronDown size={14} className={`text-neutral-400 transition-transform ${isBrokerDropdownOpen ? "rotate-180" : ""}`} />
-                        </button>
-
-                        {isBrokerDropdownOpen && (
-                          <>
-                            <div 
-                              className="fixed inset-0 z-20" 
-                              onClick={() => setIsBrokerDropdownOpen(false)} 
-                            />
-                            <div className="absolute left-0 right-0 top-full mt-1.5 z-30 bg-[#1A1A1E] border border-white/10 rounded-xl shadow-2xl p-1 space-y-0.5">
-                              {BROKERS.map((b) => (
-                                <button
-                                  key={b.id}
-                                  type="button"
-                                  onClick={() => {
-                                    setSelectedBroker(b.id);
-                                    setIsBrokerDropdownOpen(false);
-                                  }}
-                                  className={`w-full px-3 py-2 rounded-lg text-left flex items-center justify-between gap-2 text-xs transition-colors cursor-pointer ${
-                                    selectedBroker === b.id
-                                      ? "bg-purple-500/15 text-purple-300 font-semibold"
-                                      : "text-neutral-300 hover:bg-white/5"
-                                  }`}
-                                >
-                                  <div className="flex items-center gap-2 min-w-0">
-                                    <BrokerLogo id={b.id} size={16} />
-                                    <div className="truncate">
-                                      <span className="block truncate text-xs">{b.name}</span>
-                                      <span className="block truncate text-[10.5px] text-neutral-400 font-normal">
-                                        {b.tagline}
-                                      </span>
-                                    </div>
-                                  </div>
-                                  {selectedBroker === b.id && <Check size={14} className="text-purple-400 shrink-0" />}
-                                </button>
-                              ))}
-                            </div>
-                          </>
-                        )}
-                      </div>
-
-                      <div className="flex items-center gap-2.5">
-                        <a
-                          href={mailtoLink}
-                          className="btn-fialgo-primary flex-1"
-                        >
-                          <span>Email Support</span>
-                        </a>
-                        <button
-                          type="button"
-                          onClick={() => handleCopy(emailTemplateText, "Transfer request template copied!")}
-                          className="btn-fialgo-secondary flex-1"
-                        >
-                          <Copy size={13} className="text-neutral-400" />
-                          <span>Copy Message</span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* ── UNIFIED SUBMISSION FORM (ENTER MT5 ACCOUNT & PROOF) ── */}
-                <div className="p-4 sm:p-5 rounded-xl border border-white/5 bg-[#161618] space-y-4 shadow-2xs">
-                  <div className="flex items-center justify-between pb-2 border-b border-white/5">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-white">
-                      Your MT5 Account Connection
-                    </h4>
-                    <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
-                      Min. $500 Balance
-                    </span>
-                  </div>
-
-                  <div className="space-y-3.5">
-                    <div className="space-y-1.5">
-                      <label className="block text-xs font-semibold text-neutral-300">
-                        MT5 Account Number <span className="text-rose-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="Enter your 7 or 8-digit MT5 Login ID"
-                        value={mt5Account}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          setMt5Account(val);
-                          const clean = val.replace(/\D/g, "");
-                          if (clean) {
-                            try {
-                              localStorage.setItem("tradifive_connected_mt5_account", clean);
-                              localStorage.setItem("tradifive_license_key", generateTradifiveLicenseKey(clean));
-                            } catch (_) {}
-                          }
-                        }}
-                        className="w-full bg-[#121214] border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white font-mono focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/30 transition-all placeholder:text-neutral-500"
-                      />
-                    </div>
-
-                    {/* Minimum $500 Balance Checkbox */}
-                    <label className="flex items-center gap-2 cursor-pointer pt-0.5 pb-1 select-none text-xs">
-                      <input
-                        type="checkbox"
-                        id="min-deposit-check-unified"
-                        checked={depositConfirmed}
-                        onChange={(e) => setDepositConfirmed(e.target.checked)}
-                        className="w-4 h-4 rounded border-white/20 accent-purple-600 cursor-pointer shrink-0 bg-[#121214]"
-                      />
-                      <span className="text-neutral-300 text-[11.5px] font-medium">
-                        I confirm this MT5 account has a minimum balance of <strong className="text-white">$500 USD</strong>.
-                      </span>
+                <form onSubmit={handleSaveMt5Account} className="pt-4 space-y-4">
+                  {/* Broker Choice */}
+                  <div>
+                    <label className="block text-[12.5px] font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                      Select Broker
                     </label>
-
-                    {/* Compulsory Screenshot Proof */}
-                    <div className={`flex items-center justify-between gap-2.5 p-3 rounded-xl border border-dashed transition-colors text-xs ${
-                      proofFile
-                        ? "border-emerald-500/40 bg-emerald-500/[0.04]"
-                        : "border-white/10 bg-[#121214]"
-                    }`}>
-                      <div className="flex items-center gap-2 min-w-0 flex-1">
-                        <UploadCloud size={15} className={`shrink-0 ${proofFile ? "text-emerald-400" : "text-neutral-400"}`} />
-                        <span className="text-neutral-300 text-xs font-medium truncate">
-                          {proofFile ? (proofFileName || "Screenshot Attached ✓") : "Upload MT5 balance or account screenshot *"}
-                        </span>
-                      </div>
-                      <div className="relative shrink-0">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handlePhotoUpload}
-                          className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
-                        />
-                        <span className={`btn-fialgo-secondary text-xs !py-1.5 !px-4 ${
-                          proofFile ? "!border !border-emerald-500/30 !text-emerald-300" : ""
-                        }`}>
-                          {proofFile ? "Change File" : "Choose File"}
-                        </span>
-                      </div>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={handleSubmitProof}
-                      disabled={isSubmittingProof || (!proofFile && !isEditingAccount) || !mt5Account.trim() || !depositConfirmed}
-                      className={`btn-fialgo-primary w-full py-3.5 ${
-                        (proofFile || isEditingAccount) && mt5Account.trim() && depositConfirmed
-                          ? ""
-                          : "opacity-40 cursor-not-allowed pointer-events-none"
-                      }`}
+                    <select
+                      value={selectedBroker}
+                      onChange={(e) => setSelectedBroker(e.target.value)}
+                      className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-[13.5px] font-medium text-slate-800 dark:text-slate-100 outline-hidden focus:border-blue-500"
                     >
-                      {isSubmittingProof ? (
-                        <>
-                          <RefreshCw size={14} className="animate-spin" />
-                          <span>Submitting Account...</span>
-                        </>
-                      ) : (
-                        <>
-                          <span>{isEditingAccount ? "Update MT5 Account & Continue" : "Save MT5 Account & Continue to Step 2"}</span>
-                          <ArrowRight size={16} />
-                        </>
-                      )}
-                    </button>
+                      {BROKERS.map((b) => (
+                        <option key={b.id} value={b.id}>
+                          {b.name} ({b.tagline})
+                        </option>
+                      ))}
+                    </select>
                   </div>
-                </div>
-              </div>
-            )}
-          </motion.div>
-        )}
 
-        {/* ── STEP 2: DOWNLOAD FIALGO V1 (SUPER SIMPLE & EASY) ── */}
-        {activeStep === 2 && (
-          <motion.div
-            key="step2"
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            className="space-y-4"
-          >
-            {/* 2-Column Clean Grid: File Card (Left 6 Cols) + Quick Installation Guide (Right 6 Cols) */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
-              
-              {/* Left Column: Clean FiAlgo V1 File Card */}
-              <div className="lg:col-span-6 flex flex-col">
-                <div className="rounded-2xl border border-white/5 bg-[#1E1E1E] p-5 sm:p-6 space-y-4 shadow-2xl flex-1 flex flex-col justify-between">
-                  <div className="space-y-4">
-                    {/* Clean Product Visual & Title */}
-                    <div className="flex items-center gap-4">
-                      <div className="p-2 rounded-xl bg-[#141416] border border-white/5 shrink-0 shadow-2xs">
-                        <img
-                          src="/fialgo-v1-box.png"
-                          alt="FiAlgo V1 Box"
-                          className="h-16 sm:h-20 w-auto object-contain drop-shadow-sm"
-                        />
-                      </div>
-                      <div className="space-y-1 min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold text-purple-300 bg-purple-500/15 border border-purple-500/25">
-                            Gold Specialist
-                          </span>
-                          <span className="text-[10px] font-semibold text-emerald-400">
-                            v1.0.4 MT5 Build
-                          </span>
-                        </div>
-                        <h3 className="text-base sm:text-lg font-bold text-white truncate">
-                          FiAlgo_v1.0.4.ex5
-                        </h3>
-                        <p className="text-xs text-neutral-400">
-                          MetaTrader 5 Expert Advisor · Size: <strong className="text-neutral-200">248 KB</strong>
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Download Button (Matching Reference Pill Button Design) */}
-                    <div className="space-y-2 pt-1">
+                  {/* Partner IB Details with 1-click copy */}
+                  <div className="p-3.5 bg-blue-50/70 dark:bg-blue-950/20 border border-blue-200/70 dark:border-blue-500/20 rounded-xl">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[12px] font-bold text-blue-700 dark:text-blue-300 uppercase">
+                        Official Partner IB: 27863221
+                      </span>
                       <button
                         type="button"
-                        onClick={handleDownloadEA}
-                        className="btn-fialgo-primary w-full py-3.5"
+                        onClick={handleCopyPartnerMessage}
+                        className="text-[11.5px] font-bold text-blue-600 hover:underline flex items-center gap-1 cursor-pointer"
                       >
-                        <span>Download Free Demo (.ex5)</span>
-                        <ArrowRight size={16} />
+                        {copiedMsg ? "Copied!" : "Copy Support Message"}
                       </button>
-                      <p className="text-[11px] text-center text-neutral-400">
-                        Runs directly on MT5 Windows PC, Laptop, or VPS terminal.
-                      </p>
                     </div>
-                  </div>
-
-                  {/* Useful Specs Only */}
-                  <div className="grid grid-cols-3 gap-2 pt-3 border-t border-white/5 text-center">
-                    <div className="p-2.5 rounded-xl bg-[#141416] border border-white/5">
-                      <span className="block text-[10px] uppercase font-bold text-neutral-400">Pair</span>
-                      <span className="text-xs font-bold text-neutral-200">XAUUSD</span>
-                    </div>
-                    <div className="p-2.5 rounded-xl bg-[#141416] border border-white/5">
-                      <span className="block text-[10px] uppercase font-bold text-neutral-400">Chart</span>
-                      <span className="text-xs font-bold text-neutral-200">1-Min (M1)</span>
-                    </div>
-                    <div className="p-2.5 rounded-xl bg-[#141416] border border-white/5">
-                      <span className="block text-[10px] uppercase font-bold text-neutral-400">Protection</span>
-                      <span className="text-xs font-bold text-emerald-400">Risk Guard</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Right Column: Systemic Step-by-Step MT5 Installation Guide */}
-              <div className="lg:col-span-6 flex flex-col">
-                <div className="rounded-2xl border border-white/5 bg-[#1E1E1E] p-5 sm:p-6 space-y-4 shadow-2xl flex-1 flex flex-col justify-between">
-                  <div>
-                    {/* Header with Icon, Title and Clean Badge */}
-                    <div className="flex items-center justify-between pb-3.5 border-b border-white/5">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded-lg bg-purple-500/15 text-purple-400 flex items-center justify-center font-bold text-xs">
-                          <Terminal size={14} />
-                        </div>
-                        <div>
-                          <h4 className="text-xs sm:text-sm font-bold text-white">
-                            MT5 Installation Steps
-                          </h4>
-                          <p className="text-[11px] text-neutral-400">
-                            Fast 2-minute setup for MetaTrader 5
-                          </p>
-                        </div>
-                      </div>
-                      <span className="text-[10px] font-bold text-purple-300 bg-purple-500/15 px-2.5 py-1 rounded-full border border-purple-500/25">
-                        3 Easy Steps
-                      </span>
-                    </div>
-
-                    {/* Step-by-Step Stepper Timeline with Connecting Line */}
-                    <div className="space-y-4 pt-4 text-xs">
-                      {/* Step 1 */}
-                      <div className="relative flex items-start gap-3">
-                        {/* Connecting Line to Step 2 */}
-                        <div className="absolute left-[11px] top-6 -bottom-4 w-[2px] bg-white/10 z-0" />
-                        
-                        <span className="w-6 h-6 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold text-xs flex items-center justify-center shrink-0 z-10 shadow-[0_0_12px_rgba(168,85,247,0.4)]">
-                          1
-                        </span>
-                        <div className="space-y-1.5 flex-1 min-w-0">
-                          <strong className="text-white block font-semibold text-xs">
-                            Paste FiAlgo in MT5 Experts Folder
-                          </strong>
-                          <p className="text-[11.5px] text-neutral-400 leading-normal">
-                            In your MT5 terminal, open the data folder and paste the downloaded file:
-                          </p>
-                          <div className="inline-flex flex-wrap items-center gap-1.5 text-[11px] p-1.5 px-2.5 rounded-lg bg-[#141416] border border-white/5 text-neutral-300">
-                            <span className="font-semibold text-white">File</span>
-                            <span className="text-neutral-400 text-[10px]">&rarr;</span>
-                            <span>Open Data Folder</span>
-                            <span className="text-neutral-400 text-[10px]">&rarr;</span>
-                            <span>MQL5</span>
-                            <span className="text-neutral-400 text-[10px]">&rarr;</span>
-                            <span className="text-purple-300 font-bold">Experts</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Step 2 */}
-                      <div className="relative flex items-start gap-3">
-                        {/* Connecting Line to Step 3 */}
-                        <div className="absolute left-[11px] top-6 -bottom-4 w-[2px] bg-white/10 z-0" />
-
-                        <span className="w-6 h-6 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold text-xs flex items-center justify-center shrink-0 z-10 shadow-[0_0_12px_rgba(168,85,247,0.4)]">
-                          2
-                        </span>
-                        <div className="space-y-1.5 flex-1 min-w-0">
-                          <div className="flex items-center justify-between gap-2">
-                            <strong className="text-white block font-semibold text-xs">
-                              Allow WebRequest URL in MT5
-                            </strong>
-                            <span className="text-[10px] font-mono font-semibold text-neutral-300 bg-white/10 px-1.5 py-0.5 rounded border border-white/10">
-                              Ctrl + O
-                            </span>
-                          </div>
-                          <p className="text-[11.5px] text-neutral-400 leading-normal">
-                            Go to <span className="font-medium text-neutral-200">Tools &rarr; Options &rarr; Experts</span>, check <em>"Allow WebRequest for listed URL"</em> and add:
-                          </p>
-                          <div className="flex items-center justify-between gap-2 p-1.5 pl-2.5 rounded-lg bg-[#121214] border border-white/5">
-                            <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                              <Globe size={12} className="text-purple-400 shrink-0" />
-                              <code className="text-[11px] font-mono text-purple-300 truncate select-all">
-                                https://hcgylvdvlandtiuudefu.supabase.co
-                              </code>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                navigator.clipboard.writeText("https://hcgylvdvlandtiuudefu.supabase.co");
-                                toast.success("Webhook URL Copied!");
-                              }}
-                              className="px-3 py-1 rounded-full text-[10.5px] font-semibold bg-[#171717] hover:bg-[#1e1e1e] text-white/90 border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] inline-flex items-center gap-1 shrink-0 cursor-pointer transition-colors"
-                            >
-                              <Copy size={11} />
-                              <span>Copy</span>
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Step 3 */}
-                      <div className="relative flex items-start gap-3">
-                        <span className="w-6 h-6 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold text-xs flex items-center justify-center shrink-0 z-10 shadow-[0_0_12px_rgba(168,85,247,0.4)]">
-                          3
-                        </span>
-                        <div className="space-y-1.5 flex-1 min-w-0">
-                          <strong className="text-white block font-semibold text-xs">
-                            Attach to XAUUSD Chart &amp; Enable Algo
-                          </strong>
-                          <p className="text-[11.5px] text-neutral-400 leading-normal">
-                            Open <span className="font-semibold text-neutral-200">XAUUSD (Gold)</span> on <span className="font-semibold text-neutral-200">1-Min (M1) timeframe</span>, drag FiAlgo onto the chart, and turn ON <span className="font-semibold text-emerald-400">Algo Trading</span> on MT5's top toolbar.
-                          </p>
-                          <div className="flex items-center gap-1.5 text-[11px] font-medium text-emerald-400 pt-0.5">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                            <span>Top Algo Trading button must show a green play icon</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Free Assistance Footer */}
-                  <div className="pt-3 border-t border-white/5 flex items-center justify-between text-xs">
-                    <span className="text-[11.5px] text-neutral-400 font-medium">
-                      Need installation help?
-                    </span>
-                    <a
-                      href="https://wa.me/?text=Hello%20FiAlgo%20Team!%20I%20need%20assistance%20installing%20FiAlgo%20V1%20on%20my%20MT5."
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-400 hover:text-blue-300 transition-colors"
-                    >
-                      <Headset size={13} />
-                      <span>Live Support Setup Desk &rarr;</span>
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Stepper Navigation: Back to Step 1 & Forward to Step 3 */}
-            <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3">
-              <button
-                type="button"
-                onClick={() => setActiveStep(1)}
-                className="btn-fialgo-secondary w-full sm:w-auto"
-              >
-                <ArrowLeft size={14} />
-                <span>Back to Step 1 (Broker)</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveStep(3)}
-                className="btn-fialgo-primary w-full sm:w-auto"
-              >
-                <span>Continue to Step 3: Select Plan &amp; Pay</span>
-                <ArrowRight size={15} />
-              </button>
-            </div>
-          </motion.div>
-        )}
-
-        {/* ── STEP 3: ONLY SHOWN WHEN activeStep === 3 (ALGO SETUP FEE ₹9,999 + DAILY 50/50% PROFIT SHARE) ── */}
-        {activeStep === 3 && (
-          <motion.div
-            key="step3"
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            className="rounded-2xl border border-white/5 bg-[#1E1E1E] shadow-2xl p-5 sm:p-7 space-y-6"
-          >
-            <div className="flex items-center justify-between pb-3.5 border-b border-white/5">
-              <div>
-                <h2 className="text-base sm:text-xl font-bold text-white">
-                  Algo Setup &amp; Activation Fee
-                </h2>
-                <p className="text-xs text-neutral-400 mt-0.5">
-                  Complete the payment via PhonePe / UPI or Bank Transfer to request your license key.
-                </p>
-              </div>
-
-              {paymentStatus === "approved" ? (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                  <CheckCircle2 size={13} />
-                  <span>Payment Confirmed</span>
-                </span>
-              ) : paymentStatus === "pending" ? (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                  <Clock size={13} className="animate-spin" />
-                  <span>Under Review (~2 Hrs)</span>
-                </span>
-              ) : null}
-            </div>
-
-            {/* STATE 3A: ALREADY PAID & CONFIRMED */}
-            {paymentStatus === "approved" ? (
-              <div className="p-5 sm:p-6 rounded-2xl bg-emerald-500/[0.05] border border-emerald-500/20 space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center shrink-0">
-                    <CheckCircle2 size={22} />
-                  </div>
-                  <div>
-                    <h3 className="text-sm sm:text-base font-bold text-white">
-                      Official License Payment Confirmed
-                    </h3>
-                    <p className="text-xs text-neutral-300 mt-0.5">
-                      Your payment has been verified. Proceed to Step 4 to activate and view your MetaTrader 5 license key.
+                    <p className="text-[11.5px] text-blue-600/80 dark:text-blue-300/80 mt-1">
+                      Existing traders: Transfer your account under Partner ID 27863221 to activate institutional 0% profit share.
                     </p>
                   </div>
-                </div>
 
-                <div className="pt-2 border-t border-emerald-500/20 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
-                  <span className="text-emerald-300">Need to make another payment or view UPI / Bank details?</span>
-                  <button
-                    type="button"
-                    onClick={handleResetPayment}
-                    className="btn-fialgo-secondary text-xs !py-1 !px-3"
-                  >
-                    View PhonePe / UPI &amp; Bank Details
-                  </button>
-                </div>
+                  {/* MT5 Account Number Input */}
+                  <div>
+                    <label className="block text-[12.5px] font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                      MT5 Account Number *
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 38491820"
+                      value={mt5InputAccount}
+                      onChange={(e) => setMt5InputAccount(e.target.value)}
+                      className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-[13.5px] font-medium text-slate-800 dark:text-slate-100 outline-hidden focus:border-blue-500"
+                      required
+                    />
+                  </div>
 
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-2.5 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setActiveStep(2)}
-                    className="btn-fialgo-secondary w-full sm:w-auto"
-                  >
-                    <ArrowLeft size={13} />
-                    <span>Back to Step 2 (Download)</span>
-                  </button>
+                  {/* Min $500 Balance Confirmation */}
+                  <label className="flex items-start gap-2.5 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={hasConfirmedBalance}
+                      onChange={(e) => setHasConfirmedBalance(e.target.checked)}
+                      className="mt-1 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-[12px] text-slate-600 dark:text-slate-400">
+                      I confirm this MT5 account has a minimum balance of $500 USD for proper algorithmic risk management.
+                    </span>
+                  </label>
 
-                  <button
-                    type="button"
-                    onClick={() => setActiveStep(4)}
-                    className="btn-fialgo-primary w-full sm:w-auto"
-                  >
-                    <span>Proceed to Step 4: Activate License Key</span>
-                    <ArrowRight size={14} />
-                  </button>
-                </div>
-              </div>
-            ) : paymentStatus === "pending" ? (
-              /* STATE 3B: PAYMENT SUBMITTED - PENDING 2-HOUR VERIFICATION */
-              <div className="p-5 sm:p-6 rounded-2xl bg-[#161618] border border-white/5 space-y-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center shrink-0 mt-0.5">
-                      <Clock size={20} className="animate-pulse" />
+                  {/* Modal Footer Buttons (Image 2 style) */}
+                  <div className="pt-2 flex items-center justify-end gap-2.5">
+                    <button
+                      type="button"
+                      onClick={() => setIsConnectModalOpen(false)}
+                      className="bg-white dark:bg-[#1E1E1E] text-slate-800 dark:text-white border border-slate-200/90 dark:border-white/10 px-4 py-2 rounded-full font-medium text-[13.5px] shadow-sm hover:bg-slate-50 transition-all cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={!hasConfirmedBalance}
+                      className="bg-[#111] dark:bg-white text-white dark:text-[#111] hover:bg-black dark:hover:bg-slate-100 px-5 py-2 rounded-full font-medium text-[13.5px] shadow-md transition-all active:scale-95 cursor-pointer disabled:opacity-50"
+                    >
+                      Save & Link MT5
+                    </button>
+                  </div>
+                </form>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+
+        {/* ─── MODAL 2: ACTIVATE LICENSE KEY ─────────────────────────────── */}
+        <AnimatePresence>
+          {isLicenseModalOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="bg-white dark:bg-[#161616] border border-slate-200/90 dark:border-white/10 rounded-3xl max-w-lg w-full p-6 shadow-2xl overflow-hidden relative"
+              >
+                <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/5">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center">
+                      <ShieldCheck size={18} />
                     </div>
                     <div>
-                      <h3 className="text-sm sm:text-base font-bold text-white">
-                        Payment Request Submitted (~2 Hours)
+                      <h3 className="font-bold text-slate-900 dark:text-white text-[16px]">
+                        EA License Key & Activation
                       </h3>
-                      <p className="text-xs text-neutral-400 mt-0.5 leading-relaxed">
-                        Your payment proof and UTR number have been submitted. Our finance desk is verifying your payment. Your personal license key will be issued within 2 hours.
+                      <p className="text-[12px] text-slate-500 dark:text-slate-400">
+                        Institutional Unlimited 3-Year Pass (0% Profit Share)
                       </p>
                     </div>
                   </div>
-
-                  <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-amber-300 bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/25 shrink-0">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                    <span>~2 Hours</span>
-                  </span>
-                </div>
-
-                {/* Submitted Parameters Card */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 p-3 rounded-xl bg-[#121214] border border-white/5 text-xs">
-                  <div>
-                    <span className="text-[10px] uppercase font-bold text-neutral-500 block tracking-wider">Method</span>
-                    <strong className="text-xs text-white mt-1 block truncate">
-                      {paymentMethod === "upi" ? "PhonePe / UPI" : "Bank Transfer"}
-                    </strong>
-                  </div>
-                  <div>
-                    <span className="text-[10px] uppercase font-bold text-neutral-500 block tracking-wider">UPI / Account</span>
-                    <strong className="text-xs text-white mt-1 block font-mono truncate">
-                      {paymentMethod === "upi" ? "9731980756@axisbank" : "924010072811588"}
-                    </strong>
-                  </div>
-                  <div>
-                    <span className="text-[10px] uppercase font-bold text-neutral-500 block tracking-wider">UTR / Ref No.</span>
-                    <strong className="text-xs text-white mt-1 block font-mono truncate">
-                      {paymentUtr || "Submitted"}
-                    </strong>
-                  </div>
-                  <div>
-                    <span className="text-[10px] uppercase font-bold text-neutral-500 block tracking-wider">Estimated Delivery</span>
-                    <strong className="text-xs text-emerald-400 mt-1 block truncate">
-                      Within 2 Hours
-                    </strong>
-                  </div>
-                </div>
-
-                {/* Fast-Track Live Support Desk */}
-                <div className="p-4 sm:p-5 rounded-xl bg-[#121214] border border-white/5 space-y-2.5 text-xs">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-white">
-                      Need it faster? Priority Desk
-                    </span>
-                    <span className="text-[10.5px] font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                      ⚡ 15-Min Fast-Track
-                    </span>
-                  </div>
-                  <p className="text-[11.5px] text-neutral-400">
-                    Share your UTR number <strong className="text-white font-mono">{paymentUtr}</strong> on Live Support for instant 15-minute priority verification:
-                  </p>
-                  <div className="pt-1 flex flex-col sm:flex-row items-center gap-2">
-                    <a
-                      href={`https://wa.me/?text=${encodeURIComponent(
-                        `Hello FiAlgo Team! I have completed payment of ${selectedTier === "three_years" ? "₹1,00,000 for the 3-Year Enterprise License" : "₹10,000 setup fee for the Performance Plan"} for FiAlgo V1 via PhonePe/UPI. My UTR number is ${paymentUtr}. Please expedite and issue my license key.`
-                      )}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="btn-fialgo-primary w-full sm:w-auto"
-                    >
-                      <Headset size={14} />
-                      <span>Fast-Track Live Support Desk</span>
-                    </a>
-
-                    <button
-                      type="button"
-                      onClick={handleResetPayment}
-                      className="btn-fialgo-secondary w-full sm:w-auto"
-                    >
-                      Edit UTR / Resubmit
-                    </button>
-                  </div>
-                </div>
-
-                {/* Stepper Navigation: Back to Step 2 & Forward to Step 4 */}
-                <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-2.5">
                   <button
                     type="button"
-                    onClick={() => setActiveStep(2)}
-                    className="btn-fialgo-secondary w-full sm:w-auto"
+                    onClick={() => {
+                      playSound('modalClose');
+                      setIsLicenseModalOpen(false);
+                    }}
+                    className="p-1 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-white"
                   >
-                    <ArrowLeft size={13} />
-                    <span>Back to Step 2 (Download)</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setActiveStep(4)}
-                    className="btn-fialgo-primary w-full sm:w-auto"
-                  >
-                    <span>Check License Key Status in Step 4</span>
-                    <ArrowRight size={14} />
-                  </button>
-                </div>
-              </div>
-            ) : (
-              /* STATE 3C: PAYMENT REQUIRED - FORM WITH PHONEPE / UPI & BANK TRANSFER */
-              <div className="space-y-4">
-                {/* ── 2 OFFICIAL PLANS SELECTOR: ₹1,00,000 (3-YR) OR ₹10,000 (WEEKLY 50%) ── */}
-                <div className="space-y-3.5">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-[10.5px] font-bold uppercase tracking-wider text-neutral-400">
-                      Select Your Preferred License Plan
-                    </span>
-                    <span className="text-[10.5px] font-bold text-purple-300 flex items-center gap-1">
-                      2 Official Options Available
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-                    {/* OPTION 1: 3-YEAR ENTERPRISE PASS */}
-                    <div
-                      onClick={() => {
-                        setSelectedTier("three_years");
-                        try { 
-                          localStorage.setItem("tradifive_selected_tier", "three_years");
-                          localStorage.setItem("tradifive_is_lifetime_plan", "true");
-                          window.dispatchEvent(new Event("tradifive_tier_update"));
-                        } catch (e) {}
-                      }}
-                      className={`p-4 sm:p-5 rounded-2xl border-2 transition-all cursor-pointer relative flex flex-col justify-between gap-3 shadow-xs ${
-                        selectedTier === "three_years"
-                          ? "border-blue-500/60 bg-blue-500/[0.06] shadow-[0_0_25px_rgba(59,130,246,0.15)] ring-1 ring-blue-500/40"
-                          : "border-white/10 bg-[#161618] hover:border-blue-500/30 opacity-90"
-                      }`}
-                    >
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wide bg-blue-500/15 text-blue-300 border border-blue-500/25">
-                            <Sparkles size={11} className="text-blue-400" />
-                            <span>3-Year Enterprise Pass</span>
-                          </span>
-                          <span className="text-[10.5px] font-bold text-blue-300 font-mono">
-                            0% Profit Share
-                          </span>
-                        </div>
-                        <h3 className="text-base font-extrabold text-white">
-                          FiAlgo V1 3-Year License
-                        </h3>
-                        <p className="text-xs text-neutral-300 leading-relaxed">
-                          Pay <strong className="text-blue-300 font-mono font-bold">₹1,00,000 one-time</strong> for a 3-year MT5 license. <strong>0% profit share</strong> — keep 100% of all profits. Renews after 3 years at 50% loyalty discount (₹49,999) or switch to profit share.
-                        </p>
-                      </div>
-
-                      <div className="pt-2 border-t border-white/5 flex items-baseline justify-between">
-                        <div>
-                          <span className="text-[10px] uppercase font-bold text-neutral-500 block tracking-wider">3-Year Term Fee</span>
-                          <span className="text-2xl font-mono font-black text-blue-300">
-                            ₹1,00,000
-                          </span>
-                        </div>
-                        <span className="text-[11px] font-bold text-neutral-400">
-                          Keep 100% Profits
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* OPTION 2: PERFORMANCE PARTNER PLAN */}
-                    <div
-                      onClick={() => {
-                        setSelectedTier("profit_share");
-                        try { 
-                          localStorage.setItem("tradifive_selected_tier", "profit_share");
-                          localStorage.removeItem("tradifive_is_lifetime_plan");
-                          window.dispatchEvent(new Event("tradifive_tier_update"));
-                        } catch (e) {}
-                      }}
-                      className={`p-4 sm:p-5 rounded-2xl border-2 transition-all cursor-pointer relative flex flex-col justify-between gap-3 shadow-xs ${
-                        selectedTier === "profit_share"
-                          ? "border-emerald-500/60 bg-emerald-500/[0.06] shadow-[0_0_25px_rgba(16,185,129,0.15)] ring-1 ring-emerald-500/40"
-                          : "border-white/10 bg-[#161618] hover:border-emerald-500/30 opacity-90"
-                      }`}
-                    >
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wide bg-emerald-500/15 text-emerald-300 border border-emerald-500/25">
-                            ⚡ Performance Partner
-                          </span>
-                          <span className="text-[10.5px] font-bold text-emerald-400 font-mono">
-                            Weekly 50% Split
-                          </span>
-                        </div>
-                        <h3 className="text-base font-extrabold text-white">
-                          FiAlgo V1 Performance Plan
-                        </h3>
-                        <p className="text-xs text-neutral-300 leading-relaxed">
-                          Pay a one-time <strong className="text-emerald-400 font-mono font-bold">₹10,000 setup fee</strong> to deploy the EA and lock MT5. Profit is split 50/50% weekly on positive weeks only. 0% commission on red or flat weeks.
-                        </p>
-                      </div>
-
-                      <div className="pt-2 border-t border-white/5 flex items-baseline justify-between">
-                        <div>
-                          <span className="text-[10px] uppercase font-bold text-neutral-500 block tracking-wider">Setup Fee</span>
-                          <span className="text-2xl font-mono font-black text-emerald-400">
-                            ₹10,000
-                          </span>
-                        </div>
-                        <span className="text-[11px] font-bold text-emerald-400">
-                          + Weekly 50% Share
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* ── CONDITIONAL: WEEKLY SETTLEMENT COHORT (FOR PROFIT SHARE) VS 3-YEAR GUARANTEE ── */}
-                  {selectedTier === "profit_share" ? (
-                    <div className="p-4 sm:p-5 rounded-2xl border border-white/5 bg-[#161618] space-y-3">
-                      <div className="flex items-center justify-between flex-wrap gap-2">
-                        <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-lg bg-blue-500/15 text-blue-400 flex items-center justify-center">
-                            <Calendar size={14} />
-                          </div>
-                          <div>
-                            <h4 className="text-xs font-bold text-white uppercase tracking-wider">
-                              Select Weekly Settlement &amp; Withdrawal Day
-                            </h4>
-                            <p className="text-[11px] text-neutral-400">
-                              Withdrawals &amp; 50/50% profit share are settled weekly on your designated cohort day (Mon–Sun).
-                            </p>
-                          </div>
-                        </div>
-                        <span className="text-[10px] font-mono font-bold text-blue-300 bg-blue-500/15 px-2.5 py-1 rounded-full border border-blue-500/25">
-                          Staggered Weekly Cohorts
-                        </span>
-                      </div>
-
-                      <div className="grid grid-cols-7 gap-1.5 pt-1">
-                        {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((day) => (
-                          <button
-                            key={day}
-                            type="button"
-                            onClick={() => {
-                              setSettlementDay(day);
-                              try { localStorage.setItem("tradifive_settlement_day", day); } catch (e) {}
-                              toast.success(`Weekly settlement day set to ${day}`);
-                            }}
-                            className={`py-2 px-1 text-xs font-bold transition-all text-center cursor-pointer ${
-                              settlementDay === day
-                                ? "btn-fialgo-primary !py-2 !px-1"
-                                : "btn-fialgo-secondary !py-2 !px-1 text-neutral-400 hover:text-white"
-                            }`}
-                          >
-                            <span className="block text-[10px] font-bold sm:hidden">{day.slice(0, 3)}</span>
-                            <span className="hidden sm:block text-xs font-bold">{day}</span>
-                          </button>
-                        ))}
-                      </div>
-
-                      <div className="text-[11px] text-neutral-300 font-medium flex items-center justify-between p-2.5 rounded-xl bg-[#121214] border border-white/5">
-                        <div className="flex items-center gap-1.5">
-                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                          <span>Your Assigned Cohort: <strong className="text-white">Every {settlementDay}</strong></span>
-                        </div>
-                        <span className="text-[10.5px] font-mono text-neutral-400">
-                          ID: <strong className="text-blue-300 font-bold">{tradifiveId}</strong>
-                        </span>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="p-4 sm:p-5 rounded-2xl border border-blue-500/20 bg-blue-500/[0.05] space-y-2.5">
-                      <div className="flex items-center justify-between flex-wrap gap-2">
-                        <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-lg bg-blue-500/20 text-blue-300 flex items-center justify-center">
-                            <ShieldCheck size={16} />
-                          </div>
-                          <div>
-                            <h4 className="text-xs font-bold text-white uppercase tracking-wider">
-                              3-Year 100% Profit Retention Guarantee
-                            </h4>
-                            <p className="text-[11px] text-neutral-400">
-                              Zero weekly invoices or profit sharing. All trading gains belong 100% to you.
-                            </p>
-                          </div>
-                        </div>
-                        <span className="text-[10px] font-mono font-bold text-blue-300 bg-blue-500/15 px-2.5 py-1 rounded-full border border-blue-500/30">
-                          Renew after 3 Yrs @ ₹49,999
-                        </span>
-                      </div>
-                      <p className="text-[11.5px] text-neutral-300 leading-relaxed">
-                        After your 3-year term completes, you can renew your license for another 3 years at a <strong>50% loyalty discount (₹49,999)</strong> including all V2/V3 algorithm upgrades, or seamlessly switch to the 50% Profit Share model with zero setup fees.
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Payment Method Selector (2 Options) */}
-                <div className="grid grid-cols-2 gap-1.5 p-1 bg-[#141416] border border-white/5 rounded-full text-xs font-semibold">
-                  <button
-                    type="button"
-                    onClick={() => setPaymentMethod("upi")}
-                    className={`transition-all cursor-pointer text-center flex items-center justify-center gap-2 ${
-                      paymentMethod === "upi"
-                        ? "btn-fialgo-primary !py-2.5"
-                        : "btn-fialgo-secondary !py-2.5 text-neutral-400 hover:text-white"
-                    }`}
-                  >
-                    <QrCode size={14} />
-                    <span>PhonePe / UPI</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setPaymentMethod("bank")}
-                    className={`transition-all cursor-pointer text-center flex items-center justify-center gap-2 ${
-                      paymentMethod === "bank"
-                        ? "btn-fialgo-primary !py-2.5"
-                        : "btn-fialgo-secondary !py-2.5 text-neutral-400 hover:text-white"
-                    }`}
-                  >
-                    <Landmark size={14} />
-                    <span>Bank Transfer (IMPS / NEFT)</span>
+                    <X size={18} />
                   </button>
                 </div>
 
-                {/* Tab 1: PhonePe / UPI Option */}
-                {paymentMethod === "upi" && (
-                  <div className="p-4 sm:p-5 rounded-2xl bg-[#161618] border border-white/5 space-y-4">
-                    <div className="flex flex-col sm:flex-row items-center gap-5">
-                      {/* Real Scannable UPI QR Code Image */}
-                      <div className="w-40 sm:w-44 rounded-2xl bg-white p-2.5 border border-white/10 shadow-sm flex flex-col items-center justify-center shrink-0">
-                        <img 
-                          src="/upi-qr-code.png?v=2" 
-                          alt="Scan with PhonePe, GPay, Paytm to pay 9731980756@axisbank" 
-                          className="w-full h-auto object-contain rounded-xl"
-                        />
-                        <span className="mt-1.5 text-[9.5px] font-bold text-slate-700 tracking-tight text-center">
-                          Scan to Pay · Any UPI App
-                        </span>
-                      </div>
-
-                      <div className="space-y-2.5 flex-1 text-center sm:text-left">
-                        <div className="flex flex-wrap items-center justify-center sm:justify-start gap-1.5 text-[10.5px] font-bold">
-                          <span className="px-2 py-0.5 rounded bg-purple-500/15 text-purple-300 border border-purple-500/25">PhonePe</span>
-                          <span className="px-2 py-0.5 rounded bg-white/10 text-neutral-200 border border-white/10">Google Pay</span>
-                          <span className="px-2 py-0.5 rounded bg-white/10 text-neutral-200 border border-white/10">Paytm</span>
-                          <span className="px-2 py-0.5 rounded bg-white/10 text-neutral-200 border border-white/10">BHIM UPI</span>
-                        </div>
-
-                        <div className="text-xs text-neutral-400">
-                          Scan the QR code or copy the official UPI ID below:
-                        </div>
-
-                        {/* Official UPI ID Box with One-Click Copy */}
-                        <div className="flex items-center justify-between bg-[#121214] px-3.5 py-2.5 rounded-xl border border-white/10 max-w-sm mx-auto sm:mx-0 shadow-2xs">
-                          <div>
-                            <span className="text-[10px] uppercase font-bold text-neutral-500 block tracking-wider">UPI ID (Nikhil Ravindra Harake)</span>
-                            <code className="text-xs sm:text-sm font-mono font-bold text-white select-all">
-                              9731980756@axisbank
-                            </code>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => handleCopy("9731980756@axisbank", "UPI ID copied: 9731980756@axisbank")}
-                            className="btn-fialgo-secondary text-xs !py-1.5 !px-4 ml-3 shrink-0"
-                          >
-                            <Copy size={12} className="text-neutral-400" />
-                            <span>Copy UPI</span>
-                          </button>
-                        </div>
-
-                        <p className="text-[11.5px] text-neutral-400">
-                          Transfer Amount: <strong className="text-white font-mono">{selectedTier === "three_years" ? "₹1,00,000" : "₹10,000"}</strong> · Zero additional processing fees
-                        </p>
-                      </div>
+                <div className="pt-4 space-y-4">
+                  {/* License Key Box */}
+                  <div>
+                    <label className="block text-[12px] font-semibold text-slate-600 dark:text-slate-400 mb-1">
+                      Your Hardware-Bound MT5 Key
+                    </label>
+                    <div className="flex items-center justify-between bg-slate-50 dark:bg-[#202020] border border-slate-200 dark:border-white/10 rounded-xl p-3">
+                      <span className="font-mono font-bold text-slate-900 dark:text-white text-[14px]">
+                        {licenseKey}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={handleCopyKey}
+                        className="bg-white dark:bg-[#2A2A2A] border border-slate-200 dark:border-white/10 p-2 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-100 transition-colors cursor-pointer"
+                        title="Copy Key"
+                      >
+                        {copiedKey ? <Check size={15} className="text-emerald-500" /> : <Copy size={15} />}
+                      </button>
                     </div>
                   </div>
-                )}
 
-                {/* Tab 2: Bank Transfer Option */}
-                {paymentMethod === "bank" && (
-                  <div className="p-4 sm:p-5 rounded-2xl bg-[#161618] border border-white/5 space-y-3 text-xs">
-                    <div className="text-xs text-neutral-400 font-medium">
-                      Transfer <strong className="text-white font-mono">{selectedTier === "three_years" ? "₹1,00,000" : "₹10,000"}</strong> via NEFT, RTGS, IMPS, or Net Banking to bank account details below:
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                      <div className="p-3 rounded-xl bg-[#121214] border border-white/5 flex items-center justify-between">
-                        <div>
-                          <span className="text-[10px] text-neutral-500 uppercase font-semibold block">Account Name</span>
-                          <span className="font-bold text-white text-xs">Nikhil Ravindra Harake</span>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => handleCopy("Nikhil Ravindra Harake", "Account Name copied!")}
-                          className="btn-fialgo-secondary text-xs !py-1 !px-2.5 cursor-pointer"
-                        >
-                          <Copy size={12} />
-                          <span>Copy</span>
-                        </button>
-                      </div>
-
-                      <div className="p-3 rounded-xl bg-[#121214] border border-white/5 flex items-center justify-between">
-                        <div>
-                          <span className="text-[10px] text-neutral-500 uppercase font-semibold block">Bank Name</span>
-                          <span className="font-bold text-white text-xs">Axis Bank</span>
-                        </div>
-                      </div>
-
-                      <div className="p-3 rounded-xl bg-[#121214] border border-white/5 flex items-center justify-between">
-                        <div>
-                          <span className="text-[10px] text-neutral-500 uppercase font-semibold block">Account Number</span>
-                          <span className="font-mono font-bold text-white text-xs">924010072811588</span>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => handleCopy("924010072811588", "Account Number copied!")}
-                          className="btn-fialgo-secondary text-xs !py-1 !px-2.5 cursor-pointer"
-                        >
-                          <Copy size={12} />
-                          <span>Copy</span>
-                        </button>
-                      </div>
-
-                      <div className="p-3 rounded-xl bg-[#121214] border border-white/5 flex items-center justify-between">
-                        <div>
-                          <span className="text-[10px] text-neutral-500 uppercase font-semibold block">IFSC Code</span>
-                          <span className="font-mono font-bold text-blue-300 text-xs">UTIB0001690</span>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => handleCopy("UTIB0001690", "IFSC Code copied!")}
-                          className="btn-fialgo-secondary text-xs !py-1 !px-2.5 cursor-pointer"
-                        >
-                          <Copy size={12} />
-                          <span>Copy</span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Mandatory Submission Form: UTR & Proof Screenshot */}
-                <div className="p-4 sm:p-5 rounded-2xl bg-[#161618] border border-white/5 space-y-4 shadow-2xs">
-                  <div className="border-b border-white/5 pb-2.5">
-                    <h4 className="text-xs sm:text-sm font-bold text-white flex items-center gap-1.5">
-                      <Send size={14} className="text-purple-400" />
-                      <span>Submit Payment Proof to Request License Key</span>
-                    </h4>
-                    <p className="text-[11.5px] text-neutral-400 mt-0.5">
-                      After payment, provide your 12-digit UTR number and upload the screenshot. In 2 hours, your license key will be issued.
-                    </p>
-                  </div>
-
-                  <div className="space-y-3.5">
-                    {/* Input 1: UTR Number */}
-                    <div className="space-y-1">
-                      <label className="block text-xs font-bold text-neutral-300">
-                        12-Digit UPI UTR or Bank Reference Number <span className="text-rose-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="e.g. 429184920192 (from PhonePe, GPay, or bank receipt)"
-                        value={paymentUtr}
-                        onChange={(e) => setPaymentUtr(e.target.value)}
-                        className="w-full bg-[#121214] border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white font-mono focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/30"
-                      />
-                      <span className="text-[10.5px] text-neutral-500">
-                        Found in your PhonePe / UPI payment details as "UTR" or "UPI Ref ID".
+                  {/* EA Binary Download */}
+                  <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#1E1E1E] border border-slate-200/80 dark:border-white/5 flex items-center justify-between">
+                    <div>
+                      <span className="font-bold text-[13.5px] text-slate-900 dark:text-white block">
+                        FiAlgo_V1_MT5.ex5
+                      </span>
+                      <span className="text-[11.5px] text-slate-500">
+                        MetaTrader 5 Expert Advisor Binary · V1.4 (Build 4280)
                       </span>
                     </div>
-
-                    {/* Input 2: Payment Screenshot Proof */}
-                    <div className="space-y-1">
-                      <label className="block text-xs font-bold text-neutral-300">
-                        Payment Screenshot Proof <span className="text-rose-500">*</span>
-                      </label>
-                      <div className="p-3 sm:p-3.5 rounded-xl border border-dashed border-white/10 bg-[#121214] flex items-center justify-between gap-2.5 text-xs">
-                        <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                          <UploadCloud size={16} className={`shrink-0 ${paymentProofFile ? "text-emerald-400" : "text-neutral-400"}`} />
-                          <div className="min-w-0">
-                            <span className="text-neutral-200 text-xs font-semibold block truncate">
-                              {paymentProofFileName || (paymentProofFile ? "Screenshot Attached" : "Upload Screenshot of Payment")}
-                            </span>
-                            <span className="text-[10.5px] text-neutral-500 block">
-                              PNG, JPG, or WEBP up to 8MB
-                            </span>
-                          </div>
-                        </div>
-                        <div className="relative shrink-0">
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handlePaymentProofUpload}
-                            className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
-                          />
-                          <span className={`btn-fialgo-secondary text-xs !py-1.5 !px-4 ${
-                            paymentProofFile ? "!border !border-emerald-500/30 !text-emerald-300" : ""
-                          }`}>
-                            {paymentProofFile ? "Change Proof" : "Browse Screenshot"}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Notice: 2-Hour Delivery Callout */}
-                    <div className="p-3 rounded-xl bg-blue-500/[0.06] border border-blue-500/20 flex items-start gap-2.5 text-xs">
-                      <Clock size={15} className="text-blue-400 shrink-0 mt-0.5" />
-                      <div className="space-y-0.5">
-                        <strong className="text-white font-bold text-xs block">
-                          License Key Issued Within 2 Hours
-                        </strong>
-                        <p className="text-[11.5px] text-neutral-300 leading-relaxed">
-                          Once you submit your UTR number and proof screenshot, our compliance desk verifies the payment with the bank. In 2 hours you will receive your personal license key unlocked in Step 4.
-                        </p>
-                      </div>
-                    </div>
+                    <a
+                      href="/downloads/FiAlgo_V1_MT5.ex5"
+                      download
+                      onClick={(e) => {
+                        e.preventDefault();
+                        toast.success("Downloading FiAlgo_V1_MT5.ex5 Expert Advisor binary!");
+                      }}
+                      className="bg-white dark:bg-[#2A2A2A] text-slate-800 dark:text-white border border-slate-200/90 dark:border-white/10 px-3.5 py-1.5 rounded-full font-semibold text-[12.5px] shadow-2xs hover:bg-slate-50 transition-all flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Download size={13} />
+                      Download EA
+                    </a>
                   </div>
 
-                  {/* Stepper Navigation: Back to Step 2 & Request Key Button */}
-                  <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setActiveStep(2)}
-                      className="btn-fialgo-secondary w-full sm:w-auto"
-                    >
-                      <ArrowLeft size={14} />
-                      <span>Back to Step 2 (Download)</span>
-                    </button>
+                  {/* Steps */}
+                  <div className="space-y-2 text-[12px] text-slate-600 dark:text-slate-400 bg-slate-50/70 dark:bg-neutral-900/40 p-3.5 rounded-xl border border-slate-200/60 dark:border-white/5">
+                    <p className="font-bold text-slate-800 dark:text-slate-200">How to install in 30 seconds:</p>
+                    <ol className="list-decimal list-inside space-y-1">
+                      <li>Copy <code className="bg-slate-200 dark:bg-neutral-800 px-1 py-0.5 rounded">FiAlgo_V1_MT5.ex5</code> into your MT5 <code className="bg-slate-200 dark:bg-neutral-800 px-1 py-0.5 rounded">MQL5/Experts</code> folder.</li>
+                      <li>In MT5 Tools → Options → Expert Advisors, tick <strong>Allow Algo Trading</strong> and <strong>Allow WebRequest</strong>.</li>
+                      <li>Drag the EA onto your <strong>XAUUSD M5</strong> chart and paste your license key.</li>
+                    </ol>
+                  </div>
 
+                  {/* Footer Button (Image 2 style) */}
+                  <div className="pt-2 flex justify-end">
                     <button
                       type="button"
-                      onClick={handleSubmitPaymentRequest}
-                      disabled={isSubmittingPayment || !paymentUtr.trim() || !paymentProofFile}
-                      className={`btn-fialgo-primary w-full sm:w-auto ${
-                        paymentUtr.trim() && paymentProofFile
-                          ? ""
-                          : "opacity-40 cursor-not-allowed pointer-events-none"
-                      }`}
+                      onClick={() => setIsLicenseModalOpen(false)}
+                      className="bg-[#111] dark:bg-white text-white dark:text-[#111] hover:bg-black dark:hover:bg-slate-100 px-6 py-2 rounded-full font-medium text-[13.5px] shadow-sm transition-all active:scale-95 cursor-pointer"
                     >
-                      {isSubmittingPayment ? (
-                        <>
-                          <RefreshCw size={14} className="animate-spin" />
-                          <span>Submitting Request...</span>
-                        </>
-                      ) : (
-                        <>
-                          <span>Submit Payment Proof &amp; Request Key</span>
-                          <ArrowRight size={15} />
-                        </>
-                      )}
+                      Done
                     </button>
                   </div>
                 </div>
-              </div>
-            )}
-          </motion.div>
-        )}
-
-        {/* ── STEP 4: ACTIVATION KEY & MT5 SETUP ── */}
-        {activeStep === 4 && (
-          <motion.div
-            key="step4"
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            className="rounded-2xl border border-white/5 bg-[#1E1E1E] shadow-2xl p-5 sm:p-7 space-y-6"
-          >
-            {/* Step 4 Card Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-white/5">
-              <div>
-                <h3 className="text-base sm:text-lg font-bold text-white tracking-tight">
-                  {hasPaid && ibVerified
-                    ? "Cryptographic MT5 License Key"
-                    : paymentStatus === "pending"
-                      ? "License Key Verification"
-                      : "License Key Activation"}
-                </h3>
-                <p className="text-xs text-neutral-400 mt-0.5">
-                  {hasPaid && ibVerified
-                    ? "Your personal license key is active and bound to your MetaTrader 5 account."
-                    : paymentStatus === "pending"
-                      ? "Payment reference received. License key issuance is currently in progress."
-                      : "Complete payment and broker verification to generate your live key."}
-                </p>
-              </div>
-
-              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold shrink-0 self-start sm:self-auto ${
-                hasPaid && ibVerified
-                  ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                  : paymentStatus === "pending"
-                    ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
-                    : "bg-white/10 text-neutral-300 border border-white/10"
-              }`}>
-                {hasPaid && ibVerified ? (
-                  <>
-                    <CheckCircle2 size={13} className="text-emerald-400" />
-                    <span>Active &amp; Bound</span>
-                  </>
-                ) : paymentStatus === "pending" ? (
-                  <>
-                    <Clock size={12} className="text-amber-400 animate-spin" />
-                    <span>Issuance Queue (~2 Hrs)</span>
-                  </>
-                ) : (
-                  <>
-                    <Lock size={12} className="text-neutral-400" />
-                    <span>Key Locked</span>
-                  </>
-                )}
-              </span>
+              </motion.div>
             </div>
-
-            {/* ── CASE 4A: PAYMENT NOT INITIATED IN STEP 3 ── */}
-            {paymentStatus === "none" ? (
-              <div className="space-y-5">
-                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 p-5 rounded-xl bg-[#161618] border border-white/5">
-                  <div className="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center shrink-0">
-                    <Lock size={22} />
-                  </div>
-                  <div className="space-y-1 text-center sm:text-left flex-1 min-w-0">
-                    <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10.5px] font-semibold bg-amber-500/20 text-amber-300">
-                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                      <span>Payment Required</span>
-                    </div>
-                    <h4 className="text-base font-bold text-white">
-                      FiAlgo V1 License Key Locked
-                    </h4>
-                    <p className="text-xs text-neutral-400 leading-relaxed max-w-xl">
-                      Complete payment for your selected plan ({selectedTier === "three_years" ? "3-Year Pass ₹1,00,000" : "Setup Fee ₹10,000"}) in Step 3 via UPI or Bank Transfer to request your license key.
-                    </p>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setActiveStep(3)}
-                  className="btn-fialgo-primary w-full py-3.5"
-                >
-                  <CreditCard size={15} />
-                  <span>Go to Step 3: Select Plan &amp; Pay</span>
-                  <ArrowRight size={15} />
-                </button>
-              </div>
-            ) : paymentStatus === "pending" ? (
-              /* ── CASE 4B: PAYMENT SUBMITTED, UNDER 2-HOUR VERIFICATION ── */
-              <div className="space-y-5">
-                {/* Status Hero Callout */}
-                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 p-4.5 rounded-xl bg-[#161618] border border-amber-500/20">
-                  <div className="w-11 h-11 rounded-xl bg-amber-500/15 text-amber-400 border border-amber-500/20 flex items-center justify-center shrink-0">
-                    <Clock size={20} className="animate-pulse" />
-                  </div>
-                  <div className="space-y-1 text-center sm:text-left flex-1 min-w-0">
-                    <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10.5px] font-semibold bg-amber-500/20 text-amber-300">
-                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                      <span>Verification In Progress &middot; Estimated 2 Hours</span>
-                    </div>
-                    <h4 className="text-sm sm:text-base font-bold text-white">
-                      Payment Received &middot; Generating Hardware Key
-                    </h4>
-                    <p className="text-xs text-neutral-300 leading-relaxed">
-                      We have received your payment reference <code className="font-mono font-bold text-white bg-black/40 px-1.5 py-0.5 rounded border border-white/10">{paymentUtr || "Submitted"}</code> and screenshot proof. Your personal license key will unlock automatically upon verification.
-                    </p>
-                  </div>
-                </div>
-
-                {/* 4-Stat Metric Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                  <div className="p-3.5 rounded-xl bg-[#121214] border border-white/5 space-y-1">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 block">
-                      License Tier
-                    </span>
-                    <div className="text-xs sm:text-sm font-bold text-white truncate">
-                      {selectedTier === "three_years" ? "3-Year Pass" : "Performance Partner"}
-                    </div>
-                    <span className="text-[11px] font-medium text-neutral-400 block truncate">
-                      {selectedTier === "three_years" ? "₹1,00,000 · 0% Share" : "₹10,000 + Weekly 50%"}
-                    </span>
-                  </div>
-
-                  <div className="p-3.5 rounded-xl bg-[#121214] border border-white/5 space-y-1">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 block">
-                      Payment Reference
-                    </span>
-                    <div className="text-xs sm:text-sm font-bold font-mono text-white truncate">
-                      {paymentUtr ? `UTR #${paymentUtr}` : "Proof Attached"}
-                    </div>
-                    <span className="text-[11px] font-medium text-emerald-400 flex items-center gap-1">
-                      <CheckCircle2 size={11} />
-                      <span>Proof Submitted</span>
-                    </span>
-                  </div>
-
-                  <div className="p-3.5 rounded-xl bg-[#121214] border border-white/5 space-y-1">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 block">
-                      Verification SLA
-                    </span>
-                    <div className="text-xs sm:text-sm font-bold text-amber-400 truncate">
-                      Within 2 Hours
-                    </div>
-                    <span className="text-[11px] font-medium text-neutral-400 block">
-                      Live Queue Active
-                    </span>
-                  </div>
-
-                  <div className="p-3.5 rounded-xl bg-[#121214] border border-white/5 space-y-1">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 block">
-                      Assigned Account
-                    </span>
-                    <div className="text-xs sm:text-sm font-bold font-mono text-white truncate">
-                      {mt5Account ? `#${mt5Account}` : "TRDF-****-****"}
-                    </div>
-                    <span className="text-[11px] font-medium text-neutral-400 block truncate">
-                      Hardware Bound
-                    </span>
-                  </div>
-                </div>
-
-                {/* Priority Fast-Track Assistance */}
-                <div className="p-4 sm:p-5 rounded-xl bg-[#161618] border border-white/5 space-y-3">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h4 className="text-xs sm:text-sm font-bold text-white">
-                          Need 15-Minute Fast-Track Approval?
-                        </h4>
-                        <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                          Desk Online
-                        </span>
-                      </div>
-                      <p className="text-xs text-neutral-400 mt-0.5">
-                        Send your UTR number to our finance desk on Live Support for priority approval within 15 minutes:
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
-                    <a
-                      href={`https://wa.me/?text=${encodeURIComponent(
-                        `Hello TradiFive Team! I have completed payment for FiAlgo V1 (${selectedTier === "three_years" ? "3-Year Pass ₹1,00,000" : "Profit Share Plan ₹10,000"}).\nUTR: ${paymentUtr || "[Your UTR]"}\nMT5 Account: ${mt5Account || "[Your MT5 Account]"}\nPlease fast-track verification and unlock my license key.`
-                      )}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="btn-fialgo-primary flex-1"
-                    >
-                      <Headset size={14} />
-                      <span>Live Support Fast-Track</span>
-                      <ArrowRight size={14} />
-                    </a>
-
-                    <a
-                      href={`mailto:support@tradifive.in?subject=${encodeURIComponent(
-                        `Verify License Payment UTR #${paymentUtr || ""}`
-                      )}&body=${encodeURIComponent(
-                        `Hello Support Team,\n\nPlease verify my payment for FiAlgo V1.\nPlan: ${selectedTier === "three_years" ? "3-Year Enterprise Pass (₹1,00,000)" : "Performance Partner Plan (₹10,000)"}\nUTR Number: ${paymentUtr || ""}\nMT5 Account: ${mt5Account || ""}\n\nPlease issue my hardware-bound license key.\n\nThank you!`
-                      )}`}
-                      className="btn-fialgo-secondary flex-1"
-                    >
-                      <Mail size={14} className="text-neutral-400" />
-                      <span>Email Support</span>
-                    </a>
-                  </div>
-                </div>
-              </div>
-            ) : !ibVerified ? (
-              /* ── CASE 4C: PAYMENT CONFIRMED, WAITING FOR BROKER VERIFICATION ($500+ & IB LINK) ── */
-              <div className="space-y-5">
-                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 p-5 rounded-xl bg-[#161618] border border-white/5">
-                  <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 text-neutral-300 flex items-center justify-center shrink-0">
-                    <Lock size={22} className="text-neutral-400" />
-                  </div>
-                  <div className="space-y-1 text-center sm:text-left flex-1 min-w-0">
-                    <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10.5px] font-semibold bg-white/10 text-neutral-300 border border-white/10">
-                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                      <span>Broker Verification Required</span>
-                    </div>
-                    <h4 className="text-base font-bold text-white">
-                      FiAlgo V1 License Key Locked
-                    </h4>
-                    <p className="text-xs text-neutral-400 leading-relaxed max-w-xl">
-                      License payment is confirmed! Your license key will unlock automatically once your MT5 account is verified under Partner IB <strong className="text-neutral-200">{currentBroker.ibNumber || "27863221"}</strong> with a <strong className="text-neutral-200">minimum balance of $500 USD</strong>.
-                    </p>
-                  </div>
-                </div>
-
-                {/* 4 Clean Metric Tiles */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                  <div className="p-3.5 rounded-xl bg-[#121214] border border-white/5 space-y-1">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 block">
-                      License Payment
-                    </span>
-                    <div className="text-xs sm:text-sm font-bold text-emerald-400 flex items-center gap-1">
-                      <CheckCircle2 size={13} />
-                      <span>Verified ✓</span>
-                    </div>
-                    <span className="text-[11px] font-medium text-neutral-400 block">
-                      {selectedTier === "three_years" ? "3-Year Pass" : "Performance Partner"}
-                    </span>
-                  </div>
-
-                  <div className="p-3.5 rounded-xl bg-[#121214] border border-white/5 space-y-1">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 block">
-                      Partner Broker
-                    </span>
-                    <div className="text-xs sm:text-sm font-bold text-white truncate">
-                      {currentBroker.name}
-                    </div>
-                    <span className="text-[11px] font-mono text-neutral-400 block">
-                      IB #{currentBroker.ibNumber || "27863221"}
-                    </span>
-                  </div>
-
-                  <div className="p-3.5 rounded-xl bg-[#121214] border border-white/5 space-y-1">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 block">
-                      MT5 Account
-                    </span>
-                    <div className="text-xs sm:text-sm font-bold font-mono text-white truncate">
-                      {mt5Account ? `#${mt5Account}` : "Pending Link"}
-                    </div>
-                    <span className="text-[11px] font-medium text-neutral-400 block">
-                      {mt5Account ? "Linked in Step 1" : "Action Required"}
-                    </span>
-                  </div>
-
-                  <div className="p-3.5 rounded-xl bg-[#121214] border border-white/5 space-y-1">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 block">
-                      Min. Balance
-                    </span>
-                    <div className="text-xs sm:text-sm font-bold text-amber-400">
-                      $500.00 USD
-                    </div>
-                    <span className="text-[11px] font-medium text-neutral-400 block">
-                      Required for Execution
-                    </span>
-                  </div>
-                </div>
-
-                {/* Priority Fast-Track Assistance */}
-                <div className="p-4 sm:p-5 rounded-xl bg-[#161618] border border-white/5 space-y-3">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h4 className="text-xs sm:text-sm font-bold text-white">
-                          Need Fast-Track Verification?
-                        </h4>
-                        <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                          Desk Online
-                        </span>
-                      </div>
-                      <p className="text-xs text-neutral-400 mt-0.5">
-                        Send your MT5 account number and deposit screenshot directly to our verification desk on Live Support or Email for priority review.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
-                    <a
-                      href={`https://wa.me/?text=${encodeURIComponent(
-                        `Hello TradiFive Team! Please verify my Vantage MT5 account #${mt5Account || "[Your MT5 Account]"} (Deposit: $500+) under Partner IB 27863221 to unlock my FiAlgo V1 license key.`
-                      )}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="btn-fialgo-primary flex-1"
-                    >
-                      <Headset size={14} />
-                      <span>Live Support Fast-Track</span>
-                      <ArrowRight size={14} />
-                    </a>
-
-                    <a
-                      href={`mailto:support@tradifive.in?subject=${encodeURIComponent(
-                        `Verify Vantage MT5 Account #${mt5Account || ""}`
-                      )}&body=${encodeURIComponent(
-                        `Hello Support Team,\n\nPlease verify my Vantage MT5 account #${mt5Account || ""}.\nPartner IB: 27863221\nDeposit: $500+ completed.\n\nPlease unlock my FiAlgo V1 license key.\n\nThank you!`
-                      )}`}
-                      className="btn-fialgo-secondary flex-1"
-                    >
-                      <Mail size={14} className="text-neutral-400" />
-                      <span>Email Support</span>
-                    </a>
-                  </div>
-                </div>
-
-                {!mt5Account && (
-                  <button
-                    type="button"
-                    onClick={() => setActiveStep(1)}
-                    className="w-full py-3 px-5 rounded-full text-xs sm:text-sm font-semibold bg-[#171717] hover:bg-[#1e1e1e] text-white/90 hover:text-white border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] flex items-center justify-center gap-2 cursor-pointer transition-all"
-                  >
-                    <ArrowLeft size={14} />
-                    <span>Go to Step 1 &amp; Submit MT5 Account</span>
-                  </button>
-                )}
-              </div>
-                        ) : (
-              /* ── CASE 4D: FULLY UNLOCKED STATE - SHOW LICENSE KEY & MT5 ATTACHMENT ── */
-              <div className="space-y-5">
-                {(() => {
-                  const effectiveAccount = mt5Account || localStorage.getItem("tradifive_connected_mt5_account") || "";
-                  const activeKey = effectiveAccount
-                    ? generateTradifiveLicenseKey(effectiveAccount)
-                    : "";
-
-                  return (
-                    <>
-                      {/* Master License Key Card */}
-                      <div className="p-5 sm:p-6 rounded-2xl bg-[#161618] border border-white/5 space-y-4 shadow-xs">
-                        <div className="flex items-center justify-between flex-wrap gap-2">
-                          <div className="flex items-center gap-2.5">
-                            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-                            <span className="text-xs sm:text-sm font-bold text-white">
-                              Live MT5 License Key
-                            </span>
-                            <span className="text-xs font-mono font-semibold text-neutral-300 bg-white/10 px-2 py-0.5 rounded-md border border-white/10">
-                              #{effectiveAccount}
-                            </span>
-                          </div>
-                          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
-                            <ShieldCheck size={13} className="text-emerald-400" />
-                            <span>Active &amp; Cryptographically Bound</span>
-                          </span>
-                        </div>
-
-                        {/* License Key Code Bar */}
-                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-[#121214] border border-white/10 rounded-xl p-3.5 px-4 shadow-2xs">
-                          <code className="font-mono text-sm sm:text-base font-extrabold tracking-wider text-blue-400 select-all break-all">
-                            {activeKey}
-                          </code>
-                          <div className="flex items-center gap-2 shrink-0">
-                            <button
-                              type="button"
-                              onClick={() => handleCopyKey(activeKey)}
-                              className="btn-fialgo-primary text-xs !py-2 !px-4"
-                            >
-                              {copiedKey ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
-                              <span>{copiedKey ? "Copied" : "Copy Key"}</span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={handleDownloadEA}
-                              className="btn-fialgo-secondary text-xs !py-2 !px-4"
-                              title="Download FiAlgo Expert Advisor (.ex5)"
-                            >
-                              <Download size={14} />
-                              <span>Download EA (.ex5)</span>
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Subtle Account Binding Notice */}
-                        <div className="flex items-center gap-2 text-xs text-neutral-400 px-1">
-                          <ShieldCheck size={14} className="text-emerald-400 shrink-0" />
-                          <span>
-                            Cryptographically locked to MT5 account <strong className="text-neutral-200">#{effectiveAccount}</strong>. Anti-tamper protection active.
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* 2 Symmetric Setup Cards */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                        {/* Step 1: WebRequest */}
-                        <div className="p-4 rounded-xl bg-[#161618] border border-white/5 space-y-2.5 flex flex-col justify-between">
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between">
-                              <span className="font-bold text-white flex items-center gap-2 text-xs">
-                                <span className="w-5 h-5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center justify-center font-bold text-[11px]">
-                                  1
-                                </span>
-                                <span>Allow MT5 WebRequest</span>
-                              </span>
-                              <kbd className="text-[10px] font-mono font-semibold text-neutral-400 bg-white/10 px-1.5 py-0.5 rounded border border-white/10">
-                                Ctrl + O
-                              </kbd>
-                            </div>
-                            <p className="text-[11.5px] text-neutral-400 leading-relaxed">
-                              In MT5: <span className="font-semibold text-neutral-200">Tools &rarr; Options &rarr; Experts</span>. Check <em>"Allow WebRequest for listed URL"</em> and add:
-                            </p>
-                          </div>
-                          <div className="flex items-center justify-between gap-2 bg-[#121214] border border-white/10 rounded-lg p-1.5 pl-2.5">
-                            <code className="font-mono text-[11px] text-blue-400 truncate select-all">
-                              https://hcgylvdvlandtiuudefu.supabase.co
-                            </code>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                navigator.clipboard.writeText("https://hcgylvdvlandtiuudefu.supabase.co");
-                                toast.success("Webhook URL copied!");
-                              }}
-                              className="px-3 py-1 rounded-full text-[10.5px] font-semibold bg-[#171717] hover:bg-[#1e1e1e] border border-white/10 text-white/90 inline-flex items-center gap-1 shrink-0 cursor-pointer shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] transition-colors"
-                              title="Copy URL"
-                            >
-                              <Copy size={11} />
-                              <span>Copy</span>
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Step 2: Attach to Chart */}
-                        <div className="p-4 rounded-xl bg-[#161618] border border-white/5 space-y-2.5 flex flex-col justify-between">
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between">
-                              <span className="font-bold text-white flex items-center gap-2 text-xs">
-                                <span className="w-5 h-5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center justify-center font-bold text-[11px]">
-                                  2
-                                </span>
-                                <span>Attach FiAlgo to Gold Chart</span>
-                              </span>
-                              <kbd className="text-[10px] font-mono font-semibold text-neutral-400 bg-white/10 px-1.5 py-0.5 rounded border border-white/10">
-                                Press F7
-                              </kbd>
-                            </div>
-                            <p className="text-[11.5px] text-neutral-400 leading-relaxed">
-                              Open <span className="font-semibold text-neutral-200">XAUUSD (Gold)</span> on the <span className="font-semibold text-neutral-200">1-Min (M1) timeframe</span> and drag FiAlgo onto chart.
-                            </p>
-                          </div>
-                          <div className="p-2 rounded-lg bg-[#121214] border border-white/10 text-[11px] text-neutral-300">
-                            Press <kbd className="font-mono text-[10px] font-semibold px-1 py-0.5 rounded bg-white/10">F7</kbd> &rarr; <strong>Inputs</strong> &rarr; paste your License Key &rarr; click <strong>OK</strong>.
-                          </div>
-                        </div>
-                      </div>
-                    </>
-                  );
-                })()}
-
-                {/* Real-Time Connection Status */}
-                {isMt5Connected ? (
-                  <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-between gap-3 text-xs">
-                    <div className="flex items-center gap-2.5">
-                      <div className="relative flex items-center justify-center shrink-0">
-                        <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping absolute opacity-75" />
-                        <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 relative" />
-                      </div>
-                      <div>
-                        <span className="font-bold text-emerald-400">
-                          FiAlgo Connected &amp; Live
-                        </span>
-                        <span className="text-neutral-400 ml-2 text-[11.5px] hidden sm:inline">
-                          MT5 #{mt5Account} &middot; Algorithm executing in real-time
-                        </span>
-                      </div>
-                    </div>
-                    <span className="text-xs font-mono text-emerald-400 font-bold bg-white/10 px-2.5 py-1 rounded-md border border-emerald-500/20">
-                      Online &middot; 1.8ms
-                    </span>
-                  </div>
-                ) : (
-                  <div className="p-3.5 rounded-xl bg-[#161618] border border-white/5 flex items-center justify-between gap-3 text-xs">
-                    <div className="flex items-center gap-2.5">
-                      <Clock size={16} className="text-amber-500 shrink-0" />
-                      <div>
-                        <span className="font-bold text-white">
-                          Awaiting MT5 Terminal Attachment
-                        </span>
-                        <span className="text-neutral-400 ml-2 text-[11.5px] hidden sm:inline">
-                          Attach FiAlgo to your MT5 Gold 1-Min (M1) chart with your license key to connect
-                        </span>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => checkLiveMt5Connection()}
-                      disabled={isCheckingConnection}
-                      className="text-xs font-semibold text-white/90 bg-[#171717] hover:bg-[#1e1e1e] px-4 py-1.5 rounded-full border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] inline-flex items-center gap-1.5 cursor-pointer shrink-0 transition-all"
-                    >
-                      <RefreshCw size={12} className={isCheckingConnection ? "animate-spin" : ""} />
-                      <span>{isCheckingConnection ? "Checking..." : "Refresh Status"}</span>
-                    </button>
-                  </div>
-                )}
-
-                {/* Primary Dashboard CTA */}
-                <button
-                  type="button"
-                  onClick={handleGoToDashboard}
-                  className="btn-fialgo-primary w-full py-3.5"
-                >
-                  <span>Open AutoTrade Dashboard</span>
-                  <ArrowRight size={15} />
-                </button>
-              </div>
-            )}
-
-            {/* Stepper Navigation: Back to Step 3 */}
-            <div className="pt-2 flex justify-start border-t border-white/5">
-              <button
-                type="button"
-                onClick={() => setActiveStep(3)}
-                className="btn-fialgo-secondary"
-              >
-                <ArrowLeft size={13} />
-                <span>Back to Step 3 (Payment)</span>
-              </button>
-            </div>
-          </motion.div>
-        )}
-          </div>
-        </div>
+          )}
+        </AnimatePresence>
       </div>
-
-      {/* ── PHOTO PROOF PREVIEW MODAL LIGHTBOX ── */}
-      <AnimatePresence>
-        {showProofPreviewModal && proofFile && (
-          <div 
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4"
-            onClick={() => setShowProofPreviewModal(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              onClick={(e) => e.stopPropagation()}
-              className="bg-[#161616] border border-white/10 rounded-2xl max-w-xl w-full p-4 space-y-3 shadow-2xl"
-            >
-              <div className="flex items-center justify-between pb-2 border-b border-white/10">
-                <h4 className="text-xs font-bold text-white flex items-center gap-2">
-                  <Camera size={14} className="text-slate-400" />
-                  Attached Screenshot Proof
-                </h4>
-                <button
-                  type="button"
-                  onClick={() => setShowProofPreviewModal(false)}
-                  className="text-neutral-400 hover:text-white p-1 cursor-pointer"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-
-              <div className="max-h-[65vh] overflow-auto rounded-lg border border-white/5 bg-black flex items-center justify-center p-2">
-                <img src={proofFile} alt="Proof Full View" className="max-h-[60vh] w-auto object-contain rounded" />
-              </div>
-
-              <div className="flex justify-between items-center text-xs text-neutral-400 pt-1">
-                <span>Account: {displayAccountLabel}</span>
-                <button
-                  type="button"
-                  onClick={() => setShowProofPreviewModal(false)}
-                  className="px-3 py-1 bg-neutral-800 hover:bg-neutral-700 text-white rounded-lg font-bold text-xs cursor-pointer"
-                >
-                  Close
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* ── PROFIT SIMULATOR MODAL ── */}
-      <AnimatePresence>
-        {showCalculator && (
-          <div 
-            className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-2.5 sm:p-6 bg-black/85 backdrop-blur-md overflow-y-auto"
-            onClick={() => setShowCalculator(false)}
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              onClick={(e) => e.stopPropagation()}
-              className="relative w-full max-w-4xl my-auto py-4 sm:py-6"
-            >
-              <div className="flex justify-end mb-2">
-                <button
-                  type="button"
-                  onClick={() => setShowCalculator(false)}
-                  className="px-3 py-1.5 text-white/80 hover:text-white bg-white/10 hover:bg-white/20 rounded-full transition-colors flex items-center gap-1.5 text-xs font-bold cursor-pointer"
-                >
-                  <X className="w-4 h-4" /> Close Simulator
-                </button>
-              </div>
-              <div className="bg-[#0c0e14] p-3 sm:p-7 rounded-2xl sm:rounded-[28px] border border-white/10 shadow-2xl">
-                <AutoTradeProfitCalculator 
-                  onClose={() => setShowCalculator(false)}
-                  ctaText="Continue MT5 Setup →"
-                  onCtaClick={() => setShowCalculator(false)}
-                />
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </DashboardLayout>
   );
 }

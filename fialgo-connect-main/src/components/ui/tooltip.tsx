@@ -14,13 +14,10 @@ class SafeTooltipProvider extends React.Component<
   }
 
   componentDidCatch(error: any) {
-    console.warn("SafeTooltipProvider caught tooltip error, falling back to children:", error);
+    console.warn("SafeTooltipProvider caught tooltip error:", error);
   }
 
   render() {
-    if (this.state.hasError) {
-      return this.props.children;
-    }
     const Provider = TooltipPrimitive.Provider;
     return <Provider {...this.props}>{this.props.children}</Provider>;
   }
@@ -28,7 +25,15 @@ class SafeTooltipProvider extends React.Component<
 
 const TooltipProvider = SafeTooltipProvider;
 
-const Tooltip = TooltipPrimitive.Root;
+const Tooltip = ({ children, ...props }: React.ComponentProps<typeof TooltipPrimitive.Root>) => {
+  return (
+    <TooltipPrimitive.Provider delayDuration={0}>
+      <TooltipPrimitive.Root {...props}>
+        {children}
+      </TooltipPrimitive.Root>
+    </TooltipPrimitive.Provider>
+  );
+};
 
 const TooltipTrigger = TooltipPrimitive.Trigger;
 

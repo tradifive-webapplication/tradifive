@@ -18,6 +18,7 @@ import {
 import JournalCalendar from "./JournalCalendar";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { useJournalSettings } from "@/contexts/JournalSettingsContext";
+import { useTradingTheme } from "@/hooks/useTradingTheme";
 
 const CARD_SURFACE =
   "bg-white dark:bg-[#17171A] rounded-[18px] border border-slate-200/70 dark:border-white/[0.07] shadow-[0_2px_10px_rgba(15,23,42,0.04),0_10px_26px_-10px_rgba(15,23,42,0.07)] dark:shadow-none";
@@ -141,6 +142,7 @@ function RecentTradesCard({
   const recentTrades = demoData ? demoData.allTrades : rawRecentTrades || [];
   const { formatMoney: fmtMoney, hideBalance, percentageOnly, isSettingsLoading } =
     useJournalSettings();
+  const { config: tradingTheme } = useTradingTheme();
   const loading = demoData ? isSettingsLoading : dataLoading || isSettingsLoading;
   const rows =
     tab === "recent"
@@ -165,7 +167,7 @@ function RecentTradesCard({
         >
           Recent trades
           {tab === "recent" && (
-            <div className="absolute bottom-0 left-0 w-full h-0.5 rounded-full bg-[#2563EB]" />
+            <div className="absolute bottom-0 left-0 w-full h-0.5 rounded-full bg-slate-900 dark:bg-white" />
           )}
         </button>
         <button
@@ -179,7 +181,7 @@ function RecentTradesCard({
         >
           Open positions
           {tab === "open" && (
-            <div className="absolute bottom-0 left-0 w-full h-0.5 rounded-full bg-[#2563EB]" />
+            <div className="absolute bottom-0 left-0 w-full h-0.5 rounded-full bg-slate-900 dark:bg-white" />
           )}
         </button>
       </div>
@@ -242,8 +244,8 @@ function RecentTradesCard({
                   <td
                     className={`py-3 text-right pr-3 text-[12px] font-semibold tabular-nums ${
                       Number(t.profit || 0) >= 0
-                        ? "text-[#2563EB] dark:text-blue-400"
-                        : "text-rose-600 dark:text-rose-400"
+                        ? tradingTheme.profitText
+                        : tradingTheme.lossText
                     }`}
                   >
                     {hideBalance || percentageOnly ? (
@@ -297,6 +299,9 @@ export default function JournalCharts({
   } = useJournalSettings();
   const loading = demoData ? isSettingsLoading : dataLoading || isSettingsLoading;
   const [isDark, setIsDark] = useState(false);
+  const { config: tradingTheme } = useTradingTheme();
+  const profitColor = isDark ? tradingTheme.profitHexDark : tradingTheme.profitHex;
+  const lossColor = isDark ? tradingTheme.lossHexDark : tradingTheme.lossHex;
 
   useEffect(() => {
     setIsDark(document.documentElement.classList.contains("dark"));
@@ -472,7 +477,7 @@ export default function JournalCharts({
     const isPositive =
       filteredData.length === 0 ||
       filteredData[filteredData.length - 1].value >= 0;
-    const chartColor = isPositive ? "#2563EB" : "#E11D48";
+    const chartColor = isPositive ? profitColor : lossColor;
     return (
       <ChartCard
         title="Daily Net Cumulative P&L"
@@ -571,11 +576,11 @@ export default function JournalCharts({
         legend={
           <div className="flex items-center gap-3 text-[11px] font-medium text-slate-400">
             <span className="inline-flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-[#2563EB]" />
+              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: profitColor }} />
               Profit
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-rose-500" />
+              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: lossColor }} />
               Loss
             </span>
           </div>
@@ -648,7 +653,7 @@ export default function JournalCharts({
                   {filteredData.map((d, i) => (
                     <Cell
                       key={i}
-                      fill={d.value >= 0 ? "#2563EB" : "#E11D48"}
+                      fill={d.value >= 0 ? profitColor : lossColor}
                     />
                   ))}
                 </Bar>
@@ -706,7 +711,7 @@ export default function JournalCharts({
         legend={
           <div className="flex items-center gap-3 text-[11px] font-medium text-slate-400">
             <span className="inline-flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-[#2563EB]" />
+              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: profitColor }} />
               Balance
             </span>
             <span className="inline-flex items-center gap-1.5">
@@ -730,8 +735,8 @@ export default function JournalCharts({
               <span
                 className={`font-semibold ${
                   pctChange >= 0
-                    ? "text-[#2563EB] dark:text-blue-400"
-                    : "text-rose-600 dark:text-rose-400"
+                    ? tradingTheme.profitText
+                    : tradingTheme.lossText
                 }`}
               >
                 {hasData
@@ -761,8 +766,8 @@ export default function JournalCharts({
               >
                 <defs>
                   <linearGradient id="tfBalGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#2563EB" stopOpacity={0.18} />
-                    <stop offset="100%" stopColor="#2563EB" stopOpacity={0.01} />
+                    <stop offset="0%" stopColor={profitColor} stopOpacity={0.18} />
+                    <stop offset="100%" stopColor={profitColor} stopOpacity={0.01} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid
@@ -810,7 +815,7 @@ export default function JournalCharts({
                 <Area
                   type="monotone"
                   dataKey="balance"
-                  stroke="#2563EB"
+                  stroke={profitColor}
                   strokeWidth={2}
                   fill="url(#tfBalGrad)"
                   isAnimationActive={true}
@@ -926,11 +931,11 @@ export default function JournalCharts({
         legend={
           <div className="flex items-center gap-3 text-[11px] font-medium text-slate-400">
             <span className="inline-flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-[#2563EB]" />
+              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: profitColor }} />
               Profit
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-rose-500" />
+              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: lossColor }} />
               Loss
             </span>
           </div>
@@ -1008,7 +1013,7 @@ export default function JournalCharts({
                 />
                 <Scatter
                   data={scatterData.profit}
-                  fill="#2563EB"
+                  fill={profitColor}
                   opacity={0.85}
                   isAnimationActive={true}
                   animationBegin={110}
@@ -1017,7 +1022,7 @@ export default function JournalCharts({
                 />
                 <Scatter
                   data={scatterData.loss}
-                  fill="#E11D48"
+                  fill={lossColor}
                   opacity={0.85}
                   isAnimationActive={true}
                   animationBegin={150}

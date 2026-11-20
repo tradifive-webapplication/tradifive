@@ -500,6 +500,13 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
     if (p.startsWith('/journal/mistakes')) return 'Mistake Tracking';
     if (p.startsWith('/journal')) return 'Journal';
     if (p.startsWith('/risk-guard')) return 'Risk Guard';
+    if (p.startsWith('/auto-trade/setup')) return 'Auto Trade Setup';
+    if (p.startsWith('/auto-trade/dashboard')) return 'Execution Dashboard';
+    if (p.startsWith('/auto-trade/active-bots')) return 'Active Bots';
+    if (p.startsWith('/strategy-builder')) return 'Strategy Builder';
+    if (p.startsWith('/auto-trade/history')) return 'Order History';
+    if (p.startsWith('/weekly-settlements')) return 'Weekly Settlements';
+    if (p.startsWith('/auto-trade/license')) return 'EA License & Keys';
     if (p.startsWith('/ai-coach')) return 'AI Coach';
     if (breadcrumbs && breadcrumbs.length > 0) return breadcrumbs[breadcrumbs.length - 1].label;
     return formatSegment(lastSegment);
@@ -509,6 +516,7 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
   const desktopPageName = resolveDesktopPageName();
 
   const getCategoryName = (pathname: string) => {
+    if (pathname.startsWith('/fialgo') || pathname.startsWith('/auto-trade') || pathname.startsWith('/strategy-builder') || pathname.startsWith('/weekly-settlements')) return 'AutoTrade';
     if (pathname.startsWith('/inbox') || pathname.startsWith('/notifications')) return 'Communication';
     if (pathname.startsWith('/competitions') || pathname.startsWith('/rewards')) return 'Engagement';
     if (pathname.startsWith('/admin')) return 'Admin';
@@ -532,11 +540,6 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
     gradientClass = "from-[#ffe4e6] via-[#fff1f2] to-[#fff5f6]";
   }
 
-  // When inside FiAlgo Workspace, render the exact Admin App architecture in White Mode
-  if (isFiAlgo) {
-    return <FiAlgoLayout>{children}</FiAlgoLayout>;
-  }
-
   return (
     <div ref={constraintsRef} className="min-h-screen bg-[#F1F3F6] dark:bg-[#09090B] flex relative overflow-hidden">
 
@@ -546,7 +549,7 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
         </div>
       )}
 
-      <div className={`flex-1 flex flex-col h-screen overflow-hidden ${isMounted ? 'transition-[margin-left] duration-300' : ''} ml-0 ${isCollapsed ? 'md:ml-[90px]' : isFiAlgo ? 'md:ml-[260px] xl:ml-[274px]' : 'md:ml-[340px]'}`}>
+      <div className={`flex-1 flex flex-col h-screen overflow-hidden ${isMounted ? 'transition-[margin-left] duration-300' : ''} ml-0 ${isCollapsed ? 'md:ml-[90px]' : 'md:ml-[340px]'}`}>
 
         {impersonatingUser && (
           <div className="bg-rose-500 text-white px-4 py-2 flex items-center justify-center gap-3 shrink-0 shadow-lg z-50">

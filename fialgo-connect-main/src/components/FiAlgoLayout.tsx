@@ -2,10 +2,14 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import FiAlgoAdminSidebar from "./FiAlgoAdminSidebar";
 import FiAlgoAdminTopbar from "./FiAlgoAdminTopbar";
-import { LayoutDashboard, Bot, Activity, FileText, Settings } from "lucide-react";
+import { LayoutDashboard, Bot, Activity, FileText, Settings, Headset, Sparkles, Flag } from "lucide-react";
+import SuggestFeatureModal from "./SuggestFeatureModal";
+import ReportProblemModal from "./ReportProblemModal";
 
 export default function FiAlgoLayout({ children }: { children: React.ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showSuggestModal, setShowSuggestModal] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
   const location = useLocation();
 
   // Enforce dark mode matching Admin App strictly in FiAlgo Workspace
@@ -46,12 +50,51 @@ export default function FiAlgoLayout({ children }: { children: React.ReactNode }
         <FiAlgoAdminTopbar onOpenMobileMenu={() => setMobileMenuOpen(true)} />
 
         {/* Content Area - Full Matte Width & Proper Mobile Fit (Admin App #121212 background) */}
-        <main className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide bg-[#121212] p-3.5 sm:p-5 md:p-6 pb-24 lg:pb-6">
-          <div className="max-w-[1500px] mx-auto w-full min-w-0">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide bg-[#121212] p-3.5 sm:p-5 md:p-6 pb-24 lg:pb-6 flex flex-col justify-between">
+          <div className="max-w-[1500px] mx-auto w-full min-w-0 flex-1">
             {children}
           </div>
+
+          {/* Footer matching reference image (Support | Suggest | Report) */}
+          <footer className="max-w-[1500px] mx-auto w-full flex items-center justify-end gap-5 pt-8 pb-2 text-[11.5px] text-neutral-400 font-sans select-none shrink-0">
+            <Link
+              to="/support"
+              className="flex items-center gap-1.5 text-neutral-400 hover:text-white transition-colors cursor-pointer"
+            >
+              <Headset size={13} className="text-neutral-400" />
+              <span>Support</span>
+            </Link>
+            <span className="text-neutral-700">·</span>
+            <button
+              type="button"
+              onClick={() => setShowSuggestModal(true)}
+              className="flex items-center gap-1.5 text-neutral-400 hover:text-white transition-colors cursor-pointer"
+            >
+              <Sparkles size={13} className="text-neutral-400" />
+              <span>Suggest</span>
+            </button>
+            <span className="text-neutral-700">·</span>
+            <button
+              type="button"
+              onClick={() => setShowReportModal(true)}
+              className="flex items-center gap-1.5 text-neutral-400 hover:text-white transition-colors cursor-pointer"
+            >
+              <Flag size={13} className="text-neutral-400" />
+              <span>Report</span>
+            </button>
+          </footer>
         </main>
       </div>
+
+      <SuggestFeatureModal
+        isOpen={showSuggestModal}
+        onClose={() => setShowSuggestModal(false)}
+      />
+
+      <ReportProblemModal
+        isOpen={showReportModal}
+        onClose={() => setShowReportModal(false)}
+      />
 
       {/* Mobile Bottom Navigation Dock (Admin App line 687 exact dark styling) */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#161616]/95 backdrop-blur-xl border-t border-white/10 px-2 py-1.5 flex items-center justify-around shadow-2xl">

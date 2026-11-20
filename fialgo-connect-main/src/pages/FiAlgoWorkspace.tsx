@@ -66,18 +66,18 @@ export default function FiAlgoWorkspace({ defaultTab }: FiAlgoWorkspaceProps) {
   if (viewMode === "terminal") {
     return (
       <DashboardLayout>
-        <div className="space-y-4 max-w-[1500px] mx-auto w-full font-sans select-none text-[#E5E5E5]">
+        <div className="space-y-4 max-w-[1500px] mx-auto w-full font-sans select-none text-slate-900 dark:text-white">
           {/* Header bar allowing return to overview */}
-          <div className="flex items-center justify-between bg-[#1E1E1E] border border-white/5 rounded-xl p-3 shadow-xs">
+          <div className="flex items-center justify-between bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] rounded-[18px] p-3.5 shadow-xs">
             <div className="flex items-center gap-2">
-              <Monitor size={16} className="text-purple-400" />
-              <span className="text-xs font-bold text-white uppercase tracking-wide">
+              <Monitor size={16} className="text-purple-600 dark:text-purple-400" />
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">
                 Auto Trade Engine Terminal
               </span>
             </div>
             <button
               onClick={() => setViewMode("overview")}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-purple-300 transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-xs font-semibold text-slate-700 dark:text-slate-200 transition-colors cursor-pointer"
             >
               <ArrowLeft size={13} />
               <span>Back to FiAlgo Overview Dashboard</span>

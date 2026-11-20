@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Pencil,
@@ -200,6 +201,23 @@ export const DashboardGoalsCard: React.FC = () => {
       if (firstPopulated) setActiveHorizon(firstPopulated);
     }
   }, [goals, hasAnyGoal, activeHorizon]);
+
+  // Lock body scroll and blur background when modal opens
+  useEffect(() => {
+    if (modalOpen) {
+      document.body.classList.add("tf-sheet-open");
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === "Escape") setModalOpen(false);
+      };
+      window.addEventListener("keydown", handleKeyDown);
+      return () => {
+        document.body.classList.remove("tf-sheet-open");
+        window.removeEventListener("keydown", handleKeyDown);
+      };
+    } else {
+      document.body.classList.remove("tf-sheet-open");
+    }
+  }, [modalOpen]);
 
   const openEditor = () => {
     setDraft(JSON.parse(JSON.stringify(goals)));
@@ -517,52 +535,64 @@ export const DashboardGoalsCard: React.FC = () => {
       </section>
 
       {/* ── "Your goals" Modal / Bottom Sheet ────────────────────────────── */}
-      <AnimatePresence>
-        {modalOpen && (
-          <div className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center p-0 sm:p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setModalOpen(false)}
-              className="fixed inset-0 bg-black/45 backdrop-blur-[2px]"
-            />
+      {createPortal(
+        <AnimatePresence>
+          {modalOpen && (
+            <div className="fixed inset-0 z-[99999] flex flex-col justify-end items-center pointer-events-auto">
+              {/* Backdrop */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.25, ease: "easeOut" }}
+                onClick={() => setModalOpen(false)}
+                className="fixed inset-0 bg-black/45 backdrop-blur-[2px] cursor-pointer"
+              />
 
-            <motion.div
-              initial={{ opacity: 0, y: 36, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 28, scale: 0.98 }}
-              transition={{ type: "spring", stiffness: 360, damping: 32 }}
-              className="relative z-10 w-full sm:max-w-[490px] bg-white dark:bg-[#17171A] rounded-t-[26px] sm:rounded-[26px] border border-slate-200/80 dark:border-white/10 shadow-2xl max-h-[90vh] flex flex-col overflow-hidden"
-            >
-              {/* Mobile Drag Handle */}
-              <div className="pt-2.5 pb-1 flex justify-center sm:hidden shrink-0">
-                <div className="w-10 h-1 rounded-full bg-slate-200 dark:bg-white/15" />
-              </div>
+              {/* Bottom Sheet Drawer Modal */}
+              <motion.div
+                initial={{ y: "100%" }}
+                animate={{ y: 0 }}
+                exit={{ y: "100%" }}
+                transition={{ type: "spring", damping: 32, stiffness: 320 }}
+                drag="y"
+                dragConstraints={{ top: 0 }}
+                dragElastic={{ top: 0, bottom: 0.6 }}
+                onDragEnd={(_, info) => {
+                  if (info.offset.y > 100 || info.velocity.y > 400) {
+                    setModalOpen(false);
+                  }
+                }}
+                className="relative w-full max-w-[540px] rounded-t-[28px] sm:rounded-t-[32px] bg-white dark:bg-[#121214] border-t border-x border-slate-200/90 dark:border-white/10 shadow-[0_-15px_45px_rgba(0,0,0,0.18)] dark:shadow-[0_-20px_50px_rgba(0,0,0,0.85)] max-h-[88vh] flex flex-col overflow-hidden text-slate-900 dark:text-white font-sans z-10"
+              >
+                {/* Top Drag Handle Bar */}
+                <div className="w-10 h-1 rounded-full bg-slate-300 dark:bg-white/20 mx-auto mt-3 mb-1 cursor-grab active:cursor-grabbing hover:bg-slate-400 dark:hover:bg-white/40 transition-colors" />
 
-              {/* Sticky Modal Header */}
-              <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 dark:border-white/[0.06] shrink-0">
-                <h2 className="text-[17px] font-bold text-slate-900 dark:text-white tracking-tight">
-                  Your goals
-                </h2>
+                {/* Close Button (Circular Pill) */}
                 <button
                   type="button"
                   onClick={() => setModalOpen(false)}
-                  className="w-8 h-8 rounded-full bg-white dark:bg-white/[0.06] border border-slate-200/80 dark:border-white/10 shadow-xs flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-neutral-300 dark:hover:text-white transition-colors cursor-pointer"
+                  className="absolute top-4 right-4 w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/15 text-slate-500 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer"
                   aria-label="Close goals editor"
                 >
-                  <X size={15} strokeWidth={2.2} />
+                  <X size={14} strokeWidth={2.4} />
                 </button>
-              </div>
 
-              {/* Scrollable Form Body */}
-              <div className="flex-1 overflow-y-auto amazing-scrollbar px-5 py-4 space-y-6">
+                {/* Sticky Modal Header */}
+                <div className="px-6 py-3 border-b border-slate-100 dark:border-white/[0.06] shrink-0">
+                  <h2 className="text-[17px] font-bold text-slate-900 dark:text-white tracking-tight">
+                    Your goals
+                  </h2>
+                </div>
+
+                {/* Scrollable Form Body */}
+                <div className="flex-1 overflow-y-auto amazing-scrollbar px-6 py-5 space-y-6">
                 {/* 1. PICTURE Section */}
                 <div>
-                  <p className="text-[11px] font-bold tracking-[0.08em] uppercase text-slate-500 dark:text-neutral-400">
+                  <p className="text-[11px] font-bold tracking-[0.08em] uppercase text-slate-400 dark:text-slate-500">
                     PICTURE
                   </p>
-                  <p className="text-[12.5px] text-slate-500 dark:text-neutral-400 mt-1">
+                  <p className="text-[12.5px] text-slate-500 dark:text-slate-400 mt-1">
                     Your why: the car, the house, the place. It sits behind your goals. Only you see it.
                   </p>
 
@@ -581,11 +611,11 @@ export const DashboardGoalsCard: React.FC = () => {
                         alt="Your why preview"
                         className="w-full h-full object-cover"
                       />
-                      <div className="absolute inset-0 bg-black/35 flex items-center justify-center gap-2">
+                      <div className="absolute inset-0 bg-black/45 flex items-center justify-center gap-2">
                         <button
                           type="button"
                           onClick={() => fileInputRef.current?.click()}
-                          className="px-3 py-1.5 rounded-full bg-white/95 text-slate-900 text-[12px] font-semibold inline-flex items-center gap-1.5 shadow-sm cursor-pointer"
+                          className="h-8 px-3.5 rounded-full tactile-white-pill text-[12px] font-bold inline-flex items-center gap-1.5 cursor-pointer"
                         >
                           <ImageIcon size={13} />
                           Change
@@ -595,7 +625,7 @@ export const DashboardGoalsCard: React.FC = () => {
                           onClick={() =>
                             setDraft((prev) => ({ ...prev, pictureDataUrl: null }))
                           }
-                          className="px-3 py-1.5 rounded-full bg-rose-500/90 text-white text-[12px] font-semibold inline-flex items-center gap-1.5 shadow-sm cursor-pointer"
+                          className="h-8 px-3.5 rounded-full bg-rose-600 hover:bg-rose-500 text-white text-[12px] font-bold inline-flex items-center gap-1.5 cursor-pointer transition-colors shadow-sm"
                         >
                           <Trash2 size={13} />
                           Remove
@@ -606,9 +636,9 @@ export const DashboardGoalsCard: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
-                      className="mt-3 px-4 py-2 rounded-full border border-slate-200 dark:border-white/15 bg-white dark:bg-white/[0.04] hover:bg-slate-50 dark:hover:bg-white/[0.08] text-[13px] font-semibold text-slate-800 dark:text-white inline-flex items-center gap-2 transition-colors cursor-pointer"
+                      className="mt-3 h-9 px-4 rounded-full tactile-white-pill text-[12.5px] font-bold text-slate-800 dark:text-white inline-flex items-center gap-2 cursor-pointer active:scale-95"
                     >
-                      <ImageIcon size={14} strokeWidth={2} />
+                      <ImageIcon size={14} strokeWidth={2.2} />
                       <span>Add a picture</span>
                     </button>
                   )}
@@ -619,7 +649,7 @@ export const DashboardGoalsCard: React.FC = () => {
                   const item = draft[cfg.id];
                   return (
                     <div key={cfg.id} className="space-y-3">
-                      <label className="block text-[11px] font-bold tracking-[0.08em] uppercase text-slate-500 dark:text-neutral-400">
+                      <label className="block text-[11px] font-bold tracking-[0.08em] uppercase text-slate-400 dark:text-slate-500">
                         {cfg.sectionLabel}
                       </label>
 
@@ -630,21 +660,21 @@ export const DashboardGoalsCard: React.FC = () => {
                           updateDraftField(cfg.id, "title", e.target.value)
                         }
                         placeholder={cfg.placeholder}
-                        className="w-full px-3.5 py-2.5 rounded-[13px] bg-slate-100/90 dark:bg-white/[0.06] border border-transparent focus:border-blue-500/50 focus:bg-white dark:focus:bg-[#1E1E22] text-[13.5px] font-medium text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 outline-none transition-all"
+                        className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-white/[0.04] border border-slate-200/80 dark:border-white/10 text-[13.5px] font-medium text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none focus:border-slate-900 dark:focus:border-white transition-all"
                       />
 
                       {/* Deadline */}
                       <div>
-                        <p className="text-[11.5px] font-medium text-slate-500 dark:text-neutral-400 mb-1.5">
+                        <p className="text-[11.5px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
                           Deadline
                         </p>
                         <div className="flex items-center flex-wrap gap-2.5">
-                          <label className="relative inline-flex items-center justify-between gap-3 px-3.5 py-2 rounded-[12px] bg-white dark:bg-[#222226] border border-slate-200/80 dark:border-white/10 shadow-[0_2px_8px_rgba(15,23,42,0.05)] text-[12.5px] font-medium cursor-pointer min-w-[170px] hover:border-slate-300 dark:hover:border-white/20 transition-colors">
+                          <label className="relative inline-flex items-center justify-between gap-3 px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-white/[0.04] border border-slate-200/80 dark:border-white/10 text-[12.5px] font-semibold cursor-pointer min-w-[170px] hover:border-slate-300 dark:hover:border-white/20 transition-colors">
                             <span
                               className={
                                 item.deadline
-                                  ? "text-slate-900 dark:text-white font-semibold"
-                                  : "text-slate-400 dark:text-neutral-500"
+                                  ? "text-slate-900 dark:text-white font-bold"
+                                  : "text-slate-400 dark:text-slate-500 font-medium"
                               }
                             >
                               {item.deadline
@@ -656,7 +686,7 @@ export const DashboardGoalsCard: React.FC = () => {
                             </span>
                             <CalendarIcon
                               size={14}
-                              className="text-slate-400 dark:text-neutral-500 shrink-0"
+                              className="text-slate-400 dark:text-slate-500 shrink-0"
                             />
                             <input
                               type="date"
@@ -671,12 +701,12 @@ export const DashboardGoalsCard: React.FC = () => {
                             <button
                               type="button"
                               onClick={() => updateDraftField(cfg.id, "deadline", "")}
-                              className="text-[11.5px] font-semibold text-slate-400 hover:text-slate-700 dark:hover:text-white cursor-pointer"
+                              className="text-[11.5px] font-bold text-slate-400 hover:text-slate-700 dark:hover:text-white cursor-pointer"
                             >
                               Clear
                             </button>
                           )}
-                          <span className="text-[11.5px] text-slate-400 dark:text-neutral-500">
+                          <span className="text-[11.5px] text-slate-400 dark:text-slate-500">
                             {cfg.deadlineHint}
                           </span>
                         </div>
@@ -684,7 +714,7 @@ export const DashboardGoalsCard: React.FC = () => {
 
                       {/* How I get there (Steps 1-3) */}
                       <div className="space-y-2">
-                        <p className="text-[11.5px] font-medium text-slate-500 dark:text-neutral-400">
+                        <p className="text-[11.5px] font-semibold text-slate-500 dark:text-slate-400">
                           How I get there
                         </p>
                         {[0, 1, 2].map((stepIdx) => (
@@ -696,7 +726,7 @@ export const DashboardGoalsCard: React.FC = () => {
                               updateDraftStep(cfg.id, stepIdx, e.target.value)
                             }
                             placeholder={`Step ${stepIdx + 1}`}
-                            className="w-full px-3.5 py-2.5 rounded-[13px] bg-slate-100/90 dark:bg-white/[0.06] border border-transparent focus:border-blue-500/50 focus:bg-white dark:focus:bg-[#1E1E22] text-[13px] text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 outline-none transition-all"
+                            className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-white/[0.04] border border-slate-200/80 dark:border-white/10 text-[13px] text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none focus:border-slate-900 dark:focus:border-white transition-all"
                           />
                         ))}
                       </div>
@@ -706,22 +736,30 @@ export const DashboardGoalsCard: React.FC = () => {
               </div>
 
               {/* Sticky Save Footer */}
-              <div className="px-5 py-3.5 border-t border-slate-100 dark:border-white/[0.06] bg-white/95 dark:bg-[#17171A]/95 backdrop-blur-md shrink-0">
-                <motion.button
-                  whileTap={{ scale: 0.98 }}
+              <div className="px-6 py-4 border-t border-slate-100 dark:border-white/[0.06] bg-white/50 dark:bg-[#161619]/50 backdrop-blur-md shrink-0 flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setModalOpen(false)}
+                  className="h-10 px-5 rounded-full text-[13px] font-bold tactile-white-pill cursor-pointer select-none"
+                >
+                  Cancel
+                </button>
+                <button
                   type="button"
                   onClick={handleSave}
-                  className="w-full tactile-white-pill rounded-full py-2.5 text-[14px] font-semibold cursor-pointer"
+                  className="h-10 px-6 rounded-full text-[13px] font-bold tactile-black-pill cursor-pointer select-none"
                 >
                   Save goals
-                </motion.button>
+                </button>
               </div>
             </motion.div>
           </div>
         )}
-      </AnimatePresence>
-    </>
-  );
+      </AnimatePresence>,
+      document.body
+    )}
+  </>
+);
 };
 
 export default DashboardGoalsCard;

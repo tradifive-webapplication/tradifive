@@ -3,7 +3,10 @@ import { supabase } from '@/lib/supabase';
 import { Database } from '@/integrations/supabase/types';
 
 
-export type ProfileShort = Database['public']['Tables']['profiles']['Row'];
+export type ProfileShort = Database['public']['Tables']['profiles']['Row'] & {
+  followers_count?: number;
+  following_count?: number;
+};
 export type ChannelItem = Database['public']['Tables']['channels']['Row'];
 
 export function useDiscoverData(userId: string, searchQuery: string) {
@@ -28,9 +31,7 @@ export function useDiscoverData(userId: string, searchQuery: string) {
         .limit(12);
       if (userId) mentorQuery = mentorQuery.neq('id', userId);
       const { data: mentorData, error: mentorErr } = await mentorQuery;
-
       if (mentorErr) console.error('Discover mentors fetch error:', mentorErr);
-      setMentors(mentorData ?? []);
 
       // 2. Channels
       const { data: chanData, error: chanErr } = await supabase
@@ -57,9 +58,7 @@ export function useDiscoverData(userId: string, searchQuery: string) {
         .limit(12);
       if (userId) traderQuery = traderQuery.neq('id', userId);
       const { data: traderData, error: traderErr } = await traderQuery;
-
       if (traderErr) console.error('Discover traders fetch error:', traderErr);
-      setTraders(traderData ?? []);
 
       // 4. People (newest registered users first so new users always appear immediately)
       let peopleQuery = supabase
@@ -69,9 +68,40 @@ export function useDiscoverData(userId: string, searchQuery: string) {
         .limit(50);
       if (userId) peopleQuery = peopleQuery.neq('id', userId);
       const { data: peopleData, error: peopleErr } = await peopleQuery;
-
       if (peopleErr) console.error('Discover people fetch error:', peopleErr);
-      setPeople(peopleData ?? []);
+
+      // 5. Real Followers & Following Counts from social_follows table
+      const { data: allFollows, error: followsErr } = await supabase
+        .from('social_follows')
+        .select('follower_id, following_id');
+
+      if (followsErr) console.error('Discover social_follows fetch error:', followsErr);
+
+      const followerCountMap: Record<string, number> = {};
+      const followingCountMap: Record<string, number> = {};
+
+      if (allFollows) {
+        for (const row of allFollows) {
+          if (row.following_id) {
+            followerCountMap[row.following_id] = (followerCountMap[row.following_id] || 0) + 1;
+          }
+          if (row.follower_id) {
+            followingCountMap[row.follower_id] = (followingCountMap[row.follower_id] || 0) + 1;
+          }
+        }
+      }
+
+      const attachCounts = (list: any[] | null) => {
+        return (list ?? []).map(p => ({
+          ...p,
+          followers_count: followerCountMap[p.id] ?? 0,
+          following_count: followingCountMap[p.id] ?? 0,
+        }));
+      };
+
+      setMentors(attachCounts(mentorData));
+      setTraders(attachCounts(traderData));
+      setPeople(attachCounts(peopleData));
     } catch (err) {
       console.error('Discover page loading failed:', err);
     } finally {
@@ -103,7 +133,29 @@ export function useDiscoverData(userId: string, searchQuery: string) {
           .limit(25);
 
         if (error) console.error('Profile search error:', error);
-        setSearchResults(data ?? []);
+
+        // Fetch real follow counts for search results
+        const { data: searchFollows } = await supabase
+          .from('social_follows')
+          .select('follower_id, following_id');
+
+        const searchFollowerMap: Record<string, number> = {};
+        const searchFollowingMap: Record<string, number> = {};
+
+        if (searchFollows) {
+          for (const row of searchFollows) {
+            if (row.following_id) searchFollowerMap[row.following_id] = (searchFollowerMap[row.following_id] || 0) + 1;
+            if (row.follower_id) searchFollowingMap[row.follower_id] = (searchFollowingMap[row.follower_id] || 0) + 1;
+          }
+        }
+
+        const enrichedSearch = (data ?? []).map(s => ({
+          ...s,
+          followers_count: searchFollowerMap[s.id] ?? 0,
+          following_count: searchFollowingMap[s.id] ?? 0,
+        }));
+
+        setSearchResults(enrichedSearch);
       } catch (err) {
         console.error('Discover search failed:', err);
       } finally {

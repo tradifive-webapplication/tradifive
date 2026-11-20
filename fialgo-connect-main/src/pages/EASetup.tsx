@@ -234,22 +234,21 @@ export default function EASetup() {
     <DashboardLayout>
       <div className="space-y-4 pb-20 select-none px-4 sm:px-6 md:px-8 py-3 max-w-[1500px] mx-auto w-full">
 
-        {/* ── Top Header (Admin App Style: Clean, Dark, Sharp Borders, No Pill Badges) ── */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-white/5">
+        {/* ── Top Header (Consistent with Dashboard & Journal) ── */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-200/70 dark:border-white/5">
           <div className="flex items-center gap-3">
             <div 
-              className="w-9 h-9 rounded-lg bg-black/30 border border-white/5 flex items-center justify-center text-blue-400 shrink-0" 
-              style={{ borderColor: "#3b82f620" }}
+              className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-500/10 border border-blue-200/70 dark:border-blue-500/20 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0" 
             >
               <Key size={16} />
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-lg sm:text-xl font-bold tracking-wider text-white uppercase">
+                <h1 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-white">
                   EA License &amp; Keys
                 </h1>
               </div>
-              <p className="text-neutral-500 text-[9px] font-bold uppercase tracking-[0.15em] mt-0.5">
+              <p className="text-slate-400 dark:text-neutral-500 text-[10px] font-bold uppercase tracking-[0.12em] mt-0.5">
                 Activate algorithmic trading bots and connect your MetaTrader 5 terminal
               </p>
             </div>
@@ -259,16 +258,16 @@ export default function EASetup() {
             <button
               type="button"
               onClick={() => navigate("/auto-trade/active-bots")}
-              className="h-9 px-3.5 bg-[#1E1E1E] hover:bg-white/[0.05] border border-white/5 hover:border-white/10 rounded-lg text-xs font-semibold text-neutral-300 transition-none flex items-center gap-1.5 cursor-pointer"
+              className="h-9 px-3.5 bg-white dark:bg-[#1E1E1E] hover:bg-slate-50 dark:hover:bg-white/[0.05] border border-slate-200/70 dark:border-white/10 rounded-xl text-xs font-semibold text-slate-700 dark:text-neutral-300 shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
             >
-              <Bot size={13} className="text-blue-400" />
+              <Bot size={13} className="text-blue-600 dark:text-blue-400" />
               <span>Active Bots</span>
             </button>
 
             <button
               type="button"
               onClick={handleDownloadEA}
-              className="btn-fialgo-primary h-9 px-4 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer"
+              className="btn-fialgo-primary h-9 px-4 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer rounded-xl"
             >
               <Download size={13} />
               <span>Download Master EA</span>
@@ -276,79 +275,79 @@ export default function EASetup() {
           </div>
         </div>
 
-        {/* ── 3 Summary KPI Cards (Clean Admin App Style: No Cluttered Icon Circles or Corner Badges) ── */}
+        {/* ── 3 Summary KPI Cards (Consistent with Dashboard Cards) ── */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {/* Card 1: Master License Key */}
-          <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-4">
+          <div className="bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] rounded-[18px] p-4 sm:p-5 shadow-[0_2px_10px_rgba(15,23,42,0.04)] dark:shadow-none transition-all">
             <div className="flex items-center justify-between">
-              <div className="text-lg sm:text-xl font-bold font-mono text-white tracking-tight truncate max-w-[220px]">
+              <div className="text-lg sm:text-xl font-bold font-mono text-slate-900 dark:text-white tracking-tight truncate max-w-[220px]">
                 {licenseKey}
               </div>
               <button
                 type="button"
                 onClick={() => copyKey(licenseKey)}
-                className="text-xs font-mono font-bold text-blue-400 hover:text-white flex items-center gap-1 cursor-pointer ml-2 shrink-0"
+                className="text-xs font-mono font-bold text-blue-600 dark:text-blue-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-1 cursor-pointer ml-2 shrink-0 transition-colors"
               >
-                {copied ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
+                {copied ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
                 <span>{copied ? "Copied" : "Copy"}</span>
               </button>
             </div>
-            <div className="text-[9px] font-bold text-neutral-500 uppercase tracking-[0.15em] mt-1">
+            <div className="text-[10px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-[0.12em] mt-1">
               PRIMARY LICENSE KEY
             </div>
           </div>
 
           {/* Card 2: Connected MT5 Terminal */}
-          <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-4">
-            <div className="text-lg sm:text-xl font-bold font-mono text-white tracking-tight">
+          <div className="bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] rounded-[18px] p-4 sm:p-5 shadow-[0_2px_10px_rgba(15,23,42,0.04)] dark:shadow-none transition-all">
+            <div className="text-lg sm:text-xl font-bold font-mono text-slate-900 dark:text-white tracking-tight">
               {connectedAccount ? `Account #${connectedAccount}` : "Not Attached Yet"}
             </div>
-            <div className="text-[9px] font-bold text-neutral-500 uppercase tracking-[0.15em] mt-1">
+            <div className="text-[10px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-[0.12em] mt-1">
               CONNECTED MT5 ACCOUNT
             </div>
           </div>
 
           {/* Card 3: Execution Telemetry */}
-          <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-lg sm:text-xl font-bold font-mono text-white tracking-tight">
+          <div className="bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] rounded-[18px] p-4 sm:p-5 shadow-[0_2px_10px_rgba(15,23,42,0.04)] dark:shadow-none transition-all">
+            <div className="flex items-center gap-2 text-lg sm:text-xl font-bold font-mono text-slate-900 dark:text-white tracking-tight">
               <div className={`w-2 h-2 rounded-full ${connectedAccount && isConnected ? "bg-emerald-500 animate-pulse" : "bg-amber-400"}`} />
               <span>{connectedAccount && isConnected ? "Live (2.1ms Ping)" : "Waiting for MT5"}</span>
             </div>
-            <div className="text-[9px] font-bold text-neutral-500 uppercase tracking-[0.15em] mt-1">
+            <div className="text-[10px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-[0.12em] mt-1">
               EXECUTION STATUS
             </div>
           </div>
         </div>
 
-        {/* ── 3-Step Intuitive MT5 Activation Guide (Admin Card Grid) ── */}
-        <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-5 space-y-4">
-          <div className="pb-2 border-b border-white/5">
-            <h2 className="text-xs font-bold text-white uppercase tracking-wider">
+        {/* ── 3-Step Intuitive MT5 Activation Guide ── */}
+        <div className="bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] rounded-[18px] p-5 sm:p-6 space-y-4 shadow-[0_2px_10px_rgba(15,23,42,0.04)] dark:shadow-none transition-all">
+          <div className="pb-2 border-b border-slate-200/70 dark:border-white/5">
+            <h2 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
               3-Step Easy MT5 Activation
             </h2>
-            <p className="text-[9px] font-bold text-neutral-500 uppercase tracking-[0.15em] mt-0.5">
+            <p className="text-[10px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-[0.12em] mt-0.5">
               Follow these simple steps to install the Expert Advisor and start automated execution
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {/* Step 1 */}
-            <div className="p-4 rounded-lg bg-black/30 border border-white/5 font-mono text-xs flex flex-col justify-between space-y-3">
+            <div className="p-4 sm:p-5 rounded-xl bg-slate-50/70 dark:bg-black/30 border border-slate-200/70 dark:border-white/5 font-mono text-xs flex flex-col justify-between space-y-3">
               <div>
-                <span className="text-[9px] font-bold text-blue-400 uppercase tracking-widest block mb-1">
+                <span className="text-[9px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest block mb-1">
                   STEP 01
                 </span>
-                <h4 className="font-bold text-white text-sm font-sans mb-1">
+                <h4 className="font-bold text-slate-900 dark:text-white text-sm font-sans mb-1">
                   Download Master EA
                 </h4>
-                <p className="text-[11px] text-neutral-400 leading-relaxed font-sans">
+                <p className="text-[11px] text-slate-600 dark:text-neutral-400 leading-relaxed font-sans">
                   Download the compiled <strong>FiAlgo_v1.0.4.ex5</strong> binary. This file establishes direct low-latency order routing with your MT5 terminal.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={handleDownloadEA}
-                className="btn-fialgo-primary w-full h-8 text-[11px] font-bold uppercase tracking-wider inline-flex items-center justify-center gap-1.5 cursor-pointer"
+                className="btn-fialgo-primary w-full h-8 text-[11px] font-bold uppercase tracking-wider inline-flex items-center justify-center gap-1.5 cursor-pointer rounded-lg"
               >
                 <Download size={12} />
                 <span>Download .EX5</span>
@@ -356,33 +355,33 @@ export default function EASetup() {
             </div>
 
             {/* Step 2 */}
-            <div className="p-4 rounded-lg bg-black/30 border border-white/5 font-mono text-xs flex flex-col justify-between space-y-3">
+            <div className="p-4 sm:p-5 rounded-xl bg-slate-50/70 dark:bg-black/30 border border-slate-200/70 dark:border-white/5 font-mono text-xs flex flex-col justify-between space-y-3">
               <div>
-                <span className="text-[9px] font-bold text-purple-400 uppercase tracking-widest block mb-1">
+                <span className="text-[9px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-widest block mb-1">
                   STEP 02
                 </span>
-                <h4 className="font-bold text-white text-sm font-sans mb-1">
+                <h4 className="font-bold text-slate-900 dark:text-white text-sm font-sans mb-1">
                   Place in Experts Folder
                 </h4>
-                <p className="text-[11px] text-neutral-400 leading-relaxed font-sans mb-2">
+                <p className="text-[11px] text-slate-600 dark:text-neutral-400 leading-relaxed font-sans mb-2">
                   In MT5, click <strong>File &gt; Open Data Folder</strong>, navigate to <strong>MQL5 &gt; Experts</strong>, and paste the downloaded file.
                 </p>
               </div>
-              <div className="p-2 rounded bg-black/50 border border-white/5 text-[10px] text-neutral-300 font-mono select-all truncate">
+              <div className="p-2 rounded-lg bg-white dark:bg-black/50 border border-slate-200/70 dark:border-white/5 text-[10px] text-slate-700 dark:text-neutral-300 font-mono select-all truncate shadow-xs">
                 MQL5 / Experts / FiAlgo_v1.0.4.ex5
               </div>
             </div>
 
             {/* Step 3 */}
-            <div className="p-4 rounded-lg bg-black/30 border border-white/5 font-mono text-xs flex flex-col justify-between space-y-3">
+            <div className="p-4 sm:p-5 rounded-xl bg-slate-50/70 dark:bg-black/30 border border-slate-200/70 dark:border-white/5 font-mono text-xs flex flex-col justify-between space-y-3">
               <div>
-                <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-widest block mb-1">
+                <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest block mb-1">
                   STEP 03
                 </span>
-                <h4 className="font-bold text-white text-sm font-sans mb-1">
+                <h4 className="font-bold text-slate-900 dark:text-white text-sm font-sans mb-1">
                   Attach EA &amp; Enter Key
                 </h4>
-                <p className="text-[11px] text-neutral-400 leading-relaxed font-sans">
+                <p className="text-[11px] text-slate-600 dark:text-neutral-400 leading-relaxed font-sans">
                   Drag the EA onto your chart, paste your Primary License Key, enable <strong>Algo Trading</strong> in MT5, and verify connection.
                 </p>
               </div>
@@ -390,7 +389,7 @@ export default function EASetup() {
                 type="button"
                 onClick={handleVerifyConnection}
                 disabled={isVerifying}
-                className="h-8 px-4 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-400 font-mono font-bold text-xs uppercase tracking-wider transition-none inline-flex items-center justify-center gap-1.5 cursor-pointer"
+                className="h-8 px-4 rounded-xl bg-emerald-50 dark:bg-emerald-500/15 hover:bg-emerald-100 dark:hover:bg-emerald-500/25 border border-emerald-200 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-400 font-mono font-bold text-xs uppercase tracking-wider transition-colors inline-flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
               >
                 {isVerifying ? (
                   <>
@@ -409,20 +408,20 @@ export default function EASetup() {
         </div>
 
         {/* ── AUTHORIZED ALGORITHM LICENSES TABLE (Real Purchases Only) ── */}
-        <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-5 space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-white/5">
+        <div className="bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] rounded-[18px] p-5 sm:p-6 space-y-4 shadow-[0_2px_10px_rgba(15,23,42,0.04)] dark:shadow-none transition-all">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-200/70 dark:border-white/5">
             <div>
-              <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+              <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
                 Authorized Algorithm Licenses ({authorizedAlgos.length})
               </h3>
-              <p className="text-[9px] font-bold text-neutral-500 uppercase tracking-[0.15em] mt-0.5">
+              <p className="text-[10px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-[0.12em] mt-0.5">
                 All algorithmic trading bots bound to your account and license key
               </p>
             </div>
             <button
               type="button"
               onClick={() => navigate("/discover?tab=store")}
-              className="text-xs font-mono font-bold text-blue-400 hover:text-white flex items-center gap-1 cursor-pointer transition-none"
+              className="text-xs font-mono font-bold text-blue-600 dark:text-blue-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-1 cursor-pointer transition-colors"
             >
               <span>Browse Strategy Armory</span>
               <ArrowRight size={12} />
@@ -431,13 +430,13 @@ export default function EASetup() {
 
           {authorizedAlgos.length === 0 ? (
             <div className="p-10 text-center font-mono">
-              <div className="w-10 h-10 rounded-lg bg-white/5 border border-white/5 flex items-center justify-center text-neutral-400 mx-auto mb-3">
+              <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 flex items-center justify-center text-slate-400 dark:text-neutral-400 mx-auto mb-3">
                 <Bot size={18} />
               </div>
-              <div className="text-xs text-white font-bold uppercase tracking-wider mb-1">
+              <div className="text-xs text-slate-900 dark:text-white font-bold uppercase tracking-wider mb-1">
                 No Authorized Algorithm Licenses
               </div>
-              <p className="text-[11px] text-neutral-500 max-w-sm mx-auto mb-4 font-sans">
+              <p className="text-[11px] text-slate-400 dark:text-neutral-500 max-w-sm mx-auto mb-4 font-sans">
                 No trading algorithms or EA licenses are currently authorized. Acquire an algorithm from the Strategy Armory or submit a custom build request.
               </p>
               <div className="flex items-center justify-center gap-2">
@@ -452,7 +451,7 @@ export default function EASetup() {
                 <button
                   type="button"
                   onClick={() => navigate("/auto-trade/builder")}
-                  className="h-8 px-4 rounded-lg bg-white/5 hover:bg-white/10 text-xs font-mono font-bold text-neutral-300 border border-white/10 transition-none cursor-pointer"
+                  className="h-8 px-4 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-xs font-mono font-bold text-slate-700 dark:text-neutral-300 border border-slate-200 dark:border-white/10 transition-colors cursor-pointer"
                 >
                   Request Custom Build
                 </button>
@@ -462,7 +461,7 @@ export default function EASetup() {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse min-w-[650px]">
                 <thead>
-                  <tr className="border-b border-white/5 text-[9px] font-bold text-neutral-500 uppercase tracking-widest bg-black/20">
+                  <tr className="border-b border-slate-200/70 dark:border-white/5 text-[10px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-widest bg-slate-50 dark:bg-black/20">
                     <th className="p-3">ALGORITHM</th>
                     <th className="p-3">TRADING PAIRS</th>
                     <th className="p-3">DEDICATED LICENSE</th>
@@ -470,38 +469,38 @@ export default function EASetup() {
                     <th className="p-3 text-right">STATUS</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/5 font-mono text-xs">
+                <tbody className="divide-y divide-slate-100 dark:divide-white/5 font-mono text-xs">
                   {authorizedAlgos.map((algo) => (
-                    <tr key={algo.id} className="hover:bg-white/[0.02] transition-none">
-                      <td className="p-3 font-bold text-white flex items-center gap-2">
-                        <Bot size={14} className="text-blue-400" />
+                    <tr key={algo.id} className="hover:bg-slate-50/70 dark:hover:bg-white/[0.02] transition-colors">
+                      <td className="p-3 font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        <Bot size={14} className="text-blue-500 dark:text-blue-400" />
                         <span className="font-sans">{algo.name}</span>
                       </td>
-                      <td className="p-3 text-neutral-300">
+                      <td className="p-3 text-slate-600 dark:text-neutral-300">
                         {algo.pairs}
                       </td>
-                      <td className="p-3 text-neutral-300">
+                      <td className="p-3 text-slate-600 dark:text-neutral-300">
                         <div className="flex items-center gap-1.5">
-                          <span className="font-bold text-white">{algo.key}</span>
+                          <span className="font-bold text-slate-900 dark:text-white">{algo.key}</span>
                           <button
                             type="button"
                             onClick={() => copyAlgoKey(algo.key)}
-                            className="text-neutral-500 hover:text-white"
+                            className="text-slate-400 hover:text-slate-600 dark:text-neutral-500 dark:hover:text-white transition-colors"
                             title="Copy key"
                           >
                             {copiedAlgoKey === algo.key ? (
-                              <Check size={12} className="text-emerald-400" />
+                              <Check size={12} className="text-emerald-500 dark:text-emerald-400" />
                             ) : (
                               <Copy size={12} />
                             )}
                           </button>
                         </div>
                       </td>
-                      <td className="p-3 text-neutral-400">
+                      <td className="p-3 text-slate-500 dark:text-neutral-400">
                         {algo.version}
                       </td>
                       <td className="p-3 text-right">
-                        <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider">
+                        <span className="bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider">
                           {algo.status}
                         </span>
                       </td>
@@ -513,10 +512,10 @@ export default function EASetup() {
           )}
         </div>
 
-        {/* ── FREQUENTLY ASKED QUESTIONS (Admin Accordion Styling) ── */}
-        <div className="bg-[#1E1E1E] border border-white/5 rounded-lg p-5 space-y-3">
-          <div className="pb-2 border-b border-white/5">
-            <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+        {/* ── FREQUENTLY ASKED QUESTIONS ── */}
+        <div className="bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] rounded-[18px] p-5 sm:p-6 space-y-3 shadow-[0_2px_10px_rgba(15,23,42,0.04)] dark:shadow-none transition-all">
+          <div className="pb-2 border-b border-slate-200/70 dark:border-white/5">
+            <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
               Frequently Asked Questions
             </h3>
           </div>
@@ -538,18 +537,18 @@ export default function EASetup() {
             ].map((faq, idx) => (
               <div 
                 key={idx}
-                className="border border-white/5 rounded-lg overflow-hidden bg-black/20"
+                className="border border-slate-200/70 dark:border-white/5 rounded-xl overflow-hidden bg-slate-50/60 dark:bg-black/20"
               >
                 <button
                   type="button"
                   onClick={() => setShowFaq(showFaq === idx ? null : idx)}
-                  className="w-full p-3 text-left flex items-center justify-between text-xs font-bold text-white hover:bg-white/[0.03] transition-none cursor-pointer"
+                  className="w-full p-3 text-left flex items-center justify-between text-xs font-bold text-slate-900 dark:text-white hover:bg-slate-100/50 dark:hover:bg-white/[0.03] transition-colors cursor-pointer"
                 >
                   <span>{faq.q}</span>
-                  {showFaq === idx ? <ChevronUp size={13} className="text-neutral-400" /> : <ChevronDown size={13} className="text-neutral-400" />}
+                  {showFaq === idx ? <ChevronUp size={13} className="text-slate-400 dark:text-neutral-400" /> : <ChevronDown size={13} className="text-slate-400 dark:text-neutral-400" />}
                 </button>
                 {showFaq === idx && (
-                  <div className="px-3 pb-3 text-xs text-neutral-400 leading-relaxed border-t border-white/5 pt-2 font-sans">
+                  <div className="px-3 pb-3 text-xs text-slate-600 dark:text-neutral-400 leading-relaxed border-t border-slate-200/70 dark:border-white/5 pt-2 font-sans">
                     {faq.a}
                   </div>
                 )}

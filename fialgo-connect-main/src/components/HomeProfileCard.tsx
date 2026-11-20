@@ -6,12 +6,27 @@ interface HomeProfileCardProps {
   userId?: string;
 }
 
+const getCachedSessionUserId = (): string => {
+  try {
+    const direct = localStorage.getItem("tradifive_user_id");
+    if (direct) return direct;
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('sb-') && key.endsWith('-auth-token')) {
+        const session = JSON.parse(localStorage.getItem(key) || '{}');
+        if (session?.user?.id) return session.user.id;
+      }
+    }
+  } catch (_) {}
+  return "";
+};
+
 export default function HomeProfileCard({ userId }: HomeProfileCardProps) {
   const navigate = useNavigate();
 
   const [profile, setProfile] = useState<any>(() => {
     try {
-      const uid = userId || localStorage.getItem("tradifive_user_id") || "";
+      const uid = userId || getCachedSessionUserId();
       if (uid) {
         const cached = localStorage.getItem(`prof_cache_data_${uid}`);
         if (cached) return JSON.parse(cached);
@@ -34,7 +49,7 @@ export default function HomeProfileCard({ userId }: HomeProfileCardProps) {
 
   const [followersCount, setFollowersCount] = useState<number>(() => {
     try {
-      const uid = userId || localStorage.getItem("tradifive_user_id") || "";
+      const uid = userId || getCachedSessionUserId();
       const cached = uid ? localStorage.getItem(`prof_cache_followers_${uid}`) : null;
       return cached ? Number(cached) || 0 : 0;
     } catch {
@@ -44,7 +59,7 @@ export default function HomeProfileCard({ userId }: HomeProfileCardProps) {
 
   const [followingCount, setFollowingCount] = useState<number>(() => {
     try {
-      const uid = userId || localStorage.getItem("tradifive_user_id") || "";
+      const uid = userId || getCachedSessionUserId();
       const cached = uid ? localStorage.getItem(`prof_cache_following_${uid}`) : null;
       return cached ? Number(cached) || 0 : 0;
     } catch {

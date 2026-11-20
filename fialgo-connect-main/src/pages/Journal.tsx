@@ -38,6 +38,7 @@ import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { useMarket } from "@/contexts/MarketContext";
 import { usePlan } from "@/hooks/usePlan";
+import { useTradingTheme } from "@/hooks/useTradingTheme";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
@@ -69,6 +70,10 @@ function JournalContent() {
   const { recentTrades, lastImportTime, refetch } = useDashboardData();
   const { activeMarket } = useMarket();
   const { isStarter } = usePlan();
+  const { config: tradingTheme } = useTradingTheme();
+  const isDark = typeof document !== "undefined" && document.documentElement.classList.contains("dark");
+  const profitColor = isDark ? tradingTheme.profitHexDark : tradingTheme.profitHex;
+  const lossColor = isDark ? tradingTheme.lossHexDark : tradingTheme.lossHex;
   const {
     currency,
     setCurrency,
@@ -647,8 +652,8 @@ function JournalContent() {
                               <span
                                 className={`font-semibold tabular-nums ${blurClass} ${
                                   row.pnl < 0
-                                    ? "text-rose-600 dark:text-rose-400"
-                                    : "text-[#2563EB] dark:text-blue-400"
+                                    ? tradingTheme.lossText
+                                    : tradingTheme.profitText
                                 }`}
                               >
                                 <AnimatedNumber
@@ -668,9 +673,7 @@ function JournalContent() {
                                   delay: 0.1 + idx * 0.05,
                                   ease: EXPO_OUT,
                                 }}
-                                className={`h-full rounded-full ${
-                                  row.pnl < 0 ? "bg-rose-400" : "bg-[#2563EB]"
-                                }`}
+                                className="h-full rounded-full" style={{ backgroundColor: row.pnl < 0 ? lossColor : profitColor }}
                               />
                             </div>
                           </div>
@@ -689,8 +692,8 @@ function JournalContent() {
                     <p
                       className={`text-[14px] font-bold tabular-nums mt-0.5 ${blurClass} ${
                         extraStats.longPnl < 0
-                          ? "text-rose-600 dark:text-rose-400"
-                          : "text-[#2563EB] dark:text-blue-400"
+                          ? tradingTheme.lossText
+                          : tradingTheme.profitText
                       }`}
                     >
                       <AnimatedNumber
@@ -717,8 +720,8 @@ function JournalContent() {
                     <p
                       className={`text-[14px] font-bold tabular-nums mt-0.5 ${blurClass} ${
                         extraStats.shortPnl < 0
-                          ? "text-rose-600 dark:text-rose-400"
-                          : "text-[#2563EB] dark:text-blue-400"
+                          ? tradingTheme.lossText
+                          : tradingTheme.profitText
                       }`}
                     >
                       <AnimatedNumber
@@ -754,11 +757,11 @@ function JournalContent() {
                   <div className="grid grid-cols-2 gap-2.5 mt-4">
                     <div className="rounded-xl bg-slate-50/80 dark:bg-white/[0.03] border border-slate-100 dark:border-white/[0.05] p-2.5">
                       <div className="flex items-center gap-1 text-[10px] font-medium text-slate-400">
-                        <Award size={11} className="text-[#2563EB]" />
+                        <Award size={11} className={tradingTheme.profitText} />
                         <span>Best trade</span>
                       </div>
                       <p
-                        className={`text-[14px] font-bold text-[#2563EB] dark:text-blue-400 tabular-nums mt-1 ${blurClass}`}
+                        className={`text-[14px] font-bold ${tradingTheme.profitText} tabular-nums mt-1 ${blurClass}`}
                       >
                         <AnimatedNumber
                           value={extraStats.bestTrade}
@@ -845,8 +848,8 @@ function JournalContent() {
                             <span
                               className={`font-semibold ${blurClass} ${
                                 s.pnl < 0
-                                  ? "text-rose-600 dark:text-rose-400"
-                                  : "text-[#2563EB] dark:text-blue-400"
+                                  ? tradingTheme.lossText
+                                  : tradingTheme.profitText
                               }`}
                             >
                               <AnimatedNumber
