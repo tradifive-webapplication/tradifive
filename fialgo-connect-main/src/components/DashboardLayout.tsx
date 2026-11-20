@@ -1,8 +1,9 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Bell, Clock, ChevronLeft, Sparkles, AlertTriangle, XCircle, ShieldAlert, Timer, X, Bot, Menu, Monitor } from "lucide-react";
+import { Search, Bell, Clock, ChevronLeft, Sparkles, AlertTriangle, XCircle, ShieldAlert, Timer, X, Bot, Menu, Monitor, Zap, Gauge, Plus } from "lucide-react";
 import AppSidebar from "./AppSidebar";
 import FloatingAICoach from "./FloatingAICoach";
+import { PurchaseCreditsModal } from "./PurchaseCreditsModal";
 import ComingSoonVeil from "./ComingSoonVeil";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -47,6 +48,7 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
   const [showFlash, setShowFlash] = useState(false);
   const [alertKey, setAlertKey] = useState(0);
   const [isAIOpen, setIsAIOpen] = useState(false);
+  const [isPurchaseCreditsOpen, setIsPurchaseCreditsOpen] = useState(false);
   const [initialCoachMessage, setInitialCoachMessage] = useState<{ text: string; autoSend?: boolean; postContext?: any } | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const constraintsRef = useRef(null);
@@ -416,6 +418,68 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
     localStorage.getItem("tradifive_cached_avatar_url") || ""
   );
 
+  // Real-time AI Credits state for the header badge
+  const [aiCreditsRemaining, setAiCreditsRemaining] = useState<number | null>(() => {
+    try {
+      const saved = localStorage.getItem("tradifive_ai_credits_remaining");
+      return saved !== null ? Number(saved) : 10;
+    } catch {
+      return 10;
+    }
+  });
+  const [aiCreditsMax, setAiCreditsMax] = useState<number>(() => {
+    try {
+      const saved = localStorage.getItem("tradifive_ai_credits_max");
+      return saved !== null ? Number(saved) : 10;
+    } catch {
+      return 10;
+    }
+  });
+
+  const fetchAICredits = useCallback(async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user?.id) return;
+
+      const { data, error } = await supabase.rpc('get_ai_credits', {
+        p_user_id: session.user.id
+      });
+
+      if (!error && data) {
+        const remaining = data.credits_remaining ?? 10;
+        const max = data.credits_max ?? 10;
+        setAiCreditsRemaining(remaining);
+        setAiCreditsMax(max);
+        try {
+          localStorage.setItem("tradifive_ai_credits_remaining", String(remaining));
+          localStorage.setItem("tradifive_ai_credits_max", String(max));
+        } catch (_) {}
+      }
+    } catch (e) {
+      console.warn("Could not fetch AI credits:", e);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchAICredits();
+
+    const handleCreditsUpdated = (e: any) => {
+      if (e?.detail?.creditsRemaining !== undefined) {
+        setAiCreditsRemaining(e.detail.creditsRemaining);
+      }
+      if (e?.detail?.creditsMax !== undefined) {
+        setAiCreditsMax(e.detail.creditsMax);
+      }
+    };
+
+    window.addEventListener("tradifive_credits_updated", handleCreditsUpdated);
+    window.addEventListener("tradifive_profile_update", fetchAICredits);
+    return () => {
+      window.removeEventListener("tradifive_credits_updated", handleCreditsUpdated);
+      window.removeEventListener("tradifive_profile_update", fetchAICredits);
+    };
+  }, [fetchAICredits]);
+
   useEffect(() => {
     let isMounted = true;
     const fetchMobileProfile = async () => {
@@ -630,8 +694,31 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
               </div>
             </div>
 
-              <div className="flex items-center gap-2 sm:gap-3">
+              <div className="flex items-center gap-2 sm:gap-2.5">
                 {headerActions}
+
+                {/* Mobile Compact Credits Badge — [ (gauge) 40/250 + ] */}
+                <div
+                  onClick={() => setIsPurchaseCreditsOpen(true)}
+                  className="sm:hidden flex items-center gap-1.5 px-2 h-[26px] rounded-[8px] bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/10 shadow-[0_1px_2px_rgba(0,0,0,0.05)] cursor-pointer select-none active:scale-95 transition-all"
+                  title={`${aiCreditsRemaining !== null ? aiCreditsRemaining : 10}/${aiCreditsMax} AI Credits (Click to top up)`}
+                >
+                  <Gauge size={12} className="text-slate-800 dark:text-slate-200 stroke-[2] shrink-0" />
+                  <span className="text-[11px] font-bold text-slate-900 dark:text-white tabular-nums tracking-tight leading-none">
+                    {aiCreditsRemaining !== null ? aiCreditsRemaining : 10}/{aiCreditsMax}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsPurchaseCreditsOpen(true);
+                    }}
+                    className="p-0.5 text-slate-800 dark:text-slate-200 hover:text-black dark:hover:text-white transition-colors shrink-0 -mr-0.5"
+                    title="Add or purchase AI credits"
+                  >
+                    <Plus size={12} className="stroke-[2.4]" />
+                  </button>
+                </div>
 
                 {/* Mobile Top-Right Profile with Username & Avatar */}
                 <button
@@ -663,6 +750,29 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
                     )}
                   </div>
                 </button>
+
+                {/* Desktop Small AI Credits Badge — exact match to user design: [ (gauge) 40/250 + ] */}
+                <div
+                  className="hidden sm:inline-flex items-center gap-1.5 px-2.5 h-[28px] rounded-[8px] bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/10 shadow-[0_1px_2px_rgba(0,0,0,0.05)] cursor-pointer select-none hover:border-slate-300 dark:hover:border-white/20 transition-all"
+                  title={`${aiCreditsRemaining !== null ? aiCreditsRemaining : 10}/${aiCreditsMax} AI Credits Remaining Today (Click to top up)`}
+                  onClick={() => setIsPurchaseCreditsOpen(true)}
+                >
+                  <Gauge size={13.5} className="text-slate-800 dark:text-slate-200 stroke-[2] shrink-0" />
+                  <span className="text-[12px] font-bold text-slate-900 dark:text-white tabular-nums tracking-tight leading-none">
+                    {aiCreditsRemaining !== null ? aiCreditsRemaining : 10}/{aiCreditsMax}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsPurchaseCreditsOpen(true);
+                    }}
+                    className="p-0.5 text-slate-800 dark:text-slate-200 hover:text-black dark:hover:text-white rounded hover:bg-slate-100 dark:hover:bg-white/10 transition-colors shrink-0 -mr-0.5"
+                    title="Add or purchase AI credits"
+                  >
+                    <Plus size={13.5} className="stroke-[2.4]" />
+                  </button>
+                </div>
                 
                 {/* AI Coach Top-Right Button — toggles mini FloatingAICoach (hidden when already on /ai-coach) */}
                 {!location.pathname.startsWith('/ai-coach') && (
@@ -796,6 +906,14 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
               }}
               initialMessage={initialCoachMessage}
               onClearInitialMessage={() => setInitialCoachMessage(null)}
+            />
+
+            {/* Add / Purchase AI Credits Modal */}
+            <PurchaseCreditsModal
+              isOpen={isPurchaseCreditsOpen}
+              onClose={() => setIsPurchaseCreditsOpen(false)}
+              creditsRemaining={aiCreditsRemaining !== null ? aiCreditsRemaining : 10}
+              creditsMax={aiCreditsMax}
             />
           </main>
         </div>

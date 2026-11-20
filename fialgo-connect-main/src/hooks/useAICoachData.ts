@@ -52,8 +52,15 @@ export function useAICoachData(userId: string | undefined) {
       });
 
       if (!error && data) {
-        setCreditsLeft(data.credits_remaining ?? 10);
-        setMaxCredits(data.credits_max ?? 10);
+        const remaining = data.credits_remaining ?? 10;
+        const max = data.credits_max ?? 10;
+        setCreditsLeft(remaining);
+        setMaxCredits(max);
+        try {
+          localStorage.setItem('tradifive_ai_credits_remaining', String(remaining));
+          localStorage.setItem('tradifive_ai_credits_max', String(max));
+          window.dispatchEvent(new CustomEvent('tradifive_credits_updated', { detail: { creditsRemaining: remaining, creditsMax: max } }));
+        } catch (_) {}
       }
 
       // Also fetch plan for display
@@ -100,6 +107,10 @@ export function useAICoachData(userId: string | undefined) {
     if (!userId) return;
     setCreditsLeft(prev => {
       const newAmount = Math.max(0, prev - 1);
+      try {
+        localStorage.setItem('tradifive_ai_credits_remaining', String(newAmount));
+        window.dispatchEvent(new CustomEvent('tradifive_credits_updated', { detail: { creditsRemaining: newAmount } }));
+      } catch (_) {}
       return newAmount;
     });
   }, [userId]);
