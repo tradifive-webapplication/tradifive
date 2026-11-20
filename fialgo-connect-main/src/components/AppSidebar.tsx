@@ -382,6 +382,7 @@ const creatorHubMenu = [
 
 const rewardsMenu = [
   { path: "/rewards", icon: WrappedIconly(TicketStar), label: "Rewards Hub" },
+  { path: "/referrals", icon: WrappedIconly(AddUser), label: "Referral Program" },
 ];
 
 const getPillars = (isCreator: boolean, isFiAlgo: boolean = false) => {
@@ -1520,6 +1521,8 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
     { path: "/rewards", icon: WrappedIconly(TicketStar), label: "Rewards Hub" },
 
+    { path: "/referrals", icon: WrappedIconly(AddUser), label: "Referral Program" },
+
     { path: "/settings", icon: WrappedIconly(Setting), label: "Settings" },
 
     { path: "/upgrade", icon: wrapLucide(Crown), label: "Upgrade Plan" },
@@ -1879,6 +1882,27 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
                       </div>
                     </TooltipTrigger>
                     <TooltipContent side="right" sideOffset={20} className="bg-[#2B2B2F] border border-white/10 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg shadow-xl">Rewards Hub</TooltipContent>
+                 </Tooltip>
+
+                 <Tooltip delayDuration={0}>
+                    <TooltipTrigger asChild>
+                      <div 
+                        onClick={() => {
+                          setActivePillar("rewards");
+                          React.startTransition(() => navigate('/referrals'));
+                          if (scrollContainerRef.current) scrollContainerRef.current.scrollTop = 0;
+                        }} 
+                        className={`relative overflow-hidden w-[42px] h-[42px] rounded-[14px] flex items-center justify-center cursor-pointer transition-all ${
+                          location.pathname.startsWith('/referrals') 
+                            ? 'bg-white dark:bg-white/10 text-slate-800 dark:text-white shadow-sm border border-slate-200/50 dark:border-white/10' 
+                            : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100 dark:text-white/40 dark:hover:text-white dark:hover:bg-white/5'
+                        }`}
+                      >
+                        <AddUser size={18} primaryColor="currentColor" set="curved" stroke="bold" className="relative z-10" />
+                        {location.pathname.startsWith('/referrals') && <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[3px] h-[20px] bg-blue-600 rounded-l-full shadow-[0_0_8px_rgba(37,99,235,0.4)]" />}
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="right" sideOffset={20} className="bg-[#2B2B2F] border border-white/10 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg shadow-xl">Referral Program</TooltipContent>
                  </Tooltip>
               </div>
             </div>
@@ -2328,7 +2352,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
                     <h3 className="text-slate-400 dark:text-neutral-400 text-[10px] font-extrabold uppercase tracking-[0.15em] px-6 font-sans whitespace-nowrap">
 
-                      {activePillar === "autoTrade" ? "FIALGO AUTOTRADE" : activePillar === "rewards" ? "REWARDS" : (getPillars(isCreator).find(p => p.id === activePillar)?.tooltip || "Menu")}
+                      {activePillar === "autoTrade" ? "FIALGO AUTOTRADE" : activePillar === "rewards" ? "REWARDS & REFERRALS" : (getPillars(isCreator).find(p => p.id === activePillar)?.tooltip || "Menu")}
 
                     </h3>
 
@@ -2533,15 +2557,15 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
             <div className="shrink-0 pt-2.5 pb-3 px-3 bg-[#f4f7fb] dark:bg-[#121214] border-t border-slate-200/80 dark:border-white/10 flex flex-col gap-2.5 select-none">
 
-              {/* Action Tile: Rewards Hub */}
-              <div className="w-full">
+              {/* Action Tiles: Rewards Hub & Referral Program */}
+              <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
                   onClick={() => {
                     React.startTransition(() => navigate("/rewards"));
                     toggleCollapse?.();
                   }}
-                  className="w-full flex items-center gap-2.5 p-2.5 rounded-2xl bg-white dark:bg-[#1E1E22] hover:bg-slate-100/80 dark:hover:bg-[#26262B] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-none transition-all active:scale-[0.98] text-left cursor-pointer group"
+                  className="flex items-center gap-2.5 p-2.5 rounded-2xl bg-white dark:bg-[#1E1E22] hover:bg-slate-100/80 dark:hover:bg-[#26262B] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-none transition-all active:scale-[0.98] text-left cursor-pointer group"
                 >
                   <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 text-white flex items-center justify-center shrink-0 shadow-sm shadow-amber-500/20 group-hover:scale-105 transition-transform">
                     <TicketStar set="curved" primaryColor="currentColor" size={17} stroke="bold" />
@@ -2551,7 +2575,28 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
                       Rewards Hub
                     </div>
                     <div className="text-[10px] font-semibold text-amber-600 dark:text-amber-400 leading-tight mt-0.5 truncate">
-                      Discipline score, streak & perks
+                      Score & Perks
+                    </div>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    React.startTransition(() => navigate("/referrals"));
+                    toggleCollapse?.();
+                  }}
+                  className="flex items-center gap-2.5 p-2.5 rounded-2xl bg-white dark:bg-[#1E1E22] hover:bg-slate-100/80 dark:hover:bg-[#26262B] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-none transition-all active:scale-[0.98] text-left cursor-pointer group"
+                >
+                  <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-indigo-500/20 group-hover:scale-105 transition-transform">
+                    <AddUser set="curved" primaryColor="currentColor" size={17} stroke="bold" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[12px] font-bold text-slate-800 dark:text-slate-100 leading-tight truncate">
+                      Referral Program
+                    </div>
+                    <div className="text-[10px] font-semibold text-indigo-600 dark:text-indigo-400 leading-tight mt-0.5 truncate">
+                      +500 XP / Cash
                     </div>
                   </div>
                 </button>

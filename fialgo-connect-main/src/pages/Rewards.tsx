@@ -1135,6 +1135,37 @@ export default function Rewards() {
               </div>
             </div>
 
+            {/* Partner & Referral Program Banner */}
+            <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-indigo-50/80 via-slate-50/50 to-transparent dark:from-indigo-950/20 dark:via-white/[0.02] dark:to-transparent border border-indigo-200/60 dark:border-indigo-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3.5">
+                <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white flex items-center justify-center text-xl shrink-0 shadow-sm shadow-indigo-500/20">
+                  🤝
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h4 className="text-[14.5px] font-extrabold text-slate-900 dark:text-white">
+                      Forex Partner &amp; Referral Program
+                    </h4>
+                    <span className="px-2 py-0.5 rounded-full text-[9.5px] font-black uppercase tracking-wider bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+                      Earn Cash &amp; XP
+                    </span>
+                  </div>
+                  <p className="text-[12px] text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">
+                    Introduce fellow MT5 traders. Earn ₹1,000–₹2,000 setup bonuses, +500 XP, and up to 10% weekly profit overrides.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => navigate("/referrals")}
+                className="tactile-black-pill rounded-full px-5 py-2.5 text-xs font-bold shrink-0 flex items-center gap-1.5 cursor-pointer hover:scale-[1.02] transition-transform"
+              >
+                <span>Open Referral Program</span>
+                <ArrowRight size={13} />
+              </button>
+            </div>
+
             {/* Historical XP & Coins Ledger */}
             <div className="pt-4 border-t border-slate-100 dark:border-white/5">
               <div className="flex items-center justify-between mb-3">
