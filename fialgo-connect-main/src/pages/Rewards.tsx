@@ -262,6 +262,157 @@ const CHART_HISTORY_DATA = [
   { date: "Nov 20", score: 96, xp: 4150, trades: 3 },
 ];
 
+// ── Semi-Circular Speedometer Gauge (Inspired by DisputeFox & Wellness dashboards) ──
+function DisciplineSemiGauge({ score = 96, grade = "A+" }: { score: number; grade: string }) {
+  const r = 68;
+  const cx = 100;
+  const cy = 82;
+  const c = Math.PI * r; // ~213.6
+  const pct = Math.min(100, Math.max(0, score)) / 100;
+  const dashOffset = c * (1 - pct);
+  const angleRad = Math.PI * (1 - pct);
+  const pinX = cx + r * Math.cos(angleRad);
+  const pinY = cy - r * Math.sin(angleRad);
+
+  return (
+    <div className="relative w-full max-w-[220px] mx-auto flex flex-col items-center">
+      <svg viewBox="0 0 200 98" className="w-full overflow-visible">
+        <defs>
+          <linearGradient id="scoreGaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#EF4444" />
+            <stop offset="28%" stopColor="#F59E0B" />
+            <stop offset="68%" stopColor="#10B981" />
+            <stop offset="100%" stopColor="#06B6D4" />
+          </linearGradient>
+        </defs>
+
+        {/* Background Track */}
+        <path
+          d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="10"
+          strokeLinecap="round"
+          className="text-slate-100 dark:text-white/[0.08]"
+        />
+
+        {/* Foreground Animated Gauge */}
+        <motion.path
+          d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`}
+          fill="none"
+          stroke="url(#scoreGaugeGradient)"
+          strokeWidth="10"
+          strokeLinecap="round"
+          strokeDasharray={c}
+          initial={{ strokeDashoffset: c }}
+          animate={{ strokeDashoffset: dashOffset }}
+          transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+        />
+
+        {/* Illuminated Needle Puck (from DisputeFox & Wellness designs) */}
+        <motion.circle
+          cx={pinX}
+          cy={pinY}
+          r="5.5"
+          fill="#06B6D4"
+          stroke="#ffffff"
+          strokeWidth="2.5"
+          className="drop-shadow-[0_2px_6px_rgba(6,182,212,0.6)]"
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ delay: 0.6, duration: 0.4 }}
+        />
+
+        {/* Min / Max Labels */}
+        <text x="24" y="94" fontSize="9" fontWeight="700" fill="#94A3B8" textAnchor="middle">0</text>
+        <text x="176" y="94" fontSize="9" fontWeight="700" fill="#94A3B8" textAnchor="middle">100</text>
+      </svg>
+
+      {/* Centered Score Inside Arc */}
+      <div className="absolute top-[26px] inset-x-0 flex flex-col items-center justify-center text-center">
+        <div className="flex items-baseline gap-1">
+          <span className="text-4xl sm:text-[42px] font-black text-slate-900 dark:text-white tracking-tight leading-none tabular-nums">
+            {score}
+          </span>
+          <span className="text-xs font-bold text-slate-400">/ 100</span>
+        </div>
+        <div className="mt-1 flex items-center gap-1.5">
+          <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-50 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/25">
+            GRADE {grade}
+          </span>
+          <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center">
+            ▲ +4 pts
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Striped Target Progress Meter (Inspired by Total Project & Wellness widgets) ──
+function StripedProgressMeter({
+  value,
+  max = 100,
+  label,
+  valueLabel,
+  subLabel,
+  color = "emerald",
+}: {
+  value: number;
+  max?: number;
+  label: string;
+  valueLabel: string;
+  subLabel: string;
+  color?: "emerald" | "blue" | "indigo" | "amber";
+}) {
+  const pct = Math.min(100, Math.max(0, Math.round((value / max) * 100)));
+
+  return (
+    <div className="p-4 rounded-[14px] bg-[#F7F8FA] dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/5 space-y-2.5">
+      <div className="flex items-center justify-between">
+        <span className="text-[12px] font-bold text-slate-900 dark:text-white">{label}</span>
+        <span className="text-[11.5px] font-bold text-slate-900 dark:text-white tabular-nums">{valueLabel}</span>
+      </div>
+
+      {/* Dual Track: Striped tick mark background + Glowing gradient pill + Handle needle */}
+      <div className="relative w-full h-3 rounded-full bg-slate-200/50 dark:bg-white/[0.06] overflow-visible flex items-center">
+        <div 
+          className="absolute inset-0 rounded-full opacity-40 dark:opacity-20 overflow-hidden"
+          style={{
+            backgroundImage: "repeating-linear-gradient(90deg, transparent, transparent 3px, #64748b 3px, #64748b 4px)",
+          }}
+        />
+
+        <motion.div
+          initial={{ width: 0 }}
+          animate={{ width: `${pct}%` }}
+          transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+          className={`h-full rounded-full relative ${
+            color === "emerald"
+              ? "bg-gradient-to-r from-emerald-500 to-teal-400 shadow-[0_0_10px_rgba(16,185,129,0.3)]"
+              : color === "blue"
+              ? "bg-gradient-to-r from-blue-600 to-cyan-400 shadow-[0_0_10px_rgba(37,99,235,0.3)]"
+              : color === "amber"
+              ? "bg-gradient-to-r from-amber-500 to-orange-400 shadow-[0_0_10px_rgba(245,158,11,0.3)]"
+              : "bg-gradient-to-r from-indigo-500 to-violet-500 shadow-[0_0_10px_rgba(99,102,241,0.3)]"
+          }`}
+        />
+
+        {/* Pin marker / handle from Image 6 */}
+        <div 
+          className="absolute top-1/2 -translate-y-1/2 w-2 h-4.5 rounded-full bg-slate-900 dark:bg-white shadow-[0_2px_4px_rgba(0,0,0,0.35)] border border-white dark:border-slate-800 pointer-events-none transition-all duration-700 z-10"
+          style={{ left: `calc(${pct}% - 4px)` }}
+        />
+      </div>
+
+      <div className="flex items-center justify-between text-[11px] text-slate-400">
+        <span>{subLabel}</span>
+        <span className="font-semibold tabular-nums">{pct}%</span>
+      </div>
+    </div>
+  );
+}
+
 export default function Rewards() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -269,6 +420,7 @@ export default function Rewards() {
   
   const [activeTab, setActiveTab] = useState<"discipline" | "streak" | "achievements" | "vault">(initialTab);
   const [chartTimeframe, setChartTimeframe] = useState<"7D" | "14D" | "30D" | "All">("14D");
+  const [chartMetric, setChartMetric] = useState<"discipline" | "risk" | "sl" | "xp">("discipline");
   const [gamState, setGamState] = useState<GamificationState>(getGamificationState);
   const [disciplineState, setDisciplineState] = useState<ForexDisciplineState>(getForexDisciplineState);
   const [achievements, setAchievements] = useState<Achievement[]>(INITIAL_ACHIEVEMENTS);
@@ -309,6 +461,21 @@ export default function Rewards() {
     if (chartTimeframe === "14D") return CHART_HISTORY_DATA.slice(-8);
     return CHART_HISTORY_DATA;
   }, [chartTimeframe]);
+
+  // Metric Details based on selected chart metric (from Image 5)
+  const metricValues = useMemo(() => {
+    switch (chartMetric) {
+      case "risk":
+        return { headline: "100.0%", badge: "0 Violations", color: "#10B981" };
+      case "sl":
+        return { headline: "100.0%", badge: "Verified MT5", color: "#06B6D4" };
+      case "xp":
+        return { headline: `+${gamState.xp.toLocaleString()} XP`, badge: `Level ${gamState.level} Pro`, color: "#6366F1" };
+      case "discipline":
+      default:
+        return { headline: "+96.0%", badge: "+4.8% this week", color: "#2563EB" };
+    }
+  }, [chartMetric, gamState.xp, gamState.level]);
 
   // Handle Manual Session Wrap
   const handleWrapUpSession = () => {
@@ -510,42 +677,22 @@ export default function Rewards() {
               </div>
             </div>
 
-            {/* Center: Large Discipline Meter */}
-            <div className="my-4 p-4 rounded-[14px] bg-[#F7F8FA] dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/5 space-y-2.5">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                  Forex Discipline Rating
-                </span>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-50 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/25">
-                  GRADE {disciplineState.grade}
-                </span>
+            {/* Center: Semi-Circular Speedometer Gauge (Inspired by DisputeFox & Wellness designs) */}
+            <div className="my-2 p-3.5 rounded-[14px] bg-[#F7F8FA] dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/5 flex flex-col items-center">
+              <div className="w-full flex items-center justify-between text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">
+                <span>Discipline Rating</span>
+                <span className="text-emerald-600 dark:text-emerald-400 font-bold">+150 XP today</span>
               </div>
+              
+              <DisciplineSemiGauge score={disciplineState.score} grade={disciplineState.grade} />
 
-              <div className="flex items-baseline gap-2">
-                <span className="text-4xl sm:text-5xl font-black text-slate-900 dark:text-white tabular-nums tracking-tight">
-                  {disciplineState.score}
-                </span>
-                <span className="text-base font-semibold text-slate-400">/ 100</span>
-                <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 ml-auto">
-                  +150 XP today
-                </span>
-              </div>
-
-              {/* Smooth Gradient Fill Bar */}
-              <div className="w-full bg-slate-200/80 dark:bg-white/10 h-2 rounded-full overflow-hidden">
-                <div 
-                  className="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full transition-all duration-700" 
-                  style={{ width: `${disciplineState.score}%` }} 
-                />
-              </div>
-
-              <p className="text-[11.5px] text-slate-400 leading-snug pt-0.5">
+              <p className="text-[11.5px] text-slate-500 dark:text-slate-400 text-center leading-snug mt-2">
                 🛡️ 0 revenge violations &amp; 100% Stop Loss adherence across MT5 orders.
               </p>
             </div>
 
             {/* Bottom: Wrap Up Session Action */}
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 mt-2">
               <button
                 type="button"
                 disabled={isWrapping || disciplineState.isSessionWrapped}
@@ -558,7 +705,7 @@ export default function Rewards() {
               </button>
 
               <div className="flex items-center justify-between text-[10.5px] text-slate-400 px-1 font-medium">
-                <span>Forex runs 24/5</span>
+                <span>Forex runs 24/5 (Mon–Fri)</span>
                 <span>Auto-locks at 00:00 MT5</span>
               </div>
             </div>
@@ -589,7 +736,7 @@ export default function Rewards() {
                     onClick={() => setChartTimeframe(tf)}
                     className={`px-2.5 py-1 rounded-[7px] text-[10.5px] font-semibold transition-all cursor-pointer ${
                       chartTimeframe === tf
-                        ? "bg-white dark:bg-[#26262B] text-slate-900 dark:text-white shadow-xs"
+                        ? "bg-white dark:bg-[#26262B] text-slate-900 dark:text-white shadow-xs font-bold"
                         : "text-slate-400 hover:text-slate-700 dark:hover:text-white"
                     }`}
                   >
@@ -603,10 +750,10 @@ export default function Rewards() {
             <div className="flex items-baseline justify-between mb-2">
               <div className="flex items-baseline gap-2">
                 <span className="text-[22px] font-bold text-slate-900 dark:text-white tabular-nums tracking-tight">
-                  +96.0%
+                  {metricValues.headline}
                 </span>
                 <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-200/60 dark:border-emerald-500/20">
-                  +4.8% this week
+                  {metricValues.badge}
                 </span>
               </div>
 
@@ -623,8 +770,8 @@ export default function Rewards() {
                 <AreaChart data={activeChartData} margin={{ top: 8, right: 10, left: -25, bottom: 0 }}>
                   <defs>
                     <linearGradient id="disciplineGlow" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#2563EB" stopOpacity={0.20} />
-                      <stop offset="95%" stopColor="#2563EB" stopOpacity={0.0} />
+                      <stop offset="5%" stopColor={metricValues.color} stopOpacity={0.20} />
+                      <stop offset="95%" stopColor={metricValues.color} stopOpacity={0.0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.12)" vertical={false} />
@@ -661,13 +808,42 @@ export default function Rewards() {
                   <Area 
                     type="monotone" 
                     dataKey="score" 
-                    stroke="#2563EB" 
+                    stroke={metricValues.color} 
                     strokeWidth={2.4} 
                     fillOpacity={1} 
                     fill="url(#disciplineGlow)" 
                   />
                 </AreaChart>
               </ResponsiveContainer>
+            </div>
+
+            {/* 4 Psychological Metric Switcher Buttons (Inspired by Image 5) */}
+            <div className="flex items-center gap-1.5 pt-2 overflow-x-auto scrollbar-none">
+              {[
+                { id: "discipline", label: "Discipline Score" },
+                { id: "risk", label: "Risk Guard" },
+                { id: "sl", label: "Stop Loss Purity" },
+                { id: "xp", label: "XP Velocity" },
+              ].map((m) => (
+                <button
+                  key={m.id}
+                  type="button"
+                  onClick={() => setChartMetric(m.id as any)}
+                  className={`px-2.5 sm:px-3 py-1 rounded-[8px] text-[10.5px] sm:text-[11px] font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                    chartMetric === m.id
+                      ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs font-bold"
+                      : "bg-slate-100 dark:bg-white/[0.05] text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                  }`}
+                >
+                  {m.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Insight Quote Pill (Inspired by Image 5) */}
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/5 text-[11.5px] text-slate-600 dark:text-slate-300 mt-2">
+              <span className="shrink-0">🔥</span>
+              <span className="truncate">Your trading psychology trended up <strong className="text-emerald-600 dark:text-emerald-400">+4.8%</strong> this week with <strong className="text-emerald-600 dark:text-emerald-400">0 revenge violations</strong>.</span>
             </div>
 
             {/* Quick Metrics Footer Under Chart */}
@@ -727,63 +903,40 @@ export default function Rewards() {
               </p>
             </div>
 
-            {/* 4 Core Pillars Breakdown */}
+            {/* 4 Striped Target Progress Meters (Inspired by Image 6 & Image 4) */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-              {/* 1. MT5 Stop-Loss Protection */}
-              <div className="p-3.5 sm:p-4 rounded-[14px] bg-[#F7F8FA] dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/5 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-[12px] font-bold text-slate-900 dark:text-white">MT5 Stop-Loss</span>
-                  <span className="text-[11.5px] font-bold text-emerald-600 dark:text-emerald-400">100%</span>
-                </div>
-                <div className="w-full bg-slate-200/80 dark:bg-white/10 h-1.5 rounded-full overflow-hidden">
-                  <div className="bg-emerald-500 h-full rounded-full" style={{ width: "100%" }} />
-                </div>
-                <span className="text-[11px] text-slate-400 block leading-tight">
-                  Every position opened with protective SL
-                </span>
-              </div>
-
-              {/* 2. Lot Sizing Rule */}
-              <div className="p-3.5 sm:p-4 rounded-[14px] bg-[#F7F8FA] dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/5 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-[12px] font-bold text-slate-900 dark:text-white">Lot Sizing Rule</span>
-                  <span className="text-[11.5px] font-bold text-emerald-600 dark:text-emerald-400">0.05–0.10</span>
-                </div>
-                <div className="w-full bg-slate-200/80 dark:bg-white/10 h-1.5 rounded-full overflow-hidden">
-                  <div className="bg-emerald-500 h-full rounded-full" style={{ width: "95%" }} />
-                </div>
-                <span className="text-[11px] text-slate-400 block leading-tight">
-                  Strict adherence to 1% account risk limit
-                </span>
-              </div>
-
-              {/* 3. Revenge Trade Cooldown */}
-              <div className="p-3.5 sm:p-4 rounded-[14px] bg-[#F7F8FA] dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/5 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-[12px] font-bold text-slate-900 dark:text-white">Revenge Shield</span>
-                  <span className="text-[11.5px] font-bold text-emerald-600 dark:text-emerald-400">0 Violations</span>
-                </div>
-                <div className="w-full bg-slate-200/80 dark:bg-white/10 h-1.5 rounded-full overflow-hidden">
-                  <div className="bg-emerald-500 h-full rounded-full" style={{ width: "100%" }} />
-                </div>
-                <span className="text-[11px] text-slate-400 block leading-tight">
-                  15-minute cooldown respected after loss
-                </span>
-              </div>
-
-              {/* 4. Daily Trade Cap */}
-              <div className="p-3.5 sm:p-4 rounded-[14px] bg-[#F7F8FA] dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/5 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-[12px] font-bold text-slate-900 dark:text-white">Daily Trade Cap</span>
-                  <span className="text-[11.5px] font-bold text-slate-900 dark:text-white">3 / 4 Trades</span>
-                </div>
-                <div className="w-full bg-slate-200/80 dark:bg-white/10 h-1.5 rounded-full overflow-hidden">
-                  <div className="bg-slate-900 dark:bg-white h-full rounded-full" style={{ width: "75%" }} />
-                </div>
-                <span className="text-[11px] text-slate-400 block leading-tight">
-                  Under daily maximum execution limit
-                </span>
-              </div>
+              <StripedProgressMeter
+                value={100}
+                max={100}
+                label="MT5 Stop-Loss Protection"
+                valueLabel="100% Verified"
+                subLabel="Every order executed with protective SL"
+                color="emerald"
+              />
+              <StripedProgressMeter
+                value={95}
+                max={100}
+                label="Lot Sizing Rule"
+                valueLabel="0.05–0.10 Lots"
+                subLabel="Strict 1% account risk limit enforced"
+                color="blue"
+              />
+              <StripedProgressMeter
+                value={100}
+                max={100}
+                label="Revenge Trade Shield"
+                valueLabel="0 Violations"
+                subLabel="15-min cooldown respected post-loss"
+                color="emerald"
+              />
+              <StripedProgressMeter
+                value={75}
+                max={100}
+                label="Daily Trade Cap"
+                valueLabel="3 / 4 Trades"
+                subLabel="Under daily maximum execution limit"
+                color="amber"
+              />
             </div>
 
             {/* Weekly Discipline Calendar Cards */}
@@ -824,72 +977,180 @@ export default function Rewards() {
           </div>
         )}
 
-        {/* ══════ TAB 2: DAILY STREAK & 7-DAY LADDER ══════ */}
+        {/* ══════ TAB 2: DAILY STREAK & 7-DAY LADDER (Duolingo Style from Image 3) ══════ */}
         {activeTab === "streak" && (
           <div className={`${CARD_SURFACE} p-5 sm:p-6 space-y-5`}>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-orange-500/10 text-orange-500 flex items-center justify-center shrink-0">
-                  <Flame size={18} className="fill-orange-500/20" />
+            {/* Streak Hero Card with Ambient Watermark */}
+            <div className="relative overflow-hidden p-5 sm:p-6 rounded-[16px] bg-gradient-to-b from-amber-500/[0.07] via-[#F7F8FA] to-[#F7F8FA] dark:from-amber-500/[0.05] dark:via-white/[0.02] dark:to-white/[0.02] border border-amber-500/20 dark:border-white/5 space-y-5">
+              {/* Giant ambient watermark number in background */}
+              <div className="absolute right-6 -top-4 text-[130px] sm:text-[160px] font-black text-amber-500/[0.07] dark:text-amber-500/[0.035] pointer-events-none select-none leading-none z-0">
+                {disciplineState.streakDays}
+              </div>
+
+              <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-3.5">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 text-white flex items-center justify-center text-2xl shadow-md shadow-amber-500/20 shrink-0">
+                    🔥
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-3xl font-black text-slate-900 dark:text-white tabular-nums tracking-tight">
+                        {disciplineState.streakDays}
+                      </span>
+                      <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Days Active Streak</span>
+                    </div>
+                    <p className="text-[12px] text-slate-400 mt-0.5">
+                      Consecutive trading days logging MT5 setups with 100% Stop Loss &amp; 0 revenge trades.
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-[15px] font-bold text-slate-900 dark:text-white tracking-tight">
-                    7-Day Forex Consistency Ladder
-                  </h3>
-                  <p className="text-[12px] text-slate-400 mt-0.5">
-                    Check in daily and log your MT5 trades to extend your streak multiplier.
-                  </p>
+
+                <div className="flex items-center gap-2.5 shrink-0">
+                  <div className="px-3 py-1.5 rounded-xl bg-white dark:bg-[#1A1A1D] border border-slate-200/70 dark:border-white/10 shadow-xs flex items-center gap-2">
+                    <span className="text-base">⭐</span>
+                    <div>
+                      <span className="text-xs font-black text-slate-900 dark:text-white block tabular-nums">+{gamState.xp.toLocaleString()} XP</span>
+                      <span className="text-[9px] text-slate-400 font-semibold uppercase">Total Points</span>
+                    </div>
+                  </div>
+
+                  <div className="px-3 py-1.5 rounded-xl bg-white dark:bg-[#1A1A1D] border border-slate-200/70 dark:border-white/10 shadow-xs flex items-center gap-2">
+                    <span className="text-base">❄️</span>
+                    <div>
+                      <span className="text-xs font-black text-blue-600 dark:text-blue-400 block">1 Shield Active</span>
+                      <span className="text-[9px] text-slate-400 font-semibold uppercase">Streak Freeze</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 shrink-0">
-                <span className="px-2.5 py-1 rounded-[8px] bg-slate-50 dark:bg-white/[0.04] border border-slate-200/60 dark:border-white/10 text-xs font-semibold text-slate-700 dark:text-slate-300">
-                  Streak Freeze: 1 Active 🛡️
-                </span>
-                <span className="px-2.5 py-1 rounded-[8px] bg-orange-500/10 text-orange-600 dark:text-orange-400 text-xs font-bold uppercase tracking-wider border border-orange-500/20">
-                  🔥 {disciplineState.streakDays}-Day Streak
-                </span>
+              {/* Forex 24/5 Trading Activity Heatmap (Inspired by Duolingo & DisputeFox from Image 3 & 1) */}
+              <div className="relative z-10 pt-3 border-t border-slate-200/60 dark:border-white/5 space-y-3">
+                <div className="flex items-center justify-between text-[11px] font-semibold text-slate-400">
+                  <span>Forex 24/5 Discipline Heatmap (Last 12 Weeks)</span>
+                  <div className="flex items-center gap-2.5">
+                    <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-[4px] bg-emerald-500 inline-block" /> A+ (95+)</span>
+                    <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-[4px] bg-blue-500 inline-block" /> A (85–94)</span>
+                    <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-[4px] bg-amber-400 inline-block" /> B (70–84)</span>
+                    <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-[4px] bg-slate-200 dark:bg-white/10 inline-block" /> Rest</span>
+                  </div>
+                </div>
+
+                {/* Heatmap Grid with Day Labels & Month Headers */}
+                <div className="overflow-x-auto pb-1 scrollbar-none">
+                  <div className="min-w-[540px] space-y-1">
+                    {/* Month Headers (Duolingo style) */}
+                    <div className="flex text-[10px] font-bold text-slate-400 pl-8">
+                      <span className="w-1/3">September</span>
+                      <span className="w-1/3">October</span>
+                      <span className="w-1/3">November</span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      {/* Day Labels Mon, Wed, Fri */}
+                      <div className="flex flex-col justify-between h-[84px] text-[9.5px] font-bold text-slate-400 pr-1 select-none">
+                        <span>Mon</span>
+                        <span>Wed</span>
+                        <span>Fri</span>
+                      </div>
+
+                      <div className="inline-grid grid-rows-5 grid-flow-col gap-1.5 flex-1">
+                        {Array.from({ length: 60 }).map((_, i) => {
+                          const scores = [96, 94, 98, 92, 88, 95, 96, 90, 85, 98, 94, 96, 92, 95, 88, 96, 94, 92, 98, 95];
+                          const score = scores[i % scores.length];
+                          const isUpcoming = i > 52;
+                          const bgClass = isUpcoming
+                            ? "bg-slate-200/60 dark:bg-white/[0.06]"
+                            : score >= 95
+                            ? "bg-emerald-500 shadow-xs shadow-emerald-500/20"
+                            : score >= 88
+                            ? "bg-blue-500 shadow-xs shadow-blue-500/20"
+                            : "bg-amber-400 shadow-xs shadow-amber-400/20";
+
+                          return (
+                            <div
+                              key={i}
+                              title={isUpcoming ? "Upcoming session" : `Day ${i + 1}: ${score}% Discipline`}
+                              className={`w-4 h-4 rounded-[4px] ${bgClass} transition-all hover:scale-125 cursor-pointer`}
+                            />
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Duolingo Streak Protection Capsule (from Image 3) */}
+                <div className="flex items-center justify-between p-3 sm:p-3.5 rounded-[14px] bg-white dark:bg-[#1A1A1D] border border-slate-200/70 dark:border-white/10 shadow-xs">
+                  <div className="flex items-center gap-3">
+                    <span className="text-xl">❄️</span>
+                    <div>
+                      <span className="text-xs font-bold text-slate-900 dark:text-white block">Streak Freeze Protection</span>
+                      <span className="text-[10.5px] text-slate-400">Covers missed Forex trading sessions automatically</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="hidden sm:flex items-center gap-1 text-xs">
+                      <span>❄️</span>
+                      <span>❄️</span>
+                      <span>❄️</span>
+                    </div>
+                    <span className="px-2.5 py-0.5 rounded-full text-[9px] font-bold bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20 whitespace-nowrap">
+                      1 SHIELD ACTIVE
+                    </span>
+                    <ChevronRight size={14} className="text-slate-400 shrink-0" />
+                  </div>
+                </div>
               </div>
             </div>
 
             {/* 7-Day Progressive Blocks */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5">
-              {weeklyStreakRewards.map((item) => {
-                const isCompleted = item.day < claimDay;
-                const isCurrent = item.day === claimDay && !isClaimedToday;
-                const isClaimedCurrent = item.day === claimDay && isClaimedToday;
+            <div className="pt-2">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="text-[13.5px] font-bold text-slate-900 dark:text-white">
+                  7-Day Consistency Ladder &amp; Mystery Chest
+                </h4>
+                <span className="text-[11px] text-slate-400">Day 7 yields Gold Mystery Chest</span>
+              </div>
 
-                return (
-                  <div
-                    key={item.day}
-                    className={`p-3.5 rounded-[14px] border flex flex-col items-center justify-between text-center min-h-[115px] transition-all ${
-                      isCompleted
-                        ? "bg-[#F7F8FA]/60 dark:bg-white/[0.02] border-slate-200/60 dark:border-white/5 opacity-65 text-slate-400"
-                        : isClaimedCurrent
-                        ? "bg-emerald-50/70 dark:bg-emerald-500/[0.06] border-emerald-300 dark:border-emerald-500/30 text-emerald-600"
-                        : isCurrent
-                        ? "bg-white dark:bg-[#1E1E22] border-[#2563EB] dark:border-blue-500 shadow-md ring-1 ring-[#2563EB]/20 text-slate-900 dark:text-white scale-102"
-                        : "bg-[#F7F8FA] dark:bg-white/[0.03] border-slate-200/60 dark:border-white/5 text-slate-700 dark:text-slate-200"
-                    }`}
-                  >
-                    <span className="text-[10.5px] font-bold uppercase tracking-wider">Day {item.day}</span>
+              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5">
+                {weeklyStreakRewards.map((item) => {
+                  const isCompleted = item.day < claimDay;
+                  const isCurrent = item.day === claimDay && !isClaimedToday;
+                  const isClaimedCurrent = item.day === claimDay && isClaimedToday;
 
-                    <div className="my-2 flex items-center justify-center">
-                      {isCompleted || isClaimedCurrent ? (
-                        <Check size={18} className="text-emerald-500 stroke-[2.5]" />
-                      ) : item.bonus ? (
-                        <Crown size={20} className="text-amber-500 fill-amber-500/20 animate-bounce" />
-                      ) : (
-                        <Zap size={18} className="text-[#2563EB]" />
-                      )}
+                  return (
+                    <div
+                      key={item.day}
+                      className={`p-3.5 rounded-[14px] border flex flex-col items-center justify-between text-center min-h-[115px] transition-all ${
+                        isCompleted
+                          ? "bg-[#F7F8FA]/60 dark:bg-white/[0.02] border-slate-200/60 dark:border-white/5 opacity-65 text-slate-400"
+                          : isClaimedCurrent
+                          ? "bg-emerald-50/70 dark:bg-emerald-500/[0.06] border-emerald-300 dark:border-emerald-500/30 text-emerald-600"
+                          : isCurrent
+                          ? "bg-white dark:bg-[#1E1E22] border-[#2563EB] dark:border-blue-500 shadow-md ring-1 ring-[#2563EB]/20 text-slate-900 dark:text-white scale-102"
+                          : "bg-[#F7F8FA] dark:bg-white/[0.03] border-slate-200/60 dark:border-white/5 text-slate-700 dark:text-slate-200"
+                      }`}
+                    >
+                      <span className="text-[10.5px] font-bold uppercase tracking-wider">Day {item.day}</span>
+
+                      <div className="my-2 flex items-center justify-center">
+                        {isCompleted || isClaimedCurrent ? (
+                          <Check size={18} className="text-emerald-500 stroke-[2.5]" />
+                        ) : item.bonus ? (
+                          <Crown size={20} className="text-amber-500 fill-amber-500/20 animate-bounce" />
+                        ) : (
+                          <Zap size={18} className="text-[#2563EB]" />
+                        )}
+                      </div>
+
+                      <span className="text-[11px] font-bold leading-none">
+                        {item.label}
+                      </span>
                     </div>
-
-                    <span className="text-[11px] font-bold leading-none">
-                      {item.label}
-                    </span>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
 
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-slate-100 dark:border-white/5">
