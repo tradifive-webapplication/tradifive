@@ -40,6 +40,12 @@ import {
   Tooltip,
   CartesianGrid,
 } from "recharts";
+import { TrafficCard } from "@/components/TrafficCard";
+import type { TrafficRange, TrafficChannel } from "@/components/TrafficCard";
+import { RuleComplianceAnalytics } from "@/components/RuleComplianceAnalytics";
+import { ChartRadarDefault } from "@/components/journal/ChartRadarDefault";
+import { buildJournalDemoData } from "@/utils/journalDemoData";
+import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
 import {
   getGamificationState,
   addXP,
@@ -54,13 +60,13 @@ import {
 } from "@/utils/disciplineScore";
 
 // ═══════════════════════════════════════════════════════════════════
-//  DESIGN TOKENS
+//  DESIGN TOKENS — Systemic with Dashboard & Journal
 // ═══════════════════════════════════════════════════════════════════
 const CARD =
-  "bg-white dark:bg-[#111115] rounded-[22px] border border-slate-100 dark:border-white/[0.06] shadow-[0_2px_16px_rgba(15,23,42,0.06)] dark:shadow-[0_2px_24px_rgba(0,0,0,0.3)]";
+  "bg-white dark:bg-[#17171A] rounded-[18px] border border-slate-200/70 dark:border-white/[0.07] shadow-[0_2px_10px_rgba(15,23,42,0.04),0_10px_26px_-10px_rgba(15,23,42,0.07)] dark:shadow-none";
 
 const INNER_BOX =
-  "bg-slate-50/80 dark:bg-white/[0.03] rounded-[14px] border border-slate-100 dark:border-white/[0.05]";
+  "bg-[#F8F9FA] dark:bg-white/[0.03] rounded-[12px] border border-slate-200/60 dark:border-white/[0.05]";
 
 // Blue palette matching the reference image
 const BLUE = {
@@ -103,13 +109,92 @@ const INITIAL_ACHIEVEMENTS: Achievement[] = [
   { id: "mentor_share", category: "habit", title: "Ecosystem Builder", description: "Refer 2 active verified Forex traders who connect MT5 accounts.", icon: "👥", xpReward: 1000, currentProgress: 2, maxProgress: 2, isUnlocked: true, unlockedDate: "Nov 15, 2026" },
 ];
 
-const CHART_DATA = [
-  { date: "Nov 5", score: 82 }, { date: "Nov 7", score: 86 },
-  { date: "Nov 9", score: 84 }, { date: "Nov 11", score: 90 },
-  { date: "Nov 13", score: 88 }, { date: "Nov 15", score: 94 },
-  { date: "Nov 16", score: 92 }, { date: "Nov 17", score: 88 },
-  { date: "Nov 18", score: 95 }, { date: "Nov 19", score: 94 },
-  { date: "Nov 20", score: 96 },
+const CURVE_DATA = {
+  "7D": [
+    { date: "Nov 14", score: 91, label: "London Open" },
+    { date: "Nov 15", score: 94, label: "NY Reversal" },
+    { date: "Nov 16", score: 92, label: "Gold Breakout" },
+    { date: "Nov 17", score: 88, label: "FOMC Range" },
+    { date: "Nov 18", score: 95, label: "Asian Scalp" },
+    { date: "Nov 19", score: 94, label: "London Trend" },
+    { date: "Nov 20", score: 96, label: "NY Overlap" },
+  ],
+  "14D": [
+    { date: "Nov 7",  score: 86, label: "Trend Continuation" },
+    { date: "Nov 9",  score: 84, label: "Pullback Entry" },
+    { date: "Nov 11", score: 90, label: "London Breakout" },
+    { date: "Nov 13", score: 88, label: "Asian Scalp" },
+    { date: "Nov 15", score: 94, label: "NY Reversal" },
+    { date: "Nov 16", score: 92, label: "Gold EA Bot" },
+    { date: "Nov 17", score: 88, label: "FOMC Cooldown" },
+    { date: "Nov 18", score: 95, label: "Asian Scalp" },
+    { date: "Nov 19", score: 94, label: "London Trend" },
+    { date: "Nov 20", score: 96, label: "NY Overlap" },
+  ],
+  "All": [
+    { date: "Nov 1",  score: 80, label: "SL Calibration" },
+    { date: "Nov 3",  score: 82, label: "Base Phase" },
+    { date: "Nov 5",  score: 82, label: "Discipline Check" },
+    { date: "Nov 7",  score: 86, label: "Trend Continuation" },
+    { date: "Nov 9",  score: 84, label: "Pullback Entry" },
+    { date: "Nov 11", score: 90, label: "London Breakout" },
+    { date: "Nov 13", score: 88, label: "Asian Scalp" },
+    { date: "Nov 15", score: 94, label: "NY Reversal" },
+    { date: "Nov 16", score: 92, label: "Gold EA Bot" },
+    { date: "Nov 17", score: 88, label: "FOMC Cooldown" },
+    { date: "Nov 18", score: 95, label: "Asian Scalp" },
+    { date: "Nov 19", score: 94, label: "London Trend" },
+    { date: "Nov 20", score: 96, label: "NY Overlap" },
+  ],
+};
+
+// ── TRAFFIC CARD DATA ─────────────────────────────────────────────────────
+const TRAFFIC_CHANNELS: TrafficChannel[] = [
+  { id: "discipline", label: "Discipline", color: "#2563EB" },
+  { id: "streak",     label: "Streak",     color: "#f26f6f" },
+  { id: "xp",        label: "XP Activity", color: "#a78bfa" },
+];
+
+const mkPoints = (scores: number[], streaks: number[], xps: number[], labels: string[]) =>
+  labels.map((label, i) => ({
+    label,
+    values: { discipline: scores[i] ?? 0, streak: streaks[i] ?? 0, xp: xps[i] ?? 0 },
+  }));
+
+const TRAFFIC_RANGES: TrafficRange[] = [
+  {
+    id: "7D",
+    label: "7D",
+    caption: "Last 7 days",
+    points: mkPoints(
+      [88, 92, 90, 94, 91, 95, 96],
+      [60, 65, 62, 70, 68, 72, 75],
+      [150, 200, 180, 220, 200, 250, 170],
+      ["Nov 14", "Nov 15", "Nov 16", "Nov 17", "Nov 18", "Nov 19", "Nov 20"],
+    ),
+  },
+  {
+    id: "14D",
+    label: "14D",
+    caption: "Last 14 days",
+    points: mkPoints(
+      [80, 83, 82, 85, 84, 88, 90, 86, 88, 92, 90, 94, 95, 96],
+      [40, 45, 42, 50, 48, 55, 58, 54, 60, 65, 62, 70, 72, 75],
+      [100, 120, 110, 130, 125, 150, 160, 140, 180, 200, 180, 220, 250, 170],
+      ["Nov 7","Nov 8","Nov 9","Nov 10","Nov 11","Nov 12","Nov 13","Nov 14","Nov 15","Nov 16","Nov 17","Nov 18","Nov 19","Nov 20"],
+    ),
+  },
+  {
+    id: "All",
+    label: "All",
+    caption: "Full history",
+    points: mkPoints(
+      [75, 78, 80, 83, 82, 85, 84, 88, 90, 86, 88, 92, 90, 94, 95, 96],
+      [30, 35, 38, 42, 40, 45, 44, 50, 55, 52, 58, 62, 65, 68, 72, 75],
+      [80, 90, 100, 115, 110, 130, 125, 150, 160, 140, 170, 195, 180, 215, 245, 170],
+      ["Nov 5","Nov 6","Nov 7","Nov 8","Nov 9","Nov 10","Nov 11","Nov 12","Nov 13","Nov 14","Nov 15","Nov 16","Nov 17","Nov 18","Nov 19","Nov 20"],
+    ),
+  },
 ];
 
 const WEEKLY_REWARDS = [
@@ -123,14 +208,13 @@ const WEEKLY_REWARDS = [
 ];
 
 // ═══════════════════════════════════════════════════════════════════
-//  DISCIPLINE ARC GAUGE — matching uploaded reference image exactly
+//  DISCIPLINE ARC GAUGE — Compact & Systemic (reference image)
 // ═══════════════════════════════════════════════════════════════════
 function DisciplineArcGauge({ score, grade }: { score: number; grade: string }) {
-  const W = 240, H = 160;
-  const cx = W / 2, cy = H - 24;
-  const R = 88;
+  const W = 210, H = 118;
+  const cx = W / 2, cy = H - 16;
+  const R = 75;
 
-  // Arc from 180° to 0° (left to right, semicircle at bottom)
   const toRad = (deg: number) => (deg * Math.PI) / 180;
   const arcPath = (startDeg: number, endDeg: number, r: number) => {
     const sx = cx + r * Math.cos(toRad(startDeg));
@@ -141,36 +225,31 @@ function DisciplineArcGauge({ score, grade }: { score: number; grade: string }) 
     return `M ${sx} ${sy} A ${r} ${r} 0 ${large} 1 ${ex} ${ey}`;
   };
 
-  // Gauge goes from 180° → 0° as score 0 → 100
   const startDeg = 180;
   const totalDeg = 180;
   const pct = Math.min(100, Math.max(0, score)) / 100;
-  const endDeg = startDeg - pct * totalDeg; // e.g. 96% → ~7.2°
+  const endDeg = startDeg - pct * totalDeg;
 
-  // Needle tip coordinates
   const needleDeg = startDeg - pct * totalDeg;
   const needleX = cx + R * Math.cos(toRad(needleDeg));
   const needleY = cy + R * Math.sin(toRad(needleDeg));
 
   const trackD = arcPath(180, 0, R);
   const fillD  = arcPath(180, endDeg, R);
-
-  const totalLen = Math.PI * R; // ~276.5
+  const totalLen = Math.PI * R;
 
   return (
     <div className="flex flex-col items-center w-full select-none">
       <div className="relative" style={{ width: W, height: H }}>
         <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} className="overflow-visible">
           <defs>
-            {/* Gradient matching reference: light grey → vibrant blue */}
             <linearGradient id="gaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
               <stop offset="0%" stopColor="#CBD5E1" />
-              <stop offset="40%" stopColor="#93C5FD" />
+              <stop offset="42%" stopColor="#93C5FD" />
               <stop offset="100%" stopColor="#2563EB" />
             </linearGradient>
-            {/* Glow filter */}
             <filter id="gaugeGlow" x="-20%" y="-20%" width="140%" height="140%">
-              <feGaussianBlur stdDeviation="3" result="blur" />
+              <feGaussianBlur stdDeviation="2.5" result="blur" />
               <feComposite in="SourceGraphic" in2="blur" operator="over" />
             </filter>
           </defs>
@@ -180,22 +259,22 @@ function DisciplineArcGauge({ score, grade }: { score: number; grade: string }) 
             d={trackD}
             fill="none"
             stroke="#E2E8F0"
-            strokeWidth={10}
+            strokeWidth={9}
             strokeLinecap="round"
             className="dark:stroke-white/10"
           />
 
-          {/* Filled arc — animated */}
+          {/* Filled arc */}
           <motion.path
             d={fillD}
             fill="none"
             stroke="url(#gaugeGrad)"
-            strokeWidth={10}
+            strokeWidth={9}
             strokeLinecap="round"
             pathLength={totalLen}
             initial={{ pathLength: 0 }}
             animate={{ pathLength: pct }}
-            transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
             filter="url(#gaugeGlow)"
           />
 
@@ -203,121 +282,38 @@ function DisciplineArcGauge({ score, grade }: { score: number; grade: string }) 
           <motion.circle
             cx={needleX}
             cy={needleY}
-            r={6}
+            r={5.5}
             fill="#2563EB"
             stroke="white"
             strokeWidth={2.5}
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.9, duration: 0.35 }}
-            className="drop-shadow-[0_0_6px_rgba(37,99,235,0.6)]"
+            transition={{ delay: 0.8, duration: 0.3 }}
+            className="drop-shadow-[0_0_6px_rgba(37,99,235,0.7)]"
           />
 
-          {/* Min label */}
-          <text x={12} y={H - 6} fontSize={11} fontWeight={600} fill="#94A3B8" textAnchor="middle">0</text>
-          {/* Max label */}
-          <text x={W - 12} y={H - 6} fontSize={11} fontWeight={600} fill="#94A3B8" textAnchor="middle">100</text>
+          {/* Min & Max labels */}
+          <text x={10} y={H - 4} fontSize={10} fontWeight={600} fill="#94A3B8" textAnchor="middle" className="tabular-nums">0</text>
+          <text x={W - 10} y={H - 4} fontSize={10} fontWeight={600} fill="#94A3B8" textAnchor="middle" className="tabular-nums">100</text>
         </svg>
 
         {/* Centered score */}
-        <div className="absolute inset-0 flex flex-col items-center justify-end pb-7 pointer-events-none">
+        <div className="absolute inset-0 flex flex-col items-center justify-end pb-4.5 pointer-events-none">
           <div className="flex items-baseline gap-1">
-            <span className="text-[52px] font-black text-slate-900 dark:text-white leading-none tracking-tighter tabular-nums">
+            <span className="text-[42px] font-bold text-slate-900 dark:text-white leading-none tracking-tight tabular-nums">
               {score}
             </span>
-            <span className="text-sm font-bold text-slate-400 mb-1">/100</span>
+            <span className="text-[12px] font-semibold text-slate-400 mb-0.5">/100</span>
           </div>
         </div>
       </div>
 
-      {/* Status pill below gauge — from reference image */}
-      <div className="mt-1 flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20">
-        <span className="w-2 h-2 rounded-full bg-blue-500 inline-block" />
-        <span className="text-[11px] font-semibold text-blue-700 dark:text-blue-400">
+      {/* Status pill below gauge */}
+      <div className="mt-1 inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20">
+        <span className="w-1.5 h-1.5 rounded-full bg-[#2563EB] inline-block animate-pulse" />
+        <span className="text-[11px] font-bold text-[#2563EB] dark:text-blue-400">
           GRADE {grade} · Top 4% of Traders
         </span>
-      </div>
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════════════════════════════════
-//  COMPLIANCE METER — matching "Total Project" reference card
-// ═══════════════════════════════════════════════════════════════════
-function ComplianceMeter({
-  label, value, max = 100, displayValue, sublabel,
-  color = "blue",
-}: {
-  label: string; value: number; max?: number;
-  displayValue: string; sublabel: string;
-  color?: "blue" | "emerald" | "violet" | "amber";
-}) {
-  const pct = Math.min(100, Math.max(0, Math.round((value / max) * 100)));
-  const gradMap = {
-    blue:    "from-blue-500 to-blue-400",
-    emerald: "from-emerald-500 to-teal-400",
-    violet:  "from-violet-500 to-purple-400",
-    amber:   "from-amber-500 to-orange-400",
-  };
-  const glowMap = {
-    blue:    "shadow-[0_0_12px_rgba(59,130,246,0.4)]",
-    emerald: "shadow-[0_0_12px_rgba(16,185,129,0.4)]",
-    violet:  "shadow-[0_0_12px_rgba(139,92,246,0.4)]",
-    amber:   "shadow-[0_0_12px_rgba(245,158,11,0.4)]",
-  };
-
-  return (
-    <div className={`${INNER_BOX} p-4 space-y-3`}>
-      {/* Header row */}
-      <div className="flex items-center justify-between">
-        <span className="text-[12.5px] font-bold text-slate-800 dark:text-slate-200">{label}</span>
-        <span className="text-[12.5px] font-bold text-slate-900 dark:text-white tabular-nums">{displayValue}</span>
-      </div>
-
-      {/* Track — striped background + glowing fill pill */}
-      <div className="relative h-2.5 rounded-full bg-slate-200/70 dark:bg-white/[0.07] overflow-visible">
-        {/* Tick marks */}
-        <div
-          className="absolute inset-0 rounded-full opacity-30 dark:opacity-15 overflow-hidden"
-          style={{ backgroundImage: "repeating-linear-gradient(90deg, transparent, transparent 5px, rgba(100,116,139,0.6) 5px, rgba(100,116,139,0.6) 6px)" }}
-        />
-
-        {/* Glow fill */}
-        <motion.div
-          initial={{ width: 0 }}
-          animate={{ width: `${pct}%` }}
-          transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1] }}
-          className={`absolute top-0 left-0 h-full rounded-full bg-gradient-to-r ${gradMap[color]} ${glowMap[color]}`}
-        />
-
-        {/* Pin handle at tip */}
-        <motion.div
-          initial={{ left: 0 }}
-          animate={{ left: `${pct}%` }}
-          transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1] }}
-          className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3.5 h-3.5 rounded-full bg-white dark:bg-[#111115] border-2 border-slate-400 dark:border-slate-500 shadow-sm z-10"
-        />
-      </div>
-
-      {/* Footer */}
-      <div className="flex items-center justify-between">
-        <span className="text-[11px] text-slate-400">{sublabel}</span>
-        <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 tabular-nums">{pct}%</span>
-      </div>
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════════════════════════════════
-//  STAT PILL
-// ═══════════════════════════════════════════════════════════════════
-function StatPill({ icon, label, value, accent }: { icon: React.ReactNode; label: string; value: string; accent: string }) {
-  return (
-    <div className={`${INNER_BOX} flex items-center gap-3 px-4 py-3`}>
-      <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${accent}`}>{icon}</div>
-      <div>
-        <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{label}</div>
-        <div className="text-[13.5px] font-bold text-slate-900 dark:text-white leading-tight">{value}</div>
       </div>
     </div>
   );
@@ -333,13 +329,15 @@ export default function Rewards() {
 
   const [activeTab, setActiveTab] = useState<"discipline" | "streak" | "achievements" | "vault">(initialTab);
   const [chartTimeframe, setChartTimeframe] = useState<"7D" | "14D" | "All">("14D");
+  const [chartView, setChartView] = useState<"curve" | "activity">("curve");
   const [gamState, setGamState] = useState<GamificationState>(getGamificationState);
   const [disciplineState, setDisciplineState] = useState<ForexDisciplineState>(getForexDisciplineState);
   const [achievements, setAchievements] = useState<Achievement[]>(INITIAL_ACHIEVEMENTS);
   const [achievementFilter, setAchievementFilter] = useState<"all" | "risk" | "forex" | "algo" | "habit">("all");
   const [isWrapping, setIsWrapping] = useState(false);
-  const [userName, setUserName] = useState("Trader");
-  const [userInitial, setUserInitial] = useState("T");
+  const [userName, setUserName] = useState("nikhil Harake");
+  const [userInitial, setUserInitial] = useState("N");
+  const [userAvatar, setUserAvatar] = useState<string | null>(null);
 
   useEffect(() => {
     const handleXPUpdate = () => setGamState(getGamificationState());
@@ -349,25 +347,45 @@ export default function Rewards() {
     window.addEventListener("tradifive_xp_update", handleXPUpdate);
     window.addEventListener("tradifive_discipline_update", handleDisciplineUpdate);
 
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) {
-        const name = user.user_metadata?.full_name || user.email?.split("@")[0] || "Trader";
-        setUserName(name);
-        setUserInitial(name.charAt(0).toUpperCase());
+    const loadProfile = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const user = session?.user;
+        if (user) {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("display_name, full_name, username, avatar_url, xp_level, xp_total")
+            .eq("id", user.id)
+            .maybeSingle();
+
+          const name =
+            profile?.display_name ||
+            profile?.full_name ||
+            user.user_metadata?.full_name ||
+            (user.email ? user.email.split("@")[0] : null) ||
+            "nikhil Harake";
+
+          setUserName(name);
+          setUserInitial((name || "N").charAt(0).toUpperCase());
+          if (profile?.avatar_url || user.user_metadata?.avatar_url) {
+            setUserAvatar(profile?.avatar_url || user.user_metadata?.avatar_url);
+          }
+        } else {
+          setUserName("nikhil Harake");
+          setUserInitial("N");
+        }
+      } catch (_) {
+        setUserName("nikhil Harake");
+        setUserInitial("N");
       }
-    });
+    };
+    loadProfile();
 
     return () => {
       window.removeEventListener("tradifive_xp_update", handleXPUpdate);
       window.removeEventListener("tradifive_discipline_update", handleDisciplineUpdate);
     };
   }, []);
-
-  const activeChartData = useMemo(() => {
-    if (chartTimeframe === "7D") return CHART_DATA.slice(-5);
-    if (chartTimeframe === "14D") return CHART_DATA.slice(-8);
-    return CHART_DATA;
-  }, [chartTimeframe]);
 
   const handleWrapUpSession = () => {
     setIsWrapping(true);
@@ -430,235 +448,407 @@ export default function Rewards() {
     { id: "vault",      emoji: "🎁", label: "Vault" },
   ];
 
+  const demoData = useMemo(() => buildJournalDemoData("forex"), []);
+  const [rangeTab, setRangeTab] = useState<"All" | "1D" | "7D" | "1M">("All");
+
+  const todayFormatted = useMemo(() => {
+    return new Intl.DateTimeFormat("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    }).format(new Date());
+  }, []);
+
+  const userLevel = gamState.level || 1;
+  const userXp = gamState.xp || 20;
+  const userXpRequired = gamState.xp_required || 500;
+  const levelProgressPct = Math.min(100, Math.max(5, Math.round((userXp / userXpRequired) * 100)));
+  const streakCount = disciplineState.streakDays || gamState.streak || 17;
+
   return (
     <DashboardLayout
       breadcrumbs={[{ label: "Engagement" }, { label: "Rewards Hub" }]}
       noPadding={true}
     >
-      <div className="w-full px-4 sm:px-6 lg:px-8 py-5 sm:py-7 space-y-6 font-sans select-none">
+      <div className="w-full px-3.5 sm:px-6 lg:px-8 py-3.5 sm:py-5 space-y-6 font-sans select-none max-w-[1500px] mx-auto">
 
         {/* ══════════════════════════════════════════════════════════
-            TOP HERO — User Identity + Arc Gauge + Trend Chart
+            1. TOP BAR — Matches Dashboard Header
         ══════════════════════════════════════════════════════════ */}
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-5">
-
-          {/* ── LEFT: DISCIPLINE SCORE CARD (matches uploaded reference) ── */}
-          <div className={`xl:col-span-5 ${CARD} p-6 flex flex-col gap-4`}>
-
-            {/* Card header */}
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400">
-                  Forex Discipline Score
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-[10.5px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20 px-2.5 py-0.5 rounded-full">
-                  LIVE
-                </span>
-                <button className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-slate-100 dark:hover:bg-white/5 transition-colors">
-                  <MoreHorizontal size={15} className="text-slate-400" />
-                </button>
-              </div>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2.5">
+              <h1 className="text-[19px] sm:text-[21px] font-bold text-slate-900 dark:text-white tracking-tight leading-none">
+                Rewards Hub
+              </h1>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-[#2563EB] dark:bg-blue-500/15 dark:text-blue-400">
+                Live MT5 Guard
+              </span>
             </div>
-
-            {/* Arc Gauge — matching the uploaded image's clean semicircle */}
-            <div className="flex justify-center">
-              <DisciplineArcGauge score={disciplineState.score} grade={disciplineState.grade} />
-            </div>
-
-            {/* Status insight card — from reference image bottom section */}
-            <div className={`${INNER_BOX} flex items-start gap-3.5 p-4`}>
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shrink-0 text-white text-sm shadow-sm shadow-blue-500/30">
-                ✦
-              </div>
-              <div>
-                <p className="text-[13px] font-bold text-slate-900 dark:text-white leading-snug">
-                  Excellent Discipline, Needs Refinement
-                </p>
-                <p className="text-[11.5px] text-slate-400 mt-0.5 leading-snug">
-                  Psychology score is rising. Tighten lot sizing & maintain streak for Grade S.
-                </p>
-              </div>
-            </div>
-
-            {/* User identity row */}
-            <div className={`${INNER_BOX} flex items-center justify-between p-3.5`}>
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black text-sm flex items-center justify-center shrink-0">
-                  {userInitial}
-                </div>
-                <div>
-                  <div className="text-[13px] font-bold text-slate-900 dark:text-white leading-tight">{userName}</div>
-                  <div className="text-[11px] text-slate-400 font-medium">Level {gamState.level} Pro MT5 Trader</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-1.5 text-orange-500">
-                <Flame size={15} className="fill-orange-500" />
-                <span className="text-[13px] font-bold text-slate-900 dark:text-white tabular-nums">{disciplineState.streakDays}</span>
-                <span className="text-[10.5px] text-slate-400 font-medium">day streak</span>
-              </div>
-            </div>
-
-            {/* Wrap session CTA */}
-            <button
-              type="button"
-              disabled={isWrapping || disciplineState.isSessionWrapped}
-              onClick={handleWrapUpSession}
-              className={`w-full py-3 rounded-[14px] text-[13px] font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
-                disciplineState.isSessionWrapped
-                  ? "bg-slate-100 dark:bg-white/5 text-slate-400 cursor-not-allowed"
-                  : "bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:scale-[1.01] shadow-sm"
-              }`}
-            >
-              {disciplineState.isSessionWrapped ? (
-                <><CheckCircle2 size={15} /> Session Finalized for Today</>
-              ) : (
-                <><span>🏁</span> Wrap Up Today's Session</>
-              )}
-            </button>
-            <p className="text-center text-[10.5px] text-slate-400">Forex runs 24/5 Mon–Fri · Auto-locks at 00:00 MT5</p>
+            <p className="text-[11.5px] text-slate-400 dark:text-neutral-500 mt-1">
+              {todayFormatted}
+            </p>
           </div>
 
-          {/* ── RIGHT: TREND CHART + QUICK STATS ── */}
-          <div className={`xl:col-span-7 ${CARD} p-6 flex flex-col gap-5`}>
+          <div className="flex items-center gap-2.5 shrink-0">
+            <div className="hidden sm:flex items-center gap-3 bg-white dark:bg-[#17171A] rounded-full pl-3.5 pr-1.5 py-1.5 border border-slate-200/75 dark:border-white/[0.08] shadow-[0_2px_10px_rgba(15,23,42,0.04)] dark:shadow-none">
+              <div className="flex items-center gap-2 text-[12px]">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                <span className="font-semibold text-slate-800 dark:text-slate-100 whitespace-nowrap">
+                  MT5 Server · Live
+                </span>
+                <span className="text-slate-400 dark:text-neutral-500 tabular-nums whitespace-nowrap">
+                  · Streak <span className="font-bold text-orange-500">{streakCount}d</span>
+                </span>
+              </div>
+              <div className="h-4 w-px bg-slate-200/80 dark:bg-white/10" />
+              <button
+                type="button"
+                onClick={handleWrapUpSession}
+                className="tactile-black-pill rounded-full px-3 py-1 text-[11.5px] font-semibold cursor-pointer whitespace-nowrap flex items-center gap-1.5"
+              >
+                <span>🏁</span>
+                <span>{disciplineState.isSessionWrapped ? "Session Wrapped" : "Wrap Session"}</span>
+              </button>
+            </div>
+          </div>
+        </div>
 
-            {/* Chart Header */}
-            <div className="flex items-start justify-between">
-              <div>
-                <div className="flex items-center gap-2 mb-0.5">
-                  <TrendingUp size={15} className="text-blue-600 dark:text-blue-400" />
-                  <h3 className="text-[15px] font-bold text-slate-900 dark:text-white tracking-tight">
-                    Discipline &amp; Consistency Curve
-                  </h3>
+        {/* ══════════════════════════════════════════════════════════
+            2. HERO BENTO: Open Discipline Hero (Left) + 3-Stat Cards & Plan Banner (Right)
+        ══════════════════════════════════════════════════════════ */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 items-stretch">
+
+          {/* LEFT HERO CARD: Discipline Score + Arc Ring + User Identity */}
+          <div className={`lg:col-span-6 ${CARD} p-5 flex flex-col justify-between gap-4`}>
+            {/* Top Bar: Timeframe Range Pills + Live Badge */}
+            <div className="flex items-center justify-between gap-2">
+              <div className="inline-flex items-center p-0.5 rounded-[10px] bg-slate-200/70 dark:bg-white/[0.07]">
+                {(["All", "1D", "7D", "1M"] as const).map((tab) => {
+                  const active = rangeTab === tab;
+                  return (
+                    <button
+                      key={tab}
+                      type="button"
+                      onClick={() => setRangeTab(tab)}
+                      className={`relative px-2.5 py-1 rounded-[8px] text-[11.5px] font-semibold transition-colors cursor-pointer ${
+                        active
+                          ? "text-slate-900 dark:text-white"
+                          : "text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-white"
+                      }`}
+                    >
+                      {active && (
+                        <motion.span
+                          layoutId="rewards-range-pill"
+                          transition={{ type: "spring", stiffness: 480, damping: 34 }}
+                          className="absolute inset-0 bg-white dark:bg-[#26262B] rounded-[8px] shadow-[0_1px_4px_rgba(15,23,42,0.09)]"
+                        />
+                      )}
+                      <span className="relative z-10">{tab}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <span className="text-[10px] font-semibold text-[#2563EB] dark:text-blue-400 bg-blue-50 dark:bg-blue-500/15 border border-blue-200/60 dark:border-blue-500/20 px-2.5 py-0.5 rounded-full">
+                GRADE {disciplineState.grade} · Top 4%
+              </span>
+            </div>
+
+            {/* Score Number + Semicircle Arc Gauge */}
+            <div className="flex items-center justify-between gap-4">
+              <div className="min-w-0">
+                <p className="text-[11.5px] font-semibold text-slate-400 dark:text-neutral-500">
+                  Forex Discipline Rating · All time
+                </p>
+                <div className="mt-1 text-[38px] sm:text-[44px] font-bold tracking-tight leading-none tabular-nums text-[#2563EB] dark:text-blue-400">
+                  <AnimatedNumber
+                    value={disciplineState.score}
+                    duration={1000}
+                    delay={80}
+                    format={(v) => `${Math.round(v)}/100`}
+                  />
                 </div>
-                <p className="text-[12px] text-slate-400">
-                  Psychology equity curve across your Forex sessions
+                <p className="text-[11.5px] text-slate-500 dark:text-neutral-400 mt-1">
+                  16 closed MT5 sessions · 0 revenge violations
                 </p>
               </div>
-              <div className="flex items-center p-0.5 rounded-[10px] bg-slate-100 dark:bg-white/[0.05] gap-0.5">
-                {(["7D", "14D", "All"] as const).map(tf => (
-                  <button
-                    key={tf}
-                    type="button"
-                    onClick={() => setChartTimeframe(tf)}
-                    className={`px-3 py-1 rounded-[8px] text-[11px] font-semibold transition-all cursor-pointer ${
-                      chartTimeframe === tf
-                        ? "bg-white dark:bg-[#1E1E24] text-slate-900 dark:text-white shadow-xs"
-                        : "text-slate-400 hover:text-slate-700 dark:hover:text-white"
-                    }`}
-                  >
-                    {tf}
-                  </button>
-                ))}
+
+              <div className="shrink-0 flex items-center justify-center">
+                <DisciplineArcGauge score={disciplineState.score} grade={disciplineState.grade} />
               </div>
             </div>
 
-            {/* Score headline */}
-            <div className="flex items-baseline gap-2.5">
-              <span className="text-[28px] font-black text-slate-900 dark:text-white tracking-tighter tabular-nums">+96.0%</span>
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-[11px] font-bold border border-emerald-100 dark:border-emerald-500/20">
-                <ArrowUpRight size={11} />
-                +4.8% this week
-              </span>
-              <span className="ml-auto flex items-center gap-1 text-[12.5px] font-semibold text-slate-700 dark:text-slate-300">
-                🪙 <span className="tabular-nums font-bold">{gamState.bounty_balance.toLocaleString()}</span>
-                <span className="text-slate-400 font-normal">Coins</span>
-              </span>
+            {/* User identity & Level row */}
+            <div className={`${INNER_BOX} p-3 flex items-center justify-between gap-3`}>
+              <div className="flex items-center gap-2.5 min-w-0">
+                {userAvatar ? (
+                  <img
+                    src={userAvatar}
+                    alt={userName}
+                    className="w-8 h-8 rounded-full object-cover border border-slate-200 dark:border-white/10 shrink-0"
+                  />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black text-xs flex items-center justify-center shrink-0 shadow-xs">
+                    {userInitial}
+                  </div>
+                )}
+                <div className="min-w-0">
+                  <div className="text-[13px] font-bold text-slate-900 dark:text-white leading-tight truncate">
+                    {userName}
+                  </div>
+                  <div className="text-[11px] text-slate-400 dark:text-neutral-500 font-medium">
+                    Level {userLevel} Pro MT5 Trader
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1.5 text-orange-500 shrink-0">
+                <Flame size={14} className="fill-orange-500" />
+                <span className="text-[13px] font-bold text-slate-900 dark:text-white tabular-nums">
+                  {streakCount}
+                </span>
+                <span className="text-[10.5px] text-slate-400 dark:text-neutral-500 font-medium">
+                  day streak
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* RIGHT 3 STAT CARDS + PRE-MARKET RISK BANNER */}
+          <div className="lg:col-span-6 flex flex-col justify-between gap-3">
+            {/* 3 Telemetry Cards */}
+            <div className="grid grid-cols-3 gap-2.5 sm:gap-3 flex-1">
+              {/* Card 1: Trading Streak */}
+              <div className={`${CARD} p-3.5 sm:p-4 flex flex-col justify-between`}>
+                <div className="flex items-center justify-between text-[11px] font-semibold text-slate-400 dark:text-neutral-500">
+                  <span>Trading Streak</span>
+                  <Flame size={13} className="text-orange-500 fill-orange-500" />
+                </div>
+                <div className="my-1 text-[20px] sm:text-[23px] font-bold text-slate-900 dark:text-white tabular-nums tracking-tight">
+                  {streakCount} Days
+                </div>
+                <span className="text-[10.5px] text-slate-400 dark:text-neutral-500 truncate">
+                  Next: 21-Day Gold Shield
+                </span>
+              </div>
+
+              {/* Card 2: Trader Rank */}
+              <div className={`${CARD} p-3.5 sm:p-4 flex flex-col justify-between`}>
+                <div className="flex items-center justify-between text-[11px] font-semibold text-slate-400 dark:text-neutral-500">
+                  <span>Trader Rank</span>
+                  <Star size={13} className="text-violet-500" />
+                </div>
+                <div className="my-1 text-[20px] sm:text-[23px] font-bold text-slate-900 dark:text-white tabular-nums tracking-tight">
+                  Level {userLevel}
+                </div>
+                <div className="space-y-1">
+                  <div className="w-full bg-slate-200/70 dark:bg-white/10 h-1 rounded-full overflow-hidden">
+                    <div className="bg-[#2563EB] h-full rounded-full transition-all" style={{ width: `${levelProgressPct}%` }} />
+                  </div>
+                  <span className="text-[10px] text-slate-400 dark:text-neutral-500 block truncate">
+                    {userXpRequired - userXp} XP to Level {userLevel + 1}
+                  </span>
+                </div>
+              </div>
+
+              {/* Card 3: TradiCoins */}
+              <div className={`${CARD} p-3.5 sm:p-4 flex flex-col justify-between`}>
+                <div className="flex items-center justify-between text-[11px] font-semibold text-slate-400 dark:text-neutral-500">
+                  <span>TradiCoins</span>
+                  <Coins size={13} className="text-amber-500" />
+                </div>
+                <div className="my-1 text-[20px] sm:text-[23px] font-bold text-slate-900 dark:text-white tabular-nums tracking-tight">
+                  {(gamState.bounty_balance || 150).toLocaleString()} 🪙
+                </div>
+                <span
+                  onClick={() => setActiveTab("vault")}
+                  className="text-[10.5px] text-[#2563EB] dark:text-blue-400 font-semibold cursor-pointer hover:underline truncate block"
+                >
+                  Redeem Perks →
+                </span>
+              </div>
             </div>
 
-            {/* Area chart */}
-            <div className="w-full h-[160px]">
+            {/* Pre-Market Risk Plan Prompt Banner (matches Dashboard blue banner!) */}
+            <div className={`${CARD} px-4 py-3 flex items-center justify-between gap-3 bg-gradient-to-r from-blue-50/60 to-indigo-50/60 dark:from-blue-950/20 dark:to-indigo-950/20 border-blue-200/60 dark:border-blue-500/20`}>
+              <div className="flex items-center gap-2 text-[12px] font-medium text-slate-700 dark:text-slate-200 min-w-0">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#2563EB] animate-pulse shrink-0" />
+                <span className="truncate">
+                  <strong className="text-slate-900 dark:text-white font-bold">Start today's pre-market plan:</strong> Strict 1% risk limit &amp; mandatory Stop-Loss verified.
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={handleWrapUpSession}
+                className="text-[11.5px] font-bold text-[#2563EB] dark:text-blue-400 hover:underline flex items-center gap-1 shrink-0 cursor-pointer"
+              >
+                {disciplineState.isSessionWrapped ? "Session Wrapped ✅" : "Wrap Session →"}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* ══════════════════════════════════════════════════════════
+            3. 3-GRAPH ANALYTICS BAND (Matching Dashboard Exactly)
+               Graph 1: Cumulative Discipline Curve
+               Graph 2: Activity & Volume Breakdown (TrafficCard)
+               Graph 3: TRADIFIVE SCORE 5-Axis Radar
+        ══════════════════════════════════════════════════════════ */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 lg:gap-6 items-stretch">
+
+          {/* Graph 1: Cumulative Discipline Curve */}
+          <div className={`${CARD} p-4 sm:p-5 flex flex-col justify-between gap-3`}>
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <TrendingUp size={14} className="text-[#2563EB] dark:text-blue-400" />
+                  <h3 className="text-[13px] font-bold text-slate-900 dark:text-white tracking-tight">
+                    Cumulative Discipline
+                  </h3>
+                </div>
+                <p className="text-[11px] text-slate-400 dark:text-neutral-500 mt-0.5">
+                  Closed trade equity curve · All time
+                </p>
+              </div>
+
+              <div className="text-right">
+                <span className="text-[15px] font-bold text-[#2563EB] dark:text-blue-400 tabular-nums">
+                  +96.0%
+                </span>
+                <span className="text-[10px] text-slate-400 block font-medium">SCORE</span>
+              </div>
+            </div>
+
+            {/* Recharts Area Chart */}
+            <div className="w-full h-[155px]">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={activeChartData} margin={{ top: 4, right: 8, left: -28, bottom: 0 }}>
+                <AreaChart
+                  data={CURVE_DATA[chartTimeframe] || CURVE_DATA["14D"]}
+                  margin={{ top: 6, right: 6, left: -14, bottom: 0 }}
+                >
                   <defs>
-                    <linearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1">
+                    <linearGradient id="areaFillRewards" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor="#2563EB" stopOpacity={0.18} />
                       <stop offset="100%" stopColor="#2563EB" stopOpacity={0.0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" vertical={false} />
-                  <XAxis dataKey="date" stroke="#94A3B8" fontSize={10} tickLine={false} axisLine={false} />
-                  <YAxis domain={[75, 100]} stroke="#94A3B8" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `${v}%`} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.12)" vertical={false} />
+                  <XAxis
+                    dataKey="date"
+                    stroke="#94A3B8"
+                    fontSize={10}
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <YAxis
+                    domain={[75, 100]}
+                    ticks={[75, 82, 89, 100]}
+                    stroke="#94A3B8"
+                    fontSize={10}
+                    tickLine={false}
+                    axisLine={false}
+                    width={38}
+                    tickFormatter={(v) => `${v}%`}
+                  />
                   <Tooltip
                     content={({ active, payload }) => {
                       if (active && payload?.length) {
                         const d = payload[0].payload;
                         return (
-                          <div className="bg-slate-900 text-white px-3 py-2 rounded-xl text-xs shadow-xl border border-white/10">
-                            <div className="text-slate-400 text-[10px] font-semibold uppercase mb-0.5">{d.date}</div>
-                            <div className="font-bold text-[13px]">{d.score}%</div>
+                          <div className="bg-slate-900/95 dark:bg-[#1A1A1E] text-white px-3 py-2 rounded-xl text-xs shadow-xl border border-white/10 backdrop-blur-md">
+                            <div className="flex items-center justify-between gap-3 text-slate-400 text-[10px] font-semibold uppercase tracking-wider mb-0.5">
+                              <span>{d.date}</span>
+                              <span className="text-emerald-400 font-bold">{d.label}</span>
+                            </div>
+                            <div className="flex items-baseline gap-1.5">
+                              <span className="font-bold text-[14px] tabular-nums">{d.score}%</span>
+                              <span className="text-[10.5px] text-blue-400 font-medium">Discipline Rating</span>
+                            </div>
                           </div>
                         );
                       }
                       return null;
                     }}
                   />
-                  <Area type="monotone" dataKey="score" stroke="#2563EB" strokeWidth={2.5} fillOpacity={1} fill="url(#areaFill)" dot={false} />
+                  <Area
+                    type="monotone"
+                    dataKey="score"
+                    stroke="#2563EB"
+                    strokeWidth={2.4}
+                    fillOpacity={1}
+                    fill="url(#areaFillRewards)"
+                    dot={false}
+                  />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
 
-            {/* 4 key metrics */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-              {[
-                { label: "Stop Loss", value: "100% Verified", color: "text-emerald-600 dark:text-emerald-400" },
-                { label: "Avg R:R", value: "1 : 2.4", color: "text-slate-900 dark:text-white" },
-                { label: "Violations", value: "0", color: "text-emerald-600 dark:text-emerald-400" },
-                { label: "Total XP", value: `+${gamState.xp.toLocaleString()}`, color: "text-blue-600 dark:text-blue-400" },
-              ].map(m => (
-                <div key={m.label} className={`${INNER_BOX} p-3 text-center`}>
-                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">{m.label}</div>
-                  <div className={`text-[13.5px] font-black ${m.color}`}>{m.value}</div>
-                </div>
-              ))}
+            {/* Footer metrics */}
+            <div className="flex items-center justify-between text-[11px] pt-1 border-t border-slate-100 dark:border-white/[0.05]">
+              <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+                Stop Loss: 100% Verified
+              </span>
+              <span className="text-slate-400 dark:text-neutral-500 font-medium tabular-nums">
+                16 closed sessions
+              </span>
+            </div>
+          </div>
+
+          {/* Graph 2: Activity & Volume Breakdown (TrafficCard) */}
+          <div className={`${CARD} p-4 sm:p-5 flex flex-col justify-between gap-2`}>
+            <TrafficCard
+              ranges={TRAFFIC_RANGES}
+              channels={TRAFFIC_CHANNELS}
+              defaultRange={chartTimeframe}
+              onRangeChange={(id) => setChartTimeframe(id as "7D" | "14D" | "All")}
+              title="Activity Breakdown"
+              unit="pts"
+              format={(n) => (n >= 1000 ? `${(n / 1000).toFixed(1)}K` : String(Math.round(n)))}
+              height={140}
+              animated
+              className="border-0 shadow-none p-0 ring-0 !rounded-none"
+            />
+            <div className="flex items-center justify-between text-[11px] pt-1 border-t border-slate-100 dark:border-white/[0.05]">
+              <span className="text-slate-400 dark:text-neutral-500">Start 80 pts</span>
+              <span className="font-bold text-[#2563EB] dark:text-blue-400 tabular-nums">
+                96 pts (+16.0%)
+              </span>
+            </div>
+          </div>
+
+          {/* Graph 3: TRADIFIVE SCORE 5-Axis Radar */}
+          <div className={`${CARD} p-4 sm:p-5 flex flex-col justify-between gap-2 overflow-hidden`}>
+            <div className="flex items-start justify-between">
+              <div>
+                <h3 className="text-[13px] font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-1.5">
+                  <span>TRADIFIVE SCORE</span>
+                  <Info size={12} className="text-slate-400" />
+                </h3>
+                <p className="text-[11px] text-slate-400 dark:text-neutral-500">
+                  All time: 16 closed trades
+                </p>
+              </div>
+
+              <div className="text-right">
+                <span className="text-[26px] font-bold text-slate-900 dark:text-white tabular-nums leading-none">
+                  92
+                </span>
+                <span className="text-[10px] text-emerald-500 font-semibold block">
+                  Grade A+ · Top 4%
+                </span>
+              </div>
             </div>
 
-            {/* Quote pill */}
-            <div className={`${INNER_BOX} flex items-center gap-2.5 px-4 py-2.5`}>
-              <span className="text-base shrink-0">🔥</span>
-              <span className="text-[12px] text-slate-600 dark:text-slate-300 leading-snug">
-                Your trading psychology trended up{" "}
-                <strong className="text-emerald-600 dark:text-emerald-400">+4.8%</strong>{" "}
-                this week with{" "}
-                <strong className="text-emerald-600 dark:text-emerald-400">0 revenge violations</strong>.
-              </span>
+            <div className="w-full flex items-center justify-center -my-2 overflow-hidden">
+              <ChartRadarDefault demoTrades={demoData.allTrades} frameless />
             </div>
           </div>
         </div>
 
         {/* ══════════════════════════════════════════════════════════
-            QUICK STAT PILLS ROW
-        ══════════════════════════════════════════════════════════ */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <StatPill
-            icon={<ShieldCheck size={16} className="text-blue-600 dark:text-blue-400" />}
-            label="Discipline Score"
-            value={`${disciplineState.score}/100`}
-            accent="bg-blue-50 dark:bg-blue-500/10"
-          />
-          <StatPill
-            icon={<Flame size={16} className="text-orange-500" />}
-            label="Active Streak"
-            value={`${disciplineState.streakDays} Days`}
-            accent="bg-orange-50 dark:bg-orange-500/10"
-          />
-          <StatPill
-            icon={<Star size={16} className="text-violet-500" />}
-            label="Total XP"
-            value={`${gamState.xp.toLocaleString()} XP`}
-            accent="bg-violet-50 dark:bg-violet-500/10"
-          />
-          <StatPill
-            icon={<Coins size={16} className="text-amber-500" />}
-            label="TradiCoins"
-            value={`${gamState.bounty_balance.toLocaleString()} 🪙`}
-            accent="bg-amber-50 dark:bg-amber-500/10"
-          />
-        </div>
-
-        {/* ══════════════════════════════════════════════════════════
-            SEGMENTED TAB SWITCHER
+            4. WORKSPACE BENTO: TABS & ACTION MODULES
         ══════════════════════════════════════════════════════════ */}
         <div className="flex items-center gap-1.5 p-1 rounded-[14px] bg-slate-100/80 dark:bg-white/[0.04] border border-slate-200/60 dark:border-white/[0.05] overflow-x-auto scrollbar-none">
           {TABS.map(tab => (
@@ -691,25 +881,8 @@ export default function Rewards() {
               transition={{ duration: 0.25, ease: "easeOut" }}
               className={`${CARD} p-5 sm:p-6 space-y-6`}
             >
-              {/* Section header */}
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-[15px] font-bold text-slate-900 dark:text-white tracking-tight">Rule Compliance Parameters</h3>
-                  <p className="text-[12px] text-slate-400 mt-0.5">Synced with your Exness MT5 account & live Risk Guard.</p>
-                </div>
-                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20">
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
-                  <span className="text-[11px] font-bold text-blue-600 dark:text-blue-400">Live Score: {disciplineState.score}/100</span>
-                </div>
-              </div>
-
-              {/* 4 Compliance meters */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                <ComplianceMeter label="MT5 Stop-Loss Protection" value={100} displayValue="100% Verified" sublabel="Every order opened with protective SL" color="emerald" />
-                <ComplianceMeter label="Lot Sizing Rule" value={95} displayValue="0.05 – 0.10 Lots" sublabel="Strict 1% account risk limit enforced" color="blue" />
-                <ComplianceMeter label="Revenge Trade Shield" value={100} displayValue="0 Violations" sublabel="15-min cooldown respected post-loss" color="emerald" />
-                <ComplianceMeter label="Daily Trade Cap" value={75} displayValue="3 / 4 Trades" sublabel="Under daily maximum execution limit" color="amber" />
-              </div>
+              {/* Rule Compliance Parameters — PaceUI Analytics Block */}
+              <RuleComplianceAnalytics score={disciplineState.score} />
 
               {/* Forex 24/5 Session Banner */}
               <div className={`${INNER_BOX} flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4`}>
