@@ -1349,75 +1349,79 @@ export default function Home() {
             return (
                 <div
                     key={sug.id}
-                    className="group relative p-3 rounded-2xl bg-slate-50/70 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/[0.06] hover:border-slate-300 dark:hover:border-white/10 transition-all duration-200"
+                    className="group flex items-center justify-between gap-3 py-2.5 px-2 -mx-2 rounded-xl hover:bg-slate-50/80 dark:hover:bg-white/[0.04] transition-colors"
                 >
-                    {/* Context Pill ONLY if someone viewed your profile */}
-                    {sug.reason === 'profile_view' && (
-                        <div className="flex items-center justify-between mb-2">
-                            <span className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 px-2 py-0.5 rounded-full border border-indigo-200/50 dark:border-indigo-500/20">
-                                <Eye size={11} strokeWidth={2.4} />
-                                <span>Viewed your profile</span>
-                            </span>
-                        </div>
-                    )}
-
-                    {/* Main Row: Avatar + Name/Handle + Tactile Follow Pill + Dismiss */}
-                    <div className="flex items-center justify-between gap-2.5">
-                        <Link to={`/user/${displaySlug}`} className="flex items-center gap-2.5 min-w-0 flex-1 group/user">
+                    <Link to={`/user/${displaySlug}`} className="flex items-center gap-3 min-w-0 flex-1 group/user">
+                        <div className="relative shrink-0">
                             <img
                                 src={displayAvatar}
                                 alt={displayName}
-                                className="w-9 h-9 rounded-full bg-slate-200 dark:bg-white/10 object-cover border border-slate-200/80 dark:border-white/10 shrink-0 group-hover/user:scale-105 transition-transform"
+                                className="w-10 h-10 rounded-full bg-slate-100 dark:bg-white/10 object-cover ring-1 ring-slate-200/80 dark:ring-white/10 group-hover/user:scale-105 transition-transform"
                                 onError={(e) => { e.currentTarget.src = "/default-avatar.svg"; }}
                             />
-                            <div className="min-w-0">
-                                <div className="flex items-center gap-1">
-                                    <span className="text-[13px] font-bold text-slate-900 dark:text-white truncate group-hover/user:text-blue-500 transition-colors">
-                                        {displayName}
-                                    </span>
-                                    {sug.is_pro && (
-                                        <span className="text-amber-500 text-[10px]" title="Pro Trader">★</span>
-                                    )}
-                                </div>
-                                <p className="text-[11px] text-slate-400 truncate mt-0.5">{displayHandle}</p>
-                            </div>
-                        </Link>
-
-                        <div className="flex items-center gap-1.5 shrink-0">
-                            <button
-                                type="button"
-                                onClick={() => toggleFollowUser(sug.id, displayName)}
-                                className={`h-7 px-3 rounded-full text-[11.5px] font-semibold flex items-center gap-1 cursor-pointer transition-all shrink-0 select-none ${
-                                    followedUsers[sug.id]
-                                        ? "tactile-white-pill text-emerald-600 dark:text-emerald-400"
-                                        : "tactile-black-pill"
-                                }`}
-                            >
-                                {followedUsers[sug.id] ? (
-                                    <>
-                                        <Check size={11} strokeWidth={2.6} className="text-emerald-500" />
-                                        <span>Following</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <UserPlus size={11} strokeWidth={2.4} />
-                                        <span>Follow</span>
-                                    </>
-                                )}
-                            </button>
-
-                            <button
-                                type="button"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleDismissSuggestion(sug.id);
-                                }}
-                                title="Dismiss suggestion"
-                                className="text-slate-400 hover:text-slate-700 dark:hover:text-white p-1 rounded-full hover:bg-slate-200/60 dark:hover:bg-white/10 transition-colors cursor-pointer opacity-60 group-hover:opacity-100"
-                            >
-                                <X size={12} strokeWidth={2.2} />
-                            </button>
+                            {sug.reason === 'profile_view' && (
+                                <span
+                                    className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-indigo-600 text-white flex items-center justify-center ring-2 ring-white dark:ring-[#17171A]"
+                                    title="Viewed your profile"
+                                >
+                                    <Eye size={9} strokeWidth={2.8} />
+                                </span>
+                            )}
                         </div>
+                        <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1.5">
+                                <span className="text-[13.5px] font-semibold text-slate-900 dark:text-white truncate group-hover/user:text-indigo-600 dark:group-hover/user:text-indigo-400 transition-colors">
+                                    {displayName}
+                                </span>
+                                {sug.is_pro && (
+                                    <span className="text-amber-500 text-[10px] font-bold" title="Pro Trader">★</span>
+                                )}
+                            </div>
+                            <div className="flex items-center gap-1.5 mt-0.5">
+                                <span className="text-xs text-slate-400 dark:text-slate-500 truncate">{displayHandle}</span>
+                                {sug.reason === 'profile_view' && (
+                                    <span className="text-[10.5px] font-medium text-indigo-600 dark:text-indigo-400 shrink-0">
+                                        · Viewed you
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                    </Link>
+
+                    <div className="flex items-center gap-1.5 shrink-0">
+                        <button
+                            type="button"
+                            onClick={() => toggleFollowUser(sug.id, displayName)}
+                            className={`h-7 px-3.5 rounded-full text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-all shrink-0 select-none ${
+                                followedUsers[sug.id]
+                                    ? "bg-slate-100 hover:bg-slate-200/80 dark:bg-white/10 dark:hover:bg-white/15 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-white/10"
+                                    : "bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 shadow-sm active:scale-95"
+                            }`}
+                        >
+                            {followedUsers[sug.id] ? (
+                                <>
+                                    <Check size={11} strokeWidth={2.6} className="text-emerald-500" />
+                                    <span>Following</span>
+                                </>
+                            ) : (
+                                <>
+                                    <UserPlus size={11} strokeWidth={2.4} />
+                                    <span>Follow</span>
+                                </>
+                            )}
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleDismissSuggestion(sug.id);
+                            }}
+                            title="Dismiss suggestion"
+                            className="w-6 h-6 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer shrink-0"
+                        >
+                            <X size={13} strokeWidth={2.2} />
+                        </button>
                     </div>
                 </div>
             );
@@ -2387,31 +2391,31 @@ export default function Home() {
 
                                 {/* Suggestions Section */}
                                 {showSuggestions && (
-                                    <div className="p-4 rounded-[22px] bg-white dark:bg-[#17171A] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.045)] dark:shadow-none">
-                                        <div className="flex items-center justify-between mb-3.5">
-                                            <h3 className="text-[14.5px] font-bold text-slate-900 dark:text-white tracking-tight">Suggestions for you</h3>
+                                    <div className="p-4 rounded-2xl bg-white dark:bg-[#17171A] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_1px_3px_rgba(15,23,42,0.04)] dark:shadow-none">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <h3 className="text-sm font-bold text-slate-900 dark:text-white tracking-tight">Suggestions for you</h3>
                                             {finalSuggestions.length > 0 && (
                                                 <button
                                                     type="button"
                                                     onClick={() => navigate('/discover')}
-                                                    className="px-3.5 py-1.5 rounded-full tactile-white-pill text-[11.5px] font-semibold cursor-pointer"
+                                                    className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 hover:underline cursor-pointer"
                                                 >
                                                     View all
                                                 </button>
                                             )}
                                         </div>
-                                        <div className="space-y-3">
+                                        <div className="divide-y divide-slate-100 dark:divide-white/[0.05]">
                                             {suggestionsRender}
-                                            {finalSuggestions.length === 0 && (
-                                                <div className="py-5 text-center px-4 rounded-2xl bg-slate-50/50 dark:bg-white/[0.02] border border-dashed border-slate-200/80 dark:border-white/[0.06]">
-                                                    <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-white/[0.06] flex items-center justify-center mx-auto mb-2 text-slate-400">
-                                                        <UserCheck size={15} strokeWidth={2.2} />
-                                                    </div>
-                                                    <p className="text-[12.5px] font-semibold text-slate-700 dark:text-slate-300">All caught up</p>
-                                                    <p className="text-[11px] text-slate-400 mt-0.5">New signups and profile visitors will appear here.</p>
-                                                </div>
-                                            )}
                                         </div>
+                                        {finalSuggestions.length === 0 && (
+                                            <div className="py-5 text-center px-4 rounded-xl bg-slate-50/50 dark:bg-white/[0.02]">
+                                                <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-white/[0.06] flex items-center justify-center mx-auto mb-2 text-slate-400">
+                                                    <UserCheck size={15} strokeWidth={2.2} />
+                                                </div>
+                                                <p className="text-[12.5px] font-semibold text-slate-700 dark:text-slate-300">All caught up</p>
+                                                <p className="text-[11px] text-slate-400 mt-0.5">New signups and profile visitors will appear here.</p>
+                                            </div>
+                                        )}
                                     </div>
                                 )}
 
