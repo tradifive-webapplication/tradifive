@@ -3,12 +3,14 @@ import { supabase } from '@/lib/supabase';
 
 interface PresenceContextType {
   onlineUsers: Set<string>;
+  lastSeenMap: Map<string, string>;
 }
 
-const PresenceContext = createContext<PresenceContextType>({ onlineUsers: new Set() });
+const PresenceContext = createContext<PresenceContextType>({ onlineUsers: new Set(), lastSeenMap: new Map() });
 
 export const PresenceProvider = ({ children }: { children: React.ReactNode }) => {
   const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
+  const [lastSeenMap, setLastSeenMap] = useState<Map<string, string>>(new Map());
 
   useEffect(() => {
     let isCancelled = false;
@@ -42,7 +44,19 @@ export const PresenceProvider = ({ children }: { children: React.ReactNode }) =>
           for (const id of Object.keys(state)) {
             activeIds.add(id);
           }
-          setOnlineUsers(activeIds);
+          setOnlineUsers(prev => {
+            const nowIso = new Date().toISOString();
+            setLastSeenMap(currentMap => {
+              const updated = new Map(currentMap);
+              prev.forEach(id => {
+                if (!activeIds.has(id)) {
+                  updated.set(id, nowIso);
+                }
+              });
+              return updated;
+            });
+            return activeIds;
+          });
         });
 
         channel.subscribe(async (status: string) => {
@@ -70,7 +84,7 @@ export const PresenceProvider = ({ children }: { children: React.ReactNode }) =>
     };
   }, []);
 
-  return <PresenceContext.Provider value={{ onlineUsers }}>{children}</PresenceContext.Provider>;
+  return <PresenceContext.Provider value={{ onlineUsers, lastSeenMap }}>{children}</PresenceContext.Provider>;
 };
 
 export const usePresence = () => useContext(PresenceContext);

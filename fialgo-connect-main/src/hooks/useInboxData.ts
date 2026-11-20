@@ -36,6 +36,7 @@ export interface Conversation {
   timezone: string;
   partnerId: string;
   lastSeen?: string;
+  lastSeenRaw?: string | null;
   winRate?: number | null;
   totalTrades?: number | null;
   preferredMarket?: string | null;
@@ -45,7 +46,7 @@ export interface Conversation {
 }
 
 export function useInboxData(userId: string | undefined, activeConvId: string | null) {
-  const { onlineUsers } = usePresence();
+  const { onlineUsers, lastSeenMap } = usePresence();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [messages, setMessages] = useState<DbMessage[]>([]);
   const [loading, setLoading] = useState(true);
@@ -108,6 +109,8 @@ export function useInboxData(userId: string | undefined, activeConvId: string | 
                 ? `${partnerObj.plan_type.toUpperCase()} TRADER`
                 : 'TRADER';
 
+          const partnerLastSeenIso = lastSeenMap.get(partnerId) || partnerObj?.updated_at || null;
+
           return {
             id: row.id,
             name: partnerObj?.display_name || partnerUsername || 'Trader Peer',
@@ -126,8 +129,9 @@ export function useInboxData(userId: string | undefined, activeConvId: string | 
             email: realEmail,
             timezone: partnerObj?.location || 'Mumbai (IST)',
             partnerId,
-            lastSeen: partnerObj?.updated_at 
-              ? new Date(partnerObj.updated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            lastSeenRaw: partnerLastSeenIso,
+            lastSeen: partnerLastSeenIso 
+              ? new Date(partnerLastSeenIso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
               : 'Recently',
             winRate: partnerObj?.win_rate ?? null,
             totalTrades: partnerObj?.total_trades ?? null,
@@ -147,20 +151,28 @@ export function useInboxData(userId: string | undefined, activeConvId: string | 
     } finally {
       setLoading(false);
     }
-  }, [userId, onlineUsers]);
+  }, [userId, onlineUsers, lastSeenMap]);
 
-  // Update online status reactively without refetching from DB
+  // Update online status and lastSeen reactively without refetching from DB
   useEffect(() => {
     setConversations(prev => prev.map(conv => {
       if (conv.status === 'Bot') return conv;
       const isOnline = onlineUsers.has(conv.partnerId);
       const newStatus = isOnline ? 'Online' : 'Offline';
-      if (conv.status !== newStatus) {
-        return { ...conv, status: newStatus };
+      const latestSeenIso = lastSeenMap.get(conv.partnerId) || conv.lastSeenRaw;
+      if (conv.status !== newStatus || conv.lastSeenRaw !== latestSeenIso) {
+        return {
+          ...conv,
+          status: newStatus,
+          lastSeenRaw: latestSeenIso,
+          lastSeen: latestSeenIso
+            ? new Date(latestSeenIso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            : conv.lastSeen
+        };
       }
       return conv;
     }));
-  }, [onlineUsers]);
+  }, [onlineUsers, lastSeenMap]);
 
   // Load conversations on mount
   useEffect(() => {
@@ -236,17 +248,40 @@ export function useInboxData(userId: string | undefined, activeConvId: string | 
         table: 'direct_messages'
       }, (payload) => {
         const newMsg = payload.new as DbMessage;
+        const sId = String(newMsg.sender_id || '').toLowerCase();
+        const rId = String(newMsg.receiver_id || '').toLowerCase();
+        const uId = String(userId || '').toLowerCase();
+        const pId = String(activePartnerId || '').toLowerCase();
+
         const isParticipant =
-          (newMsg.sender_id === userId && newMsg.receiver_id === activePartnerId) ||
-          (newMsg.sender_id === activePartnerId && newMsg.receiver_id === userId);
+          (sId === uId && rId === pId) ||
+          (sId === pId && rId === uId);
 
         if (isParticipant) {
           setMessages(prev => {
             if (prev.some(m => m.id === newMsg.id)) return prev;
             return [...prev, newMsg];
           });
+
+          // If incoming message from active partner while viewing chat, mark read immediately
+          if (sId === pId && rId === uId) {
+            supabase
+              .from('direct_messages')
+              .update({ is_read: true })
+              .eq('id', newMsg.id)
+              .then();
+          }
+
           fetchConversations();
         }
+      })
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'direct_messages'
+      }, (payload) => {
+        const updatedMsg = payload.new as DbMessage;
+        setMessages(prev => prev.map(m => m.id === updatedMsg.id ? updatedMsg : m));
       })
       .subscribe();
 

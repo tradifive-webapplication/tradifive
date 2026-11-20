@@ -45,6 +45,7 @@ interface Conversation {
   timezone: string;
   partnerId?: string;
   lastSeen?: string;
+  lastSeenRaw?: string | null;
   winRate?: number | null;
   totalTrades?: number | null;
   preferredMarket?: string | null;
@@ -54,6 +55,38 @@ interface Conversation {
 }
 
 // Real dynamic telemetry used for business card
+
+function formatLastSeen(dateStr?: string | null): string {
+  if (!dateStr || dateStr === "Recently") return "offline";
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return "offline";
+
+  const now = new Date();
+  const timeStr = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false });
+
+  const isToday =
+    d.getDate() === now.getDate() &&
+    d.getMonth() === now.getMonth() &&
+    d.getFullYear() === now.getFullYear();
+
+  if (isToday) {
+    return `last seen today at ${timeStr}`;
+  }
+
+  const yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const isYesterday =
+    d.getDate() === yesterday.getDate() &&
+    d.getMonth() === yesterday.getMonth() &&
+    d.getFullYear() === yesterday.getFullYear();
+
+  if (isYesterday) {
+    return `last seen yesterday at ${timeStr}`;
+  }
+
+  const monthStr = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return `last seen ${monthStr} at ${timeStr}`;
+}
 
 export default function InboxPage() {
   const navigate = useNavigate();
@@ -263,9 +296,10 @@ export default function InboxPage() {
     const convParam = searchParams.get('conv');
     const partnerIdParam = searchParams.get('partnerId');
     if (convParam) {
-      setActiveConvId(convParam);
-      setMobileView("chat");
-      refetchConversations?.();
+      if (convParam !== activeConvId) {
+        setActiveConvId(convParam);
+        setMobileView("chat");
+      }
     } else if (dbConversations.length > 0 && !activeConvId) {
       setActiveConvId(dbConversations[0].id);
     }
@@ -280,7 +314,7 @@ export default function InboxPage() {
           if (data) setPartnerFallback(data);
         });
     }
-  }, [dbConversations, searchParams, refetchConversations]);
+  }, [dbConversations, searchParams, activeConvId]);
 
   // Auto-focus chat input when navigated with focus=true or conv
   useEffect(() => {
@@ -293,12 +327,12 @@ export default function InboxPage() {
     }
   }, [activeConvId, searchParams]);
 
-  // Only reset to first conversation if activeConvId is invalid AND there's no URL param
+  // Only reset to first conversation if activeConvId is completely unset or invalid
   useEffect(() => {
     const convParam = searchParams.get('conv');
     if (convParam) return; // Don't override URL-specified conversation
     const isCurrentValid = displayedConversations.some(c => c.id === activeConvId);
-    if (displayedConversations.length > 0 && !isCurrentValid) {
+    if (displayedConversations.length > 0 && !isCurrentValid && !activeConvId) {
       setActiveConvId(displayedConversations[0].id);
     }
   }, [displayedConversations, activeConvId, searchParams]);
@@ -737,6 +771,7 @@ function InboxSkeleton() {
                     key={conv.id}
                     onClick={() => {
                       setActiveConvId(conv.id);
+                      navigate(`/inbox?conv=${conv.id}`, { replace: true });
                       setMobileView("chat");
                       triggerHaptic("selection");
                     }}
@@ -890,19 +925,17 @@ function InboxSkeleton() {
                         <span className="truncate">{activeConv.name}</span>
                         {activeConv.verified && <CheckCircle2 size={13} className="text-slate-400 fill-slate-400 dark:text-slate-400 dark:fill-slate-550 text-white shrink-0" />}
                       </h2>
-                      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                        activeConv.status === 'Online' ? 'bg-green-500' :
-                        activeConv.status === 'Away' ? 'bg-amber-500' :
-                        activeConv.status === 'Offline' ? 'bg-slate-400' :
-                        activeConv.status === 'Bot' ? 'bg-indigo-500' : 'bg-slate-400'
-                      }`} />
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest shrink-0 hidden sm:inline">
-                        {activeConv.status}
-                      </span>
                     </div>
-                    <p className="text-[12px] font-medium text-slate-500 dark:text-zinc-400 mt-0.5 truncate">
-                      @{activeConv.username || activeConv.name.replace(/\s+/g, "").toLowerCase()}
-                    </p>
+                    {activeConv.status === "Online" ? (
+                      <p className="text-[11.5px] font-semibold text-emerald-600 dark:text-emerald-400 mt-0.5 truncate flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                        <span>online</span>
+                      </p>
+                    ) : (
+                      <p className="text-[11.5px] font-normal text-slate-500 dark:text-zinc-400 mt-0.5 truncate">
+                        {formatLastSeen(activeConv.lastSeenRaw || activeConv.lastSeen)}
+                      </p>
+                    )}
                   </div>
                 </div>
                 
@@ -966,8 +999,8 @@ function InboxSkeleton() {
                   const activeMessages = activeConv
                     ? dbMessages.map(msg => {
                         let textContent = msg.content;
-                        let msgType = 'text';
-                        let mediaUrl = null;
+                        let msgType = msg.message_type || 'text';
+                        let mediaUrl = msg.media_url || null;
                         try {
                            const parsed = JSON.parse(msg.content);
                            if(parsed && typeof parsed === 'object' && parsed.type) {
@@ -977,17 +1010,18 @@ function InboxSkeleton() {
                            }
                         } catch(e) {}
                         
+                        const isMe = String(msg.sender_id || '').toLowerCase() === String(user?.id || '').toLowerCase();
                         return {
                           id: msg.id,
-                          sender: msg.sender_id === user?.id ? "You" : activeConv.name,
-                          avatar: msg.sender_id === user?.id ? "/default-avatar.svg" : activeConv.avatar,
+                          sender: isMe ? "You" : activeConv.name,
+                          avatar: isMe ? (user?.user_metadata?.avatar_url || "/default-avatar.svg") : activeConv.avatar,
                           content: textContent,
-                          image: msgType === 'image' ? mediaUrl : null,
-                          video: msgType === 'video' ? mediaUrl : null,
-                          views: msg.sender_id === user?.id ? "Sent" : activeConv.designation,
+                          image: msgType === 'image' ? (mediaUrl || msg.media_url) : null,
+                          video: msgType === 'video' ? (mediaUrl || msg.media_url) : null,
+                          views: isMe ? "Sent" : activeConv.designation,
                           time: msg.created_at ? new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : '',
                           read: msg.is_read ?? false,
-                          isMe: msg.sender_id === user?.id
+                          isMe
                         };
                       })
                     : [];
@@ -995,12 +1029,22 @@ function InboxSkeleton() {
                   return activeMessages.map((msg: any) => {
                     const isMe = msg.isMe;
                     return (
-                      <div key={msg.id} className={`flex w-full gap-2.5 sm:gap-3 ${isMe ? 'justify-end' : 'justify-start'}`}>
+                      <div key={msg.id} className={`flex w-full gap-2 sm:gap-2.5 ${isMe ? 'justify-end' : 'justify-start items-end'}`}>
+                        {/* Received message partner avatar */}
+                        {!isMe && (
+                          <img 
+                            src={msg.avatar || activeConv.avatar} 
+                            alt={activeConv.name} 
+                            className="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover shrink-0 mb-0.5 border border-slate-200 dark:border-white/10"
+                            onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/default-avatar.svg"; }}
+                          />
+                        )}
+
                         {/* Bubble Container */}
-                        <div className={`rounded-2xl border shadow-2xs max-w-[85%] sm:max-w-2xl text-slate-800 dark:text-slate-100 transition-all overflow-hidden ${
+                        <div className={`rounded-2xl max-w-[85%] sm:max-w-xl transition-all overflow-hidden shadow-2xs ${
                           isMe 
-                            ? "rounded-tr-none bg-white border-slate-200/60 dark:bg-[#1E1E1E] dark:border-white/5" 
-                            : "rounded-tl-none bg-white border-slate-200/60 dark:bg-[#1E1E1E] dark:border-white/5"
+                            ? "rounded-tr-none bg-[#D9FDD3] dark:bg-[#005C4B] text-slate-900 dark:text-white border border-[#C4EBB4]/70 dark:border-emerald-800/40" 
+                            : "rounded-tl-none bg-white dark:bg-[#202C33] text-slate-900 dark:text-white border border-slate-200/80 dark:border-white/10"
                         }`}>
                           
                           {msg.image && (
@@ -1010,7 +1054,7 @@ function InboxSkeleton() {
                             >
                               <img 
                                 src={msg.image} 
-                                className="w-full h-auto object-contain block" 
+                                className="w-full h-auto object-contain block max-h-[360px] rounded-t-xl" 
                                 alt="Shared image"
                               />
                             </div>
@@ -1018,27 +1062,31 @@ function InboxSkeleton() {
 
                           {msg.video && (
                             <div className="w-full flex items-center justify-center relative group">
-                              <video src={msg.video} controls className="w-full h-auto object-contain block" />
+                              <video src={msg.video} controls className="w-full h-auto object-contain block max-h-[360px] rounded-t-xl" />
                             </div>
                           )}
 
                           {/* Text Content */}
                           {msg.content && (
-                            <p className={`text-[13px] text-slate-800 dark:text-slate-100 leading-relaxed font-normal whitespace-pre-line px-4 pb-2 ${msg.image || msg.video ? 'pt-3' : 'pt-3.5'}`}>
+                            <p className={`text-[13.5px] leading-relaxed font-normal whitespace-pre-line px-3.5 pb-1.5 ${
+                              isMe ? "text-slate-900 dark:text-white" : "text-slate-900 dark:text-white"
+                            } ${msg.image || msg.video ? 'pt-2.5' : 'pt-2.5'}`}>
                               {msg.content}
                             </p>
                           )}
 
                           {/* Footer details aligned to bottom right of bubble */}
-                          <div className={`flex items-center justify-end gap-1.5 px-4 pb-2 text-[10px] text-slate-450 dark:text-slate-400 font-bold ${(!msg.content && (msg.image || msg.video)) ? 'pt-3' : 'pt-0'}`}>
+                          <div className={`flex items-center justify-end gap-1.5 px-3 pb-1.5 text-[10.5px] ${
+                            isMe ? "text-slate-500 dark:text-emerald-200/80 font-medium" : "text-slate-400 dark:text-zinc-400 font-medium"
+                          } ${(!msg.content && (msg.image || msg.video)) ? 'pt-2' : 'pt-0'}`}>
                             <span className="tabular-nums">{msg.time}</span>
                             
                             {isMe && (
-                              <div className="flex items-center shrink-0">
+                              <div className="flex items-center shrink-0 ml-0.5">
                                 {msg.read ? (
-                                  <CheckCheck size={14} className="text-[#3b82f6]" />
+                                  <CheckCheck size={14} className="text-[#0284c7] dark:text-[#38bdf8] drop-shadow-xs" />
                                 ) : (
-                                  <Check size={14} strokeWidth={2.5} className="text-slate-500" />
+                                  <CheckCheck size={14} className="text-slate-400 dark:text-emerald-200/60" />
                                 )}
                               </div>
                             )}
