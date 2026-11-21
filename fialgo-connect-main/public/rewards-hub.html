@@ -1,0 +1,1459 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rewards Hub · Live MT5 Guard — TradiFive</title>
+
+  <!-- Google Fonts: Plus Jakarta Sans & Geist Mono (Official TradiFive Typography) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin="anonymous">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" crossorigin="anonymous">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'sans-serif'],
+            mono: ['"Geist Mono"', 'ui-monospace', 'monospace'],
+          },
+          colors: {
+            tradifive: {
+              blue: '#2563EB',
+              dark: '#0E0E12',
+              card: '#17171A',
+              cardElevated: '#1E1E23',
+              cardBorder: 'rgba(255, 255, 255, 0.08)',
+              pillBg: '#212126',
+            }
+          },
+          boxShadow: {
+            'tradifive-card': '0 2px 12px rgba(15, 23, 42, 0.04), 0 10px 26px -10px rgba(15, 23, 42, 0.07)',
+            'tradifive-dark': '0 0 0 1px rgba(255, 255, 255, 0.07)',
+            'glow-blue': '0 0 28px -4px rgba(37, 99, 235, 0.35)',
+            'glow-purple': '0 0 24px -4px rgba(168, 85, 247, 0.35)',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .tabular-nums {
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Ambient Subtle Grid */
+    .bg-grid-dark {
+      background-size: 36px 36px;
+      background-image:
+        linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    }
+
+    .bg-grid-light {
+      background-size: 36px 36px;
+      background-image:
+        linear-gradient(to right, rgba(15, 23, 42, 0.025) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(15, 23, 42, 0.025) 1px, transparent 1px);
+    }
+
+    /* 3D Animated Candy-Stripe Progress Bar */
+    @keyframes uiverseStripeMove {
+      0% { background-position: 0 0; }
+      100% { background-position: 64px 0; }
+    }
+    @keyframes uiverseLightShimmer {
+      0%, 100% { opacity: 0.95; }
+      50% { opacity: 1; filter: brightness(1.12); }
+    }
+    .uiverse-3d-bar {
+      animation: uiverseStripeMove 3.5s linear infinite, uiverseLightShimmer 2s ease-in-out infinite;
+      background-size: 64px 100% !important;
+    }
+
+    /* Flame Animation */
+    @keyframes flamePulse {
+      0%, 100% { transform: scale(1) rotate(-2deg); filter: drop-shadow(0 0 6px rgba(249, 115, 22, 0.45)); }
+      50% { transform: scale(1.08) rotate(2deg); filter: drop-shadow(0 0 12px rgba(251, 146, 60, 0.75)); }
+    }
+    .animate-flame {
+      animation: flamePulse 2.4s ease-in-out infinite;
+      transform-origin: center bottom;
+    }
+
+    /* Tab Transition */
+    @keyframes panelReveal {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .panel-animate {
+      animation: panelReveal 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.25); border-radius: 999px; }
+  </style>
+</head>
+<body class="min-h-screen bg-[#F4F7FB] dark:bg-tradifive-dark text-slate-900 dark:text-slate-100 bg-grid-light dark:bg-grid-dark transition-colors duration-300 selection:bg-blue-500/25 font-sans">
+
+  <!-- Ambient Top Subtle Radial Glow -->
+  <div class="pointer-events-none fixed inset-x-0 top-0 h-[400px] bg-gradient-to-b from-blue-600/[0.05] via-indigo-600/[0.02] to-transparent dark:from-blue-500/[0.07] dark:via-indigo-500/[0.02] dark:to-transparent z-0"></div>
+
+  <!-- Main Application Container -->
+  <div class="relative z-10 max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-6 space-y-4 sm:space-y-5">
+
+    <!-- =====================================================================
+         1. TOP COMMAND BAR
+    ====================================================================== -->
+    <header class="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 pb-1">
+      <!-- Brand Title, Live MT5 Guard Pill & Date -->
+      <div class="flex flex-wrap items-center gap-3 sm:gap-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-glow-blue shrink-0">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <path d="m9 12 2 2 4-4"/>
+            </svg>
+          </div>
+          <div>
+            <div class="flex flex-wrap items-center gap-2">
+              <h1 class="text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white leading-none">
+                Rewards Hub
+              </h1>
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-blue-50 dark:bg-blue-500/15 text-[#2563EB] dark:text-blue-300 border border-blue-200/60 dark:border-blue-500/25">
+                <span class="relative flex h-2 w-2">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                Live MT5 Guard
+              </span>
+            </div>
+            <p class="text-[11.5px] font-medium text-slate-400 dark:text-neutral-400 mt-1 flex items-center gap-2">
+              <span>Sat, Nov 21, 2026</span>
+              <span class="text-slate-300 dark:text-neutral-600">•</span>
+              <span class="font-mono text-[11px] text-slate-500 dark:text-neutral-400">Exness-Real #88412</span>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action & Simulation Bar -->
+      <div class="flex flex-wrap items-center gap-2">
+        <button
+          id="simulateToggleBtn"
+          onclick="toggleLiveSimulation()"
+          class="inline-flex items-center gap-2 px-3 py-1.5 rounded-[12px] text-xs font-semibold bg-white dark:bg-tradifive-card text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-tradifive-cardBorder hover:border-blue-500/50 transition-all shadow-xs cursor-pointer">
+          <span id="simDot" class="w-2 h-2 rounded-full bg-slate-400 dark:bg-slate-500 transition-colors"></span>
+          <span id="simLabel">Simulate Live Session</span>
+        </button>
+
+        <div id="sessionStatusPill" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[12px] bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200/60 dark:border-emerald-500/25 text-emerald-700 dark:text-emerald-300 text-xs font-semibold">
+          <svg class="w-3.5 h-3.5 text-emerald-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+            <polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+          <span id="sessionStatusText">Session Finalized</span>
+        </div>
+
+        <!-- Light / Dark Switcher -->
+        <div class="inline-flex items-center p-1 rounded-[12px] bg-white dark:bg-tradifive-card border border-slate-200/80 dark:border-tradifive-cardBorder shadow-xs">
+          <button
+            id="btnThemeDark"
+            onclick="setTheme('dark')"
+            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[8px] text-xs font-semibold transition-all bg-tradifive-pillBg text-white shadow-xs">
+            <svg class="w-3.5 h-3.5 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+            <span class="hidden sm:inline">Dark</span>
+          </button>
+          <button
+            id="btnThemeLight"
+            onclick="setTheme('light')"
+            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[8px] text-xs font-semibold transition-all text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white">
+            <svg class="w-3.5 h-3.5 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+            <span class="hidden sm:inline">Light</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- =====================================================================
+         2. HERO ROW: TRADER IDENTITY & TELEMETRY (TradiFive Consistency Sizing)
+    ====================================================================== -->
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-3.5">
+      <!-- Card A: Trader Identity -->
+      <div class="lg:col-span-6 rounded-[20px] bg-white dark:bg-tradifive-card border border-slate-200/70 dark:border-tradifive-cardBorder p-4 sm:p-5 shadow-tradifive-card dark:shadow-none flex flex-col justify-between gap-3 relative overflow-hidden">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="text-[10.5px] font-bold tracking-wider uppercase text-slate-400 dark:text-neutral-500">
+              DISCIPLINE STATUS
+            </span>
+            <span class="text-slate-300 dark:text-neutral-600">•</span>
+            <span class="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              MT5 Server · Live
+            </span>
+          </div>
+          <span class="text-[10px] font-mono font-semibold text-slate-500 dark:text-neutral-400 bg-slate-100 dark:bg-white/[0.04] px-2 py-0.5 rounded-full border border-slate-200/60 dark:border-white/[0.06]">
+            Ping 11ms · ECN
+          </span>
+        </div>
+
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-full overflow-hidden bg-slate-900 border border-slate-200 dark:border-white/10 shrink-0 shadow-xs">
+              <img
+                src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=160&q=80"
+                alt="Nikhil Harake"
+                class="w-full h-full object-cover"
+              />
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h2 class="text-[16px] font-bold tracking-tight text-slate-900 dark:text-white">
+                  Nikhil Harake
+                </h2>
+                <span class="px-2 py-0.5 rounded-full text-[9.5px] font-extrabold uppercase bg-blue-50 dark:bg-blue-500/15 text-[#2563EB] dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20">
+                  PRO
+                </span>
+              </div>
+              <p class="text-[11.5px] font-medium text-slate-400 dark:text-neutral-500 mt-0.5">
+                Level 1 Pro MT5 Trader
+              </p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 sm:text-right">
+            <div class="px-2.5 py-1.5 rounded-[12px] bg-[#F8FAFC] dark:bg-white/[0.025] border border-slate-200/60 dark:border-white/[0.05]">
+              <div class="text-[9.5px] uppercase tracking-wider font-semibold text-slate-400 dark:text-neutral-500">Account</div>
+              <div class="text-[11.5px] font-mono font-bold text-slate-800 dark:text-slate-200 mt-0.5">Exness #88412</div>
+            </div>
+            <div class="px-2.5 py-1.5 rounded-[12px] bg-[#F8FAFC] dark:bg-white/[0.025] border border-slate-200/60 dark:border-white/[0.05]">
+              <div class="text-[9.5px] uppercase tracking-wider font-semibold text-slate-400 dark:text-neutral-500">Risk Cap</div>
+              <div class="text-[11.5px] font-mono font-bold text-[#2563EB] dark:text-blue-400 mt-0.5">1.0% / trade</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card B: Trading Streak -->
+      <div class="lg:col-span-3 rounded-[20px] bg-white dark:bg-tradifive-card border border-slate-200/70 dark:border-tradifive-cardBorder p-4 sm:p-5 shadow-tradifive-card dark:shadow-none flex flex-col justify-between">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider">Trading Streak</span>
+          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-200/60 dark:border-amber-500/20">
+            <svg class="w-3.5 h-3.5 text-orange-500 animate-flame" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2c.5 3.5-1.5 5.5-3 7.5-1.5 2-2 4.5-.5 7 1.2 2 3.5 3.5 6 3.5 3.5 0 6.5-2.8 6.5-6.5 0-3.2-2-6.2-4.5-8.5.2 1.8-.8 3.2-2 3.8C14.8 6.5 14 3.8 12 2z"/>
+            </svg>
+            Active
+          </span>
+        </div>
+
+        <div class="my-1.5 flex items-baseline justify-between">
+          <div>
+            <div id="streakDaysValue" class="text-2xl sm:text-[28px] font-extrabold tracking-tight text-slate-900 dark:text-white tabular-nums">
+              18 Days
+            </div>
+            <p class="text-[11px] font-semibold text-amber-600 dark:text-amber-400 mt-0.5">
+              21d Shield · <span id="streakRemaining">3 days left</span>
+            </p>
+          </div>
+          <div class="relative w-11 h-11 flex items-center justify-center">
+            <svg class="w-11 h-11 -rotate-90" viewBox="0 0 44 44">
+              <circle cx="22" cy="22" r="18" fill="none" stroke="currentColor" stroke-width="4" class="text-slate-200/80 dark:text-white/10" />
+              <circle id="streakRing" cx="22" cy="22" r="18" fill="none" stroke="#F59E0B" stroke-width="4" stroke-linecap="round" stroke-dasharray="113.1" stroke-dashoffset="16.15" />
+            </svg>
+            <span id="streakFraction" class="absolute text-[10px] font-mono font-bold text-slate-700 dark:text-slate-200">18/21</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-7 gap-1 pt-0.5">
+          <div class="h-1 rounded-full bg-amber-500"></div>
+          <div class="h-1 rounded-full bg-amber-500"></div>
+          <div class="h-1 rounded-full bg-amber-500"></div>
+          <div class="h-1 rounded-full bg-amber-500"></div>
+          <div class="h-1 rounded-full bg-amber-500"></div>
+          <div class="h-1 rounded-full bg-amber-500"></div>
+          <div class="h-1 rounded-full bg-slate-200 dark:bg-white/10"></div>
+        </div>
+      </div>
+
+      <!-- Card C: Trader Rank & XP -->
+      <div class="lg:col-span-3 rounded-[20px] bg-white dark:bg-tradifive-card border border-slate-200/70 dark:border-tradifive-cardBorder p-4 sm:p-5 shadow-tradifive-card dark:shadow-none flex flex-col justify-between">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider">Trader Rank</span>
+          <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-200/60 dark:border-indigo-500/20">
+            Tier 1 Pro
+          </span>
+        </div>
+
+        <div class="my-1.5">
+          <div class="flex items-baseline justify-between">
+            <div class="text-2xl sm:text-[28px] font-extrabold tracking-tight text-slate-900 dark:text-white">
+              Level 1
+            </div>
+            <span id="xpRatioText" class="text-xs font-mono font-bold text-indigo-600 dark:text-indigo-400 tabular-nums">
+              850 / 1,000 XP
+            </span>
+          </div>
+          <p id="xpRemainingText" class="text-[11px] font-semibold text-slate-400 dark:text-neutral-500 mt-0.5">
+            150 XP to Lv 2
+          </p>
+        </div>
+
+        <div class="w-full h-1.5 rounded-full bg-slate-200/80 dark:bg-white/10 overflow-hidden relative">
+          <div id="xpProgressBar" class="h-full rounded-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 transition-all duration-700 relative" style="width: 85%;"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         3. CORE ANALYTICS: GAUGE & DISCIPLINE CURVE (Symmetric 50/50 Split)
+    ====================================================================== -->
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-3.5">
+      <!-- Left: Forex Discipline Rating Gauge -->
+      <div class="lg:col-span-5 rounded-[20px] bg-white dark:bg-tradifive-card border border-slate-200/70 dark:border-tradifive-cardBorder shadow-tradifive-card dark:shadow-none flex flex-col justify-between overflow-hidden">
+        <div class="p-4 sm:p-5">
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <h3 class="text-[15px] font-bold tracking-tight text-slate-900 dark:text-white">
+                Forex Discipline Rating
+              </h3>
+              <p class="text-[11px] text-slate-400 dark:text-neutral-500 mt-0.5 font-medium">
+                Real-time MT5 compliance
+              </p>
+            </div>
+            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-50 dark:bg-blue-500/15 text-[#2563EB] dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20">
+              GRADE A+
+            </span>
+          </div>
+
+          <div class="mt-3 mb-1 flex flex-col items-center justify-center relative">
+            <div class="relative w-full max-w-[280px] flex flex-col items-center">
+              <svg viewBox="0 0 260 154" class="w-full h-auto overflow-visible select-none">
+                <defs>
+                  <linearGradient id="disciplineArcGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="#38BDF8" />
+                    <stop offset="50%" stop-color="#2563EB" />
+                    <stop offset="100%" stop-color="#6366F1" />
+                  </linearGradient>
+                </defs>
+
+                <g id="gaugeTickMarks"></g>
+
+                <path
+                  d="M 34 126 A 96 96 0 0 1 226 126"
+                  fill="none"
+                  stroke="currentColor"
+                  class="text-slate-200 dark:text-white/10"
+                  stroke-width="12"
+                  stroke-linecap="round"
+                />
+
+                <path
+                  id="gaugeActiveArc"
+                  d="M 34 126 A 96 96 0 0 1 226 126"
+                  fill="none"
+                  stroke="url(#disciplineArcGrad)"
+                  stroke-width="12"
+                  stroke-linecap="round"
+                  stroke-dasharray="301.59"
+                  stroke-dashoffset="12.06"
+                />
+
+                <g id="gaugeTipKnob" transform="translate(225.24, 113.97)">
+                  <circle r="9" fill="#2563EB" fill-opacity="0.25" />
+                  <circle r="5.5" fill="#FFFFFF" class="dark:fill-tradifive-card" />
+                  <circle r="3.5" fill="#2563EB" />
+                </g>
+
+                <text x="34" y="146" text-anchor="middle" class="fill-slate-400 dark:fill-neutral-500 text-[10px] font-mono font-semibold">0</text>
+                <text x="226" y="146" text-anchor="middle" class="fill-slate-400 dark:fill-neutral-500 text-[10px] font-mono font-semibold">100</text>
+              </svg>
+
+              <div class="absolute bottom-4 flex flex-col items-center text-center pointer-events-none">
+                <div class="flex items-baseline justify-center">
+                  <span id="gaugeScoreNumber" class="text-4xl sm:text-5xl font-black tracking-tight text-slate-900 dark:text-white tabular-nums leading-none">
+                    96
+                  </span>
+                  <span class="text-sm font-semibold text-slate-400 dark:text-neutral-500 ml-1">
+                    / 100
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50/90 dark:bg-blue-500/10 border border-blue-200/60 dark:border-blue-500/20">
+              <span class="w-1.5 h-1.5 rounded-full bg-[#2563EB] animate-pulse"></span>
+              <span id="gaugePercentileLabel" class="text-[11px] font-extrabold text-[#2563EB] dark:text-blue-400 tracking-tight">
+                GRADE A+ · Top 4% of Traders
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="px-4 sm:px-5 py-3 bg-[#F8FAFC] dark:bg-white/[0.02] border-t border-slate-100 dark:border-white/[0.06] flex items-center justify-between text-xs">
+          <span class="font-bold text-emerald-600 dark:text-emerald-400">
+            ✓ Stop Loss: 100% Verified
+          </span>
+          <span class="text-slate-400 dark:text-neutral-500 font-semibold tabular-nums">
+            0 Violations
+          </span>
+        </div>
+      </div>
+
+      <!-- Right: Discipline Curve Chart -->
+      <div class="lg:col-span-7 rounded-[20px] bg-white dark:bg-tradifive-card border border-slate-200/70 dark:border-tradifive-cardBorder shadow-tradifive-card dark:shadow-none flex flex-col justify-between overflow-hidden">
+        <div class="p-4 sm:p-5 pb-1">
+          <div class="flex flex-wrap items-start justify-between gap-2">
+            <div>
+              <h3 class="text-[15px] font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-1.5">
+                <svg class="w-4 h-4 text-[#2563EB]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+                Discipline Curve
+              </h3>
+              <p class="text-[11px] text-slate-400 dark:text-neutral-500 mt-0.5 font-medium">
+                Closed trade equity curve
+              </p>
+            </div>
+
+            <!-- Timeframe Pill -->
+            <div class="inline-flex items-center p-0.5 rounded-[10px] bg-slate-100 dark:bg-white/[0.06] border border-slate-200/60 dark:border-white/[0.06]">
+              <button onclick="setCurveRange('7D')" id="rangeBtn-7D" class="px-2 py-0.5 rounded-[8px] text-[11px] font-semibold transition-all text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white">7D</button>
+              <button onclick="setCurveRange('14D')" id="rangeBtn-14D" class="px-2 py-0.5 rounded-[8px] text-[11px] font-bold transition-all bg-white dark:bg-[#25252A] text-slate-900 dark:text-white shadow-2xs">14D</button>
+              <button onclick="setCurveRange('All')" id="rangeBtn-All" class="px-2 py-0.5 rounded-[8px] text-[11px] font-semibold transition-all text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white">All</button>
+            </div>
+          </div>
+
+          <div class="mt-2.5 flex items-center gap-2.5">
+            <span id="curveHeadlinePct" class="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white tabular-nums">
+              +96.0%
+            </span>
+            <span id="curveDeltaPill" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20">
+              ↗ +4.8% this week
+            </span>
+          </div>
+
+          <div class="relative mt-2 w-full h-[170px] select-none" id="curveChartContainer">
+            <svg id="disciplineCurveSvg" viewBox="0 0 640 170" preserveAspectRatio="none" class="w-full h-full overflow-visible">
+              <defs>
+                <linearGradient id="curveAreaFill" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#2563EB" stop-opacity="0.25" />
+                  <stop offset="100%" stop-color="#2563EB" stop-opacity="0" />
+                </linearGradient>
+                <linearGradient id="curveStrokeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#38BDF8" />
+                  <stop offset="50%" stop-color="#2563EB" />
+                  <stop offset="100%" stop-color="#6366F1" />
+                </linearGradient>
+              </defs>
+
+              <g class="stroke-slate-100 dark:stroke-white/[0.04]" stroke-dasharray="3 3">
+                <line x1="12" y1="20" x2="628" y2="20" />
+                <line x1="12" y1="65" x2="628" y2="65" />
+                <line x1="12" y1="110" x2="628" y2="110" />
+                <line x1="12" y1="140" x2="628" y2="140" />
+              </g>
+
+              <path id="curveAreaPath" d="" fill="url(#curveAreaFill)" />
+              <path id="curveLinePath" d="" fill="none" stroke="url(#curveStrokeGrad)" stroke-width="2.6" stroke-linecap="round" />
+
+              <g id="curveCrosshair" class="opacity-0 transition-opacity duration-150 pointer-events-none">
+                <line id="crosshairLine" x1="0" y1="10" x2="0" y2="145" stroke="#60A5FA" stroke-width="1.2" stroke-dasharray="3 3" />
+                <circle id="crosshairHalo" cx="0" cy="0" r="8" fill="#2563EB" fill-opacity="0.25" />
+                <circle id="crosshairDot" cx="0" cy="0" r="4" fill="#2563EB" stroke="#FFFFFF" stroke-width="2" />
+              </g>
+
+              <g id="curveXLabels"></g>
+              <g id="curveHitTargets"></g>
+            </svg>
+
+            <!-- Floating Tooltip -->
+            <div id="curveTooltip" class="pointer-events-none opacity-0 transition-all duration-150 absolute top-1 left-0 z-20 px-2.5 py-1.5 rounded-xl bg-slate-900 dark:bg-[#1E1E23] text-white border border-slate-700/80 shadow-xl text-xs min-w-[136px]">
+              <div class="flex items-center justify-between border-b border-slate-700/60 pb-1 mb-1 text-[11px]">
+                <span id="ttDate" class="font-bold">Nov 20</span>
+                <span id="ttScore" class="font-mono font-bold text-blue-400">Score 96</span>
+              </div>
+              <div class="flex items-center justify-between text-[10.5px] text-slate-300">
+                <span>Equity:</span>
+                <span id="ttEquity" class="font-mono font-semibold text-emerald-400">+96.0%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="px-4 sm:px-5 py-3 bg-[#F8FAFC] dark:bg-white/[0.02] border-t border-slate-100 dark:border-white/[0.06] flex items-center justify-between text-xs">
+          <span id="curveSessionsLabel" class="text-slate-400 dark:text-neutral-500 font-medium">16 closed sessions</span>
+          <span id="curveScoreLabel" class="font-bold text-[#2563EB] dark:text-blue-400">Score: 96%</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         4. CENTERED SEGMENTED CONTROL DOCK (TradiFive Pill)
+    ====================================================================== -->
+    <nav class="flex justify-center py-0.5">
+      <div class="inline-flex p-1 rounded-[14px] bg-[#EEF2F6] dark:bg-[#1E1E22] border border-slate-200/60 dark:border-white/[0.06] shadow-2xs">
+        <button
+          onclick="switchTab('discipline')"
+          id="tabBtn-discipline"
+          class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-[10px] text-xs font-bold transition-all bg-white dark:bg-[#121214] text-slate-900 dark:text-white shadow-xs cursor-pointer">
+          <span>🛡️</span>
+          <span>Discipline</span>
+        </button>
+        <button
+          onclick="switchTab('streak')"
+          id="tabBtn-streak"
+          class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-[10px] text-xs font-semibold transition-all text-slate-500 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white cursor-pointer">
+          <span>🔥</span>
+          <span>Daily Streak</span>
+        </button>
+        <button
+          onclick="switchTab('badges')"
+          id="tabBtn-badges"
+          class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-[10px] text-xs font-semibold transition-all text-slate-500 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white cursor-pointer">
+          <span>🏆</span>
+          <span>Badges (6)</span>
+        </button>
+        <button
+          onclick="switchTab('vault')"
+          id="tabBtn-vault"
+          class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-[10px] text-xs font-semibold transition-all text-slate-500 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white cursor-pointer">
+          <span>🎁</span>
+          <span>Vault</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- =====================================================================
+         5. TAB PANELS
+    ====================================================================== -->
+
+    <!-- PANEL 1: DISCIPLINE ENGINE -->
+    <div id="panel-discipline" class="space-y-3.5 panel-animate">
+
+      <!-- Rule Compliance Parameters with 3D Bars -->
+      <div class="rounded-[20px] bg-white dark:bg-tradifive-card border border-slate-200/70 dark:border-tradifive-cardBorder p-4 sm:p-5 shadow-tradifive-card dark:shadow-none">
+        <!-- Header -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 mb-3 border-b border-slate-100 dark:border-white/[0.06] gap-2">
+          <div class="flex items-center gap-2.5">
+            <div class="w-7 h-7 rounded-lg bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-[#2563EB] dark:text-blue-400 shrink-0">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+            </div>
+            <div>
+              <h3 class="text-[14px] font-bold text-slate-900 dark:text-white tracking-tight">
+                Rule Compliance Parameters
+              </h3>
+              <p class="text-[10.5px] text-slate-400 dark:text-neutral-500 font-medium">
+                Synced with your Exness MT5 account &amp; live Risk Guard enforcer.
+              </p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 dark:bg-blue-500/10 border border-blue-200/60 dark:border-blue-500/20 text-[10.5px] font-extrabold text-[#2563EB] dark:text-blue-400 tabular-nums">
+              <span class="w-1.5 h-1.5 rounded-full bg-[#2563EB] animate-pulse"></span>
+              Score: 96/100
+            </span>
+          </div>
+        </div>
+
+        <!-- 4 Compliance Parameter Cards with 3D Horizontal Bars -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 sm:gap-3">
+          <!-- Parameter 1: Stop-Loss -->
+          <div onclick="openRuleDrawer('sl')" class="p-3 rounded-[13px] bg-[#F8FAFC] dark:bg-white/[0.025] border border-slate-200/60 dark:border-white/[0.05] hover:border-slate-300 dark:hover:border-white/15 transition-all cursor-pointer flex flex-col justify-between gap-2 shadow-2xs">
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <h4 class="text-[12px] font-bold text-slate-900 dark:text-white">MT5 Stop-Loss Protection</h4>
+                <p class="text-[10px] text-slate-400 dark:text-neutral-500 font-medium">Every order opened with mandatory protective SL</p>
+              </div>
+              <span class="text-[9.5px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20 tabular-nums">100% Verified</span>
+            </div>
+            <div class="flex items-center gap-2.5 pt-0.5">
+              <div class="relative flex-1 h-[8.5px] rounded-full bg-[#E5E9F0] dark:bg-[#0D0D10] border border-slate-300/80 dark:border-white/10 p-[1px] shadow-[inset_0_1.5px_3px_rgba(0,0,0,0.14)] overflow-hidden">
+                <div class="uiverse-3d-bar h-full rounded-full relative overflow-hidden" style="width: 100%; background: repeating-linear-gradient(45deg, #059669 0 16px, #10B981 16px 32px);">
+                  <div class="absolute inset-x-0 top-0 h-[45%] bg-gradient-to-b from-white/70 via-white/20 to-transparent rounded-t-full"></div>
+                  <div class="absolute inset-x-0 bottom-0 h-[30%] bg-black/20 rounded-b-full"></div>
+                </div>
+              </div>
+              <span class="text-[11px] font-extrabold text-emerald-600 dark:text-emerald-400 tabular-nums min-w-[32px] text-right">100%</span>
+            </div>
+          </div>
+
+          <!-- Parameter 2: Lot Sizing -->
+          <div onclick="openRuleDrawer('lot')" class="p-3 rounded-[13px] bg-[#F8FAFC] dark:bg-white/[0.025] border border-slate-200/60 dark:border-white/[0.05] hover:border-slate-300 dark:hover:border-white/15 transition-all cursor-pointer flex flex-col justify-between gap-2 shadow-2xs">
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <h4 class="text-[12px] font-bold text-slate-900 dark:text-white">Lot Sizing Rule</h4>
+                <p class="text-[10px] text-slate-400 dark:text-neutral-500 font-medium">Strict 1% account risk limit dynamically enforced</p>
+              </div>
+              <span class="text-[9.5px] font-bold px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-500/10 text-[#2563EB] dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20 tabular-nums">0.05 – 0.10 Lots</span>
+            </div>
+            <div class="flex items-center gap-2.5 pt-0.5">
+              <div class="relative flex-1 h-[8.5px] rounded-full bg-[#E5E9F0] dark:bg-[#0D0D10] border border-slate-300/80 dark:border-white/10 p-[1px] shadow-[inset_0_1.5px_3px_rgba(0,0,0,0.14)] overflow-hidden">
+                <div class="uiverse-3d-bar h-full rounded-full relative overflow-hidden" style="width: 95%; background: repeating-linear-gradient(45deg, #0031F2 0 16px, #006DFE 16px 32px);">
+                  <div class="absolute inset-x-0 top-0 h-[45%] bg-gradient-to-b from-white/70 via-white/20 to-transparent rounded-t-full"></div>
+                  <div class="absolute inset-x-0 bottom-0 h-[30%] bg-black/20 rounded-b-full"></div>
+                </div>
+              </div>
+              <span class="text-[11px] font-extrabold text-[#2563EB] dark:text-blue-400 tabular-nums min-w-[32px] text-right">95%</span>
+            </div>
+          </div>
+
+          <!-- Parameter 3: Revenge Trade Shield -->
+          <div onclick="openRuleDrawer('revenge')" class="p-3 rounded-[13px] bg-[#F8FAFC] dark:bg-white/[0.025] border border-slate-200/60 dark:border-white/[0.05] hover:border-slate-300 dark:hover:border-white/15 transition-all cursor-pointer flex flex-col justify-between gap-2 shadow-2xs">
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <h4 class="text-[12px] font-bold text-slate-900 dark:text-white">Revenge Trade Shield</h4>
+                <p class="text-[10px] text-slate-400 dark:text-neutral-500 font-medium">15-minute emotional cooldown respected post-loss</p>
+              </div>
+              <span class="text-[9.5px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20 tabular-nums">0 Violations</span>
+            </div>
+            <div class="flex items-center gap-2.5 pt-0.5">
+              <div class="relative flex-1 h-[8.5px] rounded-full bg-[#E5E9F0] dark:bg-[#0D0D10] border border-slate-300/80 dark:border-white/10 p-[1px] shadow-[inset_0_1.5px_3px_rgba(0,0,0,0.14)] overflow-hidden">
+                <div class="uiverse-3d-bar h-full rounded-full relative overflow-hidden" style="width: 100%; background: repeating-linear-gradient(45deg, #059669 0 16px, #10B981 16px 32px);">
+                  <div class="absolute inset-x-0 top-0 h-[45%] bg-gradient-to-b from-white/70 via-white/20 to-transparent rounded-t-full"></div>
+                  <div class="absolute inset-x-0 bottom-0 h-[30%] bg-black/20 rounded-b-full"></div>
+                </div>
+              </div>
+              <span class="text-[11px] font-extrabold text-emerald-600 dark:text-emerald-400 tabular-nums min-w-[32px] text-right">100%</span>
+            </div>
+          </div>
+
+          <!-- Parameter 4: Daily Trade Cap -->
+          <div onclick="openRuleDrawer('cap')" class="p-3 rounded-[13px] bg-[#F8FAFC] dark:bg-white/[0.025] border border-slate-200/60 dark:border-white/[0.05] hover:border-slate-300 dark:hover:border-white/15 transition-all cursor-pointer flex flex-col justify-between gap-2 shadow-2xs">
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <h4 class="text-[12px] font-bold text-slate-900 dark:text-white">Daily Trade Cap</h4>
+                <p class="text-[10px] text-slate-400 dark:text-neutral-500 font-medium">Strictly under maximum daily execution quota</p>
+              </div>
+              <span class="text-[9.5px] font-bold px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-200/60 dark:border-amber-500/20 tabular-nums">3 / 4 Trades</span>
+            </div>
+            <div class="flex items-center gap-2.5 pt-0.5">
+              <div class="relative flex-1 h-[8.5px] rounded-full bg-[#E5E9F0] dark:bg-[#0D0D10] border border-slate-300/80 dark:border-white/10 p-[1px] shadow-[inset_0_1.5px_3px_rgba(0,0,0,0.14)] overflow-hidden">
+                <div class="uiverse-3d-bar h-full rounded-full relative overflow-hidden" style="width: 75%; background: repeating-linear-gradient(45deg, #D97706 0 16px, #F59E0B 16px 32px);">
+                  <div class="absolute inset-x-0 top-0 h-[45%] bg-gradient-to-b from-white/70 via-white/20 to-transparent rounded-t-full"></div>
+                  <div class="absolute inset-x-0 bottom-0 h-[30%] bg-black/20 rounded-b-full"></div>
+                </div>
+              </div>
+              <span class="text-[11px] font-extrabold text-amber-600 dark:text-amber-400 tabular-nums min-w-[32px] text-right">75%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Forex 24/5 Session Rhythm Footer -->
+        <div class="mt-3.5 pt-3 border-t border-slate-100 dark:border-white/[0.05] flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <div class="w-5 h-5 rounded-md bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-xs shrink-0">🌐</div>
+            <span class="text-[11.5px] font-bold text-slate-900 dark:text-white mr-1.5">Forex 24/5 Session Rhythm</span>
+            <span class="text-[10.5px] text-slate-400 dark:text-neutral-500 font-medium hidden sm:inline">Continuous live sync · Auto-locks midnight 00:00 MT5</span>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <div class="flex items-center gap-1 text-[10.5px] font-mono">
+              <span class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-white/[0.04] text-slate-400">SYD</span>
+              <span class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-white/[0.04] text-slate-400">TYO</span>
+              <span class="px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-200/50">LDN ●</span>
+              <span class="px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-200/50">NYC ●</span>
+            </div>
+            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200/60 dark:border-emerald-500/20 text-[9.5px] font-bold text-emerald-700 dark:text-emerald-400">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              Active
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================================================================
+           TRADIFIVE TACTILE WEEKLY CONSISTENCY LOG CALENDAR STRIP
+           (Pixel-perfect matching reference image with 7 tactile pills)
+      ==================================================================== -->
+      <div class="rounded-[24px] sm:rounded-[28px] bg-white dark:bg-tradifive-card border border-slate-200/70 dark:border-tradifive-cardBorder p-4 sm:p-5 shadow-tradifive-card dark:shadow-none select-none">
+        
+        <!-- Header Row: Gradient "Today" + "< Nov • 2026 >" -->
+        <div class="flex items-center justify-between pb-3 sm:pb-3.5 mb-3.5 sm:mb-4 border-b border-slate-100 dark:border-white/[0.06]">
+          <div class="flex items-center gap-2.5">
+            <h3 class="text-[20px] sm:text-[22px] font-black tracking-tight bg-gradient-to-r from-fuchsia-600 via-purple-600 to-indigo-600 dark:from-fuchsia-400 dark:via-purple-400 dark:to-indigo-400 bg-clip-text text-transparent">
+              Today
+            </h3>
+            <span class="text-slate-300 dark:text-neutral-600">·</span>
+            <span class="text-[12px] font-bold text-slate-500 dark:text-neutral-400">
+              Weekly Consistency Log
+            </span>
+          </div>
+
+          <div class="flex items-center gap-1.5 text-[11.5px] font-bold text-slate-500 dark:text-neutral-400">
+            <button
+              type="button"
+              onclick="showToast('Previous week')"
+              class="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-white/[0.06] text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors cursor-pointer">
+              ‹
+            </button>
+            <span class="tabular-nums tracking-wide font-semibold px-0.5">
+              Nov • 2026
+            </span>
+            <button
+              type="button"
+              onclick="showToast('Next week')"
+              class="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-white/[0.06] text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors cursor-pointer">
+              ›
+            </button>
+          </div>
+        </div>
+
+        <!-- 7 Tactile Day Capsules (Mon to Sun) -->
+        <div class="grid grid-cols-7 gap-1.5 sm:gap-2.5 items-start" id="tactileCalendarCapsules">
+          <!-- Populated by renderTactileWeeklyStrip() -->
+        </div>
+
+        <!-- Selected Day Discipline Detail Drawer -->
+        <div id="tactileDetailDrawer" class="mt-3.5 pt-3 border-t border-slate-100 dark:border-white/[0.06] flex flex-wrap items-center justify-between gap-2.5 text-[11px]">
+          <!-- Populated dynamically on day click -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- PANEL 2: DAILY STREAK ROADMAP -->
+    <div id="panel-streak" class="hidden space-y-4 panel-animate">
+      <div class="rounded-[20px] bg-white dark:bg-tradifive-card border border-slate-200/70 dark:border-tradifive-cardBorder p-5 shadow-tradifive-card dark:shadow-none">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-white/[0.06]">
+          <div>
+            <div class="text-amber-600 dark:text-amber-400 text-xs font-bold uppercase tracking-wider mb-0.5">
+              21-Day Streak Shield Challenge
+            </div>
+            <h3 class="text-lg font-bold text-slate-900 dark:text-white">
+              18 Consecutive Disciplined Sessions
+            </h3>
+            <p class="text-xs text-slate-400 dark:text-neutral-500 mt-0.5">
+              Complete 3 more sessions to lock your 21-Day Streak Shield against news volatility.
+            </p>
+          </div>
+          <div class="flex items-center gap-3 px-3.5 py-2.5 rounded-[14px] bg-amber-500/10 border border-amber-500/25">
+            <span class="text-2xl">🔥</span>
+            <div>
+              <div class="text-[10px] font-bold text-amber-700 dark:text-amber-300 uppercase">Multiplier</div>
+              <div class="text-base font-mono font-extrabold text-slate-900 dark:text-white">1.35x XP</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4">
+          <div class="text-xs font-bold text-slate-500 dark:text-neutral-400 mb-2.5">
+            21-Day Milestone Tracker (Nov 4 – Nov 24)
+          </div>
+          <div id="streakCalendarGrid" class="grid grid-cols-3 sm:grid-cols-7 gap-2"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PANEL 3: BADGES (6) -->
+    <div id="panel-badges" class="hidden space-y-4 panel-animate">
+      <div class="rounded-[20px] bg-white dark:bg-tradifive-card border border-slate-200/70 dark:border-tradifive-cardBorder p-5 shadow-tradifive-card dark:shadow-none">
+        <div class="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-100 dark:border-white/[0.06]">
+          <div>
+            <h3 class="text-lg font-bold text-slate-900 dark:text-white">
+              Trader Discipline Badges (4 / 6 Unlocked)
+            </h3>
+            <p class="text-xs text-slate-400 dark:text-neutral-500 mt-0.5">
+              Verified MT5 telemetry achievements earned through risk execution.
+            </p>
+          </div>
+          <span class="px-3 py-1 rounded-full text-xs font-mono font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/25">
+            +450 XP Earned
+          </span>
+        </div>
+
+        <div id="badgesGrid" class="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+      </div>
+    </div>
+
+    <!-- PANEL 4: VAULT -->
+    <div id="panel-vault" class="hidden space-y-4 panel-animate">
+      <div class="rounded-[20px] bg-white dark:bg-tradifive-card border border-slate-200/70 dark:border-tradifive-cardBorder p-5 shadow-tradifive-card dark:shadow-none">
+        <div class="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-100 dark:border-white/[0.06]">
+          <div>
+            <h3 class="text-lg font-bold text-slate-900 dark:text-white">
+              Institutional Rewards Vault
+            </h3>
+            <p class="text-xs text-slate-400 dark:text-neutral-500 mt-0.5">
+              Redeem your Grade A+ discipline score and XP balance for institutional trading perks.
+            </p>
+          </div>
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-[10px] bg-emerald-500/10 border border-emerald-500/25 text-emerald-700 dark:text-emerald-300 text-xs font-mono font-bold">
+            <span>Balance:</span>
+            <span id="vaultXpBalance">850 XP</span>
+          </div>
+        </div>
+
+        <div id="vaultGrid" class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3.5"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Inspection Modal Drawer -->
+  <div id="inspectionModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm">
+    <div class="w-full max-w-lg rounded-[20px] bg-white dark:bg-tradifive-card border border-slate-200 dark:border-white/10 shadow-2xl overflow-hidden panel-animate">
+      <div class="px-5 py-3.5 border-b border-slate-100 dark:border-white/[0.06] flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span id="modalBadge" class="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase bg-blue-500/15 text-blue-600 dark:text-blue-400">
+            AUDIT LOG
+          </span>
+          <h4 id="modalTitle" class="text-sm font-bold text-slate-900 dark:text-white">
+            Audit Details
+          </h4>
+        </div>
+        <button onclick="closeModal()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white cursor-pointer">
+          ✕
+        </button>
+      </div>
+      <div id="modalBody" class="p-5 space-y-3.5 text-xs text-slate-600 dark:text-slate-300"></div>
+      <div class="px-5 py-3 bg-[#F8FAFC] dark:bg-white/[0.02] border-t border-slate-100 dark:border-white/[0.06] flex justify-end">
+        <button onclick="closeModal()" class="px-4 py-1.5 rounded-[10px] text-xs font-bold bg-[#2563EB] text-white hover:bg-blue-600 cursor-pointer">
+          Close Audit
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toastBanner" class="fixed bottom-5 right-5 z-50 pointer-events-none opacity-0 translate-y-2 transition-all duration-300 px-3.5 py-2 rounded-[12px] bg-slate-900 dark:bg-[#1E1E23] text-white border border-slate-700/80 shadow-2xl flex items-center gap-2 text-xs font-semibold">
+    <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+    <span id="toastText">Action completed</span>
+  </div>
+
+  <script>
+    const state = {
+      score: 96,
+      streak: 18,
+      xp: 850,
+      activeRange: '14D',
+      selectedDate: '2026-11-21',
+      isSimulating: false,
+      simInterval: null,
+      redeemedRewards: new Set()
+    };
+
+    // 7 Days of the Week for the Tactile Calendar
+    const tactileDays = [
+      { date: '2026-11-16', dayNum: 16, dayLabel: 'Mon', score: 92, grade: 'A', trades: 3, sl: 100, xp: 100, isToday: false },
+      { date: '2026-11-17', dayNum: 17, dayLabel: 'Tue', score: 88, grade: 'A', trades: 4, sl: 100, xp: 90, isToday: false },
+      { date: '2026-11-18', dayNum: 18, dayLabel: 'Wed', score: 95, grade: 'A+', trades: 2, sl: 100, xp: 120, isToday: false },
+      { date: '2026-11-19', dayNum: 19, dayLabel: 'Thu', score: 94, grade: 'A', trades: 3, sl: 100, xp: 110, isToday: false },
+      { date: '2026-11-20', dayNum: 20, dayLabel: 'Fri', score: 96, grade: 'A+', trades: 2, sl: 100, xp: 120, isToday: false },
+      { date: '2026-11-21', dayNum: 21, dayLabel: 'Sat', score: 96, grade: 'A+', trades: 3, sl: 100, xp: 120, isToday: true },
+      { date: '2026-11-22', dayNum: 22, dayLabel: 'Sun', score: 0, grade: '—', trades: 0, sl: 100, xp: 0, isToday: false, isWeekend: true }
+    ];
+
+    // Discipline Curve Datasets
+    const curveDatasets = {
+      '7D': {
+        headline: '+96.0%',
+        delta: '↗ +4.8% this week',
+        sessions: '7 closed sessions',
+        scoreLabel: 'Score: 96%',
+        points: [
+          { date: 'Nov 15', score: 93, equity: '+91.2%' },
+          { date: 'Nov 16', score: 92, equity: '+92.0%' },
+          { date: 'Nov 17', score: 88, equity: '+91.5%' },
+          { date: 'Nov 18', score: 95, equity: '+93.4%' },
+          { date: 'Nov 19', score: 94, equity: '+94.7%' },
+          { date: 'Nov 20', score: 96, equity: '+95.6%' },
+          { date: 'Nov 21', score: 96, equity: '+96.0%' }
+        ]
+      },
+      '14D': {
+        headline: '+96.0%',
+        delta: '↗ +4.8% this week',
+        sessions: '16 closed sessions',
+        scoreLabel: 'Score: 96%',
+        points: [
+          { date: 'Nov 9',  score: 84, equity: '+82.4%' },
+          { date: 'Nov 11', score: 89, equity: '+86.1%' },
+          { date: 'Nov 13', score: 87, equity: '+85.3%' },
+          { date: 'Nov 15', score: 93, equity: '+90.8%' },
+          { date: 'Nov 16', score: 92, equity: '+91.6%' },
+          { date: 'Nov 17', score: 88, equity: '+89.4%' },
+          { date: 'Nov 18', score: 95, equity: '+93.9%' },
+          { date: 'Nov 19', score: 94, equity: '+94.8%' },
+          { date: 'Nov 20', score: 96, equity: '+96.0%' }
+        ]
+      },
+      'All': {
+        headline: '+114.2%',
+        delta: '↗ +18.4% this month',
+        sessions: '42 closed sessions',
+        scoreLabel: 'Avg Score: 94%',
+        points: [
+          { date: 'Oct 24', score: 78, equity: '+64.0%' },
+          { date: 'Oct 29', score: 82, equity: '+71.5%' },
+          { date: 'Nov 3',  score: 86, equity: '+79.2%' },
+          { date: 'Nov 8',  score: 85, equity: '+83.0%' },
+          { date: 'Nov 12', score: 90, equity: '+88.7%' },
+          { date: 'Nov 16', score: 92, equity: '+92.4%' },
+          { date: 'Nov 19', score: 95, equity: '+104.8%' },
+          { date: 'Nov 21', score: 96, equity: '+114.2%' }
+        ]
+      }
+    };
+
+    // Rule Details for Inspection
+    const ruleDetails = {
+      sl: {
+        badge: '100% VERIFIED',
+        title: 'MT5 Stop-Loss Protection Audit',
+        summary: 'Every order executed on Exness MT5 carried a verified server-side Stop-Loss order within 2.0s of market execution.',
+        stats: [
+          { label: 'Protected Orders', value: '42 / 42 (100%)' },
+          { label: 'SL Speed', value: '1.4 seconds' },
+          { label: 'Widened SL', value: '0 Violations' }
+        ]
+      },
+      lot: {
+        badge: '95% COMPLIANCE',
+        title: 'Lot Sizing & 1% Risk Rule',
+        summary: 'Position sizes strictly remained between 0.05 and 0.10 lots, keeping worst-case stop exposure under 1.0% equity.',
+        stats: [
+          { label: 'Avg Risk / Trade', value: '0.72%' },
+          { label: 'Lot Range', value: '0.05 – 0.10 Lots' },
+          { label: 'Peak Risk', value: '0.96%' }
+        ]
+      },
+      revenge: {
+        badge: '0 VIOLATIONS',
+        title: 'Revenge Trade Shield Telemetry',
+        summary: '15-minute emotional cooldown enforced post-loss. Zero rapid re-entries or lot-doubling attempts.',
+        stats: [
+          { label: 'Cooldowns', value: '6 / 6 Respected' },
+          { label: 'Shortest Gap', value: '24m 12s' },
+          { label: 'Breaches', value: '0' }
+        ]
+      },
+      cap: {
+        badge: '3 / 4 TRADES',
+        title: 'Daily Trade Cap Quota',
+        summary: 'Max 4 executions per 24/5 session cycle. 1 trade execution slot remaining today.',
+        stats: [
+          { label: 'Trades Used', value: '3 / 4' },
+          { label: 'Auto-Reset', value: '00:00 MT5' },
+          { label: 'Overtrading', value: '0' }
+        ]
+      }
+    };
+
+    const badgesData = [
+      { title: 'Iron Stop-Loss', desc: '30 consecutive trades opened with protective SL under 3 seconds.', unlocked: true, xp: '+150 XP' },
+      { title: 'Zero Violation Week', desc: 'Maintain Grade A+ (95+) across an entire Monday–Friday cycle.', unlocked: true, xp: '+150 XP' },
+      { title: 'Cool-Headed Execution', desc: 'Respect 100% of 15-minute post-loss cooldown windows.', unlocked: true, xp: '+100 XP' },
+      { title: 'Risk Architect', desc: 'Keep average risk per trade below 0.80% across 25 sessions.', unlocked: true, xp: '+50 XP' },
+      { title: '21-Day Shield Bearer', desc: 'Complete 21 consecutive disciplined trading days (18/21).', unlocked: false, xp: '+250 XP' },
+      { title: 'Institutional Centurion', desc: 'Reach 100 closed sessions with an average score above 92.', unlocked: false, xp: '+500 XP' }
+    ];
+
+    const vaultRewards = [
+      { id: 'prop20', title: '20% Prop Challenge Discount', desc: 'Instant voucher valid on evaluation accounts.', cost: 500, tag: 'POPULAR' },
+      { id: 'vps', title: '30-Day Low-Latency MT5 VPS', desc: '1.2ms Equinix LD4 server hosting for Risk Guard.', cost: 350, tag: 'INFRASTRUCTURE' },
+      { id: 'rebate', title: '$50 Raw Spread Cashback', desc: 'Direct commission rebate credited to Exness MT5.', cost: 750, tag: 'CASH REWARD' }
+    ];
+
+    /* =========================================================================
+       1. TACTILE WEEKLY CONSISTENCY STRIP (Matches Reference Design)
+    ========================================================================= */
+    function renderTactileWeeklyStrip() {
+      const container = document.getElementById('tactileCalendarCapsules');
+      container.innerHTML = '';
+
+      tactileDays.forEach(day => {
+        const isSelected = state.selectedDate === day.date;
+        const isToday = day.isToday;
+        const isAPlus = day.score >= 95;
+
+        const col = document.createElement('div');
+        col.className = 'flex flex-col items-center gap-1.5 min-w-0';
+
+        // Vertical Pill Capsule
+        const capsule = document.createElement('button');
+        capsule.type = 'button';
+        capsule.onclick = () => selectTactileDay(day.date);
+        capsule.className = `w-full max-w-[56px] rounded-[18px] sm:rounded-[20px] p-1.5 flex flex-col items-center justify-between transition-all duration-200 cursor-pointer ${
+          isToday
+            ? 'bg-gradient-to-b from-[#A855F7] via-[#9333EA] to-[#7E22CE] shadow-[0_4px_16px_rgba(168,85,247,0.38)] ring-2 ring-[#C084FC]/60 ring-offset-2 dark:ring-offset-[#17171A]'
+            : isSelected
+            ? 'bg-gradient-to-b from-blue-600 to-indigo-700 shadow-md ring-2 ring-blue-400/50'
+            : 'bg-[#78808D] dark:bg-[#343842] hover:bg-[#68707D] dark:hover:bg-[#3F4450] shadow-[0_2px_6px_rgba(0,0,0,0.08)]'
+        }`;
+
+        // Top White Inset Tile
+        const topTile = document.createElement('div');
+        topTile.className = `w-full py-1.5 sm:py-2 rounded-[13px] sm:rounded-[15px] flex flex-col items-center justify-center transition-all ${
+          isToday
+            ? 'bg-white text-[#9333EA] shadow-[0_2px_5px_rgba(0,0,0,0.14)]'
+            : isSelected
+            ? 'bg-white text-blue-700 shadow-[0_2px_5px_rgba(0,0,0,0.14)]'
+            : 'bg-white dark:bg-[#202228] text-slate-700 dark:text-slate-100 shadow-[0_2px_4px_rgba(0,0,0,0.12),inset_0_-1px_1px_rgba(0,0,0,0.06)]'
+        }`;
+        topTile.innerHTML = `<span class="text-[15px] sm:text-[17px] font-black tracking-tight leading-none tabular-nums">${day.dayNum}</span>`;
+
+        // Bottom Day Label
+        const bottomLabel = document.createElement('div');
+        bottomLabel.className = 'w-full text-center pt-1 pb-0.5';
+        bottomLabel.innerHTML = `<span class="text-[10px] sm:text-[11px] font-bold text-white uppercase tracking-wider block leading-none">${day.dayLabel}</span>`;
+
+        capsule.appendChild(topTile);
+        capsule.appendChild(bottomLabel);
+
+        // Bottom Consistency Score Chip
+        const scoreChip = document.createElement('div');
+        scoreChip.className = 'w-full flex justify-center';
+        if (day.isWeekend) {
+          scoreChip.innerHTML = `<span class="text-[8px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-tight py-0.5">Weekend</span>`;
+        } else if (day.score > 0) {
+          const chipColor = isAPlus
+            ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200/60 dark:border-emerald-500/20'
+            : 'bg-blue-50 dark:bg-blue-500/10 text-[#2563EB] dark:text-blue-400 border-blue-200/60 dark:border-blue-500/20';
+          const dotColor = isAPlus ? 'bg-emerald-500' : 'bg-[#2563EB]';
+          scoreChip.innerHTML = `
+            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[8.5px] font-extrabold tabular-nums border whitespace-nowrap shadow-2xs ${chipColor}">
+              <span class="w-1 h-1 rounded-full ${dotColor}"></span>
+              <span>${day.score}</span>
+            </span>
+          `;
+        } else {
+          scoreChip.innerHTML = `<span class="text-[9px] text-slate-300 dark:text-neutral-600 font-bold">—</span>`;
+        }
+
+        col.appendChild(capsule);
+        col.appendChild(scoreChip);
+        container.appendChild(col);
+      });
+
+      renderTactileDrawer();
+    }
+
+    function selectTactileDay(dateStr) {
+      state.selectedDate = dateStr;
+      renderTactileWeeklyStrip();
+    }
+
+    function renderTactileDrawer() {
+      const day = tactileDays.find(d => d.date === state.selectedDate) || tactileDays[5];
+      const drawer = document.getElementById('tactileDetailDrawer');
+
+      const isAPlus = day.score >= 95;
+      drawer.innerHTML = `
+        <div class="flex items-center gap-2">
+          <span class="font-extrabold text-slate-900 dark:text-white">
+            ${day.dayLabel}, Nov ${day.dayNum}
+          </span>
+          <span class="text-slate-300 dark:text-neutral-600">•</span>
+          <span class="font-extrabold px-2 py-0.5 rounded-full text-[9px] ${
+            isAPlus ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400' : 'bg-blue-50 text-[#2563EB] dark:bg-blue-500/15 dark:text-blue-400'
+          }">
+            Grade ${day.grade} (${day.score}/100)
+          </span>
+        </div>
+
+        <div class="flex items-center gap-3 text-[10.5px] text-slate-500 dark:text-neutral-400 font-semibold">
+          <span class="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+            ✓ SL 100%
+          </span>
+          <span class="inline-flex items-center gap-1">
+            ⏱ ${day.trades} Trades
+          </span>
+          <span class="inline-flex items-center gap-1 text-purple-600 dark:text-purple-400">
+            ⭐ +${day.xp} XP
+          </span>
+        </div>
+      `;
+    }
+
+    /* =========================================================================
+       GAUGE & CURVE RENDERING
+    ========================================================================= */
+    const GAUGE_CX = 130;
+    const GAUGE_CY = 126;
+    const GAUGE_R = 96;
+    const GAUGE_ARC_LEN = Math.PI * GAUGE_R;
+
+    function initGaugeTicks() {
+      const container = document.getElementById('gaugeTickMarks');
+      for (let i = 0; i <= 20; i++) {
+        const ratio = i / 20;
+        const angle = Math.PI * (1 - ratio);
+        const rInner = GAUGE_R - 14;
+        const rOuter = GAUGE_R - (i % 5 === 0 ? 9 : 11);
+
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', (GAUGE_CX + rInner * Math.cos(angle)).toFixed(2));
+        line.setAttribute('y1', (GAUGE_CY - rInner * Math.sin(angle)).toFixed(2));
+        line.setAttribute('x2', (GAUGE_CX + rOuter * Math.cos(angle)).toFixed(2));
+        line.setAttribute('y2', (GAUGE_CY - rOuter * Math.sin(angle)).toFixed(2));
+        line.setAttribute('stroke', 'currentColor');
+        line.setAttribute('stroke-width', i % 5 === 0 ? '1.5' : '1');
+        line.setAttribute('stroke-linecap', 'round');
+        line.classList.add('text-slate-200', 'dark:text-white/10');
+        container.appendChild(line);
+      }
+    }
+
+    function updateGauge(score) {
+      const clamped = Math.max(0, Math.min(100, score));
+      const ratio = clamped / 100;
+      const offset = GAUGE_ARC_LEN * (1 - ratio);
+
+      const arc = document.getElementById('gaugeActiveArc');
+      arc.style.strokeDashoffset = `${offset}`;
+
+      const angle = Math.PI * (1 - ratio);
+      const kx = GAUGE_CX + GAUGE_R * Math.cos(angle);
+      const ky = GAUGE_CY - GAUGE_R * Math.sin(angle);
+      document.getElementById('gaugeTipKnob').setAttribute('transform', `translate(${kx.toFixed(2)}, ${ky.toFixed(2)})`);
+
+      document.getElementById('gaugeScoreNumber').textContent = Math.round(clamped);
+      document.getElementById('gaugePercentileLabel').textContent =
+        clamped >= 95 ? `GRADE A+ · Top 4% of Traders` : `GRADE A · Top 9% of Traders`;
+    }
+
+    function buildSmoothPath(coords) {
+      if (coords.length <= 1) return '';
+      let d = `M ${coords[0].x.toFixed(1)} ${coords[0].y.toFixed(1)}`;
+      for (let i = 0; i < coords.length - 1; i++) {
+        const p0 = coords[i];
+        const p1 = coords[i + 1];
+        const cpX = (p0.x + p1.x) / 2;
+        d += ` C ${cpX.toFixed(1)} ${p0.y.toFixed(1)}, ${cpX.toFixed(1)} ${p1.y.toFixed(1)}, ${p1.x.toFixed(1)} ${p1.y.toFixed(1)}`;
+      }
+      return d;
+    }
+
+    function renderCurveChart(rangeKey) {
+      const dataset = curveDatasets[rangeKey];
+      document.getElementById('curveHeadlinePct').textContent = dataset.headline;
+      document.getElementById('curveDeltaPill').textContent = dataset.delta;
+      document.getElementById('curveSessionsLabel').textContent = dataset.sessions;
+      document.getElementById('curveScoreLabel').textContent = dataset.scoreLabel;
+
+      const pts = dataset.points;
+      const padLeft = 20;
+      const padRight = 620;
+      const topY = 20;
+      const bottomY = 135;
+
+      const scores = pts.map(p => p.score);
+      const minS = Math.min(...scores) - 4;
+      const maxS = Math.max(...scores) + 2;
+
+      const coords = pts.map((p, idx) => {
+        const x = padLeft + (idx / (pts.length - 1)) * (padRight - padLeft);
+        const norm = (p.score - minS) / Math.max(1, maxS - minS);
+        const y = bottomY - norm * (bottomY - topY);
+        return { x, y, ...p };
+      });
+
+      const lineD = buildSmoothPath(coords);
+      const areaD = `${lineD} L ${coords[coords.length - 1].x.toFixed(1)} 140 L ${coords[0].x.toFixed(1)} 140 Z`;
+
+      document.getElementById('curveLinePath').setAttribute('d', lineD);
+      document.getElementById('curveAreaPath').setAttribute('d', areaD);
+
+      const labelsGroup = document.getElementById('curveXLabels');
+      labelsGroup.innerHTML = '';
+      coords.forEach(c => {
+        const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        txt.setAttribute('x', c.x.toFixed(1));
+        txt.setAttribute('y', '158');
+        txt.setAttribute('text-anchor', 'middle');
+        txt.setAttribute('class', 'fill-slate-400 dark:fill-neutral-500 text-[10px] font-mono');
+        txt.textContent = c.date;
+        labelsGroup.appendChild(txt);
+      });
+
+      const hitGroup = document.getElementById('curveHitTargets');
+      hitGroup.innerHTML = '';
+      const sliceWidth = (padRight - padLeft) / coords.length;
+
+      coords.forEach(c => {
+        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        rect.setAttribute('x', (c.x - sliceWidth / 2).toFixed(1));
+        rect.setAttribute('y', '5');
+        rect.setAttribute('width', sliceWidth.toFixed(1));
+        rect.setAttribute('height', '150');
+        rect.setAttribute('fill', 'transparent');
+        rect.style.cursor = 'crosshair';
+
+        const showPoint = () => {
+          const crosshair = document.getElementById('curveCrosshair');
+          crosshair.classList.remove('opacity-0');
+          document.getElementById('crosshairLine').setAttribute('x1', c.x);
+          document.getElementById('crosshairLine').setAttribute('x2', c.x);
+          document.getElementById('crosshairHalo').setAttribute('cx', c.x);
+          document.getElementById('crosshairHalo').setAttribute('cy', c.y);
+          document.getElementById('crosshairDot').setAttribute('cx', c.x);
+          document.getElementById('crosshairDot').setAttribute('cy', c.y);
+
+          const tooltip = document.getElementById('curveTooltip');
+          document.getElementById('ttDate').textContent = c.date;
+          document.getElementById('ttScore').textContent = `Score ${c.score}`;
+          document.getElementById('ttEquity').textContent = c.equity;
+
+          const pctX = (c.x / 640) * 100;
+          tooltip.style.left = pctX > 65 ? `calc(${pctX}% - 146px)` : `calc(${pctX}% + 8px)`;
+          tooltip.classList.remove('opacity-0');
+        };
+
+        rect.addEventListener('mouseenter', showPoint);
+        rect.addEventListener('touchstart', showPoint, { passive: true });
+        hitGroup.appendChild(rect);
+      });
+
+      document.getElementById('curveChartContainer').onmouseleave = () => {
+        document.getElementById('curveCrosshair').classList.add('opacity-0');
+        document.getElementById('curveTooltip').classList.add('opacity-0');
+      };
+    }
+
+    function setCurveRange(key) {
+      state.activeRange = key;
+      ['7D', '14D', 'All'].forEach(k => {
+        const btn = document.getElementById(`rangeBtn-${k}`);
+        if (k === key) {
+          btn.className = 'px-2 py-0.5 rounded-[8px] text-[11px] font-bold transition-all bg-white dark:bg-[#25252A] text-slate-900 dark:text-white shadow-2xs';
+        } else {
+          btn.className = 'px-2 py-0.5 rounded-[8px] text-[11px] font-semibold transition-all text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white';
+        }
+      });
+      renderCurveChart(key);
+    }
+
+    function renderStreakCalendar() {
+      const grid = document.getElementById('streakCalendarGrid');
+      grid.innerHTML = '';
+      for (let day = 1; day <= 21; day++) {
+        const completed = day <= state.streak;
+        const isShieldDay = day === 21;
+        const cell = document.createElement('div');
+        cell.className = completed
+          ? 'p-2.5 rounded-[12px] bg-amber-50 dark:bg-amber-500/10 border border-amber-200/60 dark:border-amber-500/20 flex items-center justify-between'
+          : isShieldDay
+            ? 'p-2.5 rounded-[12px] bg-blue-50 dark:bg-blue-500/10 border border-dashed border-blue-300 dark:border-blue-500/30 flex items-center justify-between'
+            : 'p-2.5 rounded-[12px] bg-slate-50 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/[0.05] flex items-center justify-between opacity-65';
+
+        cell.innerHTML = `
+          <div>
+            <div class="text-[9.5px] font-mono font-bold text-slate-400">DAY ${String(day).padStart(2, '0')}</div>
+            <div class="text-[11.5px] font-bold ${completed ? 'text-amber-700 dark:text-amber-300' : isShieldDay ? 'text-blue-500' : 'text-slate-400'}">
+              ${completed ? 'Verified' : isShieldDay ? '21d Shield' : 'Upcoming'}
+            </div>
+          </div>
+          <span class="text-xs">${completed ? '🔥' : isShieldDay ? '🛡️' : '⏳'}</span>
+        `;
+        grid.appendChild(cell);
+      }
+    }
+
+    function renderBadges() {
+      const grid = document.getElementById('badgesGrid');
+      grid.innerHTML = '';
+      badgesData.forEach(b => {
+        const card = document.createElement('div');
+        card.className = b.unlocked
+          ? 'p-3.5 rounded-[14px] bg-[#F8FAFC] dark:bg-white/[0.025] border border-slate-200/70 dark:border-white/[0.06] flex flex-col justify-between gap-2.5 shadow-2xs'
+          : 'p-3.5 rounded-[14px] bg-slate-50/40 dark:bg-white/[0.01] border border-dashed border-slate-200 dark:border-white/[0.05] opacity-60 flex flex-col justify-between gap-2.5';
+
+        card.innerHTML = `
+          <div class="flex items-start justify-between gap-2">
+            <div class="w-8 h-8 rounded-xl ${b.unlocked ? 'bg-blue-50 dark:bg-blue-500/15 text-[#2563EB]' : 'bg-slate-200 dark:bg-white/10 text-slate-400'} flex items-center justify-center font-bold text-sm">
+              ${b.unlocked ? '🏆' : '🔒'}
+            </div>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${b.unlocked ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20' : 'bg-slate-200 dark:bg-white/10 text-slate-500'}">
+              ${b.xp}
+            </span>
+          </div>
+          <div>
+            <h4 class="text-[13px] font-bold text-slate-900 dark:text-white">${b.title}</h4>
+            <p class="text-[11px] text-slate-400 dark:text-neutral-500 mt-0.5">${b.desc}</p>
+          </div>
+          <div class="text-[10px] font-bold ${b.unlocked ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}">
+            ${b.unlocked ? '✓ Unlocked' : 'In Progress'}
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function renderVault() {
+      const grid = document.getElementById('vaultGrid');
+      document.getElementById('vaultXpBalance').textContent = `${state.xp} XP`;
+      grid.innerHTML = '';
+
+      vaultRewards.forEach(r => {
+        const isRedeemed = state.redeemedRewards.has(r.id);
+        const canAfford = state.xp >= r.cost;
+        const card = document.createElement('div');
+        card.className = 'p-4 rounded-[14px] bg-[#F8FAFC] dark:bg-white/[0.025] border border-slate-200/70 dark:border-white/[0.06] flex flex-col justify-between gap-3 shadow-2xs';
+
+        card.innerHTML = `
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-1.5">
+              <span class="px-2 py-0.5 rounded text-[9.5px] font-mono font-bold bg-blue-50 dark:bg-blue-500/15 text-[#2563EB] dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20">${r.tag}</span>
+              <span class="text-xs font-mono font-bold text-slate-800 dark:text-slate-200">${r.cost} XP</span>
+            </div>
+            <h4 class="text-[13.5px] font-bold text-slate-900 dark:text-white">${r.title}</h4>
+            <p class="text-[11px] text-slate-400 dark:text-neutral-500 mt-0.5">${r.desc}</p>
+          </div>
+          <button
+            onclick="redeemReward('${r.id}', ${r.cost}, '${r.title}')"
+            ${isRedeemed || !canAfford ? 'disabled' : ''}
+            class="w-full py-1.5 px-3 rounded-[10px] text-xs font-bold transition-all cursor-pointer ${
+              isRedeemed
+                ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 cursor-default'
+                : canAfford
+                  ? 'bg-[#2563EB] hover:bg-blue-600 text-white shadow-xs'
+                  : 'bg-slate-200 dark:bg-white/10 text-slate-400 cursor-not-allowed'
+            }">
+            ${isRedeemed ? '✓ Voucher Claimed' : canAfford ? `Redeem for ${r.cost} XP` : 'Insufficient XP'}
+          </button>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function redeemReward(id, cost, title) {
+      if (state.xp < cost || state.redeemedRewards.has(id)) return;
+      state.xp -= cost;
+      state.redeemedRewards.add(id);
+      document.getElementById('xpRatioText').textContent = `${state.xp} / 1,000 XP`;
+      document.getElementById('xpRemainingText').textContent = `${1000 - state.xp} XP to Lv 2`;
+      document.getElementById('xpProgressBar').style.width = `${(state.xp / 1000) * 100}%`;
+      renderVault();
+      showToast(`Claimed: ${title}`);
+    }
+
+    function switchTab(tabId) {
+      ['discipline', 'streak', 'badges', 'vault'].forEach(id => {
+        const panel = document.getElementById(`panel-${id}`);
+        const btn = document.getElementById(`tabBtn-${id}`);
+        if (id === tabId) {
+          panel.classList.remove('hidden');
+          btn.className = 'inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-[10px] text-xs font-bold transition-all bg-white dark:bg-[#121214] text-slate-900 dark:text-white shadow-xs cursor-pointer';
+        } else {
+          panel.classList.add('hidden');
+          btn.className = 'inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-[10px] text-xs font-semibold transition-all text-slate-500 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white cursor-pointer';
+        }
+      });
+    }
+
+    function openRuleDrawer(key) {
+      const info = ruleDetails[key];
+      document.getElementById('modalBadge').textContent = info.badge;
+      document.getElementById('modalTitle').textContent = info.title;
+      document.getElementById('modalBody').innerHTML = `
+        <p class="leading-relaxed">${info.summary}</p>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1.5">
+          ${info.stats.map(s => `
+            <div class="p-2.5 rounded-[12px] bg-[#F8FAFC] dark:bg-white/[0.03] border border-slate-200/70 dark:border-white/[0.06]">
+              <div class="text-[10.5px] text-slate-400">${s.label}</div>
+              <div class="text-xs font-mono font-bold text-slate-900 dark:text-white mt-0.5">${s.value}</div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+      const modal = document.getElementById('inspectionModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('inspectionModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function setTheme(mode) {
+      const html = document.documentElement;
+      const darkBtn = document.getElementById('btnThemeDark');
+      const lightBtn = document.getElementById('btnThemeLight');
+
+      if (mode === 'dark') {
+        html.classList.add('dark');
+        darkBtn.className = 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[8px] text-xs font-semibold transition-all bg-tradifive-pillBg text-white shadow-xs';
+        lightBtn.className = 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[8px] text-xs font-semibold transition-all text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white';
+      } else {
+        html.classList.remove('dark');
+        lightBtn.className = 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[8px] text-xs font-semibold transition-all bg-slate-900 text-white shadow-xs';
+        darkBtn.className = 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[8px] text-xs font-semibold transition-all text-slate-400 hover:text-slate-700';
+      }
+    }
+
+    function toggleLiveSimulation() {
+      state.isSimulating = !state.isSimulating;
+      const dot = document.getElementById('simDot');
+      const label = document.getElementById('simLabel');
+      const statusText = document.getElementById('sessionStatusText');
+
+      if (state.isSimulating) {
+        dot.className = 'w-2 h-2 rounded-full bg-emerald-500 animate-ping';
+        label.textContent = 'Stop Simulation';
+        statusText.textContent = 'Live MT5 Monitoring';
+        showToast('Live Session Simulation Active');
+
+        state.simInterval = setInterval(() => {
+          const jitter = Math.random() > 0.45 ? 97 : 96;
+          updateGauge(jitter);
+          if (state.xp < 980) {
+            state.xp += 10;
+            document.getElementById('xpRatioText').textContent = `${state.xp} / 1,000 XP`;
+            document.getElementById('xpRemainingText').textContent = `${1000 - state.xp} XP to Lv 2`;
+            document.getElementById('xpProgressBar').style.width = `${(state.xp / 1000) * 100}%`;
+          }
+        }, 2200);
+      } else {
+        clearInterval(state.simInterval);
+        dot.className = 'w-2 h-2 rounded-full bg-slate-400 dark:bg-slate-500';
+        label.textContent = 'Simulate Live Session';
+        statusText.textContent = 'Session Finalized';
+        updateGauge(96);
+        showToast('Session Finalized at Score 96/100');
+      }
+    }
+
+    let toastTimer = null;
+    function showToast(msg) {
+      const toast = document.getElementById('toastBanner');
+      document.getElementById('toastText').textContent = msg;
+      toast.classList.remove('opacity-0', 'translate-y-2');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+      }, 2500);
+    }
+
+    document.getElementById('inspectionModal').addEventListener('click', (e) => {
+      if (e.target.id === 'inspectionModal') closeModal();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeModal();
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      initGaugeTicks();
+      updateGauge(96);
+      renderCurveChart('14D');
+      renderTactileWeeklyStrip();
+      renderStreakCalendar();
+      renderBadges();
+      renderVault();
+    });
+  </script>
+</body>
+</html>
