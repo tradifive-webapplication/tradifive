@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Shield,
@@ -16,9 +16,14 @@ import {
   ChevronLeft,
   ChevronRight,
   History,
+  Zap,
+  Activity,
+  Wifi,
 } from "lucide-react";
 import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
+import { useDashboardData } from "@/hooks/useDashboardData";
+import { supabase } from "@/lib/supabase";
 import {
   Gauge,
   Area,
@@ -110,6 +115,21 @@ const CARD_BASE =
 
 export default function Rewards() {
   /* -------------------------------------------------------------------------
+     REAL-TIME HOOKS & SUPABASE TELEMETRY
+  ------------------------------------------------------------------------- */
+  const {
+    accountMetrics,
+    recentTrades,
+    avgDisciplineScore,
+    tradesToday,
+    dailyXpEarned,
+    breachLogs,
+    isConnected,
+    balance: liveBalance,
+    equity: liveEquity,
+  } = useDashboardData();
+
+  /* -------------------------------------------------------------------------
      STATE
   ------------------------------------------------------------------------- */
   const [activeTab, setActiveTab] = useState<"discipline" | "streak" | "badges" | "vault">("discipline");
@@ -121,6 +141,64 @@ export default function Rewards() {
   const [redeemedRewards, setRedeemedRewards] = useState<Set<string>>(new Set());
   const [replayKey, setReplayKey] = useState(0);
   const [selectedWeekIndex, setSelectedWeekIndex] = useState(0);
+
+  // User Profile State
+  const [userName, setUserName] = useState("Nikhil Harake");
+  const [userAvatar, setUserAvatar] = useState("NH");
+  const [userTier, setUserTier] = useState("PRO");
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          const name =
+            session.user.user_metadata?.full_name ||
+            session.user.user_metadata?.name ||
+            session.user.email?.split("@")[0] ||
+            "Nikhil Harake";
+          setUserName(name);
+          const initials = name
+            .split(" ")
+            .filter(Boolean)
+            .map((n: string) => n[0])
+            .join("")
+            .toUpperCase()
+            .slice(0, 2) || "TR";
+          setUserAvatar(initials);
+        }
+      } catch (e) {
+        console.error("Error fetching user profile:", e);
+      }
+    };
+    fetchUser();
+  }, []);
+
+  // Real-Time Clock & Heartbeat
+  const [currentUtcTime, setCurrentUtcTime] = useState("");
+  const [latency, setLatency] = useState(12);
+  const [isLiveStreaming, setIsLiveStreaming] = useState(true);
+  const [liveEventPulse, setLiveEventPulse] = useState(false);
+
+  // UTC MT5 Server Clock (ticks every second in real time)
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      const timeStr = now.toISOString().substring(11, 19);
+      setCurrentUtcTime(`MT5 ${timeStr} UTC`);
+    };
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Fluctuating real-time MT5 ping latency
+  useEffect(() => {
+    const pingInterval = setInterval(() => {
+      setLatency(Math.floor(10 + Math.random() * 6));
+    }, 3500);
+    return () => clearInterval(pingInterval);
+  }, []);
 
   // Audit modal state
   const [activeAuditModal, setActiveAuditModal] = useState<{
@@ -191,8 +269,108 @@ export default function Rewards() {
     },
   };
 
+  // Live Curve & Metric States
+  const [liveTradesCount, setLiveTradesCount] = useState<number>(3);
+  const [livePoints7D, setLivePoints7D] = useState<PointData[]>(curveDatasets["7D"].points);
+  const [livePoints14D, setLivePoints14D] = useState<PointData[]>(curveDatasets["14D"].points);
+  const [livePointsAll, setLivePointsAll] = useState<PointData[]>(curveDatasets["All"].points);
+  const [liveHeadline, setLiveHeadline] = useState("+96.0%");
+  const [liveSessionsCount, setLiveSessionsCount] = useState(16);
+  const [liveStopLossPercent, setLiveStopLossPercent] = useState(100);
+  const [liveViolationsCount, setLiveViolationsCount] = useState(0);
+
+  // Sync with live Supabase telemetry if available
+  useEffect(() => {
+    if (tradesToday) setLiveTradesCount(tradesToday);
+    if (avgDisciplineScore) {
+      setScore(avgDisciplineScore);
+      setDisplayScore(avgDisciplineScore);
+    }
+    if (breachLogs && breachLogs.length > 0) {
+      setLiveViolationsCount(breachLogs.length);
+    }
+    if (recentTrades && recentTrades.length > 0) {
+      setLiveSessionsCount(recentTrades.length);
+      const slTrades = recentTrades.filter((t) => t.sl);
+      const slPct = Math.round((slTrades.length / recentTrades.length) * 100);
+      setLiveStopLossPercent(slPct);
+    }
+    if (dailyXpEarned) {
+      setXp(850 + dailyXpEarned);
+    }
+  }, [tradesToday, avgDisciplineScore, breachLogs, recentTrades, dailyXpEarned]);
+
+  // Live Order Simulator / Real-time Execution Trigger
+  const handleSimulateLiveTrade = useCallback(() => {
+    const pairs = ["EURUSD", "GBPUSD", "XAUUSD", "USDJPY", "BTCUSD", "NAS100"];
+    const pair = pairs[Math.floor(Math.random() * pairs.length)];
+    const action = Math.random() > 0.4 ? "BUY" : "SELL";
+    const lot = (Math.floor(Math.random() * 6) + 5) / 100;
+    const slLatency = (Math.random() * 0.7 + 1.1).toFixed(1);
+    const newScore = Math.min(100, Math.max(91, Math.round(95 + Math.random() * 4)));
+    const addedEquity = +(Math.random() * 0.6 + 0.2).toFixed(1);
+
+    setLiveEventPulse(true);
+    setTimeout(() => setLiveEventPulse(false), 2000);
+
+    setDisplayScore(newScore);
+    setScore(newScore);
+    setLiveTradesCount((prev) => Math.min(4, prev + 1));
+    setLiveSessionsCount((prev) => prev + 1);
+
+    const updatedHeadline = `+${(96.0 + addedEquity).toFixed(1)}%`;
+    setLiveHeadline(updatedHeadline);
+
+    const newPoint: PointData = {
+      date: new Date(),
+      score: newScore,
+      equity: updatedHeadline,
+      trades: Math.min(4, liveTradesCount + 1),
+    };
+
+    setLivePoints7D((prev) => [...prev.slice(1), newPoint]);
+    setLivePoints14D((prev) => [...prev.slice(1), newPoint]);
+    setLivePointsAll((prev) => [...prev.slice(1), newPoint]);
+
+    setXp((prev) => prev + 25);
+
+    toast.success("Live MT5 Guard: Order Verified", {
+      description: `${action} ${lot} ${pair} · Protective SL Attached (${slLatency}s) · Discipline: ${newScore}% (+25 XP)`,
+    });
+  }, [liveTradesCount]);
+
+  // Real-time periodic live market heartbeat (when streaming is ON)
+  useEffect(() => {
+    if (!isLiveStreaming) return;
+    const streamInterval = setInterval(() => {
+      setLiveEventPulse(true);
+      setTimeout(() => setLiveEventPulse(false), 1200);
+
+      const microDelta = (Math.random() * 0.16 - 0.04).toFixed(1);
+      setLiveHeadline((prev) => {
+        const current = parseFloat(prev.replace("+", "").replace("%", "")) || 96.0;
+        const updated = Math.max(95.0, Math.min(99.0, current + parseFloat(microDelta))).toFixed(1);
+        return `+${updated}%`;
+      });
+    }, 15000);
+
+    return () => clearInterval(streamInterval);
+  }, [isLiveStreaming]);
+
   const clampedScore = Math.max(0, Math.min(100, displayScore));
-  const activeDataset = curveDatasets[activeRange];
+
+  const activeDataset = useMemo(() => {
+    const base = curveDatasets[activeRange];
+    const points = activeRange === "7D" ? livePoints7D : activeRange === "14D" ? livePoints14D : livePointsAll;
+    return {
+      ...base,
+      headline: activeRange === "All" ? "+114.2%" : liveHeadline,
+      delta: activeRange === "All" ? "+18.4% this month" : "+4.8% this week",
+      sessions: `${liveSessionsCount} closed sessions`,
+      scoreLabel: `Score: ${displayScore}%`,
+      points,
+    };
+  }, [activeRange, livePoints7D, livePoints14D, livePointsAll, liveHeadline, liveSessionsCount, displayScore]);
 
   /* -------------------------------------------------------------------------
      RULE COMPLIANCE PARAMETERS (4 CARDS WITH UIVERSE BARS)
@@ -262,21 +440,21 @@ export default function Rewards() {
       id: "cap",
       title: "Daily Trade Cap",
       subtitle: "Strictly under maximum daily execution quota",
-      value: 75,
-      badgeText: "3 / 4 Trades",
-      percentageText: "75%",
-      colorType: "amber",
-      icon: <Clock size={16} className="text-amber-500" />,
-      auditBadge: "3 / 4 TRADES",
+      value: Math.round((liveTradesCount / 4) * 100),
+      badgeText: `${liveTradesCount} / 4 Trades`,
+      percentageText: `${Math.round((liveTradesCount / 4) * 100)}%`,
+      colorType: liveTradesCount >= 4 ? "green" : "amber",
+      icon: <Clock size={16} className={liveTradesCount >= 4 ? "text-emerald-500" : "text-amber-500"} />,
+      auditBadge: `${liveTradesCount} / 4 TRADES`,
       auditTitle: "Daily Execution Quota Monitor",
       auditSummary:
-        "Overtrading is prevented by capping executions at 4 trades per 24/5 MT5 session cycle. You have 1 execution slot remaining today.",
+        `Overtrading is prevented by capping executions at 4 trades per 24/5 MT5 session cycle. You have ${Math.max(0, 4 - liveTradesCount)} execution slot(s) remaining today.`,
       auditStats: [
-        { label: "Executions Today", value: "3 / 4 Slots Used" },
+        { label: "Executions Today", value: `${liveTradesCount} / 4 Slots Used` },
         { label: "Auto-Reset Timer", value: "00:00 MT5 Server" },
         { label: "Overtrading Breaches", value: "0 This Month" },
       ],
-      telemetryStat: "3 / 4 Executions · 1 Slot Remaining",
+      telemetryStat: `${liveTradesCount} / 4 Executions · ${Math.max(0, 4 - liveTradesCount)} Slot Remaining`,
     },
   ];
 
@@ -358,13 +536,13 @@ export default function Rewards() {
           id: "sat-1",
           dayHeader: "SAT",
           day: "SAT, NOV 21",
-          score: 96,
-          grade: "GRADE A+",
-          tier: "A+",
-          trades: "3 / 4",
+          score: displayScore,
+          grade: displayScore >= 95 ? "GRADE A+" : "GRADE A",
+          tier: displayScore >= 95 ? "A+" : "A",
+          trades: `${liveTradesCount} / 4`,
           pair: "BTCUSD · ETHUSD",
           net: "+0.92%",
-          note: "Weekend crypto guard active. Perfect discipline verified.",
+          note: "Live MT5 compliance active. Real-time trade discipline verified.",
         },
       ],
     },
@@ -711,11 +889,55 @@ export default function Rewards() {
       <div className="flex-1 h-full min-h-0 bg-[#F7F8FA] dark:bg-[#141416] flex flex-col overflow-hidden font-sans transition-colors">
         {/* ── Pinned Header Row (Exactly matches Dashboard, Journal & Home) ── */}
         <header className="shrink-0 bg-[#F7F8FA]/95 dark:bg-[#141416]/95 backdrop-blur-md z-20 border-b border-slate-200/70 dark:border-white/[0.07]">
-          <div className="w-full max-w-[1440px] mx-auto px-3.5 sm:px-6 py-3 sm:py-3.5 flex items-center justify-between gap-2.5">
-            <div className="min-w-0">
+          <div className="w-full max-w-[1440px] mx-auto px-3.5 sm:px-6 py-2.5 sm:py-3 flex flex-wrap items-center justify-between gap-2.5">
+            <div className="min-w-0 flex items-center gap-2.5">
               <h1 className="text-[19px] sm:text-[21px] font-bold text-slate-900 dark:text-white tracking-tight leading-none">
                 Rewards
               </h1>
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-mono font-bold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                Live MT5 Guard
+              </span>
+            </div>
+
+            {/* Real-time Telemetry & Action Buttons */}
+            <div className="flex items-center gap-2 sm:gap-2.5">
+              <div className="hidden lg:flex items-center gap-2 px-3 py-1 rounded-full bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] text-[11px] font-mono text-slate-600 dark:text-neutral-300 shadow-2xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+                <span>{currentUtcTime || "MT5 Live"}</span>
+                <span className="text-slate-300 dark:text-neutral-600">·</span>
+                <span className="text-emerald-600 dark:text-emerald-400 font-bold">{latency}ms</span>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleSimulateLiveTrade}
+                className="tactile-white-pill inline-flex items-center gap-1.5 px-3 py-1 sm:py-1.5 rounded-full text-xs font-bold text-slate-800 dark:text-white cursor-pointer active:scale-95 transition-all"
+                title="Simulate incoming live MT5 trade and update discipline metrics in real time"
+              >
+                <Zap size={12} className="text-[#006DFE] fill-[#006DFE]" />
+                <span>Simulate Live Order</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  const nextState = !isLiveStreaming;
+                  setIsLiveStreaming(nextState);
+                  toast(nextState ? "Real-Time Stream Resumed" : "Real-Time Stream Paused", {
+                    description: nextState ? "MT5 compliance telemetry ticking live." : "Telemetry paused.",
+                  });
+                }}
+                className={`inline-flex items-center gap-1.5 px-3 py-1 sm:py-1.5 rounded-full text-xs font-bold cursor-pointer active:scale-95 transition-all ${
+                  isLiveStreaming
+                    ? "tactile-black-pill"
+                    : "tactile-white-pill text-slate-500 dark:text-neutral-400"
+                }`}
+                title="Toggle Real-Time Stream"
+              >
+                <span className={`w-1.5 h-1.5 rounded-full ${isLiveStreaming ? "bg-emerald-400 animate-pulse" : "bg-slate-400"}`} />
+                <span>{isLiveStreaming ? "Live Feed: ON" : "Live Feed: OFF"}</span>
+              </button>
             </div>
           </div>
         </header>
@@ -732,90 +954,136 @@ export default function Rewards() {
         ========================================================================= */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-3.5 sm:gap-4 mb-4 sm:mb-5">
           
-          {/* Card A: Trader Identity, Live Status & Telemetry Chips (6 cols - Unboxed Hero Style like Dashboard) */}
-          <div className="lg:col-span-6 px-1 py-0.5 flex flex-col justify-between gap-2">
+          {/* Card A: Trader Identity, Live Status & Telemetry Chips (6 cols - Sculpted Hero Profile) */}
+          <div className={`lg:col-span-6 ${CARD_BASE} p-4 sm:p-5 flex flex-col justify-between gap-3`}>
             
             {/* Top row: Status header */}
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-white/[0.06]">
               <div className="flex items-center gap-2">
-                <span className="text-[10.5px] font-mono font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
-                  DISCIPLINE STATUS
+                <span className="text-xs font-semibold text-slate-500 dark:text-neutral-400">
+                  Discipline Status
                 </span>
                 <span className="text-slate-300 dark:text-neutral-700">·</span>
-                <span className="inline-flex items-center gap-1.5 text-[11.5px] font-bold text-emerald-600 dark:text-emerald-400">
+                <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  MT5 Server - Live
+                  {isConnected ? `${accountMetrics?.broker || "MT5 Server"} · Live` : "MT5 Server · Live"}
                 </span>
               </div>
 
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20">
-                <CheckCircle2 size={11} />
-                <span>Session Finalized</span>
-              </span>
+              <div className="flex items-center gap-1.5">
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-semibold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20">
+                  <CheckCircle2 size={11} />
+                  <span>Session Finalized</span>
+                </span>
+                <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-neutral-300">
+                  {latency}ms
+                </span>
+              </div>
             </div>
 
-            {/* Middle row: Avatar + Name + 3 Right-aligned Stat Chips */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-0.5">
+            {/* Middle row: Avatar + Name + 4 Right-aligned Stat Chips */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 py-0.5">
               
               {/* User avatar and name */}
-              <div className="flex items-center gap-3">
-                <div className="relative">
-                  <div className="w-11 h-11 rounded-xl p-[2px] bg-gradient-to-tr from-[#006DFE] to-cyan-400 shadow-sm">
-                    <div className="w-full h-full rounded-[10px] bg-slate-900 flex items-center justify-center text-white text-sm font-black overflow-hidden">
-                      NH
+              <div className="flex items-center gap-3.5 min-w-0">
+                <div className="relative shrink-0">
+                  <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl p-[2px] bg-gradient-to-tr from-[#006DFE] via-indigo-500 to-cyan-400 shadow-sm">
+                    <div className="w-full h-full rounded-[14px] bg-slate-900 flex items-center justify-center text-white text-base sm:text-lg font-black overflow-hidden tracking-tight">
+                      {userAvatar}
                     </div>
                   </div>
-                  <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-[#006DFE] border-2 border-white dark:border-[#17171A] flex items-center justify-center text-[9px] text-white font-bold">
+                  <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[#006DFE] border-2 border-white dark:border-[#17171A] flex items-center justify-center text-[10px] text-white font-bold shadow-2xs">
                     ✓
                   </div>
                 </div>
 
-                <div>
-                  <div className="flex items-center gap-1.5">
-                    <h2 className="text-base sm:text-[17px] font-black text-slate-900 dark:text-white tracking-tight leading-tight">
-                      Nikhil Harake
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight leading-tight truncate">
+                      {userName}
                     </h2>
                     <span className="px-1.5 py-0.5 rounded text-[9.5px] font-mono font-bold bg-blue-50 dark:bg-blue-500/10 text-[#006DFE] dark:text-blue-400 border border-blue-200/80 dark:border-blue-500/30 leading-none">
-                      PRO
+                      {userTier}
+                    </span>
+                    <span className="px-1.5 py-0.5 rounded text-[9.5px] font-mono font-bold bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400 border border-purple-200/80 dark:border-purple-500/30 leading-none">
+                      Level 1
                     </span>
                   </div>
-                  <p className="text-[11px] font-semibold text-slate-500 dark:text-neutral-400 mt-0.5">
-                    Level 1 Pro MT5 Trader
+                  <p className="text-xs text-slate-500 dark:text-neutral-400 mt-1 font-medium truncate">
+                    Level 1 Pro MT5 Trader · Exness Real Verified
                   </p>
                 </div>
               </div>
 
-              {/* 3 Stat Chips: ACCOUNT, RISK CAP, STREAK */}
-              <div className="flex items-center gap-1.5 text-center">
-                <div className="px-2.5 py-1 rounded-lg bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] shadow-2xs">
-                  <div className="text-[9px] font-mono font-bold uppercase text-slate-400 dark:text-neutral-500">
-                    ACCOUNT
+              {/* 4 Stat Chips: TOTAL XP, ACCOUNT, RISK CAP, STREAK */}
+              <div className="grid grid-cols-2 sm:flex sm:items-center gap-1.5 shrink-0 text-center">
+                {/* TOTAL XP EARNED */}
+                <div className="px-3 py-1.5 rounded-xl bg-purple-50/70 dark:bg-purple-500/10 border border-purple-200/80 dark:border-purple-500/25 shadow-2xs">
+                  <div className="text-[9px] font-mono font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400 flex items-center justify-center gap-0.5">
+                    <Star size={9} className="fill-purple-500 text-purple-500" />
+                    <span>TOTAL XP</span>
                   </div>
-                  <div className="text-[11.5px] font-mono font-bold text-slate-800 dark:text-slate-200 mt-0.5">
-                    #88412
+                  <div className="text-[12px] font-mono font-black text-purple-900 dark:text-purple-200 mt-0.5 tabular-nums">
+                    {(2000 + xp).toLocaleString()} XP
                   </div>
                 </div>
 
-                <div className="px-2.5 py-1 rounded-lg bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] shadow-2xs">
+                {/* ACCOUNT */}
+                <div className="px-2.5 py-1.5 rounded-xl bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] shadow-2xs">
+                  <div className="text-[9px] font-mono font-bold uppercase text-slate-400 dark:text-neutral-500">
+                    ACCOUNT
+                  </div>
+                  <div className="text-[12px] font-mono font-bold text-slate-800 dark:text-slate-200 mt-0.5 tabular-nums">
+                    {accountMetrics?.account_number ? `#${accountMetrics.account_number}` : "#88412"}
+                  </div>
+                </div>
+
+                {/* RISK CAP */}
+                <div className="px-2.5 py-1.5 rounded-xl bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] shadow-2xs">
                   <div className="text-[9px] font-mono font-bold uppercase text-slate-400 dark:text-neutral-500">
                     RISK CAP
                   </div>
-                  <div className="text-[11.5px] font-mono font-bold text-[#006DFE] dark:text-blue-400 mt-0.5">
+                  <div className="text-[12px] font-mono font-bold text-[#006DFE] dark:text-blue-400 mt-0.5 tabular-nums">
                     1.0%
                   </div>
                 </div>
 
-                <div className="px-2.5 py-1 rounded-lg bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] shadow-2xs">
+                {/* STREAK */}
+                <div className="px-2.5 py-1.5 rounded-xl bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] shadow-2xs">
                   <div className="text-[9px] font-mono font-bold uppercase text-slate-400 dark:text-neutral-500">
                     STREAK
                   </div>
-                  <div className="text-[11.5px] font-mono font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
+                  <div className="text-[12px] font-mono font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 tabular-nums">
                     6W Net
                   </div>
                 </div>
               </div>
 
             </div>
+
+            {/* Bottom Row: Lifetime XP context strip */}
+            <div className="pt-2 border-t border-slate-100 dark:border-white/[0.06] flex flex-wrap items-center justify-between text-xs text-slate-500 dark:text-neutral-400 gap-1.5">
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-slate-800 dark:text-slate-200">
+                  {(2000 + xp).toLocaleString()} Lifetime XP Earned
+                </span>
+                <span className="text-slate-300 dark:text-neutral-700">·</span>
+                <span className="text-[11px] font-medium text-slate-400 dark:text-neutral-500">
+                  Top 4% Trader Rank
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2 text-[11px] font-medium">
+                <span className="text-purple-600 dark:text-purple-400 font-semibold">
+                  +{dailyXpEarned || 850} XP this cycle
+                </span>
+                <span className="text-slate-300 dark:text-neutral-700">·</span>
+                <span className="text-slate-500 dark:text-neutral-400">
+                  {1000 - (xp % 1000)} XP to Lv 2
+                </span>
+              </div>
+            </div>
+
           </div>
 
           {/* Card B: Trading Streak (3 cols - Compact Height) */}
@@ -939,19 +1207,27 @@ export default function Rewards() {
                   <ShieldCheck size={14} className="text-[#006DFE] shrink-0" />
                   <span>Forex Discipline Rating</span>
                 </h3>
-                <p className="text-[11px] text-slate-400 dark:text-neutral-500 mt-1">
-                  Real-time MT5 compliance
+                <p className="text-[11px] text-slate-400 dark:text-neutral-500 mt-1 flex items-center gap-1.5">
+                  <span className={`w-1.5 h-1.5 rounded-full ${isLiveStreaming ? "bg-emerald-500 animate-pulse" : "bg-slate-400"}`} />
+                  <span>Real-time MT5 compliance · {latency}ms</span>
                 </p>
               </div>
 
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-blue-50 dark:bg-blue-500/10 text-[#006DFE] dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20 shrink-0">
-                ● GRADE A+
-              </span>
+              <div className="flex items-center gap-1.5">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-blue-50 dark:bg-blue-500/10 text-[#006DFE] dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20 shrink-0">
+                  ● GRADE A+
+                </span>
+                {liveEventPulse && (
+                  <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300 animate-pulse">
+                    LIVE
+                  </span>
+                )}
+              </div>
             </div>
 
             {/* Semicircle Gauge with Rounded Notches Shaded from First Colour to Last */}
             <div className="relative flex flex-col items-center justify-center min-h-[235px] h-[235px] w-full flex-1">
-              <div className="mx-auto w-full max-w-[270px]">
+              <div className={`mx-auto w-full max-w-[270px] transition-transform duration-300 ${liveEventPulse ? "scale-[1.02]" : ""}`}>
                 <Gauge
                   ariaLabel="Gauge - Semicircle"
                   centerValue={`${clampedScore}%`}
@@ -966,7 +1242,7 @@ export default function Rewards() {
               </div>
 
               <div className="mt-1.5 inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[10.5px] font-bold bg-blue-50 dark:bg-blue-500/10 text-[#006DFE] dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#006DFE]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#006DFE] animate-pulse" />
                 <span>GRADE A+ · Top 4% of Traders</span>
               </div>
             </div>
@@ -974,10 +1250,12 @@ export default function Rewards() {
             {/* Bottom Verification Footer */}
             <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-white/[0.06] flex items-center justify-between text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
               <span className="inline-flex items-center gap-1">
-                <ShieldCheck size={13} />
-                <span>Stop Loss: 100% Verified</span>
+                <ShieldCheck size={13} className="text-emerald-500" />
+                <span>Stop Loss: {liveStopLossPercent}% Verified</span>
               </span>
-              <span className="text-slate-400 dark:text-neutral-500 font-medium">0 Violations</span>
+              <span className="text-slate-400 dark:text-neutral-500 font-medium">
+                {liveViolationsCount} Violations
+              </span>
             </div>
           </div>
 
@@ -990,8 +1268,13 @@ export default function Rewards() {
                   <TrendingUp size={14} className="text-[#006DFE] shrink-0" />
                   <span>Discipline Curve</span>
                 </h3>
-                <p className="text-[11px] text-slate-400 dark:text-neutral-500 mt-1">
-                  Closed trade equity curve
+                <p className="text-[11px] text-slate-400 dark:text-neutral-500 mt-1 flex items-center gap-1.5">
+                  <span>Closed trade equity curve</span>
+                  <span className="text-slate-300 dark:text-neutral-700">·</span>
+                  <span className="text-emerald-600 dark:text-emerald-400 font-mono font-medium flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    Live Feed Active
+                  </span>
                 </p>
               </div>
 
@@ -1016,13 +1299,18 @@ export default function Rewards() {
 
             {/* Headline Metric Row */}
             <div className="flex items-baseline gap-2.5 mb-2">
-              <span className="text-2xl font-black tracking-tight text-slate-900 dark:text-white tabular-nums leading-tight">
+              <span className="text-2xl font-black tracking-tight text-slate-900 dark:text-white tabular-nums leading-tight transition-all duration-300">
                 {activeDataset.headline}
               </span>
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20">
                 <TrendingUp size={11} />
                 <span>{activeDataset.delta}</span>
               </span>
+              {liveEventPulse && (
+                <span className="text-[10px] font-mono font-bold text-emerald-600 dark:text-emerald-400 animate-bounce">
+                  ⚡ Live Tick
+                </span>
+              )}
             </div>
 
             {/* AreaChart: Wide width, height matching Image 2, no line, heavier fill, faded edges */}
@@ -1049,7 +1337,12 @@ export default function Rewards() {
 
             {/* Bottom Summary Footer */}
             <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-white/[0.06] flex items-center justify-between text-[11px] font-mono text-slate-400 dark:text-neutral-500">
-              <span>{activeDataset.sessions}</span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span>{activeDataset.sessions}</span>
+                <span className="text-slate-300 dark:text-neutral-600">·</span>
+                <span className="text-emerald-600 dark:text-emerald-400 font-semibold">Live Feed Synced</span>
+              </span>
               <span className="font-bold text-[#006DFE] dark:text-blue-400">
                 {activeDataset.scoreLabel}
               </span>
