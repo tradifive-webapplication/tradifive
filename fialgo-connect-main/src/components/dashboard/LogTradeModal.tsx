@@ -339,32 +339,19 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
                   </div>
                 </div>
               ) : (
-                /* When in Log Trade: Header with segmented pills matching user design */
-                <div className="inline-flex items-center p-0.5 rounded-full bg-slate-100 dark:bg-white/[0.08] border border-slate-200/80 dark:border-white/10">
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab("manual")}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-bold transition-all cursor-pointer select-none ${
-                      activeTab === "manual"
-                        ? "bg-white dark:bg-[#222226] text-slate-900 dark:text-white shadow-xs"
-                        : "text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-white"
-                    }`}
-                  >
-                    <PlusCircle size={13} strokeWidth={2.2} />
-                    <span>Log Trade</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab("import")}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-bold transition-all cursor-pointer select-none ${
-                      activeTab === "import"
-                        ? "bg-white dark:bg-[#222226] text-slate-900 dark:text-white shadow-xs"
-                        : "text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-white"
-                    }`}
-                  >
-                    <Upload size={12} strokeWidth={2.2} />
-                    <span>Import CSV</span>
-                  </button>
+                /* Dedicated Log Trade Header without CSV button */
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-white/[0.08] text-slate-800 dark:text-white flex items-center justify-center border border-slate-200/80 dark:border-white/10 shrink-0 shadow-2xs">
+                    <PlusCircle size={16} strokeWidth={2.2} />
+                  </div>
+                  <div>
+                    <h2 className="text-[15px] font-bold text-slate-900 dark:text-white tracking-tight leading-tight">
+                      Log Trade
+                    </h2>
+                    <p className="text-[11px] text-slate-500 dark:text-neutral-400">
+                      Record execution metrics, discipline grade, and chart screenshots.
+                    </p>
+                  </div>
                 </div>
               )}
 
