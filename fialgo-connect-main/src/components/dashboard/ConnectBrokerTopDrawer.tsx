@@ -67,32 +67,69 @@ export default function ConnectBrokerTopDrawer({
       // 1. Get current Supabase user if session exists
       const { data: { user } } = await supabase.auth.getUser();
 
-      // 2. Trigger MetaAPI account deployment via Supabase Edge Function
-      const { data, error } = await supabase.functions.invoke("deploy-metaapi-account", {
-        body: {
-          accountNumber: cleanAccount,
-          masterPassword: cleanPassword,
-          brokerServer: cleanServer,
-          purpose: "risk_journal",
-          userId: user?.id,
-        },
-      });
+      // 2. Trigger MetaAPI account deployment via /api/deploy-metaapi (Vercel serverless) with fallback to Supabase Edge Function
+      let deployed = false;
+      let deployData: any = null;
+      let errMsg = "";
+
+      try {
+        const res = await fetch("/api/deploy-metaapi", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            accountNumber: cleanAccount,
+            masterPassword: cleanPassword,
+            brokerServer: cleanServer,
+            purpose: "risk_journal",
+            userId: user?.id,
+          }),
+        });
+
+        if (res.ok) {
+          deployData = await res.json();
+          deployed = true;
+        } else if (res.status !== 404) {
+          const errBody = await res.json().catch(() => ({}));
+          errMsg = errBody.error || errBody.message || "MetaAPI rejected broker credentials.";
+        }
+      } catch (fetchErr) {
+        console.warn("/api/deploy-metaapi not directly available, checking Supabase function:", fetchErr);
+      }
+
+      // If Vercel API returned 404 (e.g. running local Vite dev server without Vercel CLI), try Supabase Edge Function
+      if (!deployed && !errMsg) {
+        const { data, error } = await supabase.functions.invoke("deploy-metaapi-account", {
+          body: {
+            accountNumber: cleanAccount,
+            masterPassword: cleanPassword,
+            brokerServer: cleanServer,
+            purpose: "risk_journal",
+            userId: user?.id,
+          },
+        });
+
+        if (error) {
+          let edgeErr = error.message;
+          try {
+            if ((error as any).context) {
+              const errBody = await (error as any).context.json();
+              if (errBody?.error) edgeErr = errBody.error;
+            }
+          } catch (_) {}
+
+          if (edgeErr.includes("Failed to send a request") || edgeErr.includes("404")) {
+            edgeErr = "Unable to connect to MT5 bridge. Please check your MT5 login, server name, and password.";
+          }
+          errMsg = edgeErr;
+        } else {
+          deployed = true;
+          deployData = data;
+        }
+      }
 
       toast.dismiss(toastId);
 
-      if (error) {
-        let errMsg = error.message;
-        try {
-          if ((error as any).context) {
-            const errBody = await (error as any).context.json();
-            if (errBody?.error) errMsg = errBody.error;
-          }
-        } catch (_) {}
-
-        if (errMsg.includes("Failed to send a request")) {
-          errMsg = "MetaAPI handshake took longer than expected or network interrupted. Please verify your login credentials and click Connect again.";
-        }
-
+      if (!deployed && errMsg) {
         toast.error("Broker Connection Failed", {
           description: errMsg,
           duration: 9000,
@@ -125,7 +162,12 @@ export default function ConnectBrokerTopDrawer({
 
       // 4. Trigger initial trade and equity sync from MetaAPI
       try {
-        await supabase.functions.invoke("sync-metaapi-trades");
+        await fetch("/api/sync-metaapi", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ accountNumber: cleanAccount, userId: user?.id }),
+        }).catch(() => {});
+        await supabase.functions.invoke("sync-metaapi-trades").catch(() => {});
       } catch (syncErr) {
         console.warn("Background sync initial invocation:", syncErr);
       }
