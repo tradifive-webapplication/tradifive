@@ -346,9 +346,17 @@ export default function InboxPage() {
       const currentTheme = localStorage.getItem("theme") || "light";
       setThemeMode(currentTheme);
     };
+    const handleResetView = () => {
+      setMobileView("list");
+      navigate("/inbox", { replace: true });
+    };
     window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, []);
+    window.addEventListener("inbox-reset-view", handleResetView);
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener("inbox-reset-view", handleResetView);
+    };
+  }, [navigate]);
 
   const foundConv = dbConversations.find(c => c.id === activeConvId);
   const activeConv: any = foundConv || (partnerFallback ? {
@@ -882,6 +890,7 @@ function InboxSkeleton() {
                   <button
                     onClick={() => {
                       setMobileView("list");
+                      navigate("/inbox", { replace: true });
                       triggerHaptic("selection");
                     }}
                     className="md:hidden w-8 h-8 rounded-full flex items-center justify-center -ml-1 text-slate-600 dark:text-slate-350 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors active:scale-95 shrink-0"

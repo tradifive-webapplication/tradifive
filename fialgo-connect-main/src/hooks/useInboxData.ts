@@ -54,7 +54,10 @@ export function useInboxData(userId: string | undefined, activeConvId: string | 
 
   // 1. Fetch Conversations list
   const fetchConversations = useCallback(async () => {
-    if (!userId) return;
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
     try {
       const { data: convRows, error: convsError } = await supabase
         .from('dm_conversations')
@@ -178,6 +181,8 @@ export function useInboxData(userId: string | undefined, activeConvId: string | 
   useEffect(() => {
     if (userId) {
       fetchConversations();
+    } else {
+      setLoading(false);
     }
   }, [userId, fetchConversations]);
 

@@ -689,17 +689,10 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
               {/* MOBILE WEB VIEW (< md): Keep TradiFive logo on primary pages & back+title on sub-pages */}
               <div className="flex md:hidden items-center gap-2">
                 {location.pathname === '/home' ||
-                location.pathname === '/profile' ||
                 location.pathname === '/dashboard' ||
-                location.pathname.startsWith('/journal') ||
-                location.pathname.startsWith('/risk-guard') ||
-                location.pathname.startsWith('/ai-coach') ||
-                location.pathname.startsWith('/user/') ||
-                location.pathname.startsWith('/inbox') ||
-                location.pathname.startsWith('/post/') ||
-                location.pathname.startsWith('/discover') ||
-                location.pathname.startsWith('/channel') ||
-                location.pathname.startsWith('/creator/live') ? (
+                location.pathname === '/journal' ||
+                location.pathname === '/risk-guard' ||
+                location.pathname === '/ai-coach' ? (
                   <div onClick={() => navigate('/home')} className="flex items-center gap-2 cursor-pointer">
                     <img src="/tf-logo.png" alt="Logo" className="w-[24px] h-[24px] sm:w-[30px] sm:h-[30px] object-contain shrink-0" />
                     <img

@@ -178,7 +178,9 @@ export default function CommunityShell() {
               if (scrollContainerRef.current) {
                 scrollContainerRef.current.scrollTo({ top: 0, behavior: "smooth" });
               }
-              window.dispatchEvent(new CustomEvent("community-scroll-top"));
+              if (activeTab === "home") {
+                window.dispatchEvent(new CustomEvent("community-scroll-top"));
+              }
             }}
           />
 

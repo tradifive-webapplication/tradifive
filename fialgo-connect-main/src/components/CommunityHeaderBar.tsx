@@ -201,9 +201,13 @@ export default function CommunityHeaderBar({
               type="button"
               onClick={() => {
                 triggerHaptic("selection");
+                if (showNotifications) {
+                  onToggleNotifications();
+                }
                 if (item.id === activeTab) {
-                  if (showNotifications) {
-                    onToggleNotifications();
+                  if (item.id === "inbox") {
+                    navigate("/inbox", { replace: true });
+                    window.dispatchEvent(new CustomEvent("inbox-reset-view"));
                   } else if (onActiveTabClick) {
                     onActiveTabClick();
                   }

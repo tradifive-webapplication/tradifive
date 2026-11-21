@@ -561,9 +561,13 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
 
 
-  const getInitialPillar = () => {
-
+  const getInitialPillar = (currentPillar?: string) => {
     const path = location.pathname;
+
+    // Direct communications routes don't change the active pillar
+    if (path.startsWith("/inbox") || path.startsWith("/notifications")) {
+      return currentPillar || "dashboard";
+    }
 
     if (
       path.startsWith("/home") ||
@@ -574,7 +578,6 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
       path.startsWith("/learning") ||
       path.startsWith("/courses") ||
       path.startsWith("/creator/live") ||
-      path.startsWith("/inbox") ||
       path.startsWith("/channel")
     ) return "home";
 
@@ -588,7 +591,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
     if (path.startsWith("/fialgo") || path.startsWith("/auto-trade") || path.startsWith("/strategy-builder") || path.startsWith("/weekly-settlements") || path.startsWith("/settlements")) return "autoTrade";
 
-    if (path.startsWith("/notifications") || path.startsWith("/community")) return "community";
+    if (path.startsWith("/community")) return "home";
 
     if (path.startsWith("/rewards") || path.startsWith("/referrals")) return "rewards";
 
@@ -596,20 +599,16 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
     if (path.startsWith("/creator")) return "creatorHub";
 
-    return "dashboard";
-
+    return currentPillar || "dashboard";
   };
 
-
-
-  const [activePillar, setActivePillar] = useState(getInitialPillar());
-
-
+  const [activePillar, setActivePillar] = useState(() => getInitialPillar());
 
   useEffect(() => {
-
-    setActivePillar(getInitialPillar());
-
+    const nextPillar = getInitialPillar(activePillar);
+    if (nextPillar && nextPillar !== activePillar) {
+      setActivePillar(nextPillar);
+    }
   }, [location.pathname]);
 
 
@@ -1575,7 +1574,9 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
       (item.path === '/discover' && location.pathname.startsWith('/discover')) ||
 
-      (item.path === '/inbox' && location.pathname.startsWith('/inbox'))
+      (item.path === '/inbox' && location.pathname.startsWith('/inbox')) ||
+
+      (item.path === '/notifications' && location.pathname.startsWith('/notifications'))
 
     );
 
@@ -1617,7 +1618,9 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
           if (item.path && item.path !== "#") {
 
-            navigate(item.path);
+            React.startTransition(() => {
+              navigate(item.path);
+            });
 
             if (isMobile) {
 
