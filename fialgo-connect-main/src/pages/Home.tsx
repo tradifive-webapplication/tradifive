@@ -670,51 +670,36 @@ export default function Home() {
     // Placeholder names to exclude
     const PLACEHOLDER_NAMES = useMemo(() => ['new trader', 'guest trader', 'demo trader', 'trader', 'guest'], []);
 
-    // Big-Tech "Suggestions for You": STRICTLY Profile Visitors + New Members (No random DB users)
+    // Suggestions for You: Community members to follow (Excluding self & already followed)
     const finalSuggestions = useMemo(() => {
-        const visitorSet = new Set((profileViews || []).map((pv: any) => pv.viewer_id).filter(Boolean));
+        const myCachedUsername = (localStorage.getItem("tradifive_cached_username") || "").toLowerCase().trim();
+        const myCachedDisplayName = (localStorage.getItem("tradifive_cached_display_name") || "").toLowerCase().trim();
+        const myCurrentId = user?.id;
 
-        const qualified: (any & { reason: 'profile_view' | 'new_user' })[] = [];
+        const qualified: any[] = [];
 
         (suggestions || []).forEach((sug: any) => {
             if (!sug || !sug.id) return;
-            if (sug.id === user?.id) return; // Never suggest self
+            if (myCurrentId && sug.id === myCurrentId) return; // Never suggest self
+            const sugUser = (sug.username || "").toLowerCase().trim();
+            const sugName = (sug.display_name || sug.full_name || "").toLowerCase().trim();
+            if (myCachedUsername && (sugUser === myCachedUsername || sugName === myCachedUsername)) return; // Never suggest self
+            if (myCachedDisplayName && (sugUser === myCachedDisplayName || sugName === myCachedDisplayName)) return; // Never suggest self
             if (followedUsers[sug.id]) return; // Never suggest users already followed (big-tech standard)
             if (dismissedSuggestions.has(sug.id)) return; // User dismissed this suggestion
 
-            const isVisitor = visitorSet.has(sug.id);
-
-            // New trader: joined recently (within last 45 days) or trade count is 0/null
-            const isNewTrader = Boolean(sug.created_at) && (
-                (Date.now() - new Date(sug.created_at).getTime() < 45 * 24 * 60 * 60 * 1000) ||
-                (sug.total_trades === 0 || sug.total_trades === null)
-            );
-
-            // STRICT RULE: Only include profile visitors OR new users
-            if (isVisitor) {
-                qualified.push({
-                    ...sug,
-                    reason: 'profile_view'
-                });
-            } else if (isNewTrader) {
-                qualified.push({
-                    ...sug,
-                    reason: 'new_user'
-                });
-            }
+            qualified.push(sug);
         });
 
-        // Priority sort: Profile visitors first (high intent social trigger), then new users
+        // Sort by newest community members
         qualified.sort((a, b) => {
-            if (a.reason === 'profile_view' && b.reason !== 'profile_view') return -1;
-            if (b.reason === 'profile_view' && a.reason !== 'profile_view') return 1;
             const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
             const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
             return timeB - timeA;
         });
 
         return qualified.slice(0, 4);
-    }, [suggestions, profileViews, user?.id, followedUsers, dismissedSuggestions]);
+    }, [suggestions, user?.id, followedUsers, dismissedSuggestions]);
 
     // Filter streak users (100% Real Database states)
     const finalStreaks = useMemo(() => {
@@ -1384,14 +1369,6 @@ export default function Home() {
                                 className="w-10 h-10 rounded-full bg-slate-100 dark:bg-white/10 object-cover ring-1 ring-slate-200/80 dark:ring-white/10 group-hover/user:scale-105 transition-transform"
                                 onError={(e) => { e.currentTarget.src = "/default-avatar.svg"; }}
                             />
-                            {sug.reason === 'profile_view' && (
-                                <span
-                                    className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-indigo-600 text-white flex items-center justify-center ring-2 ring-white dark:ring-[#17171A]"
-                                    title="Viewed your profile"
-                                >
-                                    <Eye size={9} strokeWidth={2.8} />
-                                </span>
-                            )}
                         </div>
                         <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-1.5">
@@ -1404,9 +1381,9 @@ export default function Home() {
                             </div>
                             <div className="flex items-center gap-1.5 mt-0.5">
                                 <span className="text-xs text-slate-400 dark:text-slate-500 truncate">{displayHandle}</span>
-                                {sug.reason === 'profile_view' && (
-                                    <span className="text-[10.5px] font-medium text-indigo-600 dark:text-indigo-400 shrink-0">
-                                        · Viewed you
+                                {sug.trading_style && (
+                                    <span className="text-[10.5px] font-medium text-slate-400 dark:text-slate-500 shrink-0 capitalize">
+                                        · {sug.trading_style}
                                     </span>
                                 )}
                             </div>
