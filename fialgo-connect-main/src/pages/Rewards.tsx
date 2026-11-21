@@ -204,23 +204,10 @@ export default function Rewards() {
     fetchUser();
   }, []);
 
-  // Real-Time Clock & Heartbeat
-  const [currentUtcTime, setCurrentUtcTime] = useState("");
+  // Real-Time Telemetry & Heartbeat
   const [latency, setLatency] = useState(11);
   const [isLiveStreaming, setIsLiveStreaming] = useState(true);
   const [liveEventPulse, setLiveEventPulse] = useState(false);
-
-  // UTC MT5 Server Clock (ticks every second in real time)
-  useEffect(() => {
-    const updateTime = () => {
-      const now = new Date();
-      const timeStr = now.toISOString().substring(11, 19);
-      setCurrentUtcTime(`MT5 ${timeStr} UTC`);
-    };
-    updateTime();
-    const interval = setInterval(updateTime, 1000);
-    return () => clearInterval(interval);
-  }, []);
 
   // Fluctuating real-time MT5 ping latency
   useEffect(() => {
