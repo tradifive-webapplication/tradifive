@@ -462,41 +462,42 @@ export default function Rewards() {
         </div>
 
         {/* ══════════════════════════════════════════════════════════
-            2. TOP ROW: Trader Summary Card + 3 Telemetry Cards (Matching Dashboard)
+            2. TOP ROW: Trader Profile (Open on Backside Page, NO BOX) + 3 Small Telemetry Boxes (Matching Dashboard)
         ══════════════════════════════════════════════════════════ */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 lg:gap-4 items-stretch">
-          {/* Summary Card (col-span-5) — Score removed (already down in graph) */}
-          <div className={`lg:col-span-5 ${CARD} p-3.5 sm:p-4 flex flex-col justify-between gap-3`}>
-            <div className="flex items-center justify-between">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 items-center">
+          {/* LEFT: Trader Profile & Action (Open on page background, NO BOX) */}
+          <div className="lg:col-span-6 flex flex-col justify-center gap-2.5 py-1">
+            <div className="flex items-center gap-2">
               <span className="text-[11px] font-bold tracking-wider uppercase text-slate-400 dark:text-neutral-500">
                 Discipline Status
               </span>
-              <span className="inline-flex items-center gap-1.5 text-[10.5px] font-semibold text-emerald-600 dark:text-emerald-400">
+              <span className="text-slate-300 dark:text-neutral-600">·</span>
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                Active MT5
+                MT5 Server · Live
               </span>
             </div>
 
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2.5 min-w-0">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
                 {userAvatar ? (
                   <img
                     src={userAvatar}
                     alt={userName}
-                    className="w-10 h-10 rounded-full object-cover border border-slate-200 dark:border-white/10 shrink-0"
+                    className="w-12 h-12 rounded-full object-cover border border-slate-200 dark:border-white/10 shrink-0 shadow-xs"
                   />
                 ) : (
-                  <div className="w-10 h-10 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold text-sm flex items-center justify-center shrink-0 shadow-xs">
+                  <div className="w-12 h-12 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold text-base flex items-center justify-center shrink-0 shadow-xs">
                     {userInitial}
                   </div>
                 )}
                 <div className="min-w-0">
-                  <div className="text-[14px] font-bold text-slate-900 dark:text-white leading-tight truncate">
+                  <h2 className="text-[18px] sm:text-[20px] font-bold text-slate-900 dark:text-white leading-tight truncate">
                     {userName}
-                  </div>
-                  <div className="text-[11px] text-slate-400 dark:text-neutral-500 font-medium mt-0.5">
+                  </h2>
+                  <p className="text-[12px] text-slate-500 dark:text-neutral-400 font-medium mt-0.5">
                     Level {userLevel} Pro MT5 Trader
-                  </div>
+                  </p>
                 </div>
               </div>
 
@@ -504,15 +505,15 @@ export default function Rewards() {
                 type="button"
                 disabled={isWrapping || disciplineState.isSessionWrapped}
                 onClick={handleWrapUpSession}
-                className={`py-2 px-3.5 rounded-[10px] text-[11.5px] font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer shrink-0 ${
+                className={`py-2 px-3.5 rounded-[12px] text-[12px] font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer shrink-0 ${
                   disciplineState.isSessionWrapped
-                    ? "bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-neutral-400 cursor-default border border-slate-200/60 dark:border-white/5"
-                    : "tactile-black-pill hover:scale-[1.008] shadow-xs active:scale-[0.99]"
+                    ? "bg-slate-200/70 dark:bg-white/10 text-slate-600 dark:text-neutral-300 cursor-default"
+                    : "tactile-black-pill hover:scale-[1.01] shadow-xs active:scale-[0.99]"
                 }`}
               >
                 {disciplineState.isSessionWrapped ? (
                   <>
-                    <CheckCircle2 size={13} className="text-emerald-500" />
+                    <CheckCircle2 size={13.5} className="text-emerald-500" />
                     <span>Session Finalized</span>
                   </>
                 ) : (
@@ -525,58 +526,51 @@ export default function Rewards() {
             </div>
           </div>
 
-          {/* 3 Telemetry Cards (col-span-7) */}
-          <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
-            {/* Card 1: Trading Streak */}
-            <div className={`${CARD} p-3 flex flex-col justify-between`}>
-              <div className="flex items-center justify-between text-[11px] font-semibold text-slate-400 dark:text-neutral-500">
+          {/* RIGHT: 3 Small Telemetry Boxes (Matching Dashboard) */}
+          <div className="lg:col-span-6 grid grid-cols-3 gap-2.5 sm:gap-3">
+            {/* Box 1: Trading Streak */}
+            <div className="px-3 py-3 text-center md:px-3.5 md:py-3.5 bg-white dark:bg-[#17171A] rounded-[18px] border border-slate-200/70 dark:border-white/[0.07] shadow-[0_2px_10px_rgba(15,23,42,0.04)] dark:shadow-none flex flex-col items-center justify-center">
+              <div className="flex items-center justify-center gap-1 text-[10.5px] md:text-[11.5px] font-medium text-slate-400 dark:text-neutral-500">
                 <span>Trading Streak</span>
-                <Flame size={13} className="text-orange-500 fill-orange-500" />
+                <Flame size={12} className="text-orange-500 fill-orange-500" />
               </div>
-              <div className="my-1 text-[22px] font-bold text-slate-900 dark:text-white tabular-nums tracking-tight leading-none">
+              <p className="mt-0.5 md:mt-1 text-[15px] md:text-[18px] font-bold text-slate-900 dark:text-white tabular-nums tracking-tight">
                 {streakCount} Days
-              </div>
-              <div className="flex items-center justify-between text-[10px] text-slate-400 dark:text-neutral-500">
-                <span>Active Streak</span>
-                <span className="font-semibold text-orange-500">21-Day Shield →</span>
-              </div>
+              </p>
+              <span className="mt-0.5 text-[9.5px] md:text-[10px] font-semibold text-orange-500">
+                21d Shield
+              </span>
             </div>
 
-            {/* Card 2: Trader Rank */}
-            <div className={`${CARD} p-3 flex flex-col justify-between`}>
-              <div className="flex items-center justify-between text-[11px] font-semibold text-slate-400 dark:text-neutral-500">
+            {/* Box 2: Trader Rank */}
+            <div className="px-3 py-3 text-center md:px-3.5 md:py-3.5 bg-white dark:bg-[#17171A] rounded-[18px] border border-slate-200/70 dark:border-white/[0.07] shadow-[0_2px_10px_rgba(15,23,42,0.04)] dark:shadow-none flex flex-col items-center justify-center">
+              <div className="flex items-center justify-center gap-1 text-[10.5px] md:text-[11.5px] font-medium text-slate-400 dark:text-neutral-500">
                 <span>Trader Rank</span>
-                <Star size={13} className="text-violet-500" />
+                <Star size={12} className="text-violet-500" />
               </div>
-              <div className="my-1 text-[22px] font-bold text-slate-900 dark:text-white tabular-nums tracking-tight leading-none">
-                Level {userLevel} Pro
-              </div>
-              <div className="space-y-1">
-                <div className="w-full bg-slate-200/70 dark:bg-white/10 h-1 rounded-full overflow-hidden">
-                  <div className="bg-[#2563EB] h-full rounded-full transition-all" style={{ width: `${levelProgressPct}%` }} />
-                </div>
-                <div className="flex items-center justify-between text-[10px] text-slate-400 dark:text-neutral-500">
-                  <span>Tier {userLevel}</span>
-                  <span className="tabular-nums">{userXpRequired - userXp} XP to Lv {userLevel + 1}</span>
-                </div>
-              </div>
+              <p className="mt-0.5 md:mt-1 text-[15px] md:text-[18px] font-bold text-slate-900 dark:text-white tabular-nums tracking-tight">
+                Level {userLevel}
+              </p>
+              <span className="mt-0.5 text-[9.5px] md:text-[10px] text-slate-400 dark:text-neutral-500 tabular-nums">
+                {userXpRequired - userXp} XP to Lv {userLevel + 1}
+              </span>
             </div>
 
-            {/* Card 3: TradiCoins Vault */}
-            <div className={`${CARD} p-3 flex flex-col justify-between`}>
-              <div className="flex items-center justify-between text-[11px] font-semibold text-slate-400 dark:text-neutral-500">
+            {/* Box 3: TradiCoins */}
+            <div className="px-3 py-3 text-center md:px-3.5 md:py-3.5 bg-white dark:bg-[#17171A] rounded-[18px] border border-slate-200/70 dark:border-white/[0.07] shadow-[0_2px_10px_rgba(15,23,42,0.04)] dark:shadow-none flex flex-col items-center justify-center">
+              <div className="flex items-center justify-center gap-1 text-[10.5px] md:text-[11.5px] font-medium text-slate-400 dark:text-neutral-500">
                 <span>TradiCoins</span>
-                <Coins size={13} className="text-amber-500" />
+                <Coins size={12} className="text-amber-500" />
               </div>
-              <div className="my-1 text-[22px] font-bold text-slate-900 dark:text-white tabular-nums tracking-tight leading-none">
-                {(gamState.bounty_balance || 150).toLocaleString()} <span className="text-[17px]">🪙</span>
-              </div>
+              <p className="mt-0.5 md:mt-1 text-[15px] md:text-[18px] font-bold text-slate-900 dark:text-white tabular-nums tracking-tight flex items-center justify-center gap-1">
+                {(gamState.bounty_balance || 150).toLocaleString()} <span className="text-[13px]">🪙</span>
+              </p>
               <button
                 type="button"
                 onClick={() => setActiveTab("vault")}
-                className="text-left text-[10px] text-[#2563EB] dark:text-blue-400 font-semibold cursor-pointer hover:underline block truncate"
+                className="mt-0.5 text-[9.5px] md:text-[10px] font-semibold text-[#2563EB] dark:text-blue-400 hover:underline cursor-pointer"
               >
-                Redeem Perks →
+                Redeem →
               </button>
             </div>
           </div>
