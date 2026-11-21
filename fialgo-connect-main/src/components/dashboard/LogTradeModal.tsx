@@ -432,7 +432,9 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
                 onClose();
               }
             }}
-            className="relative z-50 w-full max-w-5xl max-h-[92vh] overflow-hidden bg-white dark:bg-[#161619] border-b border-x border-slate-200/80 dark:border-white/10 rounded-b-[28px] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.3)] select-none overscroll-contain flex flex-col"
+            className={`relative z-50 w-full ${
+              activeMainTab === "import" ? "max-w-3xl" : "max-w-5xl"
+            } max-h-[92vh] overflow-hidden bg-white dark:bg-[#161619] border-b border-x border-slate-200/80 dark:border-white/10 rounded-b-[28px] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.3)] select-none overscroll-contain flex flex-col transition-all duration-300`}
           >
             {/* Drawer Top Header */}
             <div className="flex items-center justify-between px-6 sm:px-8 pt-4 pb-3.5 border-b border-slate-100 dark:border-white/[0.06] shrink-0 bg-white dark:bg-[#161619]">
@@ -446,40 +448,9 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
                 </div>
 
                 <div>
-                  <div className="flex items-center gap-2.5 flex-wrap">
-                    <h2 className="text-[17px] sm:text-[18px] font-bold text-slate-900 dark:text-white tracking-tight leading-tight">
-                      {activeMainTab === "manual" ? "Log Trade" : "Import Trades"}
-                    </h2>
-
-                    {/* Manual vs Import Switcher */}
-                    <div className="inline-flex items-center p-0.5 rounded-full bg-slate-100 dark:bg-white/[0.08] border border-slate-200/60 dark:border-white/10 ml-1">
-                      <button
-                        type="button"
-                        onClick={() => setActiveMainTab("manual")}
-                        className={`px-3 py-1 rounded-full text-[11.5px] font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
-                          activeMainTab === "manual"
-                            ? "bg-white dark:bg-[#25252a] text-slate-900 dark:text-white shadow-2xs"
-                            : "text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white"
-                        }`}
-                      >
-                        <PlusCircle size={12} />
-                        <span>Manual</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setActiveMainTab("import")}
-                        className={`px-3 py-1 rounded-full text-[11.5px] font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
-                          activeMainTab === "import"
-                            ? "bg-white dark:bg-[#25252a] text-slate-900 dark:text-white shadow-2xs"
-                            : "text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white"
-                        }`}
-                      >
-                        <Upload size={12} />
-                        <span>Import CSV</span>
-                      </button>
-                    </div>
-                  </div>
-
+                  <h2 className="text-[17px] sm:text-[18px] font-bold text-slate-900 dark:text-white tracking-tight leading-tight">
+                    {activeMainTab === "manual" ? "Log Trade" : "Import Trades"}
+                  </h2>
                   <p className="text-[11.5px] text-slate-500 dark:text-neutral-400 mt-0.5">
                     {activeMainTab === "manual"
                       ? "Full trade journaling with execution metrics, sessions, discipline rating, and screenshots."
