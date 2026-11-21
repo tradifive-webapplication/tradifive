@@ -25,6 +25,7 @@ import {
   Crown,
   Lock,
   Sparkles,
+  Ticket,
 } from "lucide-react";
 import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
@@ -126,6 +127,14 @@ interface VaultReward {
   desc: string;
   cost: number;
   tag: string;
+  categoryLabel: string;
+  icon: React.ReactNode;
+  accentBg: string;
+  accentText: string;
+  accentBorder: string;
+  voucherCode: string;
+  benefitDetails: string;
+  terms: string;
 }
 
 const CARD_BASE =
@@ -318,50 +327,6 @@ export default function Rewards() {
     }
   }, [tradesToday, avgDisciplineScore, breachLogs, recentTrades, dailyXpEarned]);
 
-  // Live Order Simulator / Real-time Execution Trigger (Updates Today's Point in Place)
-  const handleSimulateLiveTrade = useCallback(() => {
-    const pairs = ["EURUSD", "GBPUSD", "XAUUSD", "USDJPY", "BTCUSD", "NAS100"];
-    const pair = pairs[Math.floor(Math.random() * pairs.length)];
-    const action = Math.random() > 0.4 ? "BUY" : "SELL";
-    const lot = (Math.floor(Math.random() * 6) + 5) / 100;
-    const slLatency = (Math.random() * 0.7 + 1.1).toFixed(1);
-    const newScore = Math.min(100, Math.max(92, Math.round(95 + Math.random() * 4)));
-    const addedEquity = +(Math.random() * 0.5 + 0.2).toFixed(1);
-
-    setLiveEventPulse(true);
-    setTimeout(() => setLiveEventPulse(false), 2000);
-
-    setDisplayScore(newScore);
-    setScore(newScore);
-    setLiveTradesCount((prev) => Math.min(4, prev + 1));
-
-    const updatedHeadline = `+${(96.0 + addedEquity).toFixed(1)}%`;
-    setLiveHeadline(updatedHeadline);
-
-    // Update the latest point (Today: Nov 21) in-place without appending duplicate date ticks
-    const updateTodayPoint = (prev: PointData[]) => {
-      if (prev.length === 0) return prev;
-      const copy = [...prev];
-      const last = copy.length - 1;
-      copy[last] = {
-        ...copy[last],
-        score: newScore,
-        equity: updatedHeadline,
-        trades: Math.min(4, liveTradesCount + 1),
-      };
-      return copy;
-    };
-
-    setLivePoints7D(updateTodayPoint);
-    setLivePoints14D(updateTodayPoint);
-    setLivePointsAll(updateTodayPoint);
-
-    setXp((prev) => prev + 25);
-
-    toast.success("Live MT5 Guard: Order Verified", {
-      description: `${action} ${lot} ${pair} · Protective SL Attached (${slLatency}s) · Discipline: ${newScore}% (+25 XP)`,
-    });
-  }, [liveTradesCount]);
 
   // Real-time periodic live market heartbeat (100% Live Streaming MT5 Feed)
   useEffect(() => {
@@ -1025,23 +990,47 @@ export default function Rewards() {
     {
       id: "prop20",
       title: "20% Prop Challenge Discount",
-      desc: "Instant voucher valid on $50k & $100k evaluation accounts.",
+      desc: "Instant 20% voucher valid across all FTMO, FundingPips & 5ers $50k-$100k evaluations.",
       cost: 500,
       tag: "POPULAR",
+      categoryLabel: "PROP FIRM PARTNERSHIP",
+      icon: <Ticket size={18} className="text-[#006DFE] dark:text-blue-400 stroke-[2.2]" />,
+      accentBg: "bg-blue-50 dark:bg-blue-500/10",
+      accentText: "text-[#006DFE] dark:text-blue-400",
+      accentBorder: "border-blue-200/80 dark:border-blue-500/25",
+      voucherCode: "TRADI5-PROP20-EXCL",
+      benefitDetails: "20% discount applied at checkout on $50k, $100k, or $200k challenge tiers.",
+      terms: "Valid for 30 days from redemption. Single-use per verified Exness account.",
     },
     {
       id: "vps",
       title: "30-Day Low-Latency MT5 VPS",
-      desc: "1.2ms Equinix LD4 server hosting for automated Risk Guard.",
+      desc: "1.2ms Equinix LD4 server hosting with pre-configured automated Risk Guard enforcer.",
       cost: 350,
       tag: "INFRASTRUCTURE",
+      categoryLabel: "HIGH-SPEED HOSTING",
+      icon: <Zap size={18} className="text-amber-600 dark:text-amber-400 stroke-[2.2]" />,
+      accentBg: "bg-amber-50 dark:bg-amber-500/10",
+      accentText: "text-amber-600 dark:text-amber-400",
+      accentBorder: "border-amber-200/80 dark:border-amber-500/25",
+      voucherCode: "LD4-VPS-30D-FAST",
+      benefitDetails: "Dedicated NVMe core, 4GB RAM, zero-reboot maintenance window in London LD4 datacenter.",
+      terms: "Activates automatically upon redemption. Credentials delivered to your registered email.",
     },
     {
       id: "rebate",
       title: "$50 Raw Spread Cashback",
-      desc: "Direct commission rebate credited to Exness-Real #88412.",
+      desc: "Direct commission rebate credit applied straight to verified live Exness MT5 account #88412.",
       cost: 750,
       tag: "CASH REWARD",
+      categoryLabel: "BROKER COMMISSION",
+      icon: <Crown size={18} className="text-emerald-600 dark:text-emerald-400 stroke-[2.2]" />,
+      accentBg: "bg-emerald-50 dark:bg-emerald-500/10",
+      accentText: "text-emerald-600 dark:text-emerald-400",
+      accentBorder: "border-emerald-200/80 dark:border-emerald-500/25",
+      voucherCode: "EXNESS-CASH-50USD",
+      benefitDetails: "$50.00 cash rebate balance credited directly to your connected Exness MT5 ledger.",
+      terms: "Requires minimum 10 closed lots executed with protective stop-loss adherence.",
     },
   ];
 
@@ -1149,11 +1138,47 @@ export default function Rewards() {
   };
 
   const handleRedeemReward = (reward: VaultReward) => {
-    if (xp < reward.cost || redeemedRewards.has(reward.id)) return;
+    const isClaimed = redeemedRewards.has(reward.id);
+    if (isClaimed) {
+      setActiveAuditModal({
+        isOpen: true,
+        badge: `VOUCHER ACTIVE · ${reward.categoryLabel}`,
+        title: reward.title,
+        summary: `Voucher code ${reward.voucherCode} is active and assigned to trader ${userName} (Account #88412).`,
+        stats: [
+          { label: "Voucher Code", value: reward.voucherCode },
+          { label: "Benefit", value: reward.benefitDetails },
+          { label: "Cost", value: `${reward.cost} XP (Redeemed)` },
+          { label: "Terms", value: reward.terms },
+        ],
+      });
+      return;
+    }
+
+    if (xp < reward.cost) {
+      toast.error("Insufficient XP", {
+        description: `You need ${reward.cost - xp} more XP to unlock this institutional perk. Keep trading with discipline!`,
+      });
+      return;
+    }
+
     setXp((prev) => prev - reward.cost);
     setRedeemedRewards((prev) => new Set(prev).add(reward.id));
     toast.success(`Claimed: ${reward.title}`, {
-      description: `Debited ${reward.cost} XP. Voucher code dispatched to your profile.`,
+      description: `Debited ${reward.cost} XP. Voucher code ${reward.voucherCode} dispatched to your profile.`,
+    });
+
+    setActiveAuditModal({
+      isOpen: true,
+      badge: `SUCCESSFULLY REDEEMED · ${reward.categoryLabel}`,
+      title: reward.title,
+      summary: `Your perk has been activated! Use voucher code ${reward.voucherCode} at checkout or broker terminal.`,
+      stats: [
+        { label: "Voucher Code", value: reward.voucherCode },
+        { label: "Benefit", value: reward.benefitDetails },
+        { label: "Cost", value: `${reward.cost} XP` },
+        { label: "Status", value: "Verified & Assigned" },
+      ],
     });
   };
 
@@ -1509,18 +1534,8 @@ export default function Rewards() {
                 </p>
               </div>
 
-              {/* Range Switcher & Live Order Trigger */}
+              {/* Range Switcher */}
               <div className="flex items-center gap-2 shrink-0">
-                <button
-                  type="button"
-                  onClick={handleSimulateLiveTrade}
-                  title="Trigger Real-Time MT5 Trade Execution"
-                  className="tactile-white-pill inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[10px] text-[10.5px] font-bold text-slate-700 dark:text-slate-200 cursor-pointer hover:border-[#006DFE]/50 transition-all shadow-2xs"
-                >
-                  <Zap size={11} className="text-amber-500 fill-amber-500" />
-                  <span className="hidden sm:inline">Simulate Live Order</span>
-                </button>
-
                 <div className="inline-flex items-center p-0.5 rounded-[10px] bg-slate-200/70 dark:bg-white/[0.07] shrink-0">
                   {(["7D", "14D", "All"] as const).map((range) => (
                     <button
@@ -2585,27 +2600,36 @@ export default function Rewards() {
           </div>
         )}
 
-        {/* ── PANEL 4: VAULT ── */}
+        {/* ── PANEL 4: VAULT (INSTITUTIONAL PERKS & VOUCHERS) ── */}
         {activeTab === "vault" && (
-          <div className={`${CARD_BASE} p-5 sm:p-6 space-y-5`}>
+          <div className={`${CARD_BASE} p-4 sm:p-5 space-y-4`}>
             
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 dark:border-white/[0.06] gap-2">
-              <div>
-                <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                  Institutional Rewards Vault
-                </h3>
-                <p className="text-xs text-slate-400 dark:text-neutral-500 mt-0.5 font-medium">
-                  Redeem your Grade A+ discipline score and XP balance for institutional trading perks.
+            {/* Header: Title & Available Balance Pill */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3.5 border-b border-slate-100 dark:border-white/[0.06] gap-3">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <div className="w-5 h-5 rounded-md bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
+                    <Gift size={13} className="stroke-[2.2]" />
+                  </div>
+                  <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white tracking-tight truncate">
+                    Institutional Rewards Vault
+                  </h3>
+                </div>
+                <p className="text-[11px] text-slate-500 dark:text-neutral-400 mt-0.5 font-medium">
+                  Redeem your Grade A+ discipline score and XP balance for institutional trading perks &amp; rebates.
                 </p>
               </div>
 
-              <div className="px-3.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-500/20 text-xs font-bold self-start sm:self-auto">
-                Available Balance: {xp} XP
+              <div className="flex items-center gap-2 shrink-0">
+                <div className="px-3.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-500/25 text-xs font-bold flex items-center gap-1.5 shadow-2xs tabular-nums">
+                  <Sparkles size={11} className="text-emerald-500 fill-emerald-500" />
+                  <span>Available Balance: {xp} XP</span>
+                </div>
               </div>
             </div>
 
-            {/* 3 Vault Perk Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* 3 Vault Perk Cards (Tactile Cards matching Badges & Streaks) */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
               {vaultRewards.map((reward) => {
                 const isClaimed = redeemedRewards.has(reward.id);
                 const canAfford = xp >= reward.cost;
@@ -2613,46 +2637,103 @@ export default function Rewards() {
                 return (
                   <div
                     key={reward.id}
-                    className="p-5 rounded-2xl bg-white dark:bg-[#121826] border border-slate-200/90 dark:border-white/10 shadow-[0_2px_12px_rgba(15,23,42,0.04)] dark:shadow-none flex flex-col justify-between gap-4"
+                    className={`p-4 rounded-xl border text-left flex flex-col justify-between gap-3.5 transition-all group ${
+                      isClaimed
+                        ? "bg-emerald-50/20 dark:bg-emerald-500/5 border-emerald-200/70 dark:border-emerald-500/20 shadow-2xs"
+                        : "bg-white dark:bg-[#17171A] hover:bg-slate-50/80 dark:hover:bg-white/[0.03] border-slate-200/80 dark:border-white/[0.08] hover:border-[#006DFE]/40 shadow-2xs"
+                    }`}
                   >
-                    <div>
-                      <div className="flex items-center justify-between gap-2 mb-2">
-                        <span className="px-2 py-0.5 rounded text-[10.5px] font-bold bg-[#006DFE]/15 text-[#006DFE] dark:text-blue-400 uppercase">
-                          {reward.tag}
-                        </span>
-                        <span className="text-xs font-bold text-slate-700 dark:text-slate-200">
-                          {reward.cost} XP
-                        </span>
+                    {/* Top Row: Icon + Category + Cost Pill */}
+                    <div className="flex items-center justify-between gap-2 w-full">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border ${reward.accentBg} ${reward.accentBorder}`}>
+                          {reward.icon}
+                        </div>
+                        <div className="min-w-0">
+                          <span className="text-[9.5px] font-mono font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500 truncate block">
+                            {reward.categoryLabel}
+                          </span>
+                          <h4 className="text-xs sm:text-[13px] font-bold text-slate-900 dark:text-white truncate group-hover:text-[#006DFE] transition-colors leading-tight mt-0.5">
+                            {reward.title}
+                          </h4>
+                        </div>
                       </div>
-                      <h4 className="text-sm font-bold text-slate-900 dark:text-white">
-                        {reward.title}
-                      </h4>
-                      <p className="text-xs text-slate-500 dark:text-neutral-400 mt-1 leading-relaxed">
-                        {reward.desc}
-                      </p>
+
+                      <span
+                        className={`px-2 py-0.5 rounded-md text-[10.5px] font-mono font-bold shrink-0 tabular-nums ${
+                          isClaimed
+                            ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200/70 dark:border-emerald-500/20"
+                            : "bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400 border border-purple-200/70 dark:border-purple-500/20"
+                        }`}
+                      >
+                        {reward.cost} XP
+                      </span>
                     </div>
 
-                    <button
-                      type="button"
-                      disabled={isClaimed || !canAfford}
-                      onClick={() => handleRedeemReward(reward)}
-                      className={`w-full py-2.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                        isClaimed
-                          ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 cursor-default"
-                          : canAfford
-                          ? "bg-[#006DFE] hover:bg-blue-600 text-white shadow-[0_2px_10px_rgba(0,109,254,0.38)]"
-                          : "bg-slate-200 dark:bg-white/10 text-slate-400 cursor-not-allowed"
-                      }`}
-                    >
-                      {isClaimed
-                        ? "✓ Voucher Claimed"
-                        : canAfford
-                        ? `Redeem for ${reward.cost} XP`
-                        : "Insufficient XP"}
-                    </button>
+                    {/* Middle: Description */}
+                    <p className="text-[11px] text-slate-500 dark:text-neutral-400 leading-relaxed font-medium">
+                      {reward.desc}
+                    </p>
+
+                    {/* Bottom: Action Button & Verification Note */}
+                    <div className="pt-2 border-t border-slate-100 dark:border-white/[0.05] w-full space-y-2">
+                      <button
+                        type="button"
+                        onClick={() => handleRedeemReward(reward)}
+                        className={`w-full py-2 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 active:scale-98 ${
+                          isClaimed
+                            ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200/80 dark:border-emerald-500/25 hover:bg-emerald-100/50"
+                            : canAfford
+                            ? "bg-[#006DFE] hover:bg-blue-600 text-white shadow-xs"
+                            : "bg-slate-100 dark:bg-white/[0.04] text-slate-400 dark:text-neutral-500 border border-slate-200/60 dark:border-white/[0.05] cursor-not-allowed"
+                        }`}
+                      >
+                        {isClaimed ? (
+                          <>
+                            <CheckCircle2 size={12} className="text-emerald-500" />
+                            <span>Voucher Active · Click to View Code</span>
+                          </>
+                        ) : canAfford ? (
+                          <>
+                            <Sparkles size={12} />
+                            <span>Redeem Perk for {reward.cost} XP</span>
+                          </>
+                        ) : (
+                          <span>Insufficient XP ({reward.cost - xp} Needed)</span>
+                        )}
+                      </button>
+
+                      <div className="flex items-center justify-between text-[10px] text-slate-400 dark:text-neutral-500 px-0.5">
+                        <span className="truncate">{reward.terms.split(".")[0]}.</span>
+                        <span className="font-mono text-slate-500 shrink-0">{reward.tag}</span>
+                      </div>
+                    </div>
                   </div>
                 );
               })}
+            </div>
+
+            {/* How Vault Redemption Works Info Banner */}
+            <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-white/[0.025] border border-slate-200/70 dark:border-white/[0.06] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-[#006DFE] dark:text-blue-400 shrink-0">
+                  <ShieldCheck size={14} className="stroke-[2.2]" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-slate-900 dark:text-white">
+                    On-Chain MT5 Ledger Verification
+                  </div>
+                  <p className="text-[10.5px] text-slate-400 dark:text-neutral-500 font-medium">
+                    All XP redemptions are irreversibly recorded on your broker ledger and synchronized with Exness Real account #88412.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+                <span className="text-[10px] font-mono font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-200/60 dark:border-emerald-500/20">
+                  ● 0% Slippage Guaranteed
+                </span>
+              </div>
             </div>
 
           </div>
