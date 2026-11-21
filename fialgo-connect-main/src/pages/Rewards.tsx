@@ -2019,11 +2019,11 @@ export default function Rewards() {
                     </div>
 
                     {/* 7-Weekday Header */}
-                    <div className="grid grid-cols-7 gap-1 text-center py-0.5">
+                    <div className="grid grid-cols-7 gap-1.5 text-center py-1">
                       {["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"].map((d) => (
                         <span
                           key={d}
-                          className={`text-[8.5px] font-mono font-bold ${
+                          className={`text-[9px] sm:text-[9.5px] font-mono font-bold tracking-wider ${
                             d === "SUN" ? "text-slate-300 dark:text-neutral-600" : "text-slate-400 dark:text-neutral-500"
                           }`}
                         >
@@ -2032,10 +2032,10 @@ export default function Rewards() {
                       ))}
                     </div>
 
-                    {/* 4-Week Calendar Grid (Each day shows its score clearly) */}
-                    <div className="grid grid-rows-4 gap-1">
+                    {/* 4-Week Calendar Grid (Consistent, Well-Proportioned Boxes) */}
+                    <div className="grid grid-rows-4 gap-1.5">
                       {calendarWeeks.map((week, wIdx) => (
-                        <div key={`cw-${wIdx}`} className="grid grid-cols-7 gap-1">
+                        <div key={`cw-${wIdx}`} className="grid grid-cols-7 gap-1.5">
                           {week.map((dateStr) => {
                             const day = calendarDaysMap[dateStr];
                             if (!day) return <div key={dateStr} />;
@@ -2044,17 +2044,17 @@ export default function Rewards() {
                             const hasScore = typeof day.score === "number";
                             const isAPlus = hasScore && day.score >= 95;
 
-                            let cellStyle = "bg-slate-50/70 dark:bg-white/[0.025] text-slate-700 dark:text-neutral-300 border-slate-200/70 dark:border-white/[0.06]";
+                            let cellStyle = "bg-slate-50/70 dark:bg-white/[0.025] text-slate-700 dark:text-neutral-300 border border-slate-200/70 dark:border-white/[0.06]";
                             if (hasScore) {
                               if (isAPlus) {
-                                cellStyle = "bg-emerald-50 dark:bg-emerald-500/10 border-emerald-300/80 dark:border-emerald-500/25 text-emerald-800 dark:text-emerald-300 shadow-2xs";
+                                cellStyle = "bg-emerald-50/80 dark:bg-emerald-500/10 border border-emerald-200/90 dark:border-emerald-500/30 text-emerald-900 dark:text-emerald-200 shadow-2xs hover:border-emerald-400";
                               } else {
-                                cellStyle = "bg-blue-50/80 dark:bg-blue-500/10 border-blue-300/80 dark:border-blue-500/25 text-[#006DFE] dark:text-blue-300 shadow-2xs";
+                                cellStyle = "bg-blue-50/80 dark:bg-blue-500/10 border border-blue-200/90 dark:border-blue-500/30 text-[#006DFE] dark:text-blue-300 shadow-2xs hover:border-blue-400";
                               }
                             } else if (day.isMarketClosed) {
-                              cellStyle = "bg-slate-100/40 dark:bg-white/[0.015] border-transparent text-slate-300 dark:text-neutral-600";
+                              cellStyle = "bg-slate-50/60 dark:bg-white/[0.015] border border-slate-200/60 dark:border-white/[0.05] text-slate-400 dark:text-neutral-500";
                             } else if (day.isUpcoming) {
-                              cellStyle = "border-dashed border-slate-200 dark:border-white/10 text-slate-400 dark:text-neutral-500";
+                              cellStyle = "bg-slate-50/30 dark:bg-white/[0.01] border border-dashed border-slate-200/80 dark:border-white/[0.08] text-slate-400 dark:text-neutral-500";
                             }
 
                             return (
@@ -2063,32 +2063,49 @@ export default function Rewards() {
                                 type="button"
                                 onClick={() => setSelectedCalendarDate(dateStr)}
                                 title={hasScore ? `${day.formattedDate}: Score ${day.score} (${day.grade})` : day.formattedDate}
-                                className={`relative p-0.5 rounded-lg border flex flex-col items-center justify-between transition-all cursor-pointer h-7 sm:h-[29px] min-h-[28px] ${cellStyle} ${
-                                  isSelected ? "ring-2 ring-[#006DFE] dark:ring-blue-400 shadow-xs scale-[1.02]" : "hover:scale-[1.02]"
+                                className={`relative p-1 sm:p-1.5 rounded-xl flex flex-col justify-between transition-all cursor-pointer h-[42px] sm:h-[46px] select-none ${cellStyle} ${
+                                  isSelected
+                                    ? "ring-2 ring-[#006DFE] dark:ring-blue-400 shadow-sm border-[#006DFE] dark:border-blue-400 scale-[1.02]"
+                                    : "hover:scale-[1.02]"
                                 }`}
                               >
-                                {/* Day Number Header */}
-                                <div className="flex items-center justify-between w-full px-0.5">
-                                  <span className={`text-[8.5px] font-mono font-bold leading-none ${isToday ? "text-[#006DFE] dark:text-blue-400 font-black" : ""}`}>
-                                    {day.dayNum}
+                                {/* Top: Day Number + Tiny Indicator */}
+                                <div className="flex items-center justify-between w-full leading-none">
+                                  <span className={`text-[9.5px] sm:text-[10px] font-mono font-bold ${isToday ? "text-[#006DFE] dark:text-blue-400 font-black" : ""}`}>
+                                    {String(day.dayNum).padStart(2, "0")}
                                   </span>
-                                  {isToday && (
-                                    <span className="w-1 h-1 rounded-full bg-[#006DFE] animate-pulse" title="Today's Active Session" />
-                                  )}
+                                  {isToday ? (
+                                    <span className="w-1.5 h-1.5 rounded-full bg-[#006DFE] animate-pulse" title="Today's Active Session" />
+                                  ) : isAPlus ? (
+                                    <span className="text-[7.5px] font-mono font-bold text-emerald-600 dark:text-emerald-400 leading-none">A+</span>
+                                  ) : hasScore ? (
+                                    <span className="text-[7.5px] font-mono font-bold text-[#006DFE] dark:text-blue-400 leading-none">A</span>
+                                  ) : day.isMarketClosed ? (
+                                    <span className="text-[7px] font-mono text-slate-300 dark:text-neutral-600 leading-none">OFF</span>
+                                  ) : null}
                                 </div>
 
-                                {/* Score in Center */}
-                                <div className="my-auto">
+                                {/* Bottom: Score or State */}
+                                <div className="flex items-end justify-between w-full leading-none pt-0.5">
                                   {hasScore ? (
-                                    <span className={`text-[9.5px] font-black font-mono leading-none tracking-tight ${
-                                      isAPlus ? "text-emerald-700 dark:text-emerald-400" : "text-[#006DFE] dark:text-blue-400"
+                                    <span className={`text-[12px] sm:text-[13px] font-black font-mono tracking-tight tabular-nums ${
+                                      isAPlus ? "text-emerald-700 dark:text-emerald-300" : "text-[#006DFE] dark:text-blue-400"
                                     }`}>
                                       {day.score}
                                     </span>
                                   ) : day.isMarketClosed ? (
-                                    <span className="text-[8px] font-mono text-slate-300 dark:text-neutral-600">Off</span>
+                                    <span className="text-[9.5px] font-mono font-semibold text-slate-400 dark:text-neutral-500">
+                                      Off
+                                    </span>
                                   ) : (
-                                    <span className="text-[8px] font-mono text-slate-300 dark:text-neutral-600">·</span>
+                                    <span className="text-[9.5px] font-mono text-slate-300 dark:text-neutral-600 font-semibold">
+                                      --
+                                    </span>
+                                  )}
+                                  {hasScore && (
+                                    <span className="text-[8px] font-mono text-slate-400 dark:text-neutral-500 hidden sm:inline">
+                                      {day.net}
+                                    </span>
                                   )}
                                 </div>
                               </button>
@@ -2099,25 +2116,25 @@ export default function Rewards() {
                     </div>
 
                     {/* Selected Day Inspector Mini Card */}
-                    <div className="px-2.5 py-1 rounded-lg bg-slate-50 dark:bg-white/[0.03] border border-slate-200/70 dark:border-white/[0.06] flex items-center justify-between gap-2 shadow-2xs">
+                    <div className="px-3 py-1.5 rounded-xl bg-slate-50/90 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/[0.07] flex items-center justify-between gap-2 shadow-2xs">
                       <div className="min-w-0 flex items-center gap-2 truncate">
-                        <span className="text-[11px] font-bold text-slate-900 dark:text-white shrink-0">
+                        <span className="text-[11.5px] font-bold text-slate-900 dark:text-white shrink-0">
                           {selectedCalendarRecord.formattedDate}:
                         </span>
                         {selectedCalendarRecord.score ? (
-                          <span className={`text-[9.5px] font-mono font-bold px-1.5 py-0.5 rounded border shrink-0 ${
+                          <span className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-md border shrink-0 ${
                             selectedCalendarRecord.score >= 95
-                              ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200/70"
-                              : "bg-blue-50 dark:bg-blue-500/10 text-[#006DFE] dark:text-blue-400 border-blue-200/70"
+                              ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200/80"
+                              : "bg-blue-50 dark:bg-blue-500/10 text-[#006DFE] dark:text-blue-400 border-blue-200/80"
                           }`}>
                             Score: {selectedCalendarRecord.score}
                           </span>
                         ) : (
-                          <span className="text-[9.5px] font-mono text-slate-400 dark:text-neutral-500 shrink-0">
+                          <span className="text-[10px] font-mono font-medium text-slate-400 dark:text-neutral-500 shrink-0">
                             {selectedCalendarRecord.isMarketClosed ? "Weekend Off" : "Pending"}
                           </span>
                         )}
-                        <span className="text-[10px] text-slate-400 dark:text-neutral-500 truncate font-medium">
+                        <span className="text-[10.5px] text-slate-400 dark:text-neutral-500 truncate font-medium">
                           {selectedCalendarRecord.trades ? `${selectedCalendarRecord.trades} Trades · ${selectedCalendarRecord.net}` : selectedCalendarRecord.note}
                         </span>
                       </div>
@@ -2126,9 +2143,10 @@ export default function Rewards() {
                         <button
                           type="button"
                           onClick={() => handleOpenCalendarDayModal(selectedCalendarRecord)}
-                          className="px-2 py-0.5 rounded-md text-[10px] font-bold text-[#006DFE] dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-100 dark:hover:bg-blue-500/20 border border-blue-200/60 dark:border-blue-500/20 shrink-0 cursor-pointer transition-all"
+                          className="px-2.5 py-1 rounded-lg text-[10.5px] font-bold text-white bg-[#006DFE] hover:bg-blue-600 active:scale-95 shadow-xs shrink-0 cursor-pointer transition-all flex items-center gap-1"
                         >
-                          Audit Log &rarr;
+                          <span>Audit Log</span>
+                          <span>&rarr;</span>
                         </button>
                       )}
                     </div>
