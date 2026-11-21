@@ -179,20 +179,10 @@ export default function ConnectBrokerTopDrawer({
               className="overflow-y-auto max-h-[calc(92vh-115px)] px-6 py-4 select-text"
             >
               <form onSubmit={handleConnectMT5} className="space-y-4">
-                {/* Consistency Card: Credentials */}
-                <div className="bg-slate-50/70 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/[0.08] rounded-2xl p-4 sm:p-5 shadow-2xs space-y-3.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider">
-                      MetaTrader 5 Bridge
-                    </span>
-                    <span className="flex items-center gap-1.5 text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold">
-                      <Lock size={12} />
-                      <span>AES-256 Encrypted</span>
-                    </span>
-                  </div>
-
+                {/* Clean, Simple Inputs: Server, Username, Password */}
+                <div className="space-y-3.5">
                   <div>
-                    <label className="text-[10.5px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider block mb-1">
+                    <label className="text-[11px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider block mb-1">
                       Broker Server Name
                     </label>
                     <input
@@ -200,14 +190,14 @@ export default function ConnectBrokerTopDrawer({
                       value={brokerServer}
                       onChange={(e) => setBrokerServer(e.target.value)}
                       placeholder="e.g. Exness-Real14, FTMO-Server"
-                      className="w-full h-[38px] px-3.5 rounded-xl text-[13px] bg-white dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-zinc-950 dark:focus:ring-white focus:border-zinc-950 dark:focus:border-white transition-all font-medium"
+                      className="w-full h-[40px] px-3.5 rounded-xl text-[13px] bg-slate-50/80 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-zinc-400 dark:focus:ring-white/40 focus:border-zinc-400 dark:focus:border-white/40 transition-all font-medium"
                       required
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     <div>
-                      <label className="text-[10.5px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider block mb-1">
+                      <label className="text-[11px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider block mb-1">
                         Username / MT5 Login
                       </label>
                       <input
@@ -215,13 +205,13 @@ export default function ConnectBrokerTopDrawer({
                         value={accountNumber}
                         onChange={(e) => setAccountNumber(e.target.value)}
                         placeholder="e.g. 89124412"
-                        className="w-full h-[38px] px-3.5 rounded-xl text-[13px] bg-white dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-zinc-950 dark:focus:ring-white focus:border-zinc-950 dark:focus:border-white font-mono transition-all font-semibold"
+                        className="w-full h-[40px] px-3.5 rounded-xl text-[13px] bg-slate-50/80 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-zinc-400 dark:focus:ring-white/40 focus:border-zinc-400 dark:focus:border-white/40 font-mono transition-all font-semibold"
                         required
                       />
                     </div>
 
                     <div>
-                      <label className="text-[10.5px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider block mb-1">
+                      <label className="text-[11px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider block mb-1">
                         Password (Master or Investor)
                       </label>
                       <div className="relative">
@@ -230,7 +220,7 @@ export default function ConnectBrokerTopDrawer({
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
                           placeholder="••••••••••••"
-                          className="w-full h-[38px] px-3.5 pr-10 rounded-xl text-[13px] bg-white dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-zinc-950 dark:focus:ring-white focus:border-zinc-950 dark:focus:border-white transition-all"
+                          className="w-full h-[40px] px-3.5 pr-10 rounded-xl text-[13px] bg-slate-50/80 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-zinc-400 dark:focus:ring-white/40 focus:border-zinc-400 dark:focus:border-white/40 transition-all"
                           required
                         />
                         <button
@@ -243,11 +233,6 @@ export default function ConnectBrokerTopDrawer({
                         </button>
                       </div>
                     </div>
-                  </div>
-
-                  <div className="flex items-center justify-between text-[11px] text-slate-400 dark:text-neutral-500 pt-0.5">
-                    <span>Direct FIX protocol telemetry</span>
-                    <span>Read-only investor password supported</span>
                   </div>
                 </div>
 
