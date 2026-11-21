@@ -854,34 +854,32 @@ export default function Rewards() {
         </div>
 
         {/* =========================================================================
-            CENTERED FLOATING NAVIGATION DOCK
+            NAVIGATION TABS (TACTILE PILL BUTTONS LIKE HOME PAGE)
         ========================================================================= */}
-        <div className="flex justify-center my-6">
-          <div className="inline-flex items-center gap-1 sm:gap-1.5 p-1.5 rounded-2xl bg-white dark:bg-[#17171A] border border-slate-200/75 dark:border-white/[0.08] shadow-[0_2px_10px_rgba(15,23,42,0.04)] dark:shadow-none backdrop-blur-md">
-            {[
-              { id: "discipline", label: "Discipline", icon: <Shield size={14} className="stroke-[2.2]" /> },
-              { id: "streak", label: "Daily Streak", icon: <Flame size={14} className="text-amber-500" /> },
-              { id: "badges", label: "Badges (6)", icon: <Trophy size={14} className="text-yellow-500" /> },
-              { id: "vault", label: "Vault", icon: <Gift size={14} className="text-emerald-500" /> },
-            ].map((tab) => {
-              const isActive = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setActiveTab(tab.id as any)}
-                  className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-[13px] font-bold transition-all cursor-pointer ${
-                    isActive
-                      ? "bg-[#006DFE] text-white shadow-[0_2px_10px_rgba(0,109,254,0.38)]"
-                      : "text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.05]"
-                  }`}
-                >
-                  <span>{tab.icon}</span>
-                  <span>{tab.label}</span>
-                </button>
-              );
-            })}
-          </div>
+        <div className="flex flex-wrap justify-center items-center gap-2 sm:gap-2.5 my-5 sm:my-6">
+          {[
+            { id: "discipline", label: "Discipline", icon: <Shield size={14} className="stroke-[2.2]" /> },
+            { id: "streak", label: "Daily Streak", icon: <Flame size={14} className="text-amber-500" /> },
+            { id: "badges", label: "Badges (6)", icon: <Trophy size={14} className="text-yellow-500" /> },
+            { id: "vault", label: "Vault", icon: <Gift size={14} className="text-emerald-500" /> },
+          ].map((tab) => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`inline-flex items-center gap-2 h-9 sm:h-[38px] px-4 sm:px-5 rounded-full text-xs sm:text-[13px] font-bold select-none cursor-pointer transition-all active:scale-95 ${
+                  isActive
+                    ? "tactile-black-pill"
+                    : "tactile-white-pill text-slate-700 dark:text-neutral-200"
+                }`}
+              >
+                <span>{tab.icon}</span>
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
         </div>
 
         {/* =========================================================================
