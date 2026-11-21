@@ -894,7 +894,7 @@ export default function Rewards() {
               <h1 className="text-[19px] sm:text-[21px] font-bold text-slate-900 dark:text-white tracking-tight leading-none">
                 Rewards
               </h1>
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-mono font-bold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                 Live MT5 Guard
               </span>
@@ -902,7 +902,7 @@ export default function Rewards() {
 
             {/* Real-time Telemetry & Action Buttons */}
             <div className="flex items-center gap-2 sm:gap-2.5">
-              <div className="hidden lg:flex items-center gap-2 px-3 py-1 rounded-full bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] text-[11px] font-mono text-slate-600 dark:text-neutral-300 shadow-2xs">
+              <div className="hidden lg:flex items-center gap-2 px-3 py-1 rounded-full bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] text-xs font-semibold text-slate-700 dark:text-neutral-300 shadow-2xs tabular-nums">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
                 <span>{currentUtcTime || "MT5 Live"}</span>
                 <span className="text-slate-300 dark:text-neutral-600">·</span>
@@ -975,7 +975,7 @@ export default function Rewards() {
                   <CheckCircle2 size={11} />
                   <span>Session Finalized</span>
                 </span>
-                <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-neutral-300">
+                <span className="px-2.5 py-0.5 rounded-md text-[10.5px] font-semibold tabular-nums bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-neutral-300">
                   {latency}ms
                 </span>
               </div>
@@ -1002,10 +1002,10 @@ export default function Rewards() {
                     <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight leading-tight truncate">
                       {userName}
                     </h2>
-                    <span className="px-1.5 py-0.5 rounded text-[9.5px] font-mono font-bold bg-blue-50 dark:bg-blue-500/10 text-[#006DFE] dark:text-blue-400 border border-blue-200/80 dark:border-blue-500/30 leading-none">
+                    <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-50 dark:bg-blue-500/10 text-[#006DFE] dark:text-blue-400 border border-blue-200/80 dark:border-blue-500/30 leading-none">
                       {userTier}
                     </span>
-                    <span className="px-1.5 py-0.5 rounded text-[9.5px] font-mono font-bold bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400 border border-purple-200/80 dark:border-purple-500/30 leading-none">
+                    <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400 border border-purple-200/80 dark:border-purple-500/30 leading-none">
                       Level 1
                     </span>
                   </div>
@@ -1019,41 +1019,41 @@ export default function Rewards() {
               <div className="grid grid-cols-2 sm:flex sm:items-center gap-1.5 shrink-0 text-center">
                 {/* TOTAL XP EARNED */}
                 <div className="px-3 py-1.5 rounded-xl bg-purple-50/70 dark:bg-purple-500/10 border border-purple-200/80 dark:border-purple-500/25 shadow-2xs">
-                  <div className="text-[9px] font-mono font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400 flex items-center justify-center gap-0.5">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400 flex items-center justify-center gap-1">
                     <Star size={9} className="fill-purple-500 text-purple-500" />
                     <span>TOTAL XP</span>
                   </div>
-                  <div className="text-[12px] font-mono font-black text-purple-900 dark:text-purple-200 mt-0.5 tabular-nums">
+                  <div className="text-[13px] font-black text-purple-900 dark:text-purple-200 mt-0.5 tabular-nums">
                     {(2000 + xp).toLocaleString()} XP
                   </div>
                 </div>
 
                 {/* ACCOUNT */}
                 <div className="px-2.5 py-1.5 rounded-xl bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] shadow-2xs">
-                  <div className="text-[9px] font-mono font-bold uppercase text-slate-400 dark:text-neutral-500">
+                  <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
                     ACCOUNT
                   </div>
-                  <div className="text-[12px] font-mono font-bold text-slate-800 dark:text-slate-200 mt-0.5 tabular-nums">
+                  <div className="text-[13px] font-bold text-slate-800 dark:text-slate-200 mt-0.5 tabular-nums">
                     {accountMetrics?.account_number ? `#${accountMetrics.account_number}` : "#88412"}
                   </div>
                 </div>
 
                 {/* RISK CAP */}
                 <div className="px-2.5 py-1.5 rounded-xl bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] shadow-2xs">
-                  <div className="text-[9px] font-mono font-bold uppercase text-slate-400 dark:text-neutral-500">
+                  <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
                     RISK CAP
                   </div>
-                  <div className="text-[12px] font-mono font-bold text-[#006DFE] dark:text-blue-400 mt-0.5 tabular-nums">
+                  <div className="text-[13px] font-bold text-[#006DFE] dark:text-blue-400 mt-0.5 tabular-nums">
                     1.0%
                   </div>
                 </div>
 
                 {/* STREAK */}
                 <div className="px-2.5 py-1.5 rounded-xl bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] shadow-2xs">
-                  <div className="text-[9px] font-mono font-bold uppercase text-slate-400 dark:text-neutral-500">
+                  <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
                     STREAK
                   </div>
-                  <div className="text-[12px] font-mono font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 tabular-nums">
+                  <div className="text-[13px] font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 tabular-nums">
                     6W Net
                   </div>
                 </div>
@@ -1128,7 +1128,7 @@ export default function Rewards() {
                     d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                   />
                 </svg>
-                <span className="absolute text-[8.5px] font-mono font-bold text-slate-700 dark:text-slate-200">
+                <span className="absolute text-[9.5px] font-bold text-slate-700 dark:text-slate-200 tabular-nums">
                   18/21
                 </span>
               </div>
@@ -1166,7 +1166,7 @@ export default function Rewards() {
                 <div className="text-xl sm:text-[22px] font-black tracking-tight text-slate-900 dark:text-white leading-tight">
                   Level 1
                 </div>
-                <div className="text-[10.5px] font-mono font-bold text-slate-500 dark:text-neutral-400 tabular-nums">
+                <div className="text-xs font-semibold text-slate-500 dark:text-neutral-400 tabular-nums">
                   {xp} / 1,000 XP
                 </div>
               </div>
@@ -1214,11 +1214,11 @@ export default function Rewards() {
               </div>
 
               <div className="flex items-center gap-1.5">
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-blue-50 dark:bg-blue-500/10 text-[#006DFE] dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20 shrink-0">
+                <span className="px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-blue-50 dark:bg-blue-500/10 text-[#006DFE] dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20 shrink-0">
                   ● GRADE A+
                 </span>
                 {liveEventPulse && (
-                  <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300 animate-pulse">
+                  <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300 animate-pulse">
                     LIVE
                   </span>
                 )}
@@ -1271,7 +1271,7 @@ export default function Rewards() {
                 <p className="text-[11px] text-slate-400 dark:text-neutral-500 mt-1 flex items-center gap-1.5">
                   <span>Closed trade equity curve</span>
                   <span className="text-slate-300 dark:text-neutral-700">·</span>
-                  <span className="text-emerald-600 dark:text-emerald-400 font-mono font-medium flex items-center gap-1">
+                  <span className="text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                     Live Feed Active
                   </span>
@@ -1307,7 +1307,7 @@ export default function Rewards() {
                 <span>{activeDataset.delta}</span>
               </span>
               {liveEventPulse && (
-                <span className="text-[10px] font-mono font-bold text-emerald-600 dark:text-emerald-400 animate-bounce">
+                <span className="text-[10.5px] font-bold text-emerald-600 dark:text-emerald-400 animate-bounce">
                   ⚡ Live Tick
                 </span>
               )}
@@ -1336,7 +1336,7 @@ export default function Rewards() {
             </div>
 
             {/* Bottom Summary Footer */}
-            <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-white/[0.06] flex items-center justify-between text-[11px] font-mono text-slate-400 dark:text-neutral-500">
+            <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-white/[0.06] flex items-center justify-between text-xs text-slate-500 dark:text-neutral-400">
               <span className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                 <span>{activeDataset.sessions}</span>
@@ -1387,8 +1387,8 @@ export default function Rewards() {
         {activeTab === "discipline" && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 items-stretch">
             
-            {/* Rule Compliance Parameters Card (Left side: 70% - 75% width, balanced human proportions) */}
-            <div className={`lg:col-span-8 xl:col-span-9 ${CARD_BASE} p-4 sm:p-5 flex flex-col justify-between gap-3`}>
+            {/* Rule Compliance Parameters Card (Left side: 7 cols) */}
+            <div className={`lg:col-span-7 xl:col-span-7 ${CARD_BASE} p-4 sm:p-5 flex flex-col justify-between gap-3`}>
               
               {/* Header */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 mb-1 border-b border-slate-100 dark:border-white/[0.06] gap-2">
@@ -1416,7 +1416,7 @@ export default function Rewards() {
                     <span>Replay Sync</span>
                   </button>
 
-                  <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 dark:bg-blue-500/10 border border-blue-200/60 dark:border-blue-500/20 text-[10.5px] font-mono font-bold text-[#006DFE] dark:text-blue-400">
+                  <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 dark:bg-blue-500/10 border border-blue-200/60 dark:border-blue-500/20 text-xs font-bold text-[#006DFE] dark:text-blue-400 tabular-nums">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#006DFE] animate-pulse" />
                     <span>Score: {score}/100</span>
                   </div>
@@ -1446,7 +1446,7 @@ export default function Rewards() {
                         </p>
                       </div>
 
-                      <span className="text-[9.5px] font-mono font-bold px-2.5 py-0.5 rounded-full border shadow-2xs whitespace-nowrap shrink-0 tabular-nums bg-white dark:bg-white/[0.05] text-slate-700 dark:text-neutral-300 border-slate-200 dark:border-white/10">
+                      <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full border shadow-2xs whitespace-nowrap shrink-0 tabular-nums bg-white dark:bg-white/[0.05] text-slate-700 dark:text-neutral-300 border-slate-200 dark:border-white/10">
                         {rule.badgeText}
                       </span>
                     </div>
@@ -1482,7 +1482,7 @@ export default function Rewards() {
                       </div>
 
                       <span
-                        className={`text-[11px] font-mono font-extrabold tabular-nums shrink-0 min-w-[32px] text-right ${
+                        className={`text-xs font-black tabular-nums shrink-0 min-w-[34px] text-right ${
                           rule.colorType === "green"
                             ? "text-emerald-600 dark:text-emerald-400"
                             : rule.colorType === "amber"
@@ -1496,12 +1496,12 @@ export default function Rewards() {
 
                     {/* Bottom: Micro Telemetry Stat */}
                     {rule.telemetryStat && (
-                      <div className="flex items-center justify-between text-[10px] font-mono text-slate-400 dark:text-neutral-500 pt-1 border-t border-slate-200/50 dark:border-white/[0.04]">
-                        <span className="flex items-center gap-1">
-                          <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-neutral-600" />
+                      <div className="flex items-center justify-between text-[11px] font-medium text-slate-500 dark:text-neutral-400 pt-1 border-t border-slate-200/50 dark:border-white/[0.04]">
+                        <span className="flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-neutral-600" />
                           {rule.telemetryStat}
                         </span>
-                        <span className="text-[9px] text-[#006DFE] dark:text-blue-400 font-semibold group-hover:underline">
+                        <span className="text-[10px] text-[#006DFE] dark:text-blue-400 font-semibold group-hover:underline">
                           Inspect &rarr;
                         </span>
                       </div>
@@ -1527,7 +1527,7 @@ export default function Rewards() {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-1 font-mono text-[10px] text-slate-400">
+                  <div className="flex items-center gap-1 text-[10px] font-semibold text-slate-500 dark:text-neutral-400">
                     <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-white/5">SYD</span>
                     <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-white/5">TYO</span>
                     <span className="px-1.5 py-0.5 rounded bg-blue-50 dark:bg-blue-500/10 text-[#006DFE] font-bold">
@@ -1546,63 +1546,69 @@ export default function Rewards() {
               </div>
             </div>
 
-            {/* Weekly Consistency Log (Right side: 25% - 30% width sleek interactive companion with History switcher) */}
-            <div className={`lg:col-span-4 xl:col-span-3 ${CARD_BASE} p-4 sm:p-5 flex flex-col justify-between gap-3`}>
+            {/* Weekly Consistency Log (Right side: 5 cols, spacious and systematic) */}
+            <div className={`lg:col-span-5 xl:col-span-5 ${CARD_BASE} p-4 sm:p-5 flex flex-col justify-between gap-3`}>
               <div className="flex-1 flex flex-col">
                 
                 {/* Header: Title, Range & History Selector */}
-                <div className="pb-2.5 mb-2.5 border-b border-slate-100 dark:border-white/[0.06] space-y-2">
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <h3 className="text-sm font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-1.5">
-                        <History size={13} className="text-[#006DFE] shrink-0" />
-                        <span>Weekly Consistency Log</span>
-                      </h3>
-                      <p className="text-[10px] text-slate-400 dark:text-neutral-500 mt-0.5 font-medium">
-                        Audit past MT5 sessions &amp; rule pass rate
-                      </p>
+                <div className="pb-3 mb-2 border-b border-slate-100 dark:border-white/[0.06] space-y-2.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-[#006DFE] dark:text-blue-400 shrink-0">
+                        <History size={14} className="stroke-[2.2]" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-bold text-slate-900 dark:text-white tracking-tight">
+                          Weekly Consistency Log
+                        </h3>
+                        <p className="text-[11px] text-slate-400 dark:text-neutral-500 font-medium">
+                          Audit past MT5 sessions &amp; rule pass rate
+                        </p>
+                      </div>
                     </div>
 
-                    <div className="flex items-center gap-1.5 text-[9.5px] font-mono font-bold text-slate-500 dark:text-neutral-400 shrink-0">
-                      <span className="inline-flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                        A+
+                    {/* Clean legend: A+ and A */}
+                    <div className="flex items-center gap-2.5 text-xs font-semibold text-slate-500 dark:text-neutral-400 shrink-0">
+                      <span className="inline-flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                        <span className="text-slate-700 dark:text-slate-300">A+</span>
                       </span>
-                      <span className="inline-flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#006DFE]" />
-                        A
+                      <span className="inline-flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-[#006DFE]" />
+                        <span className="text-slate-700 dark:text-slate-300">A</span>
                       </span>
                     </div>
                   </div>
 
-                  {/* Week Navigator Bar: Chevrons + Quick Jump Pills */}
-                  <div className="flex items-center justify-between gap-1.5 pt-1">
-                    <div className="flex items-center gap-1">
+                  {/* Week Navigator Bar: Stepper & Quick Jump Tabs */}
+                  <div className="flex items-center justify-between gap-2 pt-0.5">
+                    {/* Stepper with Chevrons and Date Range */}
+                    <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-white/[0.04] p-1 rounded-xl border border-slate-200/70 dark:border-white/[0.06]">
                       <button
                         type="button"
                         disabled={selectedWeekIndex >= weeklyHistory.length - 1}
                         onClick={() => setSelectedWeekIndex((prev) => Math.min(weeklyHistory.length - 1, prev + 1))}
                         title="Previous Week"
-                        className="w-6 h-6 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.06] dark:hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center text-slate-700 dark:text-neutral-300 transition-colors cursor-pointer"
+                        className="w-7 h-7 rounded-lg bg-white dark:bg-white/[0.08] hover:bg-slate-50 dark:hover:bg-white/[0.12] disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center text-slate-700 dark:text-neutral-200 shadow-2xs transition-all cursor-pointer"
                       >
-                        <ChevronLeft size={13} />
+                        <ChevronLeft size={14} />
                       </button>
+                      <span className="px-2.5 text-xs font-semibold text-slate-800 dark:text-slate-200 whitespace-nowrap">
+                        {currentWeekData.rangeLabel}
+                      </span>
                       <button
                         type="button"
                         disabled={selectedWeekIndex <= 0}
                         onClick={() => setSelectedWeekIndex((prev) => Math.max(0, prev - 1))}
                         title="Next Week"
-                        className="w-6 h-6 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.06] dark:hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center text-slate-700 dark:text-neutral-300 transition-colors cursor-pointer"
+                        className="w-7 h-7 rounded-lg bg-white dark:bg-white/[0.08] hover:bg-slate-50 dark:hover:bg-white/[0.12] disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center text-slate-700 dark:text-neutral-200 shadow-2xs transition-all cursor-pointer"
                       >
-                        <ChevronRight size={13} />
+                        <ChevronRight size={14} />
                       </button>
-                      <span className="text-[10.5px] font-mono font-bold text-slate-800 dark:text-neutral-200 pl-1">
-                        {currentWeekData.rangeLabel}
-                      </span>
                     </div>
 
                     {/* Quick Week Jump Pills */}
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 bg-slate-100 dark:bg-white/[0.04] p-1 rounded-xl border border-slate-200/70 dark:border-white/[0.06]">
                       {weeklyHistory.map((week, idx) => {
                         const isSelected = selectedWeekIndex === idx;
                         return (
@@ -1610,10 +1616,10 @@ export default function Rewards() {
                             key={week.id}
                             type="button"
                             onClick={() => setSelectedWeekIndex(idx)}
-                            className={`px-1.5 py-0.5 rounded text-[9px] font-mono font-bold cursor-pointer transition-all ${
+                            className={`px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-all ${
                               isSelected
-                                ? "bg-slate-900 text-white dark:bg-white dark:text-slate-950 shadow-2xs"
-                                : "bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.06] dark:hover:bg-white/10 text-slate-600 dark:text-neutral-400"
+                                ? "bg-[#006DFE] text-white shadow-xs"
+                                : "text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white"
                             }`}
                           >
                             {idx === 0 ? "Current" : idx === 1 ? "-1W" : "-2W"}
@@ -1630,40 +1636,50 @@ export default function Rewards() {
                     const isAPlus = day.tier === "A+";
                     const dotColor = isAPlus ? "bg-emerald-500" : "bg-[#006DFE]";
                     const gradeColor = isAPlus
-                      ? "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200/70 dark:border-emerald-500/20"
-                      : "text-[#006DFE] dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 border-blue-200/70 dark:border-blue-500/20";
+                      ? "text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200/70 dark:border-emerald-500/25"
+                      : "text-[#006DFE] dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 border-blue-200/70 dark:border-blue-500/25";
+
+                    // Format day title cleanly: "Mon, Nov 16"
+                    const formattedDayTitle = day.day.replace(
+                      /^(MON|TUE|WED|THU|FRI|SAT),\s*(NOV|DEC|JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT)\s*(\d+)$/i,
+                      (_, d, m, n) => {
+                        const capD = d.charAt(0).toUpperCase() + d.slice(1).toLowerCase();
+                        const capM = m.charAt(0).toUpperCase() + m.slice(1).toLowerCase();
+                        return `${capD}, ${capM} ${n}`;
+                      }
+                    );
 
                     return (
                       <button
                         key={day.id}
                         type="button"
                         onClick={() => handleOpenDayModal(day)}
-                        className="w-full px-2.5 py-1.5 rounded-xl bg-slate-50/80 dark:bg-white/[0.025] hover:bg-blue-50/60 dark:hover:bg-blue-500/10 border border-slate-200/60 dark:border-white/[0.05] hover:border-[#006DFE]/40 dark:hover:border-[#006DFE]/40 transition-all cursor-pointer flex items-center justify-between text-left group"
+                        className="w-full px-3 py-2 rounded-xl bg-slate-50/80 dark:bg-white/[0.025] hover:bg-blue-50/50 dark:hover:bg-blue-500/10 border border-slate-200/60 dark:border-white/[0.05] hover:border-[#006DFE]/40 dark:hover:border-[#006DFE]/40 transition-all cursor-pointer flex items-center justify-between text-left group"
                       >
-                        <div className="flex items-center gap-2 min-w-0">
-                          <div className="w-6 h-6 rounded-lg bg-white dark:bg-white/[0.06] border border-slate-200/80 dark:border-white/10 flex items-center justify-center text-[9.5px] font-mono font-bold text-slate-700 dark:text-neutral-300 shrink-0 shadow-2xs">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="w-8 h-8 rounded-lg bg-white dark:bg-white/[0.06] border border-slate-200/80 dark:border-white/10 flex items-center justify-center text-xs font-bold text-slate-700 dark:text-neutral-200 shrink-0 shadow-2xs">
                             {day.dayHeader.slice(0, 3)}
                           </div>
                           <div className="min-w-0">
-                            <div className="text-[11px] font-bold text-slate-900 dark:text-white truncate">
-                              {day.day}
+                            <div className="text-xs font-bold text-slate-900 dark:text-white truncate group-hover:text-[#006DFE] transition-colors">
+                              {formattedDayTitle}
                             </div>
-                            <div className="text-[9px] font-mono text-slate-400 dark:text-neutral-500 flex items-center gap-1 truncate">
-                              <span className={`w-1 h-1 rounded-full ${dotColor}`} />
-                              <span>{day.pair}</span>
-                              <span className="text-slate-300 dark:text-neutral-600">·</span>
-                              <span className={day.net.startsWith("+") ? "text-emerald-500 font-bold" : "text-rose-500 font-bold"}>
+                            <div className="text-[11px] font-medium text-slate-500 dark:text-neutral-400 flex items-center gap-1.5 truncate mt-0.5">
+                              <span className={`w-1.5 h-1.5 rounded-full ${dotColor} shrink-0`} />
+                              <span className="truncate">{day.pair}</span>
+                              <span className="text-slate-300 dark:text-neutral-700">·</span>
+                              <span className={`font-semibold shrink-0 ${day.net.startsWith("+") ? "text-emerald-600 dark:text-emerald-400" : "text-rose-500 dark:text-rose-400"}`}>
                                 {day.net}
                               </span>
                             </div>
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-2 shrink-0">
-                          <span className="text-xs font-mono font-black text-slate-900 dark:text-white tabular-nums group-hover:text-[#006DFE] transition-colors">
+                        <div className="flex items-center gap-2.5 shrink-0 pl-2">
+                          <span className="text-sm font-bold text-slate-900 dark:text-white tabular-nums group-hover:text-[#006DFE] transition-colors">
                             {day.score}
                           </span>
-                          <span className={`px-1.5 py-0.5 rounded text-[9px] font-mono font-bold border ${gradeColor}`}>
+                          <span className={`px-2 py-0.5 rounded-md text-[10.5px] font-bold border ${gradeColor}`}>
                             {day.grade}
                           </span>
                         </div>
@@ -1674,13 +1690,16 @@ export default function Rewards() {
               </div>
 
               {/* Weekly Audit Summary Strip */}
-              <div className="pt-2 border-t border-slate-100 dark:border-white/[0.06] flex items-center justify-between text-[10.5px] font-mono text-slate-400 dark:text-neutral-500">
-                <span className="flex items-center gap-1">
+              <div className="pt-2.5 border-t border-slate-100 dark:border-white/[0.06] flex items-center justify-between text-xs text-slate-500 dark:text-neutral-400">
+                <div className="flex items-center gap-1.5 font-medium">
                   <span>6 Sessions Audited</span>
-                  <span className="text-slate-300 dark:text-neutral-600">·</span>
-                  <span className="font-bold text-slate-700 dark:text-neutral-300">Avg {currentWeekData.avgScore}</span>
-                </span>
-                <span className="font-bold text-emerald-600 dark:text-emerald-400">{currentWeekData.passRate}</span>
+                  <span className="text-slate-300 dark:text-neutral-700">·</span>
+                  <span>Avg Score: <strong className="text-slate-900 dark:text-white font-bold">{currentWeekData.avgScore}</strong></span>
+                </div>
+                <div className="flex items-center gap-1.5 font-semibold text-emerald-600 dark:text-emerald-400">
+                  <CheckCircle2 size={13} className="text-emerald-500" />
+                  <span>{currentWeekData.passRate}</span>
+                </div>
               </div>
             </div>
 
@@ -1694,7 +1713,7 @@ export default function Rewards() {
             {/* Header with multiplier card */}
             <div className="flex flex-col md:flex-row md:items-center justify-between pb-5 border-b border-slate-100 dark:border-white/[0.06] gap-4">
               <div>
-                <div className="text-[11px] font-mono font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+                <div className="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
                   21-DAY STREAK SHIELD CHALLENGE
                 </div>
                 <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight mt-1">
@@ -1709,7 +1728,7 @@ export default function Rewards() {
               <div className="p-3.5 sm:p-4 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-center gap-3 self-start md:self-auto min-w-[200px]">
                 <span className="text-2xl animate-flame">🔥</span>
                 <div>
-                  <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400">
                     Current Multiplier
                   </div>
                   <div className="text-xl font-black text-amber-900 dark:text-amber-200 mt-0.5 tabular-nums">
@@ -1743,8 +1762,8 @@ export default function Rewards() {
                       }`}
                     >
                       <div>
-                        <div className="text-[10px] font-mono font-bold text-slate-400">
-                          DAY {String(day).padStart(2, "0")}
+                        <div className="text-[10.5px] font-bold text-slate-400 dark:text-neutral-500">
+                          Day {String(day).padStart(2, "0")}
                         </div>
                         <div className="text-xs font-bold mt-0.5">
                           {isCompleted ? "Verified" : isShieldDay ? "21d Shield" : "Upcoming"}
@@ -1774,7 +1793,7 @@ export default function Rewards() {
                 </p>
               </div>
 
-              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-mono font-bold bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-200/60 dark:border-amber-500/20 self-start sm:self-auto">
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-200/60 dark:border-amber-500/20 self-start sm:self-auto">
                 +450 XP Earned from Badges
               </span>
             </div>
@@ -1798,7 +1817,7 @@ export default function Rewards() {
                     </div>
 
                     <span
-                      className={`px-2 py-0.5 rounded-md text-[11px] font-mono font-bold ${
+                      className={`px-2.5 py-0.5 rounded-md text-[11px] font-bold ${
                         b.unlocked
                           ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
                           : "bg-slate-200 dark:bg-white/10 text-slate-500"
@@ -1837,7 +1856,7 @@ export default function Rewards() {
                 </p>
               </div>
 
-              <div className="px-3.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-500/20 text-xs font-mono font-bold self-start sm:self-auto">
+              <div className="px-3.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-500/20 text-xs font-bold self-start sm:self-auto">
                 Available Balance: {xp} XP
               </div>
             </div>
@@ -1855,10 +1874,10 @@ export default function Rewards() {
                   >
                     <div>
                       <div className="flex items-center justify-between gap-2 mb-2">
-                        <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#006DFE]/15 text-[#006DFE] dark:text-blue-400 uppercase">
+                        <span className="px-2 py-0.5 rounded text-[10.5px] font-bold bg-[#006DFE]/15 text-[#006DFE] dark:text-blue-400 uppercase">
                           {reward.tag}
                         </span>
-                        <span className="text-xs font-mono font-bold text-slate-700 dark:text-slate-200">
+                        <span className="text-xs font-bold text-slate-700 dark:text-slate-200">
                           {reward.cost} XP
                         </span>
                       </div>
@@ -1922,7 +1941,7 @@ export default function Rewards() {
                 {/* Header */}
                 <div className="px-5 py-4 border-b border-slate-100 dark:border-white/[0.08] flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#006DFE]/15 text-[#006DFE] dark:text-blue-400">
+                    <span className="px-2 py-0.5 rounded text-[10.5px] font-bold bg-[#006DFE]/15 text-[#006DFE] dark:text-blue-400">
                       {activeAuditModal.badge}
                     </span>
                     <h3 className="text-sm font-bold text-slate-900 dark:text-white">
@@ -1952,7 +1971,7 @@ export default function Rewards() {
                         <div className="text-[11px] text-slate-400 dark:text-neutral-400">
                           {s.label}
                         </div>
-                        <div className="text-xs font-mono font-bold text-slate-900 dark:text-white mt-1">
+                        <div className="text-xs font-bold text-slate-900 dark:text-white mt-1 tabular-nums">
                           {s.value}
                         </div>
                       </div>
