@@ -2845,6 +2845,200 @@ export default function Rewards() {
               </div>
             </div>
 
+            {/* ── BEGINNER'S DIRECTORY: HOW TO EARN XP & REDEEM PERKS ── */}
+            <div className="pt-4 border-t border-slate-100 dark:border-white/[0.06] space-y-4">
+              
+              {/* Section Header */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-5 h-5 rounded-md bg-purple-50 dark:bg-purple-500/10 flex items-center justify-center text-purple-600 dark:text-purple-400 shrink-0">
+                      <Star size={13} className="fill-purple-500 text-purple-500" />
+                    </div>
+                    <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white tracking-tight">
+                      Beginner's Blueprint: How You Earn XP &amp; What You Can Unlock
+                    </h3>
+                  </div>
+                  <p className="text-[11px] text-slate-500 dark:text-neutral-400 mt-0.5 font-medium">
+                    Every disciplined trading habit generates XP that can be redeemed for real evaluation discounts, cashback, and VPS infrastructure.
+                  </p>
+                </div>
+
+                <span className="px-3 py-1 rounded-full text-xs font-bold bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400 border border-purple-200/80 dark:border-purple-500/25 self-start sm:self-auto tabular-nums">
+                  1 XP = 1 Trader Discipline Point
+                </span>
+              </div>
+
+              {/* Step 1: 4 Core Earning Channels */}
+              <div className="space-y-2">
+                <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                  <span className="w-4 h-4 rounded-full bg-blue-500 text-white flex items-center justify-center text-[10px] font-bold">1</span>
+                  <span>Where &amp; How You Earn XP (Daily Trading Actions)</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  
+                  {/* Channel 1: MT5 Compliant Sessions */}
+                  <div className="p-3.5 rounded-xl bg-slate-50/80 dark:bg-white/[0.025] border border-slate-200/70 dark:border-white/[0.06] flex flex-col justify-between gap-2.5">
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[9.5px] font-mono font-bold uppercase text-slate-400 dark:text-neutral-500">
+                          DAILY SESSIONS
+                        </span>
+                        <span className="text-[10.5px] font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                          +50 to +150 XP
+                        </span>
+                      </div>
+                      <h4 className="text-[13px] font-bold text-slate-900 dark:text-white mt-1">
+                        Compliant MT5 Trading
+                      </h4>
+                      <p className="text-[11px] text-slate-500 dark:text-neutral-400 mt-1 leading-relaxed">
+                        Execute trades with 100% protective SL under 3 seconds &amp; respect your 1.0% risk cap. Grade A+ awards +150 XP daily.
+                      </p>
+                    </div>
+                    <div className="pt-2 border-t border-slate-200/60 dark:border-white/[0.05] text-[10px] text-slate-500 dark:text-neutral-400 font-medium">
+                      Trigger: Automatic at 00:00 MT5 Close
+                    </div>
+                  </div>
+
+                  {/* Channel 2: Streaks & Levels */}
+                  <div className="p-3.5 rounded-xl bg-slate-50/80 dark:bg-white/[0.025] border border-slate-200/70 dark:border-white/[0.06] flex flex-col justify-between gap-2.5">
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[9.5px] font-mono font-bold uppercase text-slate-400 dark:text-neutral-500">
+                          STREAK LEVELS
+                        </span>
+                        <span className="text-[10.5px] font-mono font-bold text-amber-600 dark:text-amber-400">
+                          +50 to +1,000 XP
+                        </span>
+                      </div>
+                      <h4 className="text-[13px] font-bold text-slate-900 dark:text-white mt-1">
+                        Milestone Level Sprints
+                      </h4>
+                      <p className="text-[11px] text-slate-500 dark:text-neutral-400 mt-1 leading-relaxed">
+                        Consecutive disciplined sessions level you from Lv 1 (3d) to Lv 5 (30d). Unlocks permanent multiplier boosts up to 1.50x.
+                      </p>
+                    </div>
+                    <div className="pt-2 border-t border-slate-200/60 dark:border-white/[0.05] text-[10px] text-slate-500 dark:text-neutral-400 font-medium">
+                      Trigger: On Level Milestone Complete
+                    </div>
+                  </div>
+
+                  {/* Channel 3: Journal Reflections */}
+                  <div className="p-3.5 rounded-xl bg-slate-50/80 dark:bg-white/[0.025] border border-slate-200/70 dark:border-white/[0.06] flex flex-col justify-between gap-2.5">
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[9.5px] font-mono font-bold uppercase text-slate-400 dark:text-neutral-500">
+                          TRADE JOURNAL
+                        </span>
+                        <span className="text-[10.5px] font-mono font-bold text-purple-600 dark:text-purple-400">
+                          +30 XP / Entry
+                        </span>
+                      </div>
+                      <h4 className="text-[13px] font-bold text-slate-900 dark:text-white mt-1">
+                        Session Post-Mortems
+                      </h4>
+                      <p className="text-[11px] text-slate-500 dark:text-neutral-400 mt-1 leading-relaxed">
+                        Log detailed execution reflections in the Smart Journal (min 80 characters, anti-cheat verified). Reflect, learn, and earn.
+                      </p>
+                    </div>
+                    <div className="pt-2 border-t border-slate-200/60 dark:border-white/[0.05] text-[10px] text-slate-500 dark:text-neutral-400 font-medium">
+                      Trigger: Save Verified Trade Journal
+                    </div>
+                  </div>
+
+                  {/* Channel 4: Competitions & Badges */}
+                  <div className="p-3.5 rounded-xl bg-slate-50/80 dark:bg-white/[0.025] border border-slate-200/70 dark:border-white/[0.06] flex flex-col justify-between gap-2.5">
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[9.5px] font-mono font-bold uppercase text-slate-400 dark:text-neutral-500">
+                          COMMUNITY &amp; BADGES
+                        </span>
+                        <span className="text-[10.5px] font-mono font-bold text-blue-600 dark:text-blue-400">
+                          +50 to +500 XP
+                        </span>
+                      </div>
+                      <h4 className="text-[13px] font-bold text-slate-900 dark:text-white mt-1">
+                        Tournaments &amp; Badges
+                      </h4>
+                      <p className="text-[11px] text-slate-500 dark:text-neutral-400 mt-1 leading-relaxed">
+                        Join free trading tournaments (+50 XP) and unlock institutional badges (Zero Violation Week, Cool-Headed, Risk Architect).
+                      </p>
+                    </div>
+                    <div className="pt-2 border-t border-slate-200/60 dark:border-white/[0.05] text-[10px] text-slate-500 dark:text-neutral-400 font-medium">
+                      Trigger: Tournament Join / Badge Claim
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+              {/* Step 2: What You Can Purchase / Unlock with XP */}
+              <div className="space-y-2 pt-1">
+                <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                  <span className="w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] font-bold">2</span>
+                  <span>What You Can Purchase &amp; Redeem in the Vault</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  
+                  <div className="p-3.5 rounded-xl bg-blue-50/50 dark:bg-blue-500/5 border border-blue-200/70 dark:border-blue-500/20">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-[#006DFE] dark:text-blue-400">
+                      <Ticket size={13} />
+                      <span>20% Prop Discounts</span>
+                    </div>
+                    <div className="text-xs font-mono font-bold text-slate-900 dark:text-white mt-1">
+                      500 XP = $60 to $120 Savings
+                    </div>
+                    <p className="text-[10.5px] text-slate-500 dark:text-neutral-400 mt-1 leading-relaxed font-medium">
+                      Instant evaluation discount vouchers valid on $50k &amp; $100k funded challenges.
+                    </p>
+                  </div>
+
+                  <div className="p-3.5 rounded-xl bg-purple-50/50 dark:bg-purple-500/5 border border-purple-200/70 dark:border-purple-500/20">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-purple-700 dark:text-purple-400">
+                      <Zap size={13} />
+                      <span>30-Day MT5 VPS</span>
+                    </div>
+                    <div className="text-xs font-mono font-bold text-slate-900 dark:text-white mt-1">
+                      350 XP = 1.2ms LD4 Hosting
+                    </div>
+                    <p className="text-[10.5px] text-slate-500 dark:text-neutral-400 mt-1 leading-relaxed font-medium">
+                      Automated Risk Guard enforcer running 24/5 on ultra-low-latency Equinix hardware.
+                    </p>
+                  </div>
+
+                  <div className="p-3.5 rounded-xl bg-emerald-50/50 dark:bg-emerald-500/5 border border-emerald-200/70 dark:border-emerald-500/20">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-400">
+                      <Crown size={13} />
+                      <span>$50 Raw Spread Rebate</span>
+                    </div>
+                    <div className="text-xs font-mono font-bold text-slate-900 dark:text-white mt-1">
+                      750 XP = $50 Direct Cash
+                    </div>
+                    <p className="text-[10.5px] text-slate-500 dark:text-neutral-400 mt-1 leading-relaxed font-medium">
+                      Direct cash rebate credited to your Exness Real trading balance. 100% withdrawable.
+                    </p>
+                  </div>
+
+                  <div className="p-3.5 rounded-xl bg-amber-50/50 dark:bg-amber-500/5 border border-amber-200/70 dark:border-amber-500/20">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-amber-700 dark:text-amber-400">
+                      <Sparkles size={13} />
+                      <span>AI Credits &amp; Tournaments</span>
+                    </div>
+                    <div className="text-xs font-mono font-bold text-slate-900 dark:text-white mt-1">
+                      Free Entry &amp; AI Refills
+                    </div>
+                    <p className="text-[10.5px] text-slate-500 dark:text-neutral-400 mt-1 leading-relaxed font-medium">
+                      Redeem XP to refill AI Trade Coach query credits and enter cash-prize tournaments for free.
+                    </p>
+                  </div>
+
+                </div>
+              </div>
+
+            </div>
+
           </div>
         )}
 
