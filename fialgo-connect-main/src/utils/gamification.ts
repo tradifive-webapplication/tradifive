@@ -59,7 +59,20 @@ export function getGamificationState(): GamificationState {
     return DEFAULT_STATE;
   }
   try {
-    return JSON.parse(stored);
+    const parsed = JSON.parse(stored);
+    // Auto-purge any stale mock seed values
+    if (
+      parsed.xp === 1030 ||
+      parsed.xp === 3030 ||
+      parsed.xp === 350 ||
+      parsed.streak === 18 ||
+      parsed.streak === 16
+    ) {
+      const clean = { ...DEFAULT_STATE };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(clean));
+      return clean;
+    }
+    return parsed;
   } catch (e) {
     return DEFAULT_STATE;
   }

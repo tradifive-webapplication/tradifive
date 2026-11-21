@@ -82,7 +82,10 @@ export function getForexDisciplineState(): ForexDisciplineState {
       parsed.streakDays === 16 ||
       parsed.streakDays === 18 ||
       parsed.calendarHistory?.["2026-11-15"] ||
-      parsed.breakdown?.tradesCount === 3
+      parsed.breakdown?.tradesCount === 3 ||
+      parsed.xp === 1030 ||
+      parsed.xp === 3030 ||
+      parsed.xp === 350
     ) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_DISCIPLINE_STATE));
       return DEFAULT_DISCIPLINE_STATE;

@@ -442,31 +442,39 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
       const raw = localStorage.getItem("tradifive_forex_discipline_state");
       if (raw) {
         const parsed = JSON.parse(raw);
-        if (parsed.streakDays) return parsed.streakDays;
+        if (typeof parsed?.streakDays === "number" && parsed.streakDays !== 16 && parsed.streakDays !== 18) return parsed.streakDays;
       }
       const gam = localStorage.getItem("tradifive_gamification_state");
       if (gam) {
         const parsed = JSON.parse(gam);
-        if (parsed.streak) return parsed.streak;
+        if (typeof parsed?.streak === "number") return parsed.streak;
       }
-      return 18;
+      return 0;
     } catch {
-      return 18;
+      return 0;
+    }
+  });
+
+  const [hasConnectedAccount, setHasConnectedAccount] = useState<boolean>(() => {
+    try {
+      return Boolean(localStorage.getItem("tradifive_cached_account_number"));
+    } catch {
+      return false;
     }
   });
 
   const [totalXP, setTotalXP] = useState<number>(() => {
     try {
       const gam = getGamificationState();
-      if (gam?.xp) return gam.xp;
+      if (typeof gam?.xp === "number" && gam.xp > 0 && gam.xp !== 1030 && gam.xp !== 3030 && gam.xp !== 350) return gam.xp;
       const raw = localStorage.getItem("tradifive_forex_discipline_state");
       if (raw) {
         const parsed = JSON.parse(raw);
-        if (parsed.xp) return parsed.xp;
+        if (typeof parsed?.xp === "number" && parsed.xp > 0 && parsed.xp !== 1030 && parsed.xp !== 3030 && parsed.xp !== 350) return parsed.xp;
       }
-      return 1030;
+      return 0;
     } catch {
-      return 1030;
+      return 0;
     }
   });
 
@@ -546,15 +554,34 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
         
         const { data: profile } = await supabase
           .from('profiles')
-          .select('username, display_name, avatar_url')
+          .select('username, display_name, avatar_url, xp_total, streak_days')
           .eq('id', user.id)
           .maybeSingle();
+
+        const { data: mt5 } = await supabase
+          .from('mt5_accounts')
+          .select('account_number')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        const connected = Boolean(mt5?.account_number);
+        setHasConnectedAccount(connected);
 
         if (profile && isMounted) {
           const resolvedUsername = profile.username || defaultUsername;
           const resolvedAvatar = profile.avatar_url || "";
           setMobileUsername(resolvedUsername);
           setMobileAvatarUrl(resolvedAvatar);
+          if (typeof profile.xp_total === "number" && connected && profile.xp_total !== 1030 && profile.xp_total !== 3030 && profile.xp_total !== 350) {
+            setTotalXP(profile.xp_total);
+          } else if (!connected) {
+            setTotalXP(0);
+          }
+          if (typeof profile.streak_days === "number" && connected && profile.streak_days !== 16 && profile.streak_days !== 18) {
+            setStreakDays(profile.streak_days);
+          } else if (!connected) {
+            setStreakDays(0);
+          }
           localStorage.setItem("tradifive_cached_username", resolvedUsername);
           if (resolvedAvatar) localStorage.setItem("tradifive_cached_avatar_url", resolvedAvatar);
         } else if (isMounted) {
@@ -747,17 +774,19 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
                 {headerActions}
 
                 {/* Mobile Compact Total XP Badge */}
-                <button
-                  type="button"
-                  onClick={() => navigate('/rewards?tab=vault')}
-                  className="sm:hidden flex items-center gap-1 px-2 h-[26px] rounded-[8px] bg-white dark:bg-[#18181B] border border-purple-200/80 dark:border-purple-500/25 shadow-[0_1px_2px_rgba(0,0,0,0.05)] cursor-pointer select-none active:scale-95 transition-all text-purple-700 dark:text-purple-400"
-                  title={`${totalXP.toLocaleString()} Total XP (Click to redeem perks in Vault)`}
-                >
-                  <Star size={11} className="fill-purple-500 text-purple-500 shrink-0" />
-                  <span className="text-[11px] font-bold tabular-nums tracking-tight leading-none">
-                    {totalXP.toLocaleString()}
-                  </span>
-                </button>
+                {hasConnectedAccount && totalXP > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => navigate('/rewards?tab=vault')}
+                    className="sm:hidden flex items-center gap-1 px-2 h-[26px] rounded-[8px] bg-white dark:bg-[#18181B] border border-purple-200/80 dark:border-purple-500/25 shadow-[0_1px_2px_rgba(0,0,0,0.05)] cursor-pointer select-none active:scale-95 transition-all text-purple-700 dark:text-purple-400"
+                    title={`${totalXP.toLocaleString()} Total XP (Click to redeem perks in Vault)`}
+                  >
+                    <Star size={11} className="fill-purple-500 text-purple-500 shrink-0" />
+                    <span className="text-[11px] font-bold tabular-nums tracking-tight leading-none">
+                      {totalXP.toLocaleString()}
+                    </span>
+                  </button>
+                )}
 
                 {/* Mobile Compact Credits Badge — [ (gauge) 40/250 + ] */}
                 <div
@@ -813,18 +842,20 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
                   </div>
                 </button>
 
-                {/* Desktop Total XP Pill — [ ⭐ 1,030 XP ] */}
-                <button
-                  type="button"
-                  onClick={() => navigate('/rewards?tab=vault')}
-                  className="hidden sm:inline-flex items-center gap-1.5 px-2.5 h-[28px] rounded-[8px] bg-white dark:bg-[#18181B] border border-purple-200/80 dark:border-purple-500/25 shadow-[0_1px_2px_rgba(0,0,0,0.05)] cursor-pointer select-none hover:border-purple-300 dark:hover:border-purple-500/40 transition-all text-purple-700 dark:text-purple-400"
-                  title={`${totalXP.toLocaleString()} Total XP (Redeem for Subscriptions, Competitions & AI Credits in Vault)`}
-                >
-                  <Star size={13} className="fill-purple-500 text-purple-500 shrink-0" />
-                  <span className="text-[12px] font-bold tabular-nums tracking-tight leading-none">
-                    {totalXP.toLocaleString()} XP
-                  </span>
-                </button>
+                {/* Desktop Total XP Pill — [ ⭐ Total XP ] */}
+                {hasConnectedAccount && totalXP > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => navigate('/rewards?tab=vault')}
+                    className="hidden sm:inline-flex items-center gap-1.5 px-2.5 h-[28px] rounded-[8px] bg-white dark:bg-[#18181B] border border-purple-200/80 dark:border-purple-500/25 shadow-[0_1px_2px_rgba(0,0,0,0.05)] cursor-pointer select-none hover:border-purple-300 dark:hover:border-purple-500/40 transition-all text-purple-700 dark:text-purple-400"
+                    title={`${totalXP.toLocaleString()} Total XP (Redeem for Subscriptions, Competitions & AI Credits in Vault)`}
+                  >
+                    <Star size={13} className="fill-purple-500 text-purple-500 shrink-0" />
+                    <span className="text-[12px] font-bold tabular-nums tracking-tight leading-none">
+                      {totalXP.toLocaleString()} XP
+                    </span>
+                  </button>
+                )}
 
                 {/* Desktop Small AI Credits Badge — exact match to user design: [ (gauge) 40/250 + ] */}
                 <div

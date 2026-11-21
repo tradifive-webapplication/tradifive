@@ -178,15 +178,17 @@ export default function Rewards() {
   const [activeTab, setActiveTab] = useState<"discipline" | "streak" | "badges" | "vault">("discipline");
   const [activeRange, setActiveRange] = useState<"7D" | "14D" | "All">("14D");
 
+  const hasTrades = Boolean(recentTrades && recentTrades.length > 0);
+
   // Real Gamification State (Real XP & Streak)
   const [totalXP, setTotalXP] = useState<number>(() => {
     try {
       const gam = getGamificationState();
-      if (typeof gam?.xp === "number") return gam.xp;
+      if (typeof gam?.xp === "number" && gam.xp > 0 && gam.xp !== 1030 && gam.xp !== 3030 && gam.xp !== 350) return gam.xp;
       const raw = localStorage.getItem("tradifive_forex_discipline_state");
       if (raw) {
         const parsed = JSON.parse(raw);
-        if (typeof parsed?.xp === "number") return parsed.xp;
+        if (typeof parsed?.xp === "number" && parsed.xp > 0 && parsed.xp !== 1030 && parsed.xp !== 3030 && parsed.xp !== 350) return parsed.xp;
       }
       return 0;
     } catch {
@@ -230,8 +232,8 @@ export default function Rewards() {
   const xp = totalXP;
   const setXp = setTotalXP;
 
-  const [score, setScore] = useState(() => avgDisciplineScore || 100);
-  const [displayScore, setDisplayScore] = useState(() => avgDisciplineScore || 100);
+  const [score, setScore] = useState<number | null>(() => (hasTrades ? (avgDisciplineScore || 100) : null));
+  const [displayScore, setDisplayScore] = useState<number | null>(() => (hasTrades ? (avgDisciplineScore || 100) : null));
   const [redeemedRewards, setRedeemedRewards] = useState<Set<string>>(new Set());
   const [replayKey, setReplayKey] = useState(0);
   const [selectedWeekIndex, setSelectedWeekIndex] = useState(0);
@@ -416,7 +418,7 @@ export default function Rewards() {
         headline: hasTrades ? `${totalProfit >= 0 ? "+" : ""}$${totalProfit.toFixed(2)}` : "$0.00",
         delta: hasTrades ? `${totalTrades} verified order${totalTrades === 1 ? "" : "s"}` : "Session Ready",
         sessions: `${totalTrades} closed session${totalTrades === 1 ? "" : "s"}`,
-        scoreLabel: hasTrades ? `Score: ${avgDisciplineScore || 100}%` : "Baseline: 100%",
+        scoreLabel: hasTrades ? `Score: ${avgDisciplineScore || 100}%` : "Score: --",
         points: pts,
       };
     };
@@ -431,16 +433,18 @@ export default function Rewards() {
   // Live Metric States
   const [liveTradesCount, setLiveTradesCount] = useState<number>(() => tradesToday || 0);
   const [liveSessionsCount, setLiveSessionsCount] = useState<number>(() => recentTrades?.length || 0);
-  const [liveStopLossPercent, setLiveStopLossPercent] = useState<number>(100);
+  const [liveStopLossPercent, setLiveStopLossPercent] = useState<number>(() => {
+    if (recentTrades && recentTrades.length > 0) {
+      const slTrades = recentTrades.filter((t) => t.sl);
+      return Math.round((slTrades.length / recentTrades.length) * 100);
+    }
+    return 0;
+  });
   const [liveViolationsCount, setLiveViolationsCount] = useState<number>(() => breachLogs?.length || 0);
 
   // Sync with live Supabase telemetry if available
   useEffect(() => {
     if (tradesToday) setLiveTradesCount(tradesToday);
-    if (avgDisciplineScore) {
-      setScore(avgDisciplineScore);
-      setDisplayScore(avgDisciplineScore);
-    }
     if (breachLogs && breachLogs.length > 0) {
       setLiveViolationsCount(breachLogs.length);
     }
@@ -449,16 +453,22 @@ export default function Rewards() {
       const slTrades = recentTrades.filter((t) => t.sl);
       const slPct = Math.round((slTrades.length / recentTrades.length) * 100);
       setLiveStopLossPercent(slPct);
+      if (avgDisciplineScore) {
+        setScore(avgDisciplineScore);
+        setDisplayScore(avgDisciplineScore);
+      }
     } else {
       setLiveSessionsCount(0);
-      setLiveStopLossPercent(100);
+      setLiveStopLossPercent(0);
+      setScore(null);
+      setDisplayScore(null);
     }
-    if (dailyXpEarned) {
+    if (dailyXpEarned && isConnected) {
       setTotalXP((prev) => Math.max(prev, dailyXpEarned));
     }
-  }, [tradesToday, avgDisciplineScore, breachLogs, recentTrades, dailyXpEarned]);
+  }, [tradesToday, avgDisciplineScore, breachLogs, recentTrades, dailyXpEarned, isConnected]);
 
-  const clampedScore = Math.max(0, Math.min(100, displayScore));
+  const clampedScore = hasTrades && typeof displayScore === "number" ? Math.max(0, Math.min(100, displayScore)) : null;
 
   const activeDataset = useMemo(() => {
     return curveDatasets[activeRange];
@@ -523,31 +533,31 @@ export default function Rewards() {
       id: "sl",
       title: "MT5 Stop-Loss Protection",
       subtitle: "Every order opened with mandatory protective SL",
-      value: liveStopLossPercent,
-      badgeText: recentTrades?.length ? `${liveStopLossPercent}% Verified` : "100% Ready",
-      percentageText: `${liveStopLossPercent}%`,
+      value: hasTrades ? liveStopLossPercent : 0,
+      badgeText: hasTrades ? `${liveStopLossPercent}% Verified` : "--",
+      percentageText: hasTrades ? `${liveStopLossPercent}%` : "--",
       colorType: "green",
       icon: <ShieldCheck size={16} className="text-emerald-500" />,
-      auditBadge: "100% PROTECTED",
+      auditBadge: hasTrades ? `${liveStopLossPercent}% PROTECTED` : "-- PROTECTED",
       auditTitle: "Stop-Loss Enforcement Telemetry",
       auditSummary:
-        recentTrades?.length
+        hasTrades
           ? "Every single market order transmitted to your connected MT5 terminal was verified with a hard protective stop-loss in place upon order receipt. Zero unhedged exposure detected."
           : "Mandatory protective stop-loss guard active. Every future order will be automatically inspected upon receipt.",
       auditStats: [
         { label: "Orders Analyzed", value: `${liveSessionsCount} Closed Positions` },
-        { label: "Avg SL Latency", value: recentTrades?.length ? "1.4s post-fill" : "--" },
+        { label: "Avg SL Latency", value: hasTrades ? "1.4s post-fill" : "--" },
         { label: "Discipline Breaches", value: `${liveViolationsCount} Detected` },
       ],
-      telemetryStat: recentTrades?.length ? `${liveSessionsCount} Closed Orders · SL Verified` : "0 Closed Orders · Ready",
+      telemetryStat: hasTrades ? `${liveSessionsCount} Closed Orders · SL Verified` : "0 Closed Orders · Awaiting First Trade",
     },
     {
       id: "lots",
       title: "Lot Sizing Rule",
       subtitle: "Strict 1% account risk limit dynamically enforced",
-      value: 100,
+      value: hasTrades ? 100 : 0,
       badgeText: "1.0% Risk Cap",
-      percentageText: "100%",
+      percentageText: hasTrades ? "100%" : "--",
       colorType: "blue",
       icon: <Scale size={16} className="text-[#006DFE] dark:text-blue-400" />,
       auditBadge: "1.0% RISK CAP",
@@ -556,18 +566,18 @@ export default function Rewards() {
         `Positions strictly calibrated against account equity (${accountMetrics?.equity ? `$${Number(accountMetrics.equity).toLocaleString()}` : "connected account"}). All orders are capped at 1.0% maximum capital exposure.`,
       auditStats: [
         { label: "Max Risk Enforced", value: "1.00% Account Equity" },
-        { label: "Highest Lot Traded", value: recentTrades?.length ? "Within Risk Cap" : "Awaiting First Order" },
+        { label: "Highest Lot Traded", value: hasTrades ? "Within Risk Cap" : "Awaiting First Order" },
         { label: "Oversizing Attempts", value: "0 Flagged" },
       ],
-      telemetryStat: "Max Risk 1.0% · 0 Oversizing Flags",
+      telemetryStat: hasTrades ? "Max Risk 1.0% · 0 Oversizing Flags" : "Max Risk 1.0% · Awaiting First Trade",
     },
     {
       id: "revenge",
       title: "Revenge Trade Shield",
       subtitle: "15-minute emotional cooldown respected post-loss",
-      value: 100,
+      value: hasTrades ? 100 : 0,
       badgeText: "0 Violations",
-      percentageText: "100%",
+      percentageText: hasTrades ? "100%" : "--",
       colorType: "green",
       icon: <CheckCircle2 size={16} className="text-emerald-500" />,
       auditBadge: "0 VIOLATIONS",
@@ -575,19 +585,19 @@ export default function Rewards() {
       auditSummary:
         "Following any losing trade, Live MT5 Guard enforces a mandatory 15-minute emotional reset window before new market entries.",
       auditStats: [
-        { label: "Post-Loss Cooldowns", value: recentTrades?.length ? "All Respected" : "Ready" },
+        { label: "Post-Loss Cooldowns", value: hasTrades ? "All Respected" : "Ready" },
         { label: "Cooldown Window", value: "15m Mandatory" },
         { label: "Lot Doubling Attempts", value: "0 Blocked" },
       ],
-      telemetryStat: "15m Emotional Shield Active · 0 Breaches",
+      telemetryStat: hasTrades ? "15m Emotional Shield Active · 0 Breaches" : "15m Shield Ready · 0 Breaches",
     },
     {
       id: "cap",
       title: "Daily Trade Cap",
       subtitle: "Strictly under maximum daily execution quota",
-      value: Math.round(((tradesToday || 0) / 4) * 100),
-      badgeText: `${tradesToday || 0} / 4 Trades`,
-      percentageText: `${Math.round(((tradesToday || 0) / 4) * 100)}%`,
+      value: hasTrades ? Math.round(((tradesToday || 0) / 4) * 100) : 0,
+      badgeText: hasTrades ? `${tradesToday || 0} / 4 Trades` : "0 / 4 Trades",
+      percentageText: `${hasTrades ? Math.round(((tradesToday || 0) / 4) * 100) : 0}%`,
       colorType: (tradesToday || 0) >= 4 ? "green" : "blue",
       icon: <Clock size={16} className={(tradesToday || 0) >= 4 ? "text-emerald-500" : "text-[#006DFE] dark:text-blue-400"} />,
       auditBadge: `${tradesToday || 0} / 4 TRADES`,
@@ -599,7 +609,7 @@ export default function Rewards() {
         { label: "Auto-Reset Timer", value: "00:00 MT5 Server" },
         { label: "Overtrading Breaches", value: "0 This Month" },
       ],
-      telemetryStat: `${tradesToday || 0} / 4 Executions · ${Math.max(0, 4 - (tradesToday || 0))} Slot${Math.max(0, 4 - (tradesToday || 0)) === 1 ? "" : "s"} Remaining`,
+      telemetryStat: hasTrades ? `${tradesToday || 0} / 4 Executions · ${Math.max(0, 4 - (tradesToday || 0))} Slot${Math.max(0, 4 - (tradesToday || 0)) === 1 ? "" : "s"} Remaining` : "0 / 4 Executions · 4 Slots Available",
     },
   ];
 
@@ -638,7 +648,7 @@ export default function Rewards() {
         const dayTrades = recentTrades?.filter((t) => (t.close_time || t.open_time || t.closed_at || "").startsWith(iso)) || [];
         const hasTrades = dayTrades.length > 0;
         const dayScore = isToday
-          ? (tradesToday ? displayScore : null)
+          ? (tradesToday && hasTrades ? displayScore : null)
           : hasTrades
           ? Math.round(dayTrades.reduce((acc, t) => acc + (t.discipline_score || 100), 0) / dayTrades.length)
           : null;
@@ -703,7 +713,7 @@ export default function Rewards() {
           id: iso,
           dayHeader: item?.dayName?.toUpperCase() || "MON",
           day: item?.formattedDate?.toUpperCase() || "",
-          score: item?.score || 100,
+          score: item?.score !== null && item?.score !== undefined ? item.score : 0,
           grade: item?.grade || "--",
           tier: item?.tier || "--",
           trades: item?.trades || "0 / 4",
@@ -718,7 +728,7 @@ export default function Rewards() {
       const rangeLabel = `${firstD.toLocaleDateString("en-US", { month: "short", day: "numeric" })} – ${lastD.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`;
       const shortLabel = `${firstD.toLocaleDateString("en-US", { month: "short", day: "numeric" })}–${lastD.getDate()}`;
 
-      const activeDays = days.filter((d) => d.trades !== "0 / 4");
+      const activeDays = days.filter((d) => d.trades !== "0 / 4" && d.score > 0);
 
       return {
         id: `w-${offset}`,
@@ -727,7 +737,7 @@ export default function Rewards() {
         badge: offset === 0 ? "Current Week" : offset === 1 ? "Previous Week" : "2 Weeks Ago",
         isCurrent: offset === 0,
         passRate: activeDays.length ? "100% Pass Rate" : "Awaiting First Session",
-        avgScore: activeDays.length ? Math.round(activeDays.reduce((acc, d) => acc + d.score, 0) / activeDays.length) : 100,
+        avgScore: activeDays.length ? Math.round(activeDays.reduce((acc, d) => acc + d.score, 0) / activeDays.length) : 0,
         totalSessions: activeDays.length,
         days,
       };
@@ -1426,13 +1436,13 @@ export default function Rewards() {
                 </h3>
                 <p className="text-[11px] text-slate-400 dark:text-neutral-500 mt-1 flex items-center gap-1.5">
                   <span className={`w-1.5 h-1.5 rounded-full ${isConnected ? "bg-emerald-500" : "bg-slate-400"}`} />
-                  <span>{isConnected ? "MT5 Compliance Guard Active" : "Broker Guard Ready"}</span>
+                  <span>{isConnected ? (hasTrades ? "MT5 Compliance Guard Active" : "Connected · Awaiting First Trade") : "Broker Guard Ready"}</span>
                 </p>
               </div>
 
               <div className="flex items-center gap-1.5">
                 <span className="px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-blue-50 dark:bg-blue-500/10 text-[#006DFE] dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20 shrink-0">
-                  ● {clampedScore >= 95 ? "GRADE A+" : clampedScore >= 85 ? "GRADE A" : "GRADE B"}
+                  ● {hasTrades && clampedScore !== null ? (clampedScore >= 95 ? "GRADE A+" : "GRADE A") : "Awaiting Trades"}
                 </span>
               </div>
             </div>
@@ -1442,20 +1452,20 @@ export default function Rewards() {
               <div className="mx-auto w-full max-w-[270px]">
                 <Gauge
                   ariaLabel="Gauge - Semicircle"
-                  centerValue={`${clampedScore}%`}
+                  centerValue={clampedScore !== null ? `${clampedScore}%` : "--"}
                   defaultLabel="Forex Discipline"
                   endAngle={360}
                   notchCornerRadius={3}
                   startAngle={180}
                   suffix="%"
                   useGradient
-                  value={clampedScore}
+                  value={clampedScore !== null ? clampedScore : 0}
                 />
               </div>
 
               <div className="mt-1.5 inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[10.5px] font-bold bg-blue-50 dark:bg-blue-500/10 text-[#006DFE] dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#006DFE]" />
-                <span>{clampedScore >= 95 ? "GRADE A+ · Institutional Grade" : "Standard Compliance"}</span>
+                <span>{hasTrades && clampedScore !== null ? (clampedScore >= 95 ? "GRADE A+ · Institutional Grade" : "Standard Compliance") : "Connect MT5 · Awaiting Trades"}</span>
               </div>
             </div>
 
@@ -1463,10 +1473,10 @@ export default function Rewards() {
             <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-white/[0.06] flex items-center justify-between text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
               <span className="inline-flex items-center gap-1">
                 <ShieldCheck size={13} className="text-emerald-500" />
-                <span>Stop Loss: {recentTrades?.length ? `${liveStopLossPercent}% Verified` : "100% Ready"}</span>
+                <span>Stop Loss: {hasTrades ? `${liveStopLossPercent}% Verified` : "--"}</span>
               </span>
               <span className="text-slate-400 dark:text-neutral-500 font-medium">
-                {liveViolationsCount} Violations
+                {hasTrades ? liveViolationsCount : 0} Violations
               </span>
             </div>
           </div>
@@ -1601,15 +1611,15 @@ export default function Rewards() {
             {/* Bottom Summary Footer */}
             <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-white/[0.06] flex items-center justify-between text-xs text-slate-500 dark:text-neutral-400">
               <span className="flex items-center gap-1.5">
-                <span className={`w-1.5 h-1.5 rounded-full ${recentTrades?.length ? "bg-emerald-500" : "bg-slate-400"}`} />
+                <span className={`w-1.5 h-1.5 rounded-full ${hasTrades ? "bg-emerald-500" : "bg-slate-400"}`} />
                 <span>{activeDataset.sessions}</span>
                 <span className="text-slate-300 dark:text-neutral-600">·</span>
                 <span className="text-slate-500 dark:text-neutral-400 font-medium">
-                  {recentTrades?.length ? "Closed Sessions Synced" : "Awaiting First Session"}
+                  {hasTrades ? "Closed Sessions Synced" : "Awaiting First Session"}
                 </span>
               </span>
               <span className="font-bold text-[#006DFE] dark:text-blue-400">
-                {activeDataset.scoreLabel}
+                {hasTrades ? activeDataset.scoreLabel : "Score: --"}
               </span>
             </div>
           </div>
@@ -1620,9 +1630,9 @@ export default function Rewards() {
         ========================================================================= */}
         <div className="flex flex-wrap justify-center items-center gap-2 sm:gap-2.5 my-5 sm:my-6">
           {[
-            { id: "discipline", label: "Discipline", icon: <Shield size={14} className="stroke-[2.2]" />, badge: `${clampedScore}%` },
-            { id: "streak", label: "Daily Streak", icon: <Flame size={14} className="text-[#006DFE]" />, badge: `${streakDays}d` },
-            { id: "badges", label: "Badges", icon: <Trophy size={14} className="text-[#006DFE]" />, badge: `${badgesData.filter((b) => b.unlocked).length}/${badgesData.length}` },
+            { id: "discipline", label: "Discipline", icon: <Shield size={14} className="stroke-[2.2]" /> },
+            { id: "streak", label: "Daily Streak", icon: <Flame size={14} className="text-[#006DFE]" />, badge: streakDays > 0 ? `${streakDays}d` : undefined },
+            { id: "badges", label: "Badges", icon: <Trophy size={14} className="text-[#006DFE]" />, badge: badgesData.filter((b) => b.unlocked).length > 0 ? `${badgesData.filter((b) => b.unlocked).length}/${badgesData.length}` : undefined },
             { id: "vault", label: "Vault", icon: <Gift size={14} className="text-emerald-500" />, badge: "Store" },
           ].map((tab) => {
             const isActive = activeTab === tab.id;
@@ -1639,15 +1649,17 @@ export default function Rewards() {
               >
                 <span>{tab.icon}</span>
                 <span>{tab.label}</span>
-                <span
-                  className={`ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] font-mono font-bold ${
-                    isActive
-                      ? "bg-white/20 text-white"
-                      : "bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-neutral-300"
-                  }`}
-                >
-                  {tab.badge}
-                </span>
+                {tab.badge && (
+                  <span
+                    className={`ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] font-mono font-bold ${
+                      isActive
+                        ? "bg-white/20 text-white"
+                        : "bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-neutral-300"
+                    }`}
+                  >
+                    {tab.badge}
+                  </span>
+                )}
               </button>
             );
           })}
@@ -1692,7 +1704,7 @@ export default function Rewards() {
 
                   <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 dark:bg-blue-500/10 border border-blue-200/60 dark:border-blue-500/20 text-[11px] font-bold text-[#006DFE] dark:text-blue-400 tabular-nums">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#006DFE] animate-pulse" />
-                    <span>Score: {score}/100</span>
+                    <span>Score: {hasTrades && score !== null ? `${score}/100` : "--/100"}</span>
                   </div>
                 </div>
               </div>
@@ -2322,7 +2334,7 @@ export default function Rewards() {
               </div>
 
               {/* 5 Levels Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-3.5">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-3">
                 {streakLevelsData.map((lvl) => {
                   const isCompleted = lvl.status === "completed";
                   const isActive = lvl.status === "active";
@@ -2334,7 +2346,7 @@ export default function Rewards() {
                       key={lvl.level}
                       type="button"
                       onClick={() => handleStreakLevelClick(lvl)}
-                      className={`p-3.5 sm:p-4 rounded-xl border text-left flex flex-col justify-between gap-3 transition-all cursor-pointer group select-none ${
+                      className={`p-2.5 sm:p-3 rounded-xl border text-left flex flex-col justify-between gap-2 transition-all cursor-pointer group select-none min-h-[135px] ${
                         isActive
                           ? "bg-white dark:bg-[#17171A] border-[#006DFE]/70 dark:border-[#006DFE]/60 shadow-md ring-1 ring-[#006DFE]/25"
                           : isCompleted
@@ -2343,9 +2355,9 @@ export default function Rewards() {
                       }`}
                     >
                       {/* Top: Level Tag + Status + XP Reward */}
-                      <div className="flex items-center justify-between gap-2 w-full">
-                        <div className="flex items-center gap-2">
-                          <span className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-black ${
+                      <div className="flex items-center justify-between gap-1.5 w-full">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <span className={`w-5 h-5 rounded-md flex items-center justify-center text-[10.5px] font-black shrink-0 ${
                             isCompleted
                               ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 border border-emerald-200/60 dark:border-emerald-500/20"
                               : isActive
@@ -2354,31 +2366,31 @@ export default function Rewards() {
                           }`}>
                             {lvl.level}
                           </span>
-                          <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
+                          <span className="text-[9.5px] font-mono font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500 truncate">
                             {lvl.targetDays} Days Target
                           </span>
                         </div>
 
-                        <span className="px-2 py-0.5 rounded-md text-[10.5px] font-mono font-bold tabular-nums bg-blue-50 dark:bg-blue-500/10 text-[#006DFE] dark:text-blue-400 border border-blue-200/70 dark:border-blue-500/20">
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold tabular-nums bg-blue-50 dark:bg-blue-500/10 text-[#006DFE] dark:text-blue-400 border border-blue-200/70 dark:border-blue-500/20 shrink-0">
                           {lvl.xpReward}
                         </span>
                       </div>
 
                       {/* Middle: Title & Subtitle */}
-                      <div>
-                        <h4 className="text-[13.5px] font-bold text-slate-900 dark:text-white truncate group-hover:text-[#006DFE] transition-colors leading-tight">
+                      <div className="min-w-0">
+                        <h4 className="text-xs sm:text-[13px] font-bold text-slate-900 dark:text-white truncate group-hover:text-[#006DFE] transition-colors leading-tight">
                           {lvl.title}
                         </h4>
-                        <p className="text-[11px] text-slate-500 dark:text-neutral-400 mt-1 line-clamp-2 font-medium leading-relaxed">
+                        <p className="text-[10px] text-slate-400 dark:text-neutral-500 mt-0.5 truncate font-medium">
                           {lvl.subtitle}
                         </p>
                       </div>
 
-                      {/* Perk Pill */}
-                      <div className="pt-2 border-t border-slate-100 dark:border-white/[0.05] space-y-2 w-full">
-                        <div className="flex items-center justify-between text-[10.5px]">
-                          <span className="text-slate-500 dark:text-neutral-400 font-medium">Perk Reward:</span>
-                          <span className="font-bold text-slate-900 dark:text-white truncate max-w-[65%] text-right">
+                      {/* Perk & Status / Progress footer */}
+                      <div className="pt-1.5 border-t border-slate-100 dark:border-white/[0.05] flex flex-col gap-1 w-full">
+                        <div className="flex items-center justify-between text-[10px] leading-tight">
+                          <span className="text-slate-400 dark:text-neutral-500 font-medium">Perk:</span>
+                          <span className="font-bold text-slate-900 dark:text-white truncate max-w-[65%] text-right text-[10px]">
                             {lvl.perks}
                           </span>
                         </div>
@@ -2386,11 +2398,11 @@ export default function Rewards() {
                         {/* Progress bar or Status */}
                         {isActive ? (
                           <div className="space-y-1">
-                            <div className="flex items-center justify-between text-[10px] font-medium text-slate-500 dark:text-neutral-400">
+                            <div className="flex items-center justify-between text-[9.5px] font-medium text-slate-500 dark:text-neutral-400 leading-tight">
                               <span className="text-[#006DFE] font-bold">{lvl.currentDays} / {lvl.targetDays} Days</span>
                               <span className="font-bold text-[#006DFE] dark:text-blue-400">{Math.max(0, lvl.targetDays - lvl.currentDays)} Sessions Left</span>
                             </div>
-                            <div className="w-full h-1.5 rounded-full bg-slate-100 dark:bg-white/10 overflow-hidden">
+                            <div className="w-full h-1 rounded-full bg-slate-100 dark:bg-white/10 overflow-hidden">
                               <div
                                 className="h-full rounded-full bg-[#006DFE]"
                                 style={{ width: `${progressPct}%` }}
@@ -2398,22 +2410,28 @@ export default function Rewards() {
                             </div>
                           </div>
                         ) : isCompleted ? (
-                          <div className="flex items-center justify-between text-[10px]">
-                            <span className="inline-flex items-center gap-1 font-semibold text-emerald-600 dark:text-emerald-400">
-                              <CheckCircle2 size={11} className="text-emerald-500" />
-                              <span>Achieved &amp; Claimed</span>
-                            </span>
-                            <span className="text-slate-400 dark:text-neutral-500 font-mono">
-                              {lvl.completedDate}
-                            </span>
+                          <div className="space-y-1">
+                            <div className="flex items-center justify-between text-[9.5px] leading-tight">
+                              <span className="inline-flex items-center gap-1 font-semibold text-emerald-600 dark:text-emerald-400">
+                                <CheckCircle2 size={10} className="text-emerald-500" />
+                                <span>Achieved &amp; Claimed</span>
+                              </span>
+                              <span className="text-slate-400 dark:text-neutral-500 font-mono text-[9px]">
+                                {lvl.completedDate || "Claimed"}
+                              </span>
+                            </div>
+                            <div className="w-full h-1 rounded-full bg-emerald-500 overflow-hidden" />
                           </div>
                         ) : (
-                          <div className="flex items-center justify-between text-[10px] text-slate-400 dark:text-neutral-500">
-                            <span className="inline-flex items-center gap-1">
-                              <Lock size={10} />
-                              <span>Locked Milestone</span>
-                            </span>
-                            <span>Unlocks at Lv 4</span>
+                          <div className="space-y-1">
+                            <div className="flex items-center justify-between text-[9.5px] text-slate-400 dark:text-neutral-500 leading-tight">
+                              <span className="inline-flex items-center gap-1">
+                                <Lock size={9.5} />
+                                <span>Locked Milestone</span>
+                              </span>
+                              <span className="text-[9px]">Unlocks at Lv 4</span>
+                            </div>
+                            <div className="w-full h-1 rounded-full bg-slate-200/70 dark:bg-white/[0.08] overflow-hidden" />
                           </div>
                         )}
                       </div>
