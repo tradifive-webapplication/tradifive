@@ -1,5 +1,5 @@
-import React from "react";
-import { Cpu } from "lucide-react";
+import React, { createContext, useContext, useState, useMemo } from "react";
+import { Cpu, TrendingUp } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -8,6 +8,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+
+/* =========================================================================
+   1. GAUGE COMPONENT (NOTCH-BASED SEMICIRCLE)
+========================================================================= */
 
 export interface GaugeProps extends React.HTMLAttributes<HTMLDivElement> {
   value: number;
@@ -26,7 +30,6 @@ export interface GaugeProps extends React.HTMLAttributes<HTMLDivElement> {
   className?: string;
 }
 
-// Multi-stop color interpolation helper
 function interpolateGradient(t: number, stops: [number, string][]): string {
   if (t <= stops[0][0]) return stops[0][1];
   if (t >= stops[stops.length - 1][0]) return stops[stops.length - 1][1];
@@ -85,7 +88,6 @@ export const Gauge: React.FC<GaugeProps> = ({
   const rOuter = 108;
   const strokeW = notchCornerRadius ? notchCornerRadius * 1.8 : 5.4;
 
-  // Build gradient stops
   const stops: [number, string][] =
     gradientColors.length === 2
       ? [
@@ -98,7 +100,6 @@ export const Gauge: React.FC<GaugeProps> = ({
           [1, gradientColors[2] || gradientColors[1]],
         ];
 
-  // Generate notches
   const notches = Array.from({ length: totalNotches }, (_, idx) => {
     const stepRatio = totalNotches > 1 ? idx / (totalNotches - 1) : 0;
     const angleDeg = startAngle + stepRatio * (endAngle - startAngle);
@@ -174,7 +175,6 @@ export const Gauge: React.FC<GaugeProps> = ({
         </g>
       </svg>
 
-      {/* Center Value and Label inside Semicircle Arch */}
       <div className="absolute top-[82px] flex flex-col items-center text-center pointer-events-none">
         <div className="text-3xl sm:text-[34px] font-black tracking-tight text-slate-900 dark:text-white tabular-nums leading-none">
           {displayCenter}
@@ -217,6 +217,441 @@ export const ChartGaugeSemicircle = ({ value = 64 }: { value?: number }) => (
       </div>
       <div className="text-muted-foreground leading-none">
         Average across 12 nodes in eu-west-1
+      </div>
+    </CardFooter>
+  </Card>
+);
+
+/* =========================================================================
+   2. AREA CHART SYSTEM (BKLIT UI / SHADCN SPECIFICATION)
+   - AreaChart
+   - Grid
+   - Area (supports dataKey, fadeEdges, fillOpacity, gradientToOpacity, showLine)
+   - XAxis
+   - ChartTooltip
+========================================================================= */
+
+interface ChartContextType {
+  data: any[];
+  width: number;
+  height: number;
+  padding: { top: number; right: number; bottom: number; left: number };
+  hoverIndex: number | null;
+  setHoverIndex: (idx: number | null) => void;
+  hoverCoords: { x: number; y: number } | null;
+  setHoverCoords: (coords: { x: number; y: number } | null) => void;
+  activeDataKey: string;
+  setActiveDataKey: (key: string) => void;
+}
+
+const ChartContext = createContext<ChartContextType | null>(null);
+
+export interface AreaChartProps extends React.HTMLAttributes<HTMLDivElement> {
+  data: any[];
+  aspectRatio?: string;
+  ariaLabel?: string;
+  className?: string;
+  children: React.ReactNode;
+}
+
+export const AreaChart: React.FC<AreaChartProps> = ({
+  data = [],
+  aspectRatio = "2 / 1",
+  ariaLabel = "Area Chart",
+  className = "",
+  children,
+  ...props
+}) => {
+  const [hoverIndex, setHoverIndex] = useState<number | null>(null);
+  const [hoverCoords, setHoverCoords] = useState<{ x: number; y: number } | null>(null);
+  const [activeDataKey, setActiveDataKey] = useState<string>("value");
+
+  // Chart internal coordinate space
+  const width = 640;
+  const height = 240;
+  const padding = { top: 20, right: 24, bottom: 40, left: 24 };
+
+  const contextValue = useMemo<ChartContextType>(
+    () => ({
+      data,
+      width,
+      height,
+      padding,
+      hoverIndex,
+      setHoverIndex,
+      hoverCoords,
+      setHoverCoords,
+      activeDataKey,
+      setActiveDataKey,
+    }),
+    [data, hoverIndex, hoverCoords, activeDataKey]
+  );
+
+  return (
+    <ChartContext.Provider value={contextValue}>
+      <div
+        role="region"
+        aria-label={ariaLabel}
+        style={{ aspectRatio }}
+        className={`relative w-full overflow-hidden select-none ${className}`}
+        {...props}
+      >
+        <svg
+          viewBox={`0 0 ${width} ${height}`}
+          className="w-full h-full overflow-visible"
+          preserveAspectRatio="none"
+        >
+          {children}
+        </svg>
+      </div>
+    </ChartContext.Provider>
+  );
+};
+
+export interface GridProps {
+  horizontal?: boolean;
+  vertical?: boolean;
+  className?: string;
+}
+
+export const Grid: React.FC<GridProps> = ({
+  horizontal = true,
+  vertical = false,
+  className = "text-slate-200 dark:text-white/[0.07]",
+}) => {
+  const ctx = useContext(ChartContext);
+  if (!ctx) return null;
+  const { width, height, padding } = ctx;
+
+  const yStops = [
+    padding.top,
+    padding.top + (height - padding.top - padding.bottom) * 0.33,
+    padding.top + (height - padding.top - padding.bottom) * 0.66,
+    height - padding.bottom,
+  ];
+
+  return (
+    <g className={className} stroke="currentColor" strokeDasharray="3 3">
+      {horizontal &&
+        yStops.map((y, idx) => (
+          <line
+            key={`h-${idx}`}
+            x1={padding.left}
+            y1={y}
+            x2={width - padding.right}
+            y2={y}
+            strokeWidth="1"
+          />
+        ))}
+    </g>
+  );
+};
+
+export interface AreaProps {
+  dataKey: string;
+  label?: string;
+  fadeEdges?: boolean | "left" | "right";
+  fillOpacity?: number;
+  gradientToOpacity?: number;
+  showLine?: boolean;
+  strokeColor?: string;
+  fillColor?: string;
+  className?: string;
+}
+
+export const Area: React.FC<AreaProps> = ({
+  dataKey,
+  fadeEdges = false,
+  fillOpacity = 0.6,
+  gradientToOpacity = 0.05,
+  showLine = true,
+  strokeColor = "#006DFE",
+  fillColor = "#006DFE",
+}) => {
+  const ctx = useContext(ChartContext);
+  if (!ctx) return null;
+  const { data, width, height, padding, setHoverIndex, setHoverCoords } = ctx;
+
+  const values = data.map((d) => Number(d[dataKey] ?? 0));
+  const minVal = Math.min(...values);
+  const maxVal = Math.max(...values);
+  const range = maxVal - minVal || 1;
+
+  const plotW = width - padding.left - padding.right;
+  const plotH = height - padding.top - padding.bottom;
+
+  // Build coordinate points
+  const points = data.map((d, idx) => {
+    const val = Number(d[dataKey] ?? 0);
+    const x = padding.left + (idx / Math.max(1, data.length - 1)) * plotW;
+    const y = height - padding.bottom - ((val - minVal) / range) * plotH;
+    return { x, y, data: d, index: idx };
+  });
+
+  // Build smooth cubic bezier path
+  let linePath = "";
+  if (points.length > 0) {
+    linePath = `M ${points[0].x.toFixed(1)} ${points[0].y.toFixed(1)}`;
+    for (let i = 0; i < points.length - 1; i++) {
+      const p0 = points[i];
+      const p1 = points[i + 1];
+      const cpX = (p0.x + p1.x) / 2;
+      linePath += ` C ${cpX.toFixed(1)} ${p0.y.toFixed(1)}, ${cpX.toFixed(1)} ${p1.y.toFixed(1)}, ${p1.x.toFixed(1)} ${p1.y.toFixed(1)}`;
+    }
+  }
+
+  const baselineY = height - padding.bottom;
+  const areaPath =
+    points.length > 0
+      ? `${linePath} L ${points[points.length - 1].x.toFixed(1)} ${baselineY} L ${points[0].x.toFixed(1)} ${baselineY} Z`
+      : "";
+
+  const uniqueId = React.useId().replace(/:/g, "");
+  const gradientId = `areaGrad-${uniqueId}`;
+  const maskId = `fadeMask-${uniqueId}`;
+
+  return (
+    <g>
+      <defs>
+        {/* Vertical gradient: from fillOpacity down to gradientToOpacity */}
+        <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={fillColor} stopOpacity={fillOpacity} />
+          <stop offset="100%" stopColor={fillColor} stopOpacity={gradientToOpacity} />
+        </linearGradient>
+
+        {/* Edge Fade Mask (when fadeEdges is active) */}
+        {fadeEdges && (
+          <mask id={maskId}>
+            <linearGradient id={`edgeGrad-${uniqueId}`} x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor="black" />
+              <stop offset="8%" stopColor="white" />
+              <stop offset="92%" stopColor="white" />
+              <stop offset="100%" stopColor="black" />
+            </linearGradient>
+            <rect x="0" y="0" width={width} height={height} fill={`url(#edgeGrad-${uniqueId})`} />
+          </mask>
+        )}
+      </defs>
+
+      {/* Filled Area with optional fadeEdges mask */}
+      <path
+        d={areaPath}
+        fill={`url(#${gradientId})`}
+        mask={fadeEdges ? `url(#${maskId})` : undefined}
+      />
+
+      {/* Top Stroke Line (hidden when showLine={false}) */}
+      {showLine && (
+        <path
+          d={linePath}
+          fill="none"
+          stroke={strokeColor}
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          mask={fadeEdges ? `url(#${maskId})` : undefined}
+        />
+      )}
+
+      {/* Invisible Interactive Hit Slices */}
+      {points.map((pt, idx) => {
+        const sliceW = plotW / points.length;
+        return (
+          <rect
+            key={idx}
+            x={pt.x - sliceW / 2}
+            y={padding.top}
+            width={sliceW}
+            height={plotH}
+            fill="transparent"
+            className="cursor-crosshair"
+            onMouseEnter={() => {
+              setHoverIndex(idx);
+              setHoverCoords({ x: pt.x, y: pt.y });
+            }}
+            onMouseLeave={() => {
+              setHoverIndex(null);
+              setHoverCoords(null);
+            }}
+          />
+        );
+      })}
+    </g>
+  );
+};
+
+export interface XAxisProps {
+  dataKey?: string;
+  format?: (val: any) => string;
+  className?: string;
+}
+
+export const XAxis: React.FC<XAxisProps> = ({
+  dataKey = "date",
+  format,
+  className = "fill-slate-400 dark:fill-neutral-500 text-[10px] font-mono",
+}) => {
+  const ctx = useContext(ChartContext);
+  if (!ctx) return null;
+  const { data, width, height, padding } = ctx;
+
+  const plotW = width - padding.left - padding.right;
+  const step = Math.max(1, Math.floor(data.length / 7));
+
+  return (
+    <g className={className}>
+      {data.map((d, idx) => {
+        if (idx % step !== 0 && idx !== data.length - 1) return null;
+        const x = padding.left + (idx / Math.max(1, data.length - 1)) * plotW;
+        const raw = d[dataKey];
+        let label = "";
+        if (raw instanceof Date) {
+          label = raw.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+        } else if (typeof raw === "string") {
+          label = raw;
+        } else {
+          label = String(raw);
+        }
+        if (format) label = format(raw);
+
+        return (
+          <text
+            key={idx}
+            x={x}
+            y={height - padding.bottom + 22}
+            textAnchor="middle"
+            className="select-none"
+          >
+            {label}
+          </text>
+        );
+      })}
+    </g>
+  );
+};
+
+export interface ChartTooltipProps {
+  className?: string;
+}
+
+export const ChartTooltip: React.FC<ChartTooltipProps> = () => {
+  const ctx = useContext(ChartContext);
+  if (!ctx || ctx.hoverIndex === null || !ctx.hoverCoords) return null;
+  const { data, height, padding, hoverIndex, hoverCoords } = ctx;
+
+  const item = data[hoverIndex];
+  if (!item) return null;
+
+  const rawDate = item.date;
+  const dateStr =
+    rawDate instanceof Date
+      ? rawDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+      : String(rawDate);
+
+  const value = item.visitors ?? item.score ?? item.equity ?? Object.values(item)[1];
+
+  return (
+    <g className="pointer-events-none">
+      {/* Vertical Crosshair Line */}
+      <line
+        x1={hoverCoords.x}
+        y1={padding.top}
+        x2={hoverCoords.x}
+        y2={height - padding.bottom}
+        stroke="#006DFE"
+        strokeWidth="1.2"
+        strokeDasharray="3 3"
+      />
+      {/* Hover Center Point */}
+      <circle cx={hoverCoords.x} cy={hoverCoords.y} r="5.5" fill="#38BDF8" opacity="0.3" />
+      <circle cx={hoverCoords.x} cy={hoverCoords.y} r="3.5" fill="#FFFFFF" stroke="#006DFE" strokeWidth="2.5" />
+
+      {/* Floating Tooltip Box */}
+      <foreignObject
+        x={Math.max(10, Math.min(hoverCoords.x - 65, 500))}
+        y={Math.max(10, hoverCoords.y - 55)}
+        width="130"
+        height="50"
+      >
+        <div className="px-2.5 py-1.5 rounded-xl bg-slate-900/95 dark:bg-[#121826]/95 backdrop-blur-md text-white border border-white/10 shadow-xl text-center space-y-0.5">
+          <div className="text-[10px] font-bold text-slate-300">{dateStr}</div>
+          <div className="text-xs font-mono font-black text-[#38BDF8]">{value}</div>
+        </div>
+      </foreignObject>
+    </g>
+  );
+};
+
+/* =========================================================================
+   3. CHART AREA FILL EXPORT (USER SNIPPET READY)
+========================================================================= */
+
+const sampleVisitorsData = [
+  { date: new Date(2026, 7, 1), visitors: 2260 },
+  { date: new Date(2026, 7, 2), visitors: 2520 },
+  { date: new Date(2026, 7, 3), visitors: 3230 },
+  { date: new Date(2026, 7, 4), visitors: 3240 },
+  { date: new Date(2026, 7, 5), visitors: 3400 },
+  { date: new Date(2026, 7, 6), visitors: 3380 },
+  { date: new Date(2026, 7, 7), visitors: 3350 },
+  { date: new Date(2026, 7, 8), visitors: 2600 },
+  { date: new Date(2026, 7, 9), visitors: 2620 },
+  { date: new Date(2026, 7, 10), visitors: 3490 },
+  { date: new Date(2026, 7, 11), visitors: 3560 },
+  { date: new Date(2026, 7, 12), visitors: 3570 },
+  { date: new Date(2026, 7, 13), visitors: 3650 },
+  { date: new Date(2026, 7, 14), visitors: 3520 },
+  { date: new Date(2026, 7, 15), visitors: 2650 },
+  { date: new Date(2026, 7, 16), visitors: 2750 },
+  { date: new Date(2026, 7, 17), visitors: 3730 },
+  { date: new Date(2026, 7, 18), visitors: 3590 },
+  { date: new Date(2026, 7, 19), visitors: 3780 },
+  { date: new Date(2026, 7, 20), visitors: 3750 },
+  { date: new Date(2026, 7, 21), visitors: 3900 },
+  { date: new Date(2026, 7, 22), visitors: 2900 },
+  { date: new Date(2026, 7, 23), visitors: 2750 },
+  { date: new Date(2026, 7, 24), visitors: 3880 },
+  { date: new Date(2026, 7, 25), visitors: 4010 },
+  { date: new Date(2026, 7, 26), visitors: 3980 },
+  { date: new Date(2026, 7, 27), visitors: 3990 },
+  { date: new Date(2026, 7, 28), visitors: 4000 },
+  { date: new Date(2026, 7, 29), visitors: 3080 },
+  { date: new Date(2026, 7, 30), visitors: 3100 },
+  { date: new Date(2026, 7, 31), visitors: 4030 },
+];
+
+export const ChartAreaFill = ({ data = sampleVisitorsData }: { data?: any[] }) => (
+  <Card>
+    <CardHeader>
+      <CardTitle>Area Chart - Fill</CardTitle>
+      <CardDescription>Daily visitors, August 2026</CardDescription>
+    </CardHeader>
+    <CardContent>
+      <AreaChart
+        ariaLabel="Area Chart - Fill"
+        aspectRatio="2 / 1"
+        data={data}
+      >
+        <Grid horizontal />
+        <Area
+          dataKey="visitors"
+          fadeEdges
+          fillOpacity={0.6}
+          gradientToOpacity={0.05}
+          label="Visitors"
+          showLine={false}
+        />
+        <XAxis />
+        <ChartTooltip />
+      </AreaChart>
+    </CardContent>
+    <CardFooter className="flex-col items-start gap-2 text-sm">
+      <div className="flex gap-2 font-medium leading-none">
+        Weekday visitors up 25% since August 3{" "}
+        <TrendingUp aria-hidden="true" className="size-4" />
+      </div>
+      <div className="text-muted-foreground leading-none">
+        Weekends dip to about three quarters of weekday traffic
       </div>
     </CardFooter>
   </Card>
