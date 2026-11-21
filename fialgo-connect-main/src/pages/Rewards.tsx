@@ -1038,15 +1038,15 @@ export default function Rewards() {
               </div>
             </div>
 
-            {/* Weekly Consistency Log (Right side: 25% - 30% width companion box) */}
+            {/* Weekly Consistency Log (Right side: 25% width sleek compact companion box) */}
             <div className={`lg:col-span-4 xl:col-span-3 ${CARD_BASE} p-4 sm:p-5 flex flex-col justify-between`}>
-              <div>
-                <div className="flex items-center justify-between pb-2 mb-3 border-b border-slate-100 dark:border-white/[0.06]">
+              <div className="flex-1 flex flex-col">
+                <div className="flex items-center justify-between pb-2 mb-2.5 border-b border-slate-100 dark:border-white/[0.06]">
                   <div>
                     <h3 className="text-sm font-bold text-slate-900 dark:text-white tracking-tight">
                       Weekly Consistency Log
                     </h3>
-                    <p className="text-[10.5px] text-slate-400 dark:text-neutral-500 mt-0.5 font-medium">
+                    <p className="text-[10px] text-slate-400 dark:text-neutral-500 mt-0.5 font-medium">
                       Audit past 6 MT5 sessions
                     </p>
                   </div>
@@ -1063,8 +1063,8 @@ export default function Rewards() {
                   </div>
                 </div>
 
-                {/* 6 Day Cards in a 2-col (or 3-col on md) grid */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-2 gap-2 sm:gap-2.5">
+                {/* 6 Sleek Compact Interactive Audit Rows */}
+                <div className="flex-1 flex flex-col justify-between gap-1.5 py-0.5">
                   {weeklyDays.map((day) => {
                     const isAPlus = day.tier === "A+";
                     const dotColor = isAPlus ? "bg-emerald-500" : "bg-[#006DFE]";
@@ -1077,25 +1077,31 @@ export default function Rewards() {
                         key={day.id}
                         type="button"
                         onClick={() => handleOpenDayModal(day)}
-                        className="p-2.5 sm:p-3 rounded-xl bg-slate-50 dark:bg-white/[0.025] border border-slate-200/70 dark:border-white/[0.06] hover:border-[#006DFE]/50 dark:hover:border-[#006DFE]/50 transition-all cursor-pointer flex flex-col items-center justify-between gap-1.5 text-center group"
+                        className="w-full px-2.5 py-1.5 rounded-xl bg-slate-50/80 dark:bg-white/[0.025] hover:bg-blue-50/60 dark:hover:bg-blue-500/10 border border-slate-200/60 dark:border-white/[0.05] hover:border-[#006DFE]/40 dark:hover:border-[#006DFE]/40 transition-all cursor-pointer flex items-center justify-between text-left group"
                       >
-                        <div className="w-full flex items-center justify-between text-[9px] font-mono font-bold text-slate-400">
-                          <span>{day.dayHeader}</span>
-                          <span className={`w-1.5 h-1.5 rounded-full ${dotColor}`} />
+                        <div className="flex items-center gap-2 min-w-0">
+                          <div className="w-6 h-6 rounded-lg bg-white dark:bg-white/[0.06] border border-slate-200/80 dark:border-white/10 flex items-center justify-center text-[9.5px] font-mono font-bold text-slate-700 dark:text-neutral-300 shrink-0 shadow-2xs">
+                            {day.dayHeader.slice(0, 3)}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="text-[11px] font-bold text-slate-900 dark:text-white truncate">
+                              {day.day}
+                            </div>
+                            <div className="text-[9px] font-mono text-slate-400 dark:text-neutral-500 flex items-center gap-1">
+                              <span className={`w-1 h-1 rounded-full ${dotColor}`} />
+                              <span>MT5 Audit</span>
+                            </div>
+                          </div>
                         </div>
 
-                        <div>
-                          <div className="text-[10px] font-semibold text-slate-500 dark:text-neutral-400">
-                            {day.day}
-                          </div>
-                          <div className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white tabular-nums mt-0.5 group-hover:text-[#006DFE] transition-colors leading-tight">
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className="text-xs font-mono font-black text-slate-900 dark:text-white tabular-nums group-hover:text-[#006DFE] transition-colors">
                             {day.score}
-                          </div>
+                          </span>
+                          <span className={`px-1.5 py-0.5 rounded text-[9px] font-mono font-bold border ${gradeColor}`}>
+                            {day.grade}
+                          </span>
                         </div>
-
-                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-mono font-bold border ${gradeColor}`}>
-                          {day.grade}
-                        </span>
                       </button>
                     );
                   })}
@@ -1103,7 +1109,7 @@ export default function Rewards() {
               </div>
 
               {/* Weekly Audit Summary Strip */}
-              <div className="mt-4 pt-3 border-t border-slate-100 dark:border-white/[0.06] flex items-center justify-between text-[10.5px] font-mono text-slate-400 dark:text-neutral-500">
+              <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-white/[0.06] flex items-center justify-between text-[10.5px] font-mono text-slate-400 dark:text-neutral-500">
                 <span>6 Sessions Audited</span>
                 <span className="font-bold text-emerald-600 dark:text-emerald-400">100% Pass Rate</span>
               </div>
