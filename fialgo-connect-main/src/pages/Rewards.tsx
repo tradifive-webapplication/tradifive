@@ -25,6 +25,7 @@ import {
   Users,
   BarChart3,
   Medal,
+  Calendar,
 } from "lucide-react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { toast } from "sonner";
@@ -723,51 +724,64 @@ export default function Rewards() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.25, ease: "easeOut" }}
-              className={`${CARD} p-3.5 sm:p-4 space-y-3.5`}
+              className="space-y-3 sm:space-y-3.5"
             >
-              {/* Rule Compliance Parameters — PaceUI Analytics Block */}
+              {/* 1. Rule Compliance Parameters Card (Includes 3D Bars & Session Rhythm) */}
               <RuleComplianceAnalytics score={disciplineState.score} />
 
-              {/* Forex 24/5 Session Banner */}
-              <div className={`${INNER_BOX} flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2.5`}>
-                <div className="flex items-center gap-2.5">
-                  <div className="w-6 h-6 rounded-lg bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-sm shrink-0">🌐</div>
-                  <div>
-                    <div className="text-[12px] font-bold text-slate-900 dark:text-white">Forex 24/5 Session Rhythm</div>
-                    <div className="text-[10px] text-slate-400">Markets run continuously. Session auto-locks at midnight 00:00 MT5.</div>
+              {/* 2. Weekly Consistency Log Card — Small, Crisp & Nice (Dashboard Systemic) */}
+              <div className={`${CARD} p-3 sm:p-3.5`}>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 mb-2.5 border-b border-slate-100 dark:border-white/[0.06] gap-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-lg bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-[#2563EB] dark:text-blue-400 shrink-0">
+                      <Calendar size={13.5} />
+                    </div>
+                    <div>
+                      <h4 className="text-[12.5px] font-bold text-slate-900 dark:text-white tracking-tight">
+                        Weekly Consistency Log
+                      </h4>
+                      <p className="text-[10px] text-slate-400 dark:text-neutral-500 font-medium">
+                        6-day MT5 discipline streak &amp; execution grade
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200/60 dark:border-emerald-500/20 text-[10px] font-bold text-emerald-700 dark:text-emerald-400 shrink-0">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> London &amp; NY Sessions Active
-                </span>
-              </div>
 
-              {/* Weekly Consistency Log */}
-              <div>
-                <div className="flex items-center justify-between mb-2.5">
-                  <h4 className="text-[12.5px] font-bold text-slate-900 dark:text-white">Weekly Consistency Log</h4>
-                  <div className="flex items-center gap-2.5 text-[10px] font-medium text-slate-400">
-                    <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" /> A+ (95+)</span>
-                    <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-blue-500 inline-block" /> A (85–94)</span>
+                  <div className="flex items-center gap-2 text-[9.5px] font-semibold text-slate-500 dark:text-neutral-400 self-start sm:self-auto">
+                    <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-50 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/[0.06]">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" /> A+ (95+)
+                    </span>
+                    <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-50 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/[0.06]">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#2563EB] inline-block" /> A (85–94)
+                    </span>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-6 gap-2">
+
+                {/* 6 Day Consistency Boxes - Small, crisp, refined like Dashboard */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
                   {Object.values(disciplineState.calendarHistory).slice(-6).map((item) => {
                     const isAPlus = item.score >= 95;
+                    const dateObj = new Date(item.date);
+                    const weekday = dateObj.toLocaleDateString("en-US", { weekday: "short" });
+                    const monthDay = dateObj.toLocaleDateString("en-US", { month: "short", day: "numeric" });
                     return (
                       <div
                         key={item.date}
-                        className={`${INNER_BOX} p-2.5 text-center space-y-1 hover:scale-[1.01] transition-transform cursor-default`}
+                        className="px-2 py-2 rounded-[11px] bg-[#F8FAFC] dark:bg-white/[0.025] border border-slate-200/70 dark:border-white/[0.06] hover:border-slate-300 dark:hover:border-white/15 transition-all text-center flex flex-col items-center justify-between gap-0.5 shadow-2xs group cursor-default"
                       >
-                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">
-                          {new Date(item.date).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
+                        <span className="text-[8.5px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider block">
+                          {weekday}, {monthDay}
                         </span>
-                        <div className="text-[16px] sm:text-[18px] font-bold text-slate-900 dark:text-white tabular-nums">{item.score}</div>
-                        <span className={`inline-block px-1.5 py-0.2 rounded-full text-[8.5px] font-bold border ${
-                          isAPlus
-                            ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200/60 dark:border-emerald-500/20"
-                            : "bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-200/60 dark:border-blue-500/20"
-                        }`}>
+                        <div className="text-[15px] font-extrabold text-slate-900 dark:text-white tabular-nums tracking-tight my-0.5">
+                          {item.score}
+                        </div>
+                        <span
+                          className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[8.5px] font-extrabold tabular-nums border ${
+                            isAPlus
+                              ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200/60 dark:border-emerald-500/20"
+                              : "bg-blue-50 dark:bg-blue-500/10 text-[#2563EB] dark:text-blue-400 border-blue-200/60 dark:border-blue-500/20"
+                          }`}
+                        >
+                          <span className={`w-1.5 h-1.5 rounded-full ${isAPlus ? "bg-emerald-500" : "bg-[#2563EB]"}`} />
                           GRADE {item.grade}
                         </span>
                       </div>

@@ -39,12 +39,14 @@ interface RuleComplianceAnalyticsProps {
   score?: number;
   className?: string;
   onRefresh?: () => void;
+  showSessionRhythm?: boolean;
 }
 
 export const RuleComplianceAnalytics: React.FC<RuleComplianceAnalyticsProps> = ({
   score = 96,
   className = "",
   onRefresh,
+  showSessionRhythm = true,
 }) => {
   const metrics: ComplianceMetric[] = [
     {
@@ -122,7 +124,7 @@ export const RuleComplianceAnalytics: React.FC<RuleComplianceAnalyticsProps> = (
 
   return (
     <div
-      className={`border border-slate-200/80 dark:border-white/[0.08] bg-white dark:bg-[#161619] rounded-[22px] shadow-[0_4px_20px_rgba(15,23,42,0.04)] dark:shadow-none p-4 sm:p-5 transition-all select-none ${className}`}
+      className={`border border-slate-200/70 dark:border-white/[0.07] bg-white dark:bg-[#17171A] rounded-[18px] shadow-[0_2px_10px_rgba(15,23,42,0.04),0_10px_26px_-10px_rgba(15,23,42,0.07)] dark:shadow-none p-3.5 sm:p-4 transition-all select-none ${className}`}
     >
       <style>{`
         @keyframes uiverseStripeMove {
@@ -149,25 +151,25 @@ export const RuleComplianceAnalytics: React.FC<RuleComplianceAnalyticsProps> = (
       `}</style>
 
       {/* ── HEADER ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3.5 mb-3.5 border-b border-slate-100 dark:border-white/[0.06] gap-2.5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 mb-3 border-b border-slate-100 dark:border-white/[0.06] gap-2">
         <div>
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-[#2563EB] dark:text-blue-400 shrink-0">
-              <ShieldCheck size={16} />
+            <div className="w-6 h-6 rounded-lg bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-[#2563EB] dark:text-blue-400 shrink-0">
+              <ShieldCheck size={14} />
             </div>
-            <h3 className="text-[14.5px] font-bold text-slate-900 dark:text-white tracking-tight">
+            <h3 className="text-[13.5px] font-bold text-slate-900 dark:text-white tracking-tight">
               Rule Compliance Parameters
             </h3>
           </div>
-          <p className="text-[11px] text-slate-400 dark:text-neutral-500 mt-1 pl-9 font-medium">
+          <p className="text-[10.5px] text-slate-400 dark:text-neutral-500 mt-0.5 pl-8 font-medium">
             Synced with your Exness MT5 account &amp; live Risk Guard enforcer.
           </p>
         </div>
 
-        <div className="flex items-center gap-2 self-start sm:self-auto pl-9 sm:pl-0">
-          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50/90 dark:bg-blue-500/10 border border-blue-200/60 dark:border-blue-500/20 shadow-2xs">
-            <span className="w-2 h-2 rounded-full bg-[#2563EB] animate-pulse shrink-0" />
-            <span className="text-[11px] font-extrabold text-[#2563EB] dark:text-blue-400 tabular-nums">
+        <div className="flex items-center gap-2 self-start sm:self-auto pl-8 sm:pl-0">
+          <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50/90 dark:bg-blue-500/10 border border-blue-200/60 dark:border-blue-500/20 shadow-2xs">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#2563EB] animate-pulse shrink-0" />
+            <span className="text-[10.5px] font-extrabold text-[#2563EB] dark:text-blue-400 tabular-nums">
               Score: {score}/100
             </span>
           </div>
@@ -177,9 +179,9 @@ export const RuleComplianceAnalytics: React.FC<RuleComplianceAnalyticsProps> = (
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                className="h-6 w-6 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
               >
-                <MoreVertical className="h-4 w-4" />
+                <MoreVertical className="h-3.5 w-3.5" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
@@ -210,28 +212,28 @@ export const RuleComplianceAnalytics: React.FC<RuleComplianceAnalyticsProps> = (
       </div>
 
       {/* ── 4 COMPLIANCE METRICS WITH 3D HORIZONTAL BARS ── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-3.5">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 sm:gap-3">
         {metrics.map((item) => (
           <div
             key={item.id}
-            className="p-3.5 sm:p-4 rounded-[16px] bg-[#F8F9FC] dark:bg-white/[0.03] border border-slate-200/70 dark:border-white/[0.06] hover:border-slate-300 dark:hover:border-white/15 transition-all flex flex-col justify-between gap-3 shadow-[0_1px_3px_rgba(15,23,42,0.02)]"
+            className="p-2.5 sm:p-3 rounded-[13px] bg-[#F8FAFC] dark:bg-white/[0.025] border border-slate-200/60 dark:border-white/[0.05] hover:border-slate-300/80 dark:hover:border-white/10 transition-colors flex flex-col justify-between gap-2 shadow-2xs"
           >
             {/* Top row: Title + Subtitle and Badge */}
             <div className="flex items-start justify-between gap-2">
               <div className="space-y-0.5 min-w-0">
                 <div className="flex items-center gap-1.5">
                   <span className="shrink-0">{item.icon}</span>
-                  <h4 className="text-[12.5px] font-bold text-slate-900 dark:text-white truncate">
+                  <h4 className="text-[12px] font-bold text-slate-900 dark:text-white truncate">
                     {item.title}
                   </h4>
                 </div>
-                <p className="text-[10.5px] text-slate-400 dark:text-neutral-500 truncate font-medium pl-5">
+                <p className="text-[10px] text-slate-400 dark:text-neutral-500 truncate font-medium pl-5">
                   {item.subtitle}
                 </p>
               </div>
 
               <span
-                className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border shadow-2xs whitespace-nowrap shrink-0 tabular-nums ${
+                className={`text-[9.5px] font-bold px-2 py-0.5 rounded-full border shadow-2xs whitespace-nowrap shrink-0 tabular-nums ${
                   item.badgeVariant === "emerald"
                     ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200/70 dark:border-emerald-500/20"
                     : item.badgeVariant === "amber"
@@ -244,9 +246,9 @@ export const RuleComplianceAnalytics: React.FC<RuleComplianceAnalyticsProps> = (
             </div>
 
             {/* Bottom: 3D Horizontal Bar + Percentage */}
-            <div className="flex items-center gap-3 pt-0.5">
+            <div className="flex items-center gap-2.5 pt-0.5">
               {/* 3D Track */}
-              <div className="relative flex-1 h-[11px] rounded-full bg-[#E5E9F0] dark:bg-[#0D0D10] border border-slate-300/80 dark:border-white/10 p-[1.5px] shadow-[inset_0_2px_4px_rgba(0,0,0,0.12)] overflow-hidden">
+              <div className="relative flex-1 h-[8.5px] rounded-full bg-[#E5E9F0] dark:bg-[#0D0D10] border border-slate-300/80 dark:border-white/10 p-[1px] shadow-[inset_0_1.5px_3px_rgba(0,0,0,0.14)] overflow-hidden">
                 {/* 3D Horizontal Animated Striped Bar */}
                 <motion.div
                   initial={{ width: 0 }}
@@ -255,8 +257,8 @@ export const RuleComplianceAnalytics: React.FC<RuleComplianceAnalyticsProps> = (
                   style={getGradientStyle(item.colorType)}
                   className="uiverse-3d-bar h-full rounded-full relative overflow-hidden"
                 >
-                  {/* Top 3D Specular Cylindrical Highlight (makes it look like a rounded 3D bar) */}
-                  <div className="absolute inset-x-0 top-0 h-[45%] bg-gradient-to-b from-white/60 via-white/20 to-transparent pointer-events-none rounded-t-full" />
+                  {/* Top 3D Specular Cylindrical Highlight */}
+                  <div className="absolute inset-x-0 top-0 h-[45%] bg-gradient-to-b from-white/70 via-white/20 to-transparent pointer-events-none rounded-t-full" />
                   
                   {/* Bottom shadow line for 3D depth */}
                   <div className="absolute inset-x-0 bottom-0 h-[30%] bg-black/20 pointer-events-none rounded-b-full" />
@@ -265,7 +267,7 @@ export const RuleComplianceAnalytics: React.FC<RuleComplianceAnalyticsProps> = (
 
               {/* Percentage text */}
               <span
-                className={`text-[11.5px] font-extrabold tabular-nums shrink-0 min-w-[36px] text-right ${
+                className={`text-[11px] font-extrabold tabular-nums shrink-0 min-w-[32px] text-right ${
                   item.colorType === "green"
                     ? "text-emerald-600 dark:text-emerald-400"
                     : item.colorType === "amber"
@@ -279,6 +281,30 @@ export const RuleComplianceAnalytics: React.FC<RuleComplianceAnalyticsProps> = (
           </div>
         ))}
       </div>
+
+      {/* ── FOOTER: FOREX 24/5 SESSION RHYTHM ── */}
+      {showSessionRhythm && (
+        <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-white/[0.05] flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <div className="w-5 h-5 rounded-md bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-xs shrink-0">
+              🌐
+            </div>
+            <div>
+              <span className="text-[11.5px] font-bold text-slate-900 dark:text-white mr-1.5">
+                Forex 24/5 Session Rhythm
+              </span>
+              <span className="text-[10px] text-slate-400 dark:text-neutral-500 font-medium hidden sm:inline">
+                Continuous live sync · Auto-locks midnight 00:00 MT5
+              </span>
+            </div>
+          </div>
+
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200/60 dark:border-emerald-500/20 text-[9.5px] font-bold text-emerald-700 dark:text-emerald-400 shrink-0 self-start sm:self-auto">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            London &amp; NY Sessions Active
+          </span>
+        </div>
+      )}
     </div>
   );
 };
