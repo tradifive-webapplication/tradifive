@@ -1069,7 +1069,9 @@ export default function Rewards() {
       const isPast = curDate < today && !isToday;
       const isSunday = curDate.getDay() === 0;
 
-      const dayTrades = recentTrades?.filter((t) => (t.close_time || t.open_time || t.closed_at || "").startsWith(iso)) || [];
+      const dayTrades = isConnected && recentTrades
+        ? recentTrades.filter((t) => (t.close_time || t.open_time || t.closed_at || "").startsWith(iso))
+        : [];
       const hasTrades = dayTrades.length > 0;
       const dayScore = isToday
         ? (tradesToday ? displayScore : null)
