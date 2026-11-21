@@ -13,6 +13,9 @@ import {
   CheckCircle2,
   X,
   Scale,
+  ChevronLeft,
+  ChevronRight,
+  History,
 } from "lucide-react";
 import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
@@ -57,6 +60,7 @@ interface ComplianceRule {
   auditTitle: string;
   auditSummary: string;
   auditStats: { label: string; value: string }[];
+  telemetryStat?: string;
 }
 
 interface WeeklyDayRecord {
@@ -70,6 +74,18 @@ interface WeeklyDayRecord {
   pair: string;
   net: string;
   note: string;
+}
+
+interface WeekHistorySet {
+  id: string;
+  rangeLabel: string;
+  shortLabel: string;
+  badge: string;
+  isCurrent: boolean;
+  passRate: string;
+  avgScore: number;
+  totalSessions: number;
+  days: WeeklyDayRecord[];
 }
 
 interface BadgeItem {
@@ -104,6 +120,7 @@ export default function Rewards() {
   const [streakDays, setStreakDays] = useState(18);
   const [redeemedRewards, setRedeemedRewards] = useState<Set<string>>(new Set());
   const [replayKey, setReplayKey] = useState(0);
+  const [selectedWeekIndex, setSelectedWeekIndex] = useState(0);
 
   // Audit modal state
   const [activeAuditModal, setActiveAuditModal] = useState<{
@@ -199,6 +216,7 @@ export default function Rewards() {
         { label: "Avg SL Latency", value: "1.4s post-fill" },
         { label: "Discipline Breaches", value: "0 Detected" },
       ],
+      telemetryStat: "16 Closed Orders · Avg SL Latency 1.4s",
     },
     {
       id: "lots",
@@ -218,6 +236,7 @@ export default function Rewards() {
         { label: "Highest Lot Traded", value: "0.10 XAUUSD" },
         { label: "Oversizing Attempts", value: "0 Flagged" },
       ],
+      telemetryStat: "Max Risk 1.0% · 0 Oversizing Flags",
     },
     {
       id: "revenge",
@@ -237,6 +256,7 @@ export default function Rewards() {
         { label: "Shortest Re-entry Gap", value: "24m 12s" },
         { label: "Lot Doubling Attempts", value: "0 Blocked" },
       ],
+      telemetryStat: "6 Cooldowns Respected · 0 Breaches",
     },
     {
       id: "cap",
@@ -256,86 +276,270 @@ export default function Rewards() {
         { label: "Auto-Reset Timer", value: "00:00 MT5 Server" },
         { label: "Overtrading Breaches", value: "0 This Month" },
       ],
+      telemetryStat: "3 / 4 Executions · 1 Slot Remaining",
     },
   ];
 
   /* -------------------------------------------------------------------------
-     WEEKLY CONSISTENCY DAYS (6 CARDS AS SHOWN IN IMAGE 2)
+     WEEKLY CONSISTENCY HISTORY (3 AUDITED WEEKS OF PERFORMANCE)
   ------------------------------------------------------------------------- */
-  const weeklyDays: WeeklyDayRecord[] = [
+  const weeklyHistory: WeekHistorySet[] = [
     {
-      id: "mon",
-      dayHeader: "MON",
-      day: "MON, NOV 16",
-      score: 92,
-      grade: "GRADE A",
-      tier: "A",
-      trades: "3 / 4",
-      pair: "EURUSD · XAUUSD",
-      net: "+1.15%",
-      note: "All stop-losses attached within 1.8s of entry.",
+      id: "w1",
+      rangeLabel: "Nov 16 – 21, 2026",
+      shortLabel: "Nov 16–21",
+      badge: "Current Week",
+      isCurrent: true,
+      passRate: "100% Pass Rate",
+      avgScore: 93.5,
+      totalSessions: 6,
+      days: [
+        {
+          id: "mon-1",
+          dayHeader: "MON",
+          day: "MON, NOV 16",
+          score: 92,
+          grade: "GRADE A",
+          tier: "A",
+          trades: "3 / 4",
+          pair: "EURUSD · XAUUSD",
+          net: "+1.15%",
+          note: "All stop-losses attached within 1.8s of entry.",
+        },
+        {
+          id: "tue-1",
+          dayHeader: "TUE",
+          day: "TUE, NOV 17",
+          score: 88,
+          grade: "GRADE A",
+          tier: "A",
+          trades: "4 / 4",
+          pair: "GBPUSD · USDJPY",
+          net: "-0.42%",
+          note: "Hit 4/4 daily trade cap; stopped trading immediately per rules.",
+        },
+        {
+          id: "wed-1",
+          dayHeader: "WED",
+          day: "WED, NOV 18",
+          score: 95,
+          grade: "GRADE A+",
+          tier: "A+",
+          trades: "2 / 4",
+          pair: "XAUUSD",
+          net: "+1.64%",
+          note: "Zero drawdown violation; 0.75% max risk per position.",
+        },
+        {
+          id: "thu-1",
+          dayHeader: "THU",
+          day: "THU, NOV 19",
+          score: 94,
+          grade: "GRADE A",
+          tier: "A",
+          trades: "3 / 4",
+          pair: "EURUSD · NAS100",
+          net: "+0.88%",
+          note: "Respected 15-min cooldown after morning breakeven stop.",
+        },
+        {
+          id: "fri-1",
+          dayHeader: "FRI",
+          day: "FRI, NOV 20",
+          score: 96,
+          grade: "GRADE A+",
+          tier: "A+",
+          trades: "2 / 4",
+          pair: "XAUUSD · GBPJPY",
+          net: "+1.32%",
+          note: "Flawless London-NY overlap execution; 100% SL compliance.",
+        },
+        {
+          id: "sat-1",
+          dayHeader: "SAT",
+          day: "SAT, NOV 21",
+          score: 96,
+          grade: "GRADE A+",
+          tier: "A+",
+          trades: "3 / 4",
+          pair: "BTCUSD · ETHUSD",
+          net: "+0.92%",
+          note: "Weekend crypto guard active. Perfect discipline verified.",
+        },
+      ],
     },
     {
-      id: "tue",
-      dayHeader: "TUE",
-      day: "TUE, NOV 17",
-      score: 88,
-      grade: "GRADE A",
-      tier: "A",
-      trades: "4 / 4",
-      pair: "GBPUSD · USDJPY",
-      net: "-0.42%",
-      note: "Hit 4/4 daily trade cap; stopped trading immediately per rules.",
+      id: "w2",
+      rangeLabel: "Nov 9 – 14, 2026",
+      shortLabel: "Nov 9–14",
+      badge: "Previous Week",
+      isCurrent: false,
+      passRate: "100% Pass Rate",
+      avgScore: 90.7,
+      totalSessions: 6,
+      days: [
+        {
+          id: "mon-2",
+          dayHeader: "MON",
+          day: "MON, NOV 9",
+          score: 90,
+          grade: "GRADE A",
+          tier: "A",
+          trades: "3 / 4",
+          pair: "EURUSD",
+          net: "+0.75%",
+          note: "Disciplined stop placement on high-impact ECB release.",
+        },
+        {
+          id: "tue-2",
+          dayHeader: "TUE",
+          day: "TUE, NOV 10",
+          score: 91,
+          grade: "GRADE A",
+          tier: "A",
+          trades: "2 / 4",
+          pair: "GBPUSD · XAUUSD",
+          net: "+1.10%",
+          note: "1.0% risk cap adhered to during NY open volatility.",
+        },
+        {
+          id: "wed-2",
+          dayHeader: "WED",
+          day: "WED, NOV 11",
+          score: 89,
+          grade: "GRADE A",
+          tier: "A",
+          trades: "4 / 4",
+          pair: "USDJPY",
+          net: "+0.45%",
+          note: "Cooldown period respected after early morning scratch trade.",
+        },
+        {
+          id: "thu-2",
+          dayHeader: "THU",
+          day: "THU, NOV 12",
+          score: 93,
+          grade: "GRADE A",
+          tier: "A",
+          trades: "2 / 4",
+          pair: "EURUSD · GBPUSD",
+          net: "+1.35%",
+          note: "Zero overtrading; session locked at daily target profit.",
+        },
+        {
+          id: "fri-2",
+          dayHeader: "FRI",
+          day: "FRI, NOV 13",
+          score: 87,
+          grade: "GRADE A",
+          tier: "A",
+          trades: "3 / 4",
+          pair: "XAUUSD",
+          net: "-0.60%",
+          note: "Strict daily loss limit triggered; stopped trading for the day.",
+        },
+        {
+          id: "sat-2",
+          dayHeader: "SAT",
+          day: "SAT, NOV 14",
+          score: 94,
+          grade: "GRADE A",
+          tier: "A",
+          trades: "2 / 4",
+          pair: "BTCUSD · SOLUSD",
+          net: "+0.80%",
+          note: "Clean weekend crypto execution with verified protective SL.",
+        },
+      ],
     },
     {
-      id: "wed",
-      dayHeader: "WED",
-      day: "WED, NOV 18",
-      score: 95,
-      grade: "GRADE A+",
-      tier: "A+",
-      trades: "2 / 4",
-      pair: "XAUUSD",
-      net: "+1.64%",
-      note: "Zero drawdown violation; 0.75% max risk per position.",
-    },
-    {
-      id: "thu",
-      dayHeader: "THU",
-      day: "THU, NOV 19",
-      score: 94,
-      grade: "GRADE A",
-      tier: "A",
-      trades: "3 / 4",
-      pair: "EURUSD · NAS100",
-      net: "+0.88%",
-      note: "Respected 15-min cooldown after morning breakeven stop.",
-    },
-    {
-      id: "fri",
-      dayHeader: "FRI",
-      day: "FRI, NOV 20",
-      score: 96,
-      grade: "GRADE A+",
-      tier: "A+",
-      trades: "2 / 4",
-      pair: "XAUUSD · GBPJPY",
-      net: "+1.32%",
-      note: "Flawless London-NY overlap execution; 100% SL compliance.",
-    },
-    {
-      id: "sat",
-      dayHeader: "SAT",
-      day: "SAT, NOV 21",
-      score: 96,
-      grade: "GRADE A+",
-      tier: "A+",
-      trades: "3 / 4",
-      pair: "BTCUSD · ETHUSD",
-      net: "+0.92%",
-      note: "Weekend crypto guard active. Perfect discipline verified.",
+      id: "w3",
+      rangeLabel: "Nov 2 – 7, 2026",
+      shortLabel: "Nov 2–7",
+      badge: "2 Weeks Ago",
+      isCurrent: false,
+      passRate: "100% Pass Rate",
+      avgScore: 92.0,
+      totalSessions: 6,
+      days: [
+        {
+          id: "mon-3",
+          dayHeader: "MON",
+          day: "MON, NOV 2",
+          score: 88,
+          grade: "GRADE A",
+          tier: "A",
+          trades: "3 / 4",
+          pair: "EURUSD · AUDUSD",
+          net: "+0.90%",
+          note: "Risk per position kept strictly under 0.8% equity.",
+        },
+        {
+          id: "tue-3",
+          dayHeader: "TUE",
+          day: "TUE, NOV 3",
+          score: 92,
+          grade: "GRADE A",
+          tier: "A",
+          trades: "2 / 4",
+          pair: "XAUUSD",
+          net: "+1.40%",
+          note: "Pre-election market volatility managed with reduced lot size.",
+        },
+        {
+          id: "wed-3",
+          dayHeader: "WED",
+          day: "WED, NOV 4",
+          score: 95,
+          grade: "GRADE A+",
+          tier: "A+",
+          trades: "3 / 4",
+          pair: "GBPUSD · EURUSD",
+          net: "+1.85%",
+          note: "Perfect execution across London and NY session overlap.",
+        },
+        {
+          id: "thu-3",
+          dayHeader: "THU",
+          day: "THU, NOV 5",
+          score: 90,
+          grade: "GRADE A",
+          tier: "A",
+          trades: "3 / 4",
+          pair: "USDCHF · USDJPY",
+          net: "+0.30%",
+          note: "All trade orders executed with instant stop losses attached.",
+        },
+        {
+          id: "fri-3",
+          dayHeader: "FRI",
+          day: "FRI, NOV 6",
+          score: 96,
+          grade: "GRADE A+",
+          tier: "A+",
+          trades: "2 / 4",
+          pair: "XAUUSD",
+          net: "+1.70%",
+          note: "US NFP news release bypassed as planned; zero slippage violations.",
+        },
+        {
+          id: "sat-3",
+          dayHeader: "SAT",
+          day: "SAT, NOV 7",
+          score: 91,
+          grade: "GRADE A",
+          tier: "A",
+          trades: "2 / 4",
+          pair: "SOLUSD · ETHUSD",
+          net: "+0.65%",
+          note: "Weekend crypto risk limit verified by MT5 Guard.",
+        },
+      ],
     },
   ];
+
+  const currentWeekData = weeklyHistory[selectedWeekIndex] || weeklyHistory[0];
+  const weeklyDays = currentWeekData.days;
 
   /* -------------------------------------------------------------------------
      BADGES DATA
@@ -890,11 +1094,11 @@ export default function Rewards() {
         {activeTab === "discipline" && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 items-stretch">
             
-            {/* Rule Compliance Parameters Card (Left side: 70% - 75% width, with exact Uiverse 3D Horizontal Bars) */}
-            <div className={`lg:col-span-8 xl:col-span-9 ${CARD_BASE} p-4 sm:p-5 flex flex-col justify-between`}>
+            {/* Rule Compliance Parameters Card (Left side: 70% - 75% width, balanced human proportions) */}
+            <div className={`lg:col-span-8 xl:col-span-9 ${CARD_BASE} p-4 sm:p-5 flex flex-col justify-between gap-3`}>
               
               {/* Header */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3.5 mb-4 border-b border-slate-100 dark:border-white/[0.06] gap-2">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 mb-1 border-b border-slate-100 dark:border-white/[0.06] gap-2">
                 <div>
                   <div className="flex items-center gap-2">
                     <div className="w-6 h-6 rounded-lg bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-[#006DFE] dark:text-blue-400 shrink-0">
@@ -927,13 +1131,13 @@ export default function Rewards() {
               </div>
 
               {/* 2x2 Interactive Rule Cards with Exact Uiverse .loaderBar */}
-              <div key={replayKey} className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-3.5">
+              <div key={replayKey} className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-3.5 my-auto">
                 {complianceRules.map((rule) => (
                   <button
                     key={rule.id}
                     type="button"
                     onClick={() => handleOpenRuleModal(rule)}
-                    className="w-full text-left p-3.5 sm:p-4 rounded-2xl bg-[#F8FAFC] dark:bg-white/[0.025] border border-slate-200/70 dark:border-white/[0.06] hover:border-[#006DFE]/40 dark:hover:border-[#006DFE]/40 transition-all cursor-pointer flex flex-col justify-between gap-2.5 group"
+                    className="w-full text-left p-3.5 rounded-2xl bg-[#F8FAFC] dark:bg-white/[0.025] border border-slate-200/70 dark:border-white/[0.06] hover:border-[#006DFE]/40 dark:hover:border-[#006DFE]/40 transition-all cursor-pointer flex flex-col justify-between gap-2.5 group"
                   >
                     {/* Top: Title & Badge */}
                     <div className="flex items-start justify-between gap-2 w-full">
@@ -954,8 +1158,8 @@ export default function Rewards() {
                       </span>
                     </div>
 
-                    {/* Bottom: 3D Horizontal Bar + Percentage */}
-                    <div className="flex items-center gap-2.5 w-full pt-1">
+                    {/* Middle: 3D Horizontal Bar + Percentage */}
+                    <div className="flex items-center gap-2.5 w-full pt-0.5">
                       {/* 3D Track with inset shadow */}
                       <div className="relative flex-1 h-[10px] rounded-full bg-[#EAEFF5] dark:bg-[#080C14] border border-slate-300/80 dark:border-[#006DFE]/40 p-[1px] shadow-[inset_0_1.5px_3px_rgba(0,0,0,0.12)] overflow-hidden">
                         {/* 3D Horizontal Striped Loader Bar */}
@@ -996,12 +1200,25 @@ export default function Rewards() {
                         {rule.percentageText}
                       </span>
                     </div>
+
+                    {/* Bottom: Micro Telemetry Stat */}
+                    {rule.telemetryStat && (
+                      <div className="flex items-center justify-between text-[10px] font-mono text-slate-400 dark:text-neutral-500 pt-1 border-t border-slate-200/50 dark:border-white/[0.04]">
+                        <span className="flex items-center gap-1">
+                          <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-neutral-600" />
+                          {rule.telemetryStat}
+                        </span>
+                        <span className="text-[9px] text-[#006DFE] dark:text-blue-400 font-semibold group-hover:underline">
+                          Inspect &rarr;
+                        </span>
+                      </div>
+                    )}
                   </button>
                 ))}
               </div>
 
               {/* Unified Forex 24/5 Session Rhythm Bar */}
-              <div className="mt-4 pt-3.5 border-t border-slate-100 dark:border-white/[0.06] flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
+              <div className="pt-3 border-t border-slate-100 dark:border-white/[0.06] flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
                 <div className="flex items-center gap-2">
                   <div className="w-5 h-5 rounded-md bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-xs shrink-0">
                     🌐
@@ -1036,33 +1253,86 @@ export default function Rewards() {
               </div>
             </div>
 
-            {/* Weekly Consistency Log (Right side: 25% width sleek compact companion box) */}
-            <div className={`lg:col-span-4 xl:col-span-3 ${CARD_BASE} p-4 sm:p-5 flex flex-col justify-between`}>
+            {/* Weekly Consistency Log (Right side: 25% - 30% width sleek interactive companion with History switcher) */}
+            <div className={`lg:col-span-4 xl:col-span-3 ${CARD_BASE} p-4 sm:p-5 flex flex-col justify-between gap-3`}>
               <div className="flex-1 flex flex-col">
-                <div className="flex items-center justify-between pb-2 mb-2.5 border-b border-slate-100 dark:border-white/[0.06]">
-                  <div>
-                    <h3 className="text-sm font-bold text-slate-900 dark:text-white tracking-tight">
-                      Weekly Consistency Log
-                    </h3>
-                    <p className="text-[10px] text-slate-400 dark:text-neutral-500 mt-0.5 font-medium">
-                      Audit past 6 MT5 sessions
-                    </p>
+                
+                {/* Header: Title, Range & History Selector */}
+                <div className="pb-2.5 mb-2.5 border-b border-slate-100 dark:border-white/[0.06] space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <h3 className="text-sm font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-1.5">
+                        <History size={13} className="text-[#006DFE] shrink-0" />
+                        <span>Weekly Consistency Log</span>
+                      </h3>
+                      <p className="text-[10px] text-slate-400 dark:text-neutral-500 mt-0.5 font-medium">
+                        Audit past MT5 sessions &amp; rule pass rate
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 text-[9.5px] font-mono font-bold text-slate-500 dark:text-neutral-400 shrink-0">
+                      <span className="inline-flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                        A+
+                      </span>
+                      <span className="inline-flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#006DFE]" />
+                        A
+                      </span>
+                    </div>
                   </div>
 
-                  <div className="flex items-center gap-2 text-[10px] font-mono font-bold text-slate-500 dark:text-neutral-400">
-                    <span className="inline-flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                      A+
-                    </span>
-                    <span className="inline-flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#006DFE]" />
-                      A
-                    </span>
+                  {/* Week Navigator Bar: Chevrons + Quick Jump Pills */}
+                  <div className="flex items-center justify-between gap-1.5 pt-1">
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        disabled={selectedWeekIndex >= weeklyHistory.length - 1}
+                        onClick={() => setSelectedWeekIndex((prev) => Math.min(weeklyHistory.length - 1, prev + 1))}
+                        title="Previous Week"
+                        className="w-6 h-6 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.06] dark:hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center text-slate-700 dark:text-neutral-300 transition-colors cursor-pointer"
+                      >
+                        <ChevronLeft size={13} />
+                      </button>
+                      <button
+                        type="button"
+                        disabled={selectedWeekIndex <= 0}
+                        onClick={() => setSelectedWeekIndex((prev) => Math.max(0, prev - 1))}
+                        title="Next Week"
+                        className="w-6 h-6 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.06] dark:hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center text-slate-700 dark:text-neutral-300 transition-colors cursor-pointer"
+                      >
+                        <ChevronRight size={13} />
+                      </button>
+                      <span className="text-[10.5px] font-mono font-bold text-slate-800 dark:text-neutral-200 pl-1">
+                        {currentWeekData.rangeLabel}
+                      </span>
+                    </div>
+
+                    {/* Quick Week Jump Pills */}
+                    <div className="flex items-center gap-1">
+                      {weeklyHistory.map((week, idx) => {
+                        const isSelected = selectedWeekIndex === idx;
+                        return (
+                          <button
+                            key={week.id}
+                            type="button"
+                            onClick={() => setSelectedWeekIndex(idx)}
+                            className={`px-1.5 py-0.5 rounded text-[9px] font-mono font-bold cursor-pointer transition-all ${
+                              isSelected
+                                ? "bg-slate-900 text-white dark:bg-white dark:text-slate-950 shadow-2xs"
+                                : "bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.06] dark:hover:bg-white/10 text-slate-600 dark:text-neutral-400"
+                            }`}
+                          >
+                            {idx === 0 ? "Current" : idx === 1 ? "-1W" : "-2W"}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
 
                 {/* 6 Sleek Compact Interactive Audit Rows */}
-                <div className="flex-1 flex flex-col justify-between gap-1.5 py-0.5">
+                <div className="space-y-1.5 py-0.5">
                   {weeklyDays.map((day) => {
                     const isAPlus = day.tier === "A+";
                     const dotColor = isAPlus ? "bg-emerald-500" : "bg-[#006DFE]";
@@ -1085,9 +1355,13 @@ export default function Rewards() {
                             <div className="text-[11px] font-bold text-slate-900 dark:text-white truncate">
                               {day.day}
                             </div>
-                            <div className="text-[9px] font-mono text-slate-400 dark:text-neutral-500 flex items-center gap-1">
+                            <div className="text-[9px] font-mono text-slate-400 dark:text-neutral-500 flex items-center gap-1 truncate">
                               <span className={`w-1 h-1 rounded-full ${dotColor}`} />
-                              <span>MT5 Audit</span>
+                              <span>{day.pair}</span>
+                              <span className="text-slate-300 dark:text-neutral-600">·</span>
+                              <span className={day.net.startsWith("+") ? "text-emerald-500 font-bold" : "text-rose-500 font-bold"}>
+                                {day.net}
+                              </span>
                             </div>
                           </div>
                         </div>
@@ -1107,9 +1381,13 @@ export default function Rewards() {
               </div>
 
               {/* Weekly Audit Summary Strip */}
-              <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-white/[0.06] flex items-center justify-between text-[10.5px] font-mono text-slate-400 dark:text-neutral-500">
-                <span>6 Sessions Audited</span>
-                <span className="font-bold text-emerald-600 dark:text-emerald-400">100% Pass Rate</span>
+              <div className="pt-2 border-t border-slate-100 dark:border-white/[0.06] flex items-center justify-between text-[10.5px] font-mono text-slate-400 dark:text-neutral-500">
+                <span className="flex items-center gap-1">
+                  <span>6 Sessions Audited</span>
+                  <span className="text-slate-300 dark:text-neutral-600">·</span>
+                  <span className="font-bold text-slate-700 dark:text-neutral-300">Avg {currentWeekData.avgScore}</span>
+                </span>
+                <span className="font-bold text-emerald-600 dark:text-emerald-400">{currentWeekData.passRate}</span>
               </div>
             </div>
 
